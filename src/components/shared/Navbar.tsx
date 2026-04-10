@@ -4,9 +4,11 @@ import React, { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { HardHat, Menu, X, Bell, ChevronDown, LogOut, User } from 'lucide-react'
+import { Menu, X, Bell, ChevronDown, LogOut, User } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { ThemeToggle } from '@/components/shared/ThemeToggle'
+import veroLogoLight from '../../../public/vero-permit-light.png'
+import veroLogoDark  from '../../../public/vero-permit-dark.png'
 
 interface NavbarProps {
   dark?: boolean
@@ -63,13 +65,21 @@ export function Navbar({ role = 'landing' }: NavbarProps) {
         <div className="flex items-center justify-between h-14">
 
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 shrink-0">
-            <div className="w-7 h-7 rounded-lg bg-flame flex items-center justify-center">
-              <HardHat className="w-3.5 h-3.5 text-white" />
-            </div>
-            <span className="text-sm font-black text-ink tracking-tight">
-              Site<span className="text-flame">Line</span>
-            </span>
+          <Link href="/" className="flex items-center gap-2 shrink-0">
+            <Image
+              src={veroLogoLight}
+              alt="Vero Permit"
+              height={35}
+              className="block dark:hidden h-[35px] w-auto"
+              priority
+            />
+            <Image
+              src={veroLogoDark}
+              alt="Vero Permit"
+              height={35}
+              className="hidden dark:block h-[35px] w-auto"
+              priority
+            />
           </Link>
 
           {/* Desktop nav */}

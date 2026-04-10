@@ -92,7 +92,7 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim }: JobDetail
     const shareUrl = `${window.location.origin}/inspector?job=${job.id}`
     const shareData = {
       title: `${job.projectName} · ${job.requiredDiscipline}`,
-      text: `${job.projectName} in ${job.city} is live on SiteLine.`,
+      text: `${job.projectName} in ${job.city} is live on Vero.`,
       url: shareUrl,
     }
 
@@ -427,7 +427,7 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim }: JobDetail
             <Row label="Priority adjustment" val={formatCurrency(pricing.priorityAdjustment)} />
           )}
           <Row label="Total transaction volume" val={formatCurrency(pricing.totalTransactionVolume)} />
-          <Row label="SiteLine commission (10%)" val={formatCurrency(pricing.platformCommission)} />
+          <Row label="Vero commission (10%)" val={formatCurrency(pricing.platformCommission)} />
           <Row label="Inspector payout"      val={formatCurrency(pricing.inspectorPayout)} highlight />
           <Row label="Estimated duration"    val={`${job.estimatedDuration} min (~${(job.estimatedDuration/60).toFixed(1)}h)`} />
           <Row label="Effective hourly rate" val={`$${hrlyRate}/hr`} highlight />

@@ -626,7 +626,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       : null
 
     if (authUser?.id && !persistedEligibility) {
-      return { ok: false, error: 'Inspector eligibility profile not found. Complete onboarding or contact SiteLine.' }
+      return { ok: false, error: 'Inspector eligibility profile not found. Complete onboarding or contact Vero.' }
     }
 
     const inspectorDisciplines = persistedEligibility?.disciplines ?? input.inspectorDisciplines

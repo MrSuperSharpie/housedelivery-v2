@@ -38,12 +38,12 @@ export const BASELINE_REQUIREMENTS: CredentialRequirement[] = [
   {
     type: 'conflict_of_interest_declaration',
     label: 'Signed conflict-of-interest declaration',
-    note: 'Confirms no material conflicts with any builder or project on the SiteLine platform',
+    note: 'Confirms no material conflicts with any builder or project on the Vero platform',
   },
   {
     type: 'data_handling_acknowledgement',
     label: 'Signed evidence / data-handling acknowledgement',
-    note: 'Confirms understanding of SiteLine evidence immutability, data retention, and chain-of-custody rules',
+    note: 'Confirms understanding of Vero evidence immutability, data retention, and chain-of-custody rules',
   },
 ]
 

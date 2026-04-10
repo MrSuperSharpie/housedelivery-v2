@@ -722,7 +722,7 @@ export function validatePayoutRelease(input: PayoutGovernanceInput): GovernanceR
       blocker(
         'R-047',
         'control_plane_exception',
-        'Payout cannot be released while a SiteLine control-plane exception remains unresolved.',
+        'Payout cannot be released while a Vero control-plane exception remains unresolved.',
         'commercial',
       ),
     )

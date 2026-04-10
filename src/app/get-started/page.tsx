@@ -82,7 +82,7 @@ export default function GetStartedPage() {
             Who are you building with?
           </h1>
           <p className="text-muted text-base max-w-lg mx-auto">
-            SiteLine connects builders, certified professionals, and city auditors on a single verified platform.
+            Vero connects builders, certified professionals, and city auditors on a single verified platform.
             Select your role to get started.
           </p>
         </div>

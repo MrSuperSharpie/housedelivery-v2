@@ -1,6 +1,6 @@
 /**
  * Official Vancouver BC inspection checklists.
- * Source: SiteLine field operations checklist set, March 2026.
+ * Source: Vero field operations checklist set, March 2026.
  *
  * Usage:
  *   import { INSPECTION_PHASES, getPhasesForStage, getPhaseById } from '@/lib/inspectionTemplates'

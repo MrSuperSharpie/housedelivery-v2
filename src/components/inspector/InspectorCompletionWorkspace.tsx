@@ -140,47 +140,36 @@ function DocRow({
   onClick: () => void
   onDelete: () => void
 }) {
-  // previewUrl is only ever generated for images, so its presence alone is
-  // sufficient to show a thumbnail — avoids false-negatives when mimeType is
-  // empty (e.g. some browsers omit it for certain file types on the local path).
   const isPdf = doc.mimeType === 'application/pdf' || doc.fileName.toLowerCase().endsWith('.pdf')
 
   return (
-    // Outer div — can't nest <button> inside <button>, so the row is a div
-    // with two independent interactive children: the open area and the delete button.
-    <div className="flex w-full items-center gap-2 rounded-2xl border border-white/10 bg-[#060b18] px-3 py-3">
-
-      {/* Left / open area — clicking this opens the document */}
+    <div className="group flex w-full items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm transition-all hover:border-zinc-300">
       <button
         type="button"
         onClick={onClick}
-        className="flex min-w-0 flex-1 items-center gap-3 text-left"
+        className="flex min-w-0 flex-1 items-center gap-3 text-left hover:opacity-80 transition-opacity"
       >
-        {/* Leading: thumbnail for images, coloured icon box for everything else */}
         {doc.previewUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={doc.previewUrl}
             alt={doc.fileName}
-            className="h-10 w-10 shrink-0 rounded-lg object-cover"
+            className="h-10 w-10 shrink-0 rounded-lg object-cover bg-zinc-100"
           />
         ) : (
           <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${
-            isPdf
-              ? 'border-red-500/20 bg-red-500/10'
-              : 'border-white/10 bg-white/5'
+            isPdf ? 'border-red-100 bg-red-50' : 'border-zinc-100 bg-zinc-50'
           }`}>
             {isPdf
-              ? <FileText className="h-4 w-4 text-red-400" />
+              ? <FileText className="h-4 w-4 text-red-500" />
               : <File className="h-4 w-4 text-zinc-400" />}
           </div>
         )}
-
-        {/* File name + metadata */}
         <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-semibold text-zinc-100">{doc.fileName}</div>
-          <div className="mt-0.5 flex items-center gap-2 text-[11px] text-zinc-500">
+          <div className="truncate text-sm font-semibold text-zinc-900">{doc.fileName}</div>
+          <div className="mt-0.5 flex items-center gap-2 text-[11px] text-zinc-500 font-medium">
             {doc.fileSize != null && <span>{formatBytes(doc.fileSize)}</span>}
+            <span className="opacity-50">•</span>
             <span>
               {new Date(doc.createdAt).toLocaleString('en-CA', {
                 hour: '2-digit',
@@ -191,16 +180,17 @@ function DocRow({
             </span>
           </div>
         </div>
-
-        <FileUp className="h-4 w-4 shrink-0 text-zinc-500" />
       </button>
-
-      {/* Delete button — removes this doc from workspace state */}
+      
       <button
         type="button"
-        onClick={onDelete}
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete();
+        }}
         aria-label={`Remove ${doc.fileName}`}
-        className="ml-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-zinc-600 transition-colors hover:bg-red-500/10 hover:text-red-400"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-red-100 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all active:scale-90"
+        title="Delete file"
       >
         <Trash2 className="h-4 w-4" />
       </button>
@@ -229,7 +219,7 @@ function GuidanceList({
   )
 }
 
-function SiteLineSealIcon({
+function VeroSealIcon({
   certified = false,
   className = '',
 }: {
@@ -1205,7 +1195,7 @@ export function InspectorCompletionWorkspace() {
     anomalyExplanation?: string,
   ): Promise<InspectorCompletionDocumentRow | null> {
     if (!report || !assignment || !activeUser) {
-      console.warn('[SiteLine] handleDocumentUpload — missing report/assignment/activeUser, aborting', { report: !!report, assignment: !!assignment, activeUser: !!activeUser })
+      console.warn('[Vero] handleDocumentUpload — missing report/assignment/activeUser, aborting', { report: !!report, assignment: !!assignment, activeUser: !!activeUser })
       return null
     }
 
@@ -1215,7 +1205,7 @@ export function InspectorCompletionWorkspace() {
     const effectivePreviewUrl: string | undefined = capture?.previewUrl
       ?? (file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined)
 
-    console.log('[SiteLine] handleDocumentUpload —', itemCode, '— previewMode:', previewMode, '— file:', file.name, '— previewUrl:', effectivePreviewUrl ?? '(none)')
+    console.log('[Vero] handleDocumentUpload —', itemCode, '— previewMode:', previewMode, '— file:', file.name, '— previewUrl:', effectivePreviewUrl ?? '(none)')
 
     if (previewMode) {
       const doc = createInspectorDevPreviewDocument({
@@ -1231,7 +1221,7 @@ export function InspectorCompletionWorkspace() {
         ? { ...doc, previewUrl: effectivePreviewUrl }
         : doc
       updateItem(itemCode, item => ({ ...item, documents: [...item.documents, docWithPreview] }))
-      console.log('[SiteLine] handleDocumentUpload — preview doc added to state, documents now:', 1, '(+1)')
+      console.log('[Vero] handleDocumentUpload — preview doc added to state, documents now:', 1, '(+1)')
       setLastSavedLabel('Preview document attached')
       return docWithPreview
     }
@@ -1243,7 +1233,7 @@ export function InspectorCompletionWorkspace() {
       // and leaving the document list empty, create a local-only doc so the UI still reflects
       // what the inspector attached. The storagePath prefix local:// distinguishes these from
       // server-persisted docs. They are session-only and will be lost on page reload.
-      console.warn('[SiteLine] handleDocumentUpload — no session, creating local-only doc for UI')
+      console.warn('[Vero] handleDocumentUpload — no session, creating local-only doc for UI')
       const localDoc = createInspectorDevPreviewDocument({
         reportId: report.id,
         assignmentId: assignment.id,
@@ -1282,7 +1272,7 @@ export function InspectorCompletionWorkspace() {
     )
 
     if (!doc) {
-      console.warn('[SiteLine] handleDocumentUpload — uploadInspectorCompletionDocument returned null (check Supabase storage logs)')
+      console.warn('[Vero] handleDocumentUpload — uploadInspectorCompletionDocument returned null (check Supabase storage logs)')
       return null
     }
 
@@ -1290,7 +1280,7 @@ export function InspectorCompletionWorkspace() {
       ? { ...doc, previewUrl: effectivePreviewUrl }
       : doc
     updateItem(itemCode, item => ({ ...item, documents: [...item.documents, docWithPreview] }))
-    console.log('[SiteLine] handleDocumentUpload — doc saved to Supabase and added to state, previewUrl:', docWithPreview.previewUrl ?? '(none)')
+    console.log('[Vero] handleDocumentUpload — doc saved to Supabase and added to state, previewUrl:', docWithPreview.previewUrl ?? '(none)')
     return docWithPreview
   }
 
@@ -1317,7 +1307,7 @@ export function InspectorCompletionWorkspace() {
     let anomalyExplanation: string | undefined
     if (geofence.state === 'anomalous') {
       const response = window.prompt(
-        'This capture is outside the expected site geofence. Add a short explanation so SiteLine can flag it for review.',
+        'This capture is outside the expected site geofence. Add a short explanation so Vero can flag it for review.',
         '',
       )
       if (!response?.trim()) {
@@ -1338,7 +1328,7 @@ export function InspectorCompletionWorkspace() {
     const document = await handleFieldEvidenceCapture(itemCode, payload)
     const entryKey = checklistEntryKey(checklistLabel)
     const noteKey = `${itemCode}:${entryKey}`
-    console.log('[SiteLine] handleChecklistCapture —', itemCode, '— source:', payload.source, '— transcript:', payload.transcript ?? '(none)')
+    console.log('[Vero] handleChecklistCapture —', itemCode, '— source:', payload.source, '— transcript:', payload.transcript ?? '(none)')
 
     const textNote = payload.source === 'text'
       ? await payload.file.text()
@@ -1476,7 +1466,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
 
     if (!saved) {
       reportPersistenceFailure(
-        'SiteLine could not save the certified completion report to Supabase. Please try again.',
+        'Vero could not save the certified completion report to Supabase. Please try again.',
         { assignmentId, reportId: report.id },
         { alert: true }
       )
@@ -1573,7 +1563,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
 
       if (!jobUpdated) {
         reportPersistenceFailure(
-          'The certification was saved to Supabase, but SiteLine could not update the project status. Please refresh and verify the job state.',
+          'The certification was saved to Supabase, but Vero could not update the project status. Please refresh and verify the job state.',
           { jobId: job.id, inspectorId: sessionInspector.id },
           { alert: true }
         )
@@ -1843,7 +1833,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
               : 'border border-emerald-500/25 bg-emerald-500/10'
           }`}>
             <div className="mx-auto mb-5 flex items-center justify-center">
-              <SiteLineSealIcon certified={isProjectCertified} className="h-20 w-20" />
+              <VeroSealIcon certified={isProjectCertified} className="h-20 w-20" />
             </div>
             <h1 className="text-3xl font-black text-slate-900 dark:text-white">{isProjectCertified ? 'Project Certified' : 'Digital Seal Applied'}</h1>
             <p className={`mx-auto mt-3 max-w-xl text-sm ${
@@ -2142,7 +2132,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                 const jurisdictionNotesOpen = expandedJurisdictionNotes[item.item_code] ?? false
 
                 if (usesFieldView) {
-                  console.log('[SiteLine] Rendering Checklist Item:', item.item_code, '— documents:', item.documents.length, item.documents)
+                  console.log('[Vero] Rendering Checklist Item:', item.item_code, '— documents:', item.documents.length, item.documents)
                   return (
                     <article key={item.item_code} className={`rounded-[1.75rem] border border-white/10 bg-[#0a1020] p-4 sm:p-5 ${FLOATING_PANEL_CLASS}`}>
                       <div className="flex flex-col gap-3">
@@ -2552,6 +2542,20 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                             </div>
                           </div>
 
+
+{/* SCHEDULE C-B DOWNLOAD BUTTON */}
+<div className="w-full pb-6 pt-2">
+  <a 
+    href={`/api/schedule-cb?reportId=${report.id}`}
+    download="Schedule_C-B.pdf"
+    className="flex w-full items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 shadow-sm hover:border-zinc-300 hover:bg-zinc-50 transition-all"
+  >
+    <svg className="h-5 w-5 text-zinc-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+    </svg>
+    Download Official Schedule C-B
+  </a>
+</div>
                           <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
                             <div className="flex items-center justify-between gap-3">
                               <div>
@@ -2938,11 +2942,11 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                   <div className="max-w-2xl">
                     <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-red-200/80">Final Occupancy Seal</div>
                     <div className="mt-3 flex items-center gap-4">
-                      <SiteLineSealIcon />
+                      <VeroSealIcon />
                       <div>
                         <h3 className="text-2xl font-black text-white">Issue Final Occupancy</h3>
                         <p className="mt-2 text-sm leading-relaxed text-zinc-300">
-                          This is the final SiteLine certification gate. All 15 stages must be passed before the project can be flipped to COMPLETED.
+                          This is the final Vero certification gate. All 15 stages must be passed before the project can be flipped to COMPLETED.
                         </p>
                       </div>
                     </div>
@@ -3010,7 +3014,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         : 'cursor-not-allowed bg-zinc-800 text-zinc-500'
                     }`}
                   >
-                    {sealing ? <Loader2 className="h-4 w-4 animate-spin" /> : <SiteLineSealIcon className="h-10 w-10" />}
+                    {sealing ? <Loader2 className="h-4 w-4 animate-spin" /> : <VeroSealIcon className="h-10 w-10" />}
                     {sealing ? 'Issuing Final Occupancy...' : 'ISSUE FINAL OCCUPANCY'}
                   </button>
                 </div>

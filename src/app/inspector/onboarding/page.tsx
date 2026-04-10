@@ -18,19 +18,19 @@ const STATUS_COPY: Record<InspectorOnboardingStatus, { title: string; detail: st
   },
   submitted: {
     title: 'Application submitted',
-    detail: 'Your credentials and documents are with SiteLine for review. You can browse the board, but claims stay locked until approval.',
+    detail: 'Your credentials and documents are with Vero for review. You can browse the board, but claims stay locked until approval.',
     icon: Clock,
     tone: 'text-warning-amber',
   },
   under_review: {
     title: 'Under review',
-    detail: 'SiteLine is reviewing your onboarding package. You can browse the board while approval is pending.',
+    detail: 'Vero is reviewing your onboarding package. You can browse the board while approval is pending.',
     icon: Clock,
     tone: 'text-warning-amber',
   },
   needs_info: {
     title: 'More info needed',
-    detail: 'SiteLine needs additional information before approval. Return to onboarding and update your submission.',
+    detail: 'Vero needs additional information before approval. Return to onboarding and update your submission.',
     icon: AlertCircle,
     tone: 'text-warning-amber',
   },
@@ -42,13 +42,13 @@ const STATUS_COPY: Record<InspectorOnboardingStatus, { title: string; detail: st
   },
   rejected: {
     title: 'Not approved',
-    detail: 'Your onboarding was not approved. Contact SiteLine support if you need help.',
+    detail: 'Your onboarding was not approved. Contact Vero support if you need help.',
     icon: AlertCircle,
     tone: 'text-fail-red',
   },
   suspended: {
     title: 'Suspended',
-    detail: 'Your inspector access is suspended. Contact SiteLine support for next steps.',
+    detail: 'Your inspector access is suspended. Contact Vero support for next steps.',
     icon: AlertCircle,
     tone: 'text-fail-red',
   },
@@ -129,7 +129,7 @@ export default function InspectorOnboardingEntryPage() {
             <div className="rounded-2xl border border-rim bg-surface p-5">
               <div className="text-[10px] font-bold uppercase tracking-widest text-subtle">What happens next</div>
               <ul className="mt-3 space-y-2 text-sm text-muted">
-                <li>SiteLine reviews your credentials and supporting documents.</li>
+                <li>Vero reviews your credentials and supporting documents.</li>
                 <li>Approved inspectors can claim eligible jobs from the Live Board.</li>
                 <li>Until approval, you can still browse the marketplace for discovery.</li>
               </ul>

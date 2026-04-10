@@ -55,7 +55,7 @@ const ROLE_CONFIG = {
     fields:  ['name', 'title', 'jurisdiction', 'email', 'phone', 'password'] as const,
   },
   admin: {
-    label:   'SiteLine Admin',
+    label:   'Vero Admin',
     icon:    Shield,
     color:   'text-flame',
     ring:    'focus:border-flame',
@@ -248,7 +248,7 @@ function SignInInner() {
           <div className="w-7 h-7 rounded-lg bg-flame flex items-center justify-center">
             <HardHat className="w-3.5 h-3.5 text-white" />
           </div>
-          <span className="text-sm font-black text-ink tracking-tight">Site<span className="text-flame">Line</span></span>
+          <span className="text-sm font-black text-ink tracking-tight">Vero</span>
         </Link>
         <Link href="/get-started" className="ml-auto flex items-center gap-1 text-xs text-muted hover:text-ink transition-colors">
           <ChevronLeft className="w-3.5 h-3.5" /> Back
@@ -422,7 +422,7 @@ function SignInInner() {
           </form>
 
           <p className="text-center text-[10px] text-subtle mt-6 leading-relaxed">
-            By creating an account you agree to SiteLine&apos;s Terms of Service and Privacy Policy.
+            By creating an account you agree to Vero&apos;s Terms of Service and Privacy Policy.
             Inspector accounts are verified against EGBC / AIBC registries before activation.
           </p>
         </div>

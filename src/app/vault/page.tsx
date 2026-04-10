@@ -237,7 +237,7 @@ export default function VaultPage() {
         ) : !user ? (
           <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm dark:border-slate-700 dark:bg-slate-800">
             <div className="text-lg font-black text-ink">Authentication required</div>
-            <p className="text-sm text-muted mt-2">Vault access is scoped to your SiteLine role.</p>
+            <p className="text-sm text-muted mt-2">Vault access is scoped to your Vero role.</p>
             <Link href="/sign-in" className="inline-flex items-center gap-2 mt-5 bg-flame text-white font-bold px-4 py-2.5 rounded-xl hover:bg-flame-light transition-colors">
               Sign In
               <ArrowRight className="w-4 h-4" />

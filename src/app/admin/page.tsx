@@ -291,7 +291,7 @@ export default function AdminHomePage() {
   return (
     <AdminShell
       title="Control Plane"
-      subtitle="SiteLine internal admin for approvals, queues, and operational health."
+      subtitle="Vero internal admin for approvals, queues, and operational health."
     >
       <div className="space-y-6 lg:space-y-7">
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.95fr)]">

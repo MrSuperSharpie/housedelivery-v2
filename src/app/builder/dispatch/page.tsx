@@ -281,7 +281,7 @@ export default function DispatchPage() {
             <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 mb-4 flex items-start gap-3">
               <Lock className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
               <div className="text-sm text-blue-700">
-                <span className="font-bold">Secure Escrow Protection:</span> Your {formatCurrency(pricingBreakdown.builderEscrowTotal)} covers the full transaction volume plus SiteLine&apos;s 10% commission.
+                <span className="font-bold">Secure Escrow Protection:</span> Your {formatCurrency(pricingBreakdown.builderEscrowTotal)} covers the full transaction volume plus Vero&apos;s 10% commission.
               </div>
             </div>
             <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-4 space-y-2 text-sm">
@@ -300,7 +300,7 @@ export default function DispatchPage() {
                 <span className="font-semibold text-gray-900">{formatCurrency(pricingBreakdown.inspectorPayout)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">SiteLine commission (10%)</span>
+                <span className="text-gray-500">Vero commission (10%)</span>
                 <span className="font-semibold text-gray-900">{formatCurrency(pricingBreakdown.platformCommission)}</span>
               </div>
               <div className="flex justify-between border-t border-gray-100 pt-2">

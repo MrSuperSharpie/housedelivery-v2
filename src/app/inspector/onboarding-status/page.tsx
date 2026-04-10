@@ -10,9 +10,9 @@ import type { InspectorOnboardingStatus } from '@/lib/types'
 
 const STATUS_CONFIG: Record<InspectorOnboardingStatus, { label: string; desc: string; icon: React.ElementType; className: string }> = {
   draft:          { label: 'Draft',           desc: 'Complete your application to submit for review.',                    icon: FileText,   className: 'text-muted' },
-  submitted:      { label: 'Submitted',       desc: 'Your application is under SiteLine review.',                          icon: Clock,      className: 'text-warning-amber' },
-  under_review:  { label: 'Under review',     desc: 'SiteLine is verifying your credentials and documents.',             icon: Clock,      className: 'text-warning-amber' },
-  needs_info:    { label: 'More info needed', desc: 'SiteLine has requested additional information. Check your email.',   icon: AlertCircle, className: 'text-warning-amber' },
+  submitted:      { label: 'Submitted',       desc: 'Your application is under Vero review.',                          icon: Clock,      className: 'text-warning-amber' },
+  under_review:  { label: 'Under review',     desc: 'Vero is verifying your credentials and documents.',             icon: Clock,      className: 'text-warning-amber' },
+  needs_info:    { label: 'More info needed', desc: 'Vero has requested additional information. Check your email.',   icon: AlertCircle, className: 'text-warning-amber' },
   approved:      { label: 'Approved',         desc: 'You can access the Live Board and apply to jobs.',                    icon: CheckCircle2, className: 'text-success-green' },
   rejected:      { label: 'Not approved',     desc: 'Your application was not approved. Contact support for details.',   icon: AlertCircle, className: 'text-fail-red' },
   suspended:     { label: 'Suspended',        desc: 'Your access is temporarily suspended. Contact support.',            icon: AlertCircle, className: 'text-fail-red' },
@@ -46,8 +46,7 @@ export default function InspectorOnboardingStatusPage() {
       <div className="border-b border-blue-900 px-4 py-4">
         <div className="max-w-xl mx-auto flex items-center justify-between">
           <Link href="/" className="text-lg font-black text-white">
-            Site<span className="text-[#FF5F15]">Line</span>
-            <span className="text-xs font-semibold text-blue-400 ml-2 tracking-widest uppercase">Pro</span>
+            Vero
           </Link>
           {user?.role === 'inspector' ? (
             <Link href="/inspector" className="text-xs text-blue-500 hover:text-electric transition-colors">
@@ -74,7 +73,7 @@ export default function InspectorOnboardingStatusPage() {
           <ul className="space-y-2.5 text-sm text-blue-300">
             <li className="flex items-start gap-2">
               <span className="text-[#FF5F15] font-bold shrink-0">1.</span>
-              SiteLine reviews your credentials and documents first (not the builder).
+              Vero reviews your credentials and documents first (not the builder).
             </li>
             <li className="flex items-start gap-2">
               <span className="text-[#FF5F15] font-bold shrink-0">2.</span>

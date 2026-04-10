@@ -32,7 +32,7 @@ export type InspectorDiscipline =
   | 'architectural'
 export type Region = 'burnaby' | 'vancouver' | 'surrey' | 'coquitlam' | 'richmond'
 
-/** Inspector onboarding / credential review status. SiteLine reviews first; only approved inspectors access the Live Board. */
+/** Inspector onboarding / credential review status. Vero reviews first; only approved inspectors access the Live Board. */
 export type InspectorOnboardingStatus =
   | 'draft'
   | 'submitted'
@@ -63,7 +63,7 @@ export interface InspectorEligibilityProfile {
   reviewerNote?: string
 }
 
-/** Types of inspector credentials uploaded to SiteLine for review. */
+/** Types of inspector credentials uploaded to Vero for review. */
 export type InspectorCredentialType =
   | 'government_id'
   | 'primary_license'
@@ -350,7 +350,7 @@ export type EscrowStatus =
   | 'authorized'           // payment authorised by Stripe; not yet captured
   | 'held'                 // funds captured and held in escrow
   | 'reserved'             // portion ring-fenced for a provisional assignment
-  | 'earned_pending_review' // inspection complete; awaiting SiteLine release approval
+  | 'earned_pending_review' // inspection complete; awaiting Vero release approval
   | 'payout_ready'         // approved for payout; queued for transfer to inspector
   | 'released'             // funds transferred to inspector
   | 'refunded'             // funds returned to builder (cancellation / failed dispute)

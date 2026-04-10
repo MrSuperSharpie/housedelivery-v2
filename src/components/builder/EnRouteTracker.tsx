@@ -158,7 +158,7 @@ function MockMap({ progress, arrived }: { progress: number; arrived: boolean }) 
       {!arrived && (
         <div className="absolute top-3 left-3 bg-[#080D18]/90 border border-white/10 rounded-xl px-2.5 py-1.5 backdrop-blur-sm">
           <div className="text-[9px] text-muted uppercase tracking-widest">Live Track</div>
-          <div className="text-xs font-bold text-electric">SiteLine GPS</div>
+          <div className="text-xs font-bold text-electric">Vero GPS</div>
         </div>
       )}
 

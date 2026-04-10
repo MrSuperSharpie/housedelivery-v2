@@ -167,7 +167,7 @@ function ProvisionalAssignmentPanel({
 
       {/* Notice */}
       <div className="px-5 py-3 text-xs text-muted border-b border-electric/10">
-        This assignment becomes <span className="text-success-green font-bold">confirmed</span> when the objection window closes. You may only raise an objection for the specific reasons below — all objections are reviewed by SiteLine admin.
+        This assignment becomes <span className="text-success-green font-bold">confirmed</span> when the objection window closes. You may only raise an objection for the specific reasons below — all objections are reviewed by Vero admin.
       </div>
 
       {/* Objection form toggle */}

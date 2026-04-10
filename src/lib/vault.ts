@@ -197,7 +197,7 @@ export function filterVaultRecordsForUser(records: VaultRecord[], user: AuthUser
 export function getVaultRoleCopy(user: AuthUser | null) {
   if (!user) {
     return {
-      title: 'SiteLine Vault',
+      title: 'Vero Vault',
       subtitle: 'Sign in to view your sealed records.',
     }
   }
@@ -205,7 +205,7 @@ export function getVaultRoleCopy(user: AuthUser | null) {
   if (user.role === 'builder') {
     return {
       title: 'Project Vault',
-      subtitle: 'Sealed records scoped to your projects and retained under the SiteLine vault standard.',
+      subtitle: 'Sealed records scoped to your projects and retained under the Vero vault standard.',
     }
   }
 

@@ -316,7 +316,16 @@ async function reconcileAssignmentRow(row: JobAssignmentRow): Promise<JobAssignm
     .maybeSingle()
 
   if (error) {
-    console.error('reconcileAssignmentRow:', error)
+    console.error(
+      'reconcileAssignmentRow failed:',
+      '\n  message :', error.message,
+      '\n  code    :', error.code,
+      '\n  details :', error.details,
+      '\n  hint    :', error.hint,
+      '\n  row.id  :', row.id,
+      '\n  row.status:', row.status,
+      '\n  full    :', JSON.stringify(error),
+    )
     return {
       ...row,
       status: snapshot.status,

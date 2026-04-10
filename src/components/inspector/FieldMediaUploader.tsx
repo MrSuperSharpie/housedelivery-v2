@@ -199,7 +199,7 @@ export function FieldMediaUploader({
       }
 
       const previewUrl = file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined
-      console.log('[SiteLine] finalizeCapture —', source, '— mimeType:', file.type, '— previewUrl:', previewUrl ?? '(none)', '— transcript:', transcript ?? '(none)')
+      console.log('[Vero] finalizeCapture —', source, '— mimeType:', file.type, '— previewUrl:', previewUrl ?? '(none)', '— transcript:', transcript ?? '(none)')
 
       await onCapture({
         file,
@@ -307,7 +307,7 @@ export function FieldMediaUploader({
           if (finalizeCalled) return
           finalizeCalled = true
           const transcript = transcriptParts.length > 0 ? transcriptParts.join(' ') : undefined
-          console.log('[SiteLine] audio finalize — transcriptParts:', transcriptParts.length, '— joined:', transcript ?? '(none)')
+          console.log('[Vero] audio finalize — transcriptParts:', transcriptParts.length, '— joined:', transcript ?? '(none)')
           void finalizeCapture(file, 'audio', transcript)
         }
 
@@ -322,7 +322,7 @@ export function FieldMediaUploader({
             doFinalize()
           }
         } else {
-          console.log('[SiteLine] audio finalize — SpeechRecognition unavailable in this browser')
+          console.log('[Vero] audio finalize — SpeechRecognition unavailable in this browser')
           doFinalize()
         }
       })

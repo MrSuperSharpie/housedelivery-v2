@@ -259,7 +259,7 @@ export default function InspectorDashboard() {
                 <div className="text-sm font-black text-electric">Complete onboarding to claim jobs</div>
                 <p className="mt-1 text-xs text-muted">
                   {inspectorEligibility.status !== 'approved'
-                    ? 'You can browse the Live Board for discovery, but claims stay locked until SiteLine approves your onboarding.'
+                    ? 'You can browse the Live Board for discovery, but claims stay locked until Vero approves your onboarding.'
                     : 'Your account is approved, but your approved role lanes do not include marketplace claim authority yet.'}
                 </p>
               </div>

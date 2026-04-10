@@ -374,7 +374,7 @@ export default function InspectorSignup() {
           Welcome, <span className="text-white font-bold">{form.firstName}</span>.
         </p>
         <p className="text-blue-500 text-sm">
-          Check your email to confirm your account. SiteLine will review your credentials within 1–2 business days.
+          Check your email to confirm your account. Vero will review your credentials within 1–2 business days.
         </p>
       </div>
     )
@@ -493,7 +493,7 @@ export default function InspectorSignup() {
             <div className="space-y-4">
               <h2 className="text-2xl font-black text-[#0A192F]">Upload Proof</h2>
               <p className="text-sm text-gray-500">
-                Files are uploaded securely when you submit. All documents are reviewed only by the SiteLine verification team.
+                Files are uploaded securely when you submit. All documents are reviewed only by the Vero verification team.
               </p>
               {DOC_DEFS.map(docDef => (
                 <DocUpload
@@ -565,7 +565,7 @@ export default function InspectorSignup() {
                   onChange={() => set('agreeTerms', !form.agreeTerms)}
                 />
                 <span className="text-sm font-bold text-gray-700">
-                  I agree to the SiteLine Terms of Service and consent to a background check
+                  I agree to the Vero Terms of Service and consent to a background check
                 </span>
               </label>
 

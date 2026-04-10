@@ -29,10 +29,20 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<AppTheme>(() => {
     if (typeof document === 'undefined') return DEFAULT_THEME
 
+    // 1. Prefer data-theme already on <html> (set by a prior applyTheme call
+    //    in the same page session — e.g. from an inline script or hydration).
     const rootTheme = document.documentElement.dataset.theme
-    return rootTheme === 'light' || rootTheme === 'dark'
-      ? rootTheme
-      : DEFAULT_THEME
+    if (rootTheme === 'light' || rootTheme === 'dark') return rootTheme
+
+    // 2. Fall back to the value persisted in localStorage so the user's choice
+    //    survives full page reloads. Without this, theme resets to DEFAULT_THEME
+    //    on every refresh and the ThemeProvider/Tailwind dark: classes diverge.
+    try {
+      const stored = window.localStorage.getItem(THEME_STORAGE_KEY)
+      if (stored === 'light' || stored === 'dark') return stored
+    } catch { /* localStorage blocked (private browsing, etc.) */ }
+
+    return DEFAULT_THEME
   })
 
   useEffect(() => {

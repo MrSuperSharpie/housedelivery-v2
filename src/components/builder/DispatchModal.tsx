@@ -637,7 +637,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             </div>
             <div>
               <h2 className="font-black text-gray-900 text-base">Vault Retention</h2>
-              <p className="text-xs text-gray-500 mt-0.5">Select how long your inspection record is retained in the SiteLine Vault</p>
+              <p className="text-xs text-gray-500 mt-0.5">Select how long your inspection record is retained in the Vero Vault</p>
             </div>
           </div>
 
@@ -684,7 +684,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
           <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 mb-5 flex items-start gap-2">
             <Archive className="w-3.5 h-3.5 text-blue-500 mt-0.5 shrink-0" />
             <p className="text-xs text-blue-600 leading-relaxed">
-              Your sealed inspection record, evidence, and submission package will be retained in the SiteLine Vault for the selected period. Upgrade at any time from the Vault dashboard.
+              Your sealed inspection record, evidence, and submission package will be retained in the Vero Vault for the selected period. Upgrade at any time from the Vault dashboard.
             </p>
           </div>
 
@@ -705,7 +705,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
           </button>
           <h2 className="text-xl font-black text-gray-900 mb-1">Review your listing</h2>
           <p className="text-sm text-gray-500 mb-4">
-            Once posted, this request goes live on the <span className="font-semibold text-gray-900">SiteLine Live Board</span> and is blasted to all qualified professionals in your area.
+            Once posted, this request goes live on the <span className="font-semibold text-gray-900">Vero Live Board</span> and is blasted to all qualified professionals in your area.
           </p>
 
           {/* Listing card — styled like a real job posting */}
@@ -858,7 +858,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                 <span className="font-bold text-gray-900">{formatCurrency(pricing.inspectorPayout)}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">SiteLine Platform Commission (10%)</span>
+                <span className="text-gray-600">Vero Platform Commission (10%)</span>
                 <span className="font-bold text-gray-900">{formatCurrency(pricing.platformCommission)}</span>
               </div>
               <div className="border-t border-gray-200 pt-2 mt-2 flex items-center justify-between">
@@ -1069,7 +1069,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
           </div>
 
           <h3 className="text-2xl font-black text-gray-900 mb-1">Listing is Live</h3>
-          <p className="text-sm text-gray-500 mb-5">Your request is on the SiteLine Live Board. The first eligible inspector to claim the slot is automatically assigned — you&apos;ll be notified when confirmed.</p>
+          <p className="text-sm text-gray-500 mb-5">Your request is on the Vero Live Board. The first eligible inspector to claim the slot is automatically assigned — you&apos;ll be notified when confirmed.</p>
 
           <div className="bg-slate-900 rounded-2xl p-4 text-left mb-4">
             <div className="flex items-center gap-2 mb-3">

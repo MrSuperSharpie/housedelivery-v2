@@ -800,7 +800,7 @@ export default function ActiveInspectionPage() {
             </div>
             <h1 className="text-3xl font-black mb-2">Inspection Complete</h1>
             <p className="text-sm text-blue-400 max-w-sm leading-relaxed">
-              Your sealed report has been submitted to SiteLine for Admin review.
+              Your sealed report has been submitted to Vero for Admin review.
             </p>
           </div>
 

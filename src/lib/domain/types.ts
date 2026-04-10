@@ -1,5 +1,5 @@
 /**
- * SiteLine Domain Model — Phase 1
+ * Vero Domain Model — Phase 1
  * Permit compliance operating system: doers, verifiers, authorities.
  * BC residential permitting; Vancouver first jurisdiction.
  */

@@ -129,11 +129,11 @@ export default function AuditorVault() {
                 <div className="font-black text-ink text-base">Live Access Requires Explicit Enablement</div>
                 <p className="text-sm text-muted mt-1 leading-relaxed">
                   Real-time inspection tracking, live dashboards, and live map views are restricted by default.
-                  Access must be explicitly granted by a SiteLine platform administrator for your jurisdiction.
+                  Access must be explicitly granted by a Vero platform administrator for your jurisdiction.
                 </p>
                 {accessRequested ? (
                   <div className="mt-3 inline-flex items-center gap-2 bg-warning-amber/10 text-warning-amber text-xs font-bold px-4 py-2 rounded-xl border border-warning-amber/20">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> Request submitted — SiteLine will contact your jurisdiction administrator.
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Request submitted — Vero will contact your jurisdiction administrator.
                   </div>
                 ) : (
                   <button
@@ -169,7 +169,7 @@ export default function AuditorVault() {
             </div>
 
             <p className="text-xs text-center text-subtle pb-2">
-              Live access is logged and subject to data sharing agreements between your municipality and SiteLine.
+              Live access is logged and subject to data sharing agreements between your municipality and Vero.
             </p>
           </div>
         )}
@@ -180,8 +180,8 @@ export default function AuditorVault() {
             <div className="bg-panel border border-rim rounded-2xl p-6">
               <h2 className="text-lg font-black text-ink mb-2">Archive Retention Tiers</h2>
               <p className="text-sm text-muted mb-6 leading-relaxed">
-                After completion, all inspection records — including pass/fail results, documentation, evidence, and exported packages — are stored in the SiteLine Vault.
-                The Vault protects builders, inspectors, and SiteLine by preserving a searchable, retrievable professional record.
+                After completion, all inspection records — including pass/fail results, documentation, evidence, and exported packages — are stored in the Vero Vault.
+                The Vault protects builders, inspectors, and Vero by preserving a searchable, retrievable professional record.
               </p>
 
               <div className="grid md:grid-cols-3 gap-4">

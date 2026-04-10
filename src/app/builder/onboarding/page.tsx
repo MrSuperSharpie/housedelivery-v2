@@ -206,35 +206,35 @@ const STATUS_CONFIG: Partial<Record<BuilderOnboardingStatus, {
 }>> = {
   submitted: {
     label: 'Verification submitted',
-    desc: 'Your builder verification is under SiteLine review. You\'ll be notified by email once a decision is made.',
+    desc: 'Your builder verification is under Vero review. You\'ll be notified by email once a decision is made.',
     icon: Clock,
     iconBg: 'bg-amber-100',
     iconColor: 'text-amber-500',
   },
   under_review: {
     label: 'Under review',
-    desc: 'SiteLine is verifying your business documents and registration details. Live project posting is locked until approval.',
+    desc: 'Vero is verifying your business documents and registration details. Live project posting is locked until approval.',
     icon: Clock,
     iconBg: 'bg-amber-100',
     iconColor: 'text-amber-500',
   },
   needs_info: {
     label: 'Additional information required',
-    desc: 'SiteLine has requested more information. Please check your email and re-upload any requested documents.',
+    desc: 'Vero has requested more information. Please check your email and re-upload any requested documents.',
     icon: AlertCircle,
     iconBg: 'bg-amber-100',
     iconColor: 'text-amber-500',
   },
   rejected: {
     label: 'Verification not approved',
-    desc: 'Your builder verification was not approved. Contact support@siteline.ca for details.',
+    desc: 'Your builder verification was not approved. Contact support@getvero.ca for details.',
     icon: AlertCircle,
     iconBg: 'bg-red-100',
     iconColor: 'text-red-500',
   },
   suspended: {
     label: 'Account suspended',
-    desc: 'Your builder account has been temporarily suspended. New live postings are blocked. Contact support@siteline.ca.',
+    desc: 'Your builder account has been temporarily suspended. New live postings are blocked. Contact support@getvero.ca.',
     icon: AlertCircle,
     iconBg: 'bg-red-100',
     iconColor: 'text-red-500',
@@ -573,7 +573,7 @@ export default function BuilderOnboardingPage() {
           </div>
           <h1 className="text-2xl font-black text-gray-900 mb-2">Complete your builder verification</h1>
           <p className="text-sm text-gray-500 max-w-sm mx-auto">
-            SiteLine verifies builders before allowing live project posting. Provide your company details and required documents for review.
+            Vero verifies builders before allowing live project posting. Provide your company details and required documents for review.
           </p>
         </div>
 
@@ -835,7 +835,7 @@ export default function BuilderOnboardingPage() {
               )}
 
               <ConditionalBanner>
-                <span className="font-bold">Why we ask:</span> SiteLine verifies every builder against BC Registries and confirms that residential builders hold the required BC Housing licence before they can post live inspection requests.
+                <span className="font-bold">Why we ask:</span> Vero verifies every builder against BC Registries and confirms that residential builders hold the required BC Housing licence before they can post live inspection requests.
               </ConditionalBanner>
             </div>
           )}
@@ -868,7 +868,7 @@ export default function BuilderOnboardingPage() {
                 <DocUpload
                   label="Certificate of Insurance"
                   required
-                  hint="Current commercial general liability or builder's risk certificate meeting SiteLine participation requirements."
+                  hint="Current commercial general liability or builder's risk certificate meeting Vero participation requirements."
                   uploaded={form.docs.insurance}
                   onUpload={() => setDocUploaded('insurance')}
                 />
@@ -997,7 +997,7 @@ export default function BuilderOnboardingPage() {
               <div className="space-y-2">
                 <div className="text-xs font-bold text-gray-500 uppercase tracking-wide">Identity verification (conditional)</div>
                 <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs text-gray-500 mb-2">
-                  Government-issued photo ID is not required at this stage for all applicants. SiteLine may request it during manual review if the authorized signatory&apos;s identity cannot be confirmed from the documents above.
+                  Government-issued photo ID is not required at this stage for all applicants. Vero may request it during manual review if the authorized signatory&apos;s identity cannot be confirmed from the documents above.
                 </div>
                 <DocUpload
                   label="Government-Issued Photo ID"
@@ -1093,7 +1093,7 @@ export default function BuilderOnboardingPage() {
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2">
                 <Shield className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
                 <div className="text-xs text-amber-700">
-                  <span className="font-bold">Live posting locked until approved.</span> After submitting, SiteLine will review your documents within 3–5 business days and notify you by email.
+                  <span className="font-bold">Live posting locked until approved.</span> After submitting, Vero will review your documents within 3–5 business days and notify you by email.
                 </div>
               </div>
 
@@ -1106,7 +1106,7 @@ export default function BuilderOnboardingPage() {
                   },
                   {
                     key: 'agreeTerms' as const,
-                    label: 'I agree to the SiteLine Terms of Service, Privacy Policy, and Builder Code of Conduct.',
+                    label: 'I agree to the Vero Terms of Service, Privacy Policy, and Builder Code of Conduct.',
                   },
                 ].map(({ key, label }) => (
                   <label key={key} className="flex items-start gap-3 cursor-pointer">
@@ -1163,8 +1163,8 @@ export default function BuilderOnboardingPage() {
 
         <p className="text-center text-xs text-gray-400 mt-6">
           Need help?{' '}
-          <a href="mailto:support@siteline.ca" className="text-flame font-semibold hover:underline">
-            Contact support@siteline.ca
+          <a href="mailto:support@getvero.ca" className="text-flame font-semibold hover:underline">
+            Contact support@getvero.ca
           </a>
         </p>
       </div>

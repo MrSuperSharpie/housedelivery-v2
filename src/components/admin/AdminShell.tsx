@@ -62,7 +62,7 @@ export function AdminShell({ children, title, subtitle }: {
                 Internal workspace
               </div>
               <div className="mt-1 text-base font-black tracking-[-0.04em] text-ink">
-                SiteLine Admin
+                Vero Admin
               </div>
               <p className="mt-1 text-xs leading-5 text-muted">
                 Review queues, approvals, and operational health from one control surface.

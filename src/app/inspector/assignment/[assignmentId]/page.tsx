@@ -329,7 +329,7 @@ export default function InspectorAssignmentDetailPage() {
           <div className="mt-4 flex items-start gap-2 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-xs text-amber-100">
             <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
             <span>
-              SiteLine governed dispatch is still in effect here: the builder did not choose you, your claim made the assignment provisional, and the builder only has governed objection rights during the window above.
+              Vero governed dispatch is still in effect here: the builder did not choose you, your claim made the assignment provisional, and the builder only has governed objection rights during the window above.
             </span>
           </div>
         </div>

@@ -38,7 +38,7 @@ const REQUIRED_CREDENTIALS: Array<{
   { type: 'insurance',                       label: 'Certificate of insurance',                        hint: 'Current certificate — minimum $2M E&O / general liability.' },
   { type: 'resume',                          label: 'Resume or experience summary',                    hint: 'Professional background relevant to your selected role lane(s).' },
   { type: 'conflict_of_interest_declaration', label: 'Signed conflict-of-interest declaration',        hint: 'Confirms no material conflicts with any builder or project on the platform.' },
-  { type: 'data_handling_acknowledgement',   label: 'Signed evidence / data-handling acknowledgement', hint: 'Confirms understanding of SiteLine evidence immutability and chain-of-custody rules.' },
+  { type: 'data_handling_acknowledgement',   label: 'Signed evidence / data-handling acknowledgement', hint: 'Confirms understanding of Vero evidence immutability and chain-of-custody rules.' },
 ]
 
 // Lane-specific and supplementary documents — required for specific role lanes
@@ -616,9 +616,9 @@ export default function InspectorProfilePage() {
         <div className="card-dark rounded-2xl p-6 mt-5 inset-top">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <div className="label-mono mb-1">Credential package for SiteLine review</div>
+              <div className="label-mono mb-1">Credential package for Vero review</div>
               <p className="text-xs text-muted">
-                Baseline approval documents unlock SiteLine review. Additional qualifications can be uploaded anytime to
+                Baseline approval documents unlock Vero review. Additional qualifications can be uploaded anytime to
                 support expanded eligibility later.
               </p>
             </div>
@@ -651,13 +651,13 @@ export default function InspectorProfilePage() {
           }`}>
             <div className="font-bold">
               {missingRequired.length === 0
-                ? 'Ready for SiteLine review'
+                ? 'Ready for Vero review'
                 : 'More documents required before review'}
             </div>
             <div className="mt-1 text-[11px] leading-relaxed">
               {missingRequired.length === 0
-                ? 'No separate submit button is required. Once the required documents are uploaded, your approval package is on file for SiteLine admin review. Admin will move your status to under review, needs info, or approved.'
-                : 'Upload the remaining required approval documents above. Once all required items are on file, the package is ready for SiteLine admin review.'}
+                ? 'No separate submit button is required. Once the required documents are uploaded, your approval package is on file for Vero admin review. Admin will move your status to under review, needs info, or approved.'
+                : 'Upload the remaining required approval documents above. Once all required items are on file, the package is ready for Vero admin review.'}
             </div>
           </div>
 
@@ -706,7 +706,7 @@ export default function InspectorProfilePage() {
 
           <div className="mb-4 rounded-xl border border-white/5 overflow-hidden">
             <div className="px-3 py-2 bg-raised text-[11px] text-subtle">
-              Required documents for SiteLine approval
+              Required documents for Vero approval
             </div>
             <div className="divide-y divide-white/5">
               {REQUIRED_CREDENTIALS.map(doc => {

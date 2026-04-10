@@ -138,7 +138,7 @@ export default function AdminSettingsPage() {
           <Field label="Retention hourly rate" hint="Charged to builder during inspector hold">
             <NumberInput value={retentionRate} onChange={setRetentionRate} prefix="$" suffix="/hr" />
           </Field>
-          <Field label="SiteLine platform fee" hint="Taken from inspector payout">
+          <Field label="Vero platform fee" hint="Taken from inspector payout">
             <NumberInput value={platformFee} onChange={setPlatformFee} suffix="%" />
           </Field>
         </div>

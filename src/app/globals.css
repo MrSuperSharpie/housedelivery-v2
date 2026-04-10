@@ -1,5 +1,19 @@
 @import "tailwindcss";
 
+/*
+ * Override Tailwind v4's default dark-mode strategy.
+ *
+ * Without this, Tailwind v4 uses @media (prefers-color-scheme: dark) — the OS
+ * setting — so dark:hidden / dark:block follow the OS regardless of the app's
+ * ThemeProvider toggle.
+ *
+ * This @variant makes ALL dark: utilities activate whenever a .dark class is
+ * present on any ancestor element. ThemeProvider already writes that class to
+ * <html> via classList.toggle('dark', theme === 'dark'), so the two are now
+ * wired together correctly.
+ */
+@variant dark (&:where(.dark, .dark *));
+
 /* ── Design tokens ────────────────────────────────────────────────────────── */
 @theme {
   --color-flame:         #FF5F15;
@@ -933,7 +947,7 @@ html[data-theme='light'] .app-theme-scope {
   .text-electric      { color: #0369a1 !important; }
   .font-mono, [class*="font-mono"] { font-family: "Courier New", Courier, monospace !important; }
 
-  /* SiteLine letterhead — shown only on first page */
+  /* Vero letterhead — shown only on first page */
   .siteline-print-header {
     display: block !important;
     border-bottom: 2px solid #111111;

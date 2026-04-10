@@ -216,7 +216,7 @@ export default function AdminInspectorsPage() {
       <div className="flex items-center justify-between mb-4">
         <div className="inline-flex items-center gap-2 bg-flame/10 border border-flame/20 rounded-full px-3 py-1">
           <Shield className="w-3.5 h-3.5 text-flame" />
-          <span className="text-[11px] font-bold text-flame tracking-wide uppercase">Internal · SiteLine reviewer</span>
+          <span className="text-[11px] font-bold text-flame tracking-wide uppercase">Internal · Vero reviewer</span>
         </div>
         <Link href="/inspector/onboarding-status" className="text-xs text-flame font-semibold hover:underline">
           Inspector-facing status →
@@ -439,7 +439,7 @@ export default function AdminInspectorsPage() {
                       onBlur={e =>
                         handleStatusChange(row.userId, row.status, e.target.value || undefined)
                       }
-                      placeholder="Internal notes for SiteLine reviewers (not visible to inspectors yet)"
+                      placeholder="Internal notes for Vero reviewers (not visible to inspectors yet)"
                       rows={2}
                       className="w-full bg-surface border border-white/10 rounded-xl px-3 py-2 text-xs text-ink placeholder-subtle focus:outline-none focus:border-flame resize-none"
                     />

@@ -101,7 +101,7 @@ export default function LandingPage() {
               <HardHat className="w-4 h-4 text-white" />
             </div>
             <span className="text-base font-black text-ink tracking-tight">
-              Site<span className="text-flame">Line</span>
+              Vero
             </span>
           </Link>
 
@@ -162,7 +162,7 @@ export default function LandingPage() {
             </h1>
 
             <p className="text-lg sm:text-xl text-muted max-w-2xl leading-relaxed mb-10">
-              SiteLine connects builders with licensed engineers and architects for rapid private building inspections.
+              Vero connects builders with licensed engineers and architects for rapid private building inspections.
               Legally binding BC Schedule&nbsp;C-B delivered the same day.
             </p>
 
@@ -234,7 +234,7 @@ export default function LandingPage() {
             icon={Eye}
             eyebrow="City Auditors"
             title="Compliance-ready. Zero new software."
-            body="SiteLine can deliver pre-filled PDF reports to your permit desk when configured — Vancouver first."
+            body="Vero can deliver pre-filled PDF reports to your permit desk when configured — Vancouver first."
             href="/auditor"
             cta="Open vault"
             accent="bg-gradient-to-r from-plasma to-transparent"
@@ -256,13 +256,13 @@ export default function LandingPage() {
                 <StepRow n="01" title="Post & pre-fund your inspection"
                   body="Enter your site address, select the permit stage and discipline, set safety requirements, and pre-fund the full estimated cost to escrow. Your listing goes live on the board." />
                 <StepRow n="02" title="Governed dispatch assigns a CP"
-                  body="SiteLine automatically filters by credentials, discipline, region, and availability. The first eligible inspector to claim the slot is assigned — no manual selection needed." />
+                  body="Vero automatically filters by credentials, discipline, region, and availability. The first eligible inspector to claim the slot is assigned — no manual selection needed." />
                 <StepRow n="03" title="Progressive checklist, photo evidence"
                   body="The inspector works through the exact BC code requirements on-site. Failed items auto-expand, requiring a photo and note. GPS and timestamps recorded." />
                 <StepRow n="04" title="Pass, Fail, or Hold / Modification Required"
                   body="If it's a pass, you're done. If a minor correction is needed, the inspector can hold on-site while your crew fixes it — premium hourly rates apply." />
                 <StepRow n="05" title="Digital seal → Schedule C-B → payment"
-                  body="The inspector signs off in-app. SiteLine generates the Schedule C-B, the defensible professional record is archived in the Vault, and escrow is released." />
+                  body="The inspector signs off in-app. Vero generates the Schedule C-B, the defensible professional record is archived in the Vault, and escrow is released." />
               </div>
             </div>
 
@@ -288,7 +288,7 @@ export default function LandingPage() {
             <div className="label-mono mb-3">Pricing</div>
             <h2 className="text-3xl font-black text-ink">Your schedule, your speed.</h2>
             <p className="text-muted text-sm mt-3 max-w-xl mx-auto">
-              Funds are pre-funded to escrow before the job goes live. SiteLine charges a flat 10% commission on total transaction volume. No subscription, no retainer.
+              Funds are pre-funded to escrow before the job goes live. Vero charges a flat 10% commission on total transaction volume. No subscription, no retainer.
             </p>
           </div>
 
@@ -382,10 +382,10 @@ export default function LandingPage() {
             <div className="w-7 h-7 rounded-lg bg-flame flex items-center justify-center">
               <HardHat className="w-3.5 h-3.5 text-white" />
             </div>
-            <span className="text-sm font-black text-ink">Site<span className="text-flame">Line</span></span>
+            <span className="text-sm font-black text-ink">Vero</span>
           </div>
           <div className="flex items-center gap-5 text-xs text-subtle">
-            <span>© 2026 SiteLine Technologies Inc.</span>
+            <span>© 2026 Vero Technologies Inc.</span>
             <span>Vancouver, BC</span>
             <span className="cursor-default">Privacy</span>
             <span className="cursor-default">Terms</span>

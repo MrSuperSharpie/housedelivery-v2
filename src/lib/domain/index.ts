@@ -1,5 +1,5 @@
 /**
- * SiteLine domain model — public API
+ * Vero domain model — public API
  */
 
 export * from './types'

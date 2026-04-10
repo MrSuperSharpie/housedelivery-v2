@@ -33,7 +33,7 @@ export interface AuthUser {
   // auditor
   jurisdiction?: string
   title?: string
-  // inspector onboarding (SiteLine reviews first; only approved can access Live Board)
+  // inspector onboarding (Vero reviews first; only approved can access Live Board)
   onboardingStatus?: 'draft' | 'submitted' | 'under_review' | 'needs_info' | 'approved' | 'rejected' | 'suspended'
   // supabase user id (when using real auth)
   supabaseId?: string
@@ -65,7 +65,7 @@ export const DEMO_USERS: AuthUser[] = [
     name:             'Dr. Sarah Chen',
     firstName:        'Sarah',
     role:             'inspector',
-    email:            'sarah.chen@siteline.ca',
+    email:            'sarah.chen@getvero.ca',
     phone:            '604-555-0198',
     avatar:           'SC',
     licenseNumber:    'BC-ENG-29847',
@@ -91,10 +91,10 @@ export const DEMO_USERS: AuthUser[] = [
   },
   {
     id:       'siteline-admin',
-    name:     'SiteLine Admin',
+    name:     'Vero Admin',
     firstName:'Admin',
     role:     'admin',
-    email:    'admin@siteline.ca',
+    email:    'admin@getvero.ca',
     phone:    '604-555-0001',
     avatar:   'SA',
     position: 'Platform Administrator',
