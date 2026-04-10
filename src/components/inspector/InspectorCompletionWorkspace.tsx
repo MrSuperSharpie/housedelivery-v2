@@ -20,6 +20,7 @@ import {
   MapPin,
   ShieldCheck,
   Stamp,
+  Trash2,
   Upload,
   XCircle,
 } from 'lucide-react'
@@ -133,57 +134,77 @@ function formatBytes(bytes: number): string {
 function DocRow({
   doc,
   onClick,
+  onDelete,
 }: {
   doc: InspectorCompletionDocumentRow
   onClick: () => void
+  onDelete: () => void
 }) {
-  const isImage = doc.mimeType?.startsWith('image/') ?? false
+  // previewUrl is only ever generated for images, so its presence alone is
+  // sufficient to show a thumbnail — avoids false-negatives when mimeType is
+  // empty (e.g. some browsers omit it for certain file types on the local path).
   const isPdf = doc.mimeType === 'application/pdf' || doc.fileName.toLowerCase().endsWith('.pdf')
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-[#060b18] px-3 py-3 text-left hover:bg-[#091022]"
-    >
-      {/* Leading: thumbnail for images, coloured icon box for everything else */}
-      {isImage && doc.previewUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={doc.previewUrl}
-          alt={doc.fileName}
-          className="h-10 w-10 shrink-0 rounded-lg object-cover"
-        />
-      ) : (
-        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${
-          isPdf
-            ? 'border-red-500/20 bg-red-500/10'
-            : 'border-white/10 bg-white/5'
-        }`}>
-          {isPdf
-            ? <FileText className="h-4 w-4 text-red-400" />
-            : <File className="h-4 w-4 text-zinc-400" />}
-        </div>
-      )}
+    // Outer div — can't nest <button> inside <button>, so the row is a div
+    // with two independent interactive children: the open area and the delete button.
+    <div className="flex w-full items-center gap-2 rounded-2xl border border-white/10 bg-[#060b18] px-3 py-3">
 
-      {/* File name + metadata */}
-      <div className="min-w-0 flex-1">
-        <div className="truncate text-sm font-semibold text-zinc-100">{doc.fileName}</div>
-        <div className="mt-0.5 flex items-center gap-2 text-[11px] text-zinc-500">
-          {doc.fileSize != null && <span>{formatBytes(doc.fileSize)}</span>}
-          <span>
-            {new Date(doc.createdAt).toLocaleString('en-CA', {
-              hour: '2-digit',
-              minute: '2-digit',
-              month: 'short',
-              day: 'numeric',
-            })}
-          </span>
-        </div>
-      </div>
+      {/* Left / open area — clicking this opens the document */}
+      <button
+        type="button"
+        onClick={onClick}
+        className="flex min-w-0 flex-1 items-center gap-3 text-left"
+      >
+        {/* Leading: thumbnail for images, coloured icon box for everything else */}
+        {doc.previewUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={doc.previewUrl}
+            alt={doc.fileName}
+            className="h-10 w-10 shrink-0 rounded-lg object-cover"
+          />
+        ) : (
+          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${
+            isPdf
+              ? 'border-red-500/20 bg-red-500/10'
+              : 'border-white/10 bg-white/5'
+          }`}>
+            {isPdf
+              ? <FileText className="h-4 w-4 text-red-400" />
+              : <File className="h-4 w-4 text-zinc-400" />}
+          </div>
+        )}
 
-      <FileUp className="h-4 w-4 shrink-0 text-zinc-500" />
-    </button>
+        {/* File name + metadata */}
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-sm font-semibold text-zinc-100">{doc.fileName}</div>
+          <div className="mt-0.5 flex items-center gap-2 text-[11px] text-zinc-500">
+            {doc.fileSize != null && <span>{formatBytes(doc.fileSize)}</span>}
+            <span>
+              {new Date(doc.createdAt).toLocaleString('en-CA', {
+                hour: '2-digit',
+                minute: '2-digit',
+                month: 'short',
+                day: 'numeric',
+              })}
+            </span>
+          </div>
+        </div>
+
+        <FileUp className="h-4 w-4 shrink-0 text-zinc-500" />
+      </button>
+
+      {/* Delete button — removes this doc from workspace state */}
+      <button
+        type="button"
+        onClick={onDelete}
+        aria-label={`Remove ${doc.fileName}`}
+        className="ml-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-zinc-600 transition-colors hover:bg-red-500/10 hover:text-red-400"
+      >
+        <Trash2 className="h-4 w-4" />
+      </button>
+    </div>
   )
 }
 
@@ -1101,6 +1122,14 @@ export function InspectorCompletionWorkspace() {
     setItems(current =>
       current.map(item => (item.item_code === itemCode ? updater(item) : item))
     )
+  }
+
+  /** Remove a single document from an item's evidence list by its DB id. */
+  function removeDocument(itemCode: string, docId: string) {
+    updateItem(itemCode, item => ({
+      ...item,
+      documents: item.documents.filter(d => d.id !== docId),
+    }))
   }
 
   function navigateToStage(stageNumber: number) {
@@ -2258,6 +2287,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                             key={doc.id}
                                             doc={doc}
                                             onClick={() => void openDocument(doc)}
+                                            onDelete={() => removeDocument(item.item_code, doc.id)}
                                           />
                                         )
                                       }
@@ -2554,6 +2584,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                     key={doc.id}
                                     doc={doc}
                                     onClick={() => void openDocument(doc)}
+                                    onDelete={() => removeDocument(item.item_code, doc.id)}
                                   />
                                 ))
                               )}
@@ -2888,6 +2919,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                   key={doc.id}
                                   doc={doc}
                                   onClick={() => void openDocument(doc)}
+                                  onDelete={() => removeDocument(item.item_code, doc.id)}
                                 />
                               ))
                             )}
