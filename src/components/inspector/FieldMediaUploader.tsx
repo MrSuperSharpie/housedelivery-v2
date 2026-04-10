@@ -185,7 +185,7 @@ export function FieldMediaUploader({
     }
   }, [])
 
-  async function finalizeCapture(file: File, source: FieldMediaExpectedType) {
+  async function finalizeCapture(file: File, source: FieldMediaExpectedType, transcript?: string) {
     setIsBusy(true)
     setStatus('Pinning location and timestamp…')
     setError(null)
@@ -198,12 +198,17 @@ export function FieldMediaUploader({
         setError(location.error)
       }
 
+      const previewUrl = file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined
+      console.log('[SiteLine] finalizeCapture —', source, '— mimeType:', file.type, '— previewUrl:', previewUrl ?? '(none)', '— transcript:', transcript ?? '(none)')
+
       await onCapture({
         file,
         capturedAt,
         latitude: location.latitude,
         longitude: location.longitude,
         source,
+        previewUrl,
+        transcript,
       })
 
       setStatus(location.latitude !== null && location.longitude !== null
@@ -243,6 +248,27 @@ export function FieldMediaUploader({
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
       mediaStreamRef.current = stream
 
+      // Start SpeechRecognition alongside MediaRecorder when available
+      const SpeechRecognitionCtor = getSpeechRecognitionCtor()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let recognition: any = null
+      const transcriptParts: string[] = []
+      if (SpeechRecognitionCtor) {
+        recognition = new SpeechRecognitionCtor()
+        recognition.continuous = true
+        recognition.interimResults = false
+        recognition.lang = 'en-CA'
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        recognition.onresult = (event: any) => {
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            if (event.results[i].isFinal) {
+              transcriptParts.push(String(event.results[i][0].transcript).trim())
+            }
+          }
+        }
+        try { recognition.start() } catch { /* not fatal if unavailable */ }
+      }
+
       const preferredMimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
         ? 'audio/webm;codecs=opus'
         : MediaRecorder.isTypeSupported('audio/webm')
@@ -262,7 +288,7 @@ export function FieldMediaUploader({
         }
       })
 
-      recorder.addEventListener('stop', async () => {
+      recorder.addEventListener('stop', () => {
         const mimeType = recorder.mimeType || 'audio/webm'
         const blob = new Blob(audioChunksRef.current, { type: mimeType })
         const timestampSlug = new Date().toISOString().replace(/[:.]/g, '-')
@@ -273,9 +299,32 @@ export function FieldMediaUploader({
         mediaStreamRef.current = null
         mediaRecorderRef.current = null
         audioChunksRef.current = []
-
         setIsRecording(false)
-        await finalizeCapture(file, 'audio')
+
+        // Guard so finalizeCapture is called exactly once regardless of which path fires first.
+        let finalizeCalled = false
+        const doFinalize = () => {
+          if (finalizeCalled) return
+          finalizeCalled = true
+          const transcript = transcriptParts.length > 0 ? transcriptParts.join(' ') : undefined
+          console.log('[SiteLine] audio finalize — transcriptParts:', transcriptParts.length, '— joined:', transcript ?? '(none)')
+          void finalizeCapture(file, 'audio', transcript)
+        }
+
+        if (recognition) {
+          // SpeechRecognition fires its final onresult events *after* stop() returns, then
+          // fires onend. We must wait for onend so transcriptParts is fully populated.
+          recognition.onend = doFinalize
+          try {
+            recognition.stop()
+          } catch {
+            // If stop() throws (e.g. recognition never started) finalize immediately.
+            doFinalize()
+          }
+        } else {
+          console.log('[SiteLine] audio finalize — SpeechRecognition unavailable in this browser')
+          doFinalize()
+        }
       })
 
       recorder.start()

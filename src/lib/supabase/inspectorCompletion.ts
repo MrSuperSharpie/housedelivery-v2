@@ -78,6 +78,8 @@ export interface InspectorCompletionDocumentRow {
   fileSize?: number
   uploadedBy?: string
   createdAt: string
+  /** Blob URL for inline preview — client-only, never persisted to DB. */
+  previewUrl?: string
 }
 
 export interface FieldGeoAnomalyRow {

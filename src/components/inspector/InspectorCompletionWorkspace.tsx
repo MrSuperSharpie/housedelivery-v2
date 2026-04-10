@@ -11,7 +11,9 @@ import {
   ChevronRight,
   CircleDashed,
   Clock,
+  File,
   FileCheck2,
+  FileText,
   FileUp,
   Loader2,
   Lock,
@@ -120,6 +122,69 @@ function summarizePurpose(text: string): string {
   if (!trimmed) return ''
   const match = trimmed.match(/^[^.?!]+[.?!]?/)
   return match?.[0] ?? trimmed
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function DocRow({
+  doc,
+  onClick,
+}: {
+  doc: InspectorCompletionDocumentRow
+  onClick: () => void
+}) {
+  const isImage = doc.mimeType?.startsWith('image/') ?? false
+  const isPdf = doc.mimeType === 'application/pdf' || doc.fileName.toLowerCase().endsWith('.pdf')
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-[#060b18] px-3 py-3 text-left hover:bg-[#091022]"
+    >
+      {/* Leading: thumbnail for images, coloured icon box for everything else */}
+      {isImage && doc.previewUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={doc.previewUrl}
+          alt={doc.fileName}
+          className="h-10 w-10 shrink-0 rounded-lg object-cover"
+        />
+      ) : (
+        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${
+          isPdf
+            ? 'border-red-500/20 bg-red-500/10'
+            : 'border-white/10 bg-white/5'
+        }`}>
+          {isPdf
+            ? <FileText className="h-4 w-4 text-red-400" />
+            : <File className="h-4 w-4 text-zinc-400" />}
+        </div>
+      )}
+
+      {/* File name + metadata */}
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-sm font-semibold text-zinc-100">{doc.fileName}</div>
+        <div className="mt-0.5 flex items-center gap-2 text-[11px] text-zinc-500">
+          {doc.fileSize != null && <span>{formatBytes(doc.fileSize)}</span>}
+          <span>
+            {new Date(doc.createdAt).toLocaleString('en-CA', {
+              hour: '2-digit',
+              minute: '2-digit',
+              month: 'short',
+              day: 'numeric',
+            })}
+          </span>
+        </div>
+      </div>
+
+      <FileUp className="h-4 w-4 shrink-0 text-zinc-500" />
+    </button>
+  )
 }
 
 function GuidanceList({
@@ -1110,7 +1175,19 @@ export function InspectorCompletionWorkspace() {
     capture?: FieldMediaCapturePayload,
     anomalyExplanation?: string,
   ): Promise<InspectorCompletionDocumentRow | null> {
-    if (!report || !assignment || !activeUser) return null
+    if (!report || !assignment || !activeUser) {
+      console.warn('[SiteLine] handleDocumentUpload — missing report/assignment/activeUser, aborting', { report: !!report, assignment: !!assignment, activeUser: !!activeUser })
+      return null
+    }
+
+    // Prefer blob URL from capture payload; fall back to creating one from the file when it's
+    // an image. This covers both FieldMediaUploader captures (payload.previewUrl set) and the
+    // raw <input type="file"> buttons that call handleDocumentUpload without a capture payload.
+    const effectivePreviewUrl: string | undefined = capture?.previewUrl
+      ?? (file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined)
+
+    console.log('[SiteLine] handleDocumentUpload —', itemCode, '— previewMode:', previewMode, '— file:', file.name, '— previewUrl:', effectivePreviewUrl ?? '(none)')
+
     if (previewMode) {
       const doc = createInspectorDevPreviewDocument({
         reportId: report.id,
@@ -1121,14 +1198,41 @@ export function InspectorCompletionWorkspace() {
         fileSize: file.size,
         uploadedBy: activeUser.supabaseId ?? activeUser.id,
       })
-      updateItem(itemCode, item => ({ ...item, documents: [...item.documents, doc] }))
+      const docWithPreview: InspectorCompletionDocumentRow = effectivePreviewUrl
+        ? { ...doc, previewUrl: effectivePreviewUrl }
+        : doc
+      updateItem(itemCode, item => ({ ...item, documents: [...item.documents, docWithPreview] }))
+      console.log('[SiteLine] handleDocumentUpload — preview doc added to state, documents now:', 1, '(+1)')
       setLastSavedLabel('Preview document attached')
-      return doc
+      return docWithPreview
     }
 
-    const sessionInspector = await getAuthenticatedInspectorIdentity({ alertOnFailure: true })
+    const sessionInspector = await getAuthenticatedInspectorIdentity({ alertOnFailure: false })
 
-    if (!sessionInspector) return null
+    if (!sessionInspector) {
+      // No valid Supabase session (demo account or expired token). Rather than silently failing
+      // and leaving the document list empty, create a local-only doc so the UI still reflects
+      // what the inspector attached. The storagePath prefix local:// distinguishes these from
+      // server-persisted docs. They are session-only and will be lost on page reload.
+      console.warn('[SiteLine] handleDocumentUpload — no session, creating local-only doc for UI')
+      const localDoc = createInspectorDevPreviewDocument({
+        reportId: report.id,
+        assignmentId: assignment.id,
+        itemCode,
+        fileName: file.name,
+        mimeType: file.type,
+        fileSize: file.size,
+        uploadedBy: activeUser.supabaseId ?? activeUser.id,
+      })
+      const localDocWithPreview: InspectorCompletionDocumentRow = {
+        ...localDoc,
+        storagePath: `local://${file.name}`,
+        ...(effectivePreviewUrl ? { previewUrl: effectivePreviewUrl } : {}),
+      }
+      updateItem(itemCode, item => ({ ...item, documents: [...item.documents, localDocWithPreview] }))
+      setLastSavedLabel('Saved locally — sign in to sync')
+      return localDocWithPreview
+    }
 
     const doc = await uploadInspectorCompletionDocument(
       report.id,
@@ -1148,10 +1252,17 @@ export function InspectorCompletionWorkspace() {
       },
     )
 
-    if (!doc) return null
+    if (!doc) {
+      console.warn('[SiteLine] handleDocumentUpload — uploadInspectorCompletionDocument returned null (check Supabase storage logs)')
+      return null
+    }
 
-    updateItem(itemCode, item => ({ ...item, documents: [...item.documents, doc] }))
-    return doc
+    const docWithPreview: InspectorCompletionDocumentRow = effectivePreviewUrl
+      ? { ...doc, previewUrl: effectivePreviewUrl }
+      : doc
+    updateItem(itemCode, item => ({ ...item, documents: [...item.documents, docWithPreview] }))
+    console.log('[SiteLine] handleDocumentUpload — doc saved to Supabase and added to state, previewUrl:', docWithPreview.previewUrl ?? '(none)')
+    return docWithPreview
   }
 
   async function handleFieldEvidenceCapture(
@@ -1198,9 +1309,13 @@ export function InspectorCompletionWorkspace() {
     const document = await handleFieldEvidenceCapture(itemCode, payload)
     const entryKey = checklistEntryKey(checklistLabel)
     const noteKey = `${itemCode}:${entryKey}`
+    console.log('[SiteLine] handleChecklistCapture —', itemCode, '— source:', payload.source, '— transcript:', payload.transcript ?? '(none)')
+
     const textNote = payload.source === 'text'
       ? await payload.file.text()
-      : null
+      : payload.source === 'audio' && payload.transcript
+        ? payload.transcript
+        : null
 
     updateItem(itemCode, current => {
       const stateMap = getChecklistStateMap(current)
@@ -1240,10 +1355,18 @@ export function InspectorCompletionWorkspace() {
       }))
     }
 
-    setLastSavedLabel(payload.source === 'text' ? 'Field note captured' : 'Field evidence captured')
+    setLastSavedLabel(
+      payload.source === 'text' ? 'Field note captured' :
+      payload.source === 'audio' && payload.transcript ? 'Voice memo transcribed' :
+      'Field evidence captured'
+    )
   }
 
   async function openDocument(doc: InspectorCompletionDocumentRow) {
+    if (doc.storagePath.startsWith('local://')) {
+      window.alert(`${doc.fileName} was saved locally.\nSign in to your account to sync evidence to the server.`)
+      return
+    }
     if (previewMode || doc.storagePath.startsWith('preview://')) {
       window.alert(`Preview document: ${doc.fileName}\nStored locally for UI review only.`)
       return
@@ -1990,6 +2113,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                 const jurisdictionNotesOpen = expandedJurisdictionNotes[item.item_code] ?? false
 
                 if (usesFieldView) {
+                  console.log('[SiteLine] Rendering Checklist Item:', item.item_code, '— documents:', item.documents.length, item.documents)
                   return (
                     <article key={item.item_code} className={`rounded-[1.75rem] border border-white/10 bg-[#0a1020] p-4 sm:p-5 ${FLOATING_PANEL_CLASS}`}>
                       <div className="flex flex-col gap-3">
@@ -2117,6 +2241,54 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                     placeholder={`Note for item ${index + 1}`}
                                     className="mt-3 w-full rounded-2xl border border-white/10 bg-[#060b18] px-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:border-[#FF5F15] focus:outline-none"
                                   />
+                                )}
+
+                                {/* Inline capture list — shows every file attached to this
+                                    specific checklist entry, directly below its note field. */}
+                                {(entryState.captures?.length ?? 0) > 0 && (
+                                  <div className="mt-3 space-y-2">
+                                    {entryState.captures!.map((cap, capIdx) => {
+                                      // Prefer the full doc from state (has previewUrl, fileSize)
+                                      const doc = cap.documentId
+                                        ? item.documents.find(d => d.id === cap.documentId)
+                                        : undefined
+                                      if (doc) {
+                                        return (
+                                          <DocRow
+                                            key={doc.id}
+                                            doc={doc}
+                                            onClick={() => void openDocument(doc)}
+                                          />
+                                        )
+                                      }
+                                      // Fallback: capture was recorded but doc is not (yet) in
+                                      // state — render from the capture's own metadata instead.
+                                      return (
+                                        <div
+                                          key={capIdx}
+                                          className="flex items-center gap-3 rounded-2xl border border-white/10 bg-[#060b18] px-3 py-3"
+                                        >
+                                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5">
+                                            <File className="h-4 w-4 text-zinc-400" />
+                                          </div>
+                                          <div className="min-w-0 flex-1">
+                                            <div className="truncate text-sm font-semibold text-zinc-100">{cap.fileName}</div>
+                                            <div className="mt-0.5 flex items-center gap-2 text-[11px] text-zinc-500">
+                                              {cap.fileSize != null && <span>{formatBytes(cap.fileSize)}</span>}
+                                              <span>
+                                                {new Date(cap.capturedAt).toLocaleString('en-CA', {
+                                                  hour: '2-digit',
+                                                  minute: '2-digit',
+                                                  month: 'short',
+                                                  day: 'numeric',
+                                                })}
+                                              </span>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      )
+                                    })}
+                                  </div>
                                 )}
                               </div>
                             )
@@ -2378,20 +2550,11 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                 </div>
                               ) : (
                                 item.documents.map(doc => (
-                                  <button
+                                  <DocRow
                                     key={doc.id}
-                                    type="button"
+                                    doc={doc}
                                     onClick={() => void openDocument(doc)}
-                                    className="flex min-h-[52px] w-full items-center justify-between rounded-2xl border border-white/10 bg-[#060b18] px-3 py-3 text-left hover:bg-[#091022]"
-                                  >
-                                    <div className="min-w-0">
-                                      <div className="truncate text-sm font-semibold text-zinc-100">{doc.fileName}</div>
-                                      <div className="mt-1 text-[11px] text-zinc-500">
-                                        {new Date(doc.createdAt).toLocaleString('en-CA', { hour: '2-digit', minute: '2-digit', month: 'short', day: 'numeric' })}
-                                      </div>
-                                    </div>
-                                    <FileUp className="h-4 w-4 shrink-0 text-zinc-500" />
-                                  </button>
+                                  />
                                 ))
                               )}
                             </div>
@@ -2721,20 +2884,11 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                               </div>
                             ) : (
                               item.documents.map(doc => (
-                                <button
+                                <DocRow
                                   key={doc.id}
-                                  type="button"
+                                  doc={doc}
                                   onClick={() => void openDocument(doc)}
-                                  className="flex w-full items-center justify-between rounded-2xl border border-white/10 bg-[#060b18] px-3 py-3 text-left hover:bg-[#091022]"
-                                >
-                                  <div className="min-w-0">
-                                    <div className="truncate text-sm font-semibold text-zinc-100">{doc.fileName}</div>
-                                    <div className="mt-1 text-[11px] text-zinc-500">
-                                      {new Date(doc.createdAt).toLocaleString('en-CA', { hour: '2-digit', minute: '2-digit', month: 'short', day: 'numeric' })}
-                                    </div>
-                                  </div>
-                                  <FileUp className="h-4 w-4 shrink-0 text-zinc-500" />
-                                </button>
+                                />
                               ))
                             )}
                           </div>
