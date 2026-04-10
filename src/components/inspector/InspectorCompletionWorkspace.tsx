@@ -2365,7 +2365,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                   onChange={event => {
                                     const file = event.target.files?.[0]
                                     event.target.value = ''
-                                    if (file) void handleFieldEvidenceCapture(item.item_code, file)
+                                    if (file) void handleDocumentUpload(item.item_code, file)
                                   }}
                                 />
                               </label>

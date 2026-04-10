@@ -21,6 +21,10 @@ export interface FieldMediaCapturePayload {
   latitude: number | null
   longitude: number | null
   source: FieldMediaExpectedType
+  /** Blob URL for immediate image preview (valid for current session only). */
+  previewUrl?: string
+  /** Speech-to-text transcript for audio captures (when browser supports it). */
+  transcript?: string
 }
 
 interface FieldMediaUploaderProps {
@@ -37,6 +41,14 @@ const GEOLOCATION_OPTIONS: PositionOptions = {
   enableHighAccuracy: true,
   timeout: 10000,
   maximumAge: 0,
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getSpeechRecognitionCtor(): (new () => any) | null {
+  if (typeof window === 'undefined') return null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const w = window as any
+  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null
 }
 
 function isGeolocationError(value: unknown): value is GeolocationPositionError {
