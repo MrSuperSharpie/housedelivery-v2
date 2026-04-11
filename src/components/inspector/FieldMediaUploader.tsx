@@ -166,41 +166,188 @@ export function FieldMediaUploader({
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const mediaStreamRef = useRef<MediaStream | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const textRecognitionRef = useRef<any>(null)
+  const textRecognitionManuallyStoppedRef = useRef(false)
+  const dictatedBaseTextRef = useRef('')
+  const dictatedFinalTextRef = useRef('')
 
   const [isBusy, setIsBusy] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
+  const [isTextListening, setIsTextListening] = useState(false)
   const [status, setStatus] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [textValue, setTextValue] = useState('')
   const [textComposerOpen, setTextComposerOpen] = useState(false)
+  const [speechRecognitionSupported, setSpeechRecognitionSupported] = useState(false)
 
   useEffect(() => {
+    setSpeechRecognitionSupported(getSpeechRecognitionCtor() !== null)
+
     return () => {
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
         mediaRecorderRef.current.stop()
       }
+      if (textRecognitionRef.current) {
+        try {
+          textRecognitionRef.current.stop()
+        } catch {
+          // Ignore cleanup errors from browsers that already ended recognition.
+        }
+      }
       mediaStreamRef.current?.getTracks().forEach(track => track.stop())
       mediaRecorderRef.current = null
       mediaStreamRef.current = null
+      textRecognitionRef.current = null
     }
   }, [])
 
+  function appendTranscriptSegment(base: string, addition: string) {
+    const next = addition.trim()
+    if (!next) return base
+    if (!base.trim()) return next
+    return /\s$/.test(base) ? `${base}${next}` : `${base} ${next}`
+  }
+
+  function mergeDictatedText(base: string, finalized: string, interim: string) {
+    let merged = base
+    if (finalized.trim()) {
+      merged = appendTranscriptSegment(merged, finalized)
+    }
+    if (interim.trim()) {
+      merged = appendTranscriptSegment(merged, interim)
+    }
+    return merged
+  }
+
+  function stopTextRecognition(options?: { preserveStatus?: boolean }) {
+    textRecognitionManuallyStoppedRef.current = true
+    if (!options?.preserveStatus) {
+      setStatus('Stopping microphone…')
+    }
+    if (!textRecognitionRef.current) return
+    try {
+      textRecognitionRef.current.stop()
+    } catch {
+      textRecognitionRef.current = null
+      setIsTextListening(false)
+    }
+  }
+
+  function closeTextComposer() {
+    if (isTextListening) {
+      stopTextRecognition({ preserveStatus: true })
+    }
+    setTextComposerOpen(false)
+  }
+
+  function startTextRecognition() {
+    if (disabled || isBusy || isTextListening) return
+
+    const SpeechRecognitionCtor = getSpeechRecognitionCtor()
+    if (!SpeechRecognitionCtor) {
+      setError('Voice-to-text is not supported in this browser.')
+      setStatus(null)
+      return
+    }
+
+    setError(null)
+    setStatus('Starting microphone…')
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const recognition: any = new SpeechRecognitionCtor()
+    recognition.continuous = true
+    recognition.interimResults = true
+    recognition.lang = 'en-CA'
+
+    dictatedBaseTextRef.current = textValue
+    dictatedFinalTextRef.current = ''
+    textRecognitionManuallyStoppedRef.current = false
+    textRecognitionRef.current = recognition
+
+    recognition.onstart = () => {
+      setIsTextListening(true)
+      setStatus('Listening… speak your note.')
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    recognition.onresult = (event: any) => {
+      let finalized = dictatedFinalTextRef.current
+      let interim = ''
+
+      for (let i = event.resultIndex; i < event.results.length; i += 1) {
+        const transcript = String(event.results[i][0]?.transcript ?? '').trim()
+        if (!transcript) continue
+        if (event.results[i].isFinal) {
+          finalized = appendTranscriptSegment(finalized, transcript)
+        } else {
+          interim = appendTranscriptSegment(interim, transcript)
+        }
+      }
+
+      dictatedFinalTextRef.current = finalized
+      setTextValue(mergeDictatedText(dictatedBaseTextRef.current, finalized, interim))
+      setStatus(interim ? 'Listening… transcribing live.' : 'Listening… speak your note.')
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    recognition.onerror = (event: any) => {
+      const recognitionError = String(event?.error ?? '')
+      if (recognitionError === 'aborted') return
+      if (recognitionError === 'no-speech') {
+        setStatus('No speech detected. Tap the mic to try again.')
+        return
+      }
+      if (recognitionError === 'audio-capture') {
+        setError('No microphone was detected for voice-to-text.')
+      } else if (recognitionError === 'not-allowed' || recognitionError === 'service-not-allowed') {
+        setError('Microphone permission was denied for voice-to-text.')
+      } else {
+        setError('Voice-to-text stopped unexpectedly. Tap the mic to try again.')
+      }
+    }
+
+    recognition.onend = () => {
+      textRecognitionRef.current = null
+      setIsTextListening(false)
+
+      if (textRecognitionManuallyStoppedRef.current) {
+        setStatus(dictatedFinalTextRef.current.trim() ? 'Voice note added.' : 'Listening stopped.')
+      } else if (dictatedFinalTextRef.current.trim()) {
+        setStatus('Mic timed out. Tap the mic to continue dictation.')
+      } else {
+        setStatus('Mic stopped before any text was captured. Tap the mic to try again.')
+      }
+    }
+
+    try {
+      recognition.start()
+    } catch {
+      textRecognitionRef.current = null
+      setIsTextListening(false)
+      setStatus(null)
+      setError('Voice-to-text could not start on this device.')
+    }
+  }
+
   async function finalizeCapture(file: File, source: FieldMediaExpectedType, transcript?: string) {
     setIsBusy(true)
-    setStatus('Pinning location and timestamp…')
+    setStatus(source === 'text' ? 'Saving note…' : 'Pinning location and timestamp…')
     setError(null)
 
     try {
       const capturedAt = new Date().toISOString()
-      const location = await getGeolocation()
+      // Text notes are annotations — skip the blocking GPS lookup so notes save instantly.
+      // Camera, video, and audio captures retain full GPS tagging.
+      const location = source === 'text'
+        ? { latitude: null, longitude: null, error: null }
+        : await getGeolocation()
 
       if (location.error) {
         setError(location.error)
       }
 
       const previewUrl = file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined
-      console.log('[Vero] finalizeCapture —', source, '— mimeType:', file.type, '— previewUrl:', previewUrl ?? '(none)', '— transcript:', transcript ?? '(none)')
-
       await onCapture({
         file,
         capturedAt,
@@ -350,7 +497,7 @@ export function FieldMediaUploader({
 
   async function handleTextCapture() {
     const trimmed = textValue.trim()
-    if (!trimmed || disabled || isBusy) return
+    if (!trimmed || disabled || isBusy || isTextListening) return
 
     const timestampSlug = new Date().toISOString().replace(/[:.]/g, '-')
     const file = new File([trimmed], `field-note-${timestampSlug}.txt`, {
@@ -404,7 +551,11 @@ export function FieldMediaUploader({
               onClick={() => {
                 setError(null)
                 setStatus(null)
-                setTextComposerOpen(current => !current)
+                if (textComposerOpen) {
+                  closeTextComposer()
+                  return
+                }
+                setTextComposerOpen(true)
               }}
               className={compactButtonClass}
             >
@@ -413,18 +564,49 @@ export function FieldMediaUploader({
             </button>
 
             {textComposerOpen && (
-              <div className="absolute right-0 top-full z-20 mt-2 w-72 rounded-2xl border border-white/10 bg-[#091022] p-3 shadow-2xl">
+              <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-2xl border border-white/10 bg-[#091022] p-3 shadow-2xl" onClick={e => e.stopPropagation()}>
                 <div className="flex items-center justify-between gap-2">
                   <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">
                     Text Note
                   </div>
                   <button
                     type="button"
-                    onClick={() => setTextComposerOpen(false)}
+                    onClick={closeTextComposer}
                     className="rounded-full border border-white/10 p-1 text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
                   >
                     <X className="h-3.5 w-3.5" />
                     <span className="sr-only">Close text note</span>
+                  </button>
+                </div>
+                <div className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#060b18] px-3 py-2">
+                  <div className={`text-xs ${isTextListening ? 'text-red-300' : 'text-zinc-400'}`}>
+                    {isTextListening
+                      ? 'Listening now. Your speech will be appended below.'
+                      : speechRecognitionSupported
+                        ? 'Tap the mic to dictate into this note.'
+                        : 'Voice-to-text is not available in this browser.'}
+                  </div>
+                  <button
+                    type="button"
+                    disabled={disabled || isBusy || !speechRecognitionSupported}
+                    onClick={() => {
+                      setError(null)
+                      if (isTextListening) {
+                        stopTextRecognition()
+                        return
+                      }
+                      startTextRecognition()
+                    }}
+                    className={`inline-flex h-10 w-10 items-center justify-center rounded-full border transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                      isTextListening
+                        ? 'border-red-500/40 bg-red-500/15 text-red-200 hover:bg-red-500/20'
+                        : 'border-white/10 bg-white/5 text-zinc-200 hover:bg-white/10'
+                    }`}
+                    aria-pressed={isTextListening}
+                    title={isTextListening ? 'Stop voice-to-text' : 'Start voice-to-text'}
+                  >
+                    <Mic className="h-4 w-4" />
+                    <span className="sr-only">{isTextListening ? 'Stop voice-to-text' : 'Start voice-to-text'}</span>
                   </button>
                 </div>
                 <textarea
@@ -433,11 +615,12 @@ export function FieldMediaUploader({
                   rows={4}
                   placeholder="Enter a field note..."
                   disabled={disabled || isBusy}
+                  readOnly={isTextListening}
                   className="mt-3 w-full rounded-2xl border border-white/10 bg-[#060b18] px-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:border-[#FF5F15] focus:outline-none disabled:opacity-50"
                 />
                 <button
                   type="button"
-                  disabled={disabled || isBusy || textValue.trim().length === 0}
+                  disabled={disabled || isBusy || isTextListening || textValue.trim().length === 0}
                   onClick={() => void handleTextCapture()}
                   className={`${sharedButtonClass} mt-3 w-full`}
                 >
@@ -479,7 +662,7 @@ export function FieldMediaUploader({
         )}
 
         {(status || error) && (
-          <div className="absolute right-0 top-full z-20 mt-2 w-72 rounded-2xl border border-white/10 bg-[#091022] px-3 py-2 shadow-2xl">
+          <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-2xl border border-white/10 bg-[#091022] px-3 py-2 shadow-2xl">
             {status && (
               <div className="flex items-center gap-2 text-xs text-zinc-300">
                 <MapPin className="h-3.5 w-3.5 text-cyan-300" />
@@ -515,17 +698,49 @@ export function FieldMediaUploader({
 
       {expectedType === 'text' ? (
         <div className="mt-4 space-y-3">
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#060b18] px-3 py-2">
+            <div className={`text-xs ${isTextListening ? 'text-red-300' : 'text-zinc-400'}`}>
+              {isTextListening
+                ? 'Listening now. Your speech will be appended below.'
+                : speechRecognitionSupported
+                  ? 'Tap the mic to dictate into this note.'
+                  : 'Voice-to-text is not available in this browser.'}
+            </div>
+            <button
+              type="button"
+              disabled={disabled || isBusy || !speechRecognitionSupported}
+              onClick={() => {
+                setError(null)
+                if (isTextListening) {
+                  stopTextRecognition()
+                  return
+                }
+                startTextRecognition()
+              }}
+              className={`inline-flex h-10 w-10 items-center justify-center rounded-full border transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                isTextListening
+                  ? 'border-red-500/40 bg-red-500/15 text-red-200 hover:bg-red-500/20'
+                  : 'border-white/10 bg-white/5 text-zinc-200 hover:bg-white/10'
+              }`}
+              aria-pressed={isTextListening}
+              title={isTextListening ? 'Stop voice-to-text' : 'Start voice-to-text'}
+            >
+              <Mic className="h-4 w-4" />
+              <span className="sr-only">{isTextListening ? 'Stop voice-to-text' : 'Start voice-to-text'}</span>
+            </button>
+          </div>
           <textarea
             value={textValue}
             onChange={event => setTextValue(event.target.value)}
             rows={4}
             placeholder="Enter a field note..."
             disabled={disabled || isBusy}
+            readOnly={isTextListening}
             className="w-full rounded-2xl border border-white/10 bg-[#060b18] px-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:border-[#FF5F15] focus:outline-none disabled:opacity-50"
           />
           <button
             type="button"
-            disabled={disabled || isBusy || textValue.trim().length === 0}
+            disabled={disabled || isBusy || isTextListening || textValue.trim().length === 0}
             onClick={() => void handleTextCapture()}
             className={`${sharedButtonClass} w-full`}
           >

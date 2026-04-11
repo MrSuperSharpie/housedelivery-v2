@@ -49,6 +49,7 @@ import {
   type CompletionInspectionStatus,
 } from '@/lib/inspectorCompletion'
 import {
+  deleteInspectorCompletionDocument,
   getInspectorCompletionBundle,
   getInspectorCompletionDocumentSignedUrl,
   createFieldGeoAnomaly,
@@ -287,6 +288,14 @@ interface ProjectReferencePoint {
   longitude: number | null
 }
 
+interface StageTransitionHandshake {
+  completedStageNumber: number
+  completedStageName: string
+  nextStageNumber: number
+  nextStageName: string
+  targetItemCode: string | null
+}
+
 const STAGE_SIGN_OFF_GEOLOCATION_OPTIONS: PositionOptions = {
   enableHighAccuracy: true,
   timeout: 10000,
@@ -301,11 +310,15 @@ function checklistEntryKey(value: string): string {
 }
 
 function parseFieldEvidenceActions(label: string): FieldEvidenceAction[] | null {
-  const match = label.match(/\(Evidence:\s*([^)]+)\)\s*$/i)
+  const match = label.match(/\(([^)]+)\)\s*$/i)
   if (!match) return null
 
-  const actions = match[1]
-    .split('/')
+  const normalizedInstruction = match[1]
+    .replace(/^evidence:\s*/i, '')
+    .replace(/\s+evidence required$/i, '')
+
+  const actions = normalizedInstruction
+    .split(/\/|,|\bor\b|\band\b/gi)
     .map(value => value.trim().toLowerCase())
     .flatMap<FieldEvidenceAction>(value => {
       if (value === 'camera' || value === 'photo') return ['camera']
@@ -359,6 +372,38 @@ function isStageItemReadyForSignOff(item: WorkspaceItem): boolean {
     : checklistItems.every(detail => isChecklistEntryComplete(item, detail))
 
   return checklistReady && itemHasRequiredDocument(item)
+}
+
+function getFirstIncompleteStageItem(items: WorkspaceItem[], stageNumber: number): WorkspaceItem | null {
+  const stageRows = items.filter(item => item.stage_number === stageNumber)
+  const firstEvidenceGap = stageRows.find(item =>
+    item.evidence_mode === 'required_upload'
+    && item.document_upload_required
+    && item.documents.length === 0
+  )
+  if (firstEvidenceGap) return firstEvidenceGap
+
+  const firstRequiredIncomplete = stageRows.find(item => isRequiredStageItem(item) && !isStageItemReadyForSignOff(item))
+  if (firstRequiredIncomplete) return firstRequiredIncomplete
+
+  const firstIncomplete = stageRows.find(item => !isStageItemResolved(item))
+  return firstIncomplete ?? stageRows[0] ?? null
+}
+
+function getStageDefinitionByNumber(
+  stages: CompletionChecklistStageDefinition[],
+  stageNumber: number,
+): CompletionChecklistStageDefinition | null {
+  return stages.find(stage => stage.stage_number === stageNumber) ?? null
+}
+
+function getNextSequentialStage(
+  stages: CompletionChecklistStageDefinition[],
+  currentStage: number,
+): CompletionChecklistStageDefinition | null {
+  return [...stages]
+    .sort((a, b) => a.stage_number - b.stage_number)
+    .find(stage => stage.stage_number > currentStage) ?? null
 }
 
 function isStageSignOffRecord(value: unknown): value is StageSignOffRecord {
@@ -620,9 +665,17 @@ export function InspectorCompletionWorkspace() {
   const [stageSigning, setStageSigning] = useState(false)
   const [stageSignOffError, setStageSignOffError] = useState<string | null>(null)
   const [projectOverviewOpen, setProjectOverviewOpen] = useState(true)
+  const [stageTransitionHandshake, setStageTransitionHandshake] = useState<StageTransitionHandshake | null>(null)
+  const [showStageSuccessBanner, setShowStageSuccessBanner] = useState(false)
+  const [sealSuccessMessage, setSealSuccessMessage] = useState<string | null>(null)
 
   const hydratedRef = useRef(false)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const stageTransitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const stageTransitionStartRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const sealSuccessTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const sealRedirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const stageItemRefs = useRef<Record<string, HTMLElement | null>>({})
   const previewMode = isInspectorDevPreviewAssignment(assignmentId)
   const activeUser = user
 
@@ -812,7 +865,17 @@ export function InspectorCompletionWorkspace() {
     })
   }, [currentStage, isFinalOccupancyStage, projectOverviewStages, stageReadyForSignOff])
 
-  const sealReady = items.length > 0 && unresolvedRequired.length === 0 && missingDocuments.length === 0
+  const sealPendingCount = unresolvedRequired.length
+  const sealDocumentGapCount = missingDocuments.length
+  const sealReady = items.length > 0 && sealPendingCount === 0 && sealDocumentGapCount === 0
+
+  useEffect(() => {
+    return () => {
+      if (stageTransitionStartRef.current) clearTimeout(stageTransitionStartRef.current)
+      if (sealSuccessTimerRef.current) clearTimeout(sealSuccessTimerRef.current)
+      if (sealRedirectTimerRef.current) clearTimeout(sealRedirectTimerRef.current)
+    }
+  }, [])
 
   useEffect(() => {
     async function loadWorkspace() {
@@ -922,11 +985,15 @@ export function InspectorCompletionWorkspace() {
       setJob(jobRow)
 
       if (jobRow.projectId) {
-        const { data: projectData } = await supabase
+        const { data: projectData, error: projectError } = await supabase
           .from('projects')
-          .select('gps_coord')
+          .select('*')
           .eq('id', jobRow.projectId)
           .maybeSingle()
+
+        if (projectError) {
+          console.warn('InspectorCompletionWorkspace: project reference lookup failed', projectError)
+        }
 
         const gpsCoord = (projectData?.gps_coord as { lat?: number; lng?: number } | undefined) ?? undefined
         setProjectReferencePoint({
@@ -969,6 +1036,7 @@ export function InspectorCompletionWorkspace() {
         sealApplied: false,
         sealReference: undefined,
         sealPayload: {},
+        sealedAt: undefined,
         submittedAt: undefined,
       })
 
@@ -1014,6 +1082,7 @@ export function InspectorCompletionWorkspace() {
         sealApplied: nextSeal?.sealApplied ?? report.sealApplied,
         sealReference: nextSeal?.sealReference ?? report.sealReference,
         sealPayload: nextSeal?.sealPayload ?? report.sealPayload,
+        sealedAt: nextSeal?.sealedAt ?? report.sealedAt,
         submittedAt: nextSeal?.submittedAt ?? report.submittedAt,
         lastSavedAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -1023,72 +1092,81 @@ export function InspectorCompletionWorkspace() {
       return true
     }
     setSaving(true)
+    try {
+      const sessionInspector = await getAuthenticatedInspectorIdentity()
 
-    const sessionInspector = await getAuthenticatedInspectorIdentity()
+      if (!sessionInspector) {
+        return false
+      }
 
-    if (!sessionInspector) {
-      setSaving(false)
+      const nextReport = await upsertInspectorCompletionReport({
+        id: report.id,
+        assignmentId: report.assignmentId,
+        jobId: report.jobId,
+        inspectorId: sessionInspector.id,
+        projectId: report.projectId,
+        projectName: report.projectName,
+        address: report.address,
+        city: report.city,
+        region: report.region,
+        projectType: report.projectType,
+        currentStage: nextStage,
+        stageCount: report.stageCount,
+        jurisdictionName: overlay.jurisdictionName,
+        ahjOverlayType: overlay.type,
+        ahjOverlayLabel: overlay.label,
+        overlaySnapshot: overlay,
+        checklistSnapshot: flattenDefinitions(stages),
+        status: nextSeal?.status ?? report.status,
+        sealApplied: nextSeal?.sealApplied ?? report.sealApplied,
+        sealReference: nextSeal?.sealReference ?? report.sealReference,
+        sealPayload: nextSeal?.sealPayload ?? report.sealPayload,
+        sealedAt: nextSeal?.sealedAt ?? report.sealedAt,
+        submittedAt: nextSeal?.submittedAt ?? report.submittedAt,
+      })
+
+      if (!nextReport) {
+        setLastSavedLabel('Save failed')
+        return false
+      }
+
+      const ok = await upsertInspectorCompletionItems(
+        nextItems.map((item, index) => ({
+          id: item.id,
+          reportId: nextReport.id,
+          assignmentId,
+          stageNumber: item.stage_number,
+          stageName: item.stage_name,
+          itemCode: item.item_code,
+          itemLabel: item.item_label,
+          sortOrder: index,
+          isRequired: item.is_required,
+          permitType: item.permit_type,
+          responsibleParty: item.responsible_party,
+          documentUploadRequired: item.document_upload_required,
+          inspectionStatus: item.inspection_status,
+          ahjNotes: item.ahj_notes,
+          dependencies: item.dependencies,
+          responseNote: item.response_note,
+          metadata: item.metadata,
+        }))
+      )
+
+      if (ok) {
+        setReport(nextReport)
+        setLastSavedLabel(`Saved ${new Date().toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit' })}`)
+      } else {
+        setLastSavedLabel('Save failed')
+      }
+
+      return ok
+    } catch (error) {
+      console.error('persistDraft:', error)
+      setLastSavedLabel('Save failed')
       return false
-    }
-
-    const nextReport = await upsertInspectorCompletionReport({
-      id: report.id,
-      assignmentId: report.assignmentId,
-      jobId: report.jobId,
-      inspectorId: sessionInspector.id,
-      projectId: report.projectId,
-      projectName: report.projectName,
-      address: report.address,
-      city: report.city,
-      region: report.region,
-      projectType: report.projectType,
-      currentStage: nextStage,
-      stageCount: report.stageCount,
-      jurisdictionName: overlay.jurisdictionName,
-      ahjOverlayType: overlay.type,
-      ahjOverlayLabel: overlay.label,
-      overlaySnapshot: overlay,
-      checklistSnapshot: flattenDefinitions(stages),
-      status: nextSeal?.status ?? report.status,
-      sealApplied: nextSeal?.sealApplied ?? report.sealApplied,
-      sealReference: nextSeal?.sealReference ?? report.sealReference,
-      sealPayload: nextSeal?.sealPayload ?? report.sealPayload,
-      submittedAt: nextSeal?.submittedAt ?? report.submittedAt,
-    })
-
-    if (!nextReport) {
+    } finally {
       setSaving(false)
-      return false
     }
-
-    const ok = await upsertInspectorCompletionItems(
-      nextItems.map((item, index) => ({
-        id: item.id,
-        reportId: nextReport.id,
-        assignmentId,
-        stageNumber: item.stage_number,
-        stageName: item.stage_name,
-        itemCode: item.item_code,
-        itemLabel: item.item_label,
-        sortOrder: index,
-        isRequired: item.is_required,
-        permitType: item.permit_type,
-        responsibleParty: item.responsible_party,
-        documentUploadRequired: item.document_upload_required,
-        inspectionStatus: item.inspection_status,
-        ahjNotes: item.ahj_notes,
-        dependencies: item.dependencies,
-        responseNote: item.response_note,
-        metadata: item.metadata,
-      }))
-    )
-
-    if (ok) {
-      setReport(nextReport)
-      setLastSavedLabel(`Saved ${new Date().toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit' })}`)
-    }
-    setSaving(false)
-    return ok
   }
 
   const triggerAutosave = useEffectEvent(() => {
@@ -1108,23 +1186,92 @@ export function InspectorCompletionWorkspace() {
     }
   }, [currentStage, items])
 
+  useEffect(() => {
+    if (!showStageSuccessBanner || !stageTransitionHandshake) return
+
+    if (stageTransitionTimerRef.current) clearTimeout(stageTransitionTimerRef.current)
+    stageTransitionTimerRef.current = setTimeout(() => {
+      setShowStageSuccessBanner(false)
+      setStageTransitionHandshake(null)
+    }, 6000)
+
+    const focusTimer = setTimeout(() => {
+      const targetNode = stageTransitionHandshake.targetItemCode
+        ? stageItemRefs.current[stageTransitionHandshake.targetItemCode]
+        : null
+
+      targetNode?.focus({ preventScroll: true })
+    }, 450)
+
+    return () => {
+      clearTimeout(focusTimer)
+      if (stageTransitionTimerRef.current) clearTimeout(stageTransitionTimerRef.current)
+    }
+  }, [showStageSuccessBanner, stageTransitionHandshake])
+
   function updateItem(itemCode: string, updater: (item: WorkspaceItem) => WorkspaceItem) {
     setItems(current =>
       current.map(item => (item.item_code === itemCode ? updater(item) : item))
     )
   }
 
-  /** Remove a single document from an item's evidence list by its DB id. */
-  function removeDocument(itemCode: string, docId: string) {
+  /** Remove a document and any checklist capture references that point at it. */
+  function removeDocumentReferences(itemCode: string, docId: string, storagePath?: string) {
     updateItem(itemCode, item => ({
       ...item,
       documents: item.documents.filter(d => d.id !== docId),
+      metadata: {
+        ...item.metadata,
+        fieldChecklistState: Object.fromEntries(
+          Object.entries(getChecklistStateMap(item)).map(([entryKey, entryState]) => [
+            entryKey,
+            {
+              ...entryState,
+              captures: (entryState.captures ?? []).filter(capture =>
+                capture.documentId !== docId && capture.storagePath !== storagePath
+              ),
+            },
+          ])
+        ),
+      },
     }))
+  }
+
+  async function handleDeleteDocument(itemCode: string, doc: InspectorCompletionDocumentRow) {
+    if (previewMode || doc.storagePath.startsWith('local://') || doc.storagePath.startsWith('preview://')) {
+      removeDocumentReferences(itemCode, doc.id, doc.storagePath)
+      if (doc.previewUrl?.startsWith('blob:')) {
+        URL.revokeObjectURL(doc.previewUrl)
+      }
+      setLastSavedLabel('Document removed')
+      return
+    }
+
+    const ok = await deleteInspectorCompletionDocument(doc.id, doc.storagePath)
+    if (!ok) {
+      setStageSignOffError(`Could not delete ${doc.fileName}. Please try again.`)
+      return
+    }
+
+    removeDocumentReferences(itemCode, doc.id, doc.storagePath)
+    if (doc.previewUrl?.startsWith('blob:')) {
+      URL.revokeObjectURL(doc.previewUrl)
+    }
+    setLastSavedLabel('Document deleted')
   }
 
   function navigateToStage(stageNumber: number) {
     setStageSignOffError(null)
     setCurrentStage(stageNumber)
+  }
+
+  function triggerStageSuccessBanner(handshake: StageTransitionHandshake) {
+    if (stageTransitionStartRef.current) clearTimeout(stageTransitionStartRef.current)
+    setShowStageSuccessBanner(false)
+    setStageTransitionHandshake(handshake)
+    stageTransitionStartRef.current = setTimeout(() => {
+      setShowStageSuccessBanner(true)
+    }, 100)
   }
 
   function handleStatusSelection(itemCode: string, value: CompletionInspectionStatus) {
@@ -1205,8 +1352,6 @@ export function InspectorCompletionWorkspace() {
     const effectivePreviewUrl: string | undefined = capture?.previewUrl
       ?? (file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined)
 
-    console.log('[Vero] handleDocumentUpload —', itemCode, '— previewMode:', previewMode, '— file:', file.name, '— previewUrl:', effectivePreviewUrl ?? '(none)')
-
     if (previewMode) {
       const doc = createInspectorDevPreviewDocument({
         reportId: report.id,
@@ -1221,7 +1366,6 @@ export function InspectorCompletionWorkspace() {
         ? { ...doc, previewUrl: effectivePreviewUrl }
         : doc
       updateItem(itemCode, item => ({ ...item, documents: [...item.documents, docWithPreview] }))
-      console.log('[Vero] handleDocumentUpload — preview doc added to state, documents now:', 1, '(+1)')
       setLastSavedLabel('Preview document attached')
       return docWithPreview
     }
@@ -1280,7 +1424,6 @@ export function InspectorCompletionWorkspace() {
       ? { ...doc, previewUrl: effectivePreviewUrl }
       : doc
     updateItem(itemCode, item => ({ ...item, documents: [...item.documents, docWithPreview] }))
-    console.log('[Vero] handleDocumentUpload — doc saved to Supabase and added to state, previewUrl:', docWithPreview.previewUrl ?? '(none)')
     return docWithPreview
   }
 
@@ -1328,8 +1471,6 @@ export function InspectorCompletionWorkspace() {
     const document = await handleFieldEvidenceCapture(itemCode, payload)
     const entryKey = checklistEntryKey(checklistLabel)
     const noteKey = `${itemCode}:${entryKey}`
-    console.log('[Vero] handleChecklistCapture —', itemCode, '— source:', payload.source, '— transcript:', payload.transcript ?? '(none)')
-
     const textNote = payload.source === 'text'
       ? await payload.file.text()
       : payload.source === 'audio' && payload.transcript
@@ -1402,6 +1543,7 @@ export function InspectorCompletionWorkspace() {
     projectState,
     auditNote,
     location,
+    successBehavior = 'stay',
   }: {
     nextItems: WorkspaceItem[]
     nextStageSignOffs: Record<string, StageSignOffRecord>
@@ -1410,6 +1552,7 @@ export function InspectorCompletionWorkspace() {
     projectState: 'SEALED' | 'COMPLETED'
     auditNote: string
     location?: LocationSnapshot
+    successBehavior?: 'stay' | 'return_to_dashboard'
   }) {
     if (!report || !job || !assignment || !activeUser || !overlay) return false
     if (previewMode) {
@@ -1461,6 +1604,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
       sealApplied: true,
       sealReference,
       sealPayload,
+      sealedAt,
       submittedAt: sealedAt,
     })
 
@@ -1579,11 +1723,27 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
       sealApplied: true,
       sealReference,
       sealPayload,
+      sealedAt,
       submittedAt: sealedAt,
     } : current)
     setItems(nextItems)
-    setSealed(true)
     setSealing(false)
+    if (successBehavior === 'return_to_dashboard') {
+      setSealSuccessMessage('Digital Seal Applied Successfully!')
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+      if (sealSuccessTimerRef.current) clearTimeout(sealSuccessTimerRef.current)
+      if (sealRedirectTimerRef.current) clearTimeout(sealRedirectTimerRef.current)
+      sealSuccessTimerRef.current = setTimeout(() => {
+        setSealSuccessMessage(null)
+      }, 6000)
+      sealRedirectTimerRef.current = setTimeout(() => {
+        router.push('/inspector')
+      }, 1400)
+      return true
+    }
+    setSealed(true)
     return true
   }
 
@@ -1629,7 +1789,8 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
     ))
 
     const unlockedStages = getUnlockedFutureStages(nextItems, stages, currentStage)
-    const nextStage = unlockedStages[0] ?? currentStage
+    const sequentialNextStage = getNextSequentialStage(stages, currentStage)
+    const nextStage = unlockedStages[0] ?? sequentialNextStage?.stage_number ?? currentStage
     const nextStageSignOffs = {
       ...stageSignOffs,
       [String(currentStage)]: {
@@ -1657,8 +1818,28 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
       return
     }
 
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      console.log('Transition Handshake Fired')
+    }
+
+    const nextStageTarget = nextStage !== currentStage
+      ? getFirstIncompleteStageItem(nextItems, nextStage)
+      : null
+    const completedStageDefinition = getStageDefinitionByNumber(stages, currentStage)
+    const nextStageDefinition = getStageDefinitionByNumber(stages, nextStage) ?? sequentialNextStage
+
     setItems(nextItems)
     navigateToStage(nextStage)
+    if (nextStage !== currentStage) {
+      triggerStageSuccessBanner({
+        completedStageNumber: currentStage,
+        completedStageName: completedStageDefinition?.stage_name ?? `Stage ${currentStage}`,
+        nextStageNumber: nextStageDefinition?.stage_number ?? nextStage,
+        nextStageName: nextStageDefinition?.stage_name ?? `Stage ${nextStage}`,
+        targetItemCode: nextStageTarget?.item_code ?? null,
+      })
+    }
     setLastSavedLabel(
       unlockedStages.length > 0
         ? `Stage ${currentStage} signed off. Stage ${nextStage} is live.`
@@ -1701,6 +1882,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
       certificationType: 'standard',
       projectState: 'SEALED',
       auditNote: 'Inspector completion checklist sealed',
+      successBehavior: 'return_to_dashboard',
     })
   }
 
@@ -1905,8 +2087,34 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
     <div className="completion-workspace min-h-screen bg-[#050816] bg-[#0f172a] text-white pb-40">
       <Navbar role="inspector" dark />
       <main className="mx-auto max-w-7xl px-4 py-6">
-        <div className="grid gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
-          <aside className={`completion-sidebar rounded-[2rem] border border-white/10 bg-[#0a1020] p-4 lg:sticky lg:top-6 lg:h-[calc(100vh-3rem)] lg:overflow-y-auto ${FLOATING_PANEL_CLASS}`}>
+        {sealSuccessMessage && (
+          <div className={`mb-6 rounded-[1.75rem] border border-emerald-500/30 bg-emerald-100 px-5 py-4 text-emerald-900 ${FLOATING_PANEL_CLASS}`}>
+            <div className="flex items-start gap-3">
+              <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" />
+              <div>
+                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-700/80">Seal Applied</div>
+                <div className="mt-1 text-base font-medium text-emerald-900">
+                  {sealSuccessMessage}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        {showStageSuccessBanner && stageTransitionHandshake && (
+          <div className={`mb-6 rounded-[1.75rem] border border-emerald-500/30 bg-emerald-200 px-5 py-4 text-emerald-900 ${FLOATING_PANEL_CLASS}`}>
+            <div className="flex items-start gap-3">
+              <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" />
+              <div>
+                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-700/80">Stage Transition</div>
+                <div className="mt-1 text-base font-medium text-emerald-900">
+                  Stage {stageTransitionHandshake.completedStageNumber} Complete! You are now working on Stage {stageTransitionHandshake.nextStageNumber}.
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+          <aside className={`completion-sidebar rounded-[2rem] border border-white/10 bg-[#0a1020] p-4 lg:w-[300px] lg:flex-none lg:sticky lg:top-4 lg:self-start lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto ${FLOATING_PANEL_CLASS}`}>
             {previewMode && (
               <div className="mb-4 rounded-2xl border border-slate-500/40 bg-[repeating-linear-gradient(135deg,rgba(51,65,85,0.9)_0,rgba(51,65,85,0.9)_12px,rgba(71,85,105,0.88)_12px,rgba(71,85,105,0.88)_24px)] px-4 py-3 text-xs font-bold uppercase tracking-[0.18em] text-slate-100 shadow-[0_10px_20px_rgba(15,23,42,0.2)]">
                 Dev Preview Only
@@ -2081,7 +2289,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
             </div>
           </aside>
 
-          <section className="space-y-5">
+          <section className="space-y-5 lg:min-w-0 lg:flex-1">
             <div className={`rounded-[2rem] border border-white/10 bg-[#0a1020] p-5 ${FLOATING_PANEL_CLASS}`}>
               <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                 <div>
@@ -2089,16 +2297,16 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                   <h2 className="mt-2 text-3xl font-black">Stage {currentStage}: {currentProgress?.stage.stage_name}</h2>
                   <p className="mt-2 max-w-3xl text-sm leading-relaxed text-zinc-400">{currentProgress?.stage.summary}</p>
                 </div>
-                <div className="grid gap-3 sm:grid-cols-3">
-                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                <div className="grid gap-3 sm:grid-cols-3 shrink-0 overflow-hidden">
+                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-center">
                     <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-500">Resolved</div>
                     <div className="mt-2 text-2xl font-black">{currentProgress?.resolved ?? 0}</div>
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-center">
                     <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-500">Pending</div>
                     <div className="mt-2 text-2xl font-black">{(currentProgress?.total ?? 0) - (currentProgress?.resolved ?? 0)}</div>
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-center">
                     <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-500">Seal Gate</div>
                     <div className={`mt-2 text-sm font-black ${sealReady ? 'text-emerald-300' : 'text-amber-300'}`}>
                       {sealReady ? 'Ready' : 'Locked'}
@@ -2117,6 +2325,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                 })
                 const passRequiresEvidence = item.evidence_mode === 'required_upload' && item.document_upload_required
                 const passBlockedForEvidence = passRequiresEvidence && item.documents.length === 0
+                const showRequirementIndicator = passRequiresEvidence
                 const evidenceSummary = item.evidence_mode === 'verify_existing'
                   ? 'Verify project documents already on file. Upload remains optional unless you need to document a discrepancy.'
                   : 'At least one evidence file is required before this container can be passed.'
@@ -2132,9 +2341,23 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                 const jurisdictionNotesOpen = expandedJurisdictionNotes[item.item_code] ?? false
 
                 if (usesFieldView) {
-                  console.log('[Vero] Rendering Checklist Item:', item.item_code, '— documents:', item.documents.length, item.documents)
                   return (
-                    <article key={item.item_code} className={`rounded-[1.75rem] border border-white/10 bg-[#0a1020] p-4 sm:p-5 ${FLOATING_PANEL_CLASS}`}>
+                    <article
+                      key={item.item_code}
+                      ref={node => {
+                        stageItemRefs.current[item.item_code] = node
+                      }}
+                      tabIndex={-1}
+                      className={`relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-[#0a1020] p-4 sm:p-5 outline-none ${FLOATING_PANEL_CLASS} ${
+                        stageTransitionHandshake?.targetItemCode === item.item_code ? 'ring-2 ring-emerald-400/45 ring-offset-2 ring-offset-[#050816]' : ''
+                      }`}
+                    >
+                      {showRequirementIndicator && (
+                        <div
+                          aria-hidden="true"
+                          className={`absolute inset-y-0 left-0 w-1 ${passBlockedForEvidence ? 'bg-rose-500' : 'bg-emerald-500'}`}
+                        />
+                      )}
                       <div className="flex flex-col gap-3">
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-cyan-200">
@@ -2150,7 +2373,24 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
 
                         <div className="min-w-0">
                           <div className="min-w-0">
-                            <h3 className="text-lg font-black leading-tight sm:text-xl">{item.item_label}</h3>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h3 className="text-lg font-black leading-tight sm:text-xl">{item.item_label}</h3>
+                              {showRequirementIndicator && (
+                                passBlockedForEvidence ? (
+                                  <span className="inline-flex items-center rounded-full border border-rose-300/70 bg-rose-200 px-2 py-1 text-xs font-bold text-rose-900">
+                                    Required Evidence
+                                  </span>
+                                ) : (
+                                  <span
+                                    className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-500/15 text-emerald-300"
+                                    aria-label="Required evidence uploaded"
+                                    title="Required evidence uploaded"
+                                  >
+                                    <CheckCircle2 className="h-3.5 w-3.5" />
+                                  </span>
+                                )
+                              )}
+                            </div>
                             <p className="mt-2 text-[17px] leading-7 text-zinc-300">{shortPurpose}</p>
                           </div>
                         </div>
@@ -2277,7 +2517,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                             key={doc.id}
                                             doc={doc}
                                             onClick={() => void openDocument(doc)}
-                                            onDelete={() => removeDocument(item.item_code, doc.id)}
+                                            onDelete={() => void handleDeleteDocument(item.item_code, doc)}
                                           />
                                         )
                                       }
@@ -2542,20 +2782,6 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                             </div>
                           </div>
 
-
-{/* SCHEDULE C-B DOWNLOAD BUTTON */}
-<div className="w-full pb-6 pt-2">
-  <a 
-    href={`/api/schedule-cb?reportId=${report.id}`}
-    download="Schedule_C-B.pdf"
-    className="flex w-full items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 shadow-sm hover:border-zinc-300 hover:bg-zinc-50 transition-all"
-  >
-    <svg className="h-5 w-5 text-zinc-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-    </svg>
-    Download Official Schedule C-B
-  </a>
-</div>
                           <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
                             <div className="flex items-center justify-between gap-3">
                               <div>
@@ -2567,7 +2793,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                 Upload
                                 <input
                                   type="file"
-                                  className="hidden"
+                                  className="sr-only"
                                   onChange={event => {
                                     const file = event.target.files?.[0]
                                     event.target.value = ''
@@ -2588,7 +2814,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                     key={doc.id}
                                     doc={doc}
                                     onClick={() => void openDocument(doc)}
-                                    onDelete={() => removeDocument(item.item_code, doc.id)}
+                                    onDelete={() => void handleDeleteDocument(item.item_code, doc)}
                                   />
                                 ))
                               )}
@@ -2601,7 +2827,22 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                 }
 
                 return (
-                  <article key={item.item_code} className={`rounded-[1.75rem] border border-white/10 bg-[#0a1020] p-4 sm:p-5 ${FLOATING_PANEL_CLASS}`}>
+                  <article
+                    key={item.item_code}
+                    ref={node => {
+                      stageItemRefs.current[item.item_code] = node
+                    }}
+                    tabIndex={-1}
+                    className={`relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-[#0a1020] p-4 sm:p-5 outline-none ${FLOATING_PANEL_CLASS} ${
+                      stageTransitionHandshake?.targetItemCode === item.item_code ? 'ring-2 ring-emerald-400/45 ring-offset-2 ring-offset-[#050816]' : ''
+                    }`}
+                  >
+                    {showRequirementIndicator && (
+                      <div
+                        aria-hidden="true"
+                        className={`absolute inset-y-0 left-0 w-1 ${passBlockedForEvidence ? 'bg-rose-500' : 'bg-emerald-500'}`}
+                      />
+                    )}
                     <div className="flex flex-col gap-3">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-cyan-200">
@@ -2617,7 +2858,24 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
 
                       <div className="min-w-0">
                         <div className="min-w-0">
-                          <h3 className="text-lg font-black leading-tight sm:text-xl">{item.item_label}</h3>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="text-lg font-black leading-tight sm:text-xl">{item.item_label}</h3>
+                            {showRequirementIndicator && (
+                              passBlockedForEvidence ? (
+                                  <span className="inline-flex items-center rounded-full border border-rose-300/70 bg-rose-200 px-2 py-1 text-xs font-bold text-rose-900">
+                                    Required Evidence
+                                  </span>
+                              ) : (
+                                <span
+                                  className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-500/15 text-emerald-300"
+                                  aria-label="Required evidence uploaded"
+                                  title="Required evidence uploaded"
+                                >
+                                  <CheckCircle2 className="h-3.5 w-3.5" />
+                                </span>
+                              )
+                            )}
+                          </div>
                           <p className="mt-2 text-[17px] leading-7 text-zinc-300">{shortPurpose}</p>
                         </div>
                       </div>
@@ -2691,8 +2949,8 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                     </div>
 
                     {passBlockedForEvidence && (
-                      <div className="mt-3 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-3 py-3 text-xs text-amber-100/90">
-                        Upload at least one evidence file before marking this container as Passed.
+                      <div className="mt-3 rounded-2xl border border-amber-300 bg-amber-100 px-3 py-3 text-xs font-medium text-amber-900">
+                        Action Required: This container requires at least one piece of evidence (photo or note) before it can be marked as Passed.
                       </div>
                     )}
 
@@ -2887,12 +3145,12 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                 {evidenceSummary}
                               </div>
                             </div>
-                            <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-[#FF5F15] px-4 py-3 text-xs font-black text-white hover:bg-[#e25412]">
+                            <label className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-xl bg-[#FF5F15] px-4 py-3 text-xs font-black text-white hover:bg-[#e25412]">
                               <Upload className="h-4 w-4" />
                               Upload
                               <input
                                 type="file"
-                                className="hidden"
+                                className="sr-only"
                                 onChange={event => {
                                   const file = event.target.files?.[0]
                                   event.target.value = ''
@@ -2903,8 +3161,8 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                           </div>
 
                           {passBlockedForEvidence && (
-                            <div className="mt-4 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-3 py-3 text-xs text-amber-100/90">
-                              Upload at least one evidence file before marking this container as Passed.
+                            <div className="mt-4 rounded-2xl border border-amber-300 bg-amber-100 px-3 py-3 text-xs font-medium text-amber-900">
+                              Action Required: This container requires at least one piece of evidence (photo or note) before it can be marked as Passed.
                             </div>
                           )}
 
@@ -2923,7 +3181,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                   key={doc.id}
                                   doc={doc}
                                   onClick={() => void openDocument(doc)}
-                                  onDelete={() => removeDocument(item.item_code, doc.id)}
+                                  onDelete={() => void handleDeleteDocument(item.item_code, doc)}
                                 />
                               ))
                             )}
@@ -3150,7 +3408,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         <div className="mt-1 text-xs text-zinc-300">
                           {sealReady
                             ? 'All checklist items are resolved and evidence requirements are satisfied.'
-                            : `${unresolvedRequired.length} pending item(s) and ${missingDocuments.length} document gap(s) remain.`}
+                            : `${sealPendingCount} pending item(s) and ${sealDocumentGapCount} document gap(s) remain.`}
                         </div>
                       </div>
                     </div>
@@ -3162,19 +3420,29 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                     <FileCheck2 className="h-4 w-4 text-cyan-300" />
                     Overlay snapshot: {overlay.label}
                   </div>
-                  <button
-                    type="button"
-                    disabled={!sealReady || sealing}
-                    onClick={() => void applySeal()}
-                    className={`inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-black ${
-                      sealReady
-                        ? 'bg-[#FF5F15] text-white hover:bg-[#e25412]'
-                        : 'cursor-not-allowed bg-zinc-800 text-zinc-500'
-                    }`}
-                  >
-                    {sealing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Stamp className="h-4 w-4" />}
-                    {sealing ? 'Applying Seal...' : 'Apply Digital Seal'}
-                  </button>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <a
+                      href={`/api/schedule-cb?reportId=${report.id}`}
+                      download="Schedule_C-B.pdf"
+                      className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-bold text-zinc-200 hover:bg-white/10 transition-all"
+                    >
+                      <FileUp className="h-4 w-4 text-zinc-400" />
+                      Download Schedule C-B
+                    </a>
+                    <button
+                      type="button"
+                      disabled={!sealReady || sealing}
+                      onClick={() => void applySeal()}
+                      className={`inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-black ${
+                        sealReady
+                          ? 'bg-[#FF5F15] text-white hover:bg-[#e25412]'
+                          : 'cursor-not-allowed bg-zinc-800 text-zinc-100'
+                      }`}
+                    >
+                      {sealing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Stamp className="h-4 w-4" />}
+                      {sealing ? 'Applying Seal...' : 'Apply Digital Seal'}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

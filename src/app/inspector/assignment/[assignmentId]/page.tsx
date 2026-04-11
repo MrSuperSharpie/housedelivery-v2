@@ -326,10 +326,10 @@ export default function InspectorAssignmentDetailPage() {
             </div>
           </div>
 
-          <div className="mt-4 flex items-start gap-2 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-xs text-amber-100">
+          <div className="mt-4 flex items-start gap-2 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-xs text-amber-900">
             <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
             <span>
-              Vero governed dispatch is still in effect here: the builder did not choose you, your claim made the assignment provisional, and the builder only has governed objection rights during the window above.
+              You have successfully claimed this inspection, but the assignment is currently provisional. To ensure fair dispatch, builders cannot hand-pick inspectors, but they do have a brief window to submit a formal objection before your assignment is finalized.
             </span>
           </div>
         </div>

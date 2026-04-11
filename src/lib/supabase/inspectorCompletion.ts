@@ -17,6 +17,31 @@ const DOCUMENTS = 'inspector_completion_documents'
 const ANOMALIES = 'field_geo_anomalies'
 const STORAGE_BUCKET = 'inspection-evidence'
 
+function sanitizeJsonValue<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value
+      .map(entry => sanitizeJsonValue(entry))
+      .filter(entry => entry !== undefined) as T
+  }
+
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>)
+        .filter(([, entry]) => entry !== undefined)
+        .map(([key, entry]) => [key, sanitizeJsonValue(entry)])
+    ) as T
+  }
+
+  return value
+}
+
+function isMissingColumnError(error: unknown, columnName: string): boolean {
+  const message = typeof error === 'object' && error !== null && 'message' in error
+    ? String((error as { message?: unknown }).message ?? '')
+    : ''
+  return message.includes(columnName)
+}
+
 export interface InspectorCompletionReportRow {
   id: string
   assignmentId: string
@@ -39,6 +64,7 @@ export interface InspectorCompletionReportRow {
   sealApplied: boolean
   sealReference?: string
   sealPayload: Record<string, unknown>
+  sealedAt?: string
   lastSavedAt: string
   submittedAt?: string
   createdAt: string
@@ -130,6 +156,7 @@ function rowToReport(row: Record<string, unknown>): InspectorCompletionReportRow
     sealApplied: (row.seal_applied as boolean) ?? false,
     sealReference: (row.seal_reference as string) ?? undefined,
     sealPayload: (row.seal_payload as Record<string, unknown>) ?? {},
+    sealedAt: (row.sealed_at as string) ?? undefined,
     lastSavedAt: (row.last_saved_at as string) ?? new Date().toISOString(),
     submittedAt: (row.submitted_at as string) ?? undefined,
     createdAt: row.created_at as string,
@@ -247,46 +274,85 @@ export async function upsertInspectorCompletionReport(
   input: Omit<InspectorCompletionReportRow, 'createdAt' | 'updatedAt' | 'lastSavedAt'>
 ): Promise<InspectorCompletionReportRow | null> {
   const now = new Date().toISOString()
-  const { data, error } = await supabase
-    .from(REPORTS)
-    .upsert(
-      {
-        id: input.id,
-        assignment_id: input.assignmentId,
-        job_id: input.jobId,
-        inspector_id: input.inspectorId,
-        project_id: input.projectId ?? null,
-        project_name: input.projectName,
-        address: input.address,
-        city: input.city ?? null,
-        region: input.region ?? null,
-        project_type: input.projectType ?? null,
-        current_stage: input.currentStage,
-        stage_count: input.stageCount,
-        jurisdiction_name: input.jurisdictionName ?? null,
-        ahj_overlay_type: input.ahjOverlayType,
-        ahj_overlay_label: input.ahjOverlayLabel,
-        overlay_snapshot: input.overlaySnapshot,
-        checklist_snapshot: input.checklistSnapshot,
-        status: input.status,
-        seal_applied: input.sealApplied,
-        seal_reference: input.sealReference ?? null,
-        seal_payload: input.sealPayload,
-        last_saved_at: now,
-        submitted_at: input.submittedAt ?? null,
-        updated_at: now,
-      },
-      { onConflict: 'assignment_id' }
-    )
-    .select('*')
-    .single()
-
-  if (error || !data) {
-    console.error('upsertInspectorCompletionReport:', error)
-    return null
+  const basePayload: Record<string, unknown> = {
+    id: input.id,
+    assignment_id: input.assignmentId,
+    job_id: input.jobId,
+    inspector_id: input.inspectorId,
+    project_id: input.projectId ?? null,
+    project_name: input.projectName,
+    address: input.address,
+    city: input.city ?? null,
+    region: input.region ?? null,
+    project_type: input.projectType ?? null,
+    current_stage: input.currentStage,
+    stage_count: input.stageCount,
+    jurisdiction_name: input.jurisdictionName ?? null,
+    ahj_overlay_type: input.ahjOverlayType,
+    ahj_overlay_label: input.ahjOverlayLabel,
+    overlay_snapshot: sanitizeJsonValue(input.overlaySnapshot),
+    checklist_snapshot: sanitizeJsonValue(input.checklistSnapshot),
+    status: input.status,
+    seal_applied: input.sealApplied,
+    seal_reference: input.sealReference ?? null,
+    seal_payload: sanitizeJsonValue(input.sealPayload),
+    last_saved_at: now,
+    submitted_at: input.submittedAt ?? null,
+    updated_at: now,
   }
 
-  return rowToReport(data as Record<string, unknown>)
+  const payload = input.sealedAt ? { ...basePayload, sealed_at: input.sealedAt } : basePayload
+
+  async function runUpdate(reportPayload: Record<string, unknown>) {
+    return supabase
+      .from(REPORTS)
+      .update(reportPayload)
+      .eq('assignment_id', input.assignmentId)
+      .select('*')
+      .maybeSingle()
+  }
+
+  async function runInsert(reportPayload: Record<string, unknown>) {
+    return supabase
+      .from(REPORTS)
+      .insert(reportPayload)
+      .select('*')
+      .single()
+  }
+
+  try {
+    let { data, error } = await runUpdate(payload)
+
+    if (error && 'sealed_at' in payload && isMissingColumnError(error, 'sealed_at')) {
+      console.warn('upsertInspectorCompletionReport: sealed_at column missing during update, retrying without it')
+      ;({ data, error } = await runUpdate(basePayload))
+    }
+
+    if (!error && data) {
+      return rowToReport(data as Record<string, unknown>)
+    }
+
+    if (error) {
+      console.warn('upsertInspectorCompletionReport: update failed, falling back to insert', error)
+    }
+
+    ;({ data, error } = await runInsert(payload))
+
+    if (error && 'sealed_at' in payload && isMissingColumnError(error, 'sealed_at')) {
+      console.warn('upsertInspectorCompletionReport: sealed_at column missing during insert, retrying without it')
+      ;({ data, error } = await runInsert(basePayload))
+    }
+
+    if (error || !data) {
+      console.error('upsertInspectorCompletionReport:', error, payload)
+      return null
+    }
+
+    return rowToReport(data as Record<string, unknown>)
+  } catch (error) {
+    console.error('upsertInspectorCompletionReport (exception):', error, payload)
+    return null
+  }
 }
 
 export async function upsertInspectorCompletionItems(
@@ -355,7 +421,7 @@ export async function uploadInspectorCompletionDocument(
   }
 
   const safeName = file.name.replace(/\s+/g, '_')
-  const storagePath = `completion/${assignmentId}/${itemCode}/${Date.now()}-${safeName}`
+  const storagePath = `inspector_documents/${uploadedBy}/completion/${assignmentId}/${itemCode}/${Date.now()}-${safeName}`
   const evidenceChecksum = await checksumFile(file)
 
   const { error: storageError } = await supabase.storage
@@ -546,6 +612,33 @@ export async function createFieldGeoAnomaly(input: {
   }
 
   return rowToGeoAnomaly(data as Record<string, unknown>)
+}
+
+export async function deleteInspectorCompletionDocument(
+  documentId: string,
+  storagePath?: string,
+): Promise<boolean> {
+  const { error: deleteRowError } = await supabase
+    .from(DOCUMENTS)
+    .delete()
+    .eq('id', documentId)
+
+  if (deleteRowError) {
+    console.error('deleteInspectorCompletionDocument row delete:', deleteRowError)
+    return false
+  }
+
+  if (storagePath && !storagePath.startsWith('local://') && !storagePath.startsWith('preview://')) {
+    const { error: storageError } = await supabase.storage
+      .from(STORAGE_BUCKET)
+      .remove([storagePath])
+
+    if (storageError) {
+      console.error('deleteInspectorCompletionDocument storage remove:', storageError)
+    }
+  }
+
+  return true
 }
 
 export async function getInspectorCompletionDocumentSignedUrl(storagePath: string): Promise<string | null> {

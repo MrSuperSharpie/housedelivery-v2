@@ -15,6 +15,7 @@ const PACKAGE_EXPORTS = 'compliance_package_exports'
 const PAYMENTS = 'job_payment_decisions'
 const DISPUTES = 'job_disputes'
 const ARCHIVE = 'vault_archive_events'
+let governanceAuditUnavailableLogged = false
 
 type Row = Record<string, unknown>
 
@@ -295,6 +296,21 @@ export async function appendGovernanceAuditEvent(
   })
 
   if (error) {
+    const status = typeof error === 'object' && error !== null && 'code' in error
+      ? String((error as { code?: unknown }).code ?? '')
+      : ''
+    const message = typeof error === 'object' && error !== null && 'message' in error
+      ? String((error as { message?: unknown }).message ?? '')
+      : ''
+
+    if (status === '404' || message.includes('relation') || message.includes(AUDIT)) {
+      if (!governanceAuditUnavailableLogged) {
+        console.warn('appendGovernanceAuditEvent: governance audit table unavailable in this environment; audit inserts will be skipped')
+        governanceAuditUnavailableLogged = true
+      }
+      return false
+    }
+
     console.error('appendGovernanceAuditEvent:', error)
     return false
   }
