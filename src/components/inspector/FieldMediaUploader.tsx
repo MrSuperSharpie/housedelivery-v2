@@ -21,7 +21,7 @@ export interface FieldMediaCapturePayload {
   latitude: number | null
   longitude: number | null
   source: FieldMediaExpectedType
-  /** Blob URL for immediate image preview (valid for current session only). */
+  /** Blob URL for immediate media preview (valid for current session only). */
   previewUrl?: string
   /** Speech-to-text transcript for audio captures (when browser supports it). */
   transcript?: string
@@ -41,6 +41,14 @@ const GEOLOCATION_OPTIONS: PositionOptions = {
   enableHighAccuracy: true,
   timeout: 10000,
   maximumAge: 0,
+}
+
+const MAX_VIDEO_UPLOAD_BYTES = 50 * 1024 * 1024
+
+function captureAcceptForExpectedType(expectedType: FieldMediaExpectedType): string | undefined {
+  if (expectedType === 'camera') return 'image/*'
+  if (expectedType === 'video') return 'video/mp4,video/x-m4v,video/*'
+  return undefined
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -84,7 +92,7 @@ function buttonCopy(expectedType: FieldMediaExpectedType): {
     case 'video':
       return {
         title: 'Video Capture',
-        subtitle: 'Launch the rear camera in video mode.',
+        subtitle: 'Launch the rear camera in video mode for a short field clip.',
         idleLabel: 'Record Video',
         loadingLabel: 'Saving Video…',
       }
@@ -177,6 +185,7 @@ export function FieldMediaUploader({
   const [isTextListening, setIsTextListening] = useState(false)
   const [status, setStatus] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [warning, setWarning] = useState<string | null>(null)
   const [textValue, setTextValue] = useState('')
   const [textComposerOpen, setTextComposerOpen] = useState(false)
   const [speechRecognitionSupported, setSpeechRecognitionSupported] = useState(false)
@@ -252,6 +261,7 @@ export function FieldMediaUploader({
     }
 
     setError(null)
+    setWarning(null)
     setStatus('Starting microphone…')
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -334,6 +344,7 @@ export function FieldMediaUploader({
     setIsBusy(true)
     setStatus(source === 'text' ? 'Saving note…' : 'Pinning location and timestamp…')
     setError(null)
+    setWarning(null)
 
     try {
       const capturedAt = new Date().toISOString()
@@ -347,7 +358,9 @@ export function FieldMediaUploader({
         setError(location.error)
       }
 
-      const previewUrl = file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined
+      const previewUrl = file.type.startsWith('image/') || file.type.startsWith('video/')
+        ? URL.createObjectURL(file)
+        : undefined
       await onCapture({
         file,
         capturedAt,
@@ -376,6 +389,13 @@ export function FieldMediaUploader({
     const file = event.target.files?.[0]
     event.target.value = ''
     if (!file) return
+    setError(null)
+    setWarning(null)
+    if (expectedType === 'video' && file.size > MAX_VIDEO_UPLOAD_BYTES) {
+      setStatus(null)
+      setWarning('Video uploads must be under 50MB. Keep videos under 30 seconds for field evidence.')
+      return
+    }
     await finalizeCapture(file, expectedType)
   }
 
@@ -388,6 +408,7 @@ export function FieldMediaUploader({
     }
 
     setError(null)
+    setWarning(null)
     setStatus('Requesting microphone access…')
     setIsBusy(true)
 
@@ -550,6 +571,7 @@ export function FieldMediaUploader({
               disabled={disabled || isBusy}
               onClick={() => {
                 setError(null)
+                setWarning(null)
                 setStatus(null)
                 if (textComposerOpen) {
                   closeTextComposer()
@@ -591,6 +613,7 @@ export function FieldMediaUploader({
                     disabled={disabled || isBusy || !speechRecognitionSupported}
                     onClick={() => {
                       setError(null)
+                      setWarning(null)
                       if (isTextListening) {
                         stopTextRecognition()
                         return
@@ -646,10 +669,7 @@ export function FieldMediaUploader({
               type="file"
               className="hidden"
               accept={
-                expectedType === 'camera' ? 'image/*;capture=camera' :
-                expectedType === 'video' ? 'video/*' :
-                expectedType === 'document' ? undefined :
-                undefined
+                captureAcceptForExpectedType(expectedType)
               }
               capture={
                 expectedType === 'camera' || expectedType === 'video'
@@ -661,10 +681,15 @@ export function FieldMediaUploader({
           </>
         )}
 
-        {(status || error) && (
+        {(warning || status || error) && (
           <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-2xl border border-white/10 bg-[#091022] px-3 py-2 shadow-2xl">
+            {warning && (
+              <div className="rounded-xl border border-amber-200 bg-amber-100 px-3 py-2 text-xs font-medium text-amber-900">
+                {warning}
+              </div>
+            )}
             {status && (
-              <div className="flex items-center gap-2 text-xs text-zinc-300">
+              <div className={`${warning ? 'mt-2 ' : ''}flex items-center gap-2 text-xs text-zinc-300`}>
                 <MapPin className="h-3.5 w-3.5 text-cyan-300" />
                 <span>{status}</span>
               </div>
@@ -711,6 +736,7 @@ export function FieldMediaUploader({
               disabled={disabled || isBusy || !speechRecognitionSupported}
               onClick={() => {
                 setError(null)
+                setWarning(null)
                 if (isTextListening) {
                   stopTextRecognition()
                   return
@@ -794,9 +820,7 @@ export function FieldMediaUploader({
             type="file"
             className="hidden"
             accept={
-              expectedType === 'camera' ? 'image/*;capture=camera' :
-              expectedType === 'video' ? 'video/*' :
-              undefined
+              captureAcceptForExpectedType(expectedType)
             }
             capture={
               expectedType === 'camera' || expectedType === 'video'
@@ -824,6 +848,12 @@ export function FieldMediaUploader({
       {error && (
         <div className="mt-3 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-3 py-3 text-xs text-amber-100/90">
           {error}
+        </div>
+      )}
+
+      {warning && (
+        <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-100 px-3 py-3 text-xs font-medium text-amber-900">
+          {warning}
         </div>
       )}
     </div>

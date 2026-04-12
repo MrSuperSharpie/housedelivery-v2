@@ -90,6 +90,7 @@ export function createInspectorDevPreviewDocument(input: {
   itemCode: string
   fileName: string
   mimeType?: string
+  mediaType?: InspectorCompletionDocumentRow['mediaType']
   fileSize?: number
   uploadedBy?: string
 }): InspectorCompletionDocumentRow {
@@ -101,6 +102,7 @@ export function createInspectorDevPreviewDocument(input: {
     fileName: input.fileName,
     storagePath: `preview://${input.fileName}`,
     mimeType: input.mimeType,
+    mediaType: input.mediaType,
     fileSize: input.fileSize,
     uploadedBy: input.uploadedBy,
     createdAt: new Date().toISOString(),

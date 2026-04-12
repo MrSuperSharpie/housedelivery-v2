@@ -17,6 +17,8 @@ const DOCUMENTS = 'inspector_completion_documents'
 const ANOMALIES = 'field_geo_anomalies'
 const STORAGE_BUCKET = 'inspection-evidence'
 
+export type InspectorCompletionDocumentMediaType = 'camera' | 'video' | 'audio' | 'text' | 'document'
+
 function sanitizeJsonValue<T>(value: T): T {
   if (Array.isArray(value)) {
     return value
@@ -101,6 +103,7 @@ export interface InspectorCompletionDocumentRow {
   fileName: string
   storagePath: string
   mimeType?: string
+  mediaType?: InspectorCompletionDocumentMediaType
   fileSize?: number
   uploadedBy?: string
   createdAt: string
@@ -189,6 +192,7 @@ function rowToItem(row: Record<string, unknown>): InspectorCompletionChecklistIt
 }
 
 function rowToDocument(row: Record<string, unknown>): InspectorCompletionDocumentRow {
+  const mimeType = (row.mime_type as string) ?? undefined
   return {
     id: row.id as string,
     reportId: row.report_id as string,
@@ -196,11 +200,26 @@ function rowToDocument(row: Record<string, unknown>): InspectorCompletionDocumen
     itemCode: row.item_code as string,
     fileName: row.file_name as string,
     storagePath: row.storage_path as string,
-    mimeType: (row.mime_type as string) ?? undefined,
+    mimeType,
+    mediaType: (row.media_type as InspectorCompletionDocumentMediaType) ?? inferDocumentMediaType(mimeType),
     fileSize: (row.file_size as number) ?? undefined,
     uploadedBy: (row.uploaded_by as string) ?? undefined,
     createdAt: row.created_at as string,
   }
+}
+
+function inferDocumentMediaType(
+  mimeType?: string | null,
+  source?: string,
+): InspectorCompletionDocumentMediaType {
+  if (source === 'camera' || source === 'video' || source === 'audio' || source === 'text' || source === 'document') {
+    return source
+  }
+  if (mimeType?.startsWith('image/')) return 'camera'
+  if (mimeType?.startsWith('video/')) return 'video'
+  if (mimeType?.startsWith('audio/')) return 'audio'
+  if (mimeType?.startsWith('text/')) return 'text'
+  return 'document'
 }
 
 function rowToGeoAnomaly(row: Record<string, unknown>): FieldGeoAnomalyRow {
@@ -407,13 +426,14 @@ export async function uploadInspectorCompletionDocument(
     projectLatitude?: number | null
     projectLongitude?: number | null
     anomalyExplanation?: string
-    source?: string
+    source?: InspectorCompletionDocumentMediaType
   },
 ): Promise<InspectorCompletionDocumentRow | null> {
+  const mediaType = inferDocumentMediaType(file.type, options?.source)
   const governance = validateEvidenceUpload({
     mimeType: file.type,
     fileSize: file.size,
-    maxSizeMb: 25,
+    maxSizeMb: mediaType === 'video' ? 50 : 25,
   })
   if (!governance.ok) {
     console.error('uploadInspectorCompletionDocument governance:', governance.blockers)
@@ -463,6 +483,7 @@ export async function uploadInspectorCompletionDocument(
     file_name: file.name,
     storage_path: storagePath,
     mime_type: file.type || null,
+    media_type: mediaType,
     file_size: file.size || null,
     evidence_checksum: evidenceChecksum,
     original_captured_at: now,
@@ -473,7 +494,13 @@ export async function uploadInspectorCompletionDocument(
     created_at: now,
   }
 
-  const { data, error } = await supabase.from(DOCUMENTS).insert(row).select('*').single()
+  let { data, error } = await supabase.from(DOCUMENTS).insert(row).select('*').single()
+  if (error && isMissingColumnError(error, 'media_type')) {
+    const legacyRow = { ...row }
+    delete legacyRow.media_type
+    console.warn('uploadInspectorCompletionDocument insert: media_type column missing, retrying without it')
+    ;({ data, error } = await supabase.from(DOCUMENTS).insert(legacyRow).select('*').single())
+  }
   if (error || !data) {
     console.error('uploadInspectorCompletionDocument insert:', error)
     return null
@@ -497,12 +524,13 @@ export async function uploadInspectorCompletionDocument(
       evidenceChecksum,
       geofenceState: geofence.state,
     },
-    metadata: {
-      fileName: file.name,
-      mimeType: file.type,
-      fileSize: file.size,
-    },
-  })
+        metadata: {
+          fileName: file.name,
+          mimeType: file.type,
+          mediaType,
+          fileSize: file.size,
+        },
+      })
 
   if (geofence.state === 'anomalous' && options?.jobId) {
     const { data: anomalyData, error: anomalyError } = await supabase
@@ -521,6 +549,7 @@ export async function uploadInspectorCompletionDocument(
         inspector_id: uploadedBy,
         metadata: {
           source: options.source ?? 'field_capture',
+          mediaType,
         },
       })
       .select('*')

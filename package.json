@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "tsx --test src/lib/pdf/tests/*.test.ts",
+    "pdf:install-browser": "playwright install chromium"
   },
   "dependencies": {
     "@supabase/ssr": "^0.9.0",
@@ -27,7 +29,9 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "playwright": "^1.59.1",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "5.9.3"
   }
 }

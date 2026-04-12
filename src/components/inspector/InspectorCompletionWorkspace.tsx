@@ -18,10 +18,12 @@ import {
   Loader2,
   Lock,
   MapPin,
+  Play,
   ShieldCheck,
   Stamp,
   Trash2,
   Upload,
+  Video,
   XCircle,
 } from 'lucide-react'
 import {
@@ -142,6 +144,7 @@ function DocRow({
   onDelete: () => void
 }) {
   const isPdf = doc.mimeType === 'application/pdf' || doc.fileName.toLowerCase().endsWith('.pdf')
+  const isVideo = doc.mediaType === 'video' || doc.mimeType?.startsWith('video/') === true
 
   return (
     <div className="group flex w-full items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm transition-all hover:border-zinc-300">
@@ -151,26 +154,56 @@ function DocRow({
         className="flex min-w-0 flex-1 items-center gap-3 text-left hover:opacity-80 transition-opacity"
       >
         {doc.previewUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={doc.previewUrl}
-            alt={doc.fileName}
-            className="h-10 w-10 shrink-0 rounded-lg object-cover bg-zinc-100"
-          />
+          <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-zinc-100">
+            {isVideo ? (
+              <video
+                src={doc.previewUrl}
+                className="h-10 w-10 object-cover"
+                muted
+                playsInline
+                preload="metadata"
+              />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={doc.previewUrl}
+                alt={doc.fileName}
+                className="h-10 w-10 object-cover bg-zinc-100"
+              />
+            )}
+            {isVideo && (
+              <div className="absolute inset-0 flex items-center justify-center bg-slate-950/35">
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-sm">
+                  <Play className="ml-0.5 h-3 w-3 fill-current" />
+                </div>
+              </div>
+            )}
+          </div>
         ) : (
-          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${
-            isPdf ? 'border-red-100 bg-red-50' : 'border-zinc-100 bg-zinc-50'
+          <div className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${
+            isPdf ? 'border-red-100 bg-red-50' :
+            isVideo ? 'border-sky-100 bg-sky-50' :
+            'border-zinc-100 bg-zinc-50'
           }`}>
             {isPdf
               ? <FileText className="h-4 w-4 text-red-500" />
+              : isVideo
+                ? <Video className="h-4 w-4 text-sky-600" />
               : <File className="h-4 w-4 text-zinc-400" />}
+            {isVideo && (
+              <div className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border border-white bg-slate-900 text-white shadow-sm">
+                <Play className="ml-0.5 h-2.5 w-2.5 fill-current" />
+              </div>
+            )}
           </div>
         )}
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-semibold text-zinc-900">{doc.fileName}</div>
           <div className="mt-0.5 flex items-center gap-2 text-[11px] text-zinc-500 font-medium">
+            {isVideo && <span className="text-sky-700">Video</span>}
+            {isVideo && <span className="opacity-50">•</span>}
             {doc.fileSize != null && <span>{formatBytes(doc.fileSize)}</span>}
-            <span className="opacity-50">•</span>
+            {doc.fileSize != null && <span className="opacity-50">•</span>}
             <span>
               {new Date(doc.createdAt).toLocaleString('en-CA', {
                 hour: '2-digit',
@@ -1347,10 +1380,10 @@ export function InspectorCompletionWorkspace() {
     }
 
     // Prefer blob URL from capture payload; fall back to creating one from the file when it's
-    // an image. This covers both FieldMediaUploader captures (payload.previewUrl set) and the
+    // previewable media. This covers both FieldMediaUploader captures (payload.previewUrl set) and the
     // raw <input type="file"> buttons that call handleDocumentUpload without a capture payload.
     const effectivePreviewUrl: string | undefined = capture?.previewUrl
-      ?? (file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined)
+      ?? (file.type.startsWith('image/') || file.type.startsWith('video/') ? URL.createObjectURL(file) : undefined)
 
     if (previewMode) {
       const doc = createInspectorDevPreviewDocument({
@@ -1359,6 +1392,7 @@ export function InspectorCompletionWorkspace() {
         itemCode,
         fileName: file.name,
         mimeType: file.type,
+        mediaType: capture?.source ?? (file.type.startsWith('video/') ? 'video' : undefined),
         fileSize: file.size,
         uploadedBy: activeUser.supabaseId ?? activeUser.id,
       })
@@ -1384,6 +1418,7 @@ export function InspectorCompletionWorkspace() {
         itemCode,
         fileName: file.name,
         mimeType: file.type,
+        mediaType: capture?.source ?? (file.type.startsWith('video/') ? 'video' : undefined),
         fileSize: file.size,
         uploadedBy: activeUser.supabaseId ?? activeUser.id,
       })
@@ -2420,7 +2455,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                             const noteOpen = expandedChecklistNotes[noteKey] === true || Boolean(entryState.note)
                             const evidenceActions = parseFieldEvidenceActions(detail)
                             const showCamera = evidenceActions === null || evidenceActions.includes('camera')
-                            const showVideo = evidenceActions?.includes('video') ?? false
+                            const showVideo = evidenceActions === null || evidenceActions.includes('video')
                             const showAudio = evidenceActions === null || evidenceActions.includes('audio')
                             const showText = evidenceActions === null || evidenceActions.includes('text') || Boolean(entryState.note)
 
@@ -2783,24 +2818,40 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                           </div>
 
                           <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
-                            <div className="flex items-center justify-between gap-3">
+                            <div className="flex flex-wrap items-center justify-between gap-3">
                               <div>
                                 <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Attached Evidence</div>
                                 <div className="mt-1 text-xs text-zinc-400">Container-level uploads remain available when you need broader context.</div>
                               </div>
-                              <label className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-2xl bg-[#FF5F15] px-4 py-3 text-xs font-black text-white hover:bg-[#e25412]">
-                                <Upload className="h-4 w-4" />
-                                Upload
-                                <input
-                                  type="file"
-                                  className="sr-only"
-                                  onChange={event => {
-                                    const file = event.target.files?.[0]
-                                    event.target.value = ''
-                                    if (file) void handleDocumentUpload(item.item_code, file)
-                                  }}
+                              <div className="flex flex-wrap items-center gap-2">
+                                <FieldMediaUploader
+                                  expectedType="camera"
+                                  variant="icon"
+                                  label="Capture photo"
+                                  buttonClassName={TACTILE_MEDIA_BUTTON_CLASS}
+                                  onCapture={payload => handleFieldEvidenceCapture(item.item_code, payload)}
                                 />
-                              </label>
+                                <FieldMediaUploader
+                                  expectedType="video"
+                                  variant="icon"
+                                  label="Capture video"
+                                  buttonClassName={TACTILE_MEDIA_BUTTON_CLASS}
+                                  onCapture={payload => handleFieldEvidenceCapture(item.item_code, payload)}
+                                />
+                                <label className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-2xl bg-[#FF5F15] px-4 py-3 text-xs font-black text-white hover:bg-[#e25412]">
+                                  <Upload className="h-4 w-4" />
+                                  Upload
+                                  <input
+                                    type="file"
+                                    className="sr-only"
+                                    onChange={event => {
+                                      const file = event.target.files?.[0]
+                                      event.target.value = ''
+                                      if (file) void handleDocumentUpload(item.item_code, file)
+                                    }}
+                                  />
+                                </label>
+                              </div>
                             </div>
 
                             <div className="mt-4 space-y-2">
@@ -3138,26 +3189,42 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         </div>
 
                         <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
-                          <div className="flex items-center justify-between gap-3">
+                          <div className="flex flex-wrap items-center justify-between gap-3">
                             <div>
                               <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Evidence</div>
                               <div className="mt-1 text-xs text-zinc-400">
                                 {evidenceSummary}
                               </div>
                             </div>
-                            <label className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-xl bg-[#FF5F15] px-4 py-3 text-xs font-black text-white hover:bg-[#e25412]">
-                              <Upload className="h-4 w-4" />
-                              Upload
-                              <input
-                                type="file"
-                                className="sr-only"
-                                onChange={event => {
-                                  const file = event.target.files?.[0]
-                                  event.target.value = ''
-                                  if (file) void handleDocumentUpload(item.item_code, file)
-                                }}
+                            <div className="flex flex-wrap items-center gap-2">
+                              <FieldMediaUploader
+                                expectedType="camera"
+                                variant="icon"
+                                label="Capture photo"
+                                buttonClassName={TACTILE_MEDIA_BUTTON_CLASS}
+                                onCapture={payload => handleFieldEvidenceCapture(item.item_code, payload)}
                               />
-                            </label>
+                              <FieldMediaUploader
+                                expectedType="video"
+                                variant="icon"
+                                label="Capture video"
+                                buttonClassName={TACTILE_MEDIA_BUTTON_CLASS}
+                                onCapture={payload => handleFieldEvidenceCapture(item.item_code, payload)}
+                              />
+                              <label className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-xl bg-[#FF5F15] px-4 py-3 text-xs font-black text-white hover:bg-[#e25412]">
+                                <Upload className="h-4 w-4" />
+                                Upload
+                                <input
+                                  type="file"
+                                  className="sr-only"
+                                  onChange={event => {
+                                    const file = event.target.files?.[0]
+                                    event.target.value = ''
+                                    if (file) void handleDocumentUpload(item.item_code, file)
+                                  }}
+                                />
+                              </label>
+                            </div>
                           </div>
 
                           {passBlockedForEvidence && (
