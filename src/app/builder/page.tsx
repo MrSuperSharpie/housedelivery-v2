@@ -21,11 +21,18 @@ import { getBuilderOnboardingStatusAsync } from '@/lib/persistence/builderOnboar
 import type { BuilderOnboardingStatus } from '@/lib/persistence/builderOnboarding'
 import type { Project, DispatchTier, InspectionStatus } from '@/lib/types'
 import type { HoldRecord } from '@/lib/types'
-import { RETENTION_RATES } from '@/lib/types'
-import { listHoldsForJob, builderApproveHold, builderDeclineHold } from '@/lib/supabase/holds'
+import {
+  builderApproveHold,
+  builderDeclineHold,
+  listHoldsForJob,
+  requestOnSiteCorrectionReview,
+} from '@/lib/supabase/holds'
 import { listJobsByBuilder } from '@/lib/supabase/jobs'
 import type { JobOpportunityRow } from '@/lib/supabase/jobs'
 import { getJobWorkflowLabel, getJobWorkflowState } from '@/lib/workflow'
+import { isHoldOpenStatus } from '@/lib/holds/workflow'
+import { resolveHoldBaseRate } from '@/lib/pricing/config'
+import { calculateHoldCost } from '@/utils/pricing'
 
 // FIX #1: createClient() must not be called between import statements.
 // Moved here, after all imports, as a module-level constant.
@@ -286,6 +293,7 @@ export default function BuilderDashboard() {
   const [completedRecords, setCompletedRecords] = useState<Record<string, { certRef: string; result: string; completedAt: string }>>({})
   const [activeHolds, setActiveHolds]           = useState<HoldRecord[]>([])
   const [holdResponding, setHoldResponding]     = useState<string | null>(null)
+  const [holdReviewRequesting, setHoldReviewRequesting] = useState<string | null>(null)
   // FIX #7: per-hold decline notes instead of one shared string
   const [declineNotes, setDeclineNotes]         = useState<Record<string, string>>({})
 
@@ -337,11 +345,12 @@ export default function BuilderDashboard() {
 
   // Fetch job_opportunities directly by builder_id
   useEffect(() => {
-    if (!user?.supabaseId) return
+    const builderSupabaseUserId = user?.supabaseId
+    if (!builderSupabaseUserId) return
     async function loadJobs() {
       setIsLoadingJobs(true)
       try {
-        const nextJobs = await listJobsByBuilder(user.supabaseId as string)
+        const nextJobs = await listJobsByBuilder(builderSupabaseUserId)
         setDbJobs(nextJobs)
       } finally {
         setIsLoadingJobs(false)
@@ -374,7 +383,7 @@ export default function BuilderDashboard() {
       const onHoldJobs = (dbJobs ?? []).filter(j => j.status === 'on_hold')
       if (onHoldJobs.length === 0) { setActiveHolds([]); return }
       const results = await Promise.all(onHoldJobs.map(j => listHoldsForJob(j.id)))
-      const allHolds = results.flat().filter(h => h.status === 'open')
+      const allHolds = results.flat().filter(h => isHoldOpenStatus(h.status))
       setActiveHolds(allHolds)
     }
     void loadActiveHolds()
@@ -500,6 +509,16 @@ export default function BuilderDashboard() {
     setHoldResponding(null)
   }
 
+  const handleRequestReview = async (hold: HoldRecord) => {
+    setHoldReviewRequesting(hold.id)
+    await requestOnSiteCorrectionReview(
+      hold.id,
+      builderSupabaseId || builderLocalId,
+      'Builder requested on-site correction review.',
+    )
+    setHoldReviewRequesting(null)
+  }
+
   const handleDispatch = (_dispatchTier: DispatchTier) => {
     // Job creation handled inside DispatchModal via store.addJob()
     void _dispatchTier
@@ -601,9 +620,17 @@ export default function BuilderDashboard() {
         {/* ── Active Hold Notifications ── */}
         {activeHolds.map(hold => {
           const holdJob    = (dbJobs ?? []).find(j => j.id === hold.jobId)
-          const tier       = holdJob?.dispatchTier ?? 'standard'
-          const rate       = RETENTION_RATES[tier as keyof typeof RETENTION_RATES]
+          const holdBaseRate = hold.premiumRateAmount || resolveHoldBaseRate({
+            pricingMode: holdJob?.pricingMode,
+            specialistRole: holdJob?.specialistRole,
+            discipline: holdJob?.requiredDiscipline,
+            credentialClass: holdJob?.credentialClass,
+            inspectionType: holdJob?.inspectionType,
+          }).baseRate
+          const holdHours = Math.max(0, hold.estimatedCorrectionMinutes / 60)
+          const estimatedHoldCost = calculateHoldCost(holdBaseRate, holdHours)
           const isResponding = holdResponding === hold.id
+          const requestingReview = holdReviewRequesting === hold.id
           // FIX #7: each hold gets its own decline note
           const thisDeclineNote = declineNotes[hold.id] ?? ''
 
@@ -629,20 +656,39 @@ export default function BuilderDashboard() {
               <div className="px-5 py-3 border-b border-red-500/10">
                 <div className="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-1">Inspector&apos;s Hold Reason</div>
                 <div className="text-sm text-ink">{hold.reason}</div>
+                <div className="mt-2 text-xs text-muted">
+                  {hold.affectedItemSummaries.length > 0
+                    ? `Affected items: ${hold.affectedItemSummaries.join(' · ')}`
+                    : `Affected checklist items: ${hold.checklistItemIds.join(', ')}`}
+                </div>
               </div>
 
               <div className="px-5 py-3 border-b border-red-500/10 flex items-center gap-3">
                 <DollarSign className="w-4 h-4 text-amber-400 shrink-0" />
                 <div className="text-xs text-muted">
-                  Approving this hold authorizes <span className="text-amber-400 font-bold">${rate}/hr</span> premium retention rate while the inspector waits on-site for corrections.
+                  Approving this hold authorizes a <span className="text-amber-400 font-bold">${holdBaseRate.toFixed(2)}/hr base rate</span> billed at 1.5× while the inspector remains on site.
                 </div>
               </div>
 
-              <div className="px-5 py-3 border-b border-red-500/10 flex items-center justify-between">
-                <span className="text-xs text-muted">Hold expires at</span>
-                <span className="text-xs font-mono font-bold text-red-400">
-                  {new Date(hold.expiresAt).toLocaleTimeString('en-CA', { timeZone: 'America/Vancouver', hour: '2-digit', minute: '2-digit' })}
-                </span>
+              <div className="px-5 py-3 border-b border-red-500/10 grid gap-2 sm:grid-cols-4">
+                <div>
+                  <div className="text-[10px] font-bold text-muted uppercase tracking-widest">Estimated Retained Time</div>
+                  <div className="text-xs font-semibold text-ink">{hold.estimatedCorrectionMinutes} minutes</div>
+                </div>
+                <div>
+                  <div className="text-[10px] font-bold text-muted uppercase tracking-widest">Maximum Exposure</div>
+                  <div className="text-xs font-semibold text-ink">${hold.holdCapAmount.toFixed(2)}</div>
+                </div>
+                <div>
+                  <div className="text-[10px] font-bold text-muted uppercase tracking-widest">Estimated Hold Cost</div>
+                  <div className="text-xs font-semibold text-ink">${Math.min(hold.holdCapAmount, estimatedHoldCost).toFixed(2)}</div>
+                </div>
+                <div>
+                  <div className="text-[10px] font-bold text-muted uppercase tracking-widest">Expiry</div>
+                  <div className="text-xs font-mono font-bold text-red-400">
+                    {new Date(hold.expiresAt).toLocaleTimeString('en-CA', { timeZone: 'America/Vancouver', hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                </div>
               </div>
 
               <div className="px-5 py-4 space-y-3">
@@ -655,9 +701,17 @@ export default function BuilderDashboard() {
                     {isResponding
                       ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       : <CheckCircle2 className="w-4 h-4" />}
-                    Approve Hold · ${rate}/hr
+                    Accept Hold & Retain Inspector
                   </button>
                 </div>
+
+                <button
+                  onClick={() => handleRequestReview(hold)}
+                  disabled={requestingReview}
+                  className="w-full rounded-xl border border-blue-500/25 bg-blue-500/10 py-2.5 text-xs font-bold text-blue-300 transition-all hover:bg-blue-500/20 disabled:opacity-40"
+                >
+                  {requestingReview ? 'Sending Request...' : 'Request On-Site Correction Review'}
+                </button>
 
                 <div className="flex gap-2">
                   <input
@@ -671,7 +725,7 @@ export default function BuilderDashboard() {
                     disabled={!thisDeclineNote.trim() || isResponding}
                     className="px-4 bg-red-500/10 border border-red-500/30 text-red-400 font-bold rounded-xl text-xs hover:bg-red-500/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    Decline
+                    Decline and Rebook
                   </button>
                 </div>
                 <p className="text-[10px] text-subtle">Declining stops the inspection. A new booking will be required.</p>

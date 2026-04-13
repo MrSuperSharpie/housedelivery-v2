@@ -5,6 +5,8 @@ import {
   Radio, Lock, CheckCircle2, ChevronRight,
   HardHat, Building2, Eye
 } from 'lucide-react'
+import { BrandWordmark } from '@/components/shared/Navbar'
+import { DISPATCH_PRICING, SPECIALIST_ROLE_OPTIONS } from '@/lib/pricing/config'
 
 /* ─── Micro-components ───────────────────────────────────────────────────── */
 
@@ -96,14 +98,7 @@ export default function LandingPage() {
         <header className="fixed top-0 inset-x-0 z-50 border-b border-white/5 bg-surface/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-5 h-16 flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-flame flex items-center justify-center">
-              <HardHat className="w-4 h-4 text-white" />
-            </div>
-            <span className="text-base font-black text-ink tracking-tight">
-              Vero
-            </span>
-          </Link>
+          <BrandWordmark className="max-w-[150px]" height={34} priority theme="dark" />
 
           {/* Nav links */}
           <nav className="hidden md:flex items-center gap-1">
@@ -285,50 +280,48 @@ export default function LandingPage() {
         <section className="border-t border-white/5 py-24 bg-dot bg-dot-md">
         <div className="max-w-4xl mx-auto px-5">
           <div className="text-center mb-12">
-            <div className="label-mono mb-3">Pricing</div>
-            <h2 className="text-3xl font-black text-ink">Your schedule, your speed.</h2>
-            <p className="text-muted text-sm mt-3 max-w-xl mx-auto">
-              Funds are pre-funded to escrow before the job goes live. Vero charges a flat 10% commission on total transaction volume. No subscription, no retainer.
+            <div className="label-mono mb-3">PRICING</div>
+            <h2 className="text-3xl font-black text-ink">Choose your dispatch speed. Vero handles the pricing model.</h2>
+            <p className="text-muted text-sm mt-3 max-w-2xl mx-auto">
+              Standard, Priority, and Emergency control how quickly an inspector is dispatched.
+              For routine inspections, pricing is fixed-fee.
+              If the permit stage, inspection type, or credential requirement calls for a registered professional, Vero switches to hourly specialist pricing automatically.
+            </p>
+          </div>
+
+          <div className="text-center mb-8">
+            <div className="label-mono mb-2">STEP 1 — SELECT DISPATCH SPEED</div>
+            <h3 className="text-2xl font-black text-ink">Fixed-fee dispatch for routine inspection bookings</h3>
+            <p className="text-muted text-sm mt-2 max-w-xl mx-auto">
+              Use these options when the inspection does not require a specialist or professional sign-off.
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-4">
-            {[
-              {
-                tier: 'Standard', time: '5–7 business days', price: '$325',
-                note: '$295 + 10% commission', items: ['Next available CP', 'Standard scheduling', 'Auto Schedule C-B'],
-                highlight: false,
-              },
-              {
-                tier: 'Priority', time: '2–3 business days', price: '$487',
-                note: '$443 + 10% commission', items: ['Top-rated CP preferred', 'Same-day service', 'Live ETA tracking'],
-                highlight: true,
-              },
-              {
-                tier: 'Emergency', time: 'Within 24 hrs / next day', price: '$649',
-                note: '$590 + 10% commission', items: ['Highest urgency routing', 'Dedicated CP dispatch', 'Direct CP phone access'],
-                highlight: false,
-              },
-            ].map(t => (
-              <div key={t.tier}
+            {DISPATCH_PRICING.map(pricing => (
+              <div key={pricing.tier}
                 className={`relative rounded-2xl p-6 flex flex-col ${
-                  t.highlight
+                  pricing.tier === 'priority'
                     ? 'bg-flame/10 border-2 border-flame/40 glow-flame-sm'
                     : 'card-dark'
                 }`}>
-                {t.highlight && (
+                {pricing.tier === 'priority' && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                     <span className="bg-flame text-white text-xs font-bold px-3 py-1 rounded-full">Most Popular</span>
                   </div>
                 )}
-                <div className="label-mono mb-2">{t.tier}</div>
-                <div className="text-3xl font-black text-ink mb-0.5">{t.price}</div>
-                <div className="text-xs text-muted mb-1">{t.note}</div>
+                <div className="label-mono mb-2">{pricing.label} Dispatch</div>
+                <div className="text-3xl font-black text-ink mb-0.5">${pricing.price} total</div>
+                <div className="text-xs text-muted mb-1">Includes platform fee</div>
                 <div className="flex items-center gap-1.5 text-xs text-flame mb-5">
-                  <Clock className="w-3 h-3" /> {t.time}
+                  <Clock className="w-3 h-3" /> {pricing.timeframe}
                 </div>
                 <div className="space-y-2.5 flex-1">
-                  {t.items.map(item => (
+                  {[
+                    pricing.tier === 'standard' ? 'Next available CP' : pricing.tier === 'priority' ? 'Preferred dispatch routing' : 'Highest urgency routing',
+                    pricing.tier === 'standard' ? 'Standard scheduling' : pricing.tier === 'priority' ? 'Faster scheduling window' : 'Dedicated dispatch handling',
+                    pricing.tier === 'standard' ? 'Routine dispatch lane' : pricing.tier === 'priority' ? 'Live ETA tracking' : 'Direct coordination access',
+                  ].map(item => (
                     <div key={item} className="flex items-start gap-2 text-sm text-muted">
                       <CheckCircle2 className="w-4 h-4 text-success-green shrink-0 mt-0.5" />
                       {item}
@@ -337,7 +330,7 @@ export default function LandingPage() {
                 </div>
                 <Link href="/get-started"
                   className={`mt-6 flex items-center justify-center gap-2 font-bold text-sm px-4 py-3 rounded-xl transition-all ${
-                    t.highlight
+                    pricing.tier === 'priority'
                       ? 'bg-flame text-white hover:bg-flame-light glow-flame-sm'
                       : 'border border-white/10 text-ink hover:bg-raised'
                   }`}>
@@ -345,6 +338,51 @@ export default function LandingPage() {
                 </Link>
               </div>
             ))}
+          </div>
+
+          <div className="mt-5 rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-sm text-muted">
+            These fixed-fee cards apply to routine dispatch only. If the file requires a registered professional, specialist hourly pricing applies below.
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="label-mono mb-2">STEP 2 — SPECIALIST PRICING, IF REQUIRED</div>
+                <h3 className="text-2xl font-black text-ink">Hourly specialist and professional review rates</h3>
+                <p className="text-sm text-muted max-w-2xl">
+                  Applied when the inspection requires field review, sealed review, sign-off, or another registered-professional obligation.
+                  Dispatch speed still controls urgency, but hourly specialist rates become the pricing basis.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5 grid gap-3 md:grid-cols-2">
+              {SPECIALIST_ROLE_OPTIONS.map(role => (
+                <div key={role.id} className="rounded-2xl border border-white/10 bg-[#0E1727] px-4 py-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <div className="text-sm font-bold text-ink">{role.label}</div>
+                      <div className="mt-1 text-xs text-muted">Typical range: {role.rateRangeLabel}</div>
+                      <div className="mt-1 text-xs text-muted">Minimum {role.minimumHours} hours</div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="text-lg font-black text-ink">${role.defaultRate}/hr</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-6">
+            <div className="label-mono mb-2">STEP 3 — OPTIONAL ON-SITE HOLD</div>
+            <div className="text-sm font-bold text-ink">
+              If minor corrections can reasonably be completed on-site, the inspector may remain and re-review without forcing a new booking.
+            </div>
+            <div className="mt-2 text-sm text-muted">Hold time is billed at 1.5× the applicable hourly rate.</div>
+            <div className="mt-3 text-xs text-muted">
+              Dispatch speed determines arrival time. Pricing is then based on either fixed routine dispatch or specialist hourly rates, depending on the inspection requirements.
+            </div>
           </div>
         </div>
         </section>
@@ -378,12 +416,7 @@ export default function LandingPage() {
       {/* ══════════════════════════════════════════════════════════════════ */}
         <footer className="border-t border-white/5 py-10">
         <div className="max-w-7xl mx-auto px-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-flame flex items-center justify-center">
-              <HardHat className="w-3.5 h-3.5 text-white" />
-            </div>
-            <span className="text-sm font-black text-ink">Vero</span>
-          </div>
+          <BrandWordmark className="max-w-[130px]" height={30} theme="dark" />
           <div className="flex items-center gap-5 text-xs text-subtle">
             <span>© 2026 Vero Technologies Inc.</span>
             <span>Vancouver, BC</span>

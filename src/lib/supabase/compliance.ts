@@ -26,6 +26,7 @@ import {
   upsertPackageSeal,
   upsertPaymentDecision,
 } from '@/lib/supabase/governance'
+import { hasOpenHoldForJob } from '@/lib/supabase/holds'
 import { calculatePricingBreakdown } from '@/utils/pricing'
 import { hydrateGovernedPaymentAmounts } from '@/lib/governance/payments'
 import { normalizeInspectorRoleLanes } from '@/lib/inspectorRoleLanes'
@@ -66,6 +67,8 @@ function completedToRow(r: CompletedInspectionRecord): Record<string, unknown> {
     jurisdiction_name: r.jurisdictionName ?? null,
     authority_name: r.authorityName ?? null,
     sealed: r.sealed,
+    hold_id: r.holdId ?? null,
+    hold_history: r.holdHistory ?? [],
   }
 }
 
@@ -97,6 +100,8 @@ function rowToCompleted(row: Record<string, unknown>): CompletedInspectionRecord
     jurisdictionName: (row.jurisdiction_name as string) ?? undefined,
     authorityName: (row.authority_name as string) ?? undefined,
     sealed: (row.sealed as boolean) ?? true,
+    holdId: (row.hold_id as string) ?? undefined,
+    holdHistory: (row.hold_history as Record<string, unknown>[]) ?? [],
   }
 }
 
@@ -109,9 +114,10 @@ export async function insertCompletedRecordStrict(record: CompletedInspectionRec
   ok: boolean
   error?: string
 }> {
+  const hasOpenHold = record.jobRef ? await hasOpenHoldForJob(record.jobRef) : false
   const sealGovernance = validateSealSubmissionRequest({
     submissionStatus: record.sealed ? 'submitted_for_review' : 'draft',
-    hasOpenHold: false,
+    hasOpenHold,
     hasTechnicalBlockers: record.evidenceItems.length === 0,
     evidenceCount: record.evidenceItems.length,
     sealed: false,
@@ -186,7 +192,7 @@ export async function insertCompletedRecordStrict(record: CompletedInspectionRec
       const [{ data: jobData }, { data: assignmentData }] = await Promise.all([
         supabase
           .from('job_opportunities')
-          .select('dispatch_tier, offered_rate')
+          .select('*')
           .eq('id', record.jobRef)
           .maybeSingle(),
         supabase
@@ -198,6 +204,14 @@ export async function insertCompletedRecordStrict(record: CompletedInspectionRec
 
       const pricing = calculatePricingBreakdown({
         dispatchTier: ((jobData?.dispatch_tier as 'standard' | 'priority' | 'emergency' | undefined) ?? 'standard'),
+        pricingMode: (jobData?.pricing_mode as 'dispatch_fixed' | 'specialist_hourly' | undefined) ?? undefined,
+        specialistRole: (jobData?.specialist_role as import('@/lib/types').SpecialistRoleId | undefined) ?? undefined,
+        hourlyRate: Number(jobData?.base_hourly_rate ?? 0) || undefined,
+        billableHours: Number(jobData?.billable_hours ?? 0) || undefined,
+        holdHours: Number(jobData?.hold_hours ?? 0) || undefined,
+        discipline: (jobData?.required_discipline as string | undefined) ?? undefined,
+        inspectionType: (jobData?.inspection_type as string | undefined) ?? undefined,
+        credentialClass: (jobData?.credential_class as string | undefined) ?? undefined,
       })
       const paymentAmounts = hydrateGovernedPaymentAmounts({
         dispatchTier: (jobData?.dispatch_tier as 'standard' | 'priority' | 'emergency' | undefined) ?? 'standard',

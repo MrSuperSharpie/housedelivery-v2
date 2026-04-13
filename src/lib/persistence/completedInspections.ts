@@ -40,6 +40,8 @@ export interface CompletedInspectionRecord {
   sealed: boolean
   /** Present when result === 'stopped'. References the hold that caused termination. */
   holdId?: string
+  /** Resolved hold / site retainer history captured at finalization time. */
+  holdHistory?: Record<string, unknown>[]
   /** Per-item checklist results saved at seal time for PDF rendering. */
   checklistResults?: {
     itemId:  string

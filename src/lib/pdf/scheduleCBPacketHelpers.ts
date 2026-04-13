@@ -1,6 +1,7 @@
 import type { InspectorCompletionReportRow } from '@/lib/supabase/inspectorCompletion'
 import { SCHEDULE_CB_PACKET_TEMPLATE_MANIFEST } from './scheduleCBPacketTemplateManifest'
 import type {
+  HoldHistoryEntry,
   ScheduleCBPacketAppendixEntry,
   ScheduleCBPacketData,
   ScheduleCBPacketDocumentRecord,
@@ -93,6 +94,65 @@ export function makePlaceholderEvidenceDataUri(label: string): string {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 }
 
+function builderDecisionFromEntry(
+  r: Record<string, unknown>,
+  events: Array<Record<string, unknown>>,
+): HoldHistoryEntry['builderDecision'] {
+  if (typeof r.builderAcceptedAt === 'string') return 'accepted'
+  const status = String(r.status ?? '')
+  if (status === 'hold_declined' || events.some(e => e.eventType === 'hold_declined')) return 'declined'
+  if (status === 'hold_expired' || typeof r.expiredAt === 'string') return 'expired'
+  return 'pending'
+}
+
+export function coerceHoldHistoryEntry(raw: unknown): HoldHistoryEntry | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
+  const r = raw as Record<string, unknown>
+
+  const events: Array<Record<string, unknown>> = Array.isArray(r.events)
+    ? (r.events as unknown[]).filter((e): e is Record<string, unknown> => typeof e === 'object' && e !== null)
+    : []
+
+  // Initiator: actor role from the hold_created event, or fallback to 'inspector'
+  const createdEvent = events.find(e => e.eventType === 'hold_created' || e.eventType === 'hold_offered')
+  const initiatedByRole = typeof createdEvent?.actorRole === 'string' ? createdEvent.actorRole : 'inspector'
+
+  // Correction evidence refs: notes from non-creation events, up to 2
+  const actionEvents = events.filter(
+    e =>
+      e.eventType !== 'hold_created' &&
+      e.eventType !== 'hold_offered' &&
+      typeof e.note === 'string' &&
+      (e.note as string).trim() !== '',
+  )
+  const correctionEvidenceRefs = actionEvents.slice(0, 2).map(e => (e.note as string).trim())
+
+  return {
+    holdId: String(r.holdId ?? ''),
+    placedAt: String(r.placedAt ?? ''),
+    status: String(r.status ?? ''),
+    reason: String(r.reason ?? ''),
+    deficiencyReason: typeof r.deficiencyReason === 'string' ? r.deficiencyReason : undefined,
+    category: typeof r.category === 'string' ? r.category : undefined,
+    affectedItemSummaries: Array.isArray(r.affectedItemSummaries)
+      ? (r.affectedItemSummaries as unknown[]).filter((s): s is string => typeof s === 'string')
+      : [],
+    initiatedByRole,
+    builderDecision: builderDecisionFromEntry(r, events),
+    builderAcceptedAt: typeof r.builderAcceptedAt === 'string' ? r.builderAcceptedAt : undefined,
+    premiumRateType: typeof r.premiumRateType === 'string' ? r.premiumRateType : undefined,
+    premiumRateAmount: typeof r.premiumRateAmount === 'number' ? r.premiumRateAmount : undefined,
+    holdCapAmount: typeof r.holdCapAmount === 'number' ? r.holdCapAmount : undefined,
+    actualRetainedMinutes: typeof r.actualRetainedMinutes === 'number' ? r.actualRetainedMinutes : undefined,
+    premiumChargeAmount: typeof r.premiumChargeAmount === 'number' ? r.premiumChargeAmount : undefined,
+    resolution: typeof r.resolution === 'string' ? r.resolution : undefined,
+    resolutionNotes: typeof r.resolutionNotes === 'string' ? r.resolutionNotes : undefined,
+    holdEndedAt: typeof r.holdEndedAt === 'string' ? r.holdEndedAt : undefined,
+    correctionEvidenceCount: actionEvents.length,
+    correctionEvidenceRefs,
+  }
+}
+
 function pickLatestStageSignOff(payload: Record<string, unknown>): StageSignOffPayload | null {
   const candidate = payload.stageSignOffs
   if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) return null
@@ -163,6 +223,13 @@ function normalizeIso(value: string | undefined, fallback: string): string {
 export function buildScheduleCBPacketData(source: ScheduleCBPacketSource): ScheduleCBPacketData {
   const generatedAtIso = normalizeIso(source.generatedAtIso, new Date().toISOString())
   const report = source.report
+
+  const rawHoldHistory = Array.isArray(report.sealPayload.holdHistory)
+    ? (report.sealPayload.holdHistory as unknown[])
+    : []
+  const holdHistory = rawHoldHistory
+    .map(coerceHoldHistoryEntry)
+    .filter((entry): entry is HoldHistoryEntry => entry !== null)
   const certificationTimestamp = report.sealedAt ?? report.submittedAt ?? generatedAtIso
   const itemMap = new Map(source.items.map(item => [item.itemCode, item]))
   const overallResult = String(report.sealPayload.overallResult ?? 'pass')
@@ -261,6 +328,7 @@ export function buildScheduleCBPacketData(source: ScheduleCBPacketSource): Sched
       },
     },
     appendixEntries,
+    holdHistory,
     legal: {
       statutoryTemplateVersion: SCHEDULE_CB_PACKET_TEMPLATE_MANIFEST.statutoryTemplateVersion,
       statutoryTemplatePath: SCHEDULE_CB_PACKET_TEMPLATE_MANIFEST.statutoryTemplatePath,

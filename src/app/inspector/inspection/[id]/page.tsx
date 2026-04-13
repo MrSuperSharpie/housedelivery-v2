@@ -13,13 +13,31 @@ import { useStore } from '@/lib/store'
 import { useAuth } from '@/lib/auth'
 import { INSPECTION_STAGES } from '@/lib/mockData'
 import { createClient } from '@/lib/supabase/client'
-import { saveCompletedInspection } from '@/lib/persistence/completedInspections'
+import { insertCompletedRecordStrict } from '@/lib/supabase/compliance'
 import { updateJobStatus } from '@/lib/supabase/jobs'
-import type { ChecklistResult } from '@/lib/types'
+import type {
+  ChecklistResult,
+  HoldCategory,
+  HoldEvidenceType,
+  HoldPremiumRateType,
+  HoldResolution,
+} from '@/lib/types'
 import { RetentionTimer } from '@/components/inspector/RetentionTimer'
 import type { HoldRecord, DispatchTier } from '@/lib/types'
-import { RETENTION_RATES } from '@/lib/types'
 import type { EvidenceItem as DomainEvidenceItem } from '@/lib/domain/types'
+import {
+  addHoldEvidence,
+  getLatestOpenHoldForJob,
+  listHoldDetailsForJob,
+  resolveHold,
+} from '@/lib/supabase/holds'
+import { isHoldOpenStatus } from '@/lib/holds/workflow'
+import { buildHoldEvidenceItems, buildHoldHistorySummary } from '@/lib/holds/reporting'
+import {
+  HOLD_PREMIUM_MULTIPLIER,
+  resolveHoldBaseRate,
+} from '@/lib/pricing/config'
+import { calculateHoldCost } from '@/utils/pricing'
 
 const supabase = createClient()
 
@@ -37,6 +55,23 @@ interface LocalEvidenceItem {
   fileName?: string
   fileSize?: number
   uploaderId: string
+}
+
+interface PendingHoldEvidenceItem {
+  id: string
+  evidenceType: Extract<HoldEvidenceType, 'photo' | 'video' | 'attachment'>
+  file: File
+  fileName: string
+  fileSize: number
+  mimeType: string
+  capturedAt: string
+  lat?: number
+  lng?: number
+  offlineCapture: boolean
+}
+
+function calculateSuggestedHoldCost(minutes: number, baseRate: number) {
+  return calculateHoldCost(baseRate, minutes / 60)
 }
 
 // ─── GPS helper ───────────────────────────────────────────────────────────────
@@ -320,6 +355,7 @@ function ChecklistItemRow({
   isExpanded,
   onToggleExpand,
   failNeedsEvidence,
+  onHold,
 }: {
   label: string
   description?: string
@@ -333,6 +369,7 @@ function ChecklistItemRow({
   isExpanded: boolean
   onToggleExpand: () => void
   failNeedsEvidence: boolean
+  onHold?: () => void
 }) {
   const isFail = result === 'fail'
   const evidenceCount = evidence.length + (note.trim() ? 1 : 0)
@@ -376,7 +413,7 @@ function ChecklistItemRow({
           </div>
         )}
 
-        {/* Pass / Fail / N/A */}
+        {/* Pass / Fail / N/A / Hold */}
         <div className="flex gap-2 mt-3">
           <button
             onClick={() => onSetResult(result === 'pass' ? 'pending' : 'pass')}
@@ -407,6 +444,17 @@ function ChecklistItemRow({
             }`}
           >
             <Minus className="w-3.5 h-3.5" /> N/A
+          </button>
+          <button
+            onClick={onHold}
+            disabled={!onHold}
+            className={`flex-1 py-2 rounded-lg text-xs font-black flex items-center justify-center gap-1.5 transition-all ${
+              onHold
+                ? 'bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500/20'
+                : 'bg-amber-900/10 border border-amber-900/20 text-amber-700 cursor-not-allowed'
+            }`}
+          >
+            <PauseCircle className="w-3.5 h-3.5" /> Hold
           </button>
         </div>
       </div>
@@ -480,11 +528,28 @@ export default function ActiveInspectionPage() {
   // ── Hold workflow state ──
   const [holdMode, setHoldMode]               = useState(false)
   const [holdReason, setHoldReason]           = useState('')
+  const [holdDeficiencyReason, setHoldDeficiencyReason] = useState('')
+  const [holdCategory, setHoldCategory]       = useState<HoldCategory>('minor_deficiency')
+  const [holdImmediateCorrection, setHoldImmediateCorrection] = useState(false)
+  const [holdMinutes, setHoldMinutes]         = useState(60)
+  const [holdTimePreset, setHoldTimePreset]   = useState<30 | 60 | 90 | 'custom'>(60)
+  const [holdCustomMinutes, setHoldCustomMinutes] = useState('')
+  const [holdPremiumRateType] = useState<HoldPremiumRateType>('hourly')
+  const [holdCapAmount, setHoldCapAmount]     = useState(0)
+  const [holdNotes, setHoldNotes]             = useState('')
   const [holdChecklistItems, setHoldChecklistItems] = useState<string[]>([])
+  const [holdEvidenceItems, setHoldEvidenceItems] = useState<PendingHoldEvidenceItem[]>([])
+  const [holdEvidenceWarning, setHoldEvidenceWarning] = useState<string | null>(null)
   const [isPlacingHold, setIsPlacingHold]     = useState(false)
   const [activeHold, setActiveHold]           = useState<HoldRecord | null>(null)
-  const [holdApproved, setHoldApproved]       = useState(false)
-  const [retentionActive, setRetentionActive] = useState(false)
+  const [holdResolutionNotes, setHoldResolutionNotes] = useState('')
+  const [correctionNote, setCorrectionNote]   = useState('')
+  const [savingCorrectionNote, setSavingCorrectionNote] = useState(false)
+  const [resolvingHold, setResolvingHold]     = useState<HoldResolution | null>(null)
+  const [holdElapsedSeconds, setHoldElapsedSeconds] = useState(0)
+  const holdPhotoInputRef = useRef<HTMLInputElement>(null)
+  const holdVideoInputRef = useRef<HTMLInputElement>(null)
+  const holdAttachmentInputRef = useRef<HTMLInputElement>(null)
 
   // Load real job data — store first, then Supabase fallback
   useEffect(() => {
@@ -533,6 +598,49 @@ export default function ActiveInspectionPage() {
       }
     : remoteJob ?? null
   const loading = !storeJob && remoteJob === undefined
+  const holdPricingDetails = resolveHoldBaseRate({
+    pricingMode: storeJob?.pricingMode,
+    specialistRole: storeJob?.specialistRole,
+    discipline: storeJob?.requiredDiscipline ?? job?.discipline,
+    credentialClass: storeJob?.credentialClass,
+    inspectionType: storeJob?.inspectionType,
+    requiresProfessionalSeal: storeJob?.requiresProfessionalSeal,
+    requiresCP: storeJob?.requiresCP,
+  })
+  const holdBaseRate = holdPricingDetails.baseRate
+  const holdPricingLabel = holdPricingDetails.label
+  const hasOpenHold = activeHold !== null && isHoldOpenStatus(activeHold.status)
+  const estimatedHoldCost = Math.min(
+    holdCapAmount,
+    calculateSuggestedHoldCost(holdMinutes, holdBaseRate),
+  )
+  const holdMissingFields = [
+    !holdReason.trim() ? 'deficiency summary' : null,
+    !holdDeficiencyReason.trim() ? 'required correction' : null,
+    !Number.isFinite(holdMinutes) || holdMinutes <= 0 ? 'estimated time' : null,
+    !holdImmediateCorrection ? 'inspector confirmation' : null,
+  ].filter(Boolean) as string[]
+  const openHoldForm = () => {
+    setHoldMode(true)
+    setHoldCapAmount(calculateSuggestedHoldCost(holdMinutes, holdBaseRate))
+  }
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadActiveHold() {
+      const openHold = await getLatestOpenHoldForJob(jobId)
+      if (!cancelled && openHold) {
+        setActiveHold(openHold)
+      }
+    }
+
+    void loadActiveHold()
+
+    return () => {
+      cancelled = true
+    }
+  }, [jobId])
 
   if (loading) {
     return (
@@ -619,37 +727,210 @@ export default function ActiveInspectionPage() {
     .map(item => item.id)
 
   const handlePlaceHold = async () => {
-    if (!holdReason.trim()) return
+    if (
+      !holdReason.trim()
+      || !holdDeficiencyReason.trim()
+      || holdChecklistItems.length === 0
+      || !holdImmediateCorrection
+      || holdCapAmount <= 0
+      || holdBaseRate <= 0
+      || holdMinutes <= 0
+    ) return
+
     setIsPlacingHold(true)
+    setHoldEvidenceWarning(null)
 
     const storeJob = store.jobs.find(j => j.id === jobId)
     const tier: DispatchTier = storeJob?.dispatchTier ?? 'standard'
     const inspectorId = user?.supabaseId ?? user?.id ?? 'unknown'
     const builderId = storeJob?.builderId ?? ''
 
-    const result = await store.placeHoldPoint(
-      jobId, inspectorId, builderId, tier,
-      holdReason, holdChecklistItems.length > 0 ? holdChecklistItems : failedItemIds,
-    )
+    const result = await store.placeHoldPoint({
+      jobId,
+      inspectorId,
+      builderId,
+      tier,
+      reason: holdReason,
+      deficiencyReason: holdDeficiencyReason,
+      checklistItemIds: holdChecklistItems.length > 0 ? holdChecklistItems : failedItemIds,
+      affectedItemSummaries: items
+        .filter(item => (holdChecklistItems.length > 0 ? holdChecklistItems : failedItemIds).includes(item.id))
+        .map(item => item.label),
+      holdCategory,
+      holdEligibleForOnSiteCorrection: holdImmediateCorrection,
+      estimatedCorrectionMinutes: holdMinutes,
+      premiumRateType: holdPremiumRateType,
+      premiumRateAmount: holdBaseRate,
+      holdCapAmount,
+      notes: holdNotes,
+      relatedInspectionId: jobId,
+    })
 
     if (result.ok) {
+      const actorId = user?.supabaseId ?? user?.id ?? ''
+      let failedEvidenceCount = 0
+
+      if (actorId && holdEvidenceItems.length > 0) {
+        for (const evidence of holdEvidenceItems) {
+          const attached = await addHoldEvidence({
+            holdId: result.value.id,
+            jobId,
+            createdByUserId: actorId,
+            evidenceRole: 'deficiency',
+            evidenceType: evidence.evidenceType,
+            file: evidence.file,
+            capturedAt: evidence.capturedAt,
+            captureGeo: {
+              latitude: evidence.lat ?? null,
+              longitude: evidence.lng ?? null,
+              offlineCapture: evidence.offlineCapture,
+            },
+          })
+
+          if (!attached) failedEvidenceCount += 1
+        }
+      }
+
+      if (failedEvidenceCount > 0) {
+        setHoldEvidenceWarning(
+          `${failedEvidenceCount} hold evidence item${failedEvidenceCount === 1 ? '' : 's'} could not be attached. You can still continue, but add any missing support after the hold is created.`
+        )
+      }
+
       setActiveHold(result.value)
       setHoldMode(false)
+      setHoldReason('')
+      setHoldDeficiencyReason('')
+      setHoldChecklistItems([])
+      setHoldNotes('')
+      setHoldImmediateCorrection(false)
+      setHoldMinutes(60)
+      setHoldTimePreset(60)
+      setHoldCustomMinutes('')
+      setHoldEvidenceItems([])
     }
     setIsPlacingHold(false)
   }
 
+  const handleHoldTimeSelection = (value: 30 | 60 | 90 | 'custom') => {
+    setHoldTimePreset(value)
+    if (value === 'custom') {
+      const nextMinutes = Number(holdCustomMinutes)
+      if (Number.isFinite(nextMinutes) && nextMinutes > 0) {
+        setHoldMinutes(nextMinutes)
+        setHoldCapAmount(calculateSuggestedHoldCost(nextMinutes, holdBaseRate))
+      }
+      return
+    }
+
+    setHoldMinutes(value)
+    setHoldCapAmount(calculateSuggestedHoldCost(value, holdBaseRate))
+  }
+
+  const queueHoldEvidence = async (
+    file: File,
+    evidenceType: Extract<HoldEvidenceType, 'photo' | 'video' | 'attachment'>,
+  ) => {
+    const { lat, lng, offlineCapture } = await captureGPS()
+    setHoldEvidenceItems(prev => [
+      ...prev,
+      {
+        id: createRuntimeId('hold-evidence-draft'),
+        evidenceType,
+        file,
+        fileName: file.name,
+        fileSize: file.size,
+        mimeType: file.type,
+        capturedAt: new Date().toISOString(),
+        lat,
+        lng,
+        offlineCapture,
+      },
+    ])
+  }
+
+  const handleHoldPhotoSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    await queueHoldEvidence(file, 'photo')
+    event.target.value = ''
+  }
+
+  const handleHoldVideoSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    if (file.size > 50 * 1024 * 1024) {
+      setHoldEvidenceWarning('Video uploads must be under 50MB. Keep videos under 30 seconds for field review.')
+      event.target.value = ''
+      return
+    }
+    await queueHoldEvidence(file, 'video')
+    event.target.value = ''
+  }
+
+  const handleHoldAttachmentSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    await queueHoldEvidence(file, 'attachment')
+    event.target.value = ''
+  }
+
+  const removePendingHoldEvidence = (evidenceId: string) => {
+    setHoldEvidenceItems(prev => prev.filter(item => item.id !== evidenceId))
+  }
+
   const handleRetentionComplete = () => {
-    setRetentionActive(false)
-    setHoldApproved(false)
-    setActiveHold(null)
-    // Reset all fail items to pending so inspector can re-inspect
     const failIds = items.filter(item => checklistState[item.id] === 'fail').map(item => item.id)
     setChecklistState(prev => {
       const next = { ...prev }
       failIds.forEach(id => { next[id] = 'pending' })
       return next
     })
+  }
+
+  const handleAddCorrectionNote = async () => {
+    if (!activeHold || !correctionNote.trim()) return
+    const actorId = user?.supabaseId ?? user?.id ?? ''
+    if (!actorId) return
+
+    setSavingCorrectionNote(true)
+    await addHoldEvidence({
+      holdId: activeHold.id,
+      jobId: activeHold.jobId,
+      createdByUserId: actorId,
+      evidenceRole: 'correction',
+      evidenceType: 'note',
+      noteText: correctionNote.trim(),
+      capturedAt: new Date().toISOString(),
+    })
+    setCorrectionNote('')
+    setSavingCorrectionNote(false)
+  }
+
+  const handleResolveHold = async (resolution: HoldResolution) => {
+    if (!activeHold || !holdResolutionNotes.trim()) return
+
+    const actorId = user?.supabaseId ?? user?.id ?? ''
+    if (!actorId) return
+
+    setResolvingHold(resolution)
+    const resolved = await resolveHold({
+      holdId: activeHold.id,
+      actorId,
+      actorRole: 'inspector',
+      resolution,
+      technicalResolved: true,
+      resolutionNotes: holdResolutionNotes.trim(),
+      elapsedSeconds: holdElapsedSeconds,
+    })
+
+    if (resolved) {
+      setActiveHold(resolved)
+      if (resolution === 'pass') {
+        handleRetentionComplete()
+      }
+    }
+    setResolvingHold(null)
   }
 
   // Determine which fail items have no evidence
@@ -664,7 +945,6 @@ export default function ActiveInspectionPage() {
     const r = checklistState[item.id]
     return r !== undefined && r !== 'pending'
   }).length
-  const hasOpenHold = activeHold !== null && activeHold.status === 'open'
   const allDone = items.length > 0
     && items.every(item => {
         const r = checklistState[item.id]
@@ -676,6 +956,11 @@ export default function ActiveInspectionPage() {
   console.log('SEAL DEBUG allDone:', allDone, '| reviewed:', reviewed, '/ items:', items.length, '| failsMissingEvidence:', failItemsMissingEvidence.length)
 
   const handleSeal = async () => {
+    const latestOpenHold = await getLatestOpenHoldForJob(jobId)
+    if (latestOpenHold) {
+      setActiveHold(latestOpenHold)
+      return
+    }
     console.log('HANDLE SEAL CALLED')
     setIsSealing(true)
 
@@ -724,6 +1009,10 @@ export default function ActiveInspectionPage() {
         fileSize:        e.fileSize,
       },
     }))
+    const holdDetails = await listHoldDetailsForJob(jobId)
+    const holdHistory = buildHoldHistorySummary(holdDetails)
+    const holdEvidenceItems = buildHoldEvidenceItems(holdDetails, projectId)
+    const combinedEvidence = [...domainEvidence, ...holdEvidenceItems]
 
     const record = {
       id:             createRuntimeId(`${jobId}-seal`),
@@ -734,7 +1023,7 @@ export default function ActiveInspectionPage() {
       stage,
       stageName,
       result:         result as 'pass' | 'fail',
-      evidenceItems:  domainEvidence,
+      evidenceItems:  combinedEvidence,
       completedAt,
       builderId,
       builderName,
@@ -752,6 +1041,8 @@ export default function ActiveInspectionPage() {
       jurisdictionName,
       authorityName: jurisdictionName,
       sealed:  true,
+      holdId: activeHold?.id,
+      holdHistory,
       checklistResults: items.map(item => ({
         itemId:  item.id,
         label:   item.label,
@@ -760,7 +1051,15 @@ export default function ActiveInspectionPage() {
       })),
     }
 
-    await saveCompletedInspection(record)
+    const insertResult = await insertCompletedRecordStrict(record)
+    if (!insertResult.ok) {
+      console.error('handleSeal insertCompletedRecordStrict:', insertResult.error)
+      if (typeof window !== 'undefined' && insertResult.error) {
+        window.alert(insertResult.error)
+      }
+      setIsSealing(false)
+      return
+    }
 
     await updateJobStatus(
       jobId,
@@ -942,42 +1241,195 @@ export default function ActiveInspectionPage() {
         </div>
 
         {/* ── Active Hold Banner ── */}
-        {activeHold && !holdApproved && !retentionActive && (
-          <div className="mb-5 bg-red-500/10 border border-red-500/30 rounded-2xl p-5">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-red-500/20 rounded-xl flex items-center justify-center">
-                <PauseCircle className="w-5 h-5 text-red-400" />
+        {activeHold && isHoldOpenStatus(activeHold.status) && (
+          <div className="mb-5 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="w-10 h-10 bg-amber-500/20 rounded-xl flex items-center justify-center">
+                <PauseCircle className="w-5 h-5 text-amber-300" />
               </div>
-              <div>
-                <div className="font-bold text-red-300 text-sm">Hold Point Active</div>
-                <div className="text-xs text-red-400/70">Awaiting builder response — correction or decline</div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="font-bold text-amber-200 text-sm">Hold / Site Retainer</div>
+                  <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${
+                    activeHold.status === 'hold_active'
+                      ? 'bg-amber-500/30 text-amber-200'
+                      : 'bg-amber-900/50 text-amber-400'
+                  }`}>
+                    {activeHold.status === 'hold_active' ? 'Active — Builder Accepted' : 'Awaiting Builder Response'}
+                  </span>
+                </div>
+                <div className="text-xs text-amber-100/80 mt-1">
+                  {activeHold.status === 'hold_active'
+                    ? 'Builder accepted the terms. Capture correction evidence, re-review the work, then resolve the hold explicitly.'
+                    : 'Waiting for builder acceptance. The inspection cannot be sealed or finalized while this hold remains open.'}
+                </div>
               </div>
             </div>
-            <div className="bg-red-500/5 border border-red-500/15 rounded-xl p-3 mb-3">
-              <div className="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-1">Reason</div>
-              <div className="text-sm text-red-200">{activeHold.reason}</div>
+
+            <div className="grid gap-3 sm:grid-cols-2 mb-4">
+              <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3">
+                <div className="text-[10px] font-bold text-amber-300 uppercase tracking-widest mb-1">Deficiency Summary</div>
+                <div className="text-sm text-amber-50">{activeHold.reason}</div>
+                {activeHold.deficiencyReason && activeHold.deficiencyReason !== activeHold.reason && (
+                  <>
+                    <div className="mt-3 text-[10px] font-bold text-amber-300 uppercase tracking-widest mb-1">Required Correction</div>
+                    <div className="text-sm text-amber-50">{activeHold.deficiencyReason}</div>
+                  </>
+                )}
+              </div>
+              <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3">
+                <div className="text-[10px] font-bold text-amber-300 uppercase tracking-widest mb-2">Commercial Terms</div>
+                <div className="grid grid-cols-2 gap-y-1.5 text-xs">
+                  <span className="text-amber-300/80">Base rate</span>
+                  <span className="text-amber-50 font-semibold">
+                    ${activeHold.premiumRateAmount.toFixed(2)}/hr
+                  </span>
+                  <span className="text-amber-300/80">Hold multiplier</span>
+                  <span className="text-amber-50 font-semibold">{HOLD_PREMIUM_MULTIPLIER.toFixed(1)}×</span>
+                  <span className="text-amber-300/80">Hold cap</span>
+                  <span className="text-amber-50 font-semibold">${activeHold.holdCapAmount.toFixed(2)}</span>
+                  <span className="text-amber-300/80">Estimate</span>
+                  <span className="text-amber-50">{activeHold.estimatedCorrectionMinutes} min</span>
+                  <span className="text-amber-300/80">Expires</span>
+                  <span className="text-amber-50">{new Date(activeHold.expiresAt).toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Vancouver' })}</span>
+                </div>
+              </div>
             </div>
-            <div className="text-xs text-red-400/60">
-              Hold placed {new Date(activeHold.placedAt).toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Vancouver' })} · Expires {new Date(activeHold.expiresAt).toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Vancouver' })}
-            </div>
-            {/* Demo: simulate builder approval for dev flow */}
-            <button
-              onClick={() => setHoldApproved(true)}
-              className="mt-3 w-full py-2.5 bg-amber-500/15 border border-amber-500/30 rounded-xl text-amber-400 text-xs font-bold hover:bg-amber-500/25 transition-all"
-            >
-              Simulate Builder Approval (Dev)
-            </button>
+
+            {activeHold.status === 'hold_active' && (
+              <>
+                <div className="mb-4">
+                  <RetentionTimer
+                    hourlyRate={activeHold.premiumRateAmount}
+                    onElapsedChange={setHoldElapsedSeconds}
+                    onComplete={() => handleRetentionComplete()}
+                    onCancel={() => undefined}
+                  />
+                </div>
+
+                <div className="bg-blue-950/20 border border-blue-800/30 rounded-xl p-3 mb-3">
+                  <div className="text-[10px] font-bold text-blue-300 uppercase tracking-widest mb-1">Correction Evidence Note</div>
+                  <textarea
+                    value={correctionNote}
+                    onChange={e => setCorrectionNote(e.target.value)}
+                    placeholder="Describe the correction completed on site. This is stored as hold-specific correction evidence."
+                    rows={3}
+                    className="w-full bg-blue-950/40 border border-blue-800/40 rounded-xl px-3 py-2.5 text-xs text-white placeholder-blue-800 focus:outline-none focus:border-[#FF5F15] resize-none transition-all"
+                  />
+                  <button
+                    onClick={() => void handleAddCorrectionNote()}
+                    disabled={!correctionNote.trim() || savingCorrectionNote}
+                    className="mt-3 w-full rounded-xl bg-blue-500/20 border border-blue-400/30 py-2.5 text-xs font-bold text-blue-100 transition-all hover:bg-blue-500/30 disabled:opacity-40"
+                  >
+                    {savingCorrectionNote ? 'Saving Correction Evidence...' : 'Save Correction Evidence Note'}
+                  </button>
+                </div>
+
+                <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3">
+                  <div className="text-[10px] font-bold text-emerald-300 uppercase tracking-widest mb-1">Resolve Hold</div>
+                  <textarea
+                    value={holdResolutionNotes}
+                    onChange={e => setHoldResolutionNotes(e.target.value)}
+                    placeholder="Document what was corrected, what was re-reviewed, and the final technical outcome."
+                    rows={3}
+                    className="w-full bg-[#06131f] border border-emerald-500/20 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-emerald-200/30 focus:outline-none focus:border-emerald-400 resize-none"
+                  />
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    <button
+                      onClick={() => void handleResolveHold('pass')}
+                      disabled={!holdResolutionNotes.trim() || resolvingHold !== null}
+                      className="rounded-xl bg-emerald-500 py-3 text-sm font-black text-white transition-all hover:bg-emerald-400 disabled:opacity-40"
+                    >
+                      {resolvingHold === 'pass' ? 'Resolving Pass...' : 'Resolve Hold to Pass'}
+                    </button>
+                    <button
+                      onClick={() => void handleResolveHold('fail')}
+                      disabled={!holdResolutionNotes.trim() || resolvingHold !== null}
+                      className="rounded-xl border border-red-400/40 bg-red-500/15 py-3 text-sm font-black text-red-100 transition-all hover:bg-red-500/25 disabled:opacity-40"
+                    >
+                      {resolvingHold === 'fail' ? 'Resolving Fail...' : 'Resolve Hold to Fail'}
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         )}
 
-        {/* ── Retention Timer (shows after builder approves hold) ── */}
-        {holdApproved && !retentionActive && (
-          <div className="mb-5">
-            <RetentionTimer
-              hourlyRate={RETENTION_RATES[store.jobs.find(j => j.id === jobId)?.dispatchTier ?? 'standard']}
-              onComplete={() => handleRetentionComplete()}
-              onCancel={() => { setHoldApproved(false); setActiveHold(null) }}
-            />
+        {/* ── Resolved Hold Summary ── */}
+        {activeHold && !isHoldOpenStatus(activeHold.status) && (
+          <div className="mb-5 rounded-2xl border border-zinc-700/50 bg-zinc-900/60 p-5">
+            <div className="flex items-start gap-3 mb-4">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                activeHold.holdResolution === 'pass' ? 'bg-emerald-500/20' : 'bg-red-500/20'
+              }`}>
+                <PauseCircle className={`w-5 h-5 ${
+                  activeHold.holdResolution === 'pass' ? 'text-emerald-400' : 'text-red-400'
+                }`} />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="font-bold text-zinc-200 text-sm">Hold / Site Retainer</div>
+                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-black uppercase tracking-widest ${
+                    activeHold.holdResolution === 'pass'
+                      ? 'bg-emerald-500/25 text-emerald-300'
+                      : activeHold.holdResolution === 'fail'
+                        ? 'bg-red-500/25 text-red-300'
+                        : 'bg-zinc-700/60 text-zinc-400'
+                  }`}>
+                    {activeHold.holdResolution === 'pass'
+                      ? 'PASS after hold'
+                      : activeHold.holdResolution === 'fail'
+                        ? 'FAIL after hold'
+                        : activeHold.status.replace(/_/g, ' ')}
+                  </span>
+                </div>
+                <div className="text-xs text-zinc-400 mt-1">Hold closed. Resolution recorded below.</div>
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2 mb-3">
+              <div className="bg-zinc-800/60 border border-zinc-700/40 rounded-xl p-3">
+                <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Deficiency Summary</div>
+                <div className="text-sm text-zinc-200">{activeHold.reason}</div>
+                {activeHold.deficiencyReason && activeHold.deficiencyReason !== activeHold.reason && (
+                  <>
+                    <div className="mt-3 text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Required Correction</div>
+                    <div className="text-sm text-zinc-200">{activeHold.deficiencyReason}</div>
+                  </>
+                )}
+              </div>
+              <div className="bg-zinc-800/60 border border-zinc-700/40 rounded-xl p-3">
+                <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">Commercial Summary</div>
+                <div className="grid grid-cols-2 gap-y-1.5 text-xs">
+                  <span className="text-zinc-500">Base rate</span>
+                  <span className="text-zinc-200">${activeHold.premiumRateAmount.toFixed(2)}/hr</span>
+                  <span className="text-zinc-500">Hold multiplier</span>
+                  <span className="text-zinc-200">{HOLD_PREMIUM_MULTIPLIER.toFixed(1)}×</span>
+                  <span className="text-zinc-500">Hold cap</span>
+                  <span className="text-zinc-200">${activeHold.holdCapAmount.toFixed(2)}</span>
+                  {activeHold.actualRetainedMinutes != null && (
+                    <>
+                      <span className="text-zinc-500">Actual retained time</span>
+                      <span className="text-zinc-200 font-semibold">{activeHold.actualRetainedMinutes} min</span>
+                    </>
+                  )}
+                  {activeHold.premiumChargeAmount != null && (
+                    <>
+                      <span className="text-zinc-500">Premium charge</span>
+                      <span className="text-zinc-200 font-semibold">${activeHold.premiumChargeAmount.toFixed(2)}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {activeHold.holdResolutionNotes && (
+              <div className="bg-zinc-800/60 border border-zinc-700/40 rounded-xl p-3">
+                <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Resolution Notes</div>
+                <div className="text-sm text-zinc-200">{activeHold.holdResolutionNotes}</div>
+              </div>
+            )}
           </div>
         )}
 
@@ -989,8 +1441,8 @@ export default function ActiveInspectionPage() {
                 <PauseCircle className="w-5 h-5 text-amber-400" />
               </div>
               <div>
-                <div className="font-bold text-amber-300 text-sm">Place Hold Point</div>
-                <div className="text-xs text-amber-500">Pause inspection — notify builder for on-site correction</div>
+                <div className="font-bold text-amber-300 text-sm">Offer On-Site Hold</div>
+                <div className="text-xs text-amber-500">Use this when the issue can reasonably be corrected during the current visit, allowing the inspector to remain on site and re-review without rebooking.</div>
               </div>
             </div>
 
@@ -1017,40 +1469,317 @@ export default function ActiveInspectionPage() {
               </div>
             )}
 
-            {/* Hold reason */}
             <div className="mb-4">
-              <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-1.5">Hold Reason</div>
-              <textarea
+              <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-1.5">Deficiency Summary</div>
+              <input
                 value={holdReason}
                 onChange={e => setHoldReason(e.target.value)}
-                placeholder="Describe the issue requiring correction..."
+                placeholder="Handrail not installed on north stairwell"
+                className="w-full bg-amber-500/5 border border-amber-500/20 rounded-xl px-3 py-2.5 text-sm text-amber-100 placeholder-amber-600 focus:outline-none focus:border-amber-400"
+              />
+            </div>
+
+            <div className="mb-4">
+              <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-1.5">Required Correction</div>
+              <textarea
+                value={holdDeficiencyReason}
+                onChange={e => setHoldDeficiencyReason(e.target.value)}
+                placeholder="Install code-compliant handrail on both sides"
                 rows={3}
                 className="w-full bg-amber-500/5 border border-amber-500/20 rounded-xl px-3 py-2.5 text-xs text-amber-100 placeholder-amber-600 focus:outline-none focus:border-amber-400 resize-none"
               />
             </div>
 
-            {/* Premium rate notice */}
-            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 mb-4 flex items-center gap-3">
-              <DollarSign className="w-4 h-4 text-amber-400 shrink-0" />
-              <div className="text-xs text-amber-300">
-                If approved, builder will be charged <span className="font-bold">${RETENTION_RATES[store.jobs.find(j => j.id === jobId)?.dispatchTier ?? 'standard']}/hr</span> premium retention rate via escrow.
+            <div className="grid sm:grid-cols-2 gap-3 mb-4">
+              <label className="block">
+                <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-1.5">Hold Category</div>
+                <select
+                  value={holdCategory}
+                  onChange={e => setHoldCategory(e.target.value as HoldCategory)}
+                  className="w-full bg-amber-500/5 border border-amber-500/20 rounded-xl px-3 py-2.5 text-xs text-amber-100 focus:outline-none focus:border-amber-400"
+                >
+                  <option value="minor_deficiency">Minor Deficiency</option>
+                  <option value="coordination">Coordination</option>
+                  <option value="access">Access</option>
+                  <option value="safety">Safety</option>
+                  <option value="documentation">Documentation</option>
+                  <option value="other">Other</option>
+                </select>
+              </label>
+              <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-3">
+                <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-1.5">Estimated Hold Cost</div>
+                <div className="text-lg font-black text-amber-100">${estimatedHoldCost.toFixed(2)}</div>
+                <div className="mt-1 text-[11px] text-amber-200/80">
+                  {(holdMinutes / 60).toFixed(2)} hours × ${holdBaseRate.toFixed(2)}/hr × {HOLD_PREMIUM_MULTIPLIER.toFixed(1)} hold multiplier = ${estimatedHoldCost.toFixed(2)}
+                </div>
               </div>
             </div>
+
+            <div className="mb-4">
+              <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-2">Estimated Time to Correct</div>
+              <div className="mb-2 text-[11px] text-amber-200/80">
+                Select the expected correction window. Hold time is billed at 1.5× the applicable hourly rate.
+              </div>
+              <div className="grid grid-cols-4 gap-2">
+                {[30, 60, 90].map(minutes => (
+                  <button
+                    key={minutes}
+                    type="button"
+                    onClick={() => handleHoldTimeSelection(minutes as 30 | 60 | 90)}
+                    className={`rounded-xl py-2 text-xs font-bold transition-all ${
+                      holdTimePreset === minutes
+                        ? 'bg-amber-500 text-white'
+                        : 'border border-amber-500/30 text-amber-300 hover:bg-amber-500/10'
+                    }`}
+                  >
+                    {minutes}m
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => handleHoldTimeSelection('custom')}
+                  className={`rounded-xl py-2 text-xs font-bold transition-all ${
+                    holdTimePreset === 'custom'
+                      ? 'bg-amber-500 text-white'
+                      : 'border border-amber-500/30 text-amber-300 hover:bg-amber-500/10'
+                  }`}
+                >
+                  Custom
+                </button>
+              </div>
+              {holdTimePreset === 'custom' && (
+                <div className="mt-3">
+                  <input
+                    type="number"
+                    min={1}
+                    step={1}
+                    value={holdCustomMinutes}
+                    onChange={e => {
+                      const nextValue = e.target.value
+                      setHoldCustomMinutes(nextValue)
+                      const nextMinutes = Number(nextValue)
+                      if (Number.isFinite(nextMinutes) && nextMinutes > 0) {
+                        setHoldMinutes(nextMinutes)
+                        setHoldCapAmount(calculateSuggestedHoldCost(nextMinutes, holdBaseRate))
+                      } else {
+                        setHoldMinutes(0)
+                      }
+                    }}
+                    placeholder="Enter minutes"
+                    className="w-full bg-amber-500/5 border border-amber-500/20 rounded-xl px-3 py-2.5 text-sm text-amber-100 placeholder-amber-600 focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Applicable hourly rate */}
+            <div className="grid sm:grid-cols-2 gap-3 mb-4">
+              <div className="block">
+                <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-1.5">Applicable Hourly Rate</div>
+                <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-2.5">
+                  <div className="text-xs font-semibold text-amber-100">{holdPricingLabel}</div>
+                  <div className="mt-1 flex items-center justify-between gap-3">
+                    <span className="text-[11px] text-amber-200/80">
+                      1.5× hold multiplier · {(holdMinutes / 60).toFixed(2)} hold hours
+                    </span>
+                    <span className="text-xs font-black text-amber-100">${holdBaseRate.toFixed(2)}/hr</span>
+                  </div>
+                  <div className="mt-1 text-[11px] text-amber-200/80">This rate is set by the selected inspection role and pricing basis. It is not manually adjusted during the hold workflow.</div>
+                  <div className="mt-1 text-[11px] text-amber-200/80">{(holdMinutes / 60).toFixed(2)} hours × ${holdBaseRate.toFixed(2)}/hr × {HOLD_PREMIUM_MULTIPLIER.toFixed(1)} hold multiplier = ${calculateSuggestedHoldCost(holdMinutes, holdBaseRate).toFixed(2)}</div>
+                </div>
+              </div>
+              <label className="block">
+                <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-1.5">Estimated Hold Cap</div>
+                <div className="mb-1.5 text-[11px] text-amber-200/80">This is the current hold estimate based on the selected time window and applicable rate.</div>
+                <div className="flex items-center rounded-xl border border-amber-500/20 bg-amber-500/5 px-3">
+                  <DollarSign className="w-4 h-4 text-amber-300 shrink-0" />
+                  <input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={holdCapAmount}
+                    onChange={e => setHoldCapAmount(Number(e.target.value))}
+                    className="w-full bg-transparent px-2 py-2.5 text-xs text-amber-100 focus:outline-none"
+                  />
+                </div>
+              </label>
+            </div>
+
+            <div className="mb-4">
+              <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-1.5">Inspector Notes</div>
+              <textarea
+                value={holdNotes}
+                onChange={e => setHoldNotes(e.target.value)}
+                placeholder="Optional coordination notes for the builder regarding access, sequencing, or expected readiness for re-review."
+                rows={2}
+                className="w-full bg-amber-500/5 border border-amber-500/20 rounded-xl px-3 py-2.5 text-xs text-amber-100 placeholder-amber-600 focus:outline-none focus:border-amber-400 resize-none"
+              />
+            </div>
+
+            <div className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={holdImmediateCorrection}
+                  onChange={e => setHoldImmediateCorrection(e.target.checked)}
+                  className="mt-0.5 accent-amber-500 shrink-0"
+                />
+                <span className="text-sm font-semibold text-amber-100">
+                  I confirm this issue can reasonably be corrected on site within the selected time window.
+                </span>
+              </label>
+            </div>
+
+            <div className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div>
+                  <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest">Supporting Evidence</div>
+                  <div className="mt-1 text-xs text-amber-200/80">Attach photos, video, or supporting documents to record the hold condition and required correction.</div>
+                </div>
+                <div className="rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-amber-900">
+                  Optional
+                </div>
+              </div>
+
+              <input
+                ref={holdPhotoInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={event => void handleHoldPhotoSelected(event)}
+              />
+              <input
+                ref={holdVideoInputRef}
+                type="file"
+                accept="video/mp4,video/x-m4v,video/*"
+                capture="environment"
+                className="hidden"
+                onChange={event => void handleHoldVideoSelected(event)}
+              />
+              <input
+                ref={holdAttachmentInputRef}
+                type="file"
+                accept=".pdf,.doc,.docx,.txt,image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
+                className="hidden"
+                onChange={event => void handleHoldAttachmentSelected(event)}
+              />
+
+              <div className="grid gap-2 sm:grid-cols-3">
+                <button
+                  type="button"
+                  onClick={() => holdPhotoInputRef.current?.click()}
+                  className="rounded-xl border border-amber-500/25 bg-amber-100/10 px-3 py-3 text-sm font-bold text-amber-100 transition-all hover:bg-amber-100/15"
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <Camera className="h-4 w-4" />
+                    <span>Photo</span>
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => holdVideoInputRef.current?.click()}
+                  className="rounded-xl border border-amber-500/25 bg-amber-100/10 px-3 py-3 text-sm font-bold text-amber-100 transition-all hover:bg-amber-100/15"
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <Video className="h-4 w-4" />
+                    <span>Video</span>
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => holdAttachmentInputRef.current?.click()}
+                  className="rounded-xl border border-amber-500/25 bg-amber-100/10 px-3 py-3 text-sm font-bold text-amber-100 transition-all hover:bg-amber-100/15"
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    <span>Upload Attachment</span>
+                  </span>
+                </button>
+              </div>
+
+              {holdEvidenceWarning && (
+                <div className="mt-3 rounded-xl border border-amber-300 bg-amber-100 px-3 py-3 text-xs font-medium text-amber-900">
+                  {holdEvidenceWarning}
+                </div>
+              )}
+
+              {holdEvidenceItems.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  {holdEvidenceItems.map(evidence => (
+                    <div key={evidence.id} className="flex items-center justify-between gap-3 rounded-xl border border-amber-500/20 bg-[#120d08]/40 px-3 py-2.5">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 text-xs font-bold text-amber-100">
+                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] uppercase tracking-widest text-amber-900">
+                            {evidence.evidenceType}
+                          </span>
+                          <span className="truncate">{evidence.fileName}</span>
+                        </div>
+                        <div className="mt-1 text-[11px] text-amber-200/70">
+                          {(evidence.fileSize / (1024 * 1024)).toFixed(evidence.fileSize >= 1024 * 1024 ? 1 : 2)} MB
+                          {' · '}
+                          {new Date(evidence.capturedAt).toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit' })}
+                          {evidence.lat != null && evidence.lng != null ? ` · ${evidence.lat.toFixed(5)}, ${evidence.lng.toFixed(5)}` : ''}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removePendingHoldEvidence(evidence.id)}
+                        className="rounded-lg border border-amber-500/25 px-2 py-1 text-[11px] font-bold text-amber-200 transition-all hover:bg-amber-500/10"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 mb-4 text-xs text-amber-200">
+              Based on {(holdMinutes / 60).toFixed(2)} hours at the applicable hourly rate of ${holdBaseRate.toFixed(2)}, billed at {HOLD_PREMIUM_MULTIPLIER.toFixed(1)}× for on-site hold. Estimated hold cost: ${estimatedHoldCost.toFixed(2)} before platform fee, if applicable.
+            </div>
+
+            {holdMissingFields.length > 0 && (
+              <div className="mb-4 rounded-xl border border-amber-300 bg-amber-100 px-3 py-3 text-xs font-medium text-amber-900">
+                Complete the deficiency summary, required correction, and inspector confirmation before issuing hold terms.
+              </div>
+            )}
 
             <div className="flex gap-2">
               <button
                 onClick={handlePlaceHold}
-                disabled={!holdReason.trim() || isPlacingHold}
+                disabled={
+                  !holdReason.trim()
+                  || !holdDeficiencyReason.trim()
+                  || holdChecklistItems.length === 0
+                  || !holdImmediateCorrection
+                  || holdBaseRate <= 0
+                  || holdCapAmount <= 0
+                  || holdMinutes <= 0
+                  || isPlacingHold
+                }
                 className="flex-1 bg-amber-500 hover:bg-amber-400 text-white font-bold py-3 rounded-xl text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isPlacingHold ? (
-                  <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Placing Hold...</>
+                  <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Sending Hold Terms...</>
                 ) : (
-                  <><PauseCircle className="w-4 h-4" /> Place Hold Point</>
+                  <><PauseCircle className="w-4 h-4" /> Send Hold Terms</>
                 )}
               </button>
               <button
-                onClick={() => { setHoldMode(false); setHoldReason(''); setHoldChecklistItems([]) }}
+                onClick={() => {
+                  setHoldMode(false)
+                  setHoldReason('')
+                  setHoldDeficiencyReason('')
+                  setHoldChecklistItems([])
+                  setHoldNotes('')
+                  setHoldImmediateCorrection(false)
+                  setHoldMinutes(60)
+                  setHoldTimePreset(60)
+                  setHoldCustomMinutes('')
+                  setHoldEvidenceItems([])
+                  setHoldEvidenceWarning(null)
+                }}
                 className="px-4 bg-white/5 border border-white/10 text-muted text-xs font-semibold rounded-xl hover:bg-white/8 transition-all"
               >
                 Cancel
@@ -1081,6 +1810,7 @@ export default function ActiveInspectionPage() {
                 isExpanded={expandedItems.has(item.id)}
                 onToggleExpand={() => toggleExpand(item.id)}
                 failNeedsEvidence={failItemsMissingEvidence.some(fi => fi.id === item.id)}
+                onHold={hasOpenHold || holdMode || sealApplied ? undefined : openHoldForm}
               />
             ))
           )}
@@ -1090,15 +1820,15 @@ export default function ActiveInspectionPage() {
       {/* Sticky footer */}
       <div className="fixed bottom-0 inset-x-0 bg-[#060B15]/95 p-5 border-t border-blue-900/50 flex gap-3">
         <button
-          onClick={() => setHoldMode(true)}
-          disabled={holdMode || !!activeHold}
+          onClick={openHoldForm}
+          disabled={holdMode || (activeHold !== null && isHoldOpenStatus(activeHold.status))}
           className={`flex-1 py-3.5 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all ${
-            activeHold
+            activeHold && isHoldOpenStatus(activeHold.status)
               ? 'bg-red-500/20 border border-red-500/40 text-red-400 cursor-not-allowed'
               : 'bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/15'
           }`}
         >
-          <PauseCircle className="w-4 h-4" /> {activeHold ? 'Hold Active' : 'Raise Hold Point'}
+          <PauseCircle className="w-4 h-4" /> {activeHold && isHoldOpenStatus(activeHold.status) ? 'Hold Active' : 'Hold / Site Retainer'}
         </button>
         <button
           disabled={!allDone || isSealing || sealApplied}

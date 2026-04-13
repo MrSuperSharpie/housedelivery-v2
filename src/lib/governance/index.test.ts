@@ -4,7 +4,9 @@ import assert from 'node:assert/strict'
 import {
   createPackageIntegritySnapshot,
   validateClaimGovernance,
+  validateHoldResolution,
   validateJobPostingGovernance,
+  validateOutcomeSelection,
   validatePayoutRelease,
   validateSealSubmissionRequest,
 } from './index.ts'
@@ -62,6 +64,35 @@ test('seal governance blocks submissions with open holds', () => {
 
   assert.equal(result.ok, false)
   assert.ok(result.blockers.some(issue => issue.ruleId === 'R-036'))
+})
+
+test('builder cannot create technical hold decisions', () => {
+  const result = validateOutcomeSelection({
+    outcome: 'hold',
+    requiredChecklistComplete: true,
+    evidenceCount: 2,
+    hasOpenHold: false,
+    actorRole: 'builder',
+  })
+
+  assert.equal(result.ok, false)
+  assert.ok(result.blockers.some(issue => issue.ruleId === 'R-029'))
+})
+
+test('hold resolution requires active builder-accepted hold state', () => {
+  const blocked = validateHoldResolution({
+    action: 'resolve',
+    holdStatus: 'hold_pending_builder_ack',
+    technicalResolved: true,
+  })
+  const allowed = validateHoldResolution({
+    action: 'resolve',
+    holdStatus: 'hold_active',
+    technicalResolved: true,
+  })
+
+  assert.equal(blocked.ok, false)
+  assert.equal(allowed.ok, true)
 })
 
 test('package integrity snapshot is deterministic enough to emit hash and verification code', async () => {

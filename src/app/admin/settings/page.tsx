@@ -5,9 +5,14 @@ import React, { useState } from 'react'
 import {
   Settings, DollarSign, MapPin, FileText, Shield,
   CheckCircle2, Save, RotateCcw, ChevronDown, ChevronRight,
-  AlertTriangle, Zap, Clock,
+  AlertTriangle,
 } from 'lucide-react'
 import { AdminShell, ActionButton } from '@/components/admin/AdminShell'
+import {
+  DISPATCH_PRICING,
+  FIXED_DISPATCH_HOLD_BASE_RATE,
+  PLATFORM_COMMISSION_RATE,
+} from '@/lib/pricing/config'
 
 // ─── Section wrapper ───────────────────────────────────────────────────────────
 
@@ -72,12 +77,12 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: 
 
 export default function AdminSettingsPage() {
   // Finance
-  const [standardFee, setStandardFee]   = useState(185)
-  const [priorityFee, setPriorityFee]   = useState(385)
-  const [emergencyFee, setEmergencyFee] = useState(695)
+  const [standardFee, setStandardFee]   = useState(DISPATCH_PRICING.find((tier) => tier.tier === 'standard')?.price ?? 325)
+  const [priorityFee, setPriorityFee]   = useState(DISPATCH_PRICING.find((tier) => tier.tier === 'priority')?.price ?? 487)
+  const [emergencyFee, setEmergencyFee] = useState(DISPATCH_PRICING.find((tier) => tier.tier === 'emergency')?.price ?? 649)
   const [escrowPct, setEscrowPct]       = useState(3)
-  const [retentionRate, setRetentionRate] = useState(85)
-  const [platformFee, setPlatformFee]   = useState(12)
+  const [retentionRate, setRetentionRate] = useState(FIXED_DISPATCH_HOLD_BASE_RATE)
+  const [platformFee, setPlatformFee]   = useState(PLATFORM_COMMISSION_RATE * 100)
 
   // Permit rules
   const [permitFamilies, setPermitFamilies] = useState([
@@ -135,10 +140,10 @@ export default function AdminSettingsPage() {
           <Field label="Escrow processing fee" hint="Deducted from gross at release">
             <NumberInput value={escrowPct} onChange={setEscrowPct} suffix="%" />
           </Field>
-          <Field label="Retention hourly rate" hint="Charged to builder during inspector hold">
+          <Field label="Fixed dispatch hold base rate" hint="System-defined hold base rate for fixed-fee dispatch jobs">
             <NumberInput value={retentionRate} onChange={setRetentionRate} prefix="$" suffix="/hr" />
           </Field>
-          <Field label="Vero platform fee" hint="Taken from inspector payout">
+          <Field label="Vero platform fee" hint="Applied to the escrow subtotal before release">
             <NumberInput value={platformFee} onChange={setPlatformFee} suffix="%" />
           </Field>
         </div>

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { HardHat, CheckCircle2, Clock, AlertCircle, FileText } from 'lucide-react'
+import { BrandWordmark } from '@/components/shared/Navbar'
 import { useAuth } from '@/lib/auth'
 import { getInspectorOnboardingStatus, getInspectorOnboardingStatusAsync } from '@/lib/persistence/inspectorOnboarding'
 import type { InspectorOnboardingStatus } from '@/lib/types'
@@ -21,13 +22,10 @@ const STATUS_CONFIG: Record<InspectorOnboardingStatus, { label: string; desc: st
 export default function InspectorOnboardingStatusPage() {
   const router = useRouter()
   const { user } = useAuth()
-  const [status, setStatus] = useState<InspectorOnboardingStatus>('submitted')
+  const [status, setStatus] = useState<InspectorOnboardingStatus>(() => getInspectorOnboardingStatus())
 
   useEffect(() => {
-    if (!user?.id) {
-      setStatus(getInspectorOnboardingStatus()) // anonymous / post-signup local
-      return
-    }
+    if (!user?.id) return
     getInspectorOnboardingStatusAsync(user.id, user.supabaseId).then(setStatus)
   }, [user?.id, user?.supabaseId])
 
@@ -45,9 +43,7 @@ export default function InspectorOnboardingStatusPage() {
     <div className="min-h-screen bg-[#0A192F] flex flex-col">
       <div className="border-b border-blue-900 px-4 py-4">
         <div className="max-w-xl mx-auto flex items-center justify-between">
-          <Link href="/" className="text-lg font-black text-white">
-            Vero
-          </Link>
+          <BrandWordmark className="max-w-[130px]" height={32} priority theme="dark" />
           {user?.role === 'inspector' ? (
             <Link href="/inspector" className="text-xs text-blue-500 hover:text-electric transition-colors">
               Live Board →

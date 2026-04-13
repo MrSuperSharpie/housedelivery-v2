@@ -18,7 +18,7 @@ const JOBS = 'job_opportunities'
 const STORAGE_BUCKET = 'inspection-evidence'
 
 async function loadBrandLogoDataUri(): Promise<string> {
-  const logoPath = path.join(process.cwd(), 'public', 'vero-logo-dark.png')
+  const logoPath = path.join(process.cwd(), 'public', 'vero-permit-light.png')
   const buffer = await readFile(logoPath)
   return `data:image/png;base64,${buffer.toString('base64')}`
 }
@@ -104,9 +104,162 @@ function buildFileName(projectName: string, variant: 'packet' | 'form-only'): st
     : `Schedule_CB_${safeName}.pdf`
 }
 
+// ─── Dev preview shortcut ────────────────────────────────────────────────────
+// Accessible only in non-production environments.
+// Usage: GET /api/schedule-cb?preview=true[&variant=form-only]
+// Bypasses auth and Supabase — uses the same hardcoded dummy data as the
+// local smoke-test script so you can paste the URL directly into a browser.
+
+const DEV_PREVIEW_OVERLAY: AhjOverlayContext = {
+  type: 'vancouver',
+  label: 'City of Vancouver (CoV)',
+  jurisdictionName: 'City of Vancouver',
+  signals: ['cov_detected'],
+  summary: 'City of Vancouver AHJ overlay active. Schedule C-B required for all Part 5 field reviews.',
+}
+
+const DEV_PREVIEW_REPORT: InspectorCompletionReportRow = (() => {
+  const ts = '2026-04-12T10:00:00.000Z'
+  return {
+    id: 'dev-preview-report',
+    assignmentId: 'dev-preview',
+    jobId: 'dev-preview-job',
+    inspectorId: 'dev-preview-inspector',
+    projectId: 'dev-preview-project',
+    projectName: 'West 8th Mixed-Use Podium',
+    address: '1288 W 8th Ave',
+    city: 'Vancouver',
+    region: 'Lower Mainland',
+    projectType: 'SFH',
+    currentStage: 15,
+    stageCount: 15,
+    jurisdictionName: 'City of Vancouver',
+    ahjOverlayType: 'vancouver',
+    ahjOverlayLabel: 'City of Vancouver (CoV)',
+    overlaySnapshot: DEV_PREVIEW_OVERLAY,
+    checklistSnapshot: [],
+    status: 'sealed',
+    sealApplied: true,
+    sealReference: 'SL-IC-2026-A3F9B1',
+    sealPayload: {
+      overallResult: 'pass',
+      sealedAt: ts,
+      sealedBy: 'Dr. Sarah Chen',
+      sealedById: 'dev-preview-inspector',
+      stageSignOffs: {},
+      holdHistory: [
+        {
+          holdId: 'hold-dev-preview-1',
+          placedAt: '2026-04-12T08:15:00.000Z',
+          status: 'hold_resolved_pass',
+          reason: 'Vent support deficiency found during Stage 15 final review.',
+          deficiencyReason: 'Mechanical vent at final run lacks code-required support within 300 mm of terminal. Contractor agreed to correct on site.',
+          category: 'minor_deficiency',
+          affectedItemSummaries: ['Gas venting routed and supported?', 'Mechanical penetrations sealed?'],
+          builderAcceptedAt: '2026-04-12T08:20:00.000Z',
+          premiumRateType: 'hourly',
+          premiumRateAmount: 120,
+          holdCapAmount: 180,
+          actualRetainedMinutes: 37,
+          premiumChargeAmount: 74,
+          resolution: 'pass',
+          resolutionNotes: 'Vent support bracket installed and confirmed secure. Inspector re-reviewed. Compliant.',
+          holdEndedAt: '2026-04-12T08:52:00.000Z',
+          events: [
+            {
+              eventType: 'hold_created',
+              actorRole: 'inspector',
+              actorId: 'dev-preview-inspector',
+              note: 'Vent support deficiency identified. Hold placed pending on-site correction.',
+              createdAt: '2026-04-12T08:15:00.000Z',
+            },
+            {
+              eventType: 'hold_resolved_pass',
+              actorRole: 'inspector',
+              actorId: 'dev-preview-inspector',
+              note: 'Correction complete. Support bracket installed and confirmed compliant on re-review.',
+              createdAt: '2026-04-12T08:52:00.000Z',
+            },
+          ],
+        },
+      ],
+    },
+    lastSavedAt: ts,
+    submittedAt: ts,
+    createdAt: ts,
+    updatedAt: ts,
+  }
+})()
+
+const DEV_PREVIEW_ITEMS: ScheduleCBPacketItemRecord[] = [
+  { itemCode: 'S01-01', itemLabel: 'Site Preparation & Layout',  stageNumber: 1,  stageName: 'Site Preparation',  responseNote: 'Verified on site — compliant.' },
+  { itemCode: 'S02-01', itemLabel: 'Foundation Formwork',        stageNumber: 2,  stageName: 'Foundation',         responseNote: 'Formwork dimensions confirmed.' },
+  { itemCode: 'S15-01', itemLabel: 'Final Occupancy Inspection', stageNumber: 15, stageName: 'Final Occupancy',    responseNote: 'All items resolved.' },
+]
+
+const DEV_PREVIEW_OPTIONS: ScheduleCBOptions = {
+  inspectorName:        'Dr. Sarah Chen',
+  inspectorLicense:     'BC-ENG-29847',
+  discipline:           'Structural Engineering',
+  firmName:             'Chen Structural Consulting Ltd.',
+  inspectorContact:     '604-555-0198  ·  sarah.chen@getvero.ca',
+  inspectorAddress:     '1050 West Hastings Street, Suite 2200',
+  inspectorAddressCont: 'Vancouver, BC  V6E 2E9',
+  buildingPermitNumber: 'BP-DEV-48219',
+}
+
+async function handleDevPreview(variant: 'packet' | 'form-only'): Promise<NextResponse> {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Preview mode is not available in production' }, { status: 403 })
+  }
+
+  try {
+    let pdfBytes: Uint8Array
+    if (variant === 'form-only') {
+      pdfBytes = await generateScheduleCB(DEV_PREVIEW_REPORT, DEV_PREVIEW_OPTIONS)
+    } else {
+      const brandLogoSrc = await loadBrandLogoDataUri()
+      pdfBytes = await generateScheduleCBPacket({
+        report: DEV_PREVIEW_REPORT,
+        items: DEV_PREVIEW_ITEMS,
+        documents: [],
+        officialFormOptions: DEV_PREVIEW_OPTIONS,
+        brandLogoSrc,
+        buildingPermitNumber: 'BP-DEV-48219',
+        generatedAtIso: new Date().toISOString(),
+        verificationId: 'SL-IC-2026-A3F9B1',
+      })
+    }
+
+    const body = Buffer.from(pdfBytes)
+    return new NextResponse(body, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/pdf',
+        // inline — renders in the browser tab rather than forcing a download
+        'Content-Disposition': 'inline; filename="Schedule_CB_DEV_PREVIEW.pdf"',
+        'Content-Length': body.byteLength.toString(),
+        'Cache-Control': 'no-store',
+      },
+    })
+  } catch (error) {
+    console.error('[schedule-cb] Dev preview generation failed:', error)
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Dev preview generation failed' },
+      { status: 500 },
+    )
+  }
+}
+
 export async function GET(req: NextRequest) {
-  const reportId = req.nextUrl.searchParams.get('reportId')
   const variant = req.nextUrl.searchParams.get('variant') === 'form-only' ? 'form-only' : 'packet'
+
+  // Dev preview shortcut — no auth, no DB
+  if (req.nextUrl.searchParams.get('preview') === 'true') {
+    return handleDevPreview(variant)
+  }
+
+  const reportId = req.nextUrl.searchParams.get('reportId')
   const permitNumberFromQuery = req.nextUrl.searchParams.get('permitNumber') ?? undefined
 
   if (!reportId || reportId.trim() === '') {

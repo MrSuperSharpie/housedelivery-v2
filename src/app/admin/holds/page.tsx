@@ -4,22 +4,26 @@ export const dynamic = 'force-dynamic'
 import React, { useState, useEffect } from 'react'
 import {
   PauseCircle, Clock, CheckCircle2, XCircle, AlertTriangle,
-  ChevronDown, ChevronUp, User, MapPin, Shield, Timer
+  ChevronDown, ChevronUp, User, Shield, Timer
 } from 'lucide-react'
 import { AdminShell } from '@/components/admin/AdminShell'
 import { createClient } from '@/lib/supabase/client'
 import type { HoldRecord, HoldStatus } from '@/lib/types'
+import { isHoldOpenStatus, normalizeHoldStatus } from '@/lib/holds/workflow'
 
 const supabase = createClient()
 
 // ─── Status badge ────────────────────────────────────────────────────────────
 
 const STATUS_META: Record<HoldStatus, { label: string; cls: string; icon: React.ReactNode }> = {
-  open:             { label: 'Open',             cls: 'bg-amber-500/15 text-amber-400 border-amber-500/30', icon: <Clock className="w-3 h-3" /> },
-  builder_approved: { label: 'Builder Approved', cls: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30', icon: <CheckCircle2 className="w-3 h-3" /> },
-  builder_declined: { label: 'Builder Declined', cls: 'bg-red-500/15 text-red-400 border-red-500/30', icon: <XCircle className="w-3 h-3" /> },
-  expired:          { label: 'Expired',          cls: 'bg-white/5 text-white/40 border-white/10', icon: <Timer className="w-3 h-3" /> },
-  admin_resolved:   { label: 'Admin Resolved',   cls: 'bg-blue-500/15 text-blue-400 border-blue-500/30', icon: <Shield className="w-3 h-3" /> },
+  hold_offered:             { label: 'Hold Offered', cls: 'bg-amber-500/15 text-amber-400 border-amber-500/30', icon: <Clock className="w-3 h-3" /> },
+  hold_pending_builder_ack: { label: 'Awaiting Builder', cls: 'bg-amber-500/15 text-amber-300 border-amber-500/30', icon: <Clock className="w-3 h-3" /> },
+  hold_active:              { label: 'Hold Active', cls: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30', icon: <CheckCircle2 className="w-3 h-3" /> },
+  hold_resolved_pass:       { label: 'Resolved Pass', cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30', icon: <CheckCircle2 className="w-3 h-3" /> },
+  hold_resolved_fail:       { label: 'Resolved Fail', cls: 'bg-rose-500/15 text-rose-300 border-rose-500/30', icon: <XCircle className="w-3 h-3" /> },
+  hold_declined:            { label: 'Declined', cls: 'bg-red-500/15 text-red-400 border-red-500/30', icon: <XCircle className="w-3 h-3" /> },
+  hold_expired:             { label: 'Expired', cls: 'bg-white/5 text-white/40 border-white/10', icon: <Timer className="w-3 h-3" /> },
+  admin_resolved:           { label: 'Admin Resolved', cls: 'bg-blue-500/15 text-blue-400 border-blue-500/30', icon: <Shield className="w-3 h-3" /> },
 }
 
 function HoldStatusBadge({ status }: { status: HoldStatus }) {
@@ -92,7 +96,7 @@ function HoldRow({ hold, projectName, inspectorName }: HoldRowData) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <HoldStatusBadge status={hold.status} />
-            {hold.status === 'open' && <HoldCountdown expiresAt={hold.expiresAt} />}
+            {isHoldOpenStatus(hold.status) && <HoldCountdown expiresAt={hold.expiresAt} />}
           </div>
           <div className="font-bold text-ink text-sm mb-0.5">{projectName ?? hold.jobId}</div>
           <div className="text-xs text-muted flex items-center gap-3 flex-wrap">
@@ -128,6 +132,13 @@ function HoldRow({ hold, projectName, inspectorName }: HoldRowData) {
             </div>
           )}
 
+          <div className="grid grid-cols-2 gap-2 text-[11px]">
+            <div><span className="text-muted">Estimate:</span> <span className="text-ink font-mono">{hold.estimatedCorrectionMinutes} min</span></div>
+            <div><span className="text-muted">Base Rate:</span> <span className="text-ink font-mono">${hold.premiumRateAmount.toFixed(2)} / hr</span></div>
+            <div><span className="text-muted">Cap:</span> <span className="text-ink font-mono">${hold.holdCapAmount.toFixed(2)}</span></div>
+            <div><span className="text-muted">Charge:</span> <span className="text-ink font-mono">${hold.premiumChargeAmount.toFixed(2)}</span></div>
+          </div>
+
           {/* Builder note */}
           {hold.builderNote && (
             <div>
@@ -145,7 +156,7 @@ function HoldRow({ hold, projectName, inspectorName }: HoldRowData) {
           </div>
 
           {/* Admin resolve action */}
-          {hold.status === 'open' && (
+          {isHoldOpenStatus(hold.status) && (
             <div className="pt-2 border-t border-white/5">
               <div className="text-[10px] font-bold text-muted uppercase tracking-widest mb-1.5">Admin Resolution</div>
               <textarea
@@ -166,7 +177,7 @@ function HoldRow({ hold, projectName, inspectorName }: HoldRowData) {
             </div>
           )}
 
-          {hold.status === 'expired' && (
+          {hold.status === 'hold_expired' && (
             <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 flex items-start gap-2">
               <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
               <div className="text-xs text-red-300">
@@ -204,11 +215,35 @@ export default function AdminHoldsPage() {
           placedAt:         row.placed_at as string,
           expiresAt:        row.expires_at as string,
           checklistItemIds: (row.checklist_item_ids as string[]) ?? [],
-          status:           row.status as HoldStatus,
+          status:           normalizeHoldStatus(row.status as string),
           reason:           row.reason as string,
+          deficiencyReason: (row.deficiency_reason as string) ?? (row.reason as string),
+          holdCategory:     (row.hold_category as HoldRecord['holdCategory']) ?? 'minor_deficiency',
+          holdEligibleForOnSiteCorrection: row.hold_eligible_for_on_site_correction !== false,
+          estimatedCorrectionMinutes: Number(row.estimated_correction_minutes ?? 60),
+          premiumRateType: (row.premium_rate_type as HoldRecord['premiumRateType']) ?? 'hourly',
+          premiumRateAmount: Number(row.premium_rate_amount ?? 0),
+          holdCapAmount: Number(row.hold_cap_amount ?? 0),
+          createdByInspectorId: (row.created_by_inspector_id as string) ?? (row.inspector_id as string),
+          relatedInspectionId: (row.related_inspection_id as string) ?? String(row.job_id),
+          linkedCorrectionEvidenceIds: Array.isArray(row.linked_correction_evidence_ids) ? row.linked_correction_evidence_ids as string[] : [],
+          affectedItemSummaries: Array.isArray(row.affected_item_summaries) ? row.affected_item_summaries as string[] : [],
+          premiumChargeAmount: Number(row.premium_charge_amount ?? 0),
+          actualRetainedMinutes: Number(row.actual_retained_minutes ?? 0),
+          extensionCount: Number(row.extension_count ?? 0),
           builderNote:      (row.builder_note as string) ?? undefined,
+          resolutionSummary: (row.resolution_summary as string) ?? undefined,
+          holdResolutionNotes: (row.hold_resolution_notes as string) ?? undefined,
+          holdResolution: (row.hold_resolution as HoldRecord['holdResolution']) ?? undefined,
+          holdResolvedByUserId: (row.hold_resolved_by_user_id as string) ?? undefined,
+          builderAcceptedAt: (row.builder_accepted_at as string) ?? undefined,
+          builderDeclinedAt: (row.builder_declined_at as string) ?? undefined,
+          holdStartedAt: (row.hold_started_at as string) ?? undefined,
+          holdEndedAt: (row.hold_ended_at as string) ?? undefined,
           resolvedAt:       (row.resolved_at as string) ?? undefined,
           expiredAt:        (row.expired_at as string) ?? undefined,
+          lastNotifiedAt:   (row.last_notified_at as string) ?? undefined,
+          lastBuilderResponseAt: (row.last_builder_response_at as string) ?? undefined,
           createdAt:        row.created_at as string,
           updatedAt:        row.updated_at as string,
         }))
@@ -235,14 +270,14 @@ export default function AdminHoldsPage() {
     load()
   }, [])
 
-  const openCount = holds.filter(h => h.status === 'open').length
-  const resolvedCount = holds.filter(h => h.status !== 'open').length
+  const openCount = holds.filter(h => isHoldOpenStatus(h.status)).length
+  const resolvedCount = holds.filter(h => !isHoldOpenStatus(h.status)).length
 
   const filtered = filter === 'all'
     ? holds
     : filter === 'open'
-      ? holds.filter(h => h.status === 'open')
-      : holds.filter(h => h.status !== 'open')
+      ? holds.filter(h => isHoldOpenStatus(h.status))
+      : holds.filter(h => !isHoldOpenStatus(h.status))
 
   return (
     <AdminShell title="Hold Review" subtitle={`${openCount} open \u00b7 ${resolvedCount} resolved`}>

@@ -75,7 +75,17 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim }: JobDetail
   const stage = INSPECTION_STAGES.find(s => s.id === job.stage)
   const tierMeta = TIER_META[job.dispatchTier]
   const discColor = DISCIPLINE_COLOR[job.requiredDiscipline] ?? 'text-muted bg-white/5 border-white/10'
-  const pricing = calculatePricingBreakdown({ dispatchTier: job.dispatchTier })
+  const pricing = calculatePricingBreakdown({
+    dispatchTier: job.dispatchTier,
+    pricingMode: job.pricingMode,
+    specialistRole: job.specialistRole,
+    hourlyRate: job.baseHourlyRate,
+    billableHours: job.billableHours,
+    holdHours: job.holdHours,
+    discipline: job.requiredDiscipline,
+    inspectionType: job.inspectionType,
+    credentialClass: job.credentialClass,
+  })
   const hrlyRate = Math.round(pricing.inspectorPayout / (job.estimatedDuration / 60))
   const days = nextDays(14)
 
@@ -421,10 +431,20 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim }: JobDetail
 
         {/* Payout breakdown */}
         <Section title="Payout Breakdown" icon={DollarSign}>
-          <Row label="Base rate"             val={formatCurrency(pricing.baseFee)} />
+          <Row label={pricing.pricingMode === 'specialist_hourly' ? 'Hourly subtotal' : 'Base booking'} val={formatCurrency(pricing.baseFee)} />
           <Row label={`${job.dispatchTier} multiplier`} val={`×${pricing.multiplier.toFixed(1)}`} />
+          {pricing.pricingMode === 'specialist_hourly' && pricing.specialistRoleLabel && (
+            <Row label="Specialist role" val={pricing.specialistRoleLabel} />
+          )}
+          {pricing.pricingMode === 'specialist_hourly' && (
+            <Row label="Billable hours" val={`${pricing.billableHours.toFixed(1)}h`} />
+          )}
           {pricing.priorityAdjustment > 0 && (
             <Row label="Priority adjustment" val={formatCurrency(pricing.priorityAdjustment)} />
+          )}
+          <Row label="Hold hours" val={`${pricing.holdHours.toFixed(1)}h`} />
+          {pricing.holdCost > 0 && (
+            <Row label="Hold premium (1.5×)" val={formatCurrency(pricing.holdCost)} />
           )}
           <Row label="Total transaction volume" val={formatCurrency(pricing.totalTransactionVolume)} />
           <Row label="Vero commission (10%)" val={formatCurrency(pricing.platformCommission)} />

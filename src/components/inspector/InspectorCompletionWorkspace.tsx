@@ -6,6 +6,7 @@ import {
   AlertTriangle,
   ArrowLeft,
   Building2,
+  Camera,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
@@ -18,6 +19,7 @@ import {
   Loader2,
   Lock,
   MapPin,
+  PauseCircle,
   Play,
   ShieldCheck,
   Stamp,
@@ -33,6 +35,7 @@ import {
 import { Navbar } from '@/components/shared/Navbar'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/lib/auth'
+import { useStore } from '@/lib/store'
 import {
   createInspectorDevPreviewDocument,
   createInspectorDevPreviewReport,
@@ -42,6 +45,7 @@ import {
 } from '@/lib/inspectorDevPreview'
 import { insertCompletedRecordStrict } from '@/lib/supabase/compliance'
 import { completeJobAssignment, updateJobStatus } from '@/lib/supabase/jobs'
+import { addHoldEvidence, getLatestOpenHoldForJob, listHoldDetailsForJob } from '@/lib/supabase/holds'
 import {
   buildCompletionChecklist,
   COMPLETION_STAGE_PHASES,
@@ -63,6 +67,14 @@ import {
 } from '@/lib/supabase/inspectorCompletion'
 import type { EvidenceItem } from '@/lib/domain/types'
 import { evaluateGeofence } from '@/lib/geofence'
+import { isHoldOpenStatus } from '@/lib/holds/workflow'
+import { buildHoldEvidenceItems, buildHoldHistorySummary } from '@/lib/holds/reporting'
+import {
+  HOLD_PREMIUM_MULTIPLIER,
+  resolveHoldBaseRate,
+} from '@/lib/pricing/config'
+import type { HoldCategory, HoldEvidenceType, HoldPremiumRateType } from '@/lib/types'
+import { calculateHoldCost } from '@/utils/pricing'
 
 const supabase = createClient()
 
@@ -96,6 +108,23 @@ interface WorkspaceItem extends CompletionChecklistItemDefinition {
   metadata: Record<string, unknown>
 }
 
+interface PendingHoldEvidenceItem {
+  id: string
+  evidenceType: Extract<HoldEvidenceType, 'photo' | 'video' | 'attachment'>
+  file: File
+  fileName: string
+  fileSize: number
+  mimeType: string
+  capturedAt: string
+  lat?: number
+  lng?: number
+  offlineCapture: boolean
+}
+
+function calculateSuggestedHoldCost(minutes: number, baseRate: number) {
+  return calculateHoldCost(baseRate, minutes / 60)
+}
+
 function createRuntimeId(prefix: string): string {
   return `${prefix}-${crypto.randomUUID()}`
 }
@@ -103,7 +132,7 @@ function createRuntimeId(prefix: string): string {
 function createSealRef(): string {
   const stamp = new Date().getFullYear()
   const suffix = crypto.randomUUID().replace(/-/g, '').slice(0, 6).toUpperCase()
-  return `SL-IC-${stamp}-${suffix}`
+  return `VERO-IC-${stamp}-${suffix}`
 }
 
 function isStageItemResolved(item: WorkspaceItem): boolean {
@@ -261,19 +290,19 @@ function VeroSealIcon({
   className?: string
 }) {
   const shellClass = certified
-    ? 'border-amber-300/40 bg-amber-300/10 text-amber-200'
+    ? 'border-emerald-200 bg-emerald-50 text-emerald-600'
     : 'border-red-900/60 bg-[#991b1b]/20 text-red-200'
-  const ringClass = certified ? 'border-amber-200/40' : 'border-red-200/20'
+  const ringClass = certified ? 'border-emerald-200/70' : 'border-red-200/20'
   const badgeClass = certified
-    ? 'border-amber-200/50 bg-amber-200/15 text-amber-100'
+    ? 'border-emerald-200 bg-emerald-100 text-emerald-700'
     : 'border-red-200/30 bg-red-950/70 text-red-100'
 
   return (
     <div className={`relative flex h-16 w-16 items-center justify-center rounded-full border shadow-[0_0_0_1px_rgba(255,255,255,0.04)] ${shellClass} ${className}`}>
       <div className={`absolute inset-2 rounded-full border ${ringClass}`} />
       <ShieldCheck className="h-7 w-7" />
-      <div className={`absolute -bottom-2 rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.24em] ${badgeClass}`}>
-        SL
+      <div className={`absolute -bottom-2 rounded-full border px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.12em] ${badgeClass}`}>
+        VERO
       </div>
     </div>
   )
@@ -498,6 +527,30 @@ async function captureStageLocation(): Promise<LocationSnapshot> {
   }
 }
 
+async function captureHoldEvidenceLocation(): Promise<{ lat?: number; lng?: number; offlineCapture: boolean }> {
+  if (typeof window === 'undefined' || !('geolocation' in navigator)) {
+    return { offlineCapture: true }
+  }
+
+  try {
+    const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(
+        resolve,
+        reject,
+        STAGE_SIGN_OFF_GEOLOCATION_OPTIONS
+      )
+    })
+
+    return {
+      lat: position.coords.latitude,
+      lng: position.coords.longitude,
+      offlineCapture: false,
+    }
+  } catch {
+    return { offlineCapture: true }
+  }
+}
+
 async function collectStageLocationExplanation(input: {
   location: LocationSnapshot
   projectReferencePoint: ProjectReferencePoint | null
@@ -669,11 +722,13 @@ function StatusPill({
 const FLOATING_PANEL_CLASS = 'shadow-[0_18px_34px_rgba(15,23,42,0.18)]'
 const TACTILE_MEDIA_BUTTON_CLASS = 'inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full border border-slate-300/80 bg-[#e5e7eb] px-0 text-slate-700 shadow-[0_6px_14px_rgba(15,23,42,0.18)] transition-colors hover:bg-[#f3f4f6] disabled:cursor-not-allowed disabled:opacity-50'
 const EMPHASIZED_BODY_TEXT_CLASS = 'text-[17px] leading-7 text-zinc-300'
+const HOLD_ACTION_BUTTON_CLASS = 'min-h-12 rounded-2xl border border-amber-300 bg-amber-100 px-4 py-3 text-sm font-black text-amber-900 shadow-sm transition-colors hover:bg-amber-200 disabled:cursor-not-allowed disabled:border-amber-200 disabled:bg-amber-50 disabled:text-amber-400 disabled:opacity-60'
 
 export function InspectorCompletionWorkspace() {
   const params = useParams()
   const router = useRouter()
   const { user } = useAuth()
+  const store = useStore()
   const assignmentId = params.assignmentId as string
 
   const [loading, setLoading] = useState(true)
@@ -688,6 +743,23 @@ export function InspectorCompletionWorkspace() {
   const [stages, setStages] = useState<CompletionChecklistStageDefinition[]>([])
   const [items, setItems] = useState<WorkspaceItem[]>([])
   const [projectReferencePoint, setProjectReferencePoint] = useState<ProjectReferencePoint | null>(null)
+  const [activeJobHold, setActiveJobHold] = useState<{ id: string; status: string; reason: string } | null>(null)
+  const [holdMode, setHoldMode] = useState(false)
+  const [holdTargetItemCode, setHoldTargetItemCode] = useState<string | null>(null)
+  const [holdTargetItemLabel, setHoldTargetItemLabel] = useState<string | null>(null)
+  const [holdReason, setHoldReason] = useState('')
+  const [holdDeficiencyReason, setHoldDeficiencyReason] = useState('')
+  const [holdCategory, setHoldCategory] = useState<HoldCategory>('minor_deficiency')
+  const [holdImmediateCorrection, setHoldImmediateCorrection] = useState(false)
+  const [holdMinutes, setHoldMinutes] = useState(60)
+  const [holdTimePreset, setHoldTimePreset] = useState<30 | 60 | 90 | 'custom'>(60)
+  const [holdCustomMinutes, setHoldCustomMinutes] = useState('')
+  const [holdPremiumRateType] = useState<HoldPremiumRateType>('hourly')
+  const [holdCapAmount, setHoldCapAmount] = useState(0)
+  const [holdNotes, setHoldNotes] = useState('')
+  const [holdEvidenceItems, setHoldEvidenceItems] = useState<PendingHoldEvidenceItem[]>([])
+  const [holdEvidenceWarning, setHoldEvidenceWarning] = useState<string | null>(null)
+  const [isPlacingHold, setIsPlacingHold] = useState(false)
   const [currentStage, setCurrentStage] = useState(1)
   const [lastSavedLabel, setLastSavedLabel] = useState('Not saved yet')
   const [expandedChecklistNotes, setExpandedChecklistNotes] = useState<Record<string, boolean>>({})
@@ -699,6 +771,7 @@ export function InspectorCompletionWorkspace() {
   const [stageSignOffError, setStageSignOffError] = useState<string | null>(null)
   const [projectOverviewOpen, setProjectOverviewOpen] = useState(true)
   const [stageTransitionHandshake, setStageTransitionHandshake] = useState<StageTransitionHandshake | null>(null)
+  const [pendingStageTransitionHandshake, setPendingStageTransitionHandshake] = useState<StageTransitionHandshake | null>(null)
   const [showStageSuccessBanner, setShowStageSuccessBanner] = useState(false)
   const [sealSuccessMessage, setSealSuccessMessage] = useState<string | null>(null)
 
@@ -709,6 +782,9 @@ export function InspectorCompletionWorkspace() {
   const sealSuccessTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const sealRedirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const stageItemRefs = useRef<Record<string, HTMLElement | null>>({})
+  const holdPhotoInputRef = useRef<HTMLInputElement>(null)
+  const holdVideoInputRef = useRef<HTMLInputElement>(null)
+  const holdAttachmentInputRef = useRef<HTMLInputElement>(null)
   const previewMode = isInspectorDevPreviewAssignment(assignmentId)
   const activeUser = user
 
@@ -900,7 +976,215 @@ export function InspectorCompletionWorkspace() {
 
   const sealPendingCount = unresolvedRequired.length
   const sealDocumentGapCount = missingDocuments.length
-  const sealReady = items.length > 0 && sealPendingCount === 0 && sealDocumentGapCount === 0
+  const hasOpenHold = activeJobHold !== null && isHoldOpenStatus(activeJobHold.status)
+  const sealReady = items.length > 0 && sealPendingCount === 0 && sealDocumentGapCount === 0 && !hasOpenHold
+  const workspaceJob = useMemo(
+    () => (job ? store.jobs.find(candidate => candidate.id === job.id) : undefined),
+    [job, store.jobs]
+  )
+  const holdPricingDetails = resolveHoldBaseRate({
+    pricingMode: workspaceJob?.pricingMode,
+    specialistRole: workspaceJob?.specialistRole,
+    discipline: workspaceJob?.requiredDiscipline,
+    credentialClass: workspaceJob?.credentialClass,
+    inspectionType: workspaceJob?.inspectionType,
+    requiresProfessionalSeal: workspaceJob?.requiresProfessionalSeal,
+    requiresCP: workspaceJob?.requiresCP,
+  })
+  const holdBaseRate = holdPricingDetails.baseRate
+  const holdPricingLabel = holdPricingDetails.label
+  const estimatedHoldCost = Math.min(
+    holdCapAmount,
+    calculateSuggestedHoldCost(holdMinutes, holdBaseRate),
+  )
+  const holdMissingFields = [
+    !holdReason.trim() ? 'deficiency summary' : null,
+    !holdDeficiencyReason.trim() ? 'required correction' : null,
+    !Number.isFinite(holdMinutes) || holdMinutes <= 0 ? 'estimated time' : null,
+    !holdImmediateCorrection ? 'inspector confirmation' : null,
+  ].filter(Boolean) as string[]
+  const holdButtonDisabled = hasOpenHold || holdMode || sealed || report?.sealApplied === true
+
+  function resetHoldForm() {
+    setHoldMode(false)
+    setHoldTargetItemCode(null)
+    setHoldTargetItemLabel(null)
+    setHoldReason('')
+    setHoldDeficiencyReason('')
+    setHoldCategory('minor_deficiency')
+    setHoldImmediateCorrection(false)
+    setHoldMinutes(60)
+    setHoldTimePreset(60)
+    setHoldCustomMinutes('')
+    setHoldCapAmount(calculateSuggestedHoldCost(60, holdBaseRate))
+    setHoldNotes('')
+    setHoldEvidenceItems([])
+    setHoldEvidenceWarning(null)
+    setIsPlacingHold(false)
+  }
+
+  const openHoldForm = (item: WorkspaceItem) => {
+    setHoldTargetItemCode(item.item_code)
+    setHoldTargetItemLabel(item.item_label)
+    setHoldReason('')
+    setHoldDeficiencyReason('')
+    setHoldCategory('minor_deficiency')
+    setHoldImmediateCorrection(false)
+    setHoldMinutes(60)
+    setHoldTimePreset(60)
+    setHoldCustomMinutes('')
+    setHoldCapAmount(calculateSuggestedHoldCost(60, holdBaseRate))
+    setHoldNotes('')
+    setHoldEvidenceItems([])
+    setHoldEvidenceWarning(null)
+    setHoldMode(true)
+  }
+
+  const handleHoldTimeSelection = (value: 30 | 60 | 90 | 'custom') => {
+    setHoldTimePreset(value)
+    if (value === 'custom') {
+      const nextMinutes = Number(holdCustomMinutes)
+      if (Number.isFinite(nextMinutes) && nextMinutes > 0) {
+        setHoldMinutes(nextMinutes)
+        setHoldCapAmount(calculateSuggestedHoldCost(nextMinutes, holdBaseRate))
+      }
+      return
+    }
+
+    setHoldMinutes(value)
+    setHoldCapAmount(calculateSuggestedHoldCost(value, holdBaseRate))
+  }
+
+  const queueHoldEvidence = async (
+    file: File,
+    evidenceType: Extract<HoldEvidenceType, 'photo' | 'video' | 'attachment'>,
+  ) => {
+    const { lat, lng, offlineCapture } = await captureHoldEvidenceLocation()
+    setHoldEvidenceItems(current => [
+      ...current,
+      {
+        id: createRuntimeId('hold-evidence-draft'),
+        evidenceType,
+        file,
+        fileName: file.name,
+        fileSize: file.size,
+        mimeType: file.type,
+        capturedAt: new Date().toISOString(),
+        lat,
+        lng,
+        offlineCapture,
+      },
+    ])
+  }
+
+  const handleHoldPhotoSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    await queueHoldEvidence(file, 'photo')
+    event.target.value = ''
+  }
+
+  const handleHoldVideoSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    if (file.size > 50 * 1024 * 1024) {
+      setHoldEvidenceWarning('Video uploads must be under 50MB. Keep videos under 30 seconds for field review.')
+      event.target.value = ''
+      return
+    }
+    await queueHoldEvidence(file, 'video')
+    event.target.value = ''
+  }
+
+  const handleHoldAttachmentSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    await queueHoldEvidence(file, 'attachment')
+    event.target.value = ''
+  }
+
+  const removePendingHoldEvidence = (evidenceId: string) => {
+    setHoldEvidenceItems(current => current.filter(item => item.id !== evidenceId))
+  }
+
+  const handlePlaceHold = async () => {
+    if (
+      !job
+      || !holdTargetItemCode
+      || !holdReason.trim()
+      || !holdDeficiencyReason.trim()
+      || !holdImmediateCorrection
+      || holdBaseRate <= 0
+      || holdCapAmount <= 0
+      || holdMinutes <= 0
+    ) return
+
+    const inspectorId = activeUser?.supabaseId ?? activeUser?.id
+    const tier = workspaceJob?.dispatchTier ?? 'standard'
+    if (!inspectorId) return
+
+    setIsPlacingHold(true)
+    setHoldEvidenceWarning(null)
+
+    const result = await store.placeHoldPoint({
+      jobId: job.id,
+      inspectorId,
+      builderId: job.builderId ?? '',
+      tier,
+      reason: holdReason.trim(),
+      deficiencyReason: holdDeficiencyReason.trim(),
+      checklistItemIds: [holdTargetItemCode],
+      affectedItemSummaries: holdTargetItemLabel ? [holdTargetItemLabel] : undefined,
+      holdCategory,
+      holdEligibleForOnSiteCorrection: holdImmediateCorrection,
+      estimatedCorrectionMinutes: holdMinutes,
+      premiumRateType: holdPremiumRateType,
+      premiumRateAmount: holdBaseRate,
+      holdCapAmount,
+      notes: holdNotes.trim() || undefined,
+      relatedInspectionId: assignment?.id ?? job.id,
+    })
+
+    if (result.ok) {
+      let failedEvidenceCount = 0
+
+      for (const evidence of holdEvidenceItems) {
+        const attached = await addHoldEvidence({
+          holdId: result.value.id,
+          jobId: job.id,
+          createdByUserId: inspectorId,
+          evidenceRole: 'deficiency',
+          evidenceType: evidence.evidenceType,
+          file: evidence.file,
+          capturedAt: evidence.capturedAt,
+          captureGeo: {
+            latitude: evidence.lat ?? null,
+            longitude: evidence.lng ?? null,
+            offlineCapture: evidence.offlineCapture,
+          },
+        })
+
+        if (!attached) failedEvidenceCount += 1
+      }
+
+      if (failedEvidenceCount > 0) {
+        setHoldEvidenceWarning(
+          `${failedEvidenceCount} hold evidence item${failedEvidenceCount === 1 ? '' : 's'} could not be attached. You can still continue, but add any missing support after the hold is created.`
+        )
+      }
+
+      setActiveJobHold({
+        id: result.value.id,
+        status: result.value.status,
+        reason: result.value.reason,
+      })
+      resetHoldForm()
+      return
+    }
+
+    reportPersistenceFailure(result.error, { assignmentId, jobId: job.id }, { alert: true })
+    setIsPlacingHold(false)
+  }
 
   useEffect(() => {
     return () => {
@@ -1016,6 +1300,12 @@ export function InspectorCompletionWorkspace() {
         status: (jobData.status as string) ?? undefined,
       }
       setJob(jobRow)
+      const latestOpenHold = await getLatestOpenHoldForJob(jobRow.id)
+      setActiveJobHold(latestOpenHold ? {
+        id: latestOpenHold.id,
+        status: latestOpenHold.status,
+        reason: latestOpenHold.reason,
+      } : null)
 
       if (jobRow.projectId) {
         const { data: projectData, error: projectError } = await supabase
@@ -1242,6 +1532,25 @@ export function InspectorCompletionWorkspace() {
     }
   }, [showStageSuccessBanner, stageTransitionHandshake])
 
+  useEffect(() => {
+    if (!pendingStageTransitionHandshake) return
+    if (currentStage !== pendingStageTransitionHandshake.nextStageNumber) return
+
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      console.log('Transition Handshake Fired')
+    }
+
+    if (stageTransitionStartRef.current) clearTimeout(stageTransitionStartRef.current)
+    setShowStageSuccessBanner(false)
+    setStageTransitionHandshake(pendingStageTransitionHandshake)
+    setPendingStageTransitionHandshake(null)
+
+    stageTransitionStartRef.current = setTimeout(() => {
+      setShowStageSuccessBanner(true)
+    }, 100)
+  }, [currentStage, pendingStageTransitionHandshake])
+
   function updateItem(itemCode: string, updater: (item: WorkspaceItem) => WorkspaceItem) {
     setItems(current =>
       current.map(item => (item.item_code === itemCode ? updater(item) : item))
@@ -1298,13 +1607,8 @@ export function InspectorCompletionWorkspace() {
     setCurrentStage(stageNumber)
   }
 
-  function triggerStageSuccessBanner(handshake: StageTransitionHandshake) {
-    if (stageTransitionStartRef.current) clearTimeout(stageTransitionStartRef.current)
-    setShowStageSuccessBanner(false)
-    setStageTransitionHandshake(handshake)
-    stageTransitionStartRef.current = setTimeout(() => {
-      setShowStageSuccessBanner(true)
-    }, 100)
+  function queueStageSuccessHandshake(handshake: StageTransitionHandshake) {
+    setPendingStageTransitionHandshake(handshake)
   }
 
   function handleStatusSelection(itemCode: string, value: CompletionInspectionStatus) {
@@ -1601,6 +1905,22 @@ export function InspectorCompletionWorkspace() {
 
     setSealing(true)
 
+    const latestOpenHold = await getLatestOpenHoldForJob(job.id)
+    if (latestOpenHold) {
+      setActiveJobHold({
+        id: latestOpenHold.id,
+        status: latestOpenHold.status,
+        reason: latestOpenHold.reason,
+      })
+      reportPersistenceFailure(
+        'A Hold / Site Retainer is still open on this inspection. Resolve the hold before sealing or issuing final occupancy.',
+        { jobId: job.id, holdId: latestOpenHold.id },
+        { alert: true }
+      )
+      setSealing(false)
+      return false
+    }
+
     const sessionInspector = await getAuthenticatedInspectorIdentity({ alertOnFailure: true })
 
     if (!sessionInspector) {
@@ -1612,6 +1932,8 @@ export function InspectorCompletionWorkspace() {
     const failedCount = nextItems.filter(item => item.inspection_status === 'Failed').length
     const passedCount = nextItems.filter(item => item.inspection_status === 'Passed').length
 const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | 'stopped'
+    const holdDetails = await listHoldDetailsForJob(job.id)
+    const holdHistory = buildHoldHistorySummary(holdDetails)
     const sealPayload = {
       sealedAt,
       sealedBy: sessionInspector.name,
@@ -1632,25 +1954,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
             longitude: location?.longitude ?? null,
           }
         : undefined,
-    }
-
-    const saved = await persistDraft(nextItems, currentStage, {
-      status: 'sealed',
-      sealApplied: true,
-      sealReference,
-      sealPayload,
-      sealedAt,
-      submittedAt: sealedAt,
-    })
-
-    if (!saved) {
-      reportPersistenceFailure(
-        'Vero could not save the certified completion report to Supabase. Please try again.',
-        { assignmentId, reportId: report.id },
-        { alert: true }
-      )
-      setSealing(false)
-      return false
+      holdHistory,
     }
 
     const evidenceItems: EvidenceItem[] = nextItems.flatMap(item =>
@@ -1673,6 +1977,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
         },
       }))
     )
+    const holdEvidenceItems = buildHoldEvidenceItems(holdDetails, job.projectId)
 
     const completedRecord = {
       id: createRuntimeId(`completion-record-${assignment.id}`),
@@ -1683,7 +1988,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
       stage: 15,
       stageName: 'Inspector Completion',
       result: overallResult,
-      evidenceItems,
+      evidenceItems: [...evidenceItems, ...holdEvidenceItems],
       completedAt: sealedAt,
       builderId: job.builderId,
       builderName: job.builderName,
@@ -1701,6 +2006,8 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
       jurisdictionName: overlay.jurisdictionName,
       authorityName: overlay.label,
       sealed: true,
+      holdId: holdDetails[0]?.hold.id,
+      holdHistory,
       checklistResults: nextItems.map(item => ({
         itemId: item.item_code,
         label: item.item_label,
@@ -1724,6 +2031,25 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
           inspectorId: sessionInspector.id,
           error: recordInsert.error,
         },
+        { alert: true }
+      )
+      setSealing(false)
+      return false
+    }
+
+    const saved = await persistDraft(nextItems, currentStage, {
+      status: 'sealed',
+      sealApplied: true,
+      sealReference,
+      sealPayload,
+      sealedAt,
+      submittedAt: sealedAt,
+    })
+
+    if (!saved) {
+      reportPersistenceFailure(
+        'Vero could not save the certified completion report to Supabase. Please try again.',
+        { assignmentId, reportId: report.id },
         { alert: true }
       )
       setSealing(false)
@@ -1853,11 +2179,6 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
       return
     }
 
-    if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-      console.log('Transition Handshake Fired')
-    }
-
     const nextStageTarget = nextStage !== currentStage
       ? getFirstIncompleteStageItem(nextItems, nextStage)
       : null
@@ -1867,7 +2188,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
     setItems(nextItems)
     navigateToStage(nextStage)
     if (nextStage !== currentStage) {
-      triggerStageSuccessBanner({
+      queueStageSuccessHandshake({
         completedStageNumber: currentStage,
         completedStageName: completedStageDefinition?.stage_name ?? `Stage ${currentStage}`,
         nextStageNumber: nextStageDefinition?.stage_number ?? nextStage,
@@ -2052,9 +2373,9 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
             <div className="mx-auto mb-5 flex items-center justify-center">
               <VeroSealIcon certified={isProjectCertified} className="h-20 w-20" />
             </div>
-            <h1 className="text-3xl font-black text-slate-900 dark:text-white">{isProjectCertified ? 'Project Certified' : 'Digital Seal Applied'}</h1>
+            <h1 className="text-3xl font-black text-white">{isProjectCertified ? 'Project Certified' : 'Digital Seal Applied'}</h1>
             <p className={`mx-auto mt-3 max-w-xl text-sm ${
-              isProjectCertified ? 'text-amber-100/80' : 'text-emerald-100/80'
+              isProjectCertified ? 'text-slate-300' : 'text-emerald-100/80'
             }`}>
               {isProjectCertified
                 ? 'Final occupancy has been issued. The project is certified, completed, and sealed with its full 15-stage compliance record.'
@@ -2064,7 +2385,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
             <div className="mt-8 grid gap-4 rounded-3xl border border-white/10 bg-[#0b1226] p-5 text-left md:grid-cols-2">
               <div>
                 <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Seal Reference</div>
-                <div className="mt-1 font-mono text-lg text-[#FFB089]">{report.sealReference}</div>
+                <div className="mt-1 font-mono text-lg text-slate-900">{report.sealReference}</div>
               </div>
               <div>
                 <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">{isProjectCertified ? 'Certification' : 'Outcome'}</div>
@@ -2149,7 +2470,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
           </div>
         )}
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-          <aside className={`completion-sidebar rounded-[2rem] border border-white/10 bg-[#0a1020] p-4 lg:w-[300px] lg:flex-none lg:sticky lg:top-4 lg:self-start lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto ${FLOATING_PANEL_CLASS}`}>
+          <aside className={`completion-sidebar rounded-[2rem] border border-white/10 bg-[#0a1020] p-4 lg:w-[300px] lg:flex-none lg:h-auto lg:min-h-full lg:sticky lg:top-4 lg:self-start lg:max-h-none lg:overflow-visible ${FLOATING_PANEL_CLASS}`}>
             {previewMode && (
               <div className="mb-4 rounded-2xl border border-slate-500/40 bg-[repeating-linear-gradient(135deg,rgba(51,65,85,0.9)_0,rgba(51,65,85,0.9)_12px,rgba(71,85,105,0.88)_12px,rgba(71,85,105,0.88)_24px)] px-4 py-3 text-xs font-bold uppercase tracking-[0.18em] text-slate-100 shadow-[0_10px_20px_rgba(15,23,42,0.2)]">
                 Dev Preview Only
@@ -2352,6 +2673,357 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
             </div>
 
             <div className="space-y-4">
+              {holdMode && !hasOpenHold && (
+                <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-[#020617]/80 px-4 py-6 backdrop-blur-sm">
+                  <div className="w-full max-w-3xl rounded-[2rem] border border-slate-200 bg-white p-5 text-slate-900 shadow-[0_30px_80px_rgba(2,6,23,0.55)]">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-start gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100">
+                          <PauseCircle className="h-5 w-5 text-amber-700" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-bold text-slate-900">Offer On-Site Hold</div>
+                          <div className="mt-1 text-xs text-slate-600">
+                            Use this when the issue can reasonably be corrected during the current visit, allowing the inspector to remain on site and re-review without rebooking.
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={resetHoldForm}
+                        className="rounded-xl border border-slate-200 bg-slate-50 p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                        aria-label="Close hold form"
+                      >
+                        <XCircle className="h-5 w-5" />
+                      </button>
+                    </div>
+
+                    <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                      <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-700">Affected Container</div>
+                      <div className="mt-2 text-sm font-semibold text-slate-900">
+                        {holdTargetItemCode ?? 'Current container'}
+                        {holdTargetItemLabel ? ` · ${holdTargetItemLabel}` : ''}
+                      </div>
+                    </div>
+
+                    <div className="mt-4 grid gap-4">
+                      <div>
+                        <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-700">Deficiency Summary</div>
+                        <input
+                          value={holdReason}
+                          onChange={event => setHoldReason(event.target.value)}
+                          placeholder="Handrail not installed on north stairwell"
+                          className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-amber-500 focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-700">Required Correction</div>
+                        <textarea
+                          value={holdDeficiencyReason}
+                          onChange={event => setHoldDeficiencyReason(event.target.value)}
+                          placeholder="Install code-compliant handrail on both sides"
+                          rows={3}
+                          className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-amber-500 focus:outline-none resize-none"
+                        />
+                      </div>
+
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <label className="block">
+                          <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-700">Hold Category</div>
+                          <select
+                            value={holdCategory}
+                            onChange={event => setHoldCategory(event.target.value as HoldCategory)}
+                            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 focus:border-amber-500 focus:outline-none"
+                          >
+                            <option value="minor_deficiency">Minor Deficiency</option>
+                            <option value="coordination">Coordination</option>
+                            <option value="access">Access</option>
+                            <option value="safety">Safety</option>
+                            <option value="documentation">Documentation</option>
+                            <option value="other">Other</option>
+                          </select>
+                        </label>
+
+                        <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                          <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-700">Estimated Hold Cost</div>
+                          <div className="text-lg font-black text-slate-900">${estimatedHoldCost.toFixed(2)}</div>
+                          <div className="mt-1 text-[11px] text-slate-600">
+                            {(holdMinutes / 60).toFixed(2)} hours × ${holdBaseRate.toFixed(2)}/hr × {HOLD_PREMIUM_MULTIPLIER.toFixed(1)} hold multiplier = ${estimatedHoldCost.toFixed(2)}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-700">Estimated Time to Correct</div>
+                        <div className="mb-2 text-[11px] text-slate-600">
+                          Select the expected correction window. Hold time is billed at 1.5× the applicable hourly rate.
+                        </div>
+                        <div className="grid grid-cols-4 gap-2">
+                          {[30, 60, 90].map(minutes => (
+                            <button
+                              key={minutes}
+                              type="button"
+                              onClick={() => handleHoldTimeSelection(minutes as 30 | 60 | 90)}
+                              className={`rounded-xl py-2 text-xs font-bold transition-all ${
+                                holdTimePreset === minutes
+                                  ? 'bg-amber-500 text-slate-900'
+                                  : 'border border-slate-300 bg-white text-slate-700 hover:bg-amber-50'
+                              }`}
+                            >
+                              {minutes}m
+                            </button>
+                          ))}
+                          <button
+                            type="button"
+                            onClick={() => handleHoldTimeSelection('custom')}
+                            className={`rounded-xl py-2 text-xs font-bold transition-all ${
+                              holdTimePreset === 'custom'
+                                ? 'bg-amber-500 text-slate-900'
+                                : 'border border-slate-300 bg-white text-slate-700 hover:bg-amber-50'
+                            }`}
+                          >
+                            Custom
+                          </button>
+                        </div>
+
+                        {holdTimePreset === 'custom' && (
+                          <div className="mt-3">
+                            <input
+                              type="number"
+                              min={1}
+                              step={1}
+                              value={holdCustomMinutes}
+                              onChange={event => {
+                                const nextValue = event.target.value
+                                setHoldCustomMinutes(nextValue)
+                                const nextMinutes = Number(nextValue)
+                                if (Number.isFinite(nextMinutes) && nextMinutes > 0) {
+                                  setHoldMinutes(nextMinutes)
+                                  setHoldCapAmount(calculateSuggestedHoldCost(nextMinutes, holdBaseRate))
+                                } else {
+                                  setHoldMinutes(0)
+                                }
+                              }}
+                              placeholder="Enter minutes"
+                              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-amber-500 focus:outline-none"
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="block">
+                          <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-700">Applicable Hourly Rate</div>
+                          <div className="rounded-xl border border-slate-300 bg-white px-3 py-2.5">
+                            <div className="text-sm font-semibold text-slate-900">{holdPricingLabel}</div>
+                            <div className="mt-1 flex items-center justify-between gap-3">
+                              <span className="text-xs text-slate-600">
+                                1.5× hold multiplier · {(holdMinutes / 60).toFixed(2)} hold hours
+                              </span>
+                              <span className="text-sm font-black text-slate-900">${holdBaseRate.toFixed(2)}/hr</span>
+                            </div>
+                            <div className="mt-1 text-[11px] text-slate-600">
+                              This rate is set by the selected inspection role and pricing basis. It is not manually adjusted during the hold workflow.
+                            </div>
+                            <div className="mt-1 text-[11px] text-slate-600">
+                              {(holdMinutes / 60).toFixed(2)} hours × ${holdBaseRate.toFixed(2)}/hr × {HOLD_PREMIUM_MULTIPLIER.toFixed(1)} hold multiplier = ${calculateSuggestedHoldCost(holdMinutes, holdBaseRate).toFixed(2)}
+                            </div>
+                          </div>
+                        </div>
+
+                        <label className="block">
+                          <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-700">Estimated Hold Cap</div>
+                          <div className="mb-1.5 text-[11px] text-slate-600">
+                            This is the current hold estimate based on the selected time window and applicable rate.
+                          </div>
+                          <div className="flex items-center rounded-xl border border-slate-300 bg-white px-3">
+                            <span className="text-slate-700">$</span>
+                            <input
+                              type="number"
+                              min={0}
+                              step="0.01"
+                              value={holdCapAmount}
+                              onChange={event => setHoldCapAmount(Number(event.target.value))}
+                              className="w-full bg-transparent px-2 py-2.5 text-sm text-slate-900 focus:outline-none"
+                            />
+                          </div>
+                        </label>
+                      </div>
+
+                      <div>
+                        <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-700">Inspector Notes</div>
+                        <textarea
+                          value={holdNotes}
+                          onChange={event => setHoldNotes(event.target.value)}
+                          placeholder="Optional coordination notes for the builder regarding access, sequencing, or expected readiness for re-review."
+                          rows={2}
+                          className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-amber-500 focus:outline-none resize-none"
+                        />
+                      </div>
+
+                      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                        <div className="flex items-start justify-between gap-3 mb-3">
+                          <div>
+                            <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-700">Supporting Evidence</div>
+                            <div className="mt-1 text-xs text-slate-600">
+                              Attach photos, video, or supporting documents to record the hold condition and required correction.
+                            </div>
+                          </div>
+                          <div className="rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-amber-900">
+                            Optional
+                          </div>
+                        </div>
+
+                        <input
+                          ref={holdPhotoInputRef}
+                          type="file"
+                          accept="image/*"
+                          capture="environment"
+                          className="hidden"
+                          onChange={event => void handleHoldPhotoSelected(event)}
+                        />
+                        <input
+                          ref={holdVideoInputRef}
+                          type="file"
+                          accept="video/mp4,video/x-m4v,video/*"
+                          capture="environment"
+                          className="hidden"
+                          onChange={event => void handleHoldVideoSelected(event)}
+                        />
+                        <input
+                          ref={holdAttachmentInputRef}
+                          type="file"
+                          accept=".pdf,.doc,.docx,.txt,image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
+                          className="hidden"
+                          onChange={event => void handleHoldAttachmentSelected(event)}
+                        />
+
+                        <div className="grid gap-2 sm:grid-cols-3">
+                          <button
+                            type="button"
+                            onClick={() => holdPhotoInputRef.current?.click()}
+                            className="rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm font-bold text-slate-900 transition-all hover:bg-amber-50"
+                          >
+                            <span className="inline-flex items-center gap-2">
+                              <Camera className="h-4 w-4" />
+                              <span>Photo</span>
+                            </span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => holdVideoInputRef.current?.click()}
+                            className="rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm font-bold text-slate-900 transition-all hover:bg-amber-50"
+                          >
+                            <span className="inline-flex items-center gap-2">
+                              <Video className="h-4 w-4" />
+                              <span>Video</span>
+                            </span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => holdAttachmentInputRef.current?.click()}
+                            className="rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm font-bold text-slate-900 transition-all hover:bg-amber-50"
+                          >
+                            <span className="inline-flex items-center gap-2">
+                              <FileText className="h-4 w-4" />
+                              <span>Upload Attachment</span>
+                            </span>
+                          </button>
+                        </div>
+
+                        {holdEvidenceWarning && (
+                          <div className="mt-3 rounded-xl border border-amber-300 bg-amber-100 px-3 py-3 text-xs font-medium text-amber-900">
+                            {holdEvidenceWarning}
+                          </div>
+                        )}
+
+                        {holdEvidenceItems.length > 0 && (
+                          <div className="mt-3 space-y-2">
+                            {holdEvidenceItems.map(evidence => (
+                              <div key={evidence.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5">
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
+                                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] uppercase tracking-widest text-amber-900">
+                                      {evidence.evidenceType}
+                                    </span>
+                                    <span className="truncate">{evidence.fileName}</span>
+                                  </div>
+                                  <div className="mt-1 text-[11px] text-slate-600">
+                                    {formatBytes(evidence.fileSize)}
+                                    {' · '}
+                                    {new Date(evidence.capturedAt).toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit' })}
+                                    {evidence.lat != null && evidence.lng != null ? ` · ${evidence.lat.toFixed(5)}, ${evidence.lng.toFixed(5)}` : ''}
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => removePendingHoldEvidence(evidence.id)}
+                                  className="rounded-lg border border-slate-300 px-2 py-1 text-[11px] font-bold text-slate-700 transition-all hover:bg-slate-100"
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                        <label className="flex items-start gap-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={holdImmediateCorrection}
+                            onChange={event => setHoldImmediateCorrection(event.target.checked)}
+                            className="mt-0.5 accent-amber-500 shrink-0"
+                          />
+                          <span className="text-sm font-semibold text-slate-900">
+                            I confirm this issue can reasonably be corrected on site within the selected time window.
+                          </span>
+                        </label>
+                      </div>
+
+                      <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-700">
+                        Based on {(holdMinutes / 60).toFixed(2)} hours at the applicable hourly rate of ${holdBaseRate.toFixed(2)}, billed at {HOLD_PREMIUM_MULTIPLIER.toFixed(1)}× for on-site hold. Estimated hold cost: ${estimatedHoldCost.toFixed(2)} before platform fee, if applicable.
+                      </div>
+
+                      {holdMissingFields.length > 0 && (
+                        <div className="rounded-xl border border-amber-300 bg-amber-100 px-3 py-3 text-xs font-medium text-amber-900">
+                          Complete the deficiency summary, required correction, and inspector confirmation before issuing hold terms.
+                        </div>
+                      )}
+
+                      <div className="flex flex-col gap-2 sm:flex-row">
+                        <button
+                          type="button"
+                          onClick={() => void handlePlaceHold()}
+                          disabled={
+                            !holdTargetItemCode
+                            || !holdReason.trim()
+                            || !holdDeficiencyReason.trim()
+                            || !holdImmediateCorrection
+                            || holdBaseRate <= 0
+                            || holdCapAmount <= 0
+                            || holdMinutes <= 0
+                            || isPlacingHold
+                          }
+                          className="flex-1 rounded-xl bg-amber-400 py-3 text-sm font-black text-slate-900 transition-all hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          {isPlacingHold ? 'Sending Hold Terms...' : 'Send Hold Terms'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={resetHoldForm}
+                          className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-zinc-300 transition-colors hover:bg-white/10"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {stageItems.map(item => {
                 const requiredLabel = typeof item.is_required === 'string' ? item.is_required : item.is_required ? 'Required' : 'Optional'
                 const blockedBy = item.dependencies.filter(dep => {
@@ -2617,7 +3289,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         </div>
                       )}
 
-                      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
+                      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-6">
                         <StatusPill
                           label="Pending"
                           value="Pending"
@@ -2637,6 +3309,17 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                           active={item.inspection_status === 'Failed'}
                           onClick={value => handleStatusSelection(item.item_code, value)}
                         />
+                        <button
+                          type="button"
+                          disabled={holdButtonDisabled}
+                          onClick={() => openHoldForm(item)}
+                          className={HOLD_ACTION_BUTTON_CLASS}
+                        >
+                          <span className="inline-flex items-center justify-center">
+                            <PauseCircle className="mr-2 h-4 w-4" />
+                            <span>Hold</span>
+                          </span>
+                        </button>
                         <StatusPill
                           label="N/A"
                           value="N/A"
@@ -2963,7 +3646,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       </div>
                     )}
 
-                    <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
+                    <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-6">
                       <StatusPill
                         label="Pending"
                         value="Pending"
@@ -2983,6 +3666,17 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         active={item.inspection_status === 'Failed'}
                         onClick={value => handleStatusSelection(item.item_code, value)}
                       />
+                      <button
+                        type="button"
+                        disabled={holdButtonDisabled}
+                        onClick={() => openHoldForm(item)}
+                        className={HOLD_ACTION_BUTTON_CLASS}
+                      >
+                        <span className="inline-flex items-center justify-center">
+                          <PauseCircle className="mr-2 h-4 w-4" />
+                          <span>Hold</span>
+                        </span>
+                      </button>
                       <StatusPill
                         label="N/A"
                         value="N/A"
@@ -3265,7 +3959,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
               <div className="rounded-[2rem] border border-white/10 bg-[#050816] bg-[#0f172a] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.4)]">
                 <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
                   <div className="max-w-2xl">
-                    <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-red-200/80">Final Occupancy Seal</div>
+                    <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-200/90">Final Occupancy Seal</div>
                     <div className="mt-3 flex items-center gap-4">
                       <VeroSealIcon />
                       <div>
@@ -3279,11 +3973,11 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
 
                   <div className={`rounded-3xl border px-4 py-3 ${
                     finalOccupancyReady
-                      ? 'border-amber-300/30 bg-amber-300/10'
+                      ? 'border-emerald-300/30 bg-emerald-500/10'
                       : 'border-zinc-700 bg-white/5'
                   }`}>
                     <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Certification Gate</div>
-                    <div className={`mt-2 text-lg font-black ${finalOccupancyReady ? 'text-amber-200' : 'text-zinc-200'}`}>
+                    <div className={`mt-2 text-lg font-black ${finalOccupancyReady ? 'text-emerald-200' : 'text-zinc-200'}`}>
                       {passedStageCount + (stageReadyForSignOff && !currentStageSignOff ? 1 : 0)} / {stages.length} stages ready
                     </div>
                     <div className="mt-1 text-xs text-zinc-400">
@@ -3299,7 +3993,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                   </div>
                   <div className="mt-3 h-3 overflow-hidden rounded-full bg-white/10">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-red-900 via-red-700 to-amber-400 transition-all"
+                      className="h-full rounded-full bg-emerald-500 transition-all"
                       style={{ width: `${Math.min(100, Math.round(((passedStageCount + (stageReadyForSignOff && !currentStageSignOff ? 1 : 0)) / Math.max(stages.length, 1)) * 100))}%` }}
                     />
                   </div>
@@ -3335,7 +4029,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                     onClick={() => void handleFinalOccupancyIssue()}
                     className={`inline-flex min-h-[54px] items-center justify-center gap-2 rounded-2xl px-6 py-3 text-sm font-black uppercase tracking-[0.12em] transition-colors ${
                       finalOccupancyReady
-                        ? 'bg-[#991b1b] text-white shadow-[0_18px_34px_rgba(153,27,27,0.38)] hover:bg-[#7f1717]'
+                        ? 'bg-emerald-600 text-white shadow-[0_18px_34px_rgba(5,150,105,0.28)] hover:bg-emerald-700'
                         : 'cursor-not-allowed bg-zinc-800 text-zinc-500'
                     }`}
                   >
@@ -3457,7 +4151,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                     <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Completion Gate</div>
                     <h3 className="mt-2 text-2xl font-black">Digital Seal</h3>
                     <p className="mt-2 max-w-2xl text-sm text-zinc-400">
-                      The seal unlocks only after every checklist item has been resolved and all document-required items have at least one uploaded file.
+                      The seal unlocks only after every checklist item has been resolved, all document-required items have at least one uploaded file, and no Hold / Site Retainer remains open.
                     </p>
                   </div>
 
@@ -3475,7 +4169,9 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         <div className="mt-1 text-xs text-zinc-300">
                           {sealReady
                             ? 'All checklist items are resolved and evidence requirements are satisfied.'
-                            : `${sealPendingCount} pending item(s) and ${sealDocumentGapCount} document gap(s) remain.`}
+                            : hasOpenHold
+                              ? `Seal blocked by an open Hold / Site Retainer: ${activeJobHold?.reason ?? 'Resolve the hold before finalizing.'}`
+                              : `${sealPendingCount} pending item(s) and ${sealDocumentGapCount} document gap(s) remain.`}
                         </div>
                       </div>
                     </div>

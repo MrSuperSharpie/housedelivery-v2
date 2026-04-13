@@ -79,6 +79,29 @@ export interface ScheduleCBPacketProjectSummary {
   overlayLabel: string
 }
 
+export interface HoldHistoryEntry {
+  holdId: string
+  placedAt: string
+  status: string
+  reason: string
+  deficiencyReason?: string
+  category?: string
+  affectedItemSummaries: string[]
+  initiatedByRole: string
+  builderDecision: 'accepted' | 'declined' | 'expired' | 'pending'
+  builderAcceptedAt?: string
+  premiumRateType?: string
+  premiumRateAmount?: number
+  holdCapAmount?: number
+  actualRetainedMinutes?: number
+  premiumChargeAmount?: number
+  resolution?: string
+  resolutionNotes?: string
+  holdEndedAt?: string
+  correctionEvidenceCount: number
+  correctionEvidenceRefs: string[]
+}
+
 export interface ScheduleCBPacketData {
   templateVersion: string
   brandLogoSrc: string
@@ -105,6 +128,7 @@ export interface ScheduleCBPacketData {
   }
   auditTrail: ScheduleCBPacketAuditTrail
   appendixEntries: ScheduleCBPacketAppendixEntry[]
+  holdHistory: HoldHistoryEntry[]
   legal: {
     statutoryTemplateVersion: string
     statutoryTemplatePath: string

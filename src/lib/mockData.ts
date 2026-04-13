@@ -9,6 +9,7 @@ import type {
   DispatchPricing,
   EscrowRecord,
 } from './types'
+import { DISPATCH_PRICING as SHARED_DISPATCH_PRICING } from '@/lib/pricing/config'
 
 // ─── Inspection Stages (hardcoded per PRD) ────────────────────────────────────
 
@@ -95,35 +96,7 @@ export const INSPECTION_STAGES: InspectionStage[] = [
 
 // ─── Dispatch Pricing ─────────────────────────────────────────────────────────
 
-export const DISPATCH_PRICING: DispatchPricing[] = [
-  {
-    tier: 'standard',
-    label: 'Standard',
-    description: 'Scheduled within 5–7 business days',
-    timeframe: '5–7 business days',
-    baseRate: 295,
-    multiplier: 1,
-    price: 295,
-  },
-  {
-    tier: 'priority',
-    label: 'Priority',
-    description: 'Confirmed within 2–3 business days',
-    timeframe: '2–3 business days',
-    baseRate: 295,
-    multiplier: 1.5,
-    price: 443,
-  },
-  {
-    tier: 'emergency',
-    label: 'Emergency',
-    description: 'Inspector on-site within 24 hours or next available day',
-    timeframe: 'Within 24 hrs / next day',
-    baseRate: 295,
-    multiplier: 2,
-    price: 590,
-  },
-]
+export const DISPATCH_PRICING: DispatchPricing[] = SHARED_DISPATCH_PRICING
 
 // ─── Builder Profile ──────────────────────────────────────────────────────────
 

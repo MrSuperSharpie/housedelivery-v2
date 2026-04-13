@@ -2,7 +2,20 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { MOCK_JOBS } from './mockData'
-import type { Project, InspectionJob, InspectorDiscipline, DispatchTier, Region, Assignment, ObjectionReason, JobTimeSlot } from './types'
+import type {
+  Project,
+  InspectionJob,
+  InspectorDiscipline,
+  DispatchTier,
+  Region,
+  Assignment,
+  ObjectionReason,
+  JobTimeSlot,
+  PricingInspectionType,
+  PricingMode,
+  SpecialistCredentialClass,
+  SpecialistRoleId,
+} from './types'
 import type { TimeSlot } from '@/components/builder/SchedulingPicker'
 import { checkInspectorEligibility, type EligibilityResult } from './eligibility'
 import { createClient } from '@/lib/supabase/client'
@@ -20,8 +33,12 @@ import { selectInspectorEligibility } from '@/lib/supabase/compliance'
 import { canSealSubmission } from '@/lib/domain'
 import type { SubmissionStatus } from '@/lib/domain'
 import type { EscrowStatus } from '@/lib/types'
-import type { HoldRecord, RetentionSession } from '@/lib/types'
-import { RETENTION_RATES } from '@/lib/types'
+import type {
+  HoldCategory,
+  HoldPremiumRateType,
+  HoldRecord,
+  RetentionSession,
+} from '@/lib/types'
 import {
   placeHold,
   builderApproveHold,
@@ -31,6 +48,7 @@ import {
   upsertRetentionSession,
 } from '@/lib/supabase/holds'
 import { calculatePricingBreakdown } from '@/utils/pricing'
+import { getFixedDispatchHoldBaseRate } from '@/lib/pricing/config'
 import {
   createDispute,
   upsertGovernedProject,
@@ -97,6 +115,15 @@ export interface NewJobInput {
   siteReqs:             string[]
   safetyNotes:          string
   builderApprovalStatus: string
+  pricingMode?:         PricingMode
+  specialistRole?:      SpecialistRoleId | null
+  hourlyRate?:          number
+  billableHours?:       number
+  holdHours?:           number
+  requiresProfessionalSeal?: boolean
+  requiresCP?:          boolean
+  inspectionType?:      PricingInspectionType
+  credentialClass?:     SpecialistCredentialClass
 }
 
 export interface NewClaimInput {
@@ -154,7 +181,24 @@ interface StoreValue {
   exportPackage:        (projectId: string, guards: ExportGuards) => StoreActionResult
   releasePayout:        (assignmentId: string, currentEscrowStatus: EscrowStatus) => StoreActionResult
   // ── Hold workflow ──
-  placeHoldPoint:       (jobId: string, inspectorId: string, builderId: string, tier: DispatchTier, reason: string, checklistItemIds: string[]) => Promise<StoreActionResult<HoldRecord>>
+  placeHoldPoint:       (input: {
+    jobId: string
+    inspectorId: string
+    builderId: string
+    tier: DispatchTier
+    reason: string
+    deficiencyReason?: string
+    checklistItemIds: string[]
+    affectedItemSummaries?: string[]
+    holdCategory: HoldCategory
+    holdEligibleForOnSiteCorrection: boolean
+    estimatedCorrectionMinutes: number
+    premiumRateType: HoldPremiumRateType
+    premiumRateAmount: number
+    holdCapAmount: number
+    notes?: string
+    relatedInspectionId?: string
+  }) => Promise<StoreActionResult<HoldRecord>>
   approveHoldPoint:     (holdId: string, jobId: string, builderNote?: string) => Promise<StoreActionResult>
   declineHoldPoint:     (holdId: string, actorId: string, builderNote?: string) => Promise<StoreActionResult>
   getJobHolds:          (jobId: string) => Promise<HoldRecord[]>
@@ -273,7 +317,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         const dbJobs = await listOpenJobOpportunities()
         const dbMapped: InspectionJob[] = dbJobs.map(j => ({
           id:                   j.id,
-          projectId:            j.id,
+          projectId:            j.projectId ?? j.id,
           projectName:          j.projectName,
           address:              j.address,
           city:                 j.city,
@@ -289,7 +333,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           requiredDiscipline:   j.requiredDiscipline,
           status:               j.status as InspectionJob['status'],
           requestedAt:          j.requestedAt,
-          escrowAmount:         j.offeredRate,
+          escrowAmount:         j.escrowEstimateTotal ?? j.offeredRate,
+          pricingMode:          j.pricingMode,
+          specialistRole:       j.specialistRole,
+          baseHourlyRate:       j.baseHourlyRate,
+          effectiveHourlyRate:  j.effectiveHourlyRate,
+          billableHours:        j.billableHours,
+          holdHours:            j.holdHours,
+          holdCost:             j.holdCost,
+          urgencyMultiplier:    j.urgencyMultiplier,
+          platformCommissionAmount: j.platformCommissionAmount,
+          requiresProfessionalSeal: j.requiresProfessionalSeal,
+          requiresCP:           j.requiresCP,
+          inspectionType:       j.inspectionType,
+          credentialClass:      j.credentialClass,
           availableSlots:       j.availableSlots ?? [],
           builderName:          j.builderName ?? '',
           builderRating:        0,
@@ -370,7 +427,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                   requiredDiscipline: mj.required_discipline ?? 'structural',
                   status: mj.status as InspectionJob['status'],
                   requestedAt: mj.requested_at ?? new Date().toISOString(),
-                  escrowAmount: mj.offered_rate ?? 0,
+                  escrowAmount: mj.escrow_estimate_total ?? mj.offered_rate ?? 0,
+                  pricingMode: mj.pricing_mode ?? 'dispatch_fixed',
+                  specialistRole: mj.specialist_role ?? undefined,
+                  baseHourlyRate: mj.base_hourly_rate ?? undefined,
+                  effectiveHourlyRate: mj.effective_hourly_rate ?? undefined,
+                  billableHours: mj.billable_hours ?? undefined,
+                  holdHours: mj.hold_hours ?? undefined,
+                  holdCost: mj.hold_cost ?? undefined,
+                  urgencyMultiplier: mj.urgency_multiplier ?? undefined,
+                  platformCommissionAmount: mj.platform_commission_amount ?? undefined,
+                  requiresProfessionalSeal: mj.requires_professional_seal === true,
+                  requiresCP: mj.requires_cp === true,
+                  inspectionType: mj.inspection_type ?? undefined,
+                  credentialClass: mj.credential_class ?? undefined,
                   availableSlots: normalizeJobTimeSlots(mj.available_slots),
                   builderName: mj.builder_name ?? '',
                   builderRating: 0,
@@ -381,6 +451,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                 })
               } else {
                 existing.status = mj.status
+                existing.pricingMode = (mj.pricing_mode as InspectionJob['pricingMode']) ?? existing.pricingMode
+                existing.specialistRole = (mj.specialist_role as InspectionJob['specialistRole']) ?? existing.specialistRole
+                existing.baseHourlyRate = (mj.base_hourly_rate as number | undefined) ?? existing.baseHourlyRate
+                existing.effectiveHourlyRate = (mj.effective_hourly_rate as number | undefined) ?? existing.effectiveHourlyRate
+                existing.billableHours = (mj.billable_hours as number | undefined) ?? existing.billableHours
+                existing.holdHours = (mj.hold_hours as number | undefined) ?? existing.holdHours
+                existing.holdCost = (mj.hold_cost as number | undefined) ?? existing.holdCost
+                existing.urgencyMultiplier = (mj.urgency_multiplier as number | undefined) ?? existing.urgencyMultiplier
+                existing.platformCommissionAmount = (mj.platform_commission_amount as number | undefined) ?? existing.platformCommissionAmount
+                existing.escrowAmount = (mj.escrow_estimate_total as number | undefined) ?? existing.escrowAmount
               }
             })
             return newJobs
@@ -466,7 +546,22 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const addJob = useCallback(async (input: NewJobInput): Promise<StoreActionResult<string>> => {
     const permitFamily = input.discipline === 'electrical' ? 'electrical' : 'building'
     const provisionalId = 'job-' + uid()
-    const pricing = calculatePricingBreakdown({ dispatchTier: input.tier })
+    const pricing = calculatePricingBreakdown({
+      dispatchTier: input.tier,
+      pricingMode: input.pricingMode,
+      specialistRole: input.specialistRole,
+      hourlyRate: input.hourlyRate,
+      billableHours: input.billableHours,
+      holdHours: input.holdHours,
+      requiresProfessionalSeal: input.requiresProfessionalSeal,
+      requiresCP: input.requiresCP,
+      inspectionType: input.inspectionType,
+      credentialClass: input.credentialClass,
+      discipline: input.discipline,
+    })
+    const estimatedDurationMinutes = pricing.pricingMode === 'specialist_hourly'
+      ? Math.max(90, Math.round(pricing.billableHours * 60))
+      : 120
     const dbProject = input.projectId ? projects.find(project => project.id === input.projectId) : null
     const normalizedRegion = normalizeRegionFromCity(input.city)
 
@@ -510,6 +605,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       requiredDiscipline:       input.discipline,
       dispatchTier:             input.tier,
       offeredRate:              pricing.inspectorPayout,
+      pricingMode:              pricing.pricingMode,
+      specialistRole:           pricing.specialistRole,
+      baseHourlyRate:           pricing.specialistRole ? pricing.hourlyRate : undefined,
+      effectiveHourlyRate:      pricing.effectiveHourlyRate,
+      billableHours:            pricing.pricingMode === 'specialist_hourly' ? pricing.billableHours : undefined,
+      holdHours:                pricing.holdHours,
+      holdCost:                 pricing.holdCost,
+      urgencyMultiplier:        pricing.multiplier,
+      platformCommissionAmount: pricing.platformCommission,
+      escrowEstimateTotal:      pricing.builderEscrowTotal,
+      requiresProfessionalSeal: input.requiresProfessionalSeal === true,
+      requiresCP:               input.requiresCP === true,
+      inspectionType:           input.inspectionType ?? 'dispatch',
+      credentialClass:          input.credentialClass ?? undefined,
       builderId:                input.builderId,
       builderName:              input.builderName,
       region:                   normalizedRegion,
@@ -519,7 +628,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       availableSlots:           input.slots,
       builderOnboardingStatus:  input.builderApprovalStatus,
       escrowAuthorized:         true,
-      estimatedDurationMinutes: 120,
+      estimatedDurationMinutes,
     }).catch(err => {
       console.error('[addJob] insertJobOpportunity failed:', err)
       return null
@@ -544,13 +653,26 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       stageName:            input.stageName,
       dispatchTier:         input.tier,
       offeredRate:          pricing.inspectorPayout,
-      estimatedDuration:    60,
+      estimatedDuration:    estimatedDurationMinutes,
       distance:             0,
       region:               normalizedRegion,
       requiredDiscipline:   input.discipline,
       status:               nextStatus,
       requestedAt:          new Date().toISOString(),
       escrowAmount:         pricing.builderEscrowTotal,
+      pricingMode:          pricing.pricingMode,
+      specialistRole:       pricing.specialistRole,
+      baseHourlyRate:       pricing.specialistRole ? pricing.hourlyRate : undefined,
+      effectiveHourlyRate:  pricing.effectiveHourlyRate,
+      billableHours:        pricing.pricingMode === 'specialist_hourly' ? pricing.billableHours : undefined,
+      holdHours:            pricing.holdHours,
+      holdCost:             pricing.holdCost,
+      urgencyMultiplier:    pricing.multiplier,
+      platformCommissionAmount: pricing.platformCommission,
+      requiresProfessionalSeal: input.requiresProfessionalSeal === true,
+      requiresCP:           input.requiresCP === true,
+      inspectionType:       input.inspectionType ?? 'dispatch',
+      credentialClass:      input.credentialClass,
       availableSlots:       input.slots as JobTimeSlot[],
       builderName:          input.builderName,
       builderRating:        input.builderRating,
@@ -913,15 +1035,48 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   // ─── placeHoldPoint ───────────────────────────────────────────────────────
   const placeHoldPoint = useCallback(async (
-    jobId: string, inspectorId: string, builderId: string,
-    tier: DispatchTier, reason: string, checklistItemIds: string[],
+    input: {
+      jobId: string
+      inspectorId: string
+      builderId: string
+      tier: DispatchTier
+      reason: string
+      deficiencyReason?: string
+      checklistItemIds: string[]
+      affectedItemSummaries?: string[]
+      holdCategory: HoldCategory
+      holdEligibleForOnSiteCorrection: boolean
+      estimatedCorrectionMinutes: number
+      premiumRateType: HoldPremiumRateType
+      premiumRateAmount: number
+      holdCapAmount: number
+      notes?: string
+      relatedInspectionId?: string
+    },
   ): Promise<StoreActionResult<HoldRecord>> => {
-    const hold = await placeHold({ jobId, inspectorId, builderId, dispatchTier: tier, checklistItemIds, reason })
+    const hold = await placeHold({
+      jobId: input.jobId,
+      inspectorId: input.inspectorId,
+      builderId: input.builderId,
+      dispatchTier: input.tier,
+      checklistItemIds: input.checklistItemIds,
+      affectedItemSummaries: input.affectedItemSummaries,
+      reason: input.reason,
+      deficiencyReason: input.deficiencyReason,
+      holdCategory: input.holdCategory,
+      holdEligibleForOnSiteCorrection: input.holdEligibleForOnSiteCorrection,
+      estimatedCorrectionMinutes: input.estimatedCorrectionMinutes,
+      premiumRateType: input.premiumRateType,
+      premiumRateAmount: input.premiumRateAmount,
+      holdCapAmount: input.holdCapAmount,
+      notes: input.notes,
+      relatedInspectionId: input.relatedInspectionId,
+    })
     if (!hold) return { ok: false, error: 'Failed to place hold.' }
 
     // Transition job → on_hold
-    await updateJobStatus(jobId, 'on_hold', inspectorId, 'inspector', `Hold placed: ${reason}`, 'in_progress')
-    setJobs(prev => prev.map(j => j.id === jobId ? { ...j, status: 'on_hold' as const } : j))
+    await updateJobStatus(input.jobId, 'on_hold', input.inspectorId, 'inspector', `Hold placed: ${input.reason}`, 'in_progress')
+    setJobs(prev => prev.map(j => j.id === input.jobId ? { ...j, status: 'on_hold' as const } : j))
 
     return { ok: true, value: hold }
   }, [])
@@ -970,7 +1125,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     builderId: string, tier: DispatchTier, hours: number,
   ) => {
     const now = new Date().toISOString()
-    const rate = RETENTION_RATES[tier]
+    const rate = getFixedDispatchHoldBaseRate()
     const session: RetentionSession = {
       id: `ret-${Date.now().toString(36)}`,
       holdId, jobId, inspectorId, builderId,

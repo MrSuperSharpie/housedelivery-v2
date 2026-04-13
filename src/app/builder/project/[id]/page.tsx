@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { WaitTimer } from '@/components/builder/WaitTimer'
 import { TrackingMap } from '@/components/builder/TrackingMap'
 import { INSPECTION_STAGES, MOCK_INSPECTOR } from '@/lib/mockData'
+import { DISPATCH_PRICING } from '@/lib/pricing/config'
 import { formatCurrency, formatDate, isChecklistUnlocked } from '@/lib/utils'
 import { useStore } from '@/lib/store'
 import { getBuilderProjectView } from '@/lib/adapters/projectAdapter'
@@ -16,6 +17,7 @@ import type { InspectionStatus } from '@/lib/types'
 
 export default function ProjectDetailPage({ params }: { params: { id: string } }) {
   const storeProjects = useStore().projects
+  const storeJobs = useStore().jobs
   const project = storeProjects.find(p => p.id === params.id)
   const [paymentReleased, setPaymentReleased] = useState(false)
   const [activePhoto, setActivePhoto] = useState<string | null>(null)
@@ -37,6 +39,16 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
     }
   ), [project])
   const view = useMemo(() => getBuilderProjectView(safeProject), [safeProject])
+  const relevantJob = useMemo(() => {
+    return [...storeJobs]
+      .filter(job => job.projectId === safeProject.id)
+      .sort((a, b) => new Date(b.requestedAt).getTime() - new Date(a.requestedAt).getTime())[0]
+  }, [safeProject.id, storeJobs])
+  const fallbackDispatchPrice = useMemo(() => {
+    const tier = safeProject.dispatchTier ?? 'standard'
+    return DISPATCH_PRICING.find(pricing => pricing.tier === tier)?.price ?? DISPATCH_PRICING[0].price
+  }, [safeProject.dispatchTier])
+  const escrowDisplayAmount = relevantJob?.escrowAmount ?? fallbackDispatchPrice
   const [expandedStage, setExpandedStage] = useState<number | null>(safeProject.currentStage)
   const waitTimerStartedAt = project?.updatedAt || project?.createdAt || '2026-01-01T00:00:00.000Z'
 
@@ -317,7 +329,7 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
                     <DollarSign className="w-4 h-4" />
                     Funds Held
                   </div>
-                  <span className="font-bold text-blueprint-blue">{formatCurrency(590)}</span>
+                  <span className="font-bold text-blueprint-blue">{formatCurrency(escrowDisplayAmount)}</span>
                 </div>
                 <div className="flex items-center justify-between py-2 border-b border-gray-50">
                   <span className="text-sm text-gray-500">Status</span>

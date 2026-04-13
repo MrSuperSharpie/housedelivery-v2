@@ -475,7 +475,7 @@ const STRUCTURAL_STAGE_2_CONTAINERS: StructuredStageItemDefinition[] = [
       'Critical tree protection is absent or unauthorized demolition has occurred.',
     ],
     fieldChecklist: [
-      'Tree protection, removal, and arborist requirements met? (Camera Evidence Required)',
+      'Tree protection, removal, and arborist requirements met? (Camera or Video Evidence Required)',
       'Demolition permit secured (if applicable)?',
     ],
     notesGuidance: 'Record tree-protection measures, arborist conditions, demolition authorization status, and any visible unauthorized disturbance or removal risk.',
@@ -681,7 +681,7 @@ const STRUCTURAL_STAGE_4_CONTAINERS: StructuredStageItemDefinition[] = [
     ],
     fieldChecklist: [
       'Underground services identified prior to excavation? (Evidence: Text)',
-      'Tree barriers and arborist protection installed? (Camera Evidence Required)',
+      'Tree barriers and arborist protection installed? (Camera or Video Evidence Required)',
       'Demolition completion verified?',
       'Site clearing and removals complete?',
     ],
@@ -731,7 +731,7 @@ const STRUCTURAL_STAGE_4_CONTAINERS: StructuredStageItemDefinition[] = [
       'Underground services are unidentified, or erosion/shoring controls are failing.',
     ],
     fieldChecklist: [
-      'Erosion and sediment control securely in place? (Camera Evidence Required)',
+      'Erosion and sediment control securely in place? (Camera or Video Evidence Required)',
       'Excavation layout and rough site grading marked?',
       'Shoring and slope protection installed (if required)?',
       'Temporary construction access and safety controls established?',
@@ -786,9 +786,9 @@ const STRUCTURAL_STAGE_5_CONTAINERS: StructuredStageItemDefinition[] = [
       'Rebar is undersized or missing, or footing/foundation inspections cannot be verified at the presented hold point.',
     ],
     fieldChecklist: [
-      'Footing excavation, forms, and rebar complete? (Camera Evidence Required)',
+      'Footing excavation, forms, and rebar complete? (Camera or Video Evidence Required)',
       'Footing inspection passed?',
-      'Foundation wall forms and rebar complete? (Camera Evidence Required)',
+      'Foundation wall forms and rebar complete? (Camera or Video Evidence Required)',
       'Foundation wall inspection passed?',
     ],
     notesGuidance: 'Record which footing or foundation-wall hold point was presented, what formwork or rebar conditions were observed, and any inspection-status issue blocking progression.',
@@ -837,7 +837,7 @@ const STRUCTURAL_STAGE_5_CONTAINERS: StructuredStageItemDefinition[] = [
     ],
     fieldChecklist: [
       'Damp-proofing/waterproofing and drainage board installed?',
-      'Perimeter drain/drain tile and foundation drainage connection complete? (Camera Evidence Required)',
+      'Perimeter drain/drain tile and foundation drainage connection complete? (Camera or Video Evidence Required)',
       'Backfill approval granted and granular base installed?',
     ],
     notesGuidance: 'Record the observed drainage and waterproofing condition, whether the perimeter drainage system is complete, and whether backfill was appropriate for the reviewed state.',
@@ -887,9 +887,9 @@ const STRUCTURAL_STAGE_5_CONTAINERS: StructuredStageItemDefinition[] = [
     ],
     fieldChecklist: [
       'Under-slab poly and vapour barrier continuous?',
-      'Soil gas and radon rough-in complete? (Camera Evidence Required)',
+      'Soil gas and radon rough-in complete? (Camera or Video Evidence Required)',
       'Slab reinforcement in place and slab-on-grade poured?',
-      'Anchor bolts and hold-down embeds correctly positioned? (Camera Evidence Required)',
+      'Anchor bolts and hold-down embeds correctly positioned? (Camera or Video Evidence Required)',
     ],
     notesGuidance: 'Record slab-preparation conditions, continuity of under-slab barriers, soil-gas/radon readiness, reinforcement status, and embed positioning issues affecting the structural or environmental hold point.',
     whatToCheck: [
@@ -941,8 +941,8 @@ const STRUCTURAL_STAGE_6_CONTAINERS: StructuredStageItemDefinition[] = [
       'Primary structural members are altered, missing, or unsupported without engineer approval.',
     ],
     fieldChecklist: [
-      'Bearing walls, columns, and beams match structural design? (Camera Evidence Required)',
-      'Floor and roof framing (joists, trusses) correctly sized, spaced, and secured? (Camera Evidence Required)',
+      'Bearing walls, columns, and beams match structural design? (Camera or Video Evidence Required)',
+      'Floor and roof framing (joists, trusses) correctly sized, spaced, and secured? (Camera or Video Evidence Required)',
     ],
     notesGuidance: 'Record which framing zones were observed, what structural members were verified, and any deviation in member sizing, support, alignment, or bracing.',
     whatToCheck: [
@@ -989,8 +989,8 @@ const STRUCTURAL_STAGE_6_CONTAINERS: StructuredStageItemDefinition[] = [
       'Shear wall nailing patterns are incorrect or hold-down hardware is missing/loose.',
     ],
     fieldChecklist: [
-      'Shear walls and lateral system installed per schedule? (Camera Evidence Required)',
-      'Hold-downs, tie-downs, and seismic restraint elements securely fastened? (Camera Evidence Required)',
+      'Shear walls and lateral system installed per schedule? (Camera or Video Evidence Required)',
+      'Hold-downs, tie-downs, and seismic restraint elements securely fastened? (Camera or Video Evidence Required)',
     ],
     notesGuidance: 'Record which shear walls or restraint elements were reviewed, what fastening or hardware conditions were observed, and any missing lateral-system component.',
     whatToCheck: [
@@ -1038,7 +1038,7 @@ const STRUCTURAL_STAGE_6_CONTAINERS: StructuredStageItemDefinition[] = [
     ],
     fieldChecklist: [
       'Stairs framing and headroom clearances verified?',
-      'Deck and balcony structural framing, ledgers, and connections secure? (Camera Evidence Required)',
+      'Deck and balcony structural framing, ledgers, and connections secure? (Camera or Video Evidence Required)',
       'Part 4 engineering reports provided (if exceeding Part 9 limits)?',
     ],
     notesGuidance: 'Record observed stair or deck framing conditions, any connection or clearance issue, and whether specialty engineering documentation applies to the project scope.',
@@ -1091,7 +1091,7 @@ const STRUCTURAL_STAGE_7_CONTAINERS: StructuredStageItemDefinition[] = [
     ],
     fieldChecklist: [
       'Wall and roof sheathing correctly fastened?',
-      'Weather-resistive barrier (WRB) and air barrier installed, lapped correctly, and continuous? (Camera Evidence Required)',
+      'Weather-resistive barrier (WRB) and air barrier installed, lapped correctly, and continuous? (Camera or Video Evidence Required)',
       'Rainscreen assembly (strapping/cavity) properly established?',
     ],
     notesGuidance: 'Record observed sheathing, WRB, and rainscreen conditions, including continuity issues, missing laps, tears, or fastening deficiencies.',
@@ -1140,8 +1140,8 @@ const STRUCTURAL_STAGE_7_CONTAINERS: StructuredStageItemDefinition[] = [
     ],
     fieldChecklist: [
       'Windows and exterior doors installed and plumb?',
-      'Head, jamb, and sill flashing integrated with WRB? (Camera Evidence Required)',
-      'Cladding support and attachment systems secure? (Camera Evidence Required)',
+      'Head, jamb, and sill flashing integrated with WRB? (Camera or Video Evidence Required)',
+      'Cladding support and attachment systems secure? (Camera or Video Evidence Required)',
     ],
     notesGuidance: 'Record observed window, door, flashing, and cladding-support conditions, including any reverse laps, missing integration, or insecure support system.',
     whatToCheck: [
@@ -1190,7 +1190,7 @@ const STRUCTURAL_STAGE_7_CONTAINERS: StructuredStageItemDefinition[] = [
     fieldChecklist: [
       'Roof underlayment, membrane, and roofing material complete?',
       'Soffits, fascia, gutters, and downspouts installed?',
-      'Balcony/terrace membranes installed with positive slope to drain? (Camera Evidence Required)',
+      'Balcony/terrace membranes installed with positive slope to drain? (Camera or Video Evidence Required)',
     ],
     notesGuidance: 'Record roof, drainage, and balcony membrane conditions, including any incomplete drainage path, ponding risk, or membrane deficiency.',
     whatToCheck: [
@@ -1240,9 +1240,9 @@ const STRUCTURAL_STAGE_8_CONTAINERS: StructuredStageItemDefinition[] = [
       'Compromised fire separations, missing intumescent caulking, or open combustible concealed spaces.',
     ],
     fieldChecklist: [
-      'Fire-resistance-rated walls and floors constructed per assembly specs? (Camera Evidence Required)',
+      'Fire-resistance-rated walls and floors constructed per assembly specs? (Camera or Video Evidence Required)',
       'Demising walls and continuity of fire separations verified?',
-      'Penetration firestopping (caulking/collars) applied correctly? (Camera Evidence Required)',
+      'Penetration firestopping (caulking/collars) applied correctly? (Camera or Video Evidence Required)',
       'Draft stopping and stair fire blocking installed?',
     ],
     notesGuidance: 'Record observed fire-separation assemblies, any interrupted continuity, missing firestopping, or concealed-space deficiency before closure.',
@@ -1337,7 +1337,7 @@ const STRUCTURAL_STAGE_8_CONTAINERS: StructuredStageItemDefinition[] = [
       'Required guard support, handrail backing, or accessible-entry provisions are absent in a way that would compromise life safety or adaptability.',
     ],
     fieldChecklist: [
-      'Guards, handrails, and grab-bar backing installed in walls? (Camera Evidence Required)',
+      'Guards, handrails, and grab-bar backing installed in walls? (Camera or Video Evidence Required)',
       'Accessible and adaptable entrance details confirmed?',
     ],
     notesGuidance: 'Record observed guard or backing conditions, accessibility detail confirmation, and any missing support or entrance feature affecting compliance.',
@@ -1490,8 +1490,8 @@ const STRUCTURAL_STAGE_10_CONTAINERS: StructuredStageItemDefinition[] = [
       'Panel bonding/grounding is missing or service entrance is unprotected.',
     ],
     fieldChecklist: [
-      'Service entrance, meter base, and main distribution panel installed? (Camera Evidence Required)',
-      'Grounding and bonding complete? (Camera Evidence Required)',
+      'Service entrance, meter base, and main distribution panel installed? (Camera or Video Evidence Required)',
+      'Grounding and bonding complete? (Camera or Video Evidence Required)',
     ],
     notesGuidance: 'Record observed service equipment, panel condition, grounding and bonding details, and any unprotected or incomplete service installation issue.',
     whatToCheck: [
@@ -1640,7 +1640,7 @@ const STRUCTURAL_STAGE_11_CONTAINERS: StructuredStageItemDefinition[] = [
       'Gas piping and venting routed and supported?',
       'Heat-load calculations provided and verified?',
       'Furnace, boiler, fireplace, range, or water heater roughed-in?',
-      'Heat pump or other HVAC equipment installed? (Camera Evidence Required)',
+      'Heat pump or other HVAC equipment installed? (Camera or Video Evidence Required)',
     ],
     notesGuidance: 'Record observed gas or mechanical rough-in conditions, appliance readiness, heat-load documentation basis, and any support, venting, or clearance issue affecting approval.',
     whatToCheck: [
@@ -1690,7 +1690,7 @@ const STRUCTURAL_STAGE_11_CONTAINERS: StructuredStageItemDefinition[] = [
     fieldChecklist: [
       'Ventilation system (ERV/HRV) installed and ducted?',
       'Bathroom and kitchen exhaust routed to exterior?',
-      'Combustion air provisions complete and unobstructed? (Camera Evidence Required)',
+      'Combustion air provisions complete and unobstructed? (Camera or Video Evidence Required)',
     ],
     notesGuidance: 'Record ventilation and exhaust routing conditions, observed terminations, combustion-air readiness, and any obstruction or incomplete ducting affecting compliance.',
     whatToCheck: [
@@ -1788,7 +1788,7 @@ const STRUCTURAL_STAGE_12_CONTAINERS: StructuredStageItemDefinition[] = [
       'Installed insulation R-values or window specifications fall below the approved energy model.',
     ],
     fieldChecklist: [
-      'Wall, roof, and slab/foundation insulation packages installed per design? (Camera Evidence Required)',
+      'Wall, roof, and slab/foundation insulation packages installed per design? (Camera or Video Evidence Required)',
       'Window U-values and SHGC match energy model?',
     ],
     notesGuidance: 'Record observed insulation installation quality, window performance references, and any mismatch between installed thermal components and the approved energy basis.',
@@ -1935,7 +1935,7 @@ const STRUCTURAL_STAGE_13_CONTAINERS: StructuredStageItemDefinition[] = [
     ],
     fieldChecklist: [
       'Drywall and moisture-resistant board installed and taped?',
-      'Tile backer installed in wet areas? (Camera Evidence Required)',
+      'Tile backer installed in wet areas? (Camera or Video Evidence Required)',
       'Blocking for fixtures (grab bars, cabinets) confirmed?',
     ],
     notesGuidance: 'Record observed wall-system installation, wet-area substrate conditions, and any missing backing or board condition affecting interior readiness.',
@@ -2035,7 +2035,7 @@ const STRUCTURAL_STAGE_13_CONTAINERS: StructuredStageItemDefinition[] = [
     ],
     fieldChecklist: [
       'Paint and finishes complete?',
-      'Accessibility finish items installed per plan? (Camera Evidence Required)',
+      'Accessibility finish items installed per plan? (Camera or Video Evidence Required)',
     ],
     notesGuidance: 'Record final interior finish condition, accessibility item installation status, and any remaining deficiency affecting readiness for final closeout.',
     whatToCheck: [
@@ -2085,7 +2085,7 @@ const STRUCTURAL_STAGE_14_CONTAINERS: StructuredStageItemDefinition[] = [
       'Final grading slopes toward the building or downspouts discharge improperly.',
     ],
     fieldChecklist: [
-      'Final grading and site drainage established? (Camera Evidence Required)',
+      'Final grading and site drainage established? (Camera or Video Evidence Required)',
       'Downspout discharge directed away from foundation?',
       'Utility and servicing completion verified?',
     ],
@@ -2136,7 +2136,7 @@ const STRUCTURAL_STAGE_14_CONTAINERS: StructuredStageItemDefinition[] = [
     ],
     fieldChecklist: [
       'Walks, stairs, guards, and ramps installed?',
-      'Accessible exterior path completed? (Camera Evidence Required)',
+      'Accessible exterior path completed? (Camera or Video Evidence Required)',
       'Driveway completion verified?',
     ],
     notesGuidance: 'Record observed hardscape and access conditions, including guard installation, accessible-route readiness, and any unresolved driveway issue.',

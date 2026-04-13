@@ -574,8 +574,10 @@ export function validateOutcomeSelection(input: OutcomeGovernanceInput): Governa
 
 export function validateHoldResolution(input: HoldResolutionGovernanceInput): GovernanceResult {
   const blockers: GovernanceIssue[] = []
+  const actionableStatuses = ['hold_offered', 'hold_pending_builder_ack', 'open']
+  const activeStatuses = ['hold_active', 'builder_approved']
 
-  if (input.action === 'accept' && input.holdStatus !== 'open') {
+  if (input.action === 'accept' && !actionableStatuses.includes(input.holdStatus)) {
     blockers.push(
       blocker(
         'R-031',
@@ -587,7 +589,7 @@ export function validateHoldResolution(input: HoldResolutionGovernanceInput): Go
     )
   }
 
-  if (input.action === 'decline' && input.holdStatus !== 'open') {
+  if (input.action === 'decline' && !actionableStatuses.includes(input.holdStatus)) {
     blockers.push(
       blocker(
         'R-032',
@@ -600,7 +602,7 @@ export function validateHoldResolution(input: HoldResolutionGovernanceInput): Go
   }
 
   if (input.action === 'resolve') {
-    if (input.holdStatus !== 'builder_approved') {
+    if (!activeStatuses.includes(input.holdStatus)) {
       blockers.push(
         blocker(
           'R-033',

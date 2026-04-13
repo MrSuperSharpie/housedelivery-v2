@@ -36,7 +36,7 @@ export default function RootLayout({
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         <meta name="theme-color" content="#FF5F15" />
-        <link rel="icon" href="/vero-logo-dark.png" type="image/png" />
+        <link rel="icon" href="/vero-permit-dark.png" type="image/png" />
       </head>
       <body className="min-h-screen bg-surface font-sans text-ink transition-colors duration-200">
         <ThemeProvider>

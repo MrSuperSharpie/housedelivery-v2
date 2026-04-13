@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, Clock, Zap, AlertTriangle, CheckCircle2, Lock, MapPin, FolderOpen } from 'lucide-react'
 import { Navbar } from '@/components/shared/Navbar'
 import { Button } from '@/components/ui/Button'
-import { DISPATCH_PRICING } from '@/lib/mockData'
 import { formatCurrency } from '@/lib/utils'
 import { useAuth } from '@/lib/auth'
 import { useStore } from '@/lib/store'
@@ -14,8 +13,9 @@ import { createClient } from '@/lib/supabase/client'
 const supabase = createClient()
 import { getBuilderOnboardingStatusAsync } from '@/lib/persistence/builderOnboarding'
 import type { BuilderOnboardingStatus } from '@/lib/persistence/builderOnboarding'
-import type { Project, DispatchTier } from '@/lib/types'
+import type { Project, DispatchTier, PricingMode, SpecialistRoleId } from '@/lib/types'
 import { calculatePricingBreakdown } from '@/utils/pricing'
+import { DISPATCH_PRICING, SPECIALIST_ROLE_OPTIONS } from '@/lib/pricing/config'
 
 type PaymentStatus = 'idle' | 'processing' | 'escrowed'
 
@@ -54,7 +54,7 @@ export default function DispatchPage() {
     if (!user) { router.replace('/sign-in?role=builder'); return }
     if (user.role !== 'builder') { router.replace('/'); return }
     getBuilderOnboardingStatusAsync(user.id, user.supabaseId).then(setOnboardingStatus)
-  }, [user?.id, user?.supabaseId])
+  }, [router, user])
   useEffect(() => {
     if (!user || user.role !== 'builder' || onboardingStatus === null) return
     if (onboardingStatus !== 'approved') router.replace('/builder/onboarding')
@@ -66,16 +66,17 @@ export default function DispatchPage() {
 
   useEffect(() => {
     if (!user?.supabaseId) return
-    setProjectsLoading(true)
-    supabase
-      .from('projects')
-      .select('*')
-      .eq('user_id', user.supabaseId)
-      .order('created_at', { ascending: false })
-      .then(({ data, error }) => {
-        setProjectsLoading(false)
-        if (!error && data) setSupabaseProjects(data.map(r => rowToProject(r as Record<string, unknown>)))
-      })
+    void (async () => {
+      setProjectsLoading(true)
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('user_id', user.supabaseId)
+        .order('created_at', { ascending: false })
+
+      setProjectsLoading(false)
+      if (!error && data) setSupabaseProjects(data.map(r => rowToProject(r as Record<string, unknown>)))
+    })()
   }, [user?.supabaseId])
 
   // Supabase-first; fall back to store for localStorage-based sessions
@@ -86,22 +87,27 @@ export default function DispatchPage() {
   // ── Dispatch form state ────────────────────────────────────────────────────
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
   const [selectedTier, setSelectedTier] = useState<DispatchTier>('priority')
+  const [selectedSpecialistRole, setSelectedSpecialistRole] = useState<SpecialistRoleId | null>(null)
+  const [billableHours, setBillableHours] = useState(1.5)
+  const [holdHours, setHoldHours] = useState(0)
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('idle')
   const [paymentLoading, setPaymentLoading] = useState(false)
   const [loading, setLoading] = useState(false)
   const [dispatched, setDispatched] = useState(false)
   const [txnId] = useState(() => `TXN-${Date.now()}`)
 
-  // Auto-select first project once list loads
-  useEffect(() => {
-    if (selectedProjectId === null && projects.length > 0) {
-      setSelectedProjectId(projects[0].id)
-    }
-  }, [projects, selectedProjectId])
-
-  const selectedProject = projects.find(p => p.id === selectedProjectId) ?? null
+  const effectiveSelectedProjectId = selectedProjectId ?? projects[0]?.id ?? null
+  const selectedProject = projects.find(p => p.id === effectiveSelectedProjectId) ?? null
   const pricing = DISPATCH_PRICING.find(p => p.tier === selectedTier)!
-  const pricingBreakdown = calculatePricingBreakdown({ dispatchTier: selectedTier })
+  const pricingMode: PricingMode = selectedSpecialistRole ? 'specialist_hourly' : 'dispatch_fixed'
+  const pricingBreakdown = calculatePricingBreakdown({
+    dispatchTier: selectedTier,
+    pricingMode,
+    specialistRole: selectedSpecialistRole,
+    billableHours,
+    holdHours,
+    inspectionType: 'dispatch',
+  })
   const tierIcons = { standard: Clock, priority: Zap, emergency: AlertTriangle }
 
   const handleHoldInEscrow = async () => {
@@ -183,6 +189,16 @@ export default function DispatchPage() {
                 <span className="text-gray-500">Tier</span>
                 <span className="font-semibold text-gray-900">{pricing.label}</span>
               </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Pricing mode</span>
+                <span className="font-semibold text-gray-900">{pricingMode === 'specialist_hourly' ? 'Specialist hourly' : 'Fixed dispatch'}</span>
+              </div>
+              {pricingMode === 'specialist_hourly' && (
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Role</span>
+                  <span className="font-semibold text-gray-900">{pricingBreakdown.specialistRoleLabel}</span>
+                </div>
+              )}
               <div className="flex justify-between border-t border-gray-100 pt-2 mt-2">
                 <span className="text-gray-500">Held in escrow</span>
                 <span className="font-bold text-blueprint-blue">{formatCurrency(pricingBreakdown.builderEscrowTotal)}</span>
@@ -219,15 +235,15 @@ export default function DispatchPage() {
                 key={p.id}
                 onClick={() => setSelectedProjectId(p.id)}
                 className={`w-full text-left flex items-start gap-3 p-3 rounded-xl border-2 transition-all ${
-                  selectedProjectId === p.id
+                  effectiveSelectedProjectId === p.id
                     ? 'border-safety-orange bg-orange-50'
                     : 'border-gray-100 hover:border-gray-200'
                 }`}
               >
                 <div className={`w-5 h-5 rounded-full border-2 mt-0.5 flex items-center justify-center shrink-0 ${
-                  selectedProjectId === p.id ? 'border-safety-orange' : 'border-gray-300'
+                  effectiveSelectedProjectId === p.id ? 'border-safety-orange' : 'border-gray-300'
                 }`}>
-                  {selectedProjectId === p.id && <div className="w-2.5 h-2.5 bg-safety-orange rounded-full" />}
+                  {effectiveSelectedProjectId === p.id && <div className="w-2.5 h-2.5 bg-safety-orange rounded-full" />}
                 </div>
                 <div>
                   <div className="font-semibold text-sm text-gray-900">{p.name}</div>
@@ -275,6 +291,123 @@ export default function DispatchPage() {
           })}
         </div>
 
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-5">
+          <div className="text-xs font-black uppercase tracking-widest text-gray-500">Specialist &amp; Professional Review Rates</div>
+          <p className="mt-2 text-sm text-gray-600">
+            Applied only when the permit family, inspection stage, or credential requirement calls for a registered professional or specialist.
+          </p>
+
+          <div className="mt-4 space-y-2.5">
+            {SPECIALIST_ROLE_OPTIONS.map(role => {
+              const isSelected = selectedSpecialistRole === role.id
+              return (
+                <button
+                  key={role.id}
+                  type="button"
+                  onClick={() => setSelectedSpecialistRole(role.id)}
+                  className={`w-full rounded-xl border px-3.5 py-3 text-left transition-all ${
+                    isSelected
+                      ? 'border-safety-orange bg-orange-50'
+                      : 'border-gray-200 hover:border-gray-300 bg-white'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="font-bold text-sm text-gray-900">{role.label}</div>
+                      <div className="mt-1 text-xs text-gray-500">{role.description}</div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="text-sm font-black text-gray-900">{role.rateRangeLabel}</div>
+                      <div className="text-[11px] text-gray-500">Default {formatCurrency(role.defaultRate)}/hr · min {role.minimumHours}h</div>
+                    </div>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+
+          {selectedSpecialistRole && (
+            <button
+              type="button"
+              onClick={() => setSelectedSpecialistRole(null)}
+              className="mt-3 text-xs font-semibold text-gray-500 transition-colors hover:text-gray-700"
+            >
+              Use fixed dispatch pricing for this booking
+            </button>
+          )}
+
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {pricingMode === 'specialist_hourly' && (
+              <label className="block">
+                <span className="mb-1.5 block text-xs font-semibold text-gray-700">Billable Hours</span>
+                <input
+                  type="number"
+                  min={1.5}
+                  step={0.5}
+                  value={billableHours}
+                  onChange={e => setBillableHours(Math.max(1.5, Number(e.target.value || 1.5)))}
+                  className="w-full rounded-xl border-2 border-gray-200 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:border-safety-orange focus:outline-none"
+                />
+              </label>
+            )}
+            <label className="block">
+              <span className="mb-1.5 block text-xs font-semibold text-gray-700">On-site Hold (optional) – billed at 1.5× hourly rate</span>
+              <input
+                type="number"
+                min={0}
+                step={0.5}
+                value={holdHours}
+                onChange={e => setHoldHours(Math.max(0, Number(e.target.value || 0)))}
+                className="w-full rounded-xl border-2 border-gray-200 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:border-safety-orange focus:outline-none"
+              />
+            </label>
+          </div>
+        </div>
+
+        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 mb-5">
+          <div className="text-xs font-black uppercase tracking-widest text-blue-700">Live Booking Summary</div>
+          <div className="mt-3 space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-blue-700/80">Pricing mode</span>
+              <span className="font-semibold text-gray-900">{pricingMode === 'specialist_hourly' ? 'Specialist hourly' : 'Fixed dispatch'}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-blue-700/80">{pricingMode === 'specialist_hourly' ? 'Role selected' : 'Dispatch speed'}</span>
+              <span className="font-semibold text-gray-900">{pricingMode === 'specialist_hourly' ? pricingBreakdown.specialistRoleLabel : pricing.label}</span>
+            </div>
+            {pricingMode === 'specialist_hourly' && (
+              <div className="flex justify-between">
+                <span className="text-blue-700/80">Billable hours</span>
+                <span className="font-semibold text-gray-900">{pricingBreakdown.billableHours.toFixed(1)}h</span>
+              </div>
+            )}
+            <div className="flex justify-between">
+              <span className="text-blue-700/80">{pricingMode === 'specialist_hourly' ? 'Hourly subtotal' : 'Base booking'}</span>
+              <span className="font-semibold text-gray-900">{formatCurrency(pricingBreakdown.baseFee)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-blue-700/80">Urgency multiplier</span>
+              <span className="font-semibold text-gray-900">×{pricingBreakdown.multiplier.toFixed(1)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-blue-700/80">Hold hours</span>
+              <span className="font-semibold text-gray-900">{pricingBreakdown.holdHours.toFixed(1)}h</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-blue-700/80">Hold cost</span>
+              <span className="font-semibold text-gray-900">{formatCurrency(pricingBreakdown.holdCost)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-blue-700/80">Platform commission</span>
+              <span className="font-semibold text-gray-900">{formatCurrency(pricingBreakdown.platformCommission)}</span>
+            </div>
+            <div className="flex justify-between border-t border-blue-100 pt-2">
+              <span className="font-bold text-gray-900">Total escrow required</span>
+              <span className="font-black text-blueprint-blue">{formatCurrency(pricingBreakdown.builderEscrowTotal)}</span>
+            </div>
+          </div>
+        </div>
+
         {/* Escrow step */}
         {paymentStatus === 'idle' && (
           <div className="mb-5">
@@ -286,13 +419,23 @@ export default function DispatchPage() {
             </div>
             <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-4 space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-500">Base inspection fee</span>
+                <span className="text-gray-500">{pricingMode === 'specialist_hourly' ? 'Hourly subtotal' : 'Base booking'}</span>
                 <span className="font-semibold text-gray-900">{formatCurrency(pricingBreakdown.baseFee)}</span>
               </div>
               {pricingBreakdown.priorityAdjustment > 0 && (
                 <div className="flex justify-between">
-                  <span className="text-gray-500">{pricing.label} multiplier ({pricingBreakdown.multiplier}x)</span>
+                  <span className="text-gray-500">Urgency multiplier ({pricingBreakdown.multiplier}x)</span>
                   <span className="font-semibold text-gray-900">{formatCurrency(pricingBreakdown.priorityAdjustment)}</span>
+                </div>
+              )}
+              <div className="flex justify-between">
+                <span className="text-gray-500">Hold hours</span>
+                <span className="font-semibold text-gray-900">{pricingBreakdown.holdHours.toFixed(1)}h</span>
+              </div>
+              {pricingBreakdown.holdCost > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Hold premium (1.5×)</span>
+                  <span className="font-semibold text-gray-900">{formatCurrency(pricingBreakdown.holdCost)}</span>
                 </div>
               )}
               <div className="flex justify-between">

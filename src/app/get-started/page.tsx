@@ -3,6 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { ArrowRight, Building2, HardHat, Eye, ChevronLeft, CheckCircle2 } from 'lucide-react'
+import { BrandWordmark } from '@/components/shared/Navbar'
 
 const ROLES = [
   {
@@ -60,12 +61,7 @@ export default function GetStartedPage() {
     <div className="min-h-screen bg-surface">
       {/* Header */}
       <div className="border-b border-white/5 px-4 sm:px-6 py-4 flex items-center gap-4">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-flame flex items-center justify-center">
-            <HardHat className="w-3.5 h-3.5 text-white" />
-          </div>
-          <span className="text-sm font-black text-ink tracking-tight">Site<span className="text-flame">Line</span></span>
-        </Link>
+        <BrandWordmark className="max-w-[130px]" height={32} priority theme="dark" />
         <Link href="/" className="ml-auto flex items-center gap-1 text-xs text-muted hover:text-ink transition-colors">
           <ChevronLeft className="w-3.5 h-3.5" /> Back
         </Link>

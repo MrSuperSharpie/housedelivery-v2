@@ -1,67 +1,186 @@
-import { DISPATCH_PRICING } from '@/lib/mockData'
-import { RETENTION_RATES } from '@/lib/types'
-import type { DispatchTier } from '@/lib/types'
+import type {
+  DispatchTier,
+  PricingInspectionType,
+  PricingMode,
+  SpecialistCredentialClass,
+  SpecialistRoleId,
+} from '@/lib/types'
+import {
+  DISPATCH_MULTIPLIERS,
+  HOLD_PREMIUM_MULTIPLIER,
+  PLATFORM_COMMISSION_RATE,
+  getDispatchPricing,
+  resolveHoldBaseRate,
+  resolvePricingMode,
+} from '@/lib/pricing/config'
 
-export const PLATFORM_COMMISSION_RATE = 0.10
+export { PLATFORM_COMMISSION_RATE }
 
 function roundCurrency(value: number) {
-  return Math.round(value)
+  return Math.round(value * 100) / 100
 }
 
-function getTierConfig(dispatchTier: DispatchTier) {
-  return DISPATCH_PRICING.find(pricing => pricing.tier === dispatchTier) ?? DISPATCH_PRICING[0]
+function clampPositive(value: number, fallback: number) {
+  return Number.isFinite(value) && value > 0 ? value : fallback
 }
 
 export interface PricingBreakdownInput {
   dispatchTier: DispatchTier
-  baseFee?: number
+  pricingMode?: PricingMode
+  specialistRole?: SpecialistRoleId | null
+  hourlyRate?: number
+  billableHours?: number
   holdHours?: number
   holdHourlyRate?: number
   holdPremium?: number
+  baseFee?: number
+  requiresProfessionalSeal?: boolean
+  requiresCP?: boolean
+  inspectionType?: PricingInspectionType | string
+  credentialClass?: SpecialistCredentialClass | string
+  discipline?: string
 }
 
 export interface PricingBreakdown {
-  baseFee: number
+  pricingMode: PricingMode
+  dispatchTier: DispatchTier
+  urgencyLabel: string
   multiplier: number
+  specialistRole?: SpecialistRoleId
+  specialistRoleLabel?: string
+  minimumHours?: number
+  baseFee: number
+  hourlyRate: number
+  effectiveHourlyRate: number
+  billableHours: number
   dispatchFee: number
   priorityAdjustment: number
+  urgencyAdjustment: number
   holdHours: number
   holdHourlyRate: number
+  holdPremiumMultiplier: number
   holdPremium: number
+  holdCost: number
   totalTransactionVolume: number
   platformCommission: number
   builderEscrowTotal: number
   inspectorPayout: number
 }
 
-export function calculatePricingBreakdown({
-  dispatchTier,
-  baseFee,
-  holdHours = 0,
-  holdHourlyRate,
-  holdPremium,
-}: PricingBreakdownInput): PricingBreakdown {
-  const tierConfig = getTierConfig(dispatchTier)
-  const resolvedBaseFee = roundCurrency(baseFee ?? tierConfig.baseRate)
-  const multiplier = tierConfig.multiplier
+const roundMoney = roundCurrency
+
+export function calculateHoldCost(baseRate: number, holdHours: number): number {
+  const normalizedBaseRate = clampPositive(Number(baseRate), 0)
+  const normalizedHoldHours = Math.max(0, Number(holdHours) || 0)
+  return roundMoney(normalizedBaseRate * normalizedHoldHours * HOLD_PREMIUM_MULTIPLIER)
+}
+
+export function calculateEscrowEstimate(input: PricingBreakdownInput): PricingBreakdown {
+  const dispatchConfig = getDispatchPricing(input.dispatchTier)
+  const pricingMode = resolvePricingMode({
+    pricingMode: input.pricingMode,
+    requiresProfessionalSeal: input.requiresProfessionalSeal,
+    requiresCP: input.requiresCP,
+    inspectionType: input.inspectionType,
+    credentialClass: input.credentialClass,
+    discipline: input.discipline,
+    specialistRole: input.specialistRole,
+  })
+
+  const multiplier = DISPATCH_MULTIPLIERS[input.dispatchTier] ?? dispatchConfig.multiplier
+  const urgencyLabel = dispatchConfig.label
+  const holdHours = clampPositive(Number(input.holdHours ?? 0), 0)
+  const holdBaseRate = resolveHoldBaseRate({
+    pricingMode,
+    specialistRole: input.specialistRole,
+    discipline: input.discipline,
+    credentialClass: input.credentialClass,
+    inspectionType: input.inspectionType,
+    requiresProfessionalSeal: input.requiresProfessionalSeal,
+    requiresCP: input.requiresCP,
+  }).baseRate
+
+  if (pricingMode === 'specialist_hourly') {
+    const holdDetails = resolveHoldBaseRate({
+      pricingMode,
+      specialistRole: input.specialistRole,
+      discipline: input.discipline,
+      credentialClass: input.credentialClass,
+      inspectionType: input.inspectionType,
+      requiresProfessionalSeal: input.requiresProfessionalSeal,
+      requiresCP: input.requiresCP,
+    })
+    const specialistRole = holdDetails.specialistRole!
+    const baseHourlyRate = roundMoney(clampPositive(Number(input.hourlyRate ?? holdBaseRate), holdBaseRate))
+    const minimumHours = 1.5
+    const billableHours = Math.max(minimumHours, Number(input.billableHours ?? minimumHours))
+    const preUrgencySubtotal = roundCurrency(baseHourlyRate * billableHours)
+    const urgencyAdjustedSubtotal = roundCurrency(preUrgencySubtotal * multiplier)
+    const effectiveHourlyRate = roundCurrency(baseHourlyRate * multiplier)
+    const urgencyAdjustment = urgencyAdjustedSubtotal - preUrgencySubtotal
+    const holdHourlyRate = roundMoney(holdBaseRate)
+    const holdCost = calculateHoldCost(holdBaseRate, holdHours)
+    const totalTransactionVolume = urgencyAdjustedSubtotal + holdCost
+    const platformCommission = roundCurrency(totalTransactionVolume * PLATFORM_COMMISSION_RATE)
+    const builderEscrowTotal = totalTransactionVolume + platformCommission
+
+    return {
+      pricingMode,
+      dispatchTier: input.dispatchTier,
+      urgencyLabel,
+      multiplier,
+      specialistRole,
+      specialistRoleLabel: holdDetails.label,
+      minimumHours,
+      baseFee: preUrgencySubtotal,
+      hourlyRate: baseHourlyRate,
+      effectiveHourlyRate,
+      billableHours,
+      dispatchFee: urgencyAdjustedSubtotal,
+      priorityAdjustment: urgencyAdjustment,
+      urgencyAdjustment,
+      holdHours,
+      holdHourlyRate,
+      holdPremiumMultiplier: HOLD_PREMIUM_MULTIPLIER,
+      holdPremium: holdCost,
+      holdCost,
+      totalTransactionVolume,
+      platformCommission,
+      builderEscrowTotal,
+      inspectorPayout: totalTransactionVolume,
+    }
+  }
+
+  const resolvedBaseFee = roundCurrency(input.baseFee ?? dispatchConfig.baseRate)
   const dispatchFee = roundCurrency(resolvedBaseFee * multiplier)
-  const priorityAdjustment = dispatchFee - resolvedBaseFee
-  const resolvedHoldHourlyRate = roundCurrency(holdHourlyRate ?? RETENTION_RATES[dispatchTier])
-  const resolvedHoldPremium = roundCurrency(
-    holdPremium ?? (holdHours > 0 ? resolvedHoldHourlyRate * holdHours : 0)
-  )
-  const totalTransactionVolume = dispatchFee + resolvedHoldPremium
-  const platformCommission = roundCurrency(totalTransactionVolume * PLATFORM_COMMISSION_RATE)
-  const builderEscrowTotal = totalTransactionVolume + platformCommission
+  const urgencyAdjustment = dispatchFee - resolvedBaseFee
+  const effectiveHourlyRate = roundMoney(holdBaseRate)
+  const holdHourlyRate = roundMoney(holdBaseRate)
+  const holdCost = calculateHoldCost(holdBaseRate, holdHours)
+  const configuredDispatchTotal = roundCurrency(dispatchConfig.price)
+  const basePlatformCommission = roundCurrency(configuredDispatchTotal - dispatchFee)
+  const holdPlatformCommission = roundCurrency(holdCost * PLATFORM_COMMISSION_RATE)
+  const platformCommission = basePlatformCommission + holdPlatformCommission
+  const totalTransactionVolume = dispatchFee + holdCost
+  const builderEscrowTotal = configuredDispatchTotal + holdCost + holdPlatformCommission
 
   return {
-    baseFee: resolvedBaseFee,
+    pricingMode,
+    dispatchTier: input.dispatchTier,
+    urgencyLabel,
     multiplier,
+    baseFee: resolvedBaseFee,
+    hourlyRate: effectiveHourlyRate,
+    effectiveHourlyRate,
+    billableHours: 0,
     dispatchFee,
-    priorityAdjustment,
+    priorityAdjustment: urgencyAdjustment,
+    urgencyAdjustment,
     holdHours,
-    holdHourlyRate: resolvedHoldHourlyRate,
-    holdPremium: resolvedHoldPremium,
+    holdHourlyRate,
+    holdPremiumMultiplier: HOLD_PREMIUM_MULTIPLIER,
+    holdPremium: holdCost,
+    holdCost,
     totalTransactionVolume,
     platformCommission,
     builderEscrowTotal,
@@ -69,9 +188,9 @@ export function calculatePricingBreakdown({
   }
 }
 
-// ─── Vault Retention Tier Pricing ────────────────────────────────────────────
-// Per New Standard §11: Three retention tiers. Standard is included in the
-// 10% commission. Professional and Legacy are add-ons billed to the builder.
+export function calculatePricingBreakdown(input: PricingBreakdownInput): PricingBreakdown {
+  return calculateEscrowEstimate(input)
+}
 
 export type VaultRetentionTier = 'standard' | 'professional' | 'legacy'
 
@@ -79,8 +198,8 @@ export interface VaultRetentionOption {
   tier: VaultRetentionTier
   label: string
   duration: string
-  price: number        // CAD one-time fee (0 = included)
-  monthlyPrice?: number // for Legacy subscription
+  price: number
+  monthlyPrice?: number
   description: string
   badge?: string
 }

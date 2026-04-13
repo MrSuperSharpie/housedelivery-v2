@@ -15,6 +15,10 @@ import type {
   DispatchTier,
   JobTimeSlot,
   EscrowStatus,
+  PricingInspectionType,
+  PricingMode,
+  SpecialistCredentialClass,
+  SpecialistRoleId,
 } from '@/lib/types'
 import type { GovernanceIssue, GovernanceValidationStatus } from '@/lib/governance'
 import { validateJobPostingGovernance } from '@/lib/governance'
@@ -69,6 +73,20 @@ export interface JobOpportunityRow {
   stageName: string
   dispatchTier: DispatchTier
   offeredRate: number
+  pricingMode?: PricingMode
+  specialistRole?: SpecialistRoleId
+  baseHourlyRate?: number
+  effectiveHourlyRate?: number
+  billableHours?: number
+  holdHours?: number
+  holdCost?: number
+  urgencyMultiplier?: number
+  platformCommissionAmount?: number
+  escrowEstimateTotal?: number
+  requiresProfessionalSeal?: boolean
+  requiresCP?: boolean
+  inspectionType?: PricingInspectionType
+  credentialClass?: SpecialistCredentialClass
   estimatedDurationMinutes: number
   requiredDiscipline: InspectorDiscipline
   region: Region
@@ -227,6 +245,20 @@ function rowToJob(row: Record<string, unknown>): JobOpportunityRow {
     stageName:                row.stage_name as string,
     dispatchTier:             (row.dispatch_tier as DispatchTier) ?? 'standard',
     offeredRate:              row.offered_rate as number,
+    pricingMode:              (row.pricing_mode as PricingMode) ?? undefined,
+    specialistRole:           (row.specialist_role as SpecialistRoleId) ?? undefined,
+    baseHourlyRate:           (row.base_hourly_rate as number) ?? undefined,
+    effectiveHourlyRate:      (row.effective_hourly_rate as number) ?? undefined,
+    billableHours:            (row.billable_hours as number) ?? undefined,
+    holdHours:                (row.hold_hours as number) ?? undefined,
+    holdCost:                 (row.hold_cost as number) ?? undefined,
+    urgencyMultiplier:        (row.urgency_multiplier as number) ?? undefined,
+    platformCommissionAmount: (row.platform_commission_amount as number) ?? undefined,
+    escrowEstimateTotal:      (row.escrow_estimate_total as number) ?? undefined,
+    requiresProfessionalSeal: row.requires_professional_seal === true,
+    requiresCP:               row.requires_cp === true,
+    inspectionType:           (row.inspection_type as PricingInspectionType) ?? undefined,
+    credentialClass:          (row.credential_class as SpecialistCredentialClass) ?? undefined,
     estimatedDurationMinutes: (row.estimated_duration_minutes as number) ?? 120,
     requiredDiscipline:       row.required_discipline as InspectorDiscipline,
     region:                   row.region as Region,
@@ -469,6 +501,20 @@ export async function insertJobOpportunity(
     stage_name:                 job.stageName,
     dispatch_tier:              job.dispatchTier,
     offered_rate:               job.offeredRate,
+    pricing_mode:               job.pricingMode ?? null,
+    specialist_role:            job.specialistRole ?? null,
+    base_hourly_rate:           job.baseHourlyRate ?? null,
+    effective_hourly_rate:      job.effectiveHourlyRate ?? null,
+    billable_hours:             job.billableHours ?? null,
+    hold_hours:                 job.holdHours ?? 0,
+    hold_cost:                  job.holdCost ?? 0,
+    urgency_multiplier:         job.urgencyMultiplier ?? null,
+    platform_commission_amount: job.platformCommissionAmount ?? null,
+    escrow_estimate_total:      job.escrowEstimateTotal ?? null,
+    requires_professional_seal: job.requiresProfessionalSeal === true,
+    requires_cp:                job.requiresCP === true,
+    inspection_type:            job.inspectionType ?? null,
+    credential_class:           job.credentialClass ?? null,
     estimated_duration_minutes: job.estimatedDurationMinutes,
     required_discipline:        job.requiredDiscipline,
     region:                     job.region,

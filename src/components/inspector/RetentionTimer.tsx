@@ -1,27 +1,31 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Timer, Plus, CheckCircle2, AlertTriangle, DollarSign, Zap } from 'lucide-react'
+import { HOLD_PREMIUM_MULTIPLIER, getFixedDispatchHoldBaseRate } from '@/lib/pricing/config'
 
 interface RetentionTimerProps {
   onComplete: () => void
   onCancel: () => void
   hourlyRate?: number
+  onElapsedChange?: (elapsedSeconds: number) => void
 }
 
 type RetentionState = 'idle' | 'active' | 'extended' | 'complete'
 
-export function RetentionTimer({ onComplete, onCancel, hourlyRate = 85 }: RetentionTimerProps) {
+export function RetentionTimer({ onComplete, onCancel, hourlyRate = getFixedDispatchHoldBaseRate(), onElapsedChange }: RetentionTimerProps) {
   const [state, setState]             = useState<RetentionState>('idle')
   const [seconds, setSeconds]         = useState(0)
   const [hoursBooked, setHoursBooked] = useState(1)
   const [extending, setExtending]     = useState(false)
   const [fixedItems, setFixedItems]   = useState<string[]>([])
 
+  const baseRate = hourlyRate || getFixedDispatchHoldBaseRate()
+  const billedRate = baseRate * HOLD_PREMIUM_MULTIPLIER
   const maxSeconds = hoursBooked * 3600
   const pct = Math.min((seconds / maxSeconds) * 100, 100)
   const remaining = Math.max(maxSeconds - seconds, 0)
-  const earned = ((seconds / 3600) * hourlyRate)
+  const earned = ((seconds / 3600) * billedRate)
 
   const fmtTime = (s: number) => {
     const h = Math.floor(s / 3600)
@@ -37,6 +41,10 @@ export function RetentionTimer({ onComplete, onCancel, hourlyRate = 85 }: Retent
     const id = setInterval(() => setSeconds(s => s + 1), 1000)
     return () => clearInterval(id)
   }, [state])
+
+  useEffect(() => {
+    onElapsedChange?.(seconds)
+  }, [onElapsedChange, seconds])
 
   // Auto-expire warning
   const nearEnd = remaining > 0 && remaining <= 300 // 5 min warning
@@ -84,7 +92,7 @@ export function RetentionTimer({ onComplete, onCancel, hourlyRate = 85 }: Retent
         <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 mb-4 flex items-center gap-3">
           <DollarSign className="w-4 h-4 text-amber-400 shrink-0" />
           <div className="text-xs text-amber-300">
-            <span className="font-bold">${hourlyRate}/hour</span> billed to builder via escrow.
+            <span className="font-bold">${baseRate}/hour base rate</span> billed at 1.5× for an effective <span className="font-bold">${billedRate}/hour</span>.
             Inspector stays on-site. No rebooking. No 24-hour delay.
           </div>
         </div>
@@ -100,7 +108,7 @@ export function RetentionTimer({ onComplete, onCancel, hourlyRate = 85 }: Retent
                     ? 'bg-amber-500 text-white'
                     : 'border border-amber-500/30 text-amber-400 hover:bg-amber-500/10'
                 }`}>
-                {h}h · ${h * hourlyRate}
+                {h}h · ${h * billedRate}
               </button>
             ))}
           </div>
@@ -109,11 +117,11 @@ export function RetentionTimer({ onComplete, onCancel, hourlyRate = 85 }: Retent
         <button onClick={() => setState('active')}
           className="w-full bg-amber-500 hover:bg-amber-400 text-white font-bold py-3.5 rounded-xl transition-all text-sm flex items-center justify-center gap-2">
           <Zap className="w-4 h-4" />
-          Authorize {hoursBooked}h Retention · ${hoursBooked * hourlyRate}
+          Authorize {hoursBooked}h Retention · ${hoursBooked * billedRate}
         </button>
         <button onClick={onCancel}
           className="w-full mt-2 text-xs text-amber-600 hover:text-amber-400 py-2 transition-colors">
-          No thanks — I'll rebook instead
+          No thanks, I&apos;ll rebook instead
         </button>
       </div>
     )

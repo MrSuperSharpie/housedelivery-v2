@@ -4,6 +4,14 @@ import type { RuleResult } from '@/lib/rules/engine'
 
 export type DispatchTier = 'standard' | 'priority' | 'emergency'
 export type PermitFamily = 'building' | 'electrical' | 'plumbing' | 'mechanical' | 'demolition' | 'other'
+export type PricingMode = 'dispatch_fixed' | 'specialist_hourly'
+export type SpecialistRoleId =
+  | 'technologist_support'
+  | 'electrical_engineer_specialist_review'
+  | 'structural_engineer_field_review'
+  | 'senior_specialist_urgent_sealed_review'
+export type SpecialistCredentialClass = 'PENG' | 'AIBC' | 'CP' | 'SPECIALIST'
+export type PricingInspectionType = 'dispatch' | 'field_review'
 /** Job-lifecycle and stage status. Job statuses follow the blueprint state machine; stage statuses are a subset. */
 export type InspectionStatus =
   // ── Job-lifecycle states (InspectionJob.status) ──────────────────────────
@@ -245,6 +253,19 @@ export interface InspectionJob {
   scheduledFor?: string
   claimedBy?: string
   escrowAmount: number
+  pricingMode?: PricingMode
+  specialistRole?: SpecialistRoleId
+  baseHourlyRate?: number
+  effectiveHourlyRate?: number
+  billableHours?: number
+  holdHours?: number
+  holdCost?: number
+  urgencyMultiplier?: number
+  platformCommissionAmount?: number
+  requiresProfessionalSeal?: boolean
+  requiresCP?: boolean
+  inspectionType?: PricingInspectionType
+  credentialClass?: SpecialistCredentialClass
   // Scheduling
   availableSlots?: JobTimeSlot[]
   // Builder context
@@ -370,11 +391,26 @@ export interface EscrowRecord {
 
 /** Lifecycle status of a single hold point raised during an active inspection. */
 export type HoldStatus =
-  | 'open'               // hold placed; awaiting builder response
-  | 'builder_approved'   // builder acknowledged; on-site correction authorised
-  | 'builder_declined'   // builder declined; job transitioned to 'stopped' [C3]
-  | 'expired'            // expires_at elapsed with no builder response; escalation triggered
-  | 'admin_resolved'     // admin manually closed the hold
+  | 'hold_offered'              // inspector created the hold proposal
+  | 'hold_pending_builder_ack'  // builder has been notified; awaiting commercial decision
+  | 'hold_active'               // builder accepted; on-site retainer is active
+  | 'hold_resolved_pass'        // inspector resolved the correction as pass
+  | 'hold_resolved_fail'        // inspector resolved the correction as fail
+  | 'hold_declined'             // builder declined commercial terms
+  | 'hold_expired'              // expiry elapsed with no builder response
+  | 'admin_resolved'            // admin manually closed the hold
+
+export type HoldPremiumRateType = 'hourly' | 'flat'
+export type HoldCategory =
+  | 'minor_deficiency'
+  | 'coordination'
+  | 'access'
+  | 'safety'
+  | 'documentation'
+  | 'other'
+export type HoldResolution = 'pass' | 'fail'
+export type HoldEvidenceType = 'photo' | 'video' | 'note' | 'attachment'
+export type HoldEvidenceRole = 'deficiency' | 'correction'
 
 /**
  * A hold point raised by an inspector against an active inspection job.
@@ -394,6 +430,8 @@ export interface HoldRecord {
   jobId: string
   inspectorId: string
   builderId: string
+  createdByInspectorId: string
+  relatedInspectionId: string
   placedAt: string
   /** [C1] Computed server-side only. Never supplied by the client. */
   expiresAt: string
@@ -401,9 +439,31 @@ export interface HoldRecord {
   checklistItemIds: string[]
   status: HoldStatus
   reason: string
+  deficiencyReason?: string
+  holdCategory: HoldCategory
+  holdEligibleForOnSiteCorrection: boolean
+  estimatedCorrectionMinutes: number
+  premiumRateType: HoldPremiumRateType
+  premiumRateAmount: number
+  holdCapAmount: number
+  builderAcceptedAt?: string
+  builderDeclinedAt?: string
+  holdStartedAt?: string
+  holdEndedAt?: string
+  holdResolution?: HoldResolution
+  holdResolutionNotes?: string
+  holdResolvedByUserId?: string
+  linkedCorrectionEvidenceIds: string[]
+  affectedItemSummaries: string[]
+  premiumChargeAmount: number
+  actualRetainedMinutes: number
+  extensionCount: number
   builderNote?: string
+  resolutionSummary?: string
   resolvedAt?: string
   expiredAt?: string
+  lastNotifiedAt?: string
+  lastBuilderResponseAt?: string
   createdAt: string
   updatedAt: string
 }
@@ -431,8 +491,14 @@ export interface RetentionSession {
   initialHours: number
   /** Total hours booked (initial + extensions). */
   totalHoursBooked: number
+  /** Total minutes authorized for this hold window. */
+  totalMinutesBooked?: number
   /** Actual elapsed seconds. */
   elapsedSeconds: number
+  /** Maximum builder exposure for the hold. */
+  chargeCapAmount?: number
+  /** Current accrued premium amount after cap enforcement. */
+  accruedChargeAmount?: number
   /** Whether the session is currently running. */
   status: RetentionSessionStatus
   /** Defect item IDs that were fixed during retention. */
@@ -441,13 +507,6 @@ export interface RetentionSession {
   completedAt?: string
   createdAt: string
   updatedAt: string
-}
-
-/** Premium hourly rate schedule by dispatch tier. */
-export const RETENTION_RATES: Record<DispatchTier, number> = {
-  standard:  85,
-  priority:  120,
-  emergency: 175,
 }
 
 // ─── Pricing ─────────────────────────────────────────────────────────────────

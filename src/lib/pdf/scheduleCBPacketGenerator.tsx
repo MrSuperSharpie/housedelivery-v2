@@ -9,7 +9,7 @@ import { renderHtmlToPdf } from './playwrightPdf'
 import { generateScheduleCB } from './scheduleCBGenerator'
 
 async function loadBrandLogoDataUri(): Promise<string> {
-  const logoPath = path.join(process.cwd(), 'public', 'vero-logo-dark.png')
+  const logoPath = path.join(process.cwd(), 'public', 'vero-permit-light.png')
   const buffer = await readFile(logoPath)
   return `data:image/png;base64,${buffer.toString('base64')}`
 }

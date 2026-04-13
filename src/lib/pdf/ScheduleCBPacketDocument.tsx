@@ -83,7 +83,7 @@ const PRINT_CSS = `
 
   .brand-mark {
     display: block;
-    width: 146px;
+    width: 124px;
     height: auto;
     margin-bottom: 8px;
   }
@@ -780,6 +780,184 @@ function AuditTrailPage({ data }: { data: ScheduleCBPacketData }) {
   )
 }
 
+function formatHoldRate(rateType?: string, rateAmount?: number): string {
+  if (rateAmount === undefined) return 'Not specified'
+  const formatted = `$${rateAmount.toFixed(2)}`
+  return rateType === 'flat' ? `${formatted} base` : `${formatted}/hr base`
+}
+
+function formatHoldDecision(decision: string, acceptedAt?: string): string {
+  if (decision === 'accepted') {
+    return acceptedAt ? `Accepted — ${new Date(acceptedAt).toUTCString().replace(':00 GMT', ' UTC')}` : 'Accepted'
+  }
+  if (decision === 'declined') return 'Declined'
+  if (decision === 'expired') return 'Expired (no builder response)'
+  return 'Pending (hold open at time of sealing)'
+}
+
+function HoldHistoryPage({ data }: { data: ScheduleCBPacketData }) {
+  if (data.holdHistory.length === 0) return null
+
+  return (
+    <>
+      {data.holdHistory.map((hold, index) => (
+        <section key={hold.holdId} className="packet-page page-break">
+          <div className="packet-shell">
+            <header className="page-header">
+              <div className="brand-stack">
+                <div className="eyebrow">Hold / Site Retainer Record</div>
+                <h2 className="document-title">
+                  {data.holdHistory.length > 1 ? `Hold ${index + 1} of ${data.holdHistory.length} — ` : ''}
+                  Site Retainer History
+                </h2>
+                <div className="document-subtitle">
+                  On-site correction hold placed during field review. Commercial terms, builder response, retained time, and final resolution are recorded below.
+                </div>
+              </div>
+              <div className="scope-block">
+                <div className="scope-label">Hold Resolution</div>
+                <div className="scope-value" style={{ fontWeight: 700, fontSize: '15px', letterSpacing: '0.04em' }}>
+                  {hold.resolution
+                    ? hold.resolution.toUpperCase()
+                    : hold.status.replace(/_/g, ' ').toUpperCase()}
+                </div>
+              </div>
+            </header>
+
+            <div className="trail-grid">
+              <article className="audit-card">
+                <h3 className="audit-card-title">Deficiency Record</h3>
+                <table className="ledger-table" aria-label="Deficiency details">
+                  <tbody>
+                    <tr>
+                      <td>Placed At</td>
+                      <td>
+                        <div>{new Date(hold.placedAt).toUTCString().replace(':00 GMT', ' UTC')}</div>
+                        <div className="secondary mono">{hold.placedAt}</div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Initiated By</td>
+                      <td style={{ textTransform: 'capitalize' }}>{hold.initiatedByRole}</td>
+                    </tr>
+                    <tr>
+                      <td>Issue Summary</td>
+                      <td>{hold.reason}</td>
+                    </tr>
+                    {hold.deficiencyReason ? (
+                      <tr>
+                        <td>Deficiency Detail</td>
+                        <td>{hold.deficiencyReason}</td>
+                      </tr>
+                    ) : null}
+                    {hold.category ? (
+                      <tr>
+                        <td>Hold Category</td>
+                        <td style={{ textTransform: 'capitalize' }}>{hold.category.replace(/_/g, ' ')}</td>
+                      </tr>
+                    ) : null}
+                    {hold.affectedItemSummaries.length > 0 ? (
+                      <tr>
+                        <td>Affected Items</td>
+                        <td>{hold.affectedItemSummaries.join('; ')}</td>
+                      </tr>
+                    ) : null}
+                  </tbody>
+                </table>
+              </article>
+
+              <article className="audit-card">
+                <h3 className="audit-card-title">Builder Response &amp; Terms</h3>
+                <table className="ledger-table" aria-label="Builder response and commercial terms">
+                  <tbody>
+                    <tr>
+                      <td>Builder Decision</td>
+                      <td style={{ fontWeight: 600 }}>{formatHoldDecision(hold.builderDecision, hold.builderAcceptedAt)}</td>
+                    </tr>
+                    <tr>
+                      <td>Base Rate</td>
+                      <td>{formatHoldRate(hold.premiumRateType, hold.premiumRateAmount)}</td>
+                    </tr>
+                    <tr>
+                      <td>Hold Cap</td>
+                      <td>{hold.holdCapAmount !== undefined ? `$${hold.holdCapAmount.toFixed(2)}` : 'Not specified'}</td>
+                    </tr>
+                    <tr>
+                      <td>Actual Retained Time (minutes)</td>
+                      <td>{hold.actualRetainedMinutes !== undefined ? `${hold.actualRetainedMinutes} min` : 'Not recorded'}</td>
+                    </tr>
+                    <tr>
+                      <td>Premium Charge</td>
+                      <td>{hold.premiumChargeAmount !== undefined ? `$${hold.premiumChargeAmount.toFixed(2)}` : 'Not recorded'}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </article>
+            </div>
+
+            <article className="audit-card" style={{ marginTop: '0' }}>
+              <h3 className="audit-card-title">Correction &amp; Resolution</h3>
+              <table className="ledger-table" aria-label="Correction evidence and resolution">
+                <tbody>
+                  <tr>
+                    <td>Correction Evidence</td>
+                    <td>
+                      {hold.correctionEvidenceCount === 0
+                        ? 'None recorded'
+                        : `${hold.correctionEvidenceCount} item${hold.correctionEvidenceCount !== 1 ? 's' : ''}`}
+                    </td>
+                  </tr>
+                  {hold.correctionEvidenceRefs.length > 0 ? (
+                    <tr>
+                      <td>Evidence Notes</td>
+                      <td>
+                        {hold.correctionEvidenceRefs.map((ref, i) => (
+                          <div key={i} style={{ marginBottom: i < hold.correctionEvidenceRefs.length - 1 ? '6px' : '0' }}>
+                            {ref}
+                          </div>
+                        ))}
+                      </td>
+                    </tr>
+                  ) : null}
+                  <tr>
+                    <td>Hold Ended At</td>
+                    <td>
+                      {hold.holdEndedAt
+                        ? <><div>{new Date(hold.holdEndedAt).toUTCString().replace(':00 GMT', ' UTC')}</div><div className="secondary mono">{hold.holdEndedAt}</div></>
+                        : 'Not recorded'}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Final Resolution</td>
+                    <td>
+                      <span style={{
+                        fontWeight: 800,
+                        fontSize: '13px',
+                        letterSpacing: '0.06em',
+                        color: hold.resolution === 'pass' ? '#166534' : hold.resolution === 'fail' ? '#991b1b' : '#374151',
+                      }}>
+                        {hold.resolution ? `${hold.resolution.toUpperCase()} AFTER HOLD` : hold.status.replace(/_/g, ' ').toUpperCase()}
+                      </span>
+                    </td>
+                  </tr>
+                  {hold.resolutionNotes ? (
+                    <tr>
+                      <td>Resolution Notes</td>
+                      <td>{hold.resolutionNotes}</td>
+                    </tr>
+                  ) : null}
+                </tbody>
+              </table>
+            </article>
+
+            <PageFooter data={data} label="Hold / Site Retainer record" />
+          </div>
+        </section>
+      ))}
+    </>
+  )
+}
+
 function AppendixPages({ data }: { data: ScheduleCBPacketData }) {
   const pages = chunkAppendixEntries(data.appendixEntries)
 
@@ -907,6 +1085,7 @@ export function ScheduleCBPacketDocument({
         ) : (
           <>
             <AuditTrailPage data={data} />
+            <HoldHistoryPage data={data} />
             <AppendixPages data={data} />
           </>
         )}

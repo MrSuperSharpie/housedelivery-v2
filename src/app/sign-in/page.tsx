@@ -7,6 +7,7 @@ import {
   HardHat, ArrowRight, ChevronLeft, Eye, EyeOff,
   Building2, CheckCircle2, Zap, Shield,
 } from 'lucide-react'
+import { BrandWordmark } from '@/components/shared/Navbar'
 import { useAuth, DEMO_USERS, type UserRole, type AuthUser } from '@/lib/auth'
 import { signInWithSupabase } from '@/lib/auth'
 import { getInspectorOnboardingStatusAsync, setInspectorOnboardingStatus } from '@/lib/persistence/inspectorOnboarding'
@@ -244,12 +245,7 @@ function SignInInner() {
     <div className="min-h-screen bg-surface flex flex-col">
       {/* Nav */}
       <div className="border-b border-white/5 px-4 sm:px-6 py-4 flex items-center gap-4 shrink-0">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-flame flex items-center justify-center">
-            <HardHat className="w-3.5 h-3.5 text-white" />
-          </div>
-          <span className="text-sm font-black text-ink tracking-tight">Vero</span>
-        </Link>
+        <BrandWordmark className="max-w-[130px]" height={32} priority theme="dark" />
         <Link href="/get-started" className="ml-auto flex items-center gap-1 text-xs text-muted hover:text-ink transition-colors">
           <ChevronLeft className="w-3.5 h-3.5" /> Back
         </Link>
@@ -417,7 +413,7 @@ function SignInInner() {
 
             <button type="button" onClick={() => setIsNew(n => !n)}
               className="w-full text-center text-xs text-muted hover:text-ink transition-colors py-1">
-              {isNew ? 'Already have an account? Sign in' : 'Don&apos;t have an account? Create one'}
+{isNew ? 'Already have an account? Sign in' : "Don't have an account? Create one"}
             </button>
           </form>
 

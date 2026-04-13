@@ -15,6 +15,14 @@ interface NavbarProps {
   role?: 'builder' | 'inspector' | 'auditor' | 'landing'
 }
 
+interface BrandWordmarkProps {
+  href?: string
+  className?: string
+  height?: number
+  priority?: boolean
+  theme?: 'auto' | 'light' | 'dark'
+}
+
 const NAV_LINKS = {
   builder:  [
     { href: '/builder',          label: 'Dashboard' },
@@ -31,6 +39,42 @@ const NAV_LINKS = {
     { href: '/vault',            label: 'Vault' },
   ],
   landing: [],
+}
+
+export function BrandWordmark({
+  href = '/',
+  className = '',
+  height = 35,
+  priority = false,
+  theme = 'auto',
+}: BrandWordmarkProps) {
+  const lightLogoClass =
+    theme === 'light' ? 'block h-auto w-auto' :
+    theme === 'dark' ? 'hidden' :
+    'block dark:hidden h-auto w-auto'
+  const darkLogoClass =
+    theme === 'dark' ? 'block h-auto w-auto' :
+    theme === 'light' ? 'hidden' :
+    'hidden dark:block h-auto w-auto'
+
+  return (
+    <Link href={href} className={`flex items-center gap-2 shrink-0 ${className}`.trim()}>
+      <Image
+        src={veroLogoLight}
+        alt="Vero Permit"
+        height={height}
+        className={lightLogoClass}
+        priority={priority}
+      />
+      <Image
+        src={veroLogoDark}
+        alt="Vero Permit"
+        height={height}
+        className={darkLogoClass}
+        priority={priority}
+      />
+    </Link>
+  )
 }
 
 export function Navbar({ role = 'landing' }: NavbarProps) {
@@ -65,22 +109,7 @@ export function Navbar({ role = 'landing' }: NavbarProps) {
         <div className="flex items-center justify-between h-14">
 
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 shrink-0">
-            <Image
-              src={veroLogoLight}
-              alt="Vero Permit"
-              height={35}
-              className="block dark:hidden h-[35px] w-auto"
-              priority
-            />
-            <Image
-              src={veroLogoDark}
-              alt="Vero Permit"
-              height={35}
-              className="hidden dark:block h-[35px] w-auto"
-              priority
-            />
-          </Link>
+          <BrandWordmark priority />
 
           {/* Desktop nav */}
           {links.length > 0 && (
