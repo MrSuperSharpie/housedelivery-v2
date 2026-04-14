@@ -500,7 +500,7 @@ function createRuntimeId(prefix: string) {
 function createCertRef() {
   const year = new Date().getFullYear()
   const suffix = crypto.randomUUID().replace(/-/g, '').slice(0, 4).toUpperCase()
-  return `SL-C-${year}-${suffix}`
+  return `VERO-IC-${year}-${suffix}`
 }
 
 // ─── Active inspection ────────────────────────────────────────────────────────

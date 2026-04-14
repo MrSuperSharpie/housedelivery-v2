@@ -14,7 +14,7 @@ const supabase = createClient()
 // Re-use the same status union (both roles share the same set of states)
 export type BuilderOnboardingStatus = InspectorOnboardingStatus
 
-const STORAGE_KEY = 'siteline_builder_onboarding'
+const STORAGE_KEY = 'vero_builder_onboarding'
 
 type Stored = Record<string, BuilderOnboardingStatus>
 

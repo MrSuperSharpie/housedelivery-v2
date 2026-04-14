@@ -20,10 +20,10 @@ export function useGeolocation(watchPosition = false) {
 
   const deviceId =
     typeof window !== 'undefined'
-      ? (localStorage.getItem('siteline_device_id') ??
+      ? (localStorage.getItem('vero_device_id') ??
         (() => {
           const id = `device-${Math.random().toString(36).slice(2, 10)}`
-          localStorage.setItem('siteline_device_id', id)
+          localStorage.setItem('vero_device_id', id)
           return id
         })())
       : 'unknown'

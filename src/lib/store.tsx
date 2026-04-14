@@ -49,6 +49,7 @@ import {
 } from '@/lib/supabase/holds'
 import { calculatePricingBreakdown } from '@/utils/pricing'
 import { getFixedDispatchHoldBaseRate } from '@/lib/pricing/config'
+import { isInspectorTestModeEnabled } from '@/lib/inspectorTestMode'
 import {
   createDispute,
   upsertGovernedProject,
@@ -742,12 +743,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { user: authUser },
     } = await supabase.auth.getUser()
+    const inspectorTestOverride = isInspectorTestModeEnabled({ role: 'inspector' })
 
-    const persistedEligibility = authUser?.id
+    const persistedEligibility = !inspectorTestOverride && authUser?.id
       ? await selectInspectorEligibility(authUser.id)
       : null
 
-    if (authUser?.id && !persistedEligibility) {
+    if (!inspectorTestOverride && authUser?.id && !persistedEligibility) {
       return { ok: false, error: 'Inspector eligibility profile not found. Complete onboarding or contact Vero.' }
     }
 
@@ -757,35 +759,37 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const inspectorLicense = persistedEligibility?.licenseNumber ?? input.inspectorLicense
     const onboardingStatus = persistedEligibility?.status ?? (authUser ? null : 'approved')
 
-    const eligibility = checkInspectorEligibility(
-      job.requiredDiscipline,
-      job.region,
-      inspectorDisciplines,
-      inspectorRegions,
-      credentialExpiryDate,
-      onboardingStatus,
-    )
-    if (!eligibility.eligible) {
-      return { ok: false, error: eligibility.reasons?.join(', ') ?? 'Inspector is not eligible for this job.' }
-    }
+    if (!inspectorTestOverride) {
+      const eligibility = checkInspectorEligibility(
+        job.requiredDiscipline,
+        job.region,
+        inspectorDisciplines,
+        inspectorRegions,
+        credentialExpiryDate,
+        onboardingStatus,
+      )
+      if (!eligibility.eligible) {
+        return { ok: false, error: eligibility.reasons?.join(', ') ?? 'Inspector is not eligible for this job.' }
+      }
 
-    const governance = validateClaimGovernance({
-      jobStatus: job.status,
-      jobValidationStatus: job.status === 'live' ? 'validated' : 'blocked',
-      permitFamily: job.requiredDiscipline === 'electrical' ? 'electrical' : 'building',
-      requiredDiscipline: job.requiredDiscipline,
-      region: job.region,
-      inspectorDisciplines,
-      inspectorRegions,
-      onboardingStatus,
-      credentialExpiryDate,
-      assignmentLocked: assignments.some(existing =>
-        existing.jobId === job.id && (existing.status === 'provisional' || existing.status === 'confirmed')
-      ),
-    })
+      const governance = validateClaimGovernance({
+        jobStatus: job.status,
+        jobValidationStatus: job.status === 'live' ? 'validated' : 'blocked',
+        permitFamily: job.requiredDiscipline === 'electrical' ? 'electrical' : 'building',
+        requiredDiscipline: job.requiredDiscipline,
+        region: job.region,
+        inspectorDisciplines,
+        inspectorRegions,
+        onboardingStatus,
+        credentialExpiryDate,
+        assignmentLocked: assignments.some(existing =>
+          existing.jobId === job.id && (existing.status === 'provisional' || existing.status === 'confirmed')
+        ),
+      })
 
-    if (!governance.ok) {
-      return { ok: false, error: governance.blockers.map(issue => issue.message).join(' ') }
+      if (!governance.ok) {
+        return { ok: false, error: governance.blockers.map(issue => issue.message).join(' ') }
+      }
     }
 
     const now = new Date()
@@ -809,7 +813,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     try {
       let assignment: Assignment
 
-      if (authUser?.id) {
+      if (authUser?.id && !inspectorTestOverride) {
         const claimPayload = {
           jobId: provisionalAssignment.jobId,
           inspectorId: authUser.id,
@@ -1020,7 +1024,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       payoutStatus: 'released',
       baseFeeAmount: 0,
       holdPremiumAmount: 0,
-      sitelineCommissionAmount: 0,
+      veroCommissionAmount: 0,
       blockedReason: undefined,
       decisionNote: 'Payout released through store guard.',
       decidedById: assignmentId,

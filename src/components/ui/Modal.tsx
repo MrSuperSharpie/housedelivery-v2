@@ -11,9 +11,20 @@ interface ModalProps {
   children: React.ReactNode
   size?: 'sm' | 'md' | 'lg' | 'xl'
   dark?: boolean
+  closeOnBackdrop?: boolean
+  closeOnEscape?: boolean
 }
 
-export function Modal({ isOpen, onClose, title, children, size = 'md', dark = false }: ModalProps) {
+export function Modal({
+  isOpen,
+  onClose,
+  title,
+  children,
+  size = 'md',
+  dark = false,
+  closeOnBackdrop = true,
+  closeOnEscape = true,
+}: ModalProps) {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden'
@@ -25,11 +36,11 @@ export function Modal({ isOpen, onClose, title, children, size = 'md', dark = fa
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (closeOnEscape && e.key === 'Escape') onClose()
     }
     document.addEventListener('keydown', handleEsc)
     return () => document.removeEventListener('keydown', handleEsc)
-  }, [onClose])
+  }, [closeOnEscape, onClose])
 
   if (!isOpen) return null
 
@@ -45,7 +56,7 @@ export function Modal({ isOpen, onClose, title, children, size = 'md', dark = fa
       {/* Backdrop */}
       <div
         className="absolute inset-0 z-0 bg-black/60 backdrop-blur-sm animate-fade-in pointer-events-auto"
-        onClick={onClose}
+        onClick={closeOnBackdrop ? onClose : undefined}
       />
       {/* Panel */}
       <div

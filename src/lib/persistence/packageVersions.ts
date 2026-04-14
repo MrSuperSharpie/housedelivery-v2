@@ -5,7 +5,7 @@
 
 import { insertPackageVersion, selectVersionsByRecordId as selectVersionsByRecordIdServer } from '@/lib/supabase/compliance'
 
-const STORAGE_KEY = 'siteline_package_versions'
+const STORAGE_KEY = 'vero_package_versions'
 
 export interface PackageVersionRecord {
   id: string

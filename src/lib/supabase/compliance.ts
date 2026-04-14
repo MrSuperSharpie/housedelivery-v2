@@ -219,7 +219,7 @@ export async function insertCompletedRecordStrict(record: CompletedInspectionRec
         escrowAmount: Number(assignmentData?.escrow_amount ?? 0),
         platformCommission: pricing.platformCommission,
       }, {
-        sitelineCommissionAmount: pricing.platformCommission,
+        veroCommissionAmount: pricing.platformCommission,
       })
 
       await upsertPaymentDecision({
@@ -229,7 +229,7 @@ export async function insertCompletedRecordStrict(record: CompletedInspectionRec
         payoutStatus: 'blocked',
         baseFeeAmount: paymentAmounts.baseFeeAmount,
         holdPremiumAmount: paymentAmounts.holdPremiumAmount,
-        sitelineCommissionAmount: paymentAmounts.sitelineCommissionAmount,
+        veroCommissionAmount: paymentAmounts.veroCommissionAmount,
         blockedReason: paymentAmounts.usedFallback
           ? 'Awaiting admin review and payout release. Upstream payment details are not yet wired.'
           : 'Awaiting admin review and payout release.',

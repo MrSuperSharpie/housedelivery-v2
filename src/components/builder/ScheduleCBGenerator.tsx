@@ -22,7 +22,7 @@ interface ScheduleCBProject {
 export function downloadScheduleCB(project: ScheduleCBProject) {
   const result = project.status === 'fail' ? 'FAILED ✗' : 'PASSED ✓'
   const resultColor = project.status === 'fail' ? '#cc0000' : '#16a34a'
-  const certRef = project.certRef ?? `SL-C-${new Date().getFullYear()}-${Date.now().toString().slice(-4)}`
+  const certRef = project.certRef ?? `VERO-IC-${new Date().getFullYear()}-${Date.now().toString().slice(-4)}`
   const stage = project.stage ?? 'Field Review'
   const permitNumber = project.permitNumber ?? 'N/A'
   const city = project.city ?? ''
@@ -65,7 +65,7 @@ export function downloadScheduleCB(project: ScheduleCBProject) {
           width: 100px;
           height: 100px;
           border-radius: 50%;
-          background: #cc0000;
+          background: linear-gradient(135deg, #047857 0%, #059669 30%, #0d9488 55%, #10b981 75%, #065f46 100%);
           color: white;
           display: flex;
           align-items: center;
@@ -73,10 +73,24 @@ export function downloadScheduleCB(project: ScheduleCBProject) {
           font-size: 9px;
           text-align: center;
           font-weight: bold;
-          border: 5px solid #990000;
+          border: 4px solid rgba(255,255,255,0.5);
+          outline: 3px solid #059669;
+          box-shadow: 0 0 0 1px #047857, 0 4px 24px rgba(5,150,105,0.45), inset 0 1px 0 rgba(255,255,255,0.25);
           line-height: 1.4;
           flex-shrink: 0;
           margin-left: 20px;
+          position: relative;
+          overflow: hidden;
+        }
+        .seal::before {
+          content: '';
+          position: absolute;
+          top: -40%;
+          left: -40%;
+          width: 80%;
+          height: 80%;
+          background: radial-gradient(ellipse, rgba(255,255,255,0.22) 0%, transparent 70%);
+          border-radius: 50%;
         }
         .section {
           margin-bottom: 20px;
@@ -167,7 +181,7 @@ export function downloadScheduleCB(project: ScheduleCBProject) {
           </p>
         </div>
         <div class="seal">
-          DIGITAL<br>FIELD<br>REVIEW<br>SEAL<br>BC
+          <img src="${window.location.origin}/vero-logo-dark.png" alt="Vero" style="width:56px;height:56px;object-fit:contain;filter:brightness(0) invert(1);" />
         </div>
       </div>
 

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { OfflineAction } from '@/lib/types'
 
-const OFFLINE_QUEUE_KEY = 'siteline_offline_queue'
+const OFFLINE_QUEUE_KEY = 'vero_offline_queue'
 
 export function useOfflineSync() {
   const [isOnline, setIsOnline] = useState(true)

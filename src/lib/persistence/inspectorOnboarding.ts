@@ -11,8 +11,8 @@ import {
   type InspectorOnboardingRow,
 } from '@/lib/supabase/compliance'
 
-const STORAGE_KEY = 'siteline_inspector_onboarding'
-const ANON_KEY = 'siteline_inspector_onboarding_anonymous'
+const STORAGE_KEY = 'vero_inspector_onboarding'
+const ANON_KEY = 'vero_inspector_onboarding_anonymous'
 
 type Stored = Record<string, InspectorOnboardingStatus>
 
@@ -54,7 +54,7 @@ function writeAnonymousLocal(status: InspectorOnboardingStatus) {
   }
 }
 
-const APPROVED_DEMO_IDS = ['sarah-chen', 'sarah-chen-siteline-ca']
+const APPROVED_DEMO_IDS = ['sarah-chen', 'sarah-chen-vero-ca']
 
 /**
  * Get onboarding status. Tries server when userId or supabaseId is provided, then local, then demo approved list.

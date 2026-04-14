@@ -6,7 +6,7 @@
 import type { EvidenceItem } from '@/lib/domain/types'
 import { insertCompletedRecord, selectCompletedRecords, selectCompletedRecordById } from '@/lib/supabase/compliance'
 
-const STORAGE_KEY = 'siteline_completed_inspections'
+const STORAGE_KEY = 'vero_completed_inspections'
 
 /** Persisted record when an inspection is sealed. Manifest-ready (EvidenceItem[] as-is). */
 export interface CompletedInspectionRecord {

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { HardHat, CheckCircle2, Clock, AlertCircle, FileText } from 'lucide-react'
 import { BrandWordmark } from '@/components/shared/Navbar'
 import { useAuth } from '@/lib/auth'
+import { isInspectorTestModeEnabled } from '@/lib/inspectorTestMode'
 import { getInspectorOnboardingStatus, getInspectorOnboardingStatusAsync } from '@/lib/persistence/inspectorOnboarding'
 import type { InspectorOnboardingStatus } from '@/lib/types'
 
@@ -22,6 +23,7 @@ const STATUS_CONFIG: Record<InspectorOnboardingStatus, { label: string; desc: st
 export default function InspectorOnboardingStatusPage() {
   const router = useRouter()
   const { user } = useAuth()
+  const inspectorTestOverride = isInspectorTestModeEnabled(user)
   const [status, setStatus] = useState<InspectorOnboardingStatus>(() => getInspectorOnboardingStatus())
 
   useEffect(() => {
@@ -31,10 +33,10 @@ export default function InspectorOnboardingStatusPage() {
 
   // If approved and logged in as inspector, redirect to Live Board
   useEffect(() => {
-    if (user?.role === 'inspector' && status === 'approved') {
+    if (user?.role === 'inspector' && (status === 'approved' || inspectorTestOverride)) {
       router.replace('/inspector')
     }
-  }, [user?.role, status, router])
+  }, [inspectorTestOverride, user?.role, status, router])
 
   const cfg = STATUS_CONFIG[status]
   const Icon = cfg.icon

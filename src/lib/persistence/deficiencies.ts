@@ -9,7 +9,7 @@ import {
   selectDeficienciesByRecordId as selectDeficienciesByRecordIdServer,
 } from '@/lib/supabase/compliance'
 
-const STORAGE_KEY = 'siteline_deficiencies'
+const STORAGE_KEY = 'vero_deficiencies'
 
 export type RecordDeficiencyStatus = 'open' | 'responded' | 'resolved'
 

@@ -5,13 +5,13 @@ import {
   Zap, Clock, AlertTriangle, CheckCircle2, Lock,
   MapPin, ChevronRight, ChevronLeft,
   HardHat, Layers, Hammer, Droplets, Home,
-  Radio, Shield, FileText, Calendar,
+  Radio, Shield, FileText,
   Eye, Archive
 } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
-import { SchedulingPicker, type TimeSlot } from '@/components/builder/SchedulingPicker'
+import { SchedulingPicker, isSlotValidForTier, type TimeSlot } from '@/components/builder/SchedulingPicker'
 import { INSPECTION_STAGES } from '@/lib/mockData'
 import { formatCurrency } from '@/lib/utils'
 import { useAuth } from '@/lib/auth'
@@ -30,7 +30,6 @@ import {
   DISPATCH_PRICING,
   getDefaultSpecialistRole,
   resolvePricingMode,
-  SPECIALIST_ROLE_OPTIONS,
 } from '@/lib/pricing/config'
 
 // ─── WorkSafe BC Safety Options ──────────────────────────────────────────────
@@ -85,6 +84,14 @@ const STEP_NUM: Record<Step, number> = {
   address: 1, schedule: 2, stage: 3, discipline: 4, safety: 5, tier: 6, vault: 7, confirm: 8, broadcasting: 8, live: 8,
 }
 
+const STAGE_WORKFLOW_DESCRIPTIONS: Record<number, string> = {
+  1: 'Initial site-stage inspection to verify site conditions, layout, and excavation readiness.',
+  2: 'Pre-pour inspection to verify formwork, reinforcement, and required conditions before concrete placement.',
+  3: 'Structural stage inspection to verify framing, envelope readiness, and pre-closure conditions.',
+  4: 'Envelope inspection to verify thermal, moisture, and pre-drywall compliance requirements.',
+  5: 'Final-stage inspection to verify completion, outstanding deficiencies, and occupancy readiness.',
+}
+
 export function DispatchModal({ project, isOpen, onClose, onDispatch }: DispatchModalProps) {
   const { user }    = useAuth()
   const { addJob }  = useStore()
@@ -97,7 +104,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
   const [selectedTier, setSelectedTier]     = useState<DispatchTier>('priority')
   const [selectedSpecialistRole, setSelectedSpecialistRole] = useState<SpecialistRoleId | null>(null)
   const [billableHours, setBillableHours]   = useState(1.5)
-  const [holdHours, setHoldHours]           = useState(0)
+  const holdHours = 0
   const [slots, setSlots]                   = useState<TimeSlot[]>([])
   const [ppeRequired, setPpeRequired]       = useState<string[]>([])
   const [hazardFlags, setHazardFlags]       = useState<string[]>([])
@@ -111,7 +118,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
   const [paymentLoading, setPaymentLoading] = useState(false)
   const [postError, setPostError]           = useState<string | null>(null)
   const [txnId] = useState(() => `TXN-${Date.now()}`)
-  const [jobRef] = useState(() => `SL-${Date.now().toString(36).toUpperCase().slice(-6)}`)
+  const [jobRef] = useState(() => `VERO-${Date.now().toString(36).toUpperCase().slice(-6)}`)
   const [isLocating, setIsLocating] = useState(false)
   const [locationError, setLocationError] = useState<string | null>(null)
   const [locationHint, setLocationHint] = useState<string | null>(null)
@@ -150,7 +157,6 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
     setSelectedTier('priority')
     setSelectedSpecialistRole(null)
     setBillableHours(1.5)
-    setHoldHours(0)
     setSlots([])
     setPpeRequired([])
     setHazardFlags([])
@@ -165,6 +171,11 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
   }
 
   const handleClose = () => { reset(); onClose() }
+
+  const handleTierSelection = (tier: DispatchTier) => {
+    setSelectedTier(tier)
+    setSlots(currentSlots => currentSlots.filter(slot => isSlotValidForTier(slot, tier)))
+  }
 
   const handleUseCurrentLocation = () => {
     setLocationError(null)
@@ -205,6 +216,12 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
 
   const handlePost = async () => {
     setPostError(null)
+
+    if (!hasValidSchedulingWindow) {
+      setPostError('Add at least one valid availability window for the selected dispatch speed before posting.')
+      setStep('schedule')
+      return
+    }
 
     const stageInfo = INSPECTION_STAGES.find(s => s.id === (selectedStage ?? 1))
     const cityPart  = address.includes(',')
@@ -287,15 +304,23 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
     inspectionType: 'dispatch',
   })
   const totalEscrow = pricing.builderEscrowTotal
+  const hasValidSchedulingWindow = slots.length > 0 && slots.every(slot => isSlotValidForTier(slot, selectedTier))
 
   const tierMeta = {
-    standard:  { color: 'text-muted',          bg: 'bg-surface',           label: 'Standard',   time: '5–7 business days' },
+    standard:  { color: 'text-muted',          bg: 'bg-surface',           label: 'Standard',   time: '5+ business days' },
     priority:  { color: 'text-warning-amber',  bg: 'bg-warning-amber/10',  label: 'Priority',   time: '2–3 business days' },
     emergency: { color: 'text-[#D97706]',      bg: 'bg-[#D97706]/10',      label: 'Emergency',  time: 'Within 24 hrs / next day' },
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="" size="md">
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title=""
+      size="md"
+      closeOnBackdrop={false}
+      closeOnEscape={false}
+    >
 
       {/* Progress bar — hide during broadcast/live */}
       {!['broadcasting', 'live'].includes(step) && (
@@ -383,57 +408,38 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
           <button onClick={() => setStep('address')} className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-700 mb-4">
             <ChevronLeft className="w-3.5 h-3.5" /> Back
           </button>
-
-          {selectedTier === 'emergency' ? (
-            <>
-              <h2 className="text-xl font-black text-gray-900 mb-1">Emergency dispatch</h2>
-              <p className="text-sm text-gray-500 mb-4">
-                No scheduling needed — an inspector will confirm within 24 hours. The stage checklist unlocks immediately for city staff.
-              </p>
-              <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 my-4 flex items-start gap-2">
-                <Calendar className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
-                <div className="text-xs text-amber-700">
-                  <span className="font-bold">Emergency bookings skip scheduling.</span> The checklist unlocks immediately for city staff and an inspector will confirm within 24 hours, no back-and-forth needed.
-                </div>
-              </div>
-              <Button variant="primary" size="lg" fullWidth onClick={() => setStep('stage')}>
-                Continue <ChevronRight className="w-4 h-4" />
-              </Button>
-              <button type="button" onClick={() => setSelectedTier('priority')}
-                className="w-full text-center text-xs text-gray-400 hover:text-gray-600 mt-3 transition-colors">
-                Need to pick dates? Switch to Standard or Priority
-              </button>
-            </>
-          ) : (
-            <>
-              <h2 className="text-xl font-black text-gray-900 mb-1">When are you available?</h2>
-              <p className="text-sm text-gray-500 mb-4">
-                Add up to 3 availability windows. The first eligible inspector claims one of these real slots and the assignment becomes provisional right away.
-              </p>
-              <div className="mb-4">
-                <div className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-2">Urgency</div>
-                <div className="flex gap-2">
-                  {(['standard', 'priority', 'emergency'] as const).map(t => (
-                    <button key={t} type="button" onClick={() => setSelectedTier(t)}
-                      className={`flex-1 text-center rounded-xl border-2 py-2.5 px-2 text-xs font-bold transition-all ${
-                        selectedTier === t ? tierMeta[t].bg + ' ' + tierMeta[t].color + ' border-current' : 'border-gray-200 text-gray-500 hover:border-gray-300 bg-white'
-                      }`}>
-                      {tierMeta[t].label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <SchedulingPicker slots={slots} onChange={setSlots} max={3} tier={selectedTier} />
-              <Button variant="primary" size="lg" fullWidth
-                disabled={slots.length === 0}
-                onClick={() => setStep('stage')}>
-                Continue <ChevronRight className="w-4 h-4" />
-              </Button>
-              <button onClick={() => setStep('stage')}
-                className="w-full text-center text-xs text-gray-400 hover:text-gray-600 mt-3 transition-colors">
-                Skip — flexible timing / any time works
-              </button>
-            </>
+          <h2 className="text-xl font-black text-gray-900 mb-1">When are you available?</h2>
+          <p className="text-sm text-gray-500 mb-4">
+            Add up to 3 availability windows. Only dates within the selected dispatch speed are available for booking.
+          </p>
+          <div className="mb-4">
+            <div className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-2">Urgency</div>
+            <div className="flex gap-2">
+              {(['standard', 'priority', 'emergency'] as const).map(t => (
+                <button key={t} type="button" onClick={() => handleTierSelection(t)}
+                  className={`flex-1 text-center rounded-xl border-2 py-2.5 px-2 text-xs font-bold transition-all ${
+                    selectedTier === t ? tierMeta[t].bg + ' ' + tierMeta[t].color + ' border-current' : 'border-gray-200 text-gray-500 hover:border-gray-300 bg-white'
+                  }`}>
+                  {tierMeta[t].label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="mb-4 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-600">
+            {selectedTier === 'standard' && 'Standard dispatch windows open 5 business days out.'}
+            {selectedTier === 'priority' && 'Priority dispatch windows open 2-3 business days out.'}
+            {selectedTier === 'emergency' && 'Emergency dispatch windows are limited to today and tomorrow.'}
+          </div>
+          <SchedulingPicker slots={slots} onChange={setSlots} max={3} tier={selectedTier} />
+          <Button variant="primary" size="lg" fullWidth
+            disabled={!hasValidSchedulingWindow}
+            onClick={() => setStep('stage')}>
+            Continue <ChevronRight className="w-4 h-4" />
+          </Button>
+          {!hasValidSchedulingWindow && (
+            <p className="mt-3 text-center text-xs text-gray-400">
+              Add at least one valid availability window inside the selected dispatch range to continue.
+            </p>
           )}
         </div>
       )}
@@ -444,12 +450,18 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
           <button onClick={() => setStep('schedule')} className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 mb-4">
             <ChevronLeft className="w-3.5 h-3.5" /> Back
           </button>
-          <h2 className="text-xl font-black text-gray-900 mb-1">Select permit stage</h2>
-          <p className="text-sm text-gray-500 mb-4">Only CPs qualified for this stage will be notified.</p>
+          <h2 className="text-xl font-black text-gray-900 mb-1">Select inspection stage</h2>
+          <p className="text-sm text-gray-500">
+            Choose the project stage to load the required inspection checklist, evidence requirements, and sign-off workflow.
+          </p>
+          <p className="mt-2 mb-4 text-xs text-gray-400">
+            Each stage opens the governed inspection steps for that part of the permit process.
+          </p>
 
           <div className="space-y-2 mb-5">
             {INSPECTION_STAGES.map(stage => {
               const isSelected = selectedStage === stage.id
+              const workflowDescription = STAGE_WORKFLOW_DESCRIPTIONS[stage.id] ?? stage.description
               return (
                 <button key={stage.id} onClick={() => setSelectedStage(stage.id)}
                   className={`w-full text-left rounded-xl border-2 p-4 transition-all ${
@@ -461,8 +473,8 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                     }`}>{stage.id}</div>
                     <div className="flex-1 min-w-0">
                       <div className="font-bold text-gray-900 text-sm">{stage.name}</div>
-                      <div className="text-xs text-gray-400 mt-0.5">{stage.description}</div>
-                      <div className="text-xs text-gray-300 mt-0.5">{stage.items.length} checklist items</div>
+                      <div className="text-xs text-gray-400 mt-0.5">{workflowDescription}</div>
+                      <div className="text-xs text-gray-300 mt-0.5">{stage.items.length} required inspection items</div>
                     </div>
                     {isSelected && <CheckCircle2 className="w-5 h-5 text-flame shrink-0" />}
                   </div>
@@ -470,6 +482,10 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
               )
             })}
           </div>
+
+          <p className="mb-4 text-xs text-gray-400">
+            Selecting a stage loads the detailed inspection requirements for that phase.
+          </p>
 
           <Button variant="primary" size="lg" fullWidth disabled={!selectedStage} onClick={() => setStep('discipline')}>
             Continue <ChevronRight className="w-4 h-4" />
@@ -640,7 +656,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
               const Icon = icons[pricing.tier]
               const isSelected = selectedTier === pricing.tier
               return (
-                <button key={pricing.tier} onClick={() => setSelectedTier(pricing.tier)}
+                <button key={pricing.tier} onClick={() => handleTierSelection(pricing.tier)}
                   className={`w-full text-left rounded-xl border-2 p-4 transition-all ${
                     isSelected ? 'border-flame bg-orange-50' : 'border-gray-200 hover:border-gray-300 bg-white'
                   }`}>
@@ -674,142 +690,46 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
               )
             })}
             <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-xs text-gray-600">
-              These fixed-fee cards apply to routine dispatch only. If the file requires a registered professional, specialist hourly pricing applies below.
+              These fixed-fee cards apply to routine dispatch only. If the file requires a registered professional, Vero automatically applies specialist pricing.
             </div>
           </div>
 
           <div className="mb-5 rounded-2xl border-2 border-gray-200 bg-white p-4">
-            <div className="flex items-start justify-between gap-3 mb-2">
-              <div>
-                <div className="text-xs font-black uppercase tracking-widest text-gray-500">STEP 2 — SPECIALIST PRICING, IF REQUIRED</div>
-                <h3 className="text-sm font-bold text-gray-900 mt-1">Hourly specialist and professional review rates</h3>
-              </div>
-              {pricingMode === 'specialist_hourly' && (
-                <Badge variant="warning" size="sm">Specialist Pricing</Badge>
-              )}
-            </div>
-            <p className="text-xs text-gray-500 mb-3">
-              Applied when the inspection requires field review, sealed review, sign-off, or another registered-professional obligation.
-              Dispatch speed still controls urgency, but hourly specialist rates become the pricing basis.
+            <p className="text-sm text-gray-600">
+              If your inspection requires a registered professional, Vero automatically assigns the appropriate specialist and applies the correct pricing.
             </p>
-
-            <div className="space-y-2.5 mb-4">
-              {SPECIALIST_ROLE_OPTIONS.map(role => {
-                const isSelected = resolvedSpecialistRole === role.id
-                return (
-                  <button
-                    key={role.id}
-                    type="button"
-                    onClick={() => setSelectedSpecialistRole(role.id)}
-                    className={`w-full rounded-xl border px-3.5 py-3 text-left transition-all ${
-                      isSelected
-                        ? 'border-safety-orange bg-orange-50'
-                        : 'border-gray-200 hover:border-gray-300 bg-white'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <div className="text-sm font-bold text-gray-900">{role.label}</div>
-                        <div className="text-xs text-gray-500 mt-1">Typical range: {role.rateRangeLabel}</div>
-                        <div className="text-xs text-gray-500 mt-1">Minimum {role.minimumHours} hours</div>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <div className="text-sm font-black text-gray-900">{formatCurrency(role.defaultRate)}/hr</div>
-                      </div>
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
-
-            {!specialistModeForced && selectedSpecialistRole && (
-              <button
-                type="button"
-                onClick={() => setSelectedSpecialistRole(null)}
-                className="mb-4 text-xs font-semibold text-gray-500 transition-colors hover:text-gray-700"
-              >
-                Use fixed dispatch pricing for this booking
-              </button>
-            )}
-
-            <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
-              <div className="text-xs font-black uppercase tracking-widest text-amber-700">STEP 3 — OPTIONAL ON-SITE HOLD</div>
-              <div className="mt-1 text-sm font-bold text-gray-900">
-                If minor corrections can reasonably be completed on-site, the inspector may remain and re-review without forcing a new booking.
-              </div>
-              <div className="mt-1 text-xs text-gray-600">Hold time is billed at 1.5× the applicable hourly rate.</div>
-              <div className="mt-2 text-[11px] text-gray-500">
-                Dispatch speed determines arrival time. Pricing is then based on either fixed routine dispatch or specialist hourly rates, depending on the inspection requirements.
-              </div>
-            </div>
-
-            {pricingMode === 'specialist_hourly' && (
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <label className="block">
-                  <span className="mb-1.5 block text-xs font-semibold text-gray-700">Billable Hours</span>
-                  <input
-                    type="number"
-                    min={1.5}
-                    step={0.5}
-                    value={billableHours}
-                    onChange={e => setBillableHours(Math.max(1.5, Number(e.target.value || 1.5)))}
-                    className="w-full rounded-xl border-2 border-gray-200 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:border-flame focus:outline-none"
-                  />
-                </label>
-                <label className="block">
-                  <span className="mb-1.5 block text-xs font-semibold text-gray-700">On-site Hold (optional) – billed at 1.5× hourly rate</span>
-                  <input
-                    type="number"
-                    min={0}
-                    step={0.5}
-                    value={holdHours}
-                    onChange={e => setHoldHours(Math.max(0, Number(e.target.value || 0)))}
-                    className="w-full rounded-xl border-2 border-gray-200 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:border-flame focus:outline-none"
-                  />
-                </label>
-              </div>
-            )}
-
-            {pricingMode === 'dispatch_fixed' && (
-              <label className="block">
-                <span className="mb-1.5 block text-xs font-semibold text-gray-700">On-site Hold (optional) – billed at 1.5× hourly rate</span>
-                <input
-                  type="number"
-                  min={0}
-                  step={0.5}
-                  value={holdHours}
-                  onChange={e => setHoldHours(Math.max(0, Number(e.target.value || 0)))}
-                  className="w-full rounded-xl border-2 border-gray-200 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:border-flame focus:outline-none"
-                />
-              </label>
-            )}
           </div>
 
           <div className="mb-5 rounded-2xl border border-blue-100 bg-blue-50 p-4">
-            <div className="text-xs font-black uppercase tracking-widest text-blue-700">Live Booking Summary</div>
-            <div className="mt-3 space-y-2 text-sm">
+            <div className="text-xs font-black uppercase tracking-widest text-blue-700">Estimated Total</div>
+            <div className="mt-2 flex items-end justify-between gap-3">
+              <div>
+                <div className="text-sm text-blue-700/80">Total escrow required</div>
+                <div className="text-2xl font-black text-slate-900">{formatCurrency(pricing.builderEscrowTotal)}</div>
+              </div>
+              <div className="text-right text-xs text-blue-700/80">
+                {pricingMode === 'specialist_hourly' ? 'Specialist pricing applied automatically when required' : 'Fixed dispatch pricing'}
+              </div>
+            </div>
+            <div className="mt-4 border-t border-blue-100 pt-3 space-y-2 text-sm">
               <div className="flex items-center justify-between">
                 <span className="text-blue-700/80">Pricing mode</span>
                 <span className="font-bold text-gray-900">{pricingMode === 'specialist_hourly' ? 'Specialist hourly' : 'Fixed dispatch'}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-blue-700/80">{pricingMode === 'specialist_hourly' ? 'Role selected' : 'Dispatch speed'}</span>
-                <span className="font-bold text-gray-900">{pricingMode === 'specialist_hourly' ? pricing.specialistRoleLabel : tierMeta[selectedTier].label}</span>
+                <span className="text-blue-700/80">Dispatch speed</span>
+                <span className="font-bold text-gray-900">{tierMeta[selectedTier].label}</span>
               </div>
-              {pricingMode === 'specialist_hourly' && (
-                <div className="flex items-center justify-between">
-                  <span className="text-blue-700/80">Billable hours</span>
-                  <span className="font-bold text-gray-900">{pricing.billableHours.toFixed(1)}h</span>
-                </div>
-              )}
               <div className="flex items-center justify-between">
-                <span className="text-blue-700/80">{pricingMode === 'specialist_hourly' ? 'Hourly subtotal' : 'Base booking'}</span>
+                <span className="text-blue-700/80">Base booking</span>
                 <span className="font-bold text-gray-900">{formatCurrency(pricing.baseFee)}</span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-blue-700/80">Urgency multiplier</span>
-                <span className="font-bold text-gray-900">×{pricing.multiplier.toFixed(1)}</span>
-              </div>
+              {pricing.multiplier > 1 && (
+                <div className="flex items-center justify-between">
+                  <span className="text-blue-700/80">Urgency multiplier</span>
+                  <span className="font-bold text-gray-900">×{pricing.multiplier.toFixed(1)}</span>
+                </div>
+              )}
               {pricing.urgencyAdjustment > 0 && (
                 <div className="flex items-center justify-between">
                   <span className="text-blue-700/80">Urgency adjustment</span>
@@ -817,27 +737,20 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                 </div>
               )}
               <div className="flex items-center justify-between">
-                <span className="text-blue-700/80">Hold hours</span>
-                <span className="font-bold text-gray-900">{pricing.holdHours.toFixed(1)}h</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-blue-700/80">Hold premium (1.5×)</span>
-                <span className="font-bold text-gray-900">{formatCurrency(pricing.holdCost)}</span>
-              </div>
-              <div className="flex items-center justify-between">
                 <span className="text-blue-700/80">Platform fee</span>
                 <span className="font-bold text-gray-900">{formatCurrency(pricing.platformCommission)}</span>
-              </div>
-              <div className="flex items-center justify-between border-t border-blue-100 pt-2">
-                <span className="font-bold text-gray-900">Total escrow required</span>
-                <span className="text-lg font-black text-blueprint-blue">{formatCurrency(pricing.builderEscrowTotal)}</span>
               </div>
             </div>
           </div>
 
-          <Button variant="primary" size="lg" fullWidth onClick={() => setStep('vault')}>
+          <Button variant="primary" size="lg" fullWidth disabled={!hasValidSchedulingWindow} onClick={() => setStep('vault')}>
             Review Listing <ChevronRight className="w-4 h-4" />
           </Button>
+          {!hasValidSchedulingWindow && (
+            <p className="mt-3 text-center text-xs text-gray-400">
+              Update your scheduling step so the selected dispatch speed still has a valid availability window.
+            </p>
+          )}
         </div>
       )}
 
@@ -1069,7 +982,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             <div className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Escrow Breakdown</div>
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">{pricingMode === 'specialist_hourly' ? 'Hourly subtotal' : 'Base booking'}</span>
+                <span className="text-gray-600">Base booking</span>
                 <span className="font-bold text-gray-900">{formatCurrency(pricing.baseFee)}</span>
               </div>
               {pricing.priorityAdjustment > 0 && (
@@ -1079,31 +992,16 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                 </div>
               )}
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Hold hours</span>
-                <span className="font-bold text-gray-900">{pricing.holdHours.toFixed(1)}h</span>
-              </div>
-              {pricing.holdCost > 0 && (
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Hold premium (1.5×)</span>
-                  <span className="font-bold text-gray-900">{formatCurrency(pricing.holdCost)}</span>
-                </div>
-              )}
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Inspector payout</span>
-                <span className="font-bold text-gray-900">{formatCurrency(pricing.inspectorPayout)}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-600">Vero Platform Commission (10%)</span>
                 <span className="font-bold text-gray-900">{formatCurrency(pricing.platformCommission)}</span>
               </div>
               <div className="border-t border-gray-200 pt-2 mt-2 flex items-center justify-between">
                 <span className="text-sm font-bold text-gray-900">Total Pre-Funded to Escrow</span>
-                <span className="text-lg font-black text-flame">{formatCurrency(totalEscrow)}</span>
+                <span className="text-lg font-black text-slate-900">{formatCurrency(totalEscrow)}</span>
               </div>
             </div>
             <p className="text-[10px] text-gray-400 mt-2 leading-relaxed">
-              Funds held securely via Stripe. Inspector receives {formatCurrency(pricing.inspectorPayout)} when payout is released.
-              If a Hold / Modification Required workflow is triggered, additional premium hourly charges may apply.
+              Funds held securely via Stripe. Vero releases payment only after the inspection workflow is completed and approved.
             </p>
           </div>
 

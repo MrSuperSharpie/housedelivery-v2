@@ -290,17 +290,40 @@ function VeroSealIcon({
   className?: string
 }) {
   const shellClass = certified
-    ? 'border-emerald-200 bg-emerald-50 text-emerald-600'
-    : 'border-red-900/60 bg-[#991b1b]/20 text-red-200'
-  const ringClass = certified ? 'border-emerald-200/70' : 'border-red-200/20'
+    ? 'border-emerald-300/50 text-white overflow-hidden'
+    : 'border-slate-600/60 bg-slate-800/40 text-slate-300'
+  const ringClass = certified ? 'border-white/20' : 'border-slate-500/20'
   const badgeClass = certified
-    ? 'border-emerald-200 bg-emerald-100 text-emerald-700'
-    : 'border-red-200/30 bg-red-950/70 text-red-100'
+    ? 'border-emerald-300/60 bg-emerald-900/80 text-white'
+    : 'border-slate-500/30 bg-slate-900/70 text-slate-300'
 
   return (
-    <div className={`relative flex h-16 w-16 items-center justify-center rounded-full border shadow-[0_0_0_1px_rgba(255,255,255,0.04)] ${shellClass} ${className}`}>
+    <div
+      className={`relative flex h-16 w-16 items-center justify-center rounded-full border ${shellClass} ${className}`}
+      style={certified ? {
+        background: 'linear-gradient(135deg, #064e3b 0%, #047857 20%, #0d9488 42%, #059669 58%, #6d28d9 78%, #047857 100%)',
+        boxShadow: '0 0 0 1px rgba(255,255,255,0.15), 0 0 20px rgba(16,185,129,0.5), 0 0 40px rgba(109,40,217,0.2), inset 0 1px 0 rgba(255,255,255,0.25)',
+      } : undefined}
+    >
+      {/* Holographic sheen overlay */}
+      {certified && (
+        <div
+          className="absolute inset-0 rounded-full pointer-events-none"
+          style={{ background: 'linear-gradient(45deg, transparent 25%, rgba(255,255,255,0.12) 50%, transparent 75%)' }}
+        />
+      )}
       <div className={`absolute inset-2 rounded-full border ${ringClass}`} />
-      <ShieldCheck className="h-7 w-7" />
+      {certified ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src="/vero-logo-dark.png"
+          alt="Vero"
+          className="relative h-7 w-7 object-contain"
+          style={{ filter: 'brightness(0) invert(1)' }}
+        />
+      ) : (
+        <ShieldCheck className="h-7 w-7" />
+      )}
       <div className={`absolute -bottom-2 rounded-full border px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.12em] ${badgeClass}`}>
         VERO
       </div>

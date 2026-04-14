@@ -13,6 +13,7 @@ import { signInWithSupabase } from '@/lib/auth'
 import { getInspectorOnboardingStatusAsync, setInspectorOnboardingStatus } from '@/lib/persistence/inspectorOnboarding'
 import { createClient } from '@/lib/supabase/client'
 import { selectInspectorEligibility } from '@/lib/supabase/compliance'
+import { isInspectorTestModeEnabled } from '@/lib/inspectorTestMode'
 
 const supabase = createClient()
 
@@ -20,7 +21,9 @@ function getInspectorDestination(options: {
   onboardingStatus?: AuthUser['onboardingStatus']
   hasEligibilityProfile: boolean
   fallback: string
+  testOverride?: boolean
 }) {
+  if (options.testOverride) return options.fallback
   if (options.onboardingStatus === 'approved') return options.fallback
   return options.hasEligibilityProfile ? '/inspector/onboarding-status' : '/inspector/signup'
 }
@@ -191,6 +194,7 @@ function SignInInner() {
           ? getInspectorDestination({
               onboardingStatus: onboardingStatus as AuthUser['onboardingStatus'],
               hasEligibilityProfile: Boolean(inspectorEligibility),
+              testOverride: isInspectorTestModeEnabled({ role: 'inspector' }),
               fallback: safeNextPath ?? cfg.dashHref,
             })
           : safeNextPath ?? cfg.dashHref
@@ -231,6 +235,7 @@ function SignInInner() {
       ? getInspectorDestination({
           onboardingStatus: user.onboardingStatus,
           hasEligibilityProfile: false,
+          testOverride: isInspectorTestModeEnabled(user),
           fallback: safeNextPath ?? cfg.dashHref,
         })
       : safeNextPath ?? cfg.dashHref

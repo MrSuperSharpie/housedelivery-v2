@@ -108,7 +108,7 @@ export interface PaymentDecisionRow {
   payoutStatus: string
   baseFeeAmount: number
   holdPremiumAmount: number
-  sitelineCommissionAmount: number
+  veroCommissionAmount: number
   blockedReason?: string
   decisionNote?: string
   decidedById?: string
@@ -238,7 +238,7 @@ function rowToPaymentDecision(row: Row): PaymentDecisionRow {
     payoutStatus: row.payout_status as string,
     baseFeeAmount: Number(row.base_fee_amount ?? 0),
     holdPremiumAmount: Number(row.hold_premium_amount ?? 0),
-    sitelineCommissionAmount: Number(row.siteline_commission_amount ?? 0),
+    veroCommissionAmount: Number(row.siteline_commission_amount ?? 0),
     blockedReason: (row.blocked_reason as string) ?? undefined,
     decisionNote: (row.decision_note as string) ?? undefined,
     decidedById: (row.decided_by_id as string) ?? undefined,
@@ -535,7 +535,7 @@ export async function upsertPaymentDecision(
       payout_status: input.payoutStatus,
       base_fee_amount: input.baseFeeAmount,
       hold_premium_amount: input.holdPremiumAmount,
-      siteline_commission_amount: input.sitelineCommissionAmount,
+      siteline_commission_amount: input.veroCommissionAmount,
       blocked_reason: input.blockedReason ?? null,
       decision_note: input.decisionNote ?? null,
       decided_by_id: input.decidedById ?? null,

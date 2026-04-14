@@ -90,7 +90,7 @@ export const DEMO_USERS: AuthUser[] = [
     title:        'Senior Building Inspector',
   },
   {
-    id:       'siteline-admin',
+    id:       'vero-admin',
     name:     'Vero Admin',
     firstName:'Admin',
     role:     'admin',
@@ -148,7 +148,7 @@ const AuthContext = createContext<AuthContextValue>({
   isLoading: true,
 })
 
-const STORAGE_KEY = 'siteline_auth_user'
+const STORAGE_KEY = 'vero_auth_user'
 
 function readMetadataString(metadata: Record<string, unknown> | undefined, ...keys: string[]) {
   for (const key of keys) {

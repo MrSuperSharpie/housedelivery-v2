@@ -140,7 +140,7 @@ const DEV_PREVIEW_REPORT: InspectorCompletionReportRow = (() => {
     checklistSnapshot: [],
     status: 'sealed',
     sealApplied: true,
-    sealReference: 'SL-IC-2026-A3F9B1',
+    sealReference: 'VERO-IC-2026-A3F9B1',
     sealPayload: {
       overallResult: 'pass',
       sealedAt: ts,
@@ -227,7 +227,7 @@ async function handleDevPreview(variant: 'packet' | 'form-only'): Promise<NextRe
         brandLogoSrc,
         buildingPermitNumber: 'BP-DEV-48219',
         generatedAtIso: new Date().toISOString(),
-        verificationId: 'SL-IC-2026-A3F9B1',
+        verificationId: 'VERO-IC-2026-A3F9B1',
       })
     }
 

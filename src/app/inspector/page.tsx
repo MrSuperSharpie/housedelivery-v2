@@ -12,6 +12,7 @@ import { useStore } from '@/lib/store'
 import { getInspectorOnboardingStatusAsync } from '@/lib/persistence/inspectorOnboarding'
 import { selectInspectorEligibility } from '@/lib/supabase/compliance'
 import { useTheme } from '@/lib/theme'
+import { isInspectorTestModeEnabled } from '@/lib/inspectorTestMode'
 import type { Region, InspectorDiscipline, InspectorEligibilityProfile } from '@/lib/types'
 
 const REGIONS: { value: Region | 'all'; label: string }[] = [
@@ -39,6 +40,7 @@ export default function InspectorDashboard() {
   const store = useStore()
   const { theme } = useTheme()
   const isDark = theme === 'dark'
+  const inspectorTestOverride = isInspectorTestModeEnabled(user)
 
   const [region, setRegion]         = useState<Region | 'all'>('all')
   const [discipline, setDiscipline] = useState<InspectorDiscipline | 'all'>('all')
@@ -129,6 +131,17 @@ export default function InspectorDashboard() {
   }, [eligibilityProfile, onboardingStatus, user])
 
   const classifiedJobs = useMemo(() => {
+    if (inspectorTestOverride) {
+      return filteredJobs.map(job => ({
+        job,
+        eligibility: {
+          eligible: true,
+          reasons: [],
+        },
+        primaryReason: null,
+      }))
+    }
+
     return filteredJobs.map(job => {
       if (job.projectName?.includes('TEST AAA') || job.requiredDiscipline === 'mechanical') {
         console.log('[LiveBoard] checkInspectorEligibility input for job:', job.projectName)
@@ -156,11 +169,11 @@ export default function InspectorDashboard() {
         primaryReason: eligibility.reasons[0] ?? null,
       }
     })
-  }, [filteredJobs, inspectorEligibility])
+  }, [filteredJobs, inspectorEligibility, inspectorTestOverride])
 
   const eligibleJobs = classifiedJobs.filter(entry => entry.eligibility.eligible)
   const ineligibleJobs = classifiedJobs.filter(entry => !entry.eligibility.eligible)
-  const showOnboardingBanner = inspectorEligibility.status !== 'approved'
+  const showOnboardingBanner = !inspectorTestOverride && inspectorEligibility.status !== 'approved'
 
   const handleClaim = async (
     jobId: string,

@@ -8,7 +8,7 @@ export interface PaymentHydrationInput {
 export interface PaymentHydrationResult {
   baseFeeAmount: number
   holdPremiumAmount: number
-  sitelineCommissionAmount: number
+  veroCommissionAmount: number
   usedFallback: boolean
 }
 
@@ -17,7 +17,7 @@ export function hydrateGovernedPaymentAmounts(
   defaults: {
     baseFeeAmount?: number
     holdPremiumAmount?: number
-    sitelineCommissionAmount?: number
+    veroCommissionAmount?: number
   } = {},
 ): PaymentHydrationResult {
   const offeredRate = Number(input.offeredRate ?? 0)
@@ -26,14 +26,14 @@ export function hydrateGovernedPaymentAmounts(
 
   const holdPremiumAmount = Math.max(0, escrowAmount - offeredRate)
   const baseFeeAmount = offeredRate > 0 ? offeredRate : Number(defaults.baseFeeAmount ?? 0)
-  const sitelineCommissionAmount = commission > 0
+  const veroCommissionAmount = commission > 0
     ? commission
-    : Number(defaults.sitelineCommissionAmount ?? 0)
+    : Number(defaults.veroCommissionAmount ?? 0)
 
   return {
     baseFeeAmount,
     holdPremiumAmount: holdPremiumAmount > 0 ? holdPremiumAmount : Number(defaults.holdPremiumAmount ?? 0),
-    sitelineCommissionAmount,
+    veroCommissionAmount,
     usedFallback: offeredRate <= 0 && escrowAmount <= 0 && commission <= 0,
   }
 }

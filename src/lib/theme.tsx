@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 
 export type AppTheme = 'dark' | 'light'
 
-export const THEME_STORAGE_KEY = 'siteline-theme'
+export const THEME_STORAGE_KEY = 'vero-theme'
 const DEFAULT_THEME: AppTheme = 'light'
 
 interface ThemeContextValue {

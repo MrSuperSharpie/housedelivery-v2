@@ -226,7 +226,7 @@ export default function PackagePreviewClient() {
           }
 
           /* ── Show print-only elements (override Tailwind hidden) ── */
-          .siteline-print-header {
+          .vero-print-header {
             display: flex !important;
             align-items: flex-start;
             justify-content: space-between;
@@ -235,7 +235,7 @@ export default function PackagePreviewClient() {
             margin-bottom: 14pt;
           }
 
-          .siteline-print-footer {
+          .vero-print-footer {
             display: block !important;
             position: fixed;
             bottom: 0;
@@ -249,7 +249,7 @@ export default function PackagePreviewClient() {
             background: white !important;
           }
 
-          .siteline-print-cover {
+          .vero-print-cover {
             display: flex !important;
             flex-direction: column;
             align-items: center;
@@ -263,12 +263,12 @@ export default function PackagePreviewClient() {
           }
 
           /* ── Page breaks ── */
-          .siteline-section-break {
+          .vero-section-break {
             page-break-before: always;
             break-before: page;
           }
 
-          .siteline-appendix-break {
+          .vero-appendix-break {
             page-break-before: always;
             break-before: page;
           }
@@ -322,7 +322,7 @@ export default function PackagePreviewClient() {
           }
 
           /* ── Cert ref badge on cover ── */
-          .sl-cert-badge {
+          .vero-cert-badge {
             display: inline-block;
             border: 1.5pt solid black;
             border-radius: 4pt;
@@ -334,24 +334,27 @@ export default function PackagePreviewClient() {
             margin: 12pt 0;
           }
 
-          .sl-sealed-badge {
+          .vero-sealed-badge {
             display: inline-block;
-            border: 2pt solid black;
-            border-radius: 3pt;
-            padding: 3pt 10pt;
+            background: #059669;
+            color: #ffffff !important;
+            border: 2pt solid #047857;
+            border-radius: 4pt;
+            padding: 4pt 12pt;
             font-size: 9pt;
             font-weight: 900;
             letter-spacing: 0.2em;
             text-transform: uppercase;
+            box-shadow: 0 2pt 8pt rgba(5,150,105,0.35);
           }
 
           /* ── Result colours (override * rule) ── */
-          .sl-pass { color: #16a34a !important; font-weight: 700; }
-          .sl-fail { color: #dc2626 !important; font-weight: 700; }
-          .sl-na   { color: #9ca3af !important; }
+          .vero-pass { color: #16a34a !important; font-weight: 700; }
+          .vero-fail { color: #dc2626 !important; font-weight: 700; }
+          .vero-na   { color: #9ca3af !important; }
 
           /* ── Result badge on cover ── */
-          .sl-result-badge {
+          .vero-result-badge {
             display: inline-block;
             border: 2pt solid currentColor;
             border-radius: 3pt;
@@ -381,7 +384,7 @@ export default function PackagePreviewClient() {
       <div className="max-w-4xl mx-auto px-4 py-6 print:py-2">
 
         {/* Print letterhead — hidden on screen, shown at top of first printed page */}
-        <div className="siteline-print-header hidden">
+        <div className="vero-print-header hidden">
           <div className="flex items-center justify-between">
             <div>
               <div style={{ fontWeight: 900, fontSize: '14pt', letterSpacing: '0.02em' }}>Vero</div>
@@ -401,7 +404,7 @@ export default function PackagePreviewClient() {
         </div>
 
         {/* Print footer — fixed at bottom of every page */}
-        <div className="siteline-print-footer hidden">
+        <div className="vero-print-footer hidden">
           Vero Field Inspection Report
           {inspectorDeclaration?.certRef ? ` · Ref: ${inspectorDeclaration.certRef}` : ''}
           {cover.permitNumber ? ` · Permit ${cover.permitNumber}` : ''}
@@ -410,7 +413,7 @@ export default function PackagePreviewClient() {
         </div>
 
         {/* Print-only cover page — full page, breaks before data sections */}
-        <div className="siteline-print-cover hidden">
+        <div className="vero-print-cover hidden">
           {/* Branding */}
           <div style={{ marginBottom: '32pt' }}>
             <div style={{ fontWeight: 900, fontSize: '22pt', letterSpacing: '0.03em' }}>Vero</div>
@@ -428,15 +431,15 @@ export default function PackagePreviewClient() {
           </div>
 
           {/* Sealed badge */}
-          <div className="sl-sealed-badge" style={{ marginBottom: '10pt' }}>Sealed</div>
+          <div className="vero-sealed-badge" style={{ marginBottom: '10pt' }}>Sealed</div>
 
           {/* Cert ref */}
           {inspectorDeclaration?.certRef && (
-            <div className="sl-cert-badge">{inspectorDeclaration.certRef}</div>
+            <div className="vero-cert-badge">{inspectorDeclaration.certRef}</div>
           )}
 
           {/* Result */}
-          <div className={`sl-result-badge ${record.result === 'pass' ? 'sl-pass' : record.result === 'fail' ? 'sl-fail' : ''}`}>
+          <div className={`vero-result-badge ${record.result === 'pass' ? 'vero-pass' : record.result === 'fail' ? 'vero-fail' : ''}`}>
             {record.result === 'pass' ? 'PASS' : record.result === 'fail' ? 'FAIL' : 'STOPPED'}
           </div>
 
@@ -513,7 +516,7 @@ export default function PackagePreviewClient() {
         </div>
 
         {/* S1 — Inspection Summary */}
-        <section className="siteline-section-break card-dark rounded-2xl p-5 mb-4 print:border print:rounded-lg">
+        <section className="vero-section-break card-dark rounded-2xl p-5 mb-4 print:border print:rounded-lg">
           <h2 className="label-mono mb-4">Section 1 — Inspection Summary</h2>
           <div className="grid gap-3 text-sm">
             {cover.permitNumber && (
@@ -553,8 +556,8 @@ export default function PackagePreviewClient() {
             <div className="flex gap-3 items-center">
               <span className="text-muted w-40 shrink-0">Final Outcome</span>
               <span className={`font-black text-base tracking-wide ${
-                record.result === 'pass' ? 'text-success-green sl-pass' :
-                record.result === 'fail' ? 'text-fail-red sl-fail' : 'text-muted'
+                record.result === 'pass' ? 'text-success-green vero-pass' :
+                record.result === 'fail' ? 'text-fail-red vero-fail' : 'text-muted'
               }`}>{overallResult}</span>
             </div>
           </div>
@@ -594,7 +597,7 @@ export default function PackagePreviewClient() {
         </section>
 
         {/* S3 — Checklist Results */}
-        <section className="siteline-section-break card-dark rounded-2xl p-5 mb-4 print:border print:rounded-lg">
+        <section className="vero-section-break card-dark rounded-2xl p-5 mb-4 print:border print:rounded-lg">
           <h2 className="label-mono mb-4">
             Section 3 — Checklist Results
             <span className="ml-2 text-xs font-normal normal-case tracking-normal text-muted">
@@ -620,9 +623,9 @@ export default function PackagePreviewClient() {
                       <td className="py-2 pr-2 text-muted font-mono text-xs">{String(i + 1).padStart(2, '0')}</td>
                       <td className="py-2 pr-4 text-ink">{item.label}</td>
                       <td className={`py-2 pr-4 font-black text-xs uppercase tracking-wide ${
-                        item.result === 'pass' ? 'text-success-green sl-pass' :
-                        item.result === 'fail' ? 'text-fail-red sl-fail' :
-                        item.result === 'na'   ? 'text-muted sl-na' : 'text-subtle'
+                        item.result === 'pass' ? 'text-success-green vero-pass' :
+                        item.result === 'fail' ? 'text-fail-red vero-fail' :
+                        item.result === 'na'   ? 'text-muted vero-na' : 'text-subtle'
                       }`}>
                         {item.result === 'pass' ? 'PASS' :
                          item.result === 'fail' ? 'FAIL' :
@@ -657,7 +660,7 @@ export default function PackagePreviewClient() {
           <div className="grid gap-3 text-sm border-t border-white/10 pt-3">
             <div className="flex gap-3">
               <span className="text-muted w-40 shrink-0">Geolocation Captured</span>
-              <span className={evidenceHasGeo ? 'text-success-green sl-pass font-semibold' : 'text-muted'}>
+              <span className={evidenceHasGeo ? 'text-success-green vero-pass font-semibold' : 'text-muted'}>
                 {evidenceHasGeo ? 'Yes' : 'No'}
               </span>
             </div>
@@ -681,7 +684,7 @@ export default function PackagePreviewClient() {
         </section>
 
         {/* S5 — Evidence Index */}
-        <section className="siteline-appendix-break card-dark rounded-2xl p-5 mb-4 print:border print:rounded-lg">
+        <section className="vero-appendix-break card-dark rounded-2xl p-5 mb-4 print:border print:rounded-lg">
           <h2 className="label-mono mb-3">Section 5 — Evidence Index</h2>
           <p className="text-xs text-subtle mb-4">
             Geo-located, time-stamped evidence collected during field review. {evidenceIndex.length} item(s).
@@ -732,7 +735,7 @@ export default function PackagePreviewClient() {
 
         {/* S6 — Inspector Declaration */}
         {inspectorDeclaration && (
-          <section className="siteline-section-break card-dark rounded-2xl p-5 mb-4 print:border print:rounded-lg">
+          <section className="vero-section-break card-dark rounded-2xl p-5 mb-4 print:border print:rounded-lg">
             <h2 className="label-mono mb-4">Section 6 — Inspector Declaration</h2>
             <p className="text-sm text-ink leading-relaxed mb-5 italic">
               &ldquo;{inspectorDeclaration.statement}&rdquo;

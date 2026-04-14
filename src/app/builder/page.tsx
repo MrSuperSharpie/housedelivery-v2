@@ -33,6 +33,7 @@ import { getJobWorkflowLabel, getJobWorkflowState } from '@/lib/workflow'
 import { isHoldOpenStatus } from '@/lib/holds/workflow'
 import { resolveHoldBaseRate } from '@/lib/pricing/config'
 import { calculateHoldCost } from '@/utils/pricing'
+import { resolveReportDataMode } from '@/lib/dataSourceMode'
 
 // FIX #1: createClient() must not be called between import statements.
 // Moved here, after all imports, as a module-level constant.
@@ -462,6 +463,16 @@ export default function BuilderDashboard() {
     ...(supabaseProjects ?? storeProjects),
     ...(dbJobs !== null ? dbJobsAsProjects : standaloneJobsAsProjects),
   ]
+  const dailyFlashMode = resolveReportDataMode(Boolean(user?.supabaseId))
+  const dailyFlashProjects = dailyFlashMode === 'live'
+    ? [
+        ...(supabaseProjects ?? []),
+        ...(dbJobs !== null ? dbJobsAsProjects : []),
+      ]
+    : [
+        ...storeProjects,
+        ...standaloneJobsAsProjects,
+      ]
 
   // FIX #6: wrap confirm() in a try/catch — it throws in some SSR/edge environments
   const handleDeleteProject = async (projectId: string) => {
@@ -568,34 +579,19 @@ export default function BuilderDashboard() {
 
           <button
             onClick={handleNewRequest}
-            className="group flex w-full items-center gap-3 rounded-2xl border border-rim bg-panel p-4 shadow-card transition-all hover:border-flame/40 hover:glow-flame-sm"
+            className="group flex w-full items-center gap-4 rounded-2xl border border-rim bg-panel p-5 shadow-card transition-all hover:border-flame/40 hover:glow-flame-sm"
           >
-            <div className="w-10 h-10 rounded-xl bg-flame flex items-center justify-center shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-flame flex items-center justify-center shrink-0 shadow-[0_12px_24px_rgba(245,124,0,0.22)]">
               <MapPin className="w-5 h-5 text-white" />
             </div>
             <div className="flex-1 text-left">
               <div className="text-sm font-extrabold text-ink">Post an Inspection Request</div>
-              <div className="mt-0.5 text-xs font-medium text-muted">Enter site address · Select stage & discipline · Go live on board</div>
+              <div className="mt-1 text-xs font-medium text-muted">Start a new request with site details, inspection stage, discipline, and builder availability. Dispatch speed is selected inside the request flow.</div>
             </div>
-            <div className="w-8 h-8 bg-flame/10 border border-flame/20 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-flame group-hover:border-flame transition-all">
+            <div className="w-9 h-9 bg-flame/10 border border-flame/20 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-flame group-hover:border-flame transition-all">
               <ChevronRight className="w-4 h-4 text-flame group-hover:text-white transition-colors" />
             </div>
           </button>
-
-          {/* Speed pills */}
-          <div className="flex gap-2 mt-3">
-            {[
-              { label: 'Standard',  sub: '5–7 business days',         cls: 'border-white/8 text-muted hover:border-white/15' },
-              { label: 'Priority',  sub: '2–3 business days',         cls: 'border-warning-amber/30 text-warning-amber bg-warning-amber/5 hover:bg-warning-amber/10' },
-              { label: 'Emergency', sub: 'Within 24 hrs / next day',  cls: 'border-[#D97706]/35 text-[#D97706] bg-[#D97706]/8 hover:bg-[#D97706]/12' },
-            ].map(t => (
-              <button key={t.label} onClick={handleNewRequest}
-                className={`flex-1 border rounded-xl px-3 py-2 text-left transition-all ${t.cls}`}>
-                <div className="text-xs font-extrabold text-ink">{t.label}</div>
-                <div className="text-xs font-medium opacity-80">{t.sub}</div>
-              </button>
-            ))}
-          </div>
         </div>
       </div>
 
@@ -856,7 +852,7 @@ export default function BuilderDashboard() {
           </div>
         )}
 
-        <DailyFlash projects={projects} />
+        <DailyFlash projects={dailyFlashProjects} dataMode={dailyFlashMode} />
       </main>
 
       <DispatchModal

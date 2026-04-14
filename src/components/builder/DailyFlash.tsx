@@ -6,12 +6,14 @@ import { CheckCircle2, XCircle, TrendingUp, Calendar } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { Card } from '@/components/ui/Card'
 import type { Project } from '@/lib/types'
+import type { ReportDataMode } from '@/lib/dataSourceMode'
 
 interface DailyFlashProps {
   projects: Project[]
+  dataMode: ReportDataMode
 }
 
-export function DailyFlash({ projects }: DailyFlashProps) {
+export function DailyFlash({ projects, dataMode }: DailyFlashProps) {
   const passed = projects.filter(p => p.status === 'pass')
   const failed = projects.filter(p => p.status === 'fail')
   const pending = projects.filter(p => p.status === 'pending' || p.status === 'awaiting_reinspection')
@@ -29,7 +31,7 @@ export function DailyFlash({ projects }: DailyFlashProps) {
   ]
 
   return (
-    <Card className="col-span-full border border-rim">
+    <Card className="col-span-full border border-rim" data-report-mode={dataMode}>
       {/* Header */}
       <div className="flex items-start justify-between mb-5">
         <div>

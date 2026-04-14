@@ -71,6 +71,6 @@ test('payment hydration uses upstream offered rate when available', () => {
 
   assert.equal(result.baseFeeAmount, 443)
   assert.equal(result.holdPremiumAmount, 0)
-  assert.equal(result.sitelineCommissionAmount, 44)
+  assert.equal(result.veroCommissionAmount, 44)
   assert.equal(result.usedFallback, false)
 })
