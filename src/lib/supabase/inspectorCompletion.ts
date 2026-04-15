@@ -336,7 +336,15 @@ export async function upsertInspectorCompletionReport(
       .from(REPORTS)
       .insert(reportPayload)
       .select('*')
-      .single()
+      .maybeSingle()
+  }
+
+  async function fetchExisting() {
+    return supabase
+      .from(REPORTS)
+      .select('*')
+      .eq('assignment_id', input.assignmentId)
+      .maybeSingle()
   }
 
   try {
@@ -362,12 +370,19 @@ export async function upsertInspectorCompletionReport(
       ;({ data, error } = await runInsert(basePayload))
     }
 
-    if (error || !data) {
-      console.error('upsertInspectorCompletionReport:', error, payload)
-      return null
+    if (!error && data) {
+      return rowToReport(data as Record<string, unknown>)
     }
 
-    return rowToReport(data as Record<string, unknown>)
+    // Insert returned no data — likely a concurrent call already created the row.
+    // Attempt to recover by fetching the existing record.
+    const { data: existingData, error: fetchError } = await fetchExisting()
+    if (!fetchError && existingData) {
+      return rowToReport(existingData as Record<string, unknown>)
+    }
+
+    console.error('upsertInspectorCompletionReport:', error ?? fetchError, payload)
+    return null
   } catch (error) {
     console.error('upsertInspectorCompletionReport (exception):', error, payload)
     return null
@@ -483,7 +498,6 @@ export async function uploadInspectorCompletionDocument(
     file_name: file.name,
     storage_path: storagePath,
     mime_type: file.type || null,
-    media_type: mediaType,
     file_size: file.size || null,
     evidence_checksum: evidenceChecksum,
     original_captured_at: now,
@@ -494,13 +508,7 @@ export async function uploadInspectorCompletionDocument(
     created_at: now,
   }
 
-  let { data, error } = await supabase.from(DOCUMENTS).insert(row).select('*').single()
-  if (error && isMissingColumnError(error, 'media_type')) {
-    const legacyRow = { ...row }
-    delete legacyRow.media_type
-    console.warn('uploadInspectorCompletionDocument insert: media_type column missing, retrying without it')
-    ;({ data, error } = await supabase.from(DOCUMENTS).insert(legacyRow).select('*').single())
-  }
+  const { data, error } = await supabase.from(DOCUMENTS).insert(row).select('*').single()
   if (error || !data) {
     console.error('uploadInspectorCompletionDocument insert:', error)
     return null

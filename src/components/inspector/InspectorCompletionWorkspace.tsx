@@ -1309,7 +1309,7 @@ export function InspectorCompletionWorkspace() {
 
       const jobRow: JobContext = {
         id: jobData.id as string,
-        projectId: (jobData.project_id as string) ?? (jobData.id as string),
+        projectId: (jobData.project_id as string) ?? undefined,
         projectName: jobData.project_name as string,
         address: jobData.address as string,
         city: (jobData.city as string) ?? 'Vancouver',

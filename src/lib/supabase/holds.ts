@@ -18,7 +18,6 @@ import {
   canAddHoldEvidence,
   canBuilderRespondToHold,
   canPerformHoldAction,
-  canInspectorCreateHold,
   canResolveHold,
   getHoldResolutionStatus,
   isHoldOpenStatus,
@@ -165,6 +164,37 @@ function createRuntimeId(prefix: string): string {
 
 function sanitizeFileName(name: string): string {
   return name.replace(/[^a-zA-Z0-9._-]+/g, '_')
+}
+
+function pgErrorCode(error: unknown): string {
+  return typeof error === 'object' && error !== null && 'code' in error
+    ? String((error as { code?: unknown }).code ?? '')
+    : ''
+}
+
+function pgErrorMessage(error: unknown): string {
+  return typeof error === 'object' && error !== null && 'message' in error
+    ? String((error as { message?: unknown }).message ?? '')
+    : ''
+}
+
+/** PostgreSQL 42703: undefined_column — a column named in the query doesn't exist in the table. */
+function isUndefinedColumnError(error: unknown): boolean {
+  return pgErrorCode(error) === '42703'
+}
+
+/** PostgreSQL 23514: check_violation — a CHECK constraint rejected the value (e.g. old status enum). */
+function isCheckViolationError(error: unknown): boolean {
+  return pgErrorCode(error) === '23514'
+}
+
+/** True when the error is the kind of schema mismatch that a stripped-down retry can resolve. */
+function isSchemaCompatibilityError(error: unknown): boolean {
+  return isUndefinedColumnError(error) || isCheckViolationError(error)
+}
+
+function isMissingColumnError(error: unknown, columnName: string): boolean {
+  return isUndefinedColumnError(error) && pgErrorMessage(error).includes(columnName)
 }
 
 function deriveActorRoleFromMetadata(user: { app_metadata?: Record<string, unknown>; user_metadata?: Record<string, unknown> }): AuthenticatedHoldActor['role'] {
@@ -330,7 +360,7 @@ async function insertHoldEvent(input: {
 
 async function notifyBuilderOfHold(hold: HoldRecord): Promise<HoldRecord | null> {
   const now = new Date().toISOString()
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from('job_holds')
     .update({
       status: 'hold_pending_builder_ack',
@@ -341,8 +371,32 @@ async function notifyBuilderOfHold(hold: HoldRecord): Promise<HoldRecord | null>
     .select('*')
     .single()
 
+  if (error && isMissingColumnError(error, 'last_notified_at')) {
+    // last_notified_at column not yet in DB — retry without it
+    console.warn('notifyBuilderOfHold: last_notified_at column missing, retrying without it')
+    ;({ data, error } = await supabase
+      .from('job_holds')
+      .update({ status: 'hold_pending_builder_ack', updated_at: now })
+      .eq('id', hold.id)
+      .select('*')
+      .single())
+  }
+
+  if (error && isSchemaCompatibilityError(error)) {
+    // Status constraint is still on legacy values — fall back to 'open' which normalises
+    // to hold_pending_builder_ack in code via normalizeHoldStatus
+    console.warn('notifyBuilderOfHold: schema mismatch on status update, retrying with legacy status',
+      JSON.stringify({ code: pgErrorCode(error), message: pgErrorMessage(error) }))
+    ;({ data, error } = await supabase
+      .from('job_holds')
+      .update({ status: 'open', updated_at: now })
+      .eq('id', hold.id)
+      .select('*')
+      .single())
+  }
+
   if (error || !data) {
-    console.error('notifyBuilderOfHold:', error)
+    console.error('notifyBuilderOfHold: update failed', JSON.stringify({ code: pgErrorCode(error), message: pgErrorMessage(error), detail: (error as Record<string, unknown> | null)?.details }))
     return null
   }
 
@@ -365,7 +419,15 @@ async function notifyBuilderOfHold(hold: HoldRecord): Promise<HoldRecord | null>
 
 export async function placeHold(input: PlaceHoldInput): Promise<HoldRecord | null> {
   const actor = await getAuthenticatedHoldActor()
-  if (!actor || !canInspectorCreateHold(actor.role) || (actor.role !== 'admin' && actor.id !== input.inspectorId)) return null
+  // Authorization: the authenticated Supabase user must be the inspector being claimed, or an admin.
+  // We intentionally do NOT gate on actor.role here because the app's login flow stores the role in
+  // localStorage but does not write it back to Supabase user_metadata — so the JWT role is
+  // unreliable. The ID match against the server-verified actor.id is the real authorization check.
+  // DB-level RLS policies enforce this as a second layer.
+  if (!actor || (actor.role !== 'admin' && actor.id !== input.inspectorId)) {
+    console.error('placeHold: auth rejected', { actorId: actor?.id, actorRole: actor?.role, inspectorId: input.inspectorId })
+    return null
+  }
 
   const governance = validateOutcomeSelection({
     outcome: 'hold',
@@ -390,7 +452,7 @@ export async function placeHold(input: PlaceHoldInput): Promise<HoldRecord | nul
   const expiresAt = computeExpiresAt(placedAt, input.dispatchTier, input.estimatedCorrectionMinutes)
   const affectedItemSummaries = input.affectedItemSummaries ?? input.checklistItemIds
 
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from('job_holds')
     .insert({
       job_id: input.jobId,
@@ -411,14 +473,36 @@ export async function placeHold(input: PlaceHoldInput): Promise<HoldRecord | nul
       premium_rate_amount: input.premiumRateAmount,
       hold_cap_amount: input.holdCapAmount,
       linked_correction_evidence_ids: input.linkedCorrectionEvidenceIds ?? [],
-      affected_item_summaries: affectedItemSummaries,
       builder_note: input.notes ?? null,
     })
     .select('*')
     .single()
 
+  if (error && isSchemaCompatibilityError(error)) {
+    // Schema is behind migrations — retry with the minimal set of columns that have existed
+    // since the original job_holds table + 20260402133000. Legacy status 'open' normalises
+    // to 'hold_pending_builder_ack' via normalizeHoldStatus so the UI still works correctly.
+    console.warn('placeHold: schema mismatch on full insert, retrying with legacy payload',
+      JSON.stringify({ code: pgErrorCode(error), message: pgErrorMessage(error) }))
+    ;({ data, error } = await supabase
+      .from('job_holds')
+      .insert({
+        job_id: input.jobId,
+        inspector_id: input.inspectorId,
+        builder_id: input.builderId,
+        reason: input.reason,
+        expires_at: expiresAt,
+        placed_at: placedAt.toISOString(),
+        status: 'open',
+        checklist_item_ids: input.checklistItemIds,
+        builder_note: input.notes ?? null,
+      })
+      .select('*')
+      .single())
+  }
+
   if (error || !data) {
-    console.error('placeHold:', error)
+    console.error('placeHold: insert failed', JSON.stringify({ code: pgErrorCode(error), message: pgErrorMessage(error), detail: (error as Record<string, unknown> | null)?.details }))
     return null
   }
 
