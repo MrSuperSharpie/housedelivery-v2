@@ -38,21 +38,34 @@ set
   builder_declined_at = coalesce(builder_declined_at, declined_at),
   hold_resolution_notes = coalesce(hold_resolution_notes, resolution_summary),
   linked_correction_evidence_ids = coalesce(linked_correction_evidence_ids, '[]'::jsonb),
-  created_by_inspector_id = coalesce(created_by_inspector_id, inspector_id),
+  created_by_inspector_id = coalesce(created_by_inspector_id, inspector_id::uuid),
   related_inspection_id = coalesce(related_inspection_id, job_id::text),
   affected_item_summaries = coalesce(affected_item_summaries, checklist_item_ids, '[]'::jsonb),
   premium_charge_amount = coalesce(premium_charge_amount, 0),
   actual_retained_minutes = coalesce(actual_retained_minutes, 0),
   extension_count = coalesce(extension_count, 0)
 where true;
+ALTER TABLE public.job_holds DROP CONSTRAINT IF EXISTS job_holds_status_check;
 
 update public.job_holds
 set status = case
-  when status = 'open' then 'hold_pending_builder_ack'
-  when status = 'builder_approved' then 'hold_active'
-  when status = 'builder_declined' then 'hold_declined'
-  when status = 'expired' then 'hold_expired'
-  else status
+    when status = 'offered' then 'hold_offered'
+    when status = 'accepted' then 'hold_pending_builder_ack'
+    when status = 'approved' then 'hold_active'
+    when status = 'declined' then 'hold_declined'
+    when status = 'resolved_pass' then 'hold_resolved_pass'
+    when status = 'resolved_fail' then 'hold_resolved_fail'
+    else status
+end
+where status in ('offered', 'accepted', 'approved', 'declined', 'resolved_pass', 'resolved_fail');
+
+update public.job_holds
+set status = case
+    when status = 'open' then 'hold_pending_builder_ack'
+    when status = 'builder_approved' then 'hold_active'
+    when status = 'builder_declined' then 'hold_declined'
+    when status = 'expired' then 'hold_expired'
+    else status
 end
 where status in ('open', 'builder_approved', 'builder_declined', 'expired');
 

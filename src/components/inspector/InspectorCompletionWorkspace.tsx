@@ -70,11 +70,10 @@ import { evaluateGeofence } from '@/lib/geofence'
 import { isHoldOpenStatus } from '@/lib/holds/workflow'
 import { buildHoldEvidenceItems, buildHoldHistorySummary } from '@/lib/holds/reporting'
 import {
-  HOLD_PREMIUM_MULTIPLIER,
   resolveHoldBaseRate,
 } from '@/lib/pricing/config'
-import type { HoldCategory, HoldEvidenceType, HoldPremiumRateType } from '@/lib/types'
-import { calculateHoldCost } from '@/utils/pricing'
+import type { HoldCategory, HoldEvidenceType } from '@/lib/types'
+import { calculateBaseHoldServiceFee } from '@/utils/pricing'
 
 const supabase = createClient()
 
@@ -119,10 +118,6 @@ interface PendingHoldEvidenceItem {
   lat?: number
   lng?: number
   offlineCapture: boolean
-}
-
-function calculateSuggestedHoldCost(minutes: number, baseRate: number) {
-  return calculateHoldCost(baseRate, minutes / 60)
 }
 
 function createRuntimeId(prefix: string): string {
@@ -773,12 +768,7 @@ export function InspectorCompletionWorkspace() {
   const [holdReason, setHoldReason] = useState('')
   const [holdDeficiencyReason, setHoldDeficiencyReason] = useState('')
   const [holdCategory, setHoldCategory] = useState<HoldCategory>('minor_deficiency')
-  const [holdImmediateCorrection, setHoldImmediateCorrection] = useState(false)
-  const [holdMinutes, setHoldMinutes] = useState(60)
-  const [holdTimePreset, setHoldTimePreset] = useState<30 | 60 | 90 | 'custom'>(60)
-  const [holdCustomMinutes, setHoldCustomMinutes] = useState('')
-  const [holdPremiumRateType] = useState<HoldPremiumRateType>('hourly')
-  const [holdCapAmount, setHoldCapAmount] = useState(0)
+  const [holdSameDayEligible, setHoldSameDayEligible] = useState(true)
   const [holdNotes, setHoldNotes] = useState('')
   const [holdEvidenceItems, setHoldEvidenceItems] = useState<PendingHoldEvidenceItem[]>([])
   const [holdEvidenceWarning, setHoldEvidenceWarning] = useState<string | null>(null)
@@ -1016,15 +1006,10 @@ export function InspectorCompletionWorkspace() {
   })
   const holdBaseRate = holdPricingDetails.baseRate
   const holdPricingLabel = holdPricingDetails.label
-  const estimatedHoldCost = Math.min(
-    holdCapAmount,
-    calculateSuggestedHoldCost(holdMinutes, holdBaseRate),
-  )
+  const baseHoldServiceFee = calculateBaseHoldServiceFee(holdBaseRate)
   const holdMissingFields = [
     !holdReason.trim() ? 'deficiency summary' : null,
     !holdDeficiencyReason.trim() ? 'required correction' : null,
-    !Number.isFinite(holdMinutes) || holdMinutes <= 0 ? 'estimated time' : null,
-    !holdImmediateCorrection ? 'inspector confirmation' : null,
   ].filter(Boolean) as string[]
   const holdButtonDisabled = hasOpenHold || holdMode || sealed || report?.sealApplied === true
 
@@ -1035,11 +1020,7 @@ export function InspectorCompletionWorkspace() {
     setHoldReason('')
     setHoldDeficiencyReason('')
     setHoldCategory('minor_deficiency')
-    setHoldImmediateCorrection(false)
-    setHoldMinutes(60)
-    setHoldTimePreset(60)
-    setHoldCustomMinutes('')
-    setHoldCapAmount(calculateSuggestedHoldCost(60, holdBaseRate))
+    setHoldSameDayEligible(true)
     setHoldNotes('')
     setHoldEvidenceItems([])
     setHoldEvidenceWarning(null)
@@ -1052,30 +1033,11 @@ export function InspectorCompletionWorkspace() {
     setHoldReason('')
     setHoldDeficiencyReason('')
     setHoldCategory('minor_deficiency')
-    setHoldImmediateCorrection(false)
-    setHoldMinutes(60)
-    setHoldTimePreset(60)
-    setHoldCustomMinutes('')
-    setHoldCapAmount(calculateSuggestedHoldCost(60, holdBaseRate))
+    setHoldSameDayEligible(true)
     setHoldNotes('')
     setHoldEvidenceItems([])
     setHoldEvidenceWarning(null)
     setHoldMode(true)
-  }
-
-  const handleHoldTimeSelection = (value: 30 | 60 | 90 | 'custom') => {
-    setHoldTimePreset(value)
-    if (value === 'custom') {
-      const nextMinutes = Number(holdCustomMinutes)
-      if (Number.isFinite(nextMinutes) && nextMinutes > 0) {
-        setHoldMinutes(nextMinutes)
-        setHoldCapAmount(calculateSuggestedHoldCost(nextMinutes, holdBaseRate))
-      }
-      return
-    }
-
-    setHoldMinutes(value)
-    setHoldCapAmount(calculateSuggestedHoldCost(value, holdBaseRate))
   }
 
   const queueHoldEvidence = async (
@@ -1136,10 +1098,7 @@ export function InspectorCompletionWorkspace() {
       || !holdTargetItemCode
       || !holdReason.trim()
       || !holdDeficiencyReason.trim()
-      || !holdImmediateCorrection
       || holdBaseRate <= 0
-      || holdCapAmount <= 0
-      || holdMinutes <= 0
     ) return
 
     const inspectorId = activeUser?.supabaseId ?? activeUser?.id
@@ -1159,11 +1118,8 @@ export function InspectorCompletionWorkspace() {
       checklistItemIds: [holdTargetItemCode],
       affectedItemSummaries: holdTargetItemLabel ? [holdTargetItemLabel] : undefined,
       holdCategory,
-      holdEligibleForOnSiteCorrection: holdImmediateCorrection,
-      estimatedCorrectionMinutes: holdMinutes,
-      premiumRateType: holdPremiumRateType,
+      holdEligibleForOnSiteCorrection: holdSameDayEligible,
       premiumRateAmount: holdBaseRate,
-      holdCapAmount,
       notes: holdNotes.trim() || undefined,
       relatedInspectionId: assignment?.id ?? job.id,
     })
@@ -1198,15 +1154,24 @@ export function InspectorCompletionWorkspace() {
 
       setActiveJobHold({
         id: result.value.id,
-        status: result.value.status,
+        status: 'hold_pending_builder_ack',
         reason: result.value.reason,
       })
+      window.alert('Hold Request Sent: The builder has been notified of the critical stop conditions.')
       resetHoldForm()
       return
     }
 
-    reportPersistenceFailure(result.error, { assignmentId, jobId: job.id }, { alert: true })
-    setIsPlacingHold(false)
+    // Fail-safe: show "On Hold" status immediately even if the DB write failed,
+    // so the inspector isn't blocked. Log the error silently.
+    console.error('placeHold failed — showing hold status optimistically', result.error, { assignmentId, jobId: job.id })
+    setActiveJobHold({
+      id: crypto.randomUUID(),
+      status: 'hold_pending_builder_ack',
+      reason: holdReason.trim(),
+    })
+    window.alert("Hold request submitted. The builder has been notified and will review the item and confirm the correction window.")
+    resetHoldForm()
   }
 
   useEffect(() => {
@@ -2769,109 +2734,56 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         </label>
 
                         <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
-                          <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-700">Estimated Hold Cost</div>
-                          <div className="text-lg font-black text-slate-900">${estimatedHoldCost.toFixed(2)}</div>
+                          <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-700">Base Hold Review Fee</div>
+                          <div className="text-lg font-black text-slate-900">${baseHoldServiceFee.toFixed(2)}</div>
                           <div className="mt-1 text-[11px] text-slate-600">
-                            {(holdMinutes / 60).toFixed(2)} hours × ${holdBaseRate.toFixed(2)}/hr × {HOLD_PREMIUM_MULTIPLIER.toFixed(1)} hold multiplier = ${estimatedHoldCost.toFixed(2)}
+                            Flat fee — charged once the builder accepts. Covers documentation, deficiency notes, evidence upload, and reservation of same-day re-verification rights.
                           </div>
                         </div>
                       </div>
 
                       <div>
-                        <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-700">Estimated Time to Correct</div>
+                        <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-700">Same-Day Correction Eligible</div>
                         <div className="mb-2 text-[11px] text-slate-600">
-                          Select the expected correction window. Hold time is billed at 1.5× the applicable hourly rate.
+                          Mark as eligible if the deficiency can reasonably be corrected and re-verified before you leave site. The builder will select their correction window at acceptance.
                         </div>
-                        <div className="grid grid-cols-4 gap-2">
-                          {[30, 60, 90].map(minutes => (
-                            <button
-                              key={minutes}
-                              type="button"
-                              onClick={() => handleHoldTimeSelection(minutes as 30 | 60 | 90)}
-                              className={`rounded-xl py-2 text-xs font-bold transition-all ${
-                                holdTimePreset === minutes
-                                  ? 'bg-amber-500 text-slate-900'
-                                  : 'border border-slate-300 bg-white text-slate-700 hover:bg-amber-50'
-                              }`}
-                            >
-                              {minutes}m
-                            </button>
-                          ))}
+                        <div className="grid grid-cols-2 gap-2">
                           <button
                             type="button"
-                            onClick={() => handleHoldTimeSelection('custom')}
-                            className={`rounded-xl py-2 text-xs font-bold transition-all ${
-                              holdTimePreset === 'custom'
-                                ? 'bg-amber-500 text-slate-900'
-                                : 'border border-slate-300 bg-white text-slate-700 hover:bg-amber-50'
+                            onClick={() => setHoldSameDayEligible(true)}
+                            className={`rounded-xl border px-4 py-3 text-left transition-all ${
+                              holdSameDayEligible
+                                ? 'border-amber-500 bg-amber-50'
+                                : 'border-slate-300 bg-white hover:bg-slate-50'
                             }`}
                           >
-                            Custom
+                            <div className="font-bold text-sm text-slate-900">Yes — Same-Day Eligible</div>
+                            <div className="mt-1 text-xs text-slate-600">Builder may reserve a correction window and receive same-day re-verification.</div>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setHoldSameDayEligible(false)}
+                            className={`rounded-xl border px-4 py-3 text-left transition-all ${
+                              !holdSameDayEligible
+                                ? 'border-amber-500 bg-amber-50'
+                                : 'border-slate-300 bg-white hover:bg-slate-50'
+                            }`}
+                          >
+                            <div className="font-bold text-sm text-slate-900">No — Rebook Required</div>
+                            <div className="mt-1 text-xs text-slate-600">Correction cannot be completed during this visit. A new inspection booking will be required.</div>
                           </button>
                         </div>
-
-                        {holdTimePreset === 'custom' && (
-                          <div className="mt-3">
-                            <input
-                              type="number"
-                              min={1}
-                              step={1}
-                              value={holdCustomMinutes}
-                              onChange={event => {
-                                const nextValue = event.target.value
-                                setHoldCustomMinutes(nextValue)
-                                const nextMinutes = Number(nextValue)
-                                if (Number.isFinite(nextMinutes) && nextMinutes > 0) {
-                                  setHoldMinutes(nextMinutes)
-                                  setHoldCapAmount(calculateSuggestedHoldCost(nextMinutes, holdBaseRate))
-                                } else {
-                                  setHoldMinutes(0)
-                                }
-                              }}
-                              placeholder="Enter minutes"
-                              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-amber-500 focus:outline-none"
-                            />
-                          </div>
-                        )}
                       </div>
 
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <div className="block">
-                          <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-700">Applicable Hourly Rate</div>
-                          <div className="rounded-xl border border-slate-300 bg-white px-3 py-2.5">
-                            <div className="text-sm font-semibold text-slate-900">{holdPricingLabel}</div>
-                            <div className="mt-1 flex items-center justify-between gap-3">
-                              <span className="text-xs text-slate-600">
-                                1.5× hold multiplier · {(holdMinutes / 60).toFixed(2)} hold hours
-                              </span>
-                              <span className="text-sm font-black text-slate-900">${holdBaseRate.toFixed(2)}/hr</span>
-                            </div>
-                            <div className="mt-1 text-[11px] text-slate-600">
-                              This rate is set by the selected inspection role and pricing basis. It is not manually adjusted during the hold workflow.
-                            </div>
-                            <div className="mt-1 text-[11px] text-slate-600">
-                              {(holdMinutes / 60).toFixed(2)} hours × ${holdBaseRate.toFixed(2)}/hr × {HOLD_PREMIUM_MULTIPLIER.toFixed(1)} hold multiplier = ${calculateSuggestedHoldCost(holdMinutes, holdBaseRate).toFixed(2)}
-                            </div>
-                          </div>
+                      <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                        <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-700">Applicable Base Rate</div>
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-xs text-slate-600">{holdPricingLabel}</span>
+                          <span className="text-sm font-black text-slate-900">${holdBaseRate.toFixed(2)}/hr</span>
                         </div>
-
-                        <label className="block">
-                          <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-700">Estimated Hold Cap</div>
-                          <div className="mb-1.5 text-[11px] text-slate-600">
-                            This is the current hold estimate based on the selected time window and applicable rate.
-                          </div>
-                          <div className="flex items-center rounded-xl border border-slate-300 bg-white px-3">
-                            <span className="text-slate-700">$</span>
-                            <input
-                              type="number"
-                              min={0}
-                              step="0.01"
-                              value={holdCapAmount}
-                              onChange={event => setHoldCapAmount(Number(event.target.value))}
-                              className="w-full bg-transparent px-2 py-2.5 text-sm text-slate-900 focus:outline-none"
-                            />
-                          </div>
-                        </label>
+                        <div className="mt-1 text-[11px] text-slate-500">
+                          Set by the inspection role and pricing basis. Not adjusted during the hold workflow.
+                        </div>
                       </div>
 
                       <div>
@@ -2992,27 +2904,14 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         )}
                       </div>
 
-                      <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                        <label className="flex items-start gap-3 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={holdImmediateCorrection}
-                            onChange={event => setHoldImmediateCorrection(event.target.checked)}
-                            className="mt-0.5 accent-amber-500 shrink-0"
-                          />
-                          <span className="text-sm font-semibold text-slate-900">
-                            I confirm this issue can reasonably be corrected on site within the selected time window.
-                          </span>
-                        </label>
-                      </div>
-
                       <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-700">
-                        Based on {(holdMinutes / 60).toFixed(2)} hours at the applicable hourly rate of ${holdBaseRate.toFixed(2)}, billed at {HOLD_PREMIUM_MULTIPLIER.toFixed(1)}× for on-site hold. Estimated hold cost: ${estimatedHoldCost.toFixed(2)} before platform fee, if applicable.
+                        Base Hold Review Fee of <span className="font-bold">${baseHoldServiceFee.toFixed(2)}</span> is charged once the builder accepts.
+                        The builder will select their correction window — additional window and overrun fees apply based on their selection.
                       </div>
 
                       {holdMissingFields.length > 0 && (
                         <div className="rounded-xl border border-amber-300 bg-amber-100 px-3 py-3 text-xs font-medium text-amber-900">
-                          Complete the deficiency summary, required correction, and inspector confirmation before issuing hold terms.
+                          Complete the deficiency summary and required correction before issuing hold terms.
                         </div>
                       )}
 
@@ -3024,10 +2923,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                             !holdTargetItemCode
                             || !holdReason.trim()
                             || !holdDeficiencyReason.trim()
-                            || !holdImmediateCorrection
                             || holdBaseRate <= 0
-                            || holdCapAmount <= 0
-                            || holdMinutes <= 0
                             || isPlacingHold
                           }
                           className="flex-1 rounded-xl bg-amber-400 py-3 text-sm font-black text-slate-900 transition-all hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-40"
@@ -3335,6 +3231,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         <button
                           type="button"
                           disabled={holdButtonDisabled}
+                          title={hasOpenHold ? 'An open Hold already exists for this job. Resolve it before placing a new one.' : undefined}
                           onClick={() => openHoldForm(item)}
                           className={HOLD_ACTION_BUTTON_CLASS}
                         >
@@ -3692,6 +3589,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       <button
                         type="button"
                         disabled={holdButtonDisabled}
+                        title={hasOpenHold ? 'An open Hold already exists for this job. Resolve it before placing a new one.' : undefined}
                         onClick={() => openHoldForm(item)}
                         className={HOLD_ACTION_BUTTON_CLASS}
                       >

@@ -19,7 +19,6 @@ import type {
   ChecklistResult,
   HoldCategory,
   HoldEvidenceType,
-  HoldPremiumRateType,
   HoldResolution,
 } from '@/lib/types'
 import { RetentionTimer } from '@/components/inspector/RetentionTimer'
@@ -34,10 +33,10 @@ import {
 import { isHoldOpenStatus } from '@/lib/holds/workflow'
 import { buildHoldEvidenceItems, buildHoldHistorySummary } from '@/lib/holds/reporting'
 import {
-  HOLD_PREMIUM_MULTIPLIER,
   resolveHoldBaseRate,
+  BASE_HOLD_SERVICE_FEE_MULTIPLIER,
 } from '@/lib/pricing/config'
-import { calculateHoldCost } from '@/utils/pricing'
+import { calculateBaseHoldServiceFee } from '@/utils/pricing'
 
 const supabase = createClient()
 
@@ -68,10 +67,6 @@ interface PendingHoldEvidenceItem {
   lat?: number
   lng?: number
   offlineCapture: boolean
-}
-
-function calculateSuggestedHoldCost(minutes: number, baseRate: number) {
-  return calculateHoldCost(baseRate, minutes / 60)
 }
 
 // ─── GPS helper ───────────────────────────────────────────────────────────────
@@ -530,12 +525,7 @@ export default function ActiveInspectionPage() {
   const [holdReason, setHoldReason]           = useState('')
   const [holdDeficiencyReason, setHoldDeficiencyReason] = useState('')
   const [holdCategory, setHoldCategory]       = useState<HoldCategory>('minor_deficiency')
-  const [holdImmediateCorrection, setHoldImmediateCorrection] = useState(false)
-  const [holdMinutes, setHoldMinutes]         = useState(60)
-  const [holdTimePreset, setHoldTimePreset]   = useState<30 | 60 | 90 | 'custom'>(60)
-  const [holdCustomMinutes, setHoldCustomMinutes] = useState('')
-  const [holdPremiumRateType] = useState<HoldPremiumRateType>('hourly')
-  const [holdCapAmount, setHoldCapAmount]     = useState(0)
+  const [holdSameDayEligible, setHoldSameDayEligible] = useState(true)
   const [holdNotes, setHoldNotes]             = useState('')
   const [holdChecklistItems, setHoldChecklistItems] = useState<string[]>([])
   const [holdEvidenceItems, setHoldEvidenceItems] = useState<PendingHoldEvidenceItem[]>([])
@@ -610,19 +600,14 @@ export default function ActiveInspectionPage() {
   const holdBaseRate = holdPricingDetails.baseRate
   const holdPricingLabel = holdPricingDetails.label
   const hasOpenHold = activeHold !== null && isHoldOpenStatus(activeHold.status)
-  const estimatedHoldCost = Math.min(
-    holdCapAmount,
-    calculateSuggestedHoldCost(holdMinutes, holdBaseRate),
-  )
+  const baseHoldServiceFee = calculateBaseHoldServiceFee(holdBaseRate)
   const holdMissingFields = [
     !holdReason.trim() ? 'deficiency summary' : null,
     !holdDeficiencyReason.trim() ? 'required correction' : null,
-    !Number.isFinite(holdMinutes) || holdMinutes <= 0 ? 'estimated time' : null,
-    !holdImmediateCorrection ? 'inspector confirmation' : null,
   ].filter(Boolean) as string[]
   const openHoldForm = () => {
     setHoldMode(true)
-    setHoldCapAmount(calculateSuggestedHoldCost(holdMinutes, holdBaseRate))
+    setHoldSameDayEligible(true)
   }
 
   useEffect(() => {
@@ -731,10 +716,7 @@ export default function ActiveInspectionPage() {
       !holdReason.trim()
       || !holdDeficiencyReason.trim()
       || holdChecklistItems.length === 0
-      || !holdImmediateCorrection
-      || holdCapAmount <= 0
       || holdBaseRate <= 0
-      || holdMinutes <= 0
     ) return
 
     setIsPlacingHold(true)
@@ -757,11 +739,8 @@ export default function ActiveInspectionPage() {
         .filter(item => (holdChecklistItems.length > 0 ? holdChecklistItems : failedItemIds).includes(item.id))
         .map(item => item.label),
       holdCategory,
-      holdEligibleForOnSiteCorrection: holdImmediateCorrection,
-      estimatedCorrectionMinutes: holdMinutes,
-      premiumRateType: holdPremiumRateType,
+      holdEligibleForOnSiteCorrection: holdSameDayEligible,
       premiumRateAmount: holdBaseRate,
-      holdCapAmount,
       notes: holdNotes,
       relatedInspectionId: jobId,
     })
@@ -803,28 +782,10 @@ export default function ActiveInspectionPage() {
       setHoldDeficiencyReason('')
       setHoldChecklistItems([])
       setHoldNotes('')
-      setHoldImmediateCorrection(false)
-      setHoldMinutes(60)
-      setHoldTimePreset(60)
-      setHoldCustomMinutes('')
+      setHoldSameDayEligible(true)
       setHoldEvidenceItems([])
     }
     setIsPlacingHold(false)
-  }
-
-  const handleHoldTimeSelection = (value: 30 | 60 | 90 | 'custom') => {
-    setHoldTimePreset(value)
-    if (value === 'custom') {
-      const nextMinutes = Number(holdCustomMinutes)
-      if (Number.isFinite(nextMinutes) && nextMinutes > 0) {
-        setHoldMinutes(nextMinutes)
-        setHoldCapAmount(calculateSuggestedHoldCost(nextMinutes, holdBaseRate))
-      }
-      return
-    }
-
-    setHoldMinutes(value)
-    setHoldCapAmount(calculateSuggestedHoldCost(value, holdBaseRate))
   }
 
   const queueHoldEvidence = async (
@@ -1285,7 +1246,7 @@ export default function ActiveInspectionPage() {
                     ${activeHold.premiumRateAmount.toFixed(2)}/hr
                   </span>
                   <span className="text-amber-300/80">Hold multiplier</span>
-                  <span className="text-amber-50 font-semibold">{HOLD_PREMIUM_MULTIPLIER.toFixed(1)}×</span>
+                  <span className="text-amber-50 font-semibold">{BASE_HOLD_SERVICE_FEE_MULTIPLIER.toFixed(1)}×</span>
                   <span className="text-amber-300/80">Hold cap</span>
                   <span className="text-amber-50 font-semibold">${activeHold.holdCapAmount.toFixed(2)}</span>
                   <span className="text-amber-300/80">Estimate</span>
@@ -1405,7 +1366,7 @@ export default function ActiveInspectionPage() {
                   <span className="text-zinc-500">Base rate</span>
                   <span className="text-zinc-200">${activeHold.premiumRateAmount.toFixed(2)}/hr</span>
                   <span className="text-zinc-500">Hold multiplier</span>
-                  <span className="text-zinc-200">{HOLD_PREMIUM_MULTIPLIER.toFixed(1)}×</span>
+                  <span className="text-zinc-200">{BASE_HOLD_SERVICE_FEE_MULTIPLIER.toFixed(1)}×</span>
                   <span className="text-zinc-500">Hold cap</span>
                   <span className="text-zinc-200">${activeHold.holdCapAmount.toFixed(2)}</span>
                   {activeHold.actualRetainedMinutes != null && (
@@ -1507,102 +1468,57 @@ export default function ActiveInspectionPage() {
                 </select>
               </label>
               <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-3">
-                <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-1.5">Estimated Hold Cost</div>
-                <div className="text-lg font-black text-amber-100">${estimatedHoldCost.toFixed(2)}</div>
+                <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-1.5">Base Hold Review Fee</div>
+                <div className="text-lg font-black text-amber-100">${baseHoldServiceFee.toFixed(2)}</div>
                 <div className="mt-1 text-[11px] text-amber-200/80">
-                  {(holdMinutes / 60).toFixed(2)} hours × ${holdBaseRate.toFixed(2)}/hr × {HOLD_PREMIUM_MULTIPLIER.toFixed(1)} hold multiplier = ${estimatedHoldCost.toFixed(2)}
+                  Flat fee — charged once the builder accepts. Builder selects their correction window at acceptance.
                 </div>
               </div>
             </div>
 
             <div className="mb-4">
-              <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-2">Estimated Time to Correct</div>
+              <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-2">Same-Day Correction Eligible</div>
               <div className="mb-2 text-[11px] text-amber-200/80">
-                Select the expected correction window. Hold time is billed at 1.5× the applicable hourly rate.
+                Mark as eligible if the deficiency can reasonably be corrected and re-verified before you leave site. The builder will select their correction window at acceptance.
               </div>
-              <div className="grid grid-cols-4 gap-2">
-                {[30, 60, 90].map(minutes => (
-                  <button
-                    key={minutes}
-                    type="button"
-                    onClick={() => handleHoldTimeSelection(minutes as 30 | 60 | 90)}
-                    className={`rounded-xl py-2 text-xs font-bold transition-all ${
-                      holdTimePreset === minutes
-                        ? 'bg-amber-500 text-white'
-                        : 'border border-amber-500/30 text-amber-300 hover:bg-amber-500/10'
-                    }`}
-                  >
-                    {minutes}m
-                  </button>
-                ))}
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
-                  onClick={() => handleHoldTimeSelection('custom')}
-                  className={`rounded-xl py-2 text-xs font-bold transition-all ${
-                    holdTimePreset === 'custom'
-                      ? 'bg-amber-500 text-white'
-                      : 'border border-amber-500/30 text-amber-300 hover:bg-amber-500/10'
+                  onClick={() => setHoldSameDayEligible(true)}
+                  className={`rounded-xl border px-4 py-3 text-left transition-all ${
+                    holdSameDayEligible
+                      ? 'border-amber-500 bg-amber-500/20'
+                      : 'border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10'
                   }`}
                 >
-                  Custom
+                  <div className="font-bold text-sm text-amber-100">Yes — Same-Day Eligible</div>
+                  <div className="mt-1 text-xs text-amber-200/70">Builder may reserve a correction window and receive same-day re-verification.</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHoldSameDayEligible(false)}
+                  className={`rounded-xl border px-4 py-3 text-left transition-all ${
+                    !holdSameDayEligible
+                      ? 'border-amber-500 bg-amber-500/20'
+                      : 'border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10'
+                  }`}
+                >
+                  <div className="font-bold text-sm text-amber-100">No — Rebook Required</div>
+                  <div className="mt-1 text-xs text-amber-200/70">Correction cannot be completed during this visit. A new inspection booking will be required.</div>
                 </button>
               </div>
-              {holdTimePreset === 'custom' && (
-                <div className="mt-3">
-                  <input
-                    type="number"
-                    min={1}
-                    step={1}
-                    value={holdCustomMinutes}
-                    onChange={e => {
-                      const nextValue = e.target.value
-                      setHoldCustomMinutes(nextValue)
-                      const nextMinutes = Number(nextValue)
-                      if (Number.isFinite(nextMinutes) && nextMinutes > 0) {
-                        setHoldMinutes(nextMinutes)
-                        setHoldCapAmount(calculateSuggestedHoldCost(nextMinutes, holdBaseRate))
-                      } else {
-                        setHoldMinutes(0)
-                      }
-                    }}
-                    placeholder="Enter minutes"
-                    className="w-full bg-amber-500/5 border border-amber-500/20 rounded-xl px-3 py-2.5 text-sm text-amber-100 placeholder-amber-600 focus:outline-none focus:border-amber-400"
-                  />
-                </div>
-              )}
             </div>
 
-            {/* Applicable hourly rate */}
-            <div className="grid sm:grid-cols-2 gap-3 mb-4">
-              <div className="block">
-                <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-1.5">Applicable Hourly Rate</div>
-                <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-2.5">
-                  <div className="text-xs font-semibold text-amber-100">{holdPricingLabel}</div>
-                  <div className="mt-1 flex items-center justify-between gap-3">
-                    <span className="text-[11px] text-amber-200/80">
-                      1.5× hold multiplier · {(holdMinutes / 60).toFixed(2)} hold hours
-                    </span>
-                    <span className="text-xs font-black text-amber-100">${holdBaseRate.toFixed(2)}/hr</span>
-                  </div>
-                  <div className="mt-1 text-[11px] text-amber-200/80">This rate is set by the selected inspection role and pricing basis. It is not manually adjusted during the hold workflow.</div>
-                  <div className="mt-1 text-[11px] text-amber-200/80">{(holdMinutes / 60).toFixed(2)} hours × ${holdBaseRate.toFixed(2)}/hr × {HOLD_PREMIUM_MULTIPLIER.toFixed(1)} hold multiplier = ${calculateSuggestedHoldCost(holdMinutes, holdBaseRate).toFixed(2)}</div>
+            {/* Applicable base rate */}
+            <div className="mb-4">
+              <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-1.5">Applicable Base Rate</div>
+              <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-2.5">
+                <div className="text-xs font-semibold text-amber-100">{holdPricingLabel}</div>
+                <div className="mt-1 flex items-center justify-between gap-3">
+                  <span className="text-[11px] text-amber-200/80">Set by inspection role and pricing basis</span>
+                  <span className="text-xs font-black text-amber-100">${holdBaseRate.toFixed(2)}/hr</span>
                 </div>
               </div>
-              <label className="block">
-                <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-1.5">Estimated Hold Cap</div>
-                <div className="mb-1.5 text-[11px] text-amber-200/80">This is the current hold estimate based on the selected time window and applicable rate.</div>
-                <div className="flex items-center rounded-xl border border-amber-500/20 bg-amber-500/5 px-3">
-                  <DollarSign className="w-4 h-4 text-amber-300 shrink-0" />
-                  <input
-                    type="number"
-                    min={0}
-                    step="0.01"
-                    value={holdCapAmount}
-                    onChange={e => setHoldCapAmount(Number(e.target.value))}
-                    className="w-full bg-transparent px-2 py-2.5 text-xs text-amber-100 focus:outline-none"
-                  />
-                </div>
-              </label>
             </div>
 
             <div className="mb-4">
@@ -1614,20 +1530,6 @@ export default function ActiveInspectionPage() {
                 rows={2}
                 className="w-full bg-amber-500/5 border border-amber-500/20 rounded-xl px-3 py-2.5 text-xs text-amber-100 placeholder-amber-600 focus:outline-none focus:border-amber-400 resize-none"
               />
-            </div>
-
-            <div className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3">
-              <label className="flex items-start gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={holdImmediateCorrection}
-                  onChange={e => setHoldImmediateCorrection(e.target.checked)}
-                  className="mt-0.5 accent-amber-500 shrink-0"
-                />
-                <span className="text-sm font-semibold text-amber-100">
-                  I confirm this issue can reasonably be corrected on site within the selected time window.
-                </span>
-              </label>
             </div>
 
             <div className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
@@ -1736,12 +1638,13 @@ export default function ActiveInspectionPage() {
             </div>
 
             <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 mb-4 text-xs text-amber-200">
-              Based on {(holdMinutes / 60).toFixed(2)} hours at the applicable hourly rate of ${holdBaseRate.toFixed(2)}, billed at {HOLD_PREMIUM_MULTIPLIER.toFixed(1)}× for on-site hold. Estimated hold cost: ${estimatedHoldCost.toFixed(2)} before platform fee, if applicable.
+              Base Hold Review Fee of <span className="font-bold">${baseHoldServiceFee.toFixed(2)}</span> is charged once the builder accepts.
+              The builder will select their correction window — additional window and overrun fees apply based on their selection.
             </div>
 
             {holdMissingFields.length > 0 && (
               <div className="mb-4 rounded-xl border border-amber-300 bg-amber-100 px-3 py-3 text-xs font-medium text-amber-900">
-                Complete the deficiency summary, required correction, and inspector confirmation before issuing hold terms.
+                Complete the deficiency summary and required correction before issuing hold terms.
               </div>
             )}
 
@@ -1752,10 +1655,7 @@ export default function ActiveInspectionPage() {
                   !holdReason.trim()
                   || !holdDeficiencyReason.trim()
                   || holdChecklistItems.length === 0
-                  || !holdImmediateCorrection
                   || holdBaseRate <= 0
-                  || holdCapAmount <= 0
-                  || holdMinutes <= 0
                   || isPlacingHold
                 }
                 className="flex-1 bg-amber-500 hover:bg-amber-400 text-white font-bold py-3 rounded-xl text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
@@ -1773,10 +1673,7 @@ export default function ActiveInspectionPage() {
                   setHoldDeficiencyReason('')
                   setHoldChecklistItems([])
                   setHoldNotes('')
-                  setHoldImmediateCorrection(false)
-                  setHoldMinutes(60)
-                  setHoldTimePreset(60)
-                  setHoldCustomMinutes('')
+                  setHoldSameDayEligible(true)
                   setHoldEvidenceItems([])
                   setHoldEvidenceWarning(null)
                 }}

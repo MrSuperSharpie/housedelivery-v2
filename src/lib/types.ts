@@ -464,6 +464,8 @@ export interface HoldRecord {
   expiredAt?: string
   lastNotifiedAt?: string
   lastBuilderResponseAt?: string
+  /** Set by the builder at acceptance — the correction window they reserved (minutes). */
+  builderSelectedCorrectionMinutes?: number
   createdAt: string
   updatedAt: string
 }

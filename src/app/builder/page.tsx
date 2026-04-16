@@ -32,7 +32,7 @@ import type { JobOpportunityRow } from '@/lib/supabase/jobs'
 import { getJobWorkflowLabel, getJobWorkflowState } from '@/lib/workflow'
 import { isHoldOpenStatus } from '@/lib/holds/workflow'
 import { resolveHoldBaseRate } from '@/lib/pricing/config'
-import { calculateHoldCost } from '@/utils/pricing'
+import { calculateBaseHoldServiceFee, calculateWindowFee } from '@/utils/pricing'
 import { resolveReportDataMode } from '@/lib/dataSourceMode'
 
 // FIX #1: createClient() must not be called between import statements.
@@ -297,6 +297,8 @@ export default function BuilderDashboard() {
   const [holdReviewRequesting, setHoldReviewRequesting] = useState<string | null>(null)
   // FIX #7: per-hold decline notes instead of one shared string
   const [declineNotes, setDeclineNotes]         = useState<Record<string, string>>({})
+  // Builder-selected correction window per hold (minutes). Defaults to 60.
+  const [correctionWindowByHold, setCorrectionWindowByHold] = useState<Record<string, number>>({})
 
   // ─── DATA BRIDGE: MATCH LOCAL AUTH ID OR SUPABASE ID ─────────────────────────
   const builderLocalId    = user?.id ?? ''
@@ -502,8 +504,9 @@ export default function BuilderDashboard() {
   }
 
   const handleApproveHold = async (hold: HoldRecord) => {
+    const windowMinutes = correctionWindowByHold[hold.id] ?? 60
     setHoldResponding(hold.id)
-    const ok = await builderApproveHold(hold.id, 'Approved for on-site correction')
+    const ok = await builderApproveHold(hold.id, windowMinutes, 'Approved — correction window reserved.')
     if (ok) setActiveHolds(prev => prev.filter(h => h.id !== hold.id))
     setHoldResponding(null)
   }
@@ -623,12 +626,15 @@ export default function BuilderDashboard() {
             credentialClass: holdJob?.credentialClass,
             inspectionType: holdJob?.inspectionType,
           }).baseRate
-          const holdHours = Math.max(0, hold.estimatedCorrectionMinutes / 60)
-          const estimatedHoldCost = calculateHoldCost(holdBaseRate, holdHours)
           const isResponding = holdResponding === hold.id
           const requestingReview = holdReviewRequesting === hold.id
           // FIX #7: each hold gets its own decline note
           const thisDeclineNote = declineNotes[hold.id] ?? ''
+
+          const baseHoldServiceFee = calculateBaseHoldServiceFee(holdBaseRate)
+          const selectedWindow = correctionWindowByHold[hold.id] ?? 60
+          const windowFee = calculateWindowFee(holdBaseRate, selectedWindow)
+          const totalAcceptanceFee = baseHoldServiceFee + windowFee
 
           return (
             <div key={hold.id} className="mb-5 rounded-2xl border border-red-500/25 bg-red-500/5 overflow-hidden">
@@ -659,72 +665,108 @@ export default function BuilderDashboard() {
                 </div>
               </div>
 
-              <div className="px-5 py-3 border-b border-red-500/10 flex items-center gap-3">
-                <DollarSign className="w-4 h-4 text-amber-400 shrink-0" />
-                <div className="text-xs text-muted">
-                  Approving this hold authorizes a <span className="text-amber-400 font-bold">${holdBaseRate.toFixed(2)}/hr base rate</span> billed at 1.5× while the inspector remains on site.
+              <div className="px-5 py-3 border-b border-red-500/10">
+                <div className="text-[10px] font-bold text-muted uppercase tracking-widest mb-2">Fee Breakdown</div>
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted">Base Hold Review Fee</span>
+                    <span className="font-bold text-amber-400">${baseHoldServiceFee.toFixed(2)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted">Reserved Correction Window ({selectedWindow} min @ 1.5×)</span>
+                    <span className="font-bold text-amber-400">${windowFee.toFixed(2)}</span>
+                  </div>
+                  <div className="border-t border-red-500/10 pt-1.5 flex items-center justify-between text-xs">
+                    <span className="font-bold text-ink">Total at Acceptance</span>
+                    <span className="font-black text-ink">${totalAcceptanceFee.toFixed(2)}</span>
+                  </div>
+                </div>
+                <div className="mt-2 text-[10px] text-subtle">Additional fees apply if correction exceeds the selected window or extends beyond inspector availability.</div>
+              </div>
+
+              <div className="px-5 py-3 border-b border-red-500/10">
+                <div className="text-[10px] font-bold text-muted uppercase tracking-widest mb-2">Select Correction Window</div>
+                <div className="grid grid-cols-5 gap-1.5">
+                  {[30, 60, 90, 120, 150].map(minutes => (
+                    <button
+                      key={minutes}
+                      type="button"
+                      onClick={() => setCorrectionWindowByHold(prev => ({ ...prev, [hold.id]: minutes }))}
+                      className={`rounded-xl py-2 text-xs font-bold transition-all ${
+                        selectedWindow === minutes
+                          ? 'bg-amber-500 text-white'
+                          : 'border border-amber-500/25 text-amber-400 hover:bg-amber-500/10'
+                      }`}
+                    >
+                      {minutes}m
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              <div className="px-5 py-3 border-b border-red-500/10 grid gap-2 sm:grid-cols-4">
-                <div>
-                  <div className="text-[10px] font-bold text-muted uppercase tracking-widest">Estimated Retained Time</div>
-                  <div className="text-xs font-semibold text-ink">{hold.estimatedCorrectionMinutes} minutes</div>
-                </div>
-                <div>
-                  <div className="text-[10px] font-bold text-muted uppercase tracking-widest">Maximum Exposure</div>
-                  <div className="text-xs font-semibold text-ink">${hold.holdCapAmount.toFixed(2)}</div>
-                </div>
-                <div>
-                  <div className="text-[10px] font-bold text-muted uppercase tracking-widest">Estimated Hold Cost</div>
-                  <div className="text-xs font-semibold text-ink">${Math.min(hold.holdCapAmount, estimatedHoldCost).toFixed(2)}</div>
-                </div>
+              <div className="px-5 py-3 border-b border-red-500/10 grid gap-2 sm:grid-cols-2">
                 <div>
                   <div className="text-[10px] font-bold text-muted uppercase tracking-widest">Expiry</div>
                   <div className="text-xs font-mono font-bold text-red-400">
                     {new Date(hold.expiresAt).toLocaleTimeString('en-CA', { timeZone: 'America/Vancouver', hour: '2-digit', minute: '2-digit' })}
                   </div>
                 </div>
+                <div>
+                  <div className="text-[10px] font-bold text-muted uppercase tracking-widest">Base Rate</div>
+                  <div className="text-xs font-semibold text-ink">${holdBaseRate.toFixed(2)}/hr</div>
+                </div>
               </div>
 
-              <div className="px-5 py-4 space-y-3">
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleApproveHold(hold)}
-                    disabled={isResponding}
-                    className="flex-1 bg-amber-500 hover:bg-amber-400 text-white font-bold py-3 rounded-xl text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {isResponding
-                      ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      : <CheckCircle2 className="w-4 h-4" />}
-                    Accept Hold & Retain Inspector
-                  </button>
+              <div className="px-5 py-4 space-y-4">
+                <div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleApproveHold(hold)}
+                      disabled={isResponding}
+                      className="flex-1 bg-amber-500 hover:bg-amber-400 text-white font-bold py-3 rounded-xl text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      {isResponding
+                        ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        : <CheckCircle2 className="w-4 h-4" />}
+                      Reserve {selectedWindow}-Min Correction Window (Guaranteed Re-Inspection)
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-muted mt-2 text-center">
+                    Inspector will return to review the correction before leaving site. Time is reserved and fees apply.
+                  </p>
                 </div>
 
-                <button
-                  onClick={() => handleRequestReview(hold)}
-                  disabled={requestingReview}
-                  className="w-full rounded-xl border border-blue-500/25 bg-blue-500/10 py-2.5 text-xs font-bold text-blue-300 transition-all hover:bg-blue-500/20 disabled:opacity-40"
-                >
-                  {requestingReview ? 'Sending Request...' : 'Request On-Site Correction Review'}
-                </button>
-
-                <div className="flex gap-2">
-                  <input
-                    value={thisDeclineNote}
-                    onChange={e => setDeclineNotes(prev => ({ ...prev, [hold.id]: e.target.value }))}
-                    placeholder="Reason for declining (required)..."
-                    className="flex-1 bg-surface border border-white/10 rounded-xl px-3 py-2.5 text-xs text-ink placeholder-subtle focus:outline-none focus:border-red-400"
-                  />
+                <div>
                   <button
-                    onClick={() => handleDeclineHold(hold)}
-                    disabled={!thisDeclineNote.trim() || isResponding}
-                    className="px-4 bg-red-500/10 border border-red-500/30 text-red-400 font-bold rounded-xl text-xs hover:bg-red-500/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                    onClick={() => handleRequestReview(hold)}
+                    disabled={requestingReview}
+                    className="w-full rounded-xl border border-blue-500/25 bg-blue-500/10 py-2.5 text-xs font-bold text-blue-300 transition-all hover:bg-blue-500/20 disabled:opacity-40"
                   >
-                    Decline and Rebook
+                    {requestingReview ? 'Sending Request...' : 'Fix During Current Visit (No Time Reserved — Re-Inspection Not Guaranteed)'}
                   </button>
+                  <p className="text-[11px] text-muted mt-2 text-center">
+                    Attempt to complete the correction while the inspector is still on site. Re-inspection will only occur if time allows.
+                  </p>
                 </div>
-                <p className="text-[10px] text-subtle">Declining stops the inspection. A new booking will be required.</p>
+
+                <div className="pt-2 border-t border-red-500/10">
+                  <div className="flex gap-2">
+                    <input
+                      value={thisDeclineNote}
+                      onChange={e => setDeclineNotes(prev => ({ ...prev, [hold.id]: e.target.value }))}
+                      placeholder="Reason for declining (required)..."
+                      className="flex-1 bg-surface border border-white/10 rounded-xl px-3 py-2.5 text-xs text-ink placeholder-subtle focus:outline-none focus:border-red-400"
+                    />
+                    <button
+                      onClick={() => handleDeclineHold(hold)}
+                      disabled={!thisDeclineNote.trim() || isResponding}
+                      className="px-4 bg-red-500/10 border border-red-500/30 text-red-400 font-bold rounded-xl text-xs hover:bg-red-500/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      Decline and Rebook
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-subtle mt-2">Declining stops the inspection. A new booking will be required.</p>
+                </div>
               </div>
             </div>
           )

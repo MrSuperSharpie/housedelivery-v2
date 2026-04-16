@@ -6,6 +6,7 @@ import type {
   SpecialistRoleId,
 } from '@/lib/types'
 import {
+  BASE_HOLD_SERVICE_FEE_MULTIPLIER,
   DISPATCH_MULTIPLIERS,
   HOLD_PREMIUM_MULTIPLIER,
   PLATFORM_COMMISSION_RATE,
@@ -73,6 +74,23 @@ export function calculateHoldCost(baseRate: number, holdHours: number): number {
   const normalizedBaseRate = clampPositive(Number(baseRate), 0)
   const normalizedHoldHours = Math.max(0, Number(holdHours) || 0)
   return roundMoney(normalizedBaseRate * normalizedHoldHours * HOLD_PREMIUM_MULTIPLIER)
+}
+
+/**
+ * Base Hold Service Fee — flat fee always charged when a same-day Hold is accepted.
+ * Covers deficiency documentation, notes, photo upload, and re-verification rights.
+ * Formula: baseRate × BASE_HOLD_SERVICE_FEE_MULTIPLIER (0.5)
+ */
+export function calculateBaseHoldServiceFee(baseRate: number): number {
+  return roundMoney(clampPositive(Number(baseRate), 0) * BASE_HOLD_SERVICE_FEE_MULTIPLIER)
+}
+
+/**
+ * Reserved Correction Window Fee — charged based on the builder's selected window.
+ * Formula: baseRate × (windowMinutes / 60) × HOLD_PREMIUM_MULTIPLIER (1.5)
+ */
+export function calculateWindowFee(baseRate: number, windowMinutes: number): number {
+  return calculateHoldCost(baseRate, Math.max(0, windowMinutes) / 60)
 }
 
 export function calculateEscrowEstimate(input: PricingBreakdownInput): PricingBreakdown {

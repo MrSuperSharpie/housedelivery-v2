@@ -35,7 +35,6 @@ import type { SubmissionStatus } from '@/lib/domain'
 import type { EscrowStatus } from '@/lib/types'
 import type {
   HoldCategory,
-  HoldPremiumRateType,
   HoldRecord,
   RetentionSession,
 } from '@/lib/types'
@@ -193,14 +192,11 @@ interface StoreValue {
     affectedItemSummaries?: string[]
     holdCategory: HoldCategory
     holdEligibleForOnSiteCorrection: boolean
-    estimatedCorrectionMinutes: number
-    premiumRateType: HoldPremiumRateType
     premiumRateAmount: number
-    holdCapAmount: number
     notes?: string
     relatedInspectionId?: string
   }) => Promise<StoreActionResult<HoldRecord>>
-  approveHoldPoint:     (holdId: string, jobId: string, builderNote?: string) => Promise<StoreActionResult>
+  approveHoldPoint:     (holdId: string, jobId: string, correctionWindowMinutes: number, builderNote?: string) => Promise<StoreActionResult>
   declineHoldPoint:     (holdId: string, actorId: string, builderNote?: string) => Promise<StoreActionResult>
   getJobHolds:          (jobId: string) => Promise<HoldRecord[]>
   activeRetention:      RetentionSession | null
@@ -1050,10 +1046,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       affectedItemSummaries?: string[]
       holdCategory: HoldCategory
       holdEligibleForOnSiteCorrection: boolean
-      estimatedCorrectionMinutes: number
-      premiumRateType: HoldPremiumRateType
       premiumRateAmount: number
-      holdCapAmount: number
       notes?: string
       relatedInspectionId?: string
     },
@@ -1069,10 +1062,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       deficiencyReason: input.deficiencyReason,
       holdCategory: input.holdCategory,
       holdEligibleForOnSiteCorrection: input.holdEligibleForOnSiteCorrection,
-      estimatedCorrectionMinutes: input.estimatedCorrectionMinutes,
-      premiumRateType: input.premiumRateType,
       premiumRateAmount: input.premiumRateAmount,
-      holdCapAmount: input.holdCapAmount,
       notes: input.notes,
       relatedInspectionId: input.relatedInspectionId,
     })
@@ -1087,9 +1077,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   // ─── approveHoldPoint ─────────────────────────────────────────────────────
   const approveHoldPoint = useCallback(async (
-    holdId: string, jobId: string, builderNote?: string,
+    holdId: string, jobId: string, correctionWindowMinutes: number, builderNote?: string,
   ): Promise<StoreActionResult> => {
-    const ok = await builderApproveHold(holdId, builderNote)
+    const ok = await builderApproveHold(holdId, correctionWindowMinutes, builderNote)
     if (!ok) return { ok: false, error: 'Failed to approve hold.' }
 
     // Job stays on_hold until retention completes and inspector re-inspects

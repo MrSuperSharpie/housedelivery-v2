@@ -12,6 +12,11 @@ export const HOLD_PREMIUM_MULTIPLIER = 1.5
 export const SPECIALIST_MINIMUM_HOURS = 1.5
 export const FIXED_DISPATCH_HOLD_BASE_RATE = 250
 
+// Base Hold Service Fee multiplier — applied to the job's resolved hourly base rate.
+// Charged whenever a same-day Hold is raised and accepted. Covers documentation,
+// deficiency notes, photo upload, and reservation of same-day re-verification rights.
+export const BASE_HOLD_SERVICE_FEE_MULTIPLIER = 0.5
+
 export interface SpecialistRolePricing {
   id: SpecialistRoleId
   label: string

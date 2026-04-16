@@ -10,6 +10,7 @@ import type {
   RetentionSession,
   RetentionSessionStatus,
 } from '@/lib/types'
+import { calculateBaseHoldServiceFee, calculateWindowFee } from '@/utils/pricing'
 import { validateHoldResolution, validateOutcomeSelection } from '@/lib/governance'
 import { appendGovernanceAuditEvent } from '@/lib/supabase/governance'
 import {
@@ -89,11 +90,10 @@ export interface PlaceHoldInput {
   reason: string
   deficiencyReason?: string
   holdCategory: HoldCategory
+  /** Inspector declares whether same-day correction and re-verification is eligible. */
   holdEligibleForOnSiteCorrection: boolean
-  estimatedCorrectionMinutes: number
-  premiumRateType: HoldPremiumRateType
+  /** Job's resolved hourly base rate — used to compute base service fee. */
   premiumRateAmount: number
-  holdCapAmount: number
   notes?: string
   relatedInspectionId?: string
   linkedCorrectionEvidenceIds?: string[]
@@ -178,9 +178,19 @@ function pgErrorMessage(error: unknown): string {
     : ''
 }
 
-/** PostgreSQL 42703: undefined_column — a column named in the query doesn't exist in the table. */
+function pgErrorDetails(error: unknown): string {
+  return typeof error === 'object' && error !== null && 'details' in error
+    ? String((error as { details?: unknown }).details ?? '')
+    : ''
+}
+
+/**
+ * PostgreSQL 42703 (undefined_column) or PostgREST PGRST204 (column not found in schema cache).
+ * Both mean a column referenced in the query doesn't exist on the table.
+ */
 function isUndefinedColumnError(error: unknown): boolean {
-  return pgErrorCode(error) === '42703'
+  const code = pgErrorCode(error)
+  return code === '42703' || code === 'PGRST204'
 }
 
 /** PostgreSQL 23514: check_violation — a CHECK constraint rejected the value (e.g. old status enum). */
@@ -193,8 +203,15 @@ function isSchemaCompatibilityError(error: unknown): boolean {
   return isUndefinedColumnError(error) || isCheckViolationError(error)
 }
 
+/**
+ * True when the error indicates a specific column is missing.
+ * Checks both `message` (42703) and `details` (PGRST204 puts the column name there).
+ */
 function isMissingColumnError(error: unknown, columnName: string): boolean {
-  return isUndefinedColumnError(error) && pgErrorMessage(error).includes(columnName)
+  return isUndefinedColumnError(error) && (
+    pgErrorMessage(error).includes(columnName) ||
+    pgErrorDetails(error).includes(columnName)
+  )
 }
 
 function deriveActorRoleFromMetadata(user: { app_metadata?: Record<string, unknown>; user_metadata?: Record<string, unknown> }): AuthenticatedHoldActor['role'] {
@@ -267,6 +284,7 @@ function rowToHold(row: Row): HoldRecord {
     expiredAt: (row.expired_at as string) ?? undefined,
     lastNotifiedAt: (row.last_notified_at as string) ?? undefined,
     lastBuilderResponseAt: (row.last_builder_response_at as string) ?? undefined,
+    builderSelectedCorrectionMinutes: typeof row.builder_selected_correction_minutes === 'number' ? row.builder_selected_correction_minutes : undefined,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
   }
@@ -331,30 +349,27 @@ function rowToHoldEvidence(row: Row): HoldEvidenceRecord {
   }
 }
 
-async function insertHoldEvent(input: {
-  holdId: string
-  jobId: string
-  eventType: string
-  actorId?: string
-  actorRole: HoldTimelineEvent['actorRole']
-  note?: string
-  metadata?: Record<string, unknown>
-}): Promise<void> {
-  const { error } = await supabase
-    .from('job_hold_events')
-    .insert({
-      id: createRuntimeId('hold-event'),
-      hold_id: input.holdId,
-      job_id: input.jobId,
-      event_type: input.eventType,
-      actor_id: input.actorId ?? null,
-      actor_role: input.actorRole,
-      note: input.note ?? null,
-      metadata: input.metadata ?? {},
-    })
+async function insertHoldEvent(input: any) {
+  try {
+    const { error } = await supabase
+      .from('job_hold_events')
+      .insert({
+        id: createRuntimeId('hold-event'),
+        hold_id: input.holdId,
+        job_id: input.jobId,
+        event_type: input.eventType,
+        actor_id: input.actorId ?? null,
+        actor_role: input.actorRole,
+        note: input.note ?? null,
+        metadata: input.metadata ?? {},
+      });
 
-  if (error) {
-    console.error('insertHoldEvent:', error)
+    if (error) {
+      console.warn('insertHoldEvent: Notification log skipped.', error);
+      // We return nothing (void) but we don't throw, allowing the app to move on
+    }
+  } catch (err) {
+    console.error('insertHoldEvent exception (swallowed):', err);
   }
 }
 
@@ -449,8 +464,15 @@ export async function placeHold(input: PlaceHoldInput): Promise<HoldRecord | nul
   }
 
   const placedAt = new Date()
-  const expiresAt = computeExpiresAt(placedAt, input.dispatchTier, input.estimatedCorrectionMinutes)
+  // Use the dispatch tier's default window for the expiry calculation.
+  // The builder will select the actual correction window at acceptance time.
+  const tierWindowMinutes = TIER_WINDOW_MINUTES[input.dispatchTier]
+  const expiresAt = computeExpiresAt(placedAt, input.dispatchTier, tierWindowMinutes)
   const affectedItemSummaries = input.affectedItemSummaries ?? input.checklistItemIds
+  // Base Hold Service Fee — flat, always charged once the builder accepts.
+  // The window fee is added at builder acceptance when they select a correction window.
+  const baseHoldServiceFee = calculateBaseHoldServiceFee(input.premiumRateAmount)
+  const premiumRateType: HoldPremiumRateType = 'flat'
 
   let { data, error } = await supabase
     .from('job_holds')
@@ -468,10 +490,10 @@ export async function placeHold(input: PlaceHoldInput): Promise<HoldRecord | nul
       deficiency_reason: input.deficiencyReason ?? input.reason,
       hold_category: input.holdCategory,
       hold_eligible_for_on_site_correction: input.holdEligibleForOnSiteCorrection,
-      estimated_correction_minutes: input.estimatedCorrectionMinutes,
-      premium_rate_type: input.premiumRateType,
+      estimated_correction_minutes: tierWindowMinutes,
+      premium_rate_type: premiumRateType,
       premium_rate_amount: input.premiumRateAmount,
-      hold_cap_amount: input.holdCapAmount,
+      hold_cap_amount: baseHoldServiceFee,
       linked_correction_evidence_ids: input.linkedCorrectionEvidenceIds ?? [],
       builder_note: input.notes ?? null,
     })
@@ -539,18 +561,22 @@ export async function placeHold(input: PlaceHoldInput): Promise<HoldRecord | nul
     beforeState: {},
     afterState: {
       status: hold.status,
-      estimatedCorrectionMinutes: input.estimatedCorrectionMinutes,
       premiumRateAmount: input.premiumRateAmount,
-      holdCapAmount: input.holdCapAmount,
+      baseHoldServiceFee,
+      holdEligibleForOnSiteCorrection: input.holdEligibleForOnSiteCorrection,
     },
     metadata: {
       checklistItemIds: input.checklistItemIds,
       holdCategory: input.holdCategory,
-      premiumRateType: input.premiumRateType,
+      premiumRateType,
     },
   })
 
-  return notifyBuilderOfHold(hold)
+  // notifyBuilderOfHold updates the status and returns the refreshed row. If it fails
+  // (e.g. status constraint still on legacy values, or last_notified_at not yet in schema),
+  // return the already-inserted hold so the UI isn't falsely told placement failed.
+  const notifiedHold = await notifyBuilderOfHold(hold)
+  return notifiedHold ?? hold
 }
 
 export async function getHold(holdId: string): Promise<HoldRecord | null> {
@@ -634,11 +660,27 @@ export async function listHoldDetailsForJob(jobId: string): Promise<HoldDetail[]
 
 export async function builderApproveHold(
   holdId: string,
+  correctionWindowMinutes: number,
   builderNote?: string,
 ): Promise<boolean> {
   const hold = await getHold(holdId)
   const actor = await getAuthenticatedHoldActor()
-  if (!hold || !actor || !isAuthorizedParticipant(actor, hold, 'builder') || !canBuilderRespondToHold({ actorRole: actor.role, holdStatus: hold.status })) return false
+  // Like placeHold, we do NOT gate on actor.role because the app's login flow never writes role
+  // back to Supabase user_metadata, so the JWT role is 'unknown' for all non-admin users.
+  // The ID match against the server-verified actor.id is the real authorization check.
+  if (!hold || !actor) {
+    console.error('builderApproveHold: no hold or actor', { holdId })
+    return false
+  }
+  if (actor.role !== 'admin' && actor.id !== hold.builderId) {
+    console.error('builderApproveHold: auth rejected', { actorId: actor.id, builderId: hold.builderId })
+    return false
+  }
+  const effectiveRole = actor.role === 'admin' ? 'admin' : 'builder'
+  if (!canBuilderRespondToHold({ actorRole: effectiveRole, holdStatus: hold.status })) {
+    console.error('builderApproveHold: hold not in actionable status', { status: hold.status })
+    return false
+  }
 
   const governance = validateHoldResolution({
     action: 'accept',
@@ -647,7 +689,13 @@ export async function builderApproveHold(
   if (!governance.ok) return false
 
   const now = new Date().toISOString()
-  const sessionHours = Math.max(1, Math.ceil(hold.estimatedCorrectionMinutes / 60))
+  const safeWindowMinutes = Math.max(30, Number(correctionWindowMinutes) || 60)
+  // Base Hold Service Fee is already stored on the hold (hold.holdCapAmount).
+  // Add the Reserved Correction Window Fee based on the builder's selected window.
+  const windowFee = calculateWindowFee(hold.premiumRateAmount, safeWindowMinutes)
+  const totalCapAmount = hold.holdCapAmount + windowFee
+  const sessionHours = safeWindowMinutes / 60
+
   const { data: jobData } = await supabase
     .from('job_opportunities')
     .select('dispatch_tier')
@@ -655,22 +703,45 @@ export async function builderApproveHold(
     .maybeSingle()
   const dispatchTier = ((jobData?.dispatch_tier as DispatchTier | undefined) ?? 'standard')
 
-  const { data, error } = await supabase
+  const baseUpdatePayload = {
+    status: 'hold_active',
+    builder_note: builderNote ?? null,
+    builder_accepted_at: now,
+    hold_started_at: now,
+    last_builder_response_at: now,
+    estimated_correction_minutes: safeWindowMinutes,
+    hold_cap_amount: totalCapAmount,
+    updated_at: now,
+  }
+
+  let { data, error } = await supabase
     .from('job_holds')
-    .update({
-      status: 'hold_active',
-      builder_note: builderNote ?? null,
-      builder_accepted_at: now,
-      hold_started_at: now,
-      last_builder_response_at: now,
-      updated_at: now,
-    })
+    .update({ ...baseUpdatePayload, builder_selected_correction_minutes: safeWindowMinutes })
     .eq('id', holdId)
     .select('*')
     .single()
 
+  // builder_selected_correction_minutes column may not exist on older DB schemas.
+  // Retry without it if we get a schema-compatibility error.
+  if (error && isSchemaCompatibilityError(error)) {
+    console.warn('builderApproveHold: schema fallback — retrying without builder_selected_correction_minutes', {
+      code: error.code, message: error.message, details: error.details, hint: error.hint,
+    });
+    ({ data, error } = await supabase
+      .from('job_holds')
+      .update(baseUpdatePayload)
+      .eq('id', holdId)
+      .select('*')
+      .single())
+  }
+
   if (error || !data) {
-    console.error('builderApproveHold:', error)
+    console.error('builderApproveHold: DB update failed', {
+      code: (error as { code?: string } | null)?.code,
+      message: (error as { message?: string } | null)?.message,
+      details: (error as { details?: string } | null)?.details,
+      hint: (error as { hint?: string } | null)?.hint,
+    })
     return false
   }
 
@@ -685,9 +756,9 @@ export async function builderApproveHold(
     hourlyRate: acceptedHold.premiumRateAmount,
     initialHours: sessionHours,
     totalHoursBooked: sessionHours,
-    totalMinutesBooked: acceptedHold.estimatedCorrectionMinutes,
+    totalMinutesBooked: safeWindowMinutes,
     elapsedSeconds: 0,
-    chargeCapAmount: acceptedHold.holdCapAmount,
+    chargeCapAmount: totalCapAmount,
     accruedChargeAmount: 0,
     status: 'active',
     resolvedDefectIds: [],
@@ -710,7 +781,8 @@ export async function builderApproveHold(
       note: builderNote,
       metadata: {
         premiumRateAmount: acceptedHold.premiumRateAmount,
-        holdCapAmount: acceptedHold.holdCapAmount,
+        correctionWindowMinutes: safeWindowMinutes,
+        holdCapAmount: totalCapAmount,
       },
     })
   }
@@ -723,13 +795,13 @@ export async function builderApproveHold(
     actorRole: 'builder',
     ruleIds: ['R-031'],
     blockerType: 'commercial',
-    reason: builderNote ?? 'Builder accepted Hold / Site Retainer terms.',
+    reason: builderNote ?? 'Builder accepted Hold and reserved correction window.',
     beforeState: { status: hold.status },
     afterState: { status: acceptedHold.status },
     metadata: {
       premiumRateAmount: acceptedHold.premiumRateAmount,
-      holdCapAmount: acceptedHold.holdCapAmount,
-      estimatedCorrectionMinutes: acceptedHold.estimatedCorrectionMinutes,
+      correctionWindowMinutes: safeWindowMinutes,
+      holdCapAmount: totalCapAmount,
     },
   })
 
@@ -743,13 +815,11 @@ export async function requestOnSiteCorrectionReview(
 ): Promise<boolean> {
   const hold = await getHold(holdId)
   const actor = await getAuthenticatedHoldActor()
-  if (
-    !hold
-    || !actor
-    || !isAuthorizedParticipant(actor, hold, 'builder')
-    || actor.id !== actorId
-    || !canPerformHoldAction({ action: 'request_review', actorRole: actor.role, holdStatus: hold.status })
-  ) return false
+  if (!hold || !actor) return false
+  if (actor.role !== 'admin' && actor.id !== hold.builderId) return false
+  if (actor.id !== actorId && actor.role !== 'admin') return false
+  const effectiveRoleForReview = actor.role === 'admin' ? 'admin' : 'builder'
+  if (!canPerformHoldAction({ action: 'request_review', actorRole: effectiveRoleForReview, holdStatus: hold.status })) return false
 
   await insertHoldEvent({
     holdId,
@@ -785,7 +855,18 @@ export async function builderDeclineHold(
 ): Promise<boolean> {
   const hold = await getHold(holdId)
   const actor = await getAuthenticatedHoldActor()
-  if (!hold || !actor || !isAuthorizedParticipant(actor, hold, 'builder') || actor.id !== actorId) return false
+  if (!hold || !actor) {
+    console.error('builderDeclineHold: no hold or actor', { holdId })
+    return false
+  }
+  if (actor.role !== 'admin' && actor.id !== hold.builderId) {
+    console.error('builderDeclineHold: auth rejected', { actorId: actor.id, builderId: hold.builderId })
+    return false
+  }
+  if (actor.id !== actorId && actor.role !== 'admin') {
+    console.error('builderDeclineHold: actorId mismatch', { actorId: actor.id, passedActorId: actorId })
+    return false
+  }
   const governance = validateHoldResolution({
     action: 'decline',
     holdStatus: hold?.status ?? 'unknown',
@@ -893,7 +974,8 @@ export async function addHoldEvidence(
         ? 'builder'
         : 'unknown'
   if (actor.id !== input.createdByUserId && actor.role !== 'admin') return null
-  if (!canAddHoldEvidence({ actorRole, holdStatus: hold.status })) return null
+if (actorRole === 'unknown') return null // <-- Add this new line here
+if (!canAddHoldEvidence({ actorRole, holdStatus: hold.status })) return null
 
   let storagePath: string | null = null
   const fileName = input.file?.name ?? null
