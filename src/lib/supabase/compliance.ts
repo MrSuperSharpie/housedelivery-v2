@@ -142,6 +142,41 @@ export async function insertCompletedRecordStrict(record: CompletedInspectionRec
   }
 
   if (record.sealed) {
+    // Deep manifest: hash the full evidentiary chain so any downstream mutation
+    // (swapped file, altered geo, stripped anomaly flag) breaks the package seal.
+    const evidenceManifest = [...record.evidenceItems]
+      .sort((a, b) => a.id.localeCompare(b.id))
+      .map(item => {
+        const metadata = (item.metadata as Record<string, unknown> | undefined) ?? {}
+        const anomalyFlags = Array.isArray(metadata.anomalyFlags) ? metadata.anomalyFlags : []
+        return {
+          id: item.id,
+          storagePath: item.storagePath ?? null,
+          checksum: item.checksum ?? null,
+          captureTimestamp: item.captureTimestamp,
+          kind: item.kind,
+          geo: item.geo
+            ? {
+                lat: item.geo.lat,
+                lng: item.geo.lng,
+                accuracy: item.geo.accuracy ?? null,
+              }
+            : null,
+          manualLocationNote: item.manualLocationNote ?? null,
+          validationState: item.validationState,
+          integrityStatus: (metadata.integrityStatus as string | undefined) ?? null,
+          anomalyFlags,
+        }
+      })
+
+    const checklistManifest = [...(record.checklistResults ?? [])]
+      .sort((a, b) => a.itemId.localeCompare(b.itemId))
+      .map(item => ({
+        itemId: item.itemId,
+        result: item.result,
+        note: item.note ?? null,
+      }))
+
     const integrity = await createPackageIntegritySnapshot({
       recordId: record.id,
       versionNumber: 1,
@@ -151,8 +186,17 @@ export async function insertCompletedRecordStrict(record: CompletedInspectionRec
         recordId: record.id,
         result: record.result,
         certRef: record.certRef,
-        evidenceCount: record.evidenceItems.length,
-        checklistResults: record.checklistResults ?? [],
+        inspectorId: record.inspectorId ?? null,
+        inspectorLicense: record.inspectorLicense,
+        jobRef: record.jobRef ?? null,
+        permitNumber: record.permitNumber ?? null,
+        jurisdictionId: record.jurisdictionId ?? null,
+        completedAt: record.completedAt,
+        passItems: record.passItems,
+        failItems: record.failItems,
+        evidenceCount: evidenceManifest.length,
+        evidence: evidenceManifest,
+        checklistResults: checklistManifest,
       },
     })
 

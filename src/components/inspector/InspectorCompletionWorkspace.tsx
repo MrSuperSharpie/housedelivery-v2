@@ -1990,6 +1990,64 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
     )
     const holdEvidenceItems = buildHoldEvidenceItems(holdDetails, job.projectId)
 
+    // ─── Fail-Closed pre-seal integrity gates ─────────────────────────────────
+    // Every evidence item entering the sealed package must:
+    //   (1) resolve to a persisted storage path (no local:// or placeholder:// refs)
+    //   (2) carry a SHA-256 checksum for tamper-evidence
+    //   (3) declare a location — either GPS coordinates or a manual location note
+    // Violating any gate aborts the seal and surfaces the offending items.
+    const combinedEvidence: EvidenceItem[] = [...evidenceItems, ...holdEvidenceItems]
+    const gateViolations: Array<{ id: string; ref: string; reason: string }> = []
+    for (const ev of combinedEvidence) {
+      const ref = ev.originalFilename ?? ev.id
+      const storagePath = ev.storagePath ?? ''
+      if (storagePath.startsWith('local://') || storagePath.startsWith('placeholder://')) {
+        gateViolations.push({
+          id: ev.id,
+          ref,
+          reason: `unsynced storage path (${storagePath}) — upload must complete before sealing`,
+        })
+      }
+      if (typeof ev.checksum !== 'string' || ev.checksum.trim().length === 0) {
+        gateViolations.push({
+          id: ev.id,
+          ref,
+          reason: 'missing evidence checksum — cannot seal without tamper-evidence digest',
+        })
+      }
+      const hasGeo = !!ev.geo && typeof ev.geo.lat === 'number' && typeof ev.geo.lng === 'number'
+      const hasManualLocationNote =
+        typeof ev.manualLocationNote === 'string' && ev.manualLocationNote.trim().length > 0
+      if (!hasGeo && !hasManualLocationNote) {
+        gateViolations.push({
+          id: ev.id,
+          ref,
+          reason: 'missing GPS coordinates and no manual location note recorded',
+        })
+      }
+    }
+
+    if (gateViolations.length > 0) {
+      const preview = gateViolations.slice(0, 10)
+        .map(v => `• ${v.ref}: ${v.reason}`)
+        .join('\n')
+      const overflow = gateViolations.length > 10
+        ? `\n\n…and ${gateViolations.length - 10} more`
+        : ''
+      reportPersistenceFailure(
+        `Cannot seal — ${gateViolations.length} evidence item(s) failed pre-seal integrity gates.\n\n${preview}${overflow}`,
+        {
+          assignmentId,
+          reportId: report.id,
+          inspectorId: sessionInspector.id,
+          violations: gateViolations,
+        },
+        { alert: true }
+      )
+      setSealing(false)
+      return false
+    }
+
     const completedRecord = {
       id: createRuntimeId(`completion-record-${assignment.id}`),
       projectId: job.projectId,
