@@ -15,7 +15,7 @@ import { getBuilderOnboardingStatusAsync } from '@/lib/persistence/builderOnboar
 import type { BuilderOnboardingStatus } from '@/lib/persistence/builderOnboarding'
 import type { Project, DispatchTier, PricingMode, SpecialistRoleId } from '@/lib/types'
 import { calculatePricingBreakdown } from '@/utils/pricing'
-import { DISPATCH_PRICING } from '@/lib/pricing/config'
+import { DISPATCH_PRICING, getDefaultSpecialistRole } from '@/lib/pricing/config'
 
 type PaymentStatus = 'idle' | 'processing' | 'escrowed'
 
@@ -99,15 +99,37 @@ export default function DispatchPage() {
   const effectiveSelectedProjectId = selectedProjectId ?? projects[0]?.id ?? null
   const selectedProject = projects.find(p => p.id === effectiveSelectedProjectId) ?? null
   const pricing = DISPATCH_PRICING.find(p => p.tier === selectedTier)!
-  const pricingMode: PricingMode = selectedSpecialistRole ? 'specialist_hourly' : 'dispatch_fixed'
-  const pricingBreakdown = calculatePricingBreakdown({
-    dispatchTier: selectedTier,
+  // Stage 5 (Final Occupancy Permit) requires specialist sign-off and must
+  // flow into both the Estimated Total and the per-tier card prices.
+  const isFinalOccupancyStage = selectedProject?.currentStage === 5
+  const resolvedSpecialistRole: SpecialistRoleId | null = selectedSpecialistRole
+    ?? (isFinalOccupancyStage
+      ? getDefaultSpecialistRole({
+          inspectionType: 'dispatch',
+          requiresProfessionalSeal: true,
+        })
+      : null)
+  const pricingMode: PricingMode = resolvedSpecialistRole ? 'specialist_hourly' : 'dispatch_fixed'
+  const basePricingInput = {
     pricingMode,
-    specialistRole: selectedSpecialistRole,
+    specialistRole: resolvedSpecialistRole,
     billableHours,
     holdHours,
-    inspectionType: 'dispatch',
+    inspectionType: 'dispatch' as const,
+    requiresProfessionalSeal: isFinalOccupancyStage,
+  }
+  const pricingBreakdown = calculatePricingBreakdown({
+    ...basePricingInput,
+    dispatchTier: selectedTier,
   })
+  // Per-tier all-in totals so the card price matches the Estimated Total for
+  // whichever tier the builder selects. No "Routine" price shown under
+  // specialist pricing.
+  const perTierPricing: Record<DispatchTier, ReturnType<typeof calculatePricingBreakdown>> = {
+    standard:  calculatePricingBreakdown({ ...basePricingInput, dispatchTier: 'standard' }),
+    priority:  calculatePricingBreakdown({ ...basePricingInput, dispatchTier: 'priority' }),
+    emergency: calculatePricingBreakdown({ ...basePricingInput, dispatchTier: 'emergency' }),
+  }
   const tierIcons = { standard: Clock, priority: Zap, emergency: AlertTriangle }
 
   const handleHoldInEscrow = async () => {
@@ -262,6 +284,10 @@ export default function DispatchPage() {
           {DISPATCH_PRICING.map((p) => {
             const Icon = tierIcons[p.tier]
             const isSelected = selectedTier === p.tier
+            const cardTotal = perTierPricing[p.tier].builderEscrowTotal
+            const cardSubtext = pricingMode === 'specialist_hourly'
+              ? 'Specialist pricing applied'
+              : 'Includes platform fee'
             return (
               <button
                 key={p.tier}
@@ -284,7 +310,10 @@ export default function DispatchPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="text-2xl font-black text-blueprint-blue">{formatCurrency(p.price)}</div>
+                  <div className="text-right">
+                    <div className="text-2xl font-black text-blueprint-blue">{formatCurrency(cardTotal)}</div>
+                    <div className="text-xs text-gray-400 mt-0.5">{cardSubtext}</div>
+                  </div>
                 </div>
               </button>
             )

@@ -278,23 +278,28 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
     selectedDisc === 'architectural'
       ? 'AIBC'
       : undefined
-  const specialistModeForced = resolvePricingMode({
+  // Stage 5 (Final Occupancy Permit) always requires specialist sign-off, even
+  // when no discipline has been selected yet. Flag it so the cards and total
+  // display the specialist-hourly rate the builder will actually be charged.
+  const isFinalOccupancyStage = selectedStage === 5
+  const specialistModeForced = isFinalOccupancyStage || resolvePricingMode({
     discipline: selectedDisc ?? undefined,
     credentialClass,
     inspectionType: 'dispatch',
+    requiresProfessionalSeal: isFinalOccupancyStage,
   }) === 'specialist_hourly'
   const resolvedSpecialistRole = specialistModeForced
     ? (selectedSpecialistRole ?? getDefaultSpecialistRole({
         discipline: selectedDisc ?? undefined,
         credentialClass,
         inspectionType: 'dispatch',
+        requiresProfessionalSeal: isFinalOccupancyStage,
       }))
     : selectedSpecialistRole
   const pricingMode: PricingMode = specialistModeForced || resolvedSpecialistRole
     ? 'specialist_hourly'
     : 'dispatch_fixed'
-  const pricing = calculatePricingBreakdown({
-    dispatchTier: selectedTier,
+  const basePricingInput = {
     pricingMode,
     specialistRole: resolvedSpecialistRole,
     billableHours,
@@ -302,7 +307,20 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
     credentialClass,
     discipline: selectedDisc ?? undefined,
     inspectionType: 'dispatch',
+    requiresProfessionalSeal: isFinalOccupancyStage,
+  } as const
+  const pricing = calculatePricingBreakdown({
+    ...basePricingInput,
+    dispatchTier: selectedTier,
   })
+  // Pre-compute all-in (Base + Urgency + Fee) totals for every tier card so
+  // the price stamped on each card matches what the Estimated Total would
+  // become if that tier were selected. Prevents sticker shock on review.
+  const perTierPricing: Record<DispatchTier, ReturnType<typeof calculatePricingBreakdown>> = {
+    standard:  calculatePricingBreakdown({ ...basePricingInput, dispatchTier: 'standard' }),
+    priority:  calculatePricingBreakdown({ ...basePricingInput, dispatchTier: 'priority' }),
+    emergency: calculatePricingBreakdown({ ...basePricingInput, dispatchTier: 'emergency' }),
+  }
   const totalEscrow = pricing.builderEscrowTotal
   const hasValidSchedulingWindow = slots.length > 0 && slots.every(slot => isSlotValidForTier(slot, selectedTier))
 
@@ -648,15 +666,28 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
           <div className="space-y-3 mb-5">
             <div className="text-[11px] font-black uppercase tracking-[0.18em] text-gray-500">STEP 1 — SELECT DISPATCH SPEED</div>
             <div className="rounded-2xl border border-gray-200 bg-white px-4 py-3">
-              <div className="text-sm font-bold text-gray-900">Fixed-fee dispatch for routine inspection bookings</div>
-              <div className="mt-1 text-xs text-gray-500">Use these options when the inspection does not require a specialist or professional sign-off.</div>
+              <div className="text-sm font-bold text-gray-900">
+                {pricingMode === 'specialist_hourly'
+                  ? 'Specialist-hourly dispatch for professional sign-off'
+                  : 'Fixed-fee dispatch for routine inspection bookings'}
+              </div>
+              <div className="mt-1 text-xs text-gray-500">
+                {pricingMode === 'specialist_hourly'
+                  ? 'This file requires a registered professional. Cards show the all-in escrow at specialist rates.'
+                  : 'Use these options when the inspection does not require a specialist or professional sign-off.'}
+              </div>
             </div>
-            {DISPATCH_PRICING.map(pricing => {
+            {DISPATCH_PRICING.map(pricingCard => {
               const icons = { standard: Clock, priority: Zap, emergency: AlertTriangle }
-              const Icon = icons[pricing.tier]
-              const isSelected = selectedTier === pricing.tier
+              const Icon = icons[pricingCard.tier]
+              const isSelected = selectedTier === pricingCard.tier
+              const tierBreakdown = perTierPricing[pricingCard.tier]
+              const cardTotal = tierBreakdown.builderEscrowTotal
+              const cardSubtext = pricingMode === 'specialist_hourly'
+                ? 'Specialist pricing applied'
+                : 'Includes platform fee'
               return (
-                <button key={pricing.tier} onClick={() => handleTierSelection(pricing.tier)}
+                <button key={pricingCard.tier} onClick={() => handleTierSelection(pricingCard.tier)}
                   className={`w-full text-left rounded-xl border-2 p-4 transition-all ${
                     isSelected ? 'border-flame bg-orange-50' : 'border-gray-200 hover:border-gray-300 bg-white'
                   }`}>
@@ -667,30 +698,32 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-black text-gray-900">{pricing.label} Dispatch</span>
-                          {pricing.tier === 'priority' && <Badge variant="warning" size="sm">Most Claimed</Badge>}
-                          {pricing.tier === 'emergency' && <Badge variant="fail" size="sm">Highest Priority</Badge>}
+                          <span className="font-black text-gray-900">{pricingCard.label} Dispatch</span>
+                          {pricingCard.tier === 'priority' && <Badge variant="warning" size="sm">Most Claimed</Badge>}
+                          {pricingCard.tier === 'emergency' && <Badge variant="fail" size="sm">Highest Priority</Badge>}
                         </div>
                         <div className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
-                          <Clock className="w-3 h-3" /> {pricing.timeframe}
+                          <Clock className="w-3 h-3" /> {pricingCard.timeframe}
                         </div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-xl font-black text-gray-900">{formatCurrency(pricing.price)} total</div>
-                      <div className="text-xs text-gray-400">Includes platform fee</div>
+                      <div className="text-xl font-black text-gray-900">{formatCurrency(cardTotal)} total</div>
+                      <div className="text-xs text-gray-400">{cardSubtext}</div>
                     </div>
                   </div>
                   <div className="mt-3 space-y-1.5 text-xs text-gray-600">
-                    <div>{pricing.tier === 'standard' ? 'Next available CP' : pricing.tier === 'priority' ? 'Preferred dispatch routing' : 'Highest urgency routing'}</div>
-                    <div>{pricing.tier === 'standard' ? 'Standard scheduling' : pricing.tier === 'priority' ? 'Faster scheduling window' : 'Dedicated dispatch handling'}</div>
-                    <div>{pricing.tier === 'standard' ? 'Routine dispatch lane' : pricing.tier === 'priority' ? 'Live ETA tracking' : 'Direct coordination access'}</div>
+                    <div>{pricingCard.tier === 'standard' ? 'Next available CP' : pricingCard.tier === 'priority' ? 'Preferred dispatch routing' : 'Highest urgency routing'}</div>
+                    <div>{pricingCard.tier === 'standard' ? 'Standard scheduling' : pricingCard.tier === 'priority' ? 'Faster scheduling window' : 'Dedicated dispatch handling'}</div>
+                    <div>{pricingCard.tier === 'standard' ? 'Routine dispatch lane' : pricingCard.tier === 'priority' ? 'Live ETA tracking' : 'Direct coordination access'}</div>
                   </div>
                 </button>
               )
             })}
             <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-xs text-gray-600">
-              These fixed-fee cards apply to routine dispatch only. If the file requires a registered professional, Vero automatically applies specialist pricing.
+              {pricingMode === 'specialist_hourly'
+                ? 'Specialist pricing is active for this file. Each card above shows the all-in escrow — Base + Urgency + Platform Fee — for that dispatch speed.'
+                : 'These fixed-fee cards apply to routine dispatch only. If the file requires a registered professional, Vero automatically applies specialist pricing.'}
             </div>
           </div>
 
