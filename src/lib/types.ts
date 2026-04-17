@@ -66,6 +66,8 @@ export interface InspectorEligibilityProfile {
   requestedRoleLanes: InspectorRoleLane[]
   approvedRoleLanes: InspectorRoleLane[]
   licenseNumber?: string
+  /** Formal license/registration number for authority-facing documents (BC Schedule C-B). */
+  inspectorLicenseNo?: string
   credentialExpiresAt?: string
   updatedAt?: string
   reviewerNote?: string
@@ -107,8 +109,12 @@ export interface GPSCoord {
 
 export interface InspectorProfile {
   id: string
+  firstName: string
+  lastName: string
   name: string
   licenseNumber: string
+  /** Formal license/registration number for authority-facing documents (BC Schedule C-B). */
+  inspectorLicenseNo?: string
   discipline: InspectorDiscipline[]
   region: Region[]
   rating: number
@@ -319,6 +325,8 @@ export interface InspectionPhoto {
   thumbnailUrl: string
   takenAt: string
   gps?: GPSCoord
+  /** Free-text location description used when GPS EXIF data is unavailable. */
+  manualLocationNote?: string
   pins: PinAnnotation[]
   stage?: number
   itemId?: string

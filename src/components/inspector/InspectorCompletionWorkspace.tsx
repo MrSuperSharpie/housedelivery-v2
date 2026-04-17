@@ -65,7 +65,7 @@ import {
   upsertInspectorCompletionItems,
   upsertInspectorCompletionReport,
 } from '@/lib/supabase/inspectorCompletion'
-import type { EvidenceItem } from '@/lib/domain/types'
+import type { EvidenceItem, EvidenceKind, EvidenceValidationState, GeoCoord } from '@/lib/domain/types'
 import { evaluateGeofence } from '@/lib/geofence'
 import { isHoldOpenStatus } from '@/lib/holds/workflow'
 import { buildHoldEvidenceItems, buildHoldHistorySummary } from '@/lib/holds/reporting'
@@ -1921,24 +1921,72 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
     }
 
     const evidenceItems: EvidenceItem[] = nextItems.flatMap(item =>
-      item.documents.map(doc => ({
-        id: doc.id,
-        projectId: job.projectId,
-        kind: 'document',
-        originalFilename: doc.fileName,
-        storagePath: doc.storagePath,
-        captureTimestamp: doc.createdAt,
-        uploadedBy: doc.uploadedBy,
-        notes: item.response_note || item.ahj_notes,
-        validationState: 'pending',
-        createdAt: doc.createdAt,
-        updatedAt: doc.createdAt,
-        metadata: {
-          itemCode: item.item_code,
-          itemLabel: item.item_label,
-          stageNumber: item.stage_number,
-        },
-      }))
+      item.documents.map(doc => {
+        const kind: EvidenceKind = (() => {
+          switch (doc.mediaType) {
+            case 'camera': return 'photo'
+            case 'video': return 'video'
+            case 'audio': return 'voice_note'
+            case 'text': return 'document'
+            case 'document': return 'document'
+            default: return 'document'
+          }
+        })()
+
+        const validationState: EvidenceValidationState = (() => {
+          switch (doc.integrityStatus) {
+            case 'verified': return 'validated'
+            case 'disputed': return 'invalid'
+            case 'quarantined': return 'quarantined'
+            case 'recorded':
+            default: return 'pending'
+          }
+        })()
+
+        const geo: GeoCoord | undefined = (() => {
+          const lat = doc.captureGeo?.latitude
+          const lng = doc.captureGeo?.longitude
+          if (typeof lat !== 'number' || typeof lng !== 'number') return undefined
+          const accuracy = doc.captureGeo?.accuracy
+          return {
+            lat,
+            lng,
+            ...(typeof accuracy === 'number' ? { accuracy } : {}),
+            timestamp: doc.originalCapturedAt ?? doc.createdAt,
+          }
+        })()
+
+        const notes = [item.response_note, item.ahj_notes]
+          .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+          .join(' — ') || undefined
+
+        return {
+          id: doc.id,
+          projectId: job.projectId,
+          kind,
+          fileType: doc.mimeType,
+          originalFilename: doc.fileName,
+          storagePath: doc.storagePath,
+          captureTimestamp: doc.originalCapturedAt ?? doc.createdAt,
+          uploadedBy: doc.uploadedBy,
+          capturedBy: doc.uploadedBy,
+          notes,
+          geo,
+          manualLocationNote: doc.manualLocationNote,
+          validationState,
+          checksum: doc.evidenceChecksum,
+          createdAt: doc.createdAt,
+          updatedAt: doc.createdAt,
+          metadata: {
+            itemCode: item.item_code,
+            itemLabel: item.item_label,
+            stageNumber: item.stage_number,
+            integrityStatus: doc.integrityStatus,
+            anomalyFlags: doc.anomalyFlags ?? [],
+            mediaType: doc.mediaType,
+          },
+        }
+      })
     )
     const holdEvidenceItems = buildHoldEvidenceItems(holdDetails, job.projectId)
 

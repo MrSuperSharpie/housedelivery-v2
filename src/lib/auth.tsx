@@ -22,6 +22,8 @@ export interface AuthUser {
   position?: string
   // inspector
   licenseNumber?: string
+  /** Formal license/registration number for authority-facing documents (BC Schedule C-B). */
+  inspectorLicenseNo?: string
   designation?: string
   disciplines?: import('@/lib/types').InspectorDiscipline[]
   regions?: import('@/lib/types').Region[]

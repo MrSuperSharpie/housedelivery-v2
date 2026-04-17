@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation'
 import { ArrowLeft, Printer, FileText, AlertCircle, Send, CheckCircle2, Plus } from 'lucide-react'
 import { Navbar } from '@/components/shared/Navbar'
 import { useAuth } from '@/lib/auth'
+import { createClient } from '@/lib/supabase/client'
 import { getCompletedInspectionByIdAsync } from '@/lib/persistence/completedInspections'
 import { generateAuthorityPackageFromCompletedRecord } from '@/lib/packages/authority-package'
 import { getPackageSeal, recordPackageExport } from '@/lib/supabase/governance'
@@ -33,6 +34,11 @@ export default function PackagePreviewClient() {
   const [responseText, setResponseText] = useState('')
   const [resolvingId, setResolvingId] = useState<string | null>(null)
   const [resolvedVersion, setResolvedVersion] = useState<number | undefined>(undefined)
+  const [inspectorProfile, setInspectorProfile] = useState<{
+    firstName: string
+    lastName: string
+    licenseNo: string
+  } | null>(null)
 
   const pkg = useMemo(
     () => (record && record.evidenceItems?.length ? generateAuthorityPackageFromCompletedRecord(record) : null),
@@ -45,6 +51,30 @@ export default function PackagePreviewClient() {
       setRecord(r ?? null)
     })
   }, [recordId])
+
+  useEffect(() => {
+    if (!record) return
+    const inspectorId = record.inspectorId
+    if (!inspectorId) return
+    const supabase = createClient()
+    let cancelled = false
+    supabase
+      .from('profiles')
+      .select('first_name, last_name, inspector_license_no')
+      .eq('id', inspectorId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled || !data) return
+        const row = data as Record<string, unknown>
+        const firstName = typeof row.first_name === 'string' ? row.first_name.trim() : ''
+        const lastName = typeof row.last_name === 'string' ? row.last_name.trim() : ''
+        const licenseNo = typeof row.inspector_license_no === 'string' ? row.inspector_license_no.trim() : ''
+        if (firstName || lastName || licenseNo) {
+          setInspectorProfile({ firstName, lastName, licenseNo })
+        }
+      })
+    return () => { cancelled = true }
+  }, [record])
 
   useEffect(() => {
     if (!recordId || !user) return
@@ -393,7 +423,7 @@ export default function PackagePreviewClient() {
               </div>
             </div>
             <div style={{ textAlign: 'right', fontSize: '8pt', color: '#555555' }}>
-              <div style={{ fontWeight: 700, color: '#111111' }}>Inspection Submission Package</div>
+              <div style={{ fontWeight: 700, color: '#111111' }}>Inspection Evidence &amp; Reporting Package</div>
               {cover.permitNumber && (
                 <div>Permit No. <strong>{cover.permitNumber}</strong></div>
               )}
@@ -424,10 +454,10 @@ export default function PackagePreviewClient() {
 
           {/* Title */}
           <div style={{ fontSize: '18pt', fontWeight: 900, marginBottom: '6pt' }}>
-            Vero Stage Inspection Record
+            Vero Field Inspection Record
           </div>
           <div style={{ fontSize: '10pt', color: '#555555', marginBottom: '24pt' }}>
-            Certified Field Review Report
+            Inspection Evidence &amp; Reporting Package
           </div>
 
           {/* Sealed badge */}
@@ -508,10 +538,10 @@ export default function PackagePreviewClient() {
         <div className="mb-6 print:hidden">
           <h1 className="font-black text-ink text-xl flex items-center gap-2">
             <FileText className="w-5 h-5 text-flame" />
-            Stage Inspection Record
+            Vero Field Inspection Record
           </h1>
           <p className="text-xs text-subtle mt-1">
-            Certified field review report · {record.certRef}
+            Inspection Evidence &amp; Reporting Package · {record.certRef}
           </p>
         </div>
 
@@ -567,13 +597,28 @@ export default function PackagePreviewClient() {
         <section className="card-dark rounded-2xl p-5 mb-4 print:border print:rounded-lg">
           <h2 className="label-mono mb-4">Section 2 — Parties and Roles</h2>
           <div className="grid gap-3 text-sm">
-            <div className="flex gap-3">
-              <span className="text-muted w-40 shrink-0">Inspector</span>
-              <span className="text-ink font-semibold">{inspectorDeclaration?.inspectorName ?? record.inspectorName}</span>
-            </div>
+            {inspectorProfile?.firstName || inspectorProfile?.lastName ? (
+              <>
+                <div className="flex gap-3">
+                  <span className="text-muted w-40 shrink-0">First Name</span>
+                  <span className="text-ink font-semibold">{inspectorProfile.firstName || '—'}</span>
+                </div>
+                <div className="flex gap-3">
+                  <span className="text-muted w-40 shrink-0">Last Name</span>
+                  <span className="text-ink font-semibold">{inspectorProfile.lastName || '—'}</span>
+                </div>
+              </>
+            ) : (
+              <div className="flex gap-3">
+                <span className="text-muted w-40 shrink-0">Inspector</span>
+                <span className="text-ink font-semibold">{inspectorDeclaration?.inspectorName ?? record.inspectorName}</span>
+              </div>
+            )}
             <div className="flex gap-3">
               <span className="text-muted w-40 shrink-0">Licence No.</span>
-              <span className="font-mono text-ink">{inspectorDeclaration?.licenseNumber ?? record.inspectorLicense}</span>
+              <span className="font-mono text-ink">
+                {inspectorProfile?.licenseNo || inspectorDeclaration?.licenseNumber || record.inspectorLicense}
+              </span>
             </div>
             <div className="flex gap-3">
               <span className="text-muted w-40 shrink-0">Registration Body</span>
@@ -697,7 +742,7 @@ export default function PackagePreviewClient() {
                   <th className="py-2 pr-3 text-muted font-semibold">Type</th>
                   <th className="py-2 pr-3 text-muted font-semibold">Checklist Item</th>
                   <th className="py-2 pr-3 text-muted font-semibold">Timestamp</th>
-                  <th className="py-2 pr-3 text-muted font-semibold">GPS</th>
+                  <th className="py-2 pr-3 text-muted font-semibold">Location</th>
                   <th className="py-2 text-muted font-semibold">Notes</th>
                 </tr>
               </thead>
@@ -718,10 +763,16 @@ export default function PackagePreviewClient() {
                           })
                         : '—'}
                     </td>
-                    <td className="py-2 pr-3 font-mono text-muted text-xs whitespace-nowrap">
-                      {entry.lat != null && entry.lng != null
-                        ? `${entry.lat.toFixed(5)}° N, ${entry.lng.toFixed(5)}° W`
-                        : <span className="text-subtle italic">Not captured</span>}
+                    <td className="py-2 pr-3 text-muted text-xs">
+                      {entry.lat != null && entry.lng != null ? (
+                        <span className="font-mono whitespace-nowrap">
+                          {entry.lat.toFixed(5)}° N, {entry.lng.toFixed(5)}° W
+                        </span>
+                      ) : entry.manualLocationNote ? (
+                        <span className="italic">{entry.manualLocationNote}</span>
+                      ) : (
+                        <span className="text-subtle italic">Not captured</span>
+                      )}
                     </td>
                     <td className="py-2 text-muted text-xs max-w-[200px]">
                       {entry.notes ?? entry.caption ?? '—'}

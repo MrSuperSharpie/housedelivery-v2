@@ -51,6 +51,8 @@ export interface EvidenceIndexEntry {
   lat?: number
   lng?: number
   geoAccuracy?: number
+  /** Free-text location note used when GPS EXIF data was unavailable. */
+  manualLocationNote?: string
   /** Identity of the person who uploaded or captured this item. */
   uploadedBy?: string
   capturedBy?: string
@@ -118,6 +120,7 @@ function buildEvidenceIndexFromItems(items: EvidenceItem[]): EvidenceIndexEntry[
       lat: item.geo?.lat,
       lng: item.geo?.lng,
       geoAccuracy: item.geo?.accuracy,
+      manualLocationNote: item.manualLocationNote,
       uploadedBy: item.uploadedBy,
       capturedBy: item.capturedBy,
       checksum: item.checksum,
@@ -127,10 +130,9 @@ function buildEvidenceIndexFromItems(items: EvidenceItem[]): EvidenceIndexEntry[
 }
 
 const SFH_DECLARATION_STATEMENT =
-  'I hereby certify that I personally carried out the inspection described in this report, ' +
-  'that the work was inspected in accordance with the applicable provisions of the BC Building Code ' +
-  'and the conditions of the permit, and that the information contained in this package is true ' +
-  'and accurate to the best of my knowledge and belief.'
+  'I confirm that I personally conducted the field inspection described in this record on the date indicated. ' +
+  'The observations and evidence captured herein accurately reflect the site conditions at the time of inspection, ' +
+  'assessed against the applicable requirements of the British Columbia Building Code and local permit conditions.'
 
 /**
  * Generate an authority package from a persisted completed inspection record.

@@ -258,6 +258,8 @@ export interface EvidenceItem {
   notes?: string
   caption?: string
   geo?: GeoCoord
+  /** Free-text location description used when GPS EXIF data is unavailable. */
+  manualLocationNote?: string
   validationState: EvidenceValidationState
   checksum?: string
   hashPlaceholder?: string

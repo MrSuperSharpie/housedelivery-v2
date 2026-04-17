@@ -49,6 +49,8 @@ export interface InspectorCompletionReportRow {
   assignmentId: string
   jobId: string
   inspectorId: string
+  /** Formal license/registration number for authority-facing documents (BC Schedule C-B). */
+  inspectorLicenseNo?: string
   projectId?: string
   projectName: string
   address: string
@@ -95,6 +97,22 @@ export interface InspectorCompletionChecklistItemRow {
   updatedAt: string
 }
 
+export interface DocumentCaptureGeo {
+  latitude?: number | null
+  longitude?: number | null
+  accuracy?: number | null
+}
+
+export type DocumentIntegrityStatus = 'recorded' | 'verified' | 'disputed' | 'quarantined' | string
+
+export interface DocumentAnomalyFlag {
+  type?: string
+  distanceMeters?: number | null
+  thresholdMeters?: number | null
+  explanation?: string | null
+  [key: string]: unknown
+}
+
 export interface InspectorCompletionDocumentRow {
   id: string
   reportId: string
@@ -106,6 +124,18 @@ export interface InspectorCompletionDocumentRow {
   mediaType?: InspectorCompletionDocumentMediaType
   fileSize?: number
   uploadedBy?: string
+  /** Free-text location description used when GPS EXIF data is unavailable. */
+  manualLocationNote?: string
+  /** SHA-256 hex digest of the original uploaded bytes — tamper-evidence. */
+  evidenceChecksum?: string
+  /** Capture timestamp asserted by the client at upload time (may differ from createdAt). */
+  originalCapturedAt?: string
+  /** Geolocation captured alongside the evidence (device GPS). */
+  captureGeo?: DocumentCaptureGeo
+  /** Integrity lifecycle state — 'recorded' at intake, advances via review. */
+  integrityStatus?: DocumentIntegrityStatus
+  /** Structured anomaly signals (e.g. geofence out-of-range). */
+  anomalyFlags?: DocumentAnomalyFlag[]
   createdAt: string
   /** Blob URL for inline preview — client-only, never persisted to DB. */
   previewUrl?: string
@@ -136,6 +166,7 @@ function rowToReport(row: Record<string, unknown>): InspectorCompletionReportRow
     assignmentId: row.assignment_id as string,
     jobId: row.job_id as string,
     inspectorId: row.inspector_id as string,
+    inspectorLicenseNo: (row.inspector_license_no as string) ?? undefined,
     projectId: (row.project_id as string) ?? undefined,
     projectName: row.project_name as string,
     address: row.address as string,
@@ -191,6 +222,23 @@ function rowToItem(row: Record<string, unknown>): InspectorCompletionChecklistIt
   }
 }
 
+function coerceCaptureGeo(value: unknown): DocumentCaptureGeo | undefined {
+  if (!value || typeof value !== 'object') return undefined
+  const source = value as Record<string, unknown>
+  const latitude = typeof source.latitude === 'number' ? source.latitude : null
+  const longitude = typeof source.longitude === 'number' ? source.longitude : null
+  const accuracy = typeof source.accuracy === 'number' ? source.accuracy : null
+  if (latitude == null && longitude == null && accuracy == null) return undefined
+  return { latitude, longitude, accuracy }
+}
+
+function coerceAnomalyFlags(value: unknown): DocumentAnomalyFlag[] | undefined {
+  if (!Array.isArray(value) || value.length === 0) return undefined
+  return value
+    .filter((entry): entry is Record<string, unknown> => !!entry && typeof entry === 'object')
+    .map(entry => entry as DocumentAnomalyFlag)
+}
+
 function rowToDocument(row: Record<string, unknown>): InspectorCompletionDocumentRow {
   const mimeType = (row.mime_type as string) ?? undefined
   return {
@@ -204,6 +252,12 @@ function rowToDocument(row: Record<string, unknown>): InspectorCompletionDocumen
     mediaType: (row.media_type as InspectorCompletionDocumentMediaType) ?? inferDocumentMediaType(mimeType),
     fileSize: (row.file_size as number) ?? undefined,
     uploadedBy: (row.uploaded_by as string) ?? undefined,
+    manualLocationNote: (row.manual_location_note as string) ?? undefined,
+    evidenceChecksum: (row.evidence_checksum as string) ?? undefined,
+    originalCapturedAt: (row.original_captured_at as string) ?? undefined,
+    captureGeo: coerceCaptureGeo(row.capture_geo),
+    integrityStatus: (row.integrity_status as DocumentIntegrityStatus) ?? undefined,
+    anomalyFlags: coerceAnomalyFlags(row.anomaly_flags),
     createdAt: row.created_at as string,
   }
 }

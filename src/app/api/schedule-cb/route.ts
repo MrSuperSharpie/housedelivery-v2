@@ -100,14 +100,37 @@ function missingAuthorityFields(options: ScheduleCBOptions): string[] {
   return missing
 }
 
+const MIME_BY_EXT: Record<string, string> = {
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  gif: 'image/gif',
+  webp: 'image/webp',
+  heic: 'image/heic',
+  heif: 'image/heif',
+  avif: 'image/avif',
+  mp4: 'video/mp4',
+  mov: 'video/quicktime',
+  avi: 'video/x-msvideo',
+  pdf: 'application/pdf',
+}
+
+function inferMimeType(storedMime: string | null | undefined, fileName: string): string | undefined {
+  if (storedMime) return storedMime
+  const ext = fileName.toLowerCase().split('.').pop()
+  return ext ? MIME_BY_EXT[ext] : undefined
+}
+
 function toPacketDocument(row: Record<string, unknown>): ScheduleCBPacketDocumentRecord {
   const captureGeo = (row.capture_geo as Record<string, unknown> | null) ?? null
+  const fileName = row.file_name as string
+  const mimeType = inferMimeType(row.mime_type as string | null | undefined, fileName)
   return {
     id: row.id as string,
     itemCode: row.item_code as string,
-    fileName: row.file_name as string,
-    storagePath: row.storage_path as string,
-    mimeType: (row.mime_type as string) ?? undefined,
+    fileName,
+    storagePath: (row.storage_path as string | null) ?? '',
+    mimeType,
     createdAt: row.created_at as string,
     capturedAt: (row.original_captured_at as string) ?? undefined,
     latitude: typeof captureGeo?.latitude === 'number' ? captureGeo.latitude : null,
@@ -338,9 +361,46 @@ export async function GET(req: NextRequest) {
   }
 
   const report = rowToReport(reportRecord)
+
+  // ─── Identity: prefer profiles table over raw auth metadata ────────────────
+  // user_metadata is populated at sign-up and may be stale or absent for some
+  // accounts. The profiles table is the authoritative source for inspector
+  // identity fields needed by the Schedule C-B.
+  let profileRow: Record<string, unknown> | null = null
+  try {
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('first_name, last_name, inspector_license_no')
+      .eq('id', user.id)
+      .maybeSingle()
+    profileRow = (profileData as Record<string, unknown> | null) ?? null
+  } catch {
+    console.warn('[schedule-cb] profiles lookup failed — falling back to user_metadata')
+  }
+
   const meta = (user.user_metadata ?? {}) as Record<string, unknown>
-  const inspectorName = pickMeta(meta, 'name') ?? user.email?.split('@')[0]
-  const inspectorLicense = pickMeta(meta, 'licenseNumber', 'license_number')
+
+  const profileFirstName = typeof profileRow?.first_name === 'string' ? profileRow.first_name.trim() : ''
+  const profileLastName = typeof profileRow?.last_name === 'string' ? profileRow.last_name.trim() : ''
+  const profileFullName = [profileFirstName, profileLastName].filter(Boolean).join(' ')
+
+  // Resolve inspector name: profiles > user_metadata > email local-part
+  const inspectorName =
+    profileFullName ||
+    pickMeta(meta, 'name') ||
+    (() => {
+      // Never use a raw email address as a display name on legal documents
+      const localPart = user.email?.split('@')[0] ?? ''
+      return localPart.replace(/[+_.-]+/g, ' ').trim() || undefined
+    })()
+
+  // Resolve license: profiles.inspector_license_no > user_metadata
+  const inspectorLicense =
+    (typeof profileRow?.inspector_license_no === 'string' && profileRow.inspector_license_no.trim()
+      ? profileRow.inspector_license_no.trim()
+      : undefined) ??
+    pickMeta(meta, 'licenseNumber', 'license_number')
+
   const discipline = pickMeta(meta, 'designation')
     ?? (Array.isArray(meta.disciplines) && meta.disciplines.length > 0 ? String(meta.disciplines[0]) : undefined)
   const firmName = pickMeta(meta, 'company', 'firm', 'firm_name')
