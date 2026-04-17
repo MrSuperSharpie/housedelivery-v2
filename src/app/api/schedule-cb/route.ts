@@ -75,7 +75,29 @@ function toPacketItem(row: Record<string, unknown>): ScheduleCBPacketItemRecord 
     responseNote: (row.response_note as string) ?? undefined,
     stageNumber: (row.stage_number as number) ?? 0,
     stageName: (row.stage_name as string) ?? '',
+    inspectionStatus: (row.inspection_status as 'Pending' | 'Passed' | 'Failed' | 'N/A') ?? undefined,
   }
+}
+
+/**
+ * Returns the names of required authority-facing fields that are missing.
+ * An empty array means the export is safe to proceed.
+ *
+ * Required for a Schedule C-B authority-facing submission:
+ *   - inspectorName      — signatory identity
+ *   - inspectorLicense   — licence/registration number (BC practice standard)
+ *   - discipline         — professional discipline (form field + AHJ expectation)
+ *   - firmName           — firm or practice name (Schedule C-B "Print name of firm")
+ *   - inspectorContact   — phone/email so AHJ can reach the RP
+ */
+function missingAuthorityFields(options: ScheduleCBOptions): string[] {
+  const missing: string[] = []
+  if (!options.inspectorName?.trim()) missing.push('Inspector name')
+  if (!options.inspectorLicense?.trim()) missing.push('License or registration number')
+  if (!options.discipline?.trim()) missing.push('Professional discipline')
+  if (!options.firmName?.trim()) missing.push('Firm or practice name')
+  if (!options.inspectorContact?.trim()) missing.push('Contact information (phone or email)')
+  return missing
 }
 
 function toPacketDocument(row: Record<string, unknown>): ScheduleCBPacketDocumentRecord {
@@ -208,7 +230,10 @@ const DEV_PREVIEW_OPTIONS: ScheduleCBOptions = {
   buildingPermitNumber: 'BP-DEV-48219',
 }
 
-async function handleDevPreview(variant: 'packet' | 'form-only'): Promise<NextResponse> {
+async function handleDevPreview(
+  variant: 'packet' | 'form-only',
+  exportMode: 'platform_preview' | 'authority_facing',
+): Promise<NextResponse> {
   if (process.env.NODE_ENV === 'production') {
     return NextResponse.json({ error: 'Preview mode is not available in production' }, { status: 403 })
   }
@@ -228,6 +253,7 @@ async function handleDevPreview(variant: 'packet' | 'form-only'): Promise<NextRe
         buildingPermitNumber: 'BP-DEV-48219',
         generatedAtIso: new Date().toISOString(),
         verificationId: 'VERO-IC-2026-A3F9B1',
+        exportMode,
       })
     }
 
@@ -253,10 +279,12 @@ async function handleDevPreview(variant: 'packet' | 'form-only'): Promise<NextRe
 
 export async function GET(req: NextRequest) {
   const variant = req.nextUrl.searchParams.get('variant') === 'form-only' ? 'form-only' : 'packet'
+  const exportMode: 'platform_preview' | 'authority_facing' =
+    req.nextUrl.searchParams.get('mode') === 'authority_facing' ? 'authority_facing' : 'platform_preview'
 
   // Dev preview shortcut — no auth, no DB
   if (req.nextUrl.searchParams.get('preview') === 'true') {
-    return handleDevPreview(variant)
+    return handleDevPreview(variant, exportMode)
   }
 
   const reportId = req.nextUrl.searchParams.get('reportId')
@@ -348,6 +376,21 @@ export async function GET(req: NextRequest) {
     buildingPermitNumber,
   }
 
+  // Authority-facing exports require complete professional credentials.
+  // Missing mandatory fields are not silently omitted — the export is blocked.
+  if (exportMode === 'authority_facing') {
+    const missing = missingAuthorityFields(officialFormOptions)
+    if (missing.length > 0) {
+      return NextResponse.json(
+        {
+          error: 'Authority-facing export requires complete professional credentials. Update your profile and retry.',
+          missingFields: missing,
+        },
+        { status: 400 },
+      )
+    }
+  }
+
   try {
     let pdfBytes: Uint8Array
 
@@ -358,7 +401,7 @@ export async function GET(req: NextRequest) {
       const [{ data: itemRows, error: itemsError }, { data: documentRows, error: documentsError }] = await Promise.all([
         supabase
           .from(ITEMS)
-          .select('item_code, item_label, response_note, stage_number, stage_name')
+          .select('item_code, item_label, response_note, stage_number, stage_name, inspection_status')
           .eq('report_id', report.id)
           .order('stage_number', { ascending: true })
           .order('sort_order', { ascending: true }),
@@ -415,6 +458,7 @@ export async function GET(req: NextRequest) {
         buildingPermitNumber,
         generatedAtIso: new Date().toISOString(),
         verificationId: report.sealReference ?? report.id,
+        exportMode,
       })
     }
 

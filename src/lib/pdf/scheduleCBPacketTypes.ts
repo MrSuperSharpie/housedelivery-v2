@@ -8,6 +8,16 @@ export interface ScheduleCBPacketItemRecord {
   responseNote?: string
   stageNumber: number
   stageName: string
+  inspectionStatus?: 'Pending' | 'Passed' | 'Failed' | 'N/A'
+}
+
+export interface ChecklistSummary {
+  hasData: boolean
+  passCount: number
+  failCount: number
+  naCount: number
+  pendingCount: number
+  totalCount: number
 }
 
 export interface ScheduleCBPacketDocumentRecord {
@@ -32,6 +42,7 @@ export interface ScheduleCBPacketSource {
   buildingPermitNumber?: string
   generatedAtIso?: string
   verificationId?: string
+  exportMode?: 'platform_preview' | 'authority_facing'
 }
 
 export interface ScheduleCBPacketAppendixEntry {
@@ -108,6 +119,20 @@ export interface ScheduleCBPacketData {
   generatedAtIso: string
   complianceBlockLabel: string
   complianceTone: 'compliant' | 'review_required'
+  // Export mode and mode-switched display strings (all computed in buildScheduleCBPacketData)
+  exportMode: 'platform_preview' | 'authority_facing'
+  documentCount: number
+  checklistSummary: ChecklistSummary
+  coverEyebrow: string
+  coverSubtitle: string
+  documentTitle: string
+  certificationStatusLabel: string
+  trailEyebrow: string
+  trailTitle: string
+  certifiedAtLabel: string
+  /** null means suppress the row entirely (platform_preview mode) */
+  sealOutcomeLabel: string | null
+  disclaimerText: string
   project: ScheduleCBPacketProjectSummary
   inspector: {
     name: string

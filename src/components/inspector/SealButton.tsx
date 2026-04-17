@@ -12,32 +12,47 @@ interface SealButtonProps {
   isDark?: boolean
 }
 
-export function SealButton({ canSeal, pendingCount, hasOpenHold = false, onSeal, isDark = true }: SealButtonProps) {
+export function SealButton({
+  canSeal,
+  pendingCount,
+  hasOpenHold = false,
+  onSeal,
+  isDark = true,
+}: SealButtonProps) {
   const [sealing, setSealing] = useState(false)
   const [sealed, setSealed] = useState(false)
 
   const handleSeal = async () => {
-    if (!canSeal || sealed) return
-    setSealing(true)
-    await onSeal()
-    setSealing(false)
-    setSealed(true)
+    if (!canSeal || sealed || sealing) return
+
+    try {
+      setSealing(true)
+      await onSeal()
+      setSealed(true)
+    } finally {
+      setSealing(false)
+    }
   }
 
   if (sealed) {
     return (
       <div className="rounded-2xl overflow-hidden border-2 border-success-green bg-success-green/10 p-6 text-center">
-        <div className="w-16 h-16 bg-success-green rounded-full flex items-center justify-center mx-auto mb-3">
-          <ShieldCheck className="w-9 h-9 text-white" />
+        <div className="relative mb-4">
+          <img src="/THIS-IS-A-TEST.png" />
+          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 rounded-full border-4 border-[#0f172a] bg-success-green p-1">
+            <ShieldCheck className="h-6 w-6 text-white" />
+          </div>
         </div>
-        <h3 className="text-xl font-bold text-success-green mb-1">Digital Seal Applied</h3>
-        <p className="text-sm text-slate-300 mb-4">Schedule C-B generated and record stored</p>
-        <div className="flex gap-2 justify-center">
-          <button className="flex items-center gap-2 bg-success-green text-white text-sm font-bold px-4 py-2.5 rounded-xl hover:bg-emerald-600 transition-colors">
-            <FileText className="w-4 h-4" />
+
+        <h3 className="mb-1 text-xl font-bold text-success-green">Digital Seal Applied</h3>
+        <p className="mb-4 text-sm text-slate-300">Schedule C-B generated and record stored</p>
+
+        <div className="flex justify-center gap-2">
+          <button className="flex items-center gap-2 rounded-xl bg-success-green px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-emerald-600">
+            <FileText className="h-4 w-4" />
             View Schedule C-B
           </button>
-          <button className="flex items-center gap-2 bg-slate-700 text-slate-200 text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-slate-600 transition-colors">
+          <button className="rounded-xl bg-slate-700 px-4 py-2.5 text-sm font-semibold text-slate-200 transition-colors hover:bg-slate-600">
             Share PDF
           </button>
         </div>
@@ -46,47 +61,82 @@ export function SealButton({ canSeal, pendingCount, hasOpenHold = false, onSeal,
   }
 
   return (
-    <div className={`rounded-2xl border-2 p-5 transition-all ${
-      canSeal
-        ? 'border-success-green bg-success-green/5'
-        : isDark ? 'border-slate-700 bg-slate-800/50' : 'border-gray-200 bg-gray-50'
-    }`}>
-      <div className="flex items-center gap-3 mb-4">
+    <div
+      className={`rounded-2xl border-2 p-5 transition-all ${
+        canSeal
+          ? 'border-success-green bg-success-green/5'
+          : isDark
+            ? 'border-slate-700 bg-slate-800/50'
+            : 'border-gray-200 bg-gray-50'
+      }`}
+    >
+      <div className="mb-6 flex justify-center">
+        <div className="relative">
+          <img
+            src="/vero-seal-v2.png"
+            className={`h-40 w-40 object-contain transition-opacity duration-500 ${
+              canSeal ? 'opacity-100' : 'opacity-40 grayscale'
+            }`}
+            alt="Vero Permit Seal"
+          />
+          {!canSeal && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Lock className="h-8 w-8 text-slate-400" />
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="mb-4 flex items-center gap-3">
         {canSeal ? (
-          <ShieldCheck className="w-6 h-6 text-success-green" />
+          <ShieldCheck className="h-6 w-6 text-success-green" />
         ) : (
-          <Lock className="w-6 h-6 text-slate-400" />
+          <Lock className="h-6 w-6 text-slate-400" />
         )}
+
         <div>
-          <h3 className={`font-bold text-base ${canSeal ? 'text-success-green' : (isDark ? 'text-slate-300' : 'text-gray-700')}`}>
+          <h3
+            className={`text-base font-bold ${
+              canSeal ? 'text-success-green' : isDark ? 'text-slate-300' : 'text-gray-700'
+            }`}
+          >
             Apply Digital Seal & Generate Schedule C-B
           </h3>
-          <p className={`text-xs mt-0.5 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+          <p className={`mt-0.5 text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
             BC Schedule C-B field review report; record stored for authority submission
           </p>
         </div>
       </div>
 
       {!canSeal && (
-        <div className="flex items-start gap-2 bg-warning-amber/10 border border-warning-amber/30 rounded-xl p-3 mb-4">
-          <AlertCircle className="w-4 h-4 text-warning-amber shrink-0 mt-0.5" />
+        <div className="mb-4 flex items-start gap-2 rounded-xl border border-warning-amber/30 bg-warning-amber/10 p-3">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-warning-amber" />
           <div className="text-xs text-warning-amber">
-            {hasOpenHold
-              ? <><span className="font-bold">Hold is active</span> — resolve or close the Hold before sealing.</>
-              : <><span className="font-bold">{pendingCount} item{pendingCount !== 1 ? 's' : ''} remaining</span> — resolve all checklist items before sealing.</>
-            }
+            {hasOpenHold ? (
+              <>
+                <span className="font-bold">Hold is active</span> — resolve or close the Hold before
+                sealing.
+              </>
+            ) : (
+              <>
+                <span className="font-bold">
+                  {pendingCount} item{pendingCount !== 1 ? 's' : ''} remaining
+                </span>{' '}
+                — resolve all checklist items before sealing.
+              </>
+            )}
           </div>
         </div>
       )}
 
       {canSeal && (
-        <div className="grid grid-cols-2 gap-2 mb-4">
-          <div className="flex items-center gap-2 bg-success-green/10 rounded-xl px-3 py-2">
-            <CheckCircle2 className="w-4 h-4 text-success-green" />
+        <div className="mb-4 grid grid-cols-2 gap-2">
+          <div className="flex items-center gap-2 rounded-xl bg-success-green/10 px-3 py-2">
+            <CheckCircle2 className="h-4 w-4 text-success-green" />
             <span className="text-xs font-semibold text-success-green">All items resolved</span>
           </div>
-          <div className="flex items-center gap-2 bg-success-green/10 rounded-xl px-3 py-2">
-            <ShieldCheck className="w-4 h-4 text-success-green" />
+          <div className="flex items-center gap-2 rounded-xl bg-success-green/10 px-3 py-2">
+            <ShieldCheck className="h-4 w-4 text-success-green" />
             <span className="text-xs font-semibold text-success-green">Location recorded</span>
           </div>
         </div>
@@ -101,7 +151,7 @@ export function SealButton({ canSeal, pendingCount, hasOpenHold = false, onSeal,
         onClick={handleSeal}
         className={!canSeal ? 'opacity-40' : ''}
       >
-        <ShieldCheck className="w-5 h-5" />
+        <ShieldCheck className="h-5 w-5" />
         {sealing ? 'Applying Seal…' : 'Apply Digital Seal & Generate Schedule C-B'}
       </Button>
     </div>

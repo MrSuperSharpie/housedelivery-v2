@@ -293,36 +293,11 @@ function VeroSealIcon({
     : 'border-slate-500/30 bg-slate-900/70 text-slate-300'
 
   return (
-    <div
-      className={`relative flex h-16 w-16 items-center justify-center rounded-full border ${shellClass} ${className}`}
-      style={certified ? {
-        background: 'linear-gradient(135deg, #064e3b 0%, #047857 20%, #0d9488 42%, #059669 58%, #6d28d9 78%, #047857 100%)',
-        boxShadow: '0 0 0 1px rgba(255,255,255,0.15), 0 0 20px rgba(16,185,129,0.5), 0 0 40px rgba(109,40,217,0.2), inset 0 1px 0 rgba(255,255,255,0.25)',
-      } : undefined}
-    >
-      {/* Holographic sheen overlay */}
-      {certified && (
-        <div
-          className="absolute inset-0 rounded-full pointer-events-none"
-          style={{ background: 'linear-gradient(45deg, transparent 25%, rgba(255,255,255,0.12) 50%, transparent 75%)' }}
-        />
-      )}
-      <div className={`absolute inset-2 rounded-full border ${ringClass}`} />
-      {certified ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src="/vero-logo-dark.png"
-          alt="Vero"
-          className="relative h-7 w-7 object-contain"
-          style={{ filter: 'brightness(0) invert(1)' }}
-        />
-      ) : (
-        <ShieldCheck className="h-7 w-7" />
-      )}
-      <div className={`absolute -bottom-2 rounded-full border px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.12em] ${badgeClass}`}>
-        VERO
-      </div>
-    </div>
+  <img
+    src="/vero-seal-v2.png"
+    alt="Vero Certification Seal"
+    className={`h-16 w-16 rounded-full object-cover ${className}`}
+  />
   )
 }
 
