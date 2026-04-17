@@ -66,6 +66,29 @@ function isGeolocationError(value: unknown): value is GeolocationPositionError {
     && typeof (value as { code?: unknown }).code === 'number'
 }
 
+/**
+ * Capitalize the first letter of the note and the first letter after every sentence
+ * terminator (.?!). Preserves whitespace around punctuation and leaves already-capitalized
+ * characters untouched. Applied to voice-to-text storage so dictated notes always read
+ * as proper sentences regardless of browser recognition casing.
+ */
+function toSentenceCase(input: string): string {
+  if (!input) return input
+  let result = ''
+  let capitalizeNext = true
+  for (const ch of input) {
+    if (capitalizeNext && /[a-z]/i.test(ch)) {
+      result += ch.toUpperCase()
+      capitalizeNext = false
+    } else {
+      result += ch
+      if (/[.?!]/.test(ch)) capitalizeNext = true
+      else if (!/\s/.test(ch)) capitalizeNext = false
+    }
+  }
+  return result
+}
+
 function fileExtensionForMimeType(mimeType: string): string {
   if (mimeType.includes('webm')) return 'webm'
   if (mimeType.includes('mp4')) return 'mp4'
@@ -296,7 +319,7 @@ export function FieldMediaUploader({
       }
 
       dictatedFinalTextRef.current = finalized
-      setTextValue(mergeDictatedText(dictatedBaseTextRef.current, finalized, interim))
+      setTextValue(toSentenceCase(mergeDictatedText(dictatedBaseTextRef.current, finalized, interim)))
       setStatus(interim ? 'Listening… transcribing live.' : 'Listening… speak your note.')
     }
 
@@ -474,7 +497,7 @@ export function FieldMediaUploader({
         const doFinalize = () => {
           if (finalizeCalled) return
           finalizeCalled = true
-          const transcript = transcriptParts.length > 0 ? transcriptParts.join(' ') : undefined
+          const transcript = transcriptParts.length > 0 ? toSentenceCase(transcriptParts.join(' ')) : undefined
           console.log('[Vero] audio finalize — transcriptParts:', transcriptParts.length, '— joined:', transcript ?? '(none)')
           void finalizeCapture(file, 'audio', transcript)
         }

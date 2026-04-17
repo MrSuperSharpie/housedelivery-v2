@@ -415,8 +415,8 @@ export default function DispatchPage() {
           <div className="mb-5">
             <div className="bg-green-50 border border-green-200 rounded-xl p-6 text-center mb-4">
               <div className="text-4xl mb-3">🔒</div>
-              <h3 className="text-xl font-bold text-green-800">Payment Held in Escrow</h3>
-              <p className="text-green-600 mt-2 text-sm">Your payment is securely held and will be released after the inspection is completed and admin-reviewed.</p>
+              <h3 className="text-xl font-bold text-green-800">Provisional Hold</h3>
+              <p className="text-green-600 mt-2 text-sm">This is a 30-minute provisional hold to secure the inspector&apos;s arrival; funds are released only upon successful completion.</p>
               <p className="font-mono text-sm text-gray-500 mt-3">{txnId}</p>
             </div>
             <Button

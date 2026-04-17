@@ -1039,7 +1039,7 @@ const STRUCTURAL_STAGE_6_CONTAINERS: StructuredStageItemDefinition[] = [
     fieldChecklist: [
       'Stairs framing and headroom clearances verified?',
       'Deck and balcony structural framing, ledgers, and connections secure? (Camera or Video Evidence Required)',
-      'Part 4 engineering reports provided (if exceeding Part 9 limits)?',
+      "Verify Part 4 engineering reports. (If project is within Part 9 limits, mark as 'Pass' or 'N/A').",
     ],
     notesGuidance: 'Record observed stair or deck framing conditions, any connection or clearance issue, and whether specialty engineering documentation applies to the project scope.',
     whatToCheck: [

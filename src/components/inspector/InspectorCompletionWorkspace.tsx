@@ -2018,7 +2018,12 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
       const hasGeo = !!ev.geo && typeof ev.geo.lat === 'number' && typeof ev.geo.lng === 'number'
       const hasManualLocationNote =
         typeof ev.manualLocationNote === 'string' && ev.manualLocationNote.trim().length > 0
-      if (!hasGeo && !hasManualLocationNote) {
+      // Fail-closed GPS gate stays strict in production. In local dev, bypass to
+      // keep iteration fast when running without geolocation (e.g. desktop browsers
+      // with permissions denied). Tamper-evidence + storage-path gates remain strict
+      // in every environment.
+      const gpsBypassInDev = process.env.NODE_ENV === 'development'
+      if (!hasGeo && !hasManualLocationNote && !gpsBypassInDev) {
         gateViolations.push({
           id: ev.id,
           ref,

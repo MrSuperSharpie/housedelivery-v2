@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import {
   Zap, Clock, AlertTriangle, CheckCircle2, Lock,
-  MapPin, ChevronRight, ChevronLeft,
+  MapPin, ChevronRight, ChevronLeft, ChevronDown,
   HardHat, Layers, Hammer, Droplets, Home,
   Radio, Shield, FileText,
   Eye, Archive
@@ -111,6 +111,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
   const [siteReqs, setSiteReqs]             = useState<string[]>([])
   const [safetyNotes, setSafetyNotes]       = useState('')
   const [siteAgreed, setSiteAgreed]         = useState(false)
+  const [siteAgreementExpanded, setSiteAgreementExpanded] = useState(false)
   const [broadcastCount, setBroadcastCount] = useState(0)
   const [broadcastDone, setBroadcastDone]   = useState(false)
   const [paymentStatus, setPaymentStatus]   = useState<'idle' | 'processing' | 'escrowed'>('idle')
@@ -163,6 +164,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
     setSiteReqs([])
     setSafetyNotes('')
     setSiteAgreed(false)
+    setSiteAgreementExpanded(false)
     setPaymentStatus('idle')
     setPostError(null)
     setIsLocating(false)
@@ -1077,14 +1079,21 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             </div>
           </div>
 
-          {/* ── Site Readiness Agreement ── */}
+          {/* ── Site Readiness Agreement (collapsible) ── */}
           <div className={`rounded-2xl border-2 overflow-hidden transition-all ${
             siteAgreed ? 'border-emerald-200 bg-emerald-50' : 'border-amber-100 bg-amber-50'
           }`}>
-            {/* Agreement header */}
-            <div className={`px-4 py-3 border-b flex items-center gap-2 ${
-              siteAgreed ? 'border-emerald-200 bg-emerald-100/60' : 'border-amber-100 bg-amber-100/60'
-            }`}>
+            {/* Agreement header — click to expand/collapse terms */}
+            <button
+              type="button"
+              onClick={() => setSiteAgreementExpanded(v => !v)}
+              aria-expanded={siteAgreementExpanded}
+              className={`w-full px-4 py-3 border-b flex items-center gap-2 transition-colors ${
+                siteAgreed
+                  ? 'border-emerald-200 bg-emerald-100/60 hover:bg-emerald-100/80'
+                  : 'border-amber-100 bg-amber-100/60 hover:bg-amber-100/80'
+              }`}
+            >
               <Shield className={`w-4 h-4 shrink-0 ${siteAgreed ? 'text-emerald-600' : 'text-amber-600'}`} />
               <span className={`text-xs font-black uppercase tracking-wide ${siteAgreed ? 'text-emerald-700' : 'text-amber-700'}`}>
                 Site Readiness Agreement
@@ -1094,9 +1103,15 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                   ? 'text-emerald-600 bg-emerald-50 border-emerald-200'
                   : 'text-amber-600 bg-amber-50 border-amber-200'
               }`}>Required</span>
-            </div>
+              <ChevronDown
+                className={`w-3.5 h-3.5 ml-1 shrink-0 transition-transform ${
+                  siteAgreementExpanded ? 'rotate-180' : ''
+                } ${siteAgreed ? 'text-emerald-600' : 'text-amber-600'}`}
+              />
+            </button>
 
-            {/* Terms */}
+            {/* Terms (collapsed by default to clear the fold) */}
+            {siteAgreementExpanded && (
             <div className="px-4 py-3 space-y-2.5">
               {[
                 {
@@ -1127,6 +1142,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                 </div>
               ))}
             </div>
+            )}
 
             {/* Checkbox */}
             <button
@@ -1154,46 +1170,48 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             </button>
           </div>
 
-          {/* Escrow payment step */}
-          {paymentStatus === 'idle' && (
-            <Button
-              variant="primary"
-              size="lg"
-              fullWidth
-              loading={paymentLoading}
-              disabled={!siteAgreed}
-              onClick={async () => {
-                setPaymentLoading(true)
-                await new Promise(r => setTimeout(r, 1400))
-                setPaymentLoading(false)
-                setPaymentStatus('escrowed')
-              }}
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-              Hold {formatCurrency(totalEscrow)} in Escrow
-            </Button>
-          )}
-
-          {paymentStatus === 'escrowed' && (
-            <div>
-              <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center mb-3">
-                <div className="text-3xl mb-2">🔒</div>
-                <h3 className="text-base font-bold text-green-800">Payment Held in Escrow</h3>
-                <p className="text-green-600 mt-1 text-xs">Your payment is securely held and will be released to the inspector upon successful inspection completion.</p>
-                <p className="font-mono text-xs text-gray-500 mt-2">{txnId}</p>
-              </div>
-              {postError && (
-                <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-3 flex items-start gap-2">
-                  <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
-                  <p className="text-xs text-red-600 font-medium">{postError}</p>
-                </div>
-              )}
-              <Button variant="primary" size="lg" fullWidth onClick={handlePost}>
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" /></svg>
-                Post to Live Board
+          {/* Sticky footer: primary CTA stays visible on every device while the review content scrolls */}
+          <div className="sticky bottom-0 -mx-5 -mb-5 px-5 pt-3 pb-5 bg-white/95 backdrop-blur border-t border-gray-100 z-10">
+            {paymentStatus === 'idle' && (
+              <Button
+                variant="primary"
+                size="lg"
+                fullWidth
+                loading={paymentLoading}
+                disabled={!siteAgreed}
+                onClick={async () => {
+                  setPaymentLoading(true)
+                  await new Promise(r => setTimeout(r, 1400))
+                  setPaymentLoading(false)
+                  setPaymentStatus('escrowed')
+                }}
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                Hold {formatCurrency(totalEscrow)} in Escrow
               </Button>
-            </div>
-          )}
+            )}
+
+            {paymentStatus === 'escrowed' && (
+              <div>
+                <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center mb-3">
+                  <div className="text-3xl mb-2">🔒</div>
+                  <h3 className="text-base font-bold text-green-800">Provisional Hold</h3>
+                  <p className="text-green-600 mt-1 text-xs">This is a 30-minute provisional hold to secure the inspector&apos;s arrival; funds are released only upon successful completion.</p>
+                  <p className="font-mono text-xs text-gray-500 mt-2">{txnId}</p>
+                </div>
+                {postError && (
+                  <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-3 flex items-start gap-2">
+                    <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                    <p className="text-xs text-red-600 font-medium">{postError}</p>
+                  </div>
+                )}
+                <Button variant="primary" size="lg" fullWidth onClick={handlePost}>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" /></svg>
+                  Post to Live Job Board
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
