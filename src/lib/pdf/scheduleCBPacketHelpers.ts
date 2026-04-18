@@ -324,6 +324,7 @@ export function buildScheduleCBPacketData(source: ScheduleCBPacketSource): Sched
         capturedAtDisplay: formatDisplayTimestamp(capturedAtIso),
         coordinatesText: formatCoordinates(document.latitude, document.longitude),
         imageUrl: document.imageUrl,
+        signedUrl: document.signedUrl,
       }
     })
 

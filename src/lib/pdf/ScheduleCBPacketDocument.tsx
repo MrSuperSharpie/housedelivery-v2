@@ -465,6 +465,18 @@ const PRINT_CSS = `
     font-size: 10px;
   }
 
+  .appendix-link {
+    color: #FF5C00;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .appendix-image-link {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
   .appendix-caption {
     font-size: 13px;
     line-height: 1.35;
@@ -1046,7 +1058,17 @@ function AppendixPages({ data }: { data: ScheduleCBPacketData }) {
                 <article key={entry.id} className="appendix-card">
                   <div className="appendix-image-frame">
                     {entry.imageUrl ? (
-                      <img className="appendix-image" src={entry.imageUrl} alt={entry.caption} />
+                      entry.signedUrl ? (
+                        <a
+                          className="appendix-image-link"
+                          href={entry.signedUrl}
+                          aria-label={`Open source file for ${entry.fileName}`}
+                        >
+                          <img className="appendix-image" src={entry.imageUrl} alt={entry.caption} />
+                        </a>
+                      ) : (
+                        <img className="appendix-image" src={entry.imageUrl} alt={entry.caption} />
+                      )
                     ) : (
                       <div className="appendix-placeholder">{entry.fileKindLabel}</div>
                     )}
@@ -1054,7 +1076,19 @@ function AppendixPages({ data }: { data: ScheduleCBPacketData }) {
 
                   <div className="appendix-topline">
                     <div className="appendix-kicker">{entry.fileKindLabel}</div>
-                    <div className="appendix-id mono">{entry.id}</div>
+                    <div className="appendix-id mono">
+                      {entry.signedUrl ? (
+                        <a
+                          className="appendix-link"
+                          href={entry.signedUrl}
+                          aria-label={`Open source file for evidence ${entry.id}`}
+                        >
+                          {entry.id}
+                        </a>
+                      ) : (
+                        entry.id
+                      )}
+                    </div>
                   </div>
 
                   <div className="appendix-caption">{entry.caption}</div>

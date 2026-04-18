@@ -491,21 +491,26 @@ export async function GET(req: NextRequest) {
       const packetItems = ((itemRows as Record<string, unknown>[] | null) ?? []).map(toPacketItem)
       const rawDocuments = ((documentRows as Record<string, unknown>[] | null) ?? []).map(toPacketDocument)
 
+      // 7-day signed URLs for every evidence document — powers the clickable
+      // hyperlinks in the appendix (and the inline <img> preview for images).
+      const SIGNED_URL_TTL_SECONDS = 60 * 60 * 24 * 7
       const packetDocuments = await Promise.all(rawDocuments.map(async document => {
-        if (!document.mimeType?.startsWith('image/')) return document
+        if (!document.storagePath) return document
 
         const { data, error } = await supabase.storage
           .from(STORAGE_BUCKET)
-          .createSignedUrl(document.storagePath, 60 * 10)
+          .createSignedUrl(document.storagePath, SIGNED_URL_TTL_SECONDS)
 
         if (error) {
           console.warn('[schedule-cb] Signed URL generation failed:', document.storagePath, error)
           return document
         }
 
+        const isImage = document.mimeType?.startsWith('image/') ?? false
         return {
           ...document,
-          imageUrl: data.signedUrl,
+          signedUrl: data.signedUrl,
+          imageUrl: isImage ? data.signedUrl : document.imageUrl,
         }
       }))
 

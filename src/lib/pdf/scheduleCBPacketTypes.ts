@@ -31,6 +31,7 @@ export interface ScheduleCBPacketDocumentRecord {
   latitude?: number | null
   longitude?: number | null
   imageUrl?: string
+  signedUrl?: string
 }
 
 export interface ScheduleCBPacketSource {
@@ -55,6 +56,7 @@ export interface ScheduleCBPacketAppendixEntry {
   capturedAtDisplay: string
   coordinatesText: string
   imageUrl?: string
+  signedUrl?: string
 }
 
 export interface ScheduleCBPacketAuditTrail {
