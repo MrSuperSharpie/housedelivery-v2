@@ -197,7 +197,7 @@ export function filterVaultRecordsForUser(records: VaultRecord[], user: AuthUser
 export function getVaultRoleCopy(user: AuthUser | null) {
   if (!user) {
     return {
-      title: 'Vero Vault',
+      title: 'Vero Permit Vault',
       subtitle: 'Sign in to view your sealed records.',
     }
   }

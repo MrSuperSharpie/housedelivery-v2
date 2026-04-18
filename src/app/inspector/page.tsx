@@ -286,6 +286,36 @@ export default function InspectorDashboard() {
           </div>
         )}
 
+        {/* Dev-only fast-track: seed a sealed report + open the PDF. Hidden in
+            production builds via NEXT_PUBLIC_ build-time swap. */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mb-4 flex items-center gap-2 rounded-2xl border border-amber-400/40 bg-amber-500/10 px-4 py-3 text-xs text-amber-900 dark:text-amber-200">
+            <span className="font-bold uppercase tracking-widest">Dev</span>
+            <span className="flex-1">Skip the 15-stage flow — seed a sealed report and open the PDF.</span>
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  const res = await fetch('/api/dev/seed-certified-project', { method: 'POST' })
+                  const json = await res.json()
+                  if (!res.ok) {
+                    console.error('[dev-fast-track] seed failed:', json)
+                    alert(`Seed failed: ${json.error ?? res.status}${json.detail ? `\n${json.detail}` : ''}`)
+                    return
+                  }
+                  window.open(json.pdfUrl, '_blank', 'noopener,noreferrer')
+                } catch (err) {
+                  console.error('[dev-fast-track] network error:', err)
+                  alert('Seed failed: network error')
+                }
+              }}
+              className="rounded-xl bg-flame px-3 py-2 text-[11px] font-black uppercase tracking-widest text-white hover:bg-flame-light"
+            >
+              Dev: Generate Test Certificate
+            </button>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>

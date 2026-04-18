@@ -295,7 +295,7 @@ function VeroSealIcon({
   return (
   <img
     src="/vero-seal-v2.png"
-    alt="Vero Certification Seal"
+    alt="Vero Permit Certification Seal"
     className={`h-16 w-16 rounded-full object-cover ${className}`}
   />
   )

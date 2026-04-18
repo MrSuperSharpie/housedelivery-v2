@@ -417,7 +417,7 @@ export default function PackagePreviewClient() {
         <div className="vero-print-header hidden">
           <div className="flex items-center justify-between">
             <div>
-              <div style={{ fontWeight: 900, fontSize: '14pt', letterSpacing: '0.02em' }}>Vero</div>
+              <div style={{ fontWeight: 900, fontSize: '14pt', letterSpacing: '0.02em' }}>Vero Permit</div>
               <div style={{ fontSize: '8pt', color: '#555555', marginTop: '2pt' }}>
                 Inspection Compliance Platform · getvero.ca
               </div>
@@ -435,7 +435,7 @@ export default function PackagePreviewClient() {
 
         {/* Print footer — fixed at bottom of every page */}
         <div className="vero-print-footer hidden">
-          Vero Field Inspection Report
+          Vero Permit Field Inspection Report
           {inspectorDeclaration?.certRef ? ` · Ref: ${inspectorDeclaration.certRef}` : ''}
           {cover.permitNumber ? ` · Permit ${cover.permitNumber}` : ''}
           {' · '}Generated {new Date(pkg.generatedAt).toLocaleDateString('en-CA')}
@@ -446,7 +446,7 @@ export default function PackagePreviewClient() {
         <div className="vero-print-cover hidden">
           {/* Branding */}
           <div style={{ marginBottom: '32pt' }}>
-            <div style={{ fontWeight: 900, fontSize: '22pt', letterSpacing: '0.03em' }}>Vero</div>
+            <div style={{ fontWeight: 900, fontSize: '22pt', letterSpacing: '0.03em' }}>Vero Permit</div>
             <div style={{ fontSize: '9pt', color: '#555555', marginTop: '3pt' }}>
               Inspection Compliance Platform · getvero.ca
             </div>
@@ -454,7 +454,7 @@ export default function PackagePreviewClient() {
 
           {/* Title */}
           <div style={{ fontSize: '18pt', fontWeight: 900, marginBottom: '6pt' }}>
-            Vero Field Inspection Record
+            Vero Permit Field Inspection Record
           </div>
           <div style={{ fontSize: '10pt', color: '#555555', marginBottom: '24pt' }}>
             Inspection Evidence &amp; Reporting Package
@@ -538,7 +538,7 @@ export default function PackagePreviewClient() {
         <div className="mb-6 print:hidden">
           <h1 className="font-black text-ink text-xl flex items-center gap-2">
             <FileText className="w-5 h-5 text-flame" />
-            Vero Field Inspection Record
+            Vero Permit Field Inspection Record
           </h1>
           <p className="text-xs text-subtle mt-1">
             Inspection Evidence &amp; Reporting Package · {record.certRef}
@@ -622,7 +622,7 @@ export default function PackagePreviewClient() {
             </div>
             <div className="flex gap-3">
               <span className="text-muted w-40 shrink-0">Registration Body</span>
-              <span className="text-ink">Vero Verified</span>
+              <span className="text-ink">Vero Permit Verified</span>
             </div>
             {(record.discipline || inspectorDeclaration?.discipline) && (
               <div className="flex gap-3">
