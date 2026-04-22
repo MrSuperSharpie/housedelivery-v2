@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   ChevronRight, ChevronLeft, CheckCircle2, Upload,
@@ -332,6 +332,31 @@ export default function InspectorSignup() {
     seal:      { uploaded: false, uploading: false, uploadError: null },
   })
 
+  // If a valid Supabase session already exists when the page loads, the user
+  // has already created their account (e.g. arrived via "Return to onboarding").
+  // Skip the personal/account-creation step and drop them at credential selection.
+  const [existingUserId, setExistingUserId] = useState<string | null>(null)
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session?.user) return
+      const u = session.user
+      const metadata = (u.user_metadata ?? {}) as Record<string, unknown>
+      const firstName = typeof metadata.first_name === 'string' ? metadata.first_name
+        : (typeof metadata.name === 'string' ? metadata.name.split(' ')[0] : '')
+      const lastName = typeof metadata.last_name === 'string' ? metadata.last_name
+        : (typeof metadata.name === 'string' ? metadata.name.split(' ').slice(1).join(' ') : '')
+      setExistingUserId(u.id)
+      setForm(prev => ({
+        ...prev,
+        firstName,
+        lastName,
+        email: u.email ?? '',
+        phone: typeof metadata.phone === 'string' ? metadata.phone : '',
+      }))
+      setStep('credentials')
+    })
+  }, [])
+
   const set = (field: keyof typeof form, value: string | boolean | string[]) =>
     setForm(prev => ({ ...prev, [field]: value }))
 
@@ -388,66 +413,77 @@ export default function InspectorSignup() {
     setIsSubmitting(true)
     setSubmitError(null)
 
-    if (form.password.length < 8) {
-      setSubmitError('Password must be at least 8 characters')
-      setIsSubmitting(false)
-      return
-    }
-
-    // Derive legacy fields from credential type selections for backward compat
+    // Derive disciplines and role lanes from credential selections (needed in both paths)
     const derivedDisciplines = deriveDisciplines(form.credentialTypes, form.disciplineScope)
     const derivedRoleLanes = deriveRoleLanes(form.credentialTypes)
 
-    // Step 1: create the auth.users record
-    const { data, error } = await supabase.auth.signUp({
-      email:    form.email,
-      password: form.password,
-      options: {
-        data: {
-          role:             'inspector',
-          first_name:       form.firstName,
-          last_name:        form.lastName,
-          name:             `${form.firstName} ${form.lastName}`.trim(),
-          phone:            form.phone,
-          requested_role_lanes: derivedRoleLanes,
-          disciplines:      derivedDisciplines,
-          credential_types: form.credentialTypes,
-          regions:          form.regions,
-          license_number:   form.licenseNumber,
-          firm_name:        form.firmName || null,
-          business_address: form.businessAddress || null,
-        },
-      },
-    })
+    let userId: string
+    let hasActiveSession = false
 
-    if (error || !data.user) {
-      setSubmitError(error?.message ?? 'Signup failed. Please try again.')
-      setIsSubmitting(false)
-      return
-    }
+    if (existingUserId) {
+      // Already authenticated — skip account creation, reuse existing session
+      userId = existingUserId
+      const { data: { session } } = await supabase.auth.getSession()
+      hasActiveSession = Boolean(session)
+    } else {
+      if (form.password.length < 8) {
+        setSubmitError('Password must be at least 8 characters')
+        setIsSubmitting(false)
+        return
+      }
 
-    // If no session was returned (email confirmation enabled on the project),
-    // attempt an immediate sign-in so the session cookie is set before we
-    // navigate to /inspector/onboarding.
-    if (!data.session) {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      // Step 1: create the auth.users record
+      const { data, error } = await supabase.auth.signUp({
         email:    form.email,
         password: form.password,
+        options: {
+          data: {
+            role:             'inspector',
+            first_name:       form.firstName,
+            last_name:        form.lastName,
+            name:             `${form.firstName} ${form.lastName}`.trim(),
+            phone:            form.phone,
+            requested_role_lanes: derivedRoleLanes,
+            disciplines:      derivedDisciplines,
+            credential_types: form.credentialTypes,
+            regions:          form.regions,
+            license_number:   form.licenseNumber,
+            firm_name:        form.firmName || null,
+            business_address: form.businessAddress || null,
+          },
+        },
       })
-      if (signInError) {
-        console.warn('Session not established after signup:', signInError.message)
+
+      if (error || !data.user) {
+        setSubmitError(error?.message ?? 'Signup failed. Please try again.')
+        setIsSubmitting(false)
+        return
       }
-    }
 
-    // Verify whether a session is active. If email confirmation is required and
-    // the user hasn't confirmed yet, session will be null — the onboarding page
-    // handles this gracefully (read-only mode with a confirmation prompt).
-    const { data: { session: activeSession } } = await supabase.auth.getSession()
-    if (!activeSession) {
-      console.info('Navigating to onboarding without an active session — email confirmation pending.')
-    }
+      // If no session was returned (email confirmation enabled on the project),
+      // attempt an immediate sign-in so the session cookie is set before we
+      // navigate to /inspector/onboarding.
+      if (!data.session) {
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email:    form.email,
+          password: form.password,
+        })
+        if (signInError) {
+          console.warn('Session not established after signup:', signInError.message)
+        }
+      }
 
-    const userId = data.user.id
+      // Verify whether a session is active. If email confirmation is required and
+      // the user hasn't confirmed yet, session will be null — the onboarding page
+      // handles this gracefully (read-only mode with a confirmation prompt).
+      const { data: { session: activeSession } } = await supabase.auth.getSession()
+      hasActiveSession = Boolean(activeSession)
+      if (!hasActiveSession) {
+        console.info('Navigating to onboarding without an active session — email confirmation pending.')
+      }
+
+      userId = data.user.id
+    }
 
     // Persist firm data directly to the profiles row (supplements auth trigger)
     if (form.firmName || form.businessAddress) {
@@ -468,7 +504,7 @@ export default function InspectorSignup() {
     })
 
     // Insert credential claims into inspector_held_credentials (requires active session for RLS)
-    if (activeSession) {
+    if (hasActiveSession) {
       for (const typeId of form.credentialTypes) {
         const isGeneralist = GENERALIST_TYPES.has(typeId)
         const { error: credError } = await supabase.from('inspector_held_credentials').insert({
@@ -863,7 +899,7 @@ export default function InspectorSignup() {
 
           {/* ── Navigation ── */}
           <div className="flex gap-4 mt-10">
-            {stepIdx > 0 && (
+            {stepIdx > 0 && !(existingUserId && step === 'credentials') && (
               <Button variant="secondary" onClick={() => setStep(STEPS[stepIdx - 1].id)}>
                 <ChevronLeft className="w-4 h-4" /> Back
               </Button>
