@@ -676,7 +676,15 @@ export default function InspectorSignup() {
           {/* ── STEP 2: CREDENTIALS ── */}
           {step === 'credentials' && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-black text-[#0A192F]">Your Credentials</h2>
+              <div>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Step 2 of 4</p>
+                <h2 className="text-2xl font-black text-[#0A192F]">
+                  {form.firstName ? `Welcome, ${form.firstName}! Let's get you verified.` : 'Your Credentials'}
+                </h2>
+                <p className="mt-2 text-sm text-gray-500">
+                  Select every credential you hold. These selections are matched against EGBC, AIBC, and Technical Safety BC registries to ensure you meet BC&apos;s regulatory requirements for each inspection type.
+                </p>
+              </div>
               <Field label="Regulator / licence / authority reference">
                 <Input value={form.licenseNumber} onChange={e => set('licenseNumber', e.target.value)} placeholder="AIBC, EGBC, FSR, BOABC, or AHJ reference if applicable" />
               </Field>
