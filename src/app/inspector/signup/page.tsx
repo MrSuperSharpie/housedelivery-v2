@@ -12,7 +12,6 @@ import { createClient } from '@/lib/supabase/client'
 import { insertInspectorCredential, upsertInspectorEligibility } from '@/lib/supabase/compliance'
 import { setInspectorOnboardingStatus } from '@/lib/persistence/inspectorOnboarding'
 import type { InspectorCredentialType, InspectorDiscipline, InspectorRoleLane, Region } from '@/lib/types'
-import { INSPECTOR_ROLE_LANES, INSPECTOR_ROLE_LANE_CONFIG, getInspectorRoleLaneLabel } from '@/lib/inspectorRoleLanes'
 
 const supabase = createClient()
 
@@ -43,6 +42,97 @@ const DISCIPLINES = [
 ]
 
 const REGIONS = ['vancouver', 'burnaby', 'surrey', 'richmond', 'coquitlam']
+
+// ─── Canonical BC credential types (mirrors credential_types seed data) ──────
+
+interface CredentialTypeOption {
+  id: string
+  name: string
+  body: string          // governing body abbreviation
+  disciplines: string[] // empty = generalist; inspector must declare discipline_scope
+}
+
+const CREDENTIAL_TYPE_GROUPS: { label: string; desc: string; items: CredentialTypeOption[] }[] = [
+  {
+    label: 'Primary Professionals',
+    desc: 'Licensed engineers, architects, and certified professionals',
+    items: [
+      { id: 'peng_structural',         name: 'P.Eng Structural',                body: 'EGBC',              disciplines: ['structural'] },
+      { id: 'peng_mechanical',          name: 'P.Eng Mechanical',                body: 'EGBC',              disciplines: ['mechanical'] },
+      { id: 'peng_electrical',          name: 'P.Eng Electrical',                body: 'EGBC',              disciplines: ['electrical'] },
+      { id: 'architect_aibc',           name: 'Architect (AIBC)',                body: 'AIBC',              disciplines: ['architectural'] },
+      { id: 'civil_engineer',           name: 'Civil Engineer',                  body: 'EGBC',              disciplines: ['structural', 'geotech'] },
+      { id: 'geotech_engineer',         name: 'Geotechnical Engineer',           body: 'EGBC',              disciplines: ['geotech'] },
+      { id: 'fire_protection_engineer', name: 'Fire Protection Engineer',        body: 'EGBC',              disciplines: ['fire_protection'] },
+      { id: 'building_envelope',        name: 'Building Envelope Professional',  body: 'HPO',               disciplines: ['architectural'] },
+    ],
+  },
+  {
+    label: 'Licensed Trades',
+    desc: 'Field safety representatives, trade certificate holders, and energy advisors',
+    items: [
+      { id: 'fsr_class_a',       name: 'FSR Class A',                         body: 'Technical Safety BC', disciplines: ['electrical'] },
+      { id: 'fsr_class_b',       name: 'FSR Class B',                         body: 'Technical Safety BC', disciplines: ['electrical'] },
+      { id: 'gas_fitter_class_a', name: 'Gas Fitter Class A',                 body: 'Technical Safety BC', disciplines: ['mechanical'] },
+      { id: 'gas_fitter_class_b', name: 'Gas Fitter Class B',                 body: 'Technical Safety BC', disciplines: ['mechanical'] },
+      { id: 'red_seal_plumber',   name: 'Red Seal Plumber',                   body: 'ITA BC',              disciplines: ['plumbing'] },
+      { id: 'hvac_refrigeration', name: 'HVAC / Refrigeration Mechanic',      body: 'Technical Safety BC', disciplines: ['mechanical'] },
+      { id: 'energy_advisor',     name: 'Energy Advisor',                      body: 'NRCan',              disciplines: ['mechanical'] },
+    ],
+  },
+  {
+    label: 'Technologists & Specialists',
+    desc: 'Applied science technologists, field verifiers, and municipal officials',
+    items: [
+      { id: 'asct',               name: 'Applied Science Technologist (AScT)', body: 'ASTTBC',       disciplines: [] },
+      { id: 'ctech',              name: 'Certified Technician (CTech)',        body: 'ASTTBC',       disciplines: [] },
+      { id: 'qa_field_verifier',  name: 'QA / Field Verifier',                body: 'Employer',     disciplines: [] },
+      { id: 'municipal_inspector', name: 'Municipal Inspector / Reviewer',     body: 'Municipality', disciplines: ['structural', 'architectural', 'mechanical', 'electrical', 'plumbing', 'fire_protection', 'geotech'] },
+    ],
+  },
+]
+
+const ALL_CREDENTIAL_TYPES = CREDENTIAL_TYPE_GROUPS.flatMap(g => g.items)
+
+const PROFESSIONAL_TYPES = new Set([
+  'peng_structural', 'peng_mechanical', 'peng_electrical',
+  'architect_aibc', 'civil_engineer', 'geotech_engineer',
+  'fire_protection_engineer', 'building_envelope',
+])
+
+const GENERALIST_TYPES = new Set(['asct', 'ctech', 'qa_field_verifier'])
+
+function getCredentialDisplayName(typeId: string): string {
+  return ALL_CREDENTIAL_TYPES.find(t => t.id === typeId)?.name ?? typeId
+}
+
+function deriveDisciplines(credentialTypes: string[], disciplineScope: string[]): string[] {
+  const all = new Set<string>()
+  for (const typeId of credentialTypes) {
+    const ct = ALL_CREDENTIAL_TYPES.find(t => t.id === typeId)
+    if (ct) ct.disciplines.forEach(d => all.add(d))
+  }
+  disciplineScope.forEach(d => all.add(d))
+  return Array.from(all)
+}
+
+const CREDENTIAL_TO_ROLE_LANE: Record<string, InspectorRoleLane> = {
+  peng_structural: 'engineer', peng_mechanical: 'engineer', peng_electrical: 'engineer',
+  civil_engineer: 'engineer', geotech_engineer: 'engineer', fire_protection_engineer: 'engineer',
+  architect_aibc: 'architect',
+  building_envelope: 'certified_professional', energy_advisor: 'certified_professional',
+  fsr_class_a: 'electrical_fsr', fsr_class_b: 'electrical_fsr',
+  municipal_inspector: 'official_authority',
+}
+
+function deriveRoleLanes(credentialTypes: string[]): InspectorRoleLane[] {
+  const lanes = new Set<InspectorRoleLane>()
+  for (const typeId of credentialTypes) {
+    const lane = CREDENTIAL_TO_ROLE_LANE[typeId]
+    if (lane) lanes.add(lane)
+  }
+  return Array.from(lanes)
+}
 
 // Document definitions — credentialType maps to inspector_credentials.credential_type
 // isRequired maps to inspector_credentials.is_required
@@ -220,8 +310,8 @@ export default function InspectorSignup() {
     licenseNumber:   '',
     firmName:        '',
     businessAddress: '',
-    roleLanes:       [] as InspectorRoleLane[],
-    disciplines:     [] as string[],
+    credentialTypes:  [] as string[],
+    disciplineScope:  [] as string[],
     regions:         [] as string[],
     agreeTerms:      false,
   })
@@ -245,7 +335,7 @@ export default function InspectorSignup() {
   const set = (field: keyof typeof form, value: string | boolean | string[]) =>
     setForm(prev => ({ ...prev, [field]: value }))
 
-  const toggleArr = (field: 'disciplines' | 'regions', val: string) => {
+  const toggleArr = (field: 'regions', val: string) => {
     setForm(prev => ({
       ...prev,
       [field]: prev[field].includes(val)
@@ -254,12 +344,21 @@ export default function InspectorSignup() {
     }))
   }
 
-  const toggleRoleLane = (lane: InspectorRoleLane) => {
+  const toggleCredentialType = (typeId: string) => {
     setForm(prev => ({
       ...prev,
-      roleLanes: prev.roleLanes.includes(lane)
-        ? prev.roleLanes.filter(existing => existing !== lane)
-        : [...prev.roleLanes, lane],
+      credentialTypes: prev.credentialTypes.includes(typeId)
+        ? prev.credentialTypes.filter(id => id !== typeId)
+        : [...prev.credentialTypes, typeId],
+    }))
+  }
+
+  const toggleDisciplineScope = (discipline: string) => {
+    setForm(prev => ({
+      ...prev,
+      disciplineScope: prev.disciplineScope.includes(discipline)
+        ? prev.disciplineScope.filter(d => d !== discipline)
+        : [...prev.disciplineScope, discipline],
     }))
   }
 
@@ -276,10 +375,10 @@ export default function InspectorSignup() {
   const allDocsSelected = DOC_DEFS.every(d => pendingFiles[d.key] || uploadStates[d.key].uploaded)
   const stepIdx = STEP_IDX[step]
 
-  // Show firm fields for every lane except pure permit coordinator
-  const showFirmFields = form.roleLanes.some(l => l !== 'permit_coordinator_non_signing')
-  // Show digital seal upload for lanes that can sign documents
-  const showSealUpload = showFirmFields
+  const hasProfessionalCredential = form.credentialTypes.some(id => PROFESSIONAL_TYPES.has(id))
+  const hasGeneralistCredential = form.credentialTypes.some(id => GENERALIST_TYPES.has(id))
+  const showFirmFields = hasProfessionalCredential
+  const showSealUpload = hasProfessionalCredential
 
   // ── handleSubmit ──────────────────────────────────────────────────────────
   // 1. Create auth user via supabase.auth.signUp()
@@ -295,6 +394,10 @@ export default function InspectorSignup() {
       return
     }
 
+    // Derive legacy fields from credential type selections for backward compat
+    const derivedDisciplines = deriveDisciplines(form.credentialTypes, form.disciplineScope)
+    const derivedRoleLanes = deriveRoleLanes(form.credentialTypes)
+
     // Step 1: create the auth.users record
     const { data, error } = await supabase.auth.signUp({
       email:    form.email,
@@ -306,8 +409,9 @@ export default function InspectorSignup() {
           last_name:        form.lastName,
           name:             `${form.firstName} ${form.lastName}`.trim(),
           phone:            form.phone,
-          requested_role_lanes: form.roleLanes,
-          disciplines:      form.disciplines,
+          requested_role_lanes: derivedRoleLanes,
+          disciplines:      derivedDisciplines,
+          credential_types: form.credentialTypes,
           regions:          form.regions,
           license_number:   form.licenseNumber,
           firm_name:        form.firmName || null,
@@ -356,12 +460,27 @@ export default function InspectorSignup() {
     await upsertInspectorEligibility({
       userId,
       status: 'submitted',
-      disciplines: form.disciplines as InspectorDiscipline[],
+      disciplines: derivedDisciplines as InspectorDiscipline[],
       regions: form.regions as Region[],
-      requestedRoleLanes: form.roleLanes,
+      requestedRoleLanes: derivedRoleLanes,
       approvedRoleLanes: [],
       licenseNumber: form.licenseNumber,
     })
+
+    // Insert credential claims into inspector_held_credentials (requires active session for RLS)
+    if (activeSession) {
+      for (const typeId of form.credentialTypes) {
+        const isGeneralist = GENERALIST_TYPES.has(typeId)
+        const { error: credError } = await supabase.from('inspector_held_credentials').insert({
+          inspector_id: userId,
+          credential_type_id: typeId,
+          license_number: form.licenseNumber || null,
+          discipline_scope: isGeneralist ? form.disciplineScope : [],
+          verification_status: 'unverified',
+        })
+        if (credError) console.warn(`credential claim ${typeId}:`, credError.message)
+      }
+    }
 
     // Step 2 & 3: upload each pending file and write the credential row
     for (const docDef of DOC_DEFS) {
@@ -534,41 +653,52 @@ export default function InspectorSignup() {
                   </Field>
                 </>
               )}
-              <Field label="Role lanes" required>
-                <div className="space-y-2">
-                  {INSPECTOR_ROLE_LANES.map(lane => (
-                    <button
-                      key={lane}
-                      type="button"
-                      onClick={() => toggleRoleLane(lane)}
-                      className={`w-full rounded-xl border-2 px-4 py-3 text-left transition-all ${
-                        form.roleLanes.includes(lane)
-                          ? 'border-[#FF5F15] bg-orange-50'
-                          : 'border-gray-100 text-gray-700'
-                      }`}
-                    >
-                      <div className="text-sm font-bold text-[#0A192F]">{getInspectorRoleLaneLabel(lane)}</div>
-                      <div className="mt-1 text-xs text-gray-500">
-                        {INSPECTOR_ROLE_LANE_CONFIG[lane].description}
+              <Field label="Select your BC credentials" required>
+                <div className="space-y-5">
+                  {CREDENTIAL_TYPE_GROUPS.map(group => (
+                    <div key={group.label}>
+                      <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">{group.label}</div>
+                      <div className="text-[11px] text-gray-400 mb-2">{group.desc}</div>
+                      <div className="space-y-1.5">
+                        {group.items.map(ct => (
+                          <button
+                            key={ct.id}
+                            type="button"
+                            onClick={() => toggleCredentialType(ct.id)}
+                            className={`w-full rounded-xl border-2 px-4 py-3 text-left transition-all ${
+                              form.credentialTypes.includes(ct.id)
+                                ? 'border-[#FF5F15] bg-orange-50'
+                                : 'border-gray-100 text-gray-700'
+                            }`}
+                          >
+                            <div className="text-sm font-bold text-[#0A192F]">{ct.name}</div>
+                            <div className="text-[11px] text-gray-400">{ct.body}</div>
+                          </button>
+                        ))}
                       </div>
-                    </button>
+                    </div>
                   ))}
                 </div>
               </Field>
-              <Field label="Disciplines" required>
-                <div className="grid grid-cols-2 gap-2">
-                  {DISCIPLINES.map(d => (
-                    <button key={d.id} type="button" onClick={() => toggleArr('disciplines', d.id)}
-                      className={`p-4 rounded-xl border-2 text-sm font-bold transition-all ${
-                        form.disciplines.includes(d.id)
-                          ? 'border-[#FF5F15] bg-orange-50 text-[#FF5F15]'
-                          : 'border-gray-100 text-gray-600'
-                      }`}>
-                      {d.label}
-                    </button>
-                  ))}
-                </div>
-              </Field>
+              {hasGeneralistCredential && (
+                <Field label="Discipline specialization" required>
+                  <p className="text-xs text-gray-400 mb-2">
+                    Select the disciplines you are qualified to work in under your technologist or field verifier credential.
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {DISCIPLINES.map(d => (
+                      <button key={d.id} type="button" onClick={() => toggleDisciplineScope(d.id)}
+                        className={`p-4 rounded-xl border-2 text-sm font-bold transition-all ${
+                          form.disciplineScope.includes(d.id)
+                            ? 'border-[#FF5F15] bg-orange-50 text-[#FF5F15]'
+                            : 'border-gray-100 text-gray-600'
+                        }`}>
+                        {d.label}
+                      </button>
+                    ))}
+                  </div>
+                </Field>
+              )}
             </div>
           )}
 
@@ -653,8 +783,7 @@ export default function InspectorSignup() {
                       { label: 'Firm',           val: form.firmName || '—' },
                       { label: 'Business Addr.', val: form.businessAddress || '—' },
                     ] : []),
-                    { label: 'Role lanes',       val: form.roleLanes.map(getInspectorRoleLaneLabel).join(', ') || '—' },
-                    { label: 'Disciplines',      val: form.disciplines.join(', ') || '—' },
+                    { label: 'Credentials',      val: form.credentialTypes.map(getCredentialDisplayName).join(', ') || '—' },
                     { label: 'Regions',          val: form.regions.join(', ') || '—' },
                 ].map(({ label, val }) => (
                   <div key={label} className="flex justify-between gap-4">
@@ -744,7 +873,7 @@ export default function InspectorSignup() {
                 fullWidth
                 disabled={
                   (step === 'personal' && form.password.length < 8)
-                  || (step === 'credentials' && form.roleLanes.length === 0)
+                  || (step === 'credentials' && (form.credentialTypes.length === 0 || (hasGeneralistCredential && form.disciplineScope.length === 0)))
                   || (step === 'documents' && !allDocsSelected)
                 }
                 onClick={() => setStep(STEPS[stepIdx + 1].id)}
