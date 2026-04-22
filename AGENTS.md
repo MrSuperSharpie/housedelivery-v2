@@ -22,3 +22,11 @@ You are a Senior Next.js/React Developer working on Vero Permit, an enterprise S
 
 ## Code Standards
 * Avoid hallucinating column names for Supabase `upsert` operations. Always verify against the defined schema types.
+
+<claude-mem-context>
+# Memory Context
+
+# [siteline-clean-claude-local] recent context, 2026-04-22 1:03pm PDT
+
+No previous sessions found.
+</claude-mem-context>

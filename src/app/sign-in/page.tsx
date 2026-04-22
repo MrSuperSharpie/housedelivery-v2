@@ -27,7 +27,7 @@ function getInspectorDestination(options: {
   // testOverride (dev/demo mode without a real Supabase account) routes to onboarding,
   // not straight to the Live Board — only fully-approved accounts skip the gate.
   if (options.testOverride) return '/inspector/onboarding'
-  return options.hasEligibilityProfile ? '/inspector/onboarding-status' : '/inspector/signup'
+  return '/inspector/onboarding'
 }
 
 // ─── Role config ──────────────────────────────────────────────────────────────
