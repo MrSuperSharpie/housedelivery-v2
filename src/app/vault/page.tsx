@@ -310,12 +310,12 @@ export default function VaultPage() {
                       <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900">
                         <div className="text-xs font-bold uppercase tracking-widest text-subtle">Project</div>
                         <div className="text-slate-900 dark:text-white font-semibold mt-2">{record.address}</div>
-                        <div className="text-slate-600 dark:text-slate-400 mt-1">{record.city ?? 'City pending'}</div>
+                        <div className="text-slate-900 dark:text-slate-100 mt-1">{record.city ?? 'City pending'}</div>
                       </div>
                       <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900">
                         <div className="text-xs font-bold uppercase tracking-widest text-subtle">Authority Profile</div>
                         <div className="text-slate-900 dark:text-white font-semibold mt-2">{record.authorityName ?? 'Authority pending'}</div>
-                        <div className="text-slate-600 dark:text-slate-400 mt-1">{record.packageType}</div>
+                        <div className="text-slate-900 dark:text-slate-100 mt-1">{record.packageType}</div>
                       </div>
                     </div>
 
@@ -326,7 +326,7 @@ export default function VaultPage() {
                           Certificate
                         </div>
                         <div className="text-slate-900 dark:text-white font-mono text-sm mt-2">{record.certRef}</div>
-                        <div className="text-slate-600 dark:text-slate-400 text-xs mt-1">{formatDate(record.completedAt)}</div>
+                        <div className="text-slate-900 dark:text-slate-100 text-xs mt-1">{formatDate(record.completedAt)}</div>
                       </div>
                       <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900">
                         <div className="flex items-center gap-2 text-subtle text-xs font-bold uppercase tracking-widest">
@@ -334,7 +334,7 @@ export default function VaultPage() {
                           Inspector
                         </div>
                         <div className="text-slate-900 dark:text-white font-semibold text-sm mt-2">{record.inspectorName}</div>
-                        <div className="text-slate-600 dark:text-slate-400 text-xs mt-1">{record.inspectorLicense}</div>
+                        <div className="text-slate-900 dark:text-slate-100 text-xs mt-1">{record.inspectorLicense}</div>
                       </div>
                       <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900">
                         <div className="flex items-center gap-2 text-subtle text-xs font-bold uppercase tracking-widest">
@@ -342,7 +342,7 @@ export default function VaultPage() {
                           Scope
                         </div>
                         <div className="text-slate-900 dark:text-white font-semibold text-sm mt-2">{record.jurisdictionName ?? 'Jurisdiction pending'}</div>
-                        <div className="text-slate-600 dark:text-slate-400 text-xs mt-1">{record.permitNumber ?? 'Permit pending'}</div>
+                        <div className="text-slate-900 dark:text-slate-100 text-xs mt-1">{record.permitNumber ?? 'Permit pending'}</div>
                       </div>
                     </div>
 

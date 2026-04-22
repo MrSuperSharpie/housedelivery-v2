@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import {
   Building2, TrendingUp, DollarSign, ChevronRight, MapPin,
   CheckCircle2, Clock,
-  Navigation, AlertTriangle, Zap, Lock, ExternalLink
+  Navigation, Shield, Zap, Lock, ExternalLink
 } from 'lucide-react'
 import { Navbar } from '@/components/shared/Navbar'
 import { ProjectCard } from '@/components/builder/ProjectCard'
@@ -30,7 +30,7 @@ import {
 import { listJobsByBuilder } from '@/lib/supabase/jobs'
 import type { JobOpportunityRow } from '@/lib/supabase/jobs'
 import { getJobWorkflowLabel, getJobWorkflowState } from '@/lib/workflow'
-import { isHoldOpenStatus } from '@/lib/holds/workflow'
+import { HOLD_BUILDER_ACTIONABLE_STATUSES } from '@/lib/holds/workflow'
 import { resolveHoldBaseRate } from '@/lib/pricing/config'
 import { calculateBaseHoldServiceFee, calculateWindowFee } from '@/utils/pricing'
 import { resolveReportDataMode } from '@/lib/dataSourceMode'
@@ -387,8 +387,25 @@ export default function BuilderDashboard() {
       const onHoldJobs = (dbJobs ?? []).filter(j => j.status === 'on_hold')
       if (onHoldJobs.length === 0) { setActiveHolds([]); return }
       const results = await Promise.all(onHoldJobs.map(j => listHoldsForJob(j.id)))
-      const allHolds = results.flat().filter(h => isHoldOpenStatus(h.status))
-      setActiveHolds(allHolds)
+      const allHolds = results.flat()
+      // Only show holds the builder can actually respond to — 'hold_active' means already accepted.
+      setActiveHolds(allHolds.filter(h => HOLD_BUILDER_ACTIONABLE_STATUSES.includes(h.status)))
+      // Hydrate acceptedHolds for holds already in hold_active state (e.g. page refresh after acceptance)
+      const alreadyActive = allHolds.filter(h => h.status === 'hold_active')
+      if (alreadyActive.length > 0) {
+        setAcceptedHolds(prev => {
+          const existingIds = new Set(prev.map(e => e.hold.id))
+          const toAdd = alreadyActive
+            .filter(h => !existingIds.has(h.id))
+            .map(h => ({
+              hold: h,
+              projectName: (dbJobs ?? []).find(j => j.id === h.jobId)?.projectName ?? 'Project',
+              feeAmount: h.holdCapAmount,
+              acceptedAt: h.builderAcceptedAt ?? h.updatedAt,
+            }))
+          return [...prev, ...toAdd]
+        })
+      }
     }
     void loadActiveHolds()
   }, [dbJobs])
@@ -612,23 +629,7 @@ export default function BuilderDashboard() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
 
-        {/* ── Provisional Assignments ── */}
-        {store.assignments
-          .filter(a => isMatch(a.builderId) && (a.status === 'provisional' || a.status === 'confirmed' || a.objectionState === 'pending_review'))
-          .map(assignment => {
-            const job = store.jobs.find(j => j.id === assignment.jobId)
-            return (
-              <ProvisionalAssignmentPanel
-                key={assignment.id}
-                assignment={assignment}
-                jobName={job?.projectName ?? assignment.jobId}
-                onObject={(reason, note) => store.objectAssignment(assignment.id, reason, note)}
-              />
-            )
-          })
-        }
-
-        {/* ── Active Hold Notifications ── */}
+        {/* ── Active Hold Notifications (always first — action required) ── */}
         {activeHolds.map(hold => {
           const holdJob    = (dbJobs ?? []).find(j => j.id === hold.jobId)
           const holdBaseRate = hold.premiumRateAmount || resolveHoldBaseRate({
@@ -649,55 +650,55 @@ export default function BuilderDashboard() {
           const totalAcceptanceFee = baseHoldServiceFee + windowFee
 
           return (
-            <div key={hold.id} className="mb-5 rounded-2xl border border-red-500/25 bg-red-500/5 overflow-hidden">
-              <div className="px-5 py-4 border-b border-red-500/15">
+            <div key={hold.id} className="mb-5 rounded-2xl border border-slate-200 border-l-[6px] border-l-flame bg-white overflow-hidden">
+              <div className="px-5 py-4 border-b border-slate-200">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-red-500/15 border border-red-500/25 rounded-xl flex items-center justify-center shrink-0">
-                      <AlertTriangle className="w-5 h-5 text-red-400" />
+                    <div className="w-10 h-10 bg-flame-dim border border-flame/20 rounded-xl flex items-center justify-center shrink-0">
+                      <Shield className="w-5 h-5 text-flame" />
                     </div>
                     <div>
-                      <div className="font-bold text-ink text-sm mb-0.5">Hold Point Raised</div>
-                      <div className="text-xs text-muted">{holdJob?.projectName ?? 'Project'} · Stage {holdJob?.stage ?? ''}</div>
+                      <div className="font-black text-slate-900 text-sm mb-0.5">Hold Point Raised</div>
+                      <div className="text-xs text-slate-500">{holdJob?.projectName ?? 'Project'} · Stage {holdJob?.stage ?? ''}</div>
                     </div>
                   </div>
-                  <div className="bg-red-500/15 border border-red-500/30 rounded-lg px-2 py-1">
-                    <div className="text-[10px] text-red-400 font-bold">Action Required</div>
+                  <div className="bg-flame-dim border border-flame/30 rounded-lg px-2 py-1">
+                    <div className="text-[10px] text-flame font-bold uppercase tracking-wide">Action Required</div>
                   </div>
                 </div>
               </div>
 
-              <div className="px-5 py-3 border-b border-red-500/10">
-                <div className="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-1">Inspector&apos;s Hold Reason</div>
-                <div className="text-sm text-ink">{hold.reason}</div>
-                <div className="mt-2 text-xs text-muted">
+              <div className="px-5 py-3 border-b border-slate-200">
+                <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-1">Inspector&apos;s Hold Reason</div>
+                <div className="text-sm font-bold text-slate-900">{hold.reason}</div>
+                <div className="mt-2 text-xs text-slate-500">
                   {hold.affectedItemSummaries.length > 0
                     ? `Affected items: ${hold.affectedItemSummaries.join(' · ')}`
                     : `Affected checklist items: ${hold.checklistItemIds.join(', ')}`}
                 </div>
               </div>
 
-              <div className="px-5 py-3 border-b border-red-500/10">
-                <div className="text-[10px] font-bold text-muted uppercase tracking-widest mb-2">Fee Breakdown</div>
+              <div className="px-5 py-3 border-b border-slate-200">
+                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Fee Breakdown</div>
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted">Base Hold Review Fee</span>
-                    <span className="font-bold text-amber-400">${baseHoldServiceFee.toFixed(2)}</span>
+                    <span className="text-slate-500">Base Hold Review Fee</span>
+                    <span className="font-bold text-slate-900">${baseHoldServiceFee.toFixed(2)}</span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted">Reserved Correction Window ({selectedWindow} min @ 1.5×)</span>
-                    <span className="font-bold text-amber-400">${windowFee.toFixed(2)}</span>
+                    <span className="text-slate-500">Reserved Correction Window ({selectedWindow} min @ 1.5×)</span>
+                    <span className="font-bold text-slate-900">${windowFee.toFixed(2)}</span>
                   </div>
-                  <div className="border-t border-red-500/10 pt-1.5 flex items-center justify-between text-xs">
-                    <span className="font-bold text-ink">Total at Acceptance</span>
-                    <span className="font-black text-ink">${totalAcceptanceFee.toFixed(2)}</span>
+                  <div className="border-t border-slate-200 pt-1.5 flex items-center justify-between text-xs">
+                    <span className="font-bold text-slate-900">Total at Acceptance</span>
+                    <span className="font-black text-slate-900">${totalAcceptanceFee.toFixed(2)}</span>
                   </div>
                 </div>
-                <div className="mt-2 text-[10px] text-subtle">Additional fees apply if correction exceeds the selected window or extends beyond inspector availability.</div>
+                <div className="mt-2 text-[10px] text-slate-400">Additional fees apply if correction exceeds the selected window or extends beyond inspector availability.</div>
               </div>
 
-              <div className="px-5 py-3 border-b border-red-500/10">
-                <div className="text-[10px] font-bold text-muted uppercase tracking-widest mb-2">Select Correction Window</div>
+              <div className="px-5 py-3 border-b border-slate-200">
+                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Select Correction Window</div>
                 <div className="grid grid-cols-5 gap-1.5">
                   {[30, 60, 90, 120, 150].map(minutes => (
                     <button
@@ -706,8 +707,8 @@ export default function BuilderDashboard() {
                       onClick={() => setCorrectionWindowByHold(prev => ({ ...prev, [hold.id]: minutes }))}
                       className={`rounded-xl py-2 text-xs font-bold transition-all ${
                         selectedWindow === minutes
-                          ? 'bg-amber-500 text-white'
-                          : 'border border-amber-500/25 text-amber-400 hover:bg-amber-500/10'
+                          ? 'bg-slate-800 text-white'
+                          : 'border border-slate-300 text-slate-600 hover:bg-slate-100'
                       }`}
                     >
                       {minutes}m
@@ -716,15 +717,15 @@ export default function BuilderDashboard() {
                 </div>
               </div>
 
-              <div className="px-5 py-3 border-b border-red-500/10 grid gap-2 sm:grid-cols-2">
+              <div className="px-5 py-3 border-b border-slate-200 grid gap-2 sm:grid-cols-2">
                 <div>
-                  <div className="text-[10px] font-bold text-muted uppercase tracking-widest">Expiry</div>
-                  <div className="text-xs font-mono font-bold text-red-400">
+                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Expiry</div>
+                  <div className="text-xs font-mono font-bold text-slate-900">
                     {new Date(hold.expiresAt).toLocaleTimeString('en-CA', { timeZone: 'America/Vancouver', hour: '2-digit', minute: '2-digit' })}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[10px] font-bold text-muted uppercase tracking-widest">Base Rate</div>
+                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Base Rate</div>
                   <div className="text-xs font-semibold text-ink">${holdBaseRate.toFixed(2)}/hr</div>
                 </div>
               </div>
@@ -735,7 +736,7 @@ export default function BuilderDashboard() {
                     <button
                       onClick={() => handleApproveHold(hold)}
                       disabled={isResponding}
-                      className="flex-1 bg-amber-500 hover:bg-amber-400 text-white font-bold py-3 rounded-xl text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                      className="flex-1 bg-flame hover:bg-flame-light text-white font-black py-3 rounded-xl text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                       {isResponding
                         ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -752,7 +753,7 @@ export default function BuilderDashboard() {
                   <button
                     onClick={() => handleRequestReview(hold)}
                     disabled={requestingReview}
-                    className="w-full rounded-xl border border-blue-500/25 bg-blue-500/10 py-2.5 text-xs font-bold text-blue-300 transition-all hover:bg-blue-500/20 disabled:opacity-40"
+                    className="w-full rounded-xl border border-slate-300 bg-white py-2.5 text-xs font-bold text-slate-700 transition-all hover:bg-slate-50 disabled:opacity-40"
                   >
                     {requestingReview ? 'Sending Request...' : 'Fix During Current Visit (No Time Reserved — Re-Inspection Not Guaranteed)'}
                   </button>
@@ -761,28 +762,44 @@ export default function BuilderDashboard() {
                   </p>
                 </div>
 
-                <div className="pt-2 border-t border-red-500/10">
+                <div className="pt-2 border-t border-slate-200">
                   <div className="flex gap-2">
                     <input
                       value={thisDeclineNote}
                       onChange={e => setDeclineNotes(prev => ({ ...prev, [hold.id]: e.target.value }))}
                       placeholder="Reason for declining (required)..."
-                      className="flex-1 bg-surface border border-white/10 rounded-xl px-3 py-2.5 text-xs text-ink placeholder-subtle focus:outline-none focus:border-red-400"
+                      className="flex-1 bg-white border border-slate-300 rounded-xl px-3 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-500"
                     />
                     <button
                       onClick={() => handleDeclineHold(hold)}
                       disabled={!thisDeclineNote.trim() || isResponding}
-                      className="px-4 bg-red-500/10 border border-red-500/30 text-red-400 font-bold rounded-xl text-xs hover:bg-red-500/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="px-4 bg-slate-100 border border-slate-300 text-slate-700 font-bold rounded-xl text-xs hover:bg-slate-200 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       Decline and Rebook
                     </button>
                   </div>
-                  <p className="text-[10px] text-subtle mt-2">Declining stops the inspection. A new booking will be required.</p>
+                  <p className="text-[10px] text-slate-400 mt-2">Declining stops the inspection. A new booking will be required.</p>
                 </div>
               </div>
             </div>
           )
         })}
+
+        {/* ── Provisional Assignments ── */}
+        {store.assignments
+          .filter(a => isMatch(a.builderId) && (a.status === 'provisional' || a.status === 'confirmed' || a.objectionState === 'pending_review'))
+          .map(assignment => {
+            const job = store.jobs.find(j => j.id === assignment.jobId)
+            return (
+              <ProvisionalAssignmentPanel
+                key={assignment.id}
+                assignment={assignment}
+                jobName={job?.projectName ?? assignment.jobId}
+                onObject={(reason, note) => store.objectAssignment(assignment.id, reason, note)}
+              />
+            )
+          })
+        }
 
         {/* ── Re-verification Pending ── */}
         {acceptedHolds.map(({ hold, projectName, feeAmount, acceptedAt }) => (

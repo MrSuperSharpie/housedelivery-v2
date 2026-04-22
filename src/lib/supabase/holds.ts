@@ -735,6 +735,18 @@ export async function builderApproveHold(
       .single())
   }
 
+  // 'hold_active' may fail the CHECK constraint on older schemas (pre-20260412).
+  // Fall back to 'builder_approved' which is the legacy equivalent.
+  if (error && isCheckViolationError(error)) {
+    console.warn('builderApproveHold: status fallback — retrying with legacy builder_approved status')
+    ;({ data, error } = await supabase
+      .from('job_holds')
+      .update({ ...baseUpdatePayload, status: 'builder_approved' })
+      .eq('id', holdId)
+      .select('*')
+      .single())
+  }
+
   if (error || !data) {
     console.error('builderApproveHold: DB update failed', {
       code: (error as { code?: string } | null)?.code,
@@ -807,8 +819,16 @@ export async function builderApproveHold(
     },
   })
 
-  // Fire-and-forget: trigger hold-accepted notification (email/SMS to inspector).
-  // Does not block the acceptance result.
+  // ── Communication loop — fire-and-forget, does not block acceptance ─────────
+
+  // STUB: Builder alert — "Urgent: Your inspection is on hold. Review deficiencies in the Vero app."
+  // Wire to Resend/Twilio by reading the builder's email/phone from the profiles table.
+  // TODO: replace with live send when RESEND_API_KEY / TWILIO_* env vars are set.
+  void notifyBuilderHoldActive(acceptedHold.jobId, acceptedHold.builderId)
+
+  // STUB: Inspector alert — "Action Required: Builder has accepted hold terms for [Project Name].
+  //        Re-verification is now authorized."
+  // Route already exists at /api/notifications/hold-accepted for Resend/Twilio wiring.
   void fetch('/api/notifications/hold-accepted', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -823,6 +843,16 @@ export async function builderApproveHold(
   }).catch(err => console.warn('[hold-accepted notification]', err))
 
   return true
+}
+
+/**
+ * STUB: Notify the builder that their inspection is on hold and deficiencies need review.
+ * Message: "Urgent: Your inspection is on hold. Review deficiencies in the Vero app."
+ * Wire to Resend/Twilio by looking up the builder's email/phone from the profiles table.
+ */
+function notifyBuilderHoldActive(jobId: string, builderId: string): void {
+  // TODO: send email/SMS to builder
+  console.info('[stub] builder hold-active alert', { jobId, builderId })
 }
 
 export async function requestOnSiteCorrectionReview(

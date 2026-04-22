@@ -850,7 +850,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
 
       {/* ─── STEP 8: CONFIRM / POST ──────────────── */}
       {step === 'confirm' && (
-        <div className="pb-24">
+        <div className="pb-32">
           <button onClick={() => setStep('vault')} className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 mb-4">
             <ChevronLeft className="w-3.5 h-3.5" /> Back
           </button>

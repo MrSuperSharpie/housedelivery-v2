@@ -34,6 +34,7 @@ const INSPECTOR_DOCUMENT_BUCKET = 'inspection-evidence'
 
 type InspectorIdentity = {
   displayName: string
+  companyName?: string
   secondaryName?: string
   email?: string
 }
@@ -51,7 +52,8 @@ function buildInspectorIdentity(
   if (demo) {
     return {
       displayName: demo.name,
-      secondaryName: demo.designation ?? demo.company,
+      companyName: demo.company,
+      secondaryName: demo.designation,
       email: demo.email,
     }
   }
@@ -82,15 +84,12 @@ function buildInspectorIdentity(
   const optionalBusinessDoc = creds.find(cred => cred.credentialType === 'professional_designation')
   const fileStem = optionalBusinessDoc?.fileName.replace(/\.[^/.]+$/, '').replace(/[-_]+/g, ' ').trim()
   const readableStem = fileStem && /\s/.test(fileStem) ? fileStem : undefined
-  const displayName = hintedName ?? fullName ?? businessName ?? readableStem ?? (licenseNumber ? `Inspector ${licenseNumber}` : 'Inspector account')
+  const displayName = fullName ?? hintedName ?? profileEmail ?? (licenseNumber ? `Inspector ${licenseNumber}` : 'Inspector account')
 
   return {
     displayName,
-    secondaryName: displayName !== businessName && businessName
-      ? businessName
-      : licenseNumber
-        ? `Licence ${licenseNumber}`
-        : undefined,
+    companyName: businessName,
+    secondaryName: licenseNumber ? `Licence ${licenseNumber}` : undefined,
     email: profileEmail,
   }
 }
@@ -280,6 +279,11 @@ export default function AdminInspectorsPage() {
                             <CheckCircle2 className="w-4 h-4 text-success-green" />
                           )}
                         </div>
+                        {identity.companyName && (
+                          <div className="text-[11px] text-muted mt-0.5">
+                            {identity.companyName}
+                          </div>
+                        )}
                         {identity.secondaryName && (
                           <div className="text-[11px] text-muted mt-0.5">
                             {identity.secondaryName}
