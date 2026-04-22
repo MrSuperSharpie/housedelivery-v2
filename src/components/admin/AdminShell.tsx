@@ -177,7 +177,7 @@ export function AdminShell({ children, title, subtitle }: {
             </div>
             <div className="min-w-0">
               <div className="truncate text-sm font-black tracking-[-0.04em] text-ink">
-                Site<span className="text-flame">Line</span> Admin
+                Vero<span className="text-flame"> Admin</span>
               </div>
               <div className="truncate text-[10px] font-bold uppercase tracking-[0.24em] text-subtle">
                 Internal control plane

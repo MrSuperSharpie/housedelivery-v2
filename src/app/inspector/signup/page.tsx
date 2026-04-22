@@ -180,8 +180,13 @@ function DocUpload({
             }
           </div>
           <div className="flex-1 min-w-0">
-            <div className="font-semibold text-sm text-gray-900">
-              {label}{required && <span className="text-[#FF5F15] ml-0.5">*</span>}
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-semibold text-sm text-gray-900">{label}</span>
+              {required && !uploaded && (
+                <span className="text-[9px] font-black uppercase tracking-widest bg-red-100 text-red-500 px-1.5 py-0.5 rounded-full leading-none">
+                  Required
+                </span>
+              )}
             </div>
             {uploaded && fileName
               ? <div className="text-xs text-[#10B981] mt-0.5 truncate font-medium">{fileName}</div>
@@ -615,6 +620,11 @@ export default function InspectorSignup() {
                     accept=".png,.jpg,.jpeg,.pdf"
                   />
                 </div>
+              )}
+              {!allDocsSelected && (
+                <p className="text-xs text-red-500 font-medium pt-1">
+                  All required documents must be selected before you can continue.
+                </p>
               )}
             </div>
           )}
