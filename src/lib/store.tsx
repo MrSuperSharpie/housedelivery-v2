@@ -368,6 +368,22 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             listAssignmentsForInspector(session.user.id),
           ])
 
+          // Fetch project names for inspector's claimed jobs — these may be
+          // provisionally_assigned (not live) and invisible to the generic jobRows fetch.
+          const inspectorJobIds = inspectorAssignments.map(a => a.jobId)
+          const claimedJobNameMap = new Map<string, string>()
+          if (inspectorJobIds.length > 0) {
+            const { data: claimedJobData } = await supabase
+              .from('job_opportunities')
+              .select('id, project_name')
+              .in('id', inspectorJobIds)
+            for (const row of (claimedJobData ?? []) as Array<Record<string, unknown>>) {
+              if (typeof row.id === 'string' && row.project_name) {
+                claimedJobNameMap.set(row.id, row.project_name as string)
+              }
+            }
+          }
+
           const assignmentMap = new Map([...builderAssignments, ...inspectorAssignments].map(row => [row.id, row]))
 
           const reconstructedAssignments: Assignment[] = Array.from(assignmentMap.values()).map(dba => {
@@ -382,6 +398,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             return {
               id: dba.id,
               jobId: dba.jobId,
+              projectName: (myJob?.project_name as string | undefined) ?? claimedJobNameMap.get(dba.jobId),
               builderId: myJob?.builder_id ?? '',
               inspectorId: dba.inspectorId,
               inspectorName: prof ? `${prof.first_name} ${prof.last_name}` : 'Inspector',
@@ -739,7 +756,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { user: authUser },
     } = await supabase.auth.getUser()
-    const inspectorTestOverride = isInspectorTestModeEnabled({ role: 'inspector' })
+    // Test override applies only to demo (localStorage) sessions — never to real Supabase accounts.
+    // Real users must pass the full eligibility check and route through claim_live_job_if_eligible.
+    const inspectorTestOverride = isInspectorTestModeEnabled({ role: 'inspector' }) && !authUser?.id
 
     const persistedEligibility = !inspectorTestOverride && authUser?.id
       ? await selectInspectorEligibility(authUser.id)
@@ -836,10 +855,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           claimedSlot: result.assignment.claimedSlot ?? provisionalAssignment.claimedSlot,
         }
       } else {
+        if (!authUser?.id) {
+          return { ok: false, error: 'A valid Supabase session is required to claim jobs. Please sign in.' }
+        }
         const assignmentInsertPayload = {
           job_id: provisionalAssignment.jobId,
-          inspector_id: provisionalAssignment.inspectorId,
-          assigned_by: provisionalAssignment.inspectorId,
+          inspector_id: authUser.id,
+          assigned_by: authUser.id,
           assigned_at: provisionalAssignment.claimedAt,
           status: 'provisional' as const,
           objection_window_closes_at: provisionalAssignment.objectionWindowClosesAt,

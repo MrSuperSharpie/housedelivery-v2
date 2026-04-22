@@ -38,6 +38,7 @@ export type InspectorDiscipline =
   | 'mechanical'
   | 'plumbing'
   | 'architectural'
+  | 'fire_protection'
 export type Region = 'burnaby' | 'vancouver' | 'surrey' | 'coquitlam' | 'richmond'
 
 /** Inspector onboarding / credential review status. Vero reviews first; only approved inspectors access the Live Board. */
@@ -94,6 +95,7 @@ export type InspectorCredentialType =
   | 'boabc_qualification'          // BOABC class / qualification details (Official Authority)
   | 'conflict_of_interest_declaration' // Signed conflict-of-interest declaration (all applicants)
   | 'data_handling_acknowledgement'    // Signed evidence / data-handling acknowledgement (all applicants)
+  | 'digital_seal'                     // Professional digital seal image for Schedule C-B signature block
 
 // ─── GPS / Location ───────────────────────────────────────────────────────────
 
@@ -125,6 +127,12 @@ export interface InspectorProfile {
   earningsToday: number
   earningsWeek: number
   earningsMonth: number
+  /** Firm or practice name — maps to Schedule C-B "Print name of firm" field. */
+  firmName?: string
+  /** Business / practice address for authority-facing documents. */
+  businessAddress?: string
+  /** Storage path of the professional digital seal for Schedule C-B signature block injection. */
+  digitalSealUrl?: string
 }
 
 export interface BuilderProfile {
@@ -551,6 +559,7 @@ export type AssignmentStatus =
 export interface Assignment {
   id: string
   jobId: string
+  projectName?: string
   builderId: string
   inspectorId: string
   inspectorName: string
@@ -558,7 +567,7 @@ export interface Assignment {
   inspectorDisciplines: InspectorDiscipline[]
   inspectorRegions: Region[]
   claimedAt: string               // ISO
-  objectionWindowClosesAt: string // ISO — tier-based: emergency=2h, priority=12h, standard=24h
+  objectionWindowClosesAt: string // ISO — tier-based: emergency=30m, priority=1h, standard=1h
   claimedSlot: JobTimeSlot
   status: AssignmentStatus
   objectionState?: 'none' | 'pending_review' | 'sustained' | 'overruled'

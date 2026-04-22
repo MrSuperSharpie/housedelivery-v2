@@ -2469,7 +2469,7 @@ export function inferAhjOverlay(context: CompletionProjectContext): AhjOverlayCo
       type: 'vancouver',
       label: 'Vancouver By-law Overlay',
       jurisdictionName: 'City of Vancouver',
-      signals,
+      signals: ['cov_detected', ...signals],
       summary: 'Vancouver-specific by-law, frontage, and permit routing checks are surfaced in addition to the BC base checklist.',
     }
   }

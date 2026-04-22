@@ -9,7 +9,9 @@ function resolveFlag(): boolean {
   return process.env.NODE_ENV !== 'production'
 }
 
-export function isInspectorTestModeEnabled(user?: Pick<AuthUser, 'role'> | null): boolean {
+export function isInspectorTestModeEnabled(user?: (Pick<AuthUser, 'role'> & { supabaseId?: string }) | null): boolean {
   if (user?.role && user.role !== 'inspector') return false
+  // Real Supabase accounts must go through normal onboarding gates — never override them.
+  if (user?.supabaseId) return false
   return resolveFlag()
 }

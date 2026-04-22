@@ -54,13 +54,6 @@ const HAZARD_FLAGS = [
   { id: 'crane',      label: 'Active Crane / Heavy Equipment' },
 ]
 
-const SITE_REQUIREMENTS = [
-  { id: 'extinguisher', label: 'Fire Extinguisher (in-date, accessible)' },
-  { id: 'first-aid',    label: 'First Aid Kit (stocked)' },
-  { id: 'emergency',    label: 'Emergency Contacts Posted On-Site' },
-  { id: 'whmis',        label: 'WHMIS / SDS Sheets Available' },
-  { id: 'safety-plan',  label: 'Site OHS Safety Plan Available' },
-]
 
 interface DispatchModalProps {
   project?: Project | null
@@ -79,6 +72,16 @@ const DISCIPLINES = [
   { id: 'plumbing',     label: 'Plumbing',       icon: Droplets, description: 'Drainage, supply, fixtures' },
   { id: 'architectural',label: 'Architectural',  icon: Home,     description: 'Code compliance & life safety' },
 ]
+
+// Default discipline for each inspection stage.
+// Builders can override, but this pre-fills the most common selection.
+const STAGE_TO_DISCIPLINE: Record<number, string> = {
+  1: 'geotech',        // Site Survey & Excavation
+  2: 'structural',     // Foundation Pour
+  3: 'structural',     // Framing & Lock-up
+  4: 'architectural',  // Insulation & Vapor Barrier
+  5: 'architectural',  // Final Occupancy Permit
+}
 
 const STEP_NUM: Record<Step, number> = {
   address: 1, schedule: 2, stage: 3, discipline: 4, safety: 5, tier: 6, vault: 7, confirm: 8, broadcasting: 8, live: 8,
@@ -108,7 +111,6 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
   const [slots, setSlots]                   = useState<TimeSlot[]>([])
   const [ppeRequired, setPpeRequired]       = useState<string[]>([])
   const [hazardFlags, setHazardFlags]       = useState<string[]>([])
-  const [siteReqs, setSiteReqs]             = useState<string[]>([])
   const [safetyNotes, setSafetyNotes]       = useState('')
   const [siteAgreed, setSiteAgreed]         = useState(false)
   const [siteAgreementExpanded, setSiteAgreementExpanded] = useState(false)
@@ -161,7 +163,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
     setSlots([])
     setPpeRequired([])
     setHazardFlags([])
-    setSiteReqs([])
+
     setSafetyNotes('')
     setSiteAgreed(false)
     setSiteAgreementExpanded(false)
@@ -258,7 +260,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
       builderJobs:          5,
       ppeRequired,
       hazardFlags,
-      siteReqs,
+      siteReqs: [],
       safetyNotes,
       builderApprovalStatus: approvalStatus,
     })
@@ -483,7 +485,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
               const isSelected = selectedStage === stage.id
               const workflowDescription = STAGE_WORKFLOW_DESCRIPTIONS[stage.id] ?? stage.description
               return (
-                <button key={stage.id} onClick={() => setSelectedStage(stage.id)}
+                <button key={stage.id} onClick={() => { setSelectedStage(stage.id); setSelectedDisc(STAGE_TO_DISCIPLINE[stage.id] ?? null) }}
                   className={`w-full text-left rounded-xl border-2 p-4 transition-all ${
                     isSelected ? 'border-flame bg-orange-50' : 'border-gray-200 hover:border-gray-300 bg-white'
                   }`}>
@@ -520,7 +522,10 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             <ChevronLeft className="w-3.5 h-3.5" /> Back
           </button>
           <h2 className="text-xl font-black text-gray-900 mb-1">Required discipline</h2>
-          <p className="text-sm text-gray-500 mb-4">Your listing will only be sent to credentialed professionals in this field.</p>
+          <p className="text-sm text-gray-500 mb-2">Your listing will only be sent to credentialed professionals in this field.</p>
+          {selectedDisc && STAGE_TO_DISCIPLINE[selectedStage ?? 0] === selectedDisc && (
+            <p className="mb-4 text-xs text-flame font-semibold">Auto-selected based on inspection stage — override if needed.</p>
+          )}
 
           <div className="grid grid-cols-2 gap-2.5 mb-5">
             {DISCIPLINES.map(disc => {
@@ -602,29 +607,6 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                     <AlertTriangle className={`w-3.5 h-3.5 shrink-0 ${sel ? 'text-amber-500' : 'text-gray-300'}`} />
                     <span className={`text-xs font-semibold flex-1 ${sel ? 'text-amber-700' : 'text-gray-600'}`}>{flag.label}</span>
                     {sel && <CheckCircle2 className="w-3.5 h-3.5 text-amber-500 shrink-0" />}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* Required On-Site */}
-          <div className="mb-5">
-            <div className="flex items-center gap-2 mb-2.5">
-              <div className="w-1 h-4 bg-emerald-500 rounded-full" />
-              <span className="text-xs font-black text-gray-700 uppercase tracking-widest">Required On-Site</span>
-            </div>
-            <div className="space-y-1.5">
-              {SITE_REQUIREMENTS.map(req => {
-                const sel = siteReqs.includes(req.id)
-                return (
-                  <button key={req.id} onClick={() => toggleItem(siteReqs, setSiteReqs, req.id)}
-                    className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border-2 text-left transition-all ${
-                      sel ? 'border-emerald-400 bg-emerald-50' : 'border-gray-200 hover:border-gray-300 bg-white'
-                    }`}>
-                    <CheckCircle2 className={`w-3.5 h-3.5 shrink-0 ${sel ? 'text-emerald-500' : 'text-gray-300'}`} />
-                    <span className={`text-xs font-semibold flex-1 ${sel ? 'text-emerald-700' : 'text-gray-600'}`}>{req.label}</span>
-                    {sel && <div className="w-2 h-2 bg-emerald-400 rounded-full shrink-0" />}
                   </button>
                 )
               })}
@@ -778,14 +760,16 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             </div>
           </div>
 
-          <Button variant="primary" size="lg" fullWidth disabled={!hasValidSchedulingWindow} onClick={() => setStep('vault')}>
-            Review Listing <ChevronRight className="w-4 h-4" />
-          </Button>
-          {!hasValidSchedulingWindow && (
-            <p className="mt-3 text-center text-xs text-gray-400">
-              Update your scheduling step so the selected dispatch speed still has a valid availability window.
-            </p>
-          )}
+          <div className="sticky bottom-0 -mx-5 -mb-5 px-5 pt-3 pb-5 bg-white/95 backdrop-blur border-t border-gray-100 z-10">
+            <Button variant="primary" size="lg" fullWidth disabled={!hasValidSchedulingWindow} onClick={() => setStep('vault')}>
+              Review Listing <ChevronRight className="w-4 h-4" />
+            </Button>
+            {!hasValidSchedulingWindow && (
+              <p className="mt-3 text-center text-xs text-gray-400">
+                Update your scheduling step so the selected dispatch speed still has a valid availability window.
+              </p>
+            )}
+          </div>
         </div>
       )}
 
@@ -866,7 +850,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
 
       {/* ─── STEP 8: CONFIRM / POST ──────────────── */}
       {step === 'confirm' && (
-        <div>
+        <div className="pb-24">
           <button onClick={() => setStep('vault')} className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 mb-4">
             <ChevronLeft className="w-3.5 h-3.5" /> Back
           </button>
@@ -944,7 +928,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
               </div>
 
               {/* Safety Requirements summary */}
-              {(ppeRequired.length > 0 || hazardFlags.length > 0 || siteReqs.length > 0 || safetyNotes) && (
+              {(ppeRequired.length > 0 || hazardFlags.length > 0 || safetyNotes) && (
                 <div className="pt-3 border-t border-gray-100">
                   <div className="flex items-center gap-1.5 mb-2">
                     <Shield className="w-3.5 h-3.5 text-red-500" />
@@ -978,23 +962,6 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                             <div key={id} className="flex items-center gap-1.5 text-[10px] text-amber-700">
                               <AlertTriangle className="w-2.5 h-2.5 text-amber-500 shrink-0" />
                               {flag.label}
-                            </div>
-                          ) : null
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {siteReqs.length > 0 && (
-                    <div className="mb-2">
-                      <div className="text-[10px] text-gray-400 uppercase tracking-wide mb-1">Required On-Site</div>
-                      <div className="space-y-0.5">
-                        {siteReqs.map(id => {
-                          const req = SITE_REQUIREMENTS.find(r => r.id === id)
-                          return req ? (
-                            <div key={id} className="flex items-center gap-1.5 text-[10px] text-emerald-700">
-                              <CheckCircle2 className="w-2.5 h-2.5 text-emerald-500 shrink-0" />
-                              {req.label}
                             </div>
                           ) : null
                         })}

@@ -293,6 +293,7 @@ export default function BuilderDashboard() {
   const [dbJobs, setDbJobs]                     = useState<JobOpportunityRow[] | null>(null)
   const [completedRecords, setCompletedRecords] = useState<Record<string, { certRef: string; result: string; completedAt: string }>>({})
   const [activeHolds, setActiveHolds]           = useState<HoldRecord[]>([])
+  const [acceptedHolds, setAcceptedHolds]       = useState<Array<{ hold: HoldRecord; projectName: string; feeAmount: number; acceptedAt: string }>>([])
   const [holdResponding, setHoldResponding]     = useState<string | null>(null)
   const [holdReviewRequesting, setHoldReviewRequesting] = useState<string | null>(null)
   // FIX #7: per-hold decline notes instead of one shared string
@@ -507,7 +508,18 @@ export default function BuilderDashboard() {
     const windowMinutes = correctionWindowByHold[hold.id] ?? 60
     setHoldResponding(hold.id)
     const ok = await builderApproveHold(hold.id, windowMinutes, 'Approved — correction window reserved.')
-    if (ok) setActiveHolds(prev => prev.filter(h => h.id !== hold.id))
+    if (ok) {
+      setActiveHolds(prev => prev.filter(h => h.id !== hold.id))
+      const holdJob = (dbJobs ?? []).find(j => j.id === hold.jobId)
+      const baseHoldServiceFee = calculateBaseHoldServiceFee(hold.premiumRateAmount)
+      const windowFee = calculateWindowFee(hold.premiumRateAmount, windowMinutes)
+      setAcceptedHolds(prev => [...prev, {
+        hold,
+        projectName: holdJob?.projectName ?? 'Project',
+        feeAmount: baseHoldServiceFee + windowFee,
+        acceptedAt: new Date().toISOString(),
+      }])
+    }
     setHoldResponding(null)
   }
 
@@ -771,6 +783,34 @@ export default function BuilderDashboard() {
             </div>
           )
         })}
+
+        {/* ── Re-verification Pending ── */}
+        {acceptedHolds.map(({ hold, projectName, feeAmount, acceptedAt }) => (
+          <div key={hold.id} className="mb-5 rounded-2xl border border-amber-500/25 bg-amber-500/5 overflow-hidden">
+            <div className="px-5 py-4">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 bg-amber-500/15 border border-amber-500/25 rounded-xl flex items-center justify-center shrink-0">
+                  <Clock className="w-5 h-5 text-amber-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-ink text-sm mb-0.5">Re-verification Pending</div>
+                  <div className="text-xs text-muted truncate">{projectName}</div>
+                  <div className="mt-2 text-[11px] text-muted">
+                    Inspector is returning to verify the correction. Your site is reserved.{' '}
+                    Fee locked: <span className="font-bold text-amber-400">${feeAmount.toFixed(2)}</span>
+                  </div>
+                  <div className="mt-1 text-[10px] text-subtle">
+                    Accepted {new Date(acceptedAt).toLocaleTimeString('en-CA', { timeZone: 'America/Vancouver', hour: '2-digit', minute: '2-digit' })}
+                    {' · '}Correction window: {correctionWindowByHold[hold.id] ?? 60} min
+                  </div>
+                </div>
+                <div className="bg-amber-500/15 border border-amber-500/30 rounded-lg px-2 py-1 shrink-0">
+                  <div className="text-[10px] text-amber-400 font-bold">In Progress</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
 
         {/* Stats row */}
         <div className="grid grid-cols-3 gap-3 mb-6">

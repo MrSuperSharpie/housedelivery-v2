@@ -421,7 +421,9 @@ const PRINT_CSS = `
   }
 
   .appendix-image-frame {
+    width: 100%;
     height: 168px;
+    max-height: 168px;
     border: 1px solid var(--line);
     background: #f2f0eb;
     overflow: hidden;
@@ -434,7 +436,10 @@ const PRINT_CSS = `
     display: block;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    object-position: center;
   }
 
   .appendix-placeholder {
@@ -472,9 +477,14 @@ const PRINT_CSS = `
   }
 
   .appendix-image-link {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
     height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    overflow: hidden;
   }
 
   .appendix-caption {
@@ -1097,7 +1107,19 @@ function AppendixPages({ data }: { data: ScheduleCBPacketData }) {
                     <tbody>
                       <tr>
                         <td>Requirement</td>
-                        <td>{entry.requirementReference}</td>
+                        <td>
+                          {entry.signedUrl ? (
+                            <a
+                              className="appendix-link"
+                              href={entry.signedUrl}
+                              aria-label={`Open source file for requirement ${entry.requirementReference}`}
+                            >
+                              {entry.requirementReference}
+                            </a>
+                          ) : (
+                            entry.requirementReference
+                          )}
+                        </td>
                       </tr>
                       <tr>
                         <td>Captured</td>

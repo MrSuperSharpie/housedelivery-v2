@@ -797,13 +797,30 @@ export async function builderApproveHold(
     blockerType: 'commercial',
     reason: builderNote ?? 'Builder accepted Hold and reserved correction window.',
     beforeState: { status: hold.status },
-    afterState: { status: acceptedHold.status },
+    afterState: { status: acceptedHold.status, feeAmount: totalCapAmount },
     metadata: {
       premiumRateAmount: acceptedHold.premiumRateAmount,
       correctionWindowMinutes: safeWindowMinutes,
       holdCapAmount: totalCapAmount,
+      acceptedByUserId: acceptedHold.builderId,
+      acceptedAt: new Date().toISOString(),
     },
   })
+
+  // Fire-and-forget: trigger hold-accepted notification (email/SMS to inspector).
+  // Does not block the acceptance result.
+  void fetch('/api/notifications/hold-accepted', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      holdId,
+      jobId: acceptedHold.jobId,
+      inspectorId: acceptedHold.inspectorId,
+      builderId: acceptedHold.builderId,
+      feeAmount: totalCapAmount,
+      correctionWindowMinutes: safeWindowMinutes,
+    }),
+  }).catch(err => console.warn('[hold-accepted notification]', err))
 
   return true
 }

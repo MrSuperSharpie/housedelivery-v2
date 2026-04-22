@@ -13,7 +13,8 @@ import { getInspectorOnboardingStatusAsync } from '@/lib/persistence/inspectorOn
 import { selectInspectorEligibility } from '@/lib/supabase/compliance'
 import { useTheme } from '@/lib/theme'
 import { isInspectorTestModeEnabled } from '@/lib/inspectorTestMode'
-import type { Region, InspectorDiscipline, InspectorEligibilityProfile } from '@/lib/types'
+import type { Region, InspectorDiscipline, InspectorEligibilityProfile, HoldRecord } from '@/lib/types'
+import { listHoldsForJob } from '@/lib/supabase/holds'
 
 const REGIONS: { value: Region | 'all'; label: string }[] = [
   { value: 'all',       label: 'All Regions' },
@@ -49,6 +50,7 @@ export default function InspectorDashboard() {
   const [onboardingStatus, setOnboardingStatus] = useState<string | null>(null)
   const [eligibilityProfile, setEligibilityProfile] = useState<InspectorEligibilityProfile | null>(null)
   const [eligibilityLoaded, setEligibilityLoaded] = useState(false)
+  const [acceptedHoldsForInspector, setAcceptedHoldsForInspector] = useState<HoldRecord[]>([])
 
   useEffect(() => {
     if (!user) { router.replace('/sign-in?role=inspector'); return }
@@ -85,6 +87,25 @@ export default function InspectorDashboard() {
   const myAssignments = store.assignments.filter(a =>
     a.inspectorId === user?.id || a.inspectorId === user?.supabaseId
   )
+
+  // Poll for holds that builders have accepted — these need a re-verification action.
+  useEffect(() => {
+    const jobIds = store.assignments
+      .filter(a => a.inspectorId === user?.id || a.inspectorId === user?.supabaseId)
+      .map(a => a.jobId)
+    if (jobIds.length === 0) {
+      setAcceptedHoldsForInspector([])
+      return
+    }
+    let active = true
+    Promise.all(jobIds.map(id => listHoldsForJob(id)))
+      .then(results => {
+        if (!active) return
+        setAcceptedHoldsForInspector(results.flat().filter(h => h.status === 'hold_active'))
+      })
+      .catch(() => {})
+    return () => { active = false }
+  }, [store.assignments, user?.id, user?.supabaseId])
 
   const openJobs = store.getOpenJobs()
 
@@ -212,6 +233,39 @@ export default function InspectorDashboard() {
       <Navbar role="inspector" dark />
       <main className="max-w-5xl mx-auto px-4 py-8">
 
+        {/* ── Builder-Accepted Hold Notifications ── */}
+        {acceptedHoldsForInspector.map(hold => (
+          <div
+            key={hold.id}
+            className={`mb-5 rounded-2xl border overflow-hidden ${
+              isDark
+                ? 'border-amber-500/30 bg-amber-500/10'
+                : 'border-amber-400/40 bg-amber-50'
+            }`}
+          >
+            <div className="px-5 py-4 flex items-start gap-3">
+              <div className="w-10 h-10 bg-amber-500/20 border border-amber-500/30 rounded-xl flex items-center justify-center shrink-0">
+                <Activity className="w-5 h-5 text-amber-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-bold text-ink text-sm mb-0.5">Builder Accepted Hold Terms</div>
+                <div className="text-xs text-muted">
+                  Site is ready for re-verification. Return to site and resolve the hold.
+                </div>
+                <div className="mt-2 text-[11px] text-muted">
+                  Fee reserved: <span className="font-bold text-amber-400">${hold.holdCapAmount.toFixed(2)}</span>
+                  {hold.builderAcceptedAt && (
+                    <>{' · '}Accepted {new Date(hold.builderAcceptedAt).toLocaleTimeString('en-CA', { timeZone: 'America/Vancouver', hour: '2-digit', minute: '2-digit' })}</>
+                  )}
+                </div>
+              </div>
+              <div className={`rounded-lg px-2 py-1 shrink-0 ${isDark ? 'bg-amber-500/15 border border-amber-500/30' : 'bg-amber-100 border border-amber-300'}`}>
+                <div className="text-[10px] text-amber-500 font-bold">Re-verify Now</div>
+              </div>
+            </div>
+          </div>
+        ))}
+
         {/* Active Worklist */}
         {myAssignments.length > 0 && (
           <div className="mb-10">
@@ -236,7 +290,7 @@ export default function InspectorDashboard() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-bold text-ink text-base truncate">{job?.projectName || 'Assigned Project'}</span>
+                        <span className="font-bold text-ink text-base truncate">{assignment.projectName || job?.projectName || 'Assigned Project'}</span>
                         <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase ${
                           isDark
                             ? 'border-slate-600 bg-slate-700/50 text-slate-300'

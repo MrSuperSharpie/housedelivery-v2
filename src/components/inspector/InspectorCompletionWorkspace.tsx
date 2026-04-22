@@ -2490,6 +2490,16 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
             </div>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+              {overlay.type === 'vancouver' && (
+                <a
+                  href={`/api/schedule-cb?reportId=${report.id}`}
+                  download="Schedule_C-B.pdf"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-cyan-400/20 bg-cyan-500/10 px-5 py-3 text-sm font-black text-cyan-100 hover:bg-cyan-500/20 transition-all"
+                >
+                  <FileUp className="h-4 w-4" />
+                  Download Schedule C-B
+                </a>
+              )}
               <button
                 type="button"
                 onClick={() => router.push('/vault')}
@@ -4191,14 +4201,16 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                     Overlay snapshot: {overlay.label}
                   </div>
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                    <a
-                      href={`/api/schedule-cb?reportId=${report.id}`}
-                      download="Schedule_C-B.pdf"
-                      className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-bold text-zinc-200 hover:bg-white/10 transition-all"
-                    >
-                      <FileUp className="h-4 w-4 text-zinc-400" />
-                      Download Schedule C-B
-                    </a>
+                    {overlay.type === 'vancouver' && (
+                      <a
+                        href={`/api/schedule-cb?reportId=${report.id}`}
+                        download="Schedule_C-B.pdf"
+                        className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-bold text-zinc-200 hover:bg-white/10 transition-all"
+                      >
+                        <FileUp className="h-4 w-4 text-zinc-400" />
+                        Download Schedule C-B
+                      </a>
+                    )}
                     <button
                       type="button"
                       disabled={!sealReady || sealing}

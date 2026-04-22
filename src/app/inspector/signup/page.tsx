@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import {
   ChevronRight, ChevronLeft, CheckCircle2, Upload,
   HardHat, User, MapPin, FileText, Shield, BadgeCheck,
-  Layers, Hammer, Home, Zap, Droplets, AlertCircle
+  Layers, Hammer, Home, Zap, Droplets, AlertCircle, Flame, Stamp
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { createClient } from '@/lib/supabase/client'
@@ -33,12 +33,13 @@ const STEP_IDX: Record<Step, number> = {
 }
 
 const DISCIPLINES = [
-  { id: 'structural',    label: 'Structural',    icon: HardHat },
-  { id: 'geotech',       label: 'Geotechnical',  icon: Layers },
-  { id: 'mechanical',    label: 'Mechanical',     icon: Hammer },
-  { id: 'electrical',    label: 'Electrical',     icon: Zap },
-  { id: 'plumbing',      label: 'Plumbing',       icon: Droplets },
-  { id: 'architectural', label: 'Architectural',  icon: Home },
+  { id: 'structural',      label: 'Structural',      icon: HardHat },
+  { id: 'geotech',         label: 'Geotechnical',    icon: Layers },
+  { id: 'mechanical',      label: 'Mechanical',      icon: Hammer },
+  { id: 'electrical',      label: 'Electrical',      icon: Zap },
+  { id: 'plumbing',        label: 'Plumbing',        icon: Droplets },
+  { id: 'architectural',   label: 'Architectural',   icon: Home },
+  { id: 'fire_protection', label: 'Fire Protection', icon: Flame },
 ]
 
 const REGIONS = ['vancouver', 'burnaby', 'surrey', 'richmond', 'coquitlam']
@@ -99,7 +100,7 @@ function Input({ ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
-      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#FF5F15] focus:outline-none text-sm font-medium transition-colors"
+      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#FF5F15] focus:outline-none text-sm font-medium text-gray-900 transition-colors"
     />
   )
 }
@@ -126,10 +127,12 @@ interface DocUploadProps {
   uploading:      boolean
   uploadError:    string | null
   onFileSelected: (file: File) => void
+  accept?:        string
 }
 
 function DocUpload({
-  label, hint, required, uploaded, uploading, uploadError, onFileSelected
+  label, hint, required, uploaded, uploading, uploadError, onFileSelected,
+  accept = '.pdf,.jpg,.jpeg,.png,.doc,.docx'
 }: DocUploadProps) {
   const inputRef = React.useRef<HTMLInputElement>(null)
   const [fileName, setFileName] = React.useState<string | null>(null)
@@ -147,7 +150,7 @@ function DocUpload({
       <input
         ref={inputRef}
         type="file"
-        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+        accept={accept}
         className="hidden"
         onChange={handleChange}
       />
@@ -204,23 +207,25 @@ export default function InspectorSignup() {
   const [submitError, setSubmitError]  = useState<string | null>(null)
 
   const [form, setForm] = useState({
-    firstName:    '',
-    lastName:     '',
-    email:        '',
-    phone:        '',
-    password:     '',
-    licenseNumber: '',
-    roleLanes:    [] as InspectorRoleLane[],
-    disciplines:  [] as string[],
-    regions:      [] as string[],
-    agreeTerms:   false,
+    firstName:       '',
+    lastName:        '',
+    email:           '',
+    phone:           '',
+    password:        '',
+    licenseNumber:   '',
+    firmName:        '',
+    businessAddress: '',
+    roleLanes:       [] as InspectorRoleLane[],
+    disciplines:     [] as string[],
+    regions:         [] as string[],
+    agreeTerms:      false,
   })
 
   // Pending files — held in memory until auth user is created in handleSubmit
   // Key is the doc key ('license' | 'insurance' | 'id')
   const [pendingFiles, setPendingFiles] = useState<Record<string, File>>({})
 
-  // Upload state per doc key
+  // Upload state per doc key (includes 'seal' for digital seal upload)
   const [uploadStates, setUploadStates] = useState<Record<string, {
     uploaded:    boolean
     uploading:   boolean
@@ -229,6 +234,7 @@ export default function InspectorSignup() {
     id:        { uploaded: false, uploading: false, uploadError: null },
     insurance: { uploaded: false, uploading: false, uploadError: null },
     resume:    { uploaded: false, uploading: false, uploadError: null },
+    seal:      { uploaded: false, uploading: false, uploadError: null },
   })
 
   const set = (field: keyof typeof form, value: string | boolean | string[]) =>
@@ -265,6 +271,11 @@ export default function InspectorSignup() {
   const allDocsSelected = DOC_DEFS.every(d => pendingFiles[d.key] || uploadStates[d.key].uploaded)
   const stepIdx = STEP_IDX[step]
 
+  // Show firm fields for every lane except pure permit coordinator
+  const showFirmFields = form.roleLanes.some(l => l !== 'permit_coordinator_non_signing')
+  // Show digital seal upload for lanes that can sign documents
+  const showSealUpload = showFirmFields
+
   // ── handleSubmit ──────────────────────────────────────────────────────────
   // 1. Create auth user via supabase.auth.signUp()
   // 2. Upload each pending credential file to Supabase Storage
@@ -279,15 +290,17 @@ export default function InspectorSignup() {
       password: form.password,
       options: {
         data: {
-          role:           'inspector',
-          first_name:     form.firstName,
-          last_name:      form.lastName,
-          name:           `${form.firstName} ${form.lastName}`.trim(),
-          phone:          form.phone,
+          role:             'inspector',
+          first_name:       form.firstName,
+          last_name:        form.lastName,
+          name:             `${form.firstName} ${form.lastName}`.trim(),
+          phone:            form.phone,
           requested_role_lanes: form.roleLanes,
-          disciplines:    form.disciplines,
-          regions:        form.regions,
-          license_number: form.licenseNumber,
+          disciplines:      form.disciplines,
+          regions:          form.regions,
+          license_number:   form.licenseNumber,
+          firm_name:        form.firmName || null,
+          business_address: form.businessAddress || null,
         },
       },
     })
@@ -298,7 +311,36 @@ export default function InspectorSignup() {
       return
     }
 
+    // If no session was returned (email confirmation enabled on the project),
+    // attempt an immediate sign-in so the session cookie is set before we
+    // navigate to /inspector/onboarding.
+    if (!data.session) {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email:    form.email,
+        password: form.password,
+      })
+      if (signInError) {
+        console.warn('Session not established after signup:', signInError.message)
+      }
+    }
+
+    // Verify whether a session is active. If email confirmation is required and
+    // the user hasn't confirmed yet, session will be null — the onboarding page
+    // handles this gracefully (read-only mode with a confirmation prompt).
+    const { data: { session: activeSession } } = await supabase.auth.getSession()
+    if (!activeSession) {
+      console.info('Navigating to onboarding without an active session — email confirmation pending.')
+    }
+
     const userId = data.user.id
+
+    // Persist firm data directly to the profiles row (supplements auth trigger)
+    if (form.firmName || form.businessAddress) {
+      void supabase
+        .from('profiles')
+        .update({ firm_name: form.firmName || null, business_address: form.businessAddress || null })
+        .eq('id', userId)
+    }
 
     await upsertInspectorEligibility({
       userId,
@@ -358,6 +400,45 @@ export default function InspectorSignup() {
       }))
     }
 
+    // Upload professional digital seal (optional — signing lanes only)
+    const sealFile = pendingFiles['seal']
+    if (sealFile) {
+      setUploadStates(prev => ({
+        ...prev,
+        seal: { uploaded: false, uploading: true, uploadError: null },
+      }))
+
+      const sealPath = `credentials/${userId}/digital_seal/${sealFile.name}`
+      const { error: sealError } = await supabase.storage
+        .from('inspection-evidence')
+        .upload(sealPath, sealFile, { upsert: true })
+
+      if (sealError) {
+        setUploadStates(prev => ({
+          ...prev,
+          seal: { uploaded: false, uploading: false, uploadError: `Upload failed: ${sealError.message}` },
+        }))
+      } else {
+        await insertInspectorCredential({
+          id:             `cred-${userId}-digital_seal-${Date.now()}`,
+          userId,
+          credentialType: 'digital_seal',
+          fileName:       sealFile.name,
+          storagePath:    sealPath,
+          isRequired:     false,
+        })
+        // Link seal path to profile for PDF injection
+        void supabase
+          .from('profiles')
+          .update({ digital_seal_url: sealPath })
+          .eq('id', userId)
+        setUploadStates(prev => ({
+          ...prev,
+          seal: { uploaded: true, uploading: false, uploadError: null },
+        }))
+      }
+    }
+
     setIsSubmitting(false)
     await setInspectorOnboardingStatus('submitted', userId, userId)
     router.replace('/inspector/onboarding?submitted=1')
@@ -385,7 +466,7 @@ export default function InspectorSignup() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <div className="bg-[#0A192F] py-6 text-center text-white font-black text-xl border-b border-blue-900">
-        Site<span className="text-[#FF5F15]">Line</span> Pro
+        Vero<span className="text-[#FF5F15]"> Permit</span>
       </div>
 
       <div className="max-w-xl mx-auto w-full px-4 py-12 flex-1">
@@ -429,6 +510,16 @@ export default function InspectorSignup() {
               <Field label="Regulator / licence / authority reference">
                 <Input value={form.licenseNumber} onChange={e => set('licenseNumber', e.target.value)} placeholder="AIBC, EGBC, FSR, BOABC, or AHJ reference if applicable" />
               </Field>
+              {showFirmFields && (
+                <>
+                  <Field label="Firm Name">
+                    <Input value={form.firmName} onChange={e => set('firmName', e.target.value)} placeholder="Chen Structural Consulting Ltd." />
+                  </Field>
+                  <Field label="Business Address">
+                    <Input value={form.businessAddress} onChange={e => set('businessAddress', e.target.value)} placeholder="123 Main St, Vancouver, BC V5K 0A1" />
+                  </Field>
+                </>
+              )}
               <Field label="Role lanes" required>
                 <div className="space-y-2">
                   {INSPECTOR_ROLE_LANES.map(lane => (
@@ -507,6 +598,24 @@ export default function InspectorSignup() {
                   onFileSelected={(file) => handleFileSelected(docDef.key, file)}
                 />
               ))}
+              {showSealUpload && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Stamp className="w-4 h-4 text-[#0A192F]" />
+                    <span className="text-xs font-black text-gray-700 uppercase tracking-widest">Professional Digital Seal</span>
+                    <span className="ml-auto text-[10px] text-gray-400 font-medium">Optional · for Schedule C-B</span>
+                  </div>
+                  <DocUpload
+                    label="Professional Digital Seal"
+                    hint="High-res PNG (transparent background preferred), JPG, or PDF"
+                    uploaded={!!(uploadStates['seal'].uploaded || pendingFiles['seal'])}
+                    uploading={uploadStates['seal'].uploading}
+                    uploadError={uploadStates['seal'].uploadError}
+                    onFileSelected={(file) => handleFileSelected('seal', file)}
+                    accept=".png,.jpg,.jpeg,.pdf"
+                  />
+                </div>
+              )}
             </div>
           )}
 
@@ -518,12 +627,16 @@ export default function InspectorSignup() {
               {/* Summary */}
               <div className="p-4 bg-gray-50 rounded-2xl space-y-2 text-sm">
                   {[
-                    { label: 'Name',        val: `${form.firstName} ${form.lastName}` },
-                    { label: 'Email',       val: form.email },
-                    { label: 'License',     val: form.licenseNumber || '—' },
-                    { label: 'Role lanes',  val: form.roleLanes.map(getInspectorRoleLaneLabel).join(', ') || '—' },
-                    { label: 'Disciplines', val: form.disciplines.join(', ') || '—' },
-                    { label: 'Regions',     val: form.regions.join(', ') || '—' },
+                    { label: 'Name',             val: `${form.firstName} ${form.lastName}` },
+                    { label: 'Email',            val: form.email },
+                    { label: 'License',          val: form.licenseNumber || '—' },
+                    ...(showFirmFields ? [
+                      { label: 'Firm',           val: form.firmName || '—' },
+                      { label: 'Business Addr.', val: form.businessAddress || '—' },
+                    ] : []),
+                    { label: 'Role lanes',       val: form.roleLanes.map(getInspectorRoleLaneLabel).join(', ') || '—' },
+                    { label: 'Disciplines',      val: form.disciplines.join(', ') || '—' },
+                    { label: 'Regions',          val: form.regions.join(', ') || '—' },
                 ].map(({ label, val }) => (
                   <div key={label} className="flex justify-between gap-4">
                     <span className="text-gray-500 shrink-0">{label}</span>
@@ -554,6 +667,27 @@ export default function InspectorSignup() {
                       )}
                     </div>
                   ))}
+                  {showSealUpload && (
+                    <div className={`flex items-center gap-2 text-xs font-semibold p-2 rounded-lg ${
+                      pendingFiles['seal']
+                        ? 'bg-green-50 text-[#10B981]'
+                        : 'bg-gray-50 text-gray-400'
+                    }`}>
+                      {pendingFiles['seal']
+                        ? <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                        : <Stamp className="w-3.5 h-3.5 shrink-0" />
+                      }
+                      Professional Digital Seal
+                      {pendingFiles['seal']
+                        ? (
+                          <span className="text-green-600 ml-auto font-normal truncate max-w-[120px]">
+                            {pendingFiles['seal'].name}
+                          </span>
+                        )
+                        : <span className="ml-auto font-normal text-gray-400">Optional</span>
+                      }
+                    </div>
+                  )}
                 </div>
               </div>
 

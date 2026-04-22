@@ -194,7 +194,7 @@ export default function DispatchPage() {
           <p className="text-sm text-gray-400 mb-8">
             {pricing.tier === 'emergency' ? 'Expect confirmation within 15 minutes.' :
              pricing.tier === 'priority'  ? 'You\'ll receive confirmation within 30 minutes.' :
-                                            'You\'ll receive confirmation within 24 hours.'}
+                                            'You\'ll receive confirmation within 1 hour.'}
           </p>
           <div className="bg-white rounded-2xl border border-gray-100 p-5 text-left mb-6">
             <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Booking Summary</div>

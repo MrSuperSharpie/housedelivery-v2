@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 
 const LOGIN_PATH = '/login'
-const PUBLIC_PROTECTED_PATHS = ['/inspector/signup']
+const PUBLIC_PROTECTED_PATHS = ['/inspector/signup', '/inspector/onboarding']
 
 function matchesPath(pathname: string, prefix: string) {
   return pathname === prefix || pathname.startsWith(`${prefix}/`)

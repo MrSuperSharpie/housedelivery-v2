@@ -82,6 +82,7 @@ const CREDENTIAL_LABELS: Record<InspectorCredentialType, string> = {
   boabc_qualification:                 'BOABC class / qualification details',
   conflict_of_interest_declaration:    'Signed conflict-of-interest declaration',
   data_handling_acknowledgement:       'Signed evidence / data-handling acknowledgement',
+  digital_seal:                        'Professional digital seal',
 }
 
 const COMPLETED_JOBS = [

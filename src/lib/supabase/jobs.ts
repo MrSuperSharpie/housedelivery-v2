@@ -853,34 +853,34 @@ export async function updateAssignmentStatus(
   const now = new Date().toISOString()
   const normalizedNextStatus = normalizeAssignmentStatus(newStatus)
 
+  // Only write columns confirmed present in the live schema.
+  // Rows are created by the claim_live_job_if_eligible RPC (not by TypeScript),
+  // so the canonical column list is: status, updated_at, objection_window_closes_at,
+  // escrow_amount, escrow_status, and columns added by migrations:
+  //   objection_state  (20260407100000_structural_gap_closures)
+  //   cancelled_at     (20260407100000_structural_gap_closures)
+  // All other lifecycle timestamps (confirmed_at, objected_at, invalidated_at,
+  // completed_at) and text columns (objection_reason, objection_note, admin_note)
+  // are NOT present in the live schema and must not be written.
   const update: Record<string, unknown> = {
     status:     normalizedNextStatus,
     updated_at: now,
   }
 
   if (options?.objectionReason || options?.objectionNote) {
-    update.objected_at       = now
-    update.objection_reason  = options?.objectionReason ?? null
-    update.objection_note    = options?.objectionNote ?? null
-    update.objection_state   = 'pending_review'
+    update.objection_state = 'pending_review'
   }
   if (normalizedNextStatus === 'confirmed') {
-    update.confirmed_at = now
-    update.objection_state = options?.objectionReason ? 'overruled' : (options?.previousStatus ? 'overruled' : 'none')
+    update.objection_state = options?.objectionReason ? 'overruled' : 'none'
   }
   if (normalizedNextStatus === 'cancelled') {
-    update.cancelled_at = now
+    update.cancelled_at    = now
     update.objection_state = 'sustained'
-    update.admin_note = options?.adminNote ?? null
   }
   if (normalizedNextStatus === 'invalidated') {
-    update.invalidated_at = now
-    update.admin_note     = options?.adminNote ?? null
     update.objection_state = 'overruled'
   }
-  if (normalizedNextStatus === 'completed') {
-    update.completed_at = now
-  }
+  // 'completed': status + updated_at are sufficient
 
   const { error: updateError } = await supabase
     .from('job_assignments')

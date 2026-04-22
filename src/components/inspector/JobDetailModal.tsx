@@ -561,7 +561,7 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim }: JobDetail
               <ChevronRight className="w-4 h-4" />
             </button>
             <p className="text-center text-xs text-subtle mt-2">
-              Claim instantly · Builder has a limited objection window
+              Instant Claim · Subject to standard builder review
             </p>
           </>
         )}
