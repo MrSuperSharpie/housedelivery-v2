@@ -23,8 +23,10 @@ function getInspectorDestination(options: {
   fallback: string
   testOverride?: boolean
 }) {
-  if (options.testOverride) return options.fallback
   if (options.onboardingStatus === 'approved') return options.fallback
+  // testOverride (dev/demo mode without a real Supabase account) routes to onboarding,
+  // not straight to the Live Board — only fully-approved accounts skip the gate.
+  if (options.testOverride) return '/inspector/onboarding'
   return options.hasEligibilityProfile ? '/inspector/onboarding-status' : '/inspector/signup'
 }
 
@@ -194,7 +196,7 @@ function SignInInner() {
           ? getInspectorDestination({
               onboardingStatus: onboardingStatus as AuthUser['onboardingStatus'],
               hasEligibilityProfile: Boolean(inspectorEligibility),
-              testOverride: isInspectorTestModeEnabled({ role: 'inspector' }),
+              testOverride: isInspectorTestModeEnabled({ role: 'inspector', supabaseId: sbUser.id }),
               fallback: safeNextPath ?? cfg.dashHref,
             })
           : safeNextPath ?? cfg.dashHref

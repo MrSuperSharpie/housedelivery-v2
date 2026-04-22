@@ -81,7 +81,14 @@ export default function InspectorOnboardingEntryPage() {
     })
   }, [user?.id, user?.role, user?.supabaseId])
 
-  const justSubmitted = searchParams.get('submitted') === '1'
+  // justSubmitted: true immediately after account creation.
+  // Checks URL param first; falls back to sessionStorage in case useSearchParams()
+  // returns empty during the initial hydration pass (known Next.js edge case).
+  const justSubmitted = searchParams.get('submitted') === '1' || (
+    typeof window !== 'undefined' && (() => {
+      try { return sessionStorage.getItem('vero_just_submitted') === '1' } catch { return false }
+    })()
+  )
 
   useEffect(() => {
     if (justSubmitted) return // stay on this page right after signup
@@ -89,10 +96,9 @@ export default function InspectorOnboardingEntryPage() {
       router.replace('/inspector/signup')
       return
     }
-    if (user?.role === 'inspector' && status === 'approved') {
-      router.replace('/inspector')
-    }
-  }, [hasEligibilityProfile, justSubmitted, router, status, user?.role, user?.supabaseId])
+    // Approved inspectors use the "Browse live jobs" button — no auto-redirect here.
+    // (Auto-redirecting caused bugs when existing accounts had stale 'approved' status.)
+  }, [hasEligibilityProfile, justSubmitted, router, user?.role, user?.supabaseId])
 
   const copy = STATUS_COPY[status]
   const Icon = copy.icon

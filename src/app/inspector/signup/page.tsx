@@ -571,6 +571,7 @@ export default function InspectorSignup() {
 
     setIsSubmitting(false)
     await setInspectorOnboardingStatus('submitted', userId, userId)
+    try { sessionStorage.setItem('vero_just_submitted', '1') } catch {}
     router.replace('/inspector/onboarding?submitted=1')
   }
 
