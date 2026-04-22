@@ -81,7 +81,10 @@ export default function InspectorOnboardingEntryPage() {
     })
   }, [user?.id, user?.role, user?.supabaseId])
 
+  const justSubmitted = searchParams.get('submitted') === '1'
+
   useEffect(() => {
+    if (justSubmitted) return // stay on this page right after signup
     if (user?.role === 'inspector' && user.supabaseId && hasEligibilityProfile === false) {
       router.replace('/inspector/signup')
       return
@@ -89,9 +92,8 @@ export default function InspectorOnboardingEntryPage() {
     if (user?.role === 'inspector' && status === 'approved') {
       router.replace('/inspector')
     }
-  }, [hasEligibilityProfile, router, status, user?.role, user?.supabaseId])
+  }, [hasEligibilityProfile, justSubmitted, router, status, user?.role, user?.supabaseId])
 
-  const justSubmitted = searchParams.get('submitted') === '1'
   const copy = STATUS_COPY[status]
   const Icon = copy.icon
 
