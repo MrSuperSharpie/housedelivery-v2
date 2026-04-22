@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { AlertCircle, CheckCircle2, Clock, FileText, HardHat } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
+import { BrandWordmark } from '@/components/shared/Navbar'
 import { getInspectorOnboardingStatus, getInspectorOnboardingStatusAsync } from '@/lib/persistence/inspectorOnboarding'
 import { selectInspectorEligibility } from '@/lib/supabase/compliance'
 import type { InspectorOnboardingStatus } from '@/lib/types'
@@ -105,11 +106,9 @@ export default function InspectorOnboardingEntryPage() {
 
   return (
     <div className="min-h-screen bg-surface">
-      <div className="border-b border-white/5 px-4 py-4">
+      <div className="border-b border-white/5 px-4 sm:px-6 py-4">
         <div className="mx-auto flex max-w-3xl items-center justify-between">
-          <Link href="/" className="text-lg font-black text-ink">
-            Vero
-          </Link>
+          <BrandWordmark height={32} priority theme="auto" />
           <Link href="/sign-in?role=inspector" className="text-xs font-semibold text-electric hover:underline">
             Inspector sign in
           </Link>
@@ -128,8 +127,9 @@ export default function InspectorOnboardingEntryPage() {
           <p className="mt-3 text-sm text-muted">{copy.detail}</p>
 
           {justSubmitted && (
-            <div className="mt-5 rounded-2xl border border-electric/20 bg-electric/10 px-4 py-3 text-sm text-electric">
-              Your account was created successfully. Check your email to confirm your account, then sign in to continue tracking your onboarding status.
+            <div className="mt-5 flex items-start gap-3 rounded-2xl border-2 border-success-green bg-success-green/15 px-4 py-3.5 text-sm text-success-green">
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>Account created successfully. Please sign in to complete your required document uploads.</span>
             </div>
           )}
 

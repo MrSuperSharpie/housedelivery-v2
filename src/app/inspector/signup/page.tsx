@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { BrandWordmark } from '@/components/shared/Navbar'
 import {
   ChevronRight, ChevronLeft, CheckCircle2, Upload,
   HardHat, User, MapPin, FileText, Shield, BadgeCheck,
@@ -632,8 +633,8 @@ export default function InspectorSignup() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <div className="bg-[#0A192F] py-6 text-center text-white font-black text-xl border-b border-blue-900">
-        Vero<span className="text-[#FF5F15]"> Permit</span>
+      <div className="bg-[#0A192F] border-b border-blue-900/60 px-4 sm:px-6 py-4 flex items-center">
+        <BrandWordmark height={32} priority theme="dark" />
       </div>
 
       <div className="max-w-xl mx-auto w-full px-4 py-12 flex-1">
