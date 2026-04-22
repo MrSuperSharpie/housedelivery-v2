@@ -289,6 +289,12 @@ export default function InspectorSignup() {
     setIsSubmitting(true)
     setSubmitError(null)
 
+    if (form.password.length < 8) {
+      setSubmitError('Password must be at least 8 characters')
+      setIsSubmitting(false)
+      return
+    }
+
     // Step 1: create the auth.users record
     const { data, error } = await supabase.auth.signUp({
       email:    form.email,
@@ -504,6 +510,9 @@ export default function InspectorSignup() {
               </Field>
               <Field label="Password" required>
                 <Input type="password" value={form.password} onChange={e => set('password', e.target.value)} placeholder="Minimum 8 characters" />
+                {form.password.length > 0 && form.password.length < 8 && (
+                  <p className="text-xs text-red-500 font-medium mt-1">Password must be at least 8 characters</p>
+                )}
               </Field>
             </div>
           )}
@@ -734,7 +743,8 @@ export default function InspectorSignup() {
                 variant="primary"
                 fullWidth
                 disabled={
-                  (step === 'credentials' && form.roleLanes.length === 0)
+                  (step === 'personal' && form.password.length < 8)
+                  || (step === 'credentials' && form.roleLanes.length === 0)
                   || (step === 'documents' && !allDocsSelected)
                 }
                 onClick={() => setStep(STEPS[stepIdx + 1].id)}

@@ -437,6 +437,57 @@ export async function listOpenJobOpportunities(): Promise<JobOpportunityRow[]> {
   return (data as Record<string, unknown>[]).map(rowToJob)
 }
 
+/**
+ * Credential-filtered job listing for inspectors.
+ *
+ * Calls inspector_verified_disciplines() to get the inspector's verified,
+ * non-expired credential disciplines, then returns only jobs matching those
+ * disciplines.  Fail-closed: no verified credentials → empty list.
+ */
+export async function listEligibleJobsForInspector(
+  inspectorId: string
+): Promise<JobOpportunityRow[]> {
+  // Step 1: resolve verified disciplines from the credential authority model
+  const { data: disciplines, error: rpcError } = await supabase.rpc(
+    'inspector_verified_disciplines',
+    { p_inspector_id: inspectorId }
+  )
+
+  if (rpcError) {
+    console.error('listEligibleJobsForInspector: RPC failed', rpcError)
+    return [] // fail-closed
+  }
+
+  const verified = disciplines as string[] | null
+  if (!verified || verified.length === 0) {
+    return [] // no verified credentials → no eligible jobs
+  }
+
+  // Step 2: fetch live jobs filtered to those disciplines
+  const { data, error } = await supabase
+    .from('job_opportunities')
+    .select('*')
+    .eq('status', 'live')
+    .eq('validation_status', 'validated')
+    .in('required_discipline', verified)
+    .order('created_at', { ascending: false })
+
+  if (error && isMissingColumnError(error)) {
+    const legacyQuery = await supabase
+      .from('job_opportunities')
+      .select('*')
+      .eq('status', 'live')
+      .in('required_discipline', verified)
+      .order('created_at', { ascending: false })
+
+    if (legacyQuery.error || !legacyQuery.data) return []
+    return (legacyQuery.data as Record<string, unknown>[]).map(rowToJob)
+  }
+
+  if (error || !data) return []
+  return (data as Record<string, unknown>[]).map(rowToJob)
+}
+
 export async function listAllJobOpportunities(): Promise<JobOpportunityRow[]> {
   const { data, error } = await supabase
     .from('job_opportunities')
