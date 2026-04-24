@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { BrandWordmark } from '@/components/shared/Navbar'
 import {
@@ -228,6 +229,23 @@ function createCredentialId(userId: string, credentialType: InspectorCredentialT
   credentialIdCounter += 1
   const suffix = globalThis.crypto?.randomUUID?.() ?? `local-${credentialIdCounter}`
   return `cred-${userId}-${credentialType}-${suffix}`
+}
+
+function normalizePhoneForProfile(value: string) {
+  return value.replace(/\D/g, '')
+}
+
+async function checkRegistrationAvailability(input: { email: string; phone?: string }) {
+  const response = await fetch('/api/auth/check-registration', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+
+  if (response.ok) return null
+
+  const data = await response.json().catch(() => null) as { message?: string; error?: string } | null
+  return data?.message ?? data?.error ?? 'Could not verify whether this account already exists. Please try again.'
 }
 
 // ─── Field helper ─────────────────────────────────────────────────────────────
@@ -518,6 +536,16 @@ export default function InspectorSignup() {
         return
       }
 
+      const duplicateError = await checkRegistrationAvailability({
+        email: form.email,
+        phone: form.phone,
+      })
+      if (duplicateError) {
+        setSubmitError(duplicateError)
+        setIsSubmitting(false)
+        return
+      }
+
       // Step 1: create the auth.users record
       const { data, error } = await supabase.auth.signUp({
         email:    form.email,
@@ -576,6 +604,8 @@ export default function InspectorSignup() {
       .from('profiles')
       .update({
         full_name: `${form.firstName} ${form.lastName}`.trim() || null,
+        email: form.email.trim().toLowerCase() || null,
+        phone: normalizePhoneForProfile(form.phone) || null,
         firm_name: form.firmName || null,
         business_address: form.businessAddress || null,
         onboarding_status: 'submitted',
@@ -790,7 +820,15 @@ export default function InspectorSignup() {
           {/* ── STEP 1: PERSONAL ── */}
           {step === 'personal' && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-black text-[#0A192F]">Join the Network</h2>
+              <div>
+                <h2 className="text-2xl font-black text-[#0A192F]">Join the Network</h2>
+                <p className="mt-2 text-sm font-semibold text-gray-700">
+                  Already have an account?{' '}
+                  <Link href="/sign-in?role=inspector" className="text-[#0A192F] underline decoration-[#FF5F15] decoration-2 underline-offset-4 hover:text-[#FF5F15]">
+                    Sign in to continue
+                  </Link>
+                </p>
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <Field label="First Name" required>
                   <Input value={form.firstName} onChange={e => set('firstName', e.target.value)} placeholder="Sarah" />

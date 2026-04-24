@@ -227,14 +227,14 @@ const STATUS_CONFIG: Partial<Record<BuilderOnboardingStatus, {
   },
   rejected: {
     label: 'Verification not approved',
-    desc: 'Your builder verification was not approved. Contact support@getvero.ca for details.',
+    desc: 'Your builder verification was not approved. Contact admin@veropermit.com for details.',
     icon: AlertCircle,
     iconBg: 'bg-red-100',
     iconColor: 'text-red-500',
   },
   suspended: {
     label: 'Account suspended',
-    desc: 'Your builder account has been temporarily suspended. New live postings are blocked. Contact support@getvero.ca.',
+    desc: 'Your builder account has been temporarily suspended. New live postings are blocked. Contact admin@veropermit.com.',
     icon: AlertCircle,
     iconBg: 'bg-red-100',
     iconColor: 'text-red-500',
@@ -355,7 +355,7 @@ export default function BuilderOnboardingPage() {
   const router = useRouter()
   const { user } = useAuth()
 
-  const [status, setStatus]     = useState<BuilderOnboardingStatus | null>(null)
+  const [status, setStatus]     = useState<BuilderOnboardingStatus | null>(() => getBuilderOnboardingStatus())
   const [step, setStep]         = useState<Step>('business')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -454,14 +454,25 @@ export default function BuilderOnboardingPage() {
 
   // Load onboarding status
   useEffect(() => {
-    if (!user?.id) { setStatus(getBuilderOnboardingStatus()); return }
-    getBuilderOnboardingStatusAsync(user.id, user.supabaseId).then(setStatus)
+    if (!user?.id) return
+
+    let cancelled = false
+    getBuilderOnboardingStatusAsync(user.id, user.supabaseId).then(nextStatus => {
+      if (!cancelled) setStatus(nextStatus)
+    })
+
+    return () => {
+      cancelled = true
+    }
   }, [user?.id, user?.supabaseId])
 
   // Pre-fill email only from auth context (name/company must be entered fresh)
   useEffect(() => {
-    if (!user?.supabaseId) return
-    if (user.email && !form.businessEmail) set('businessEmail', user.email)
+    if (!user?.supabaseId || !user.email) return
+
+    queueMicrotask(() => {
+      setForm(prev => prev.businessEmail ? prev : { ...prev, businessEmail: user.email ?? '' })
+    })
   }, [user?.supabaseId, user?.email])
 
   // Approved users go straight to dashboard
@@ -556,7 +567,7 @@ export default function BuilderOnboardingPage() {
               <Building2 className="w-3.5 h-3.5 text-white" />
             </div>
             <span className="text-sm font-black text-gray-900 tracking-tight">
-              Site<span className="text-flame">Line</span>
+              Vero<span className="text-flame"> Permit</span>
             </span>
           </Link>
           <span className="text-xs text-gray-400">Builder verification</span>
@@ -572,6 +583,12 @@ export default function BuilderOnboardingPage() {
             <span className="text-sm font-bold text-flame">Builder verification</span>
           </div>
           <h1 className="text-2xl font-black text-gray-900 mb-2">Complete your builder verification</h1>
+          <p className="mb-3 text-sm font-semibold text-gray-700">
+            Already have an account?{' '}
+            <Link href="/sign-in?role=builder" className="text-gray-950 underline decoration-flame decoration-2 underline-offset-4 hover:text-flame">
+              Sign in to continue
+            </Link>
+          </p>
           <p className="text-sm text-gray-500 max-w-sm mx-auto">
             Vero verifies builders before allowing live project posting. Provide your company details and required documents for review.
           </p>
@@ -1163,8 +1180,8 @@ export default function BuilderOnboardingPage() {
 
         <p className="text-center text-xs text-gray-400 mt-6">
           Need help?{' '}
-          <a href="mailto:support@getvero.ca" className="text-flame font-semibold hover:underline">
-            Contact support@getvero.ca
+          <a href="mailto:admin@veropermit.com" className="text-flame font-semibold hover:underline">
+            Contact admin@veropermit.com
           </a>
         </p>
       </div>

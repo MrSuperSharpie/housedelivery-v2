@@ -40,6 +40,19 @@ function isUserRole(value: unknown): value is UserRole {
   return value === 'builder' || value === 'inspector' || value === 'auditor' || value === 'admin'
 }
 
+async function checkRegistrationAvailability(input: { email: string; phone?: string }) {
+  const response = await fetch('/api/auth/check-registration', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+
+  if (response.ok) return null
+
+  const data = await response.json().catch(() => null) as { message?: string; error?: string } | null
+  return data?.message ?? data?.error ?? 'Could not verify whether this account already exists. Please try again.'
+}
+
 // ─── Role config ──────────────────────────────────────────────────────────────
 
 const ROLE_CONFIG = {
@@ -235,6 +248,17 @@ function SignInInner() {
 
     // Demo / local login fallback
     if (!form.name) { setError('Name and email are required.'); setLoading(false); return }
+    if (isNew) {
+      const duplicateError = await checkRegistrationAvailability({
+        email: form.email,
+        phone: form.phone,
+      })
+      if (duplicateError) {
+        setError(duplicateError)
+        setLoading(false)
+        return
+      }
+    }
     await new Promise(r => setTimeout(r, 600))
 
     const demoUser = DEMO_USERS.find(d => d.email === form.email && d.role === role)
@@ -310,6 +334,13 @@ function SignInInner() {
                   {isNew ? 'Create account' : 'Sign in'}
                 </div>
                 <div className="text-xs text-muted">{cfg.label}</div>
+                <button
+                  type="button"
+                  onClick={() => setIsNew(n => !n)}
+                  className="mt-2 text-left text-sm font-semibold text-ink underline decoration-flame decoration-2 underline-offset-4 hover:text-flame transition-colors"
+                >
+                  {isNew ? 'Already have an account? Sign in' : "Don't have an account? Create one"}
+                </button>
               </div>
             </div>
           </div>
@@ -447,10 +478,6 @@ function SignInInner() {
               )}
             </button>
 
-            <button type="button" onClick={() => setIsNew(n => !n)}
-              className="w-full text-center text-xs text-muted hover:text-ink transition-colors py-1">
-{isNew ? 'Already have an account? Sign in' : "Don't have an account? Create one"}
-            </button>
           </form>
 
           <p className="text-center text-[10px] text-subtle mt-6 leading-relaxed">

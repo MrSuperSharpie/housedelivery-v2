@@ -125,7 +125,7 @@ const OPTIONS: ScheduleCBOptions = {
   inspectorLicense:     'BC-ENG-29847',
   discipline:           'Structural Engineering',
   firmName:             'Chen Structural Consulting Ltd.',
-  inspectorContact:     '604-555-0198  ·  sarah.chen@getvero.ca',
+  inspectorContact:     '604-555-0198  ·  sarah.chen@veropermit.com',
   inspectorAddress:     '1050 West Hastings Street, Suite 2200',
   inspectorAddressCont: 'Vancouver, BC  V6E 2E9',
   buildingPermitNumber: 'BP-DEV-TEST-001',
