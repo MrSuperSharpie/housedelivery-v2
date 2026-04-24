@@ -10,10 +10,8 @@ import {
 import { BrandWordmark } from '@/components/shared/Navbar'
 import { useAuth, DEMO_USERS, type UserRole, type AuthUser } from '@/lib/auth'
 import { signInWithSupabase } from '@/lib/auth'
-import { getInspectorOnboardingStatusAsync, setInspectorOnboardingStatus } from '@/lib/persistence/inspectorOnboarding'
+import { setInspectorOnboardingStatus } from '@/lib/persistence/inspectorOnboarding'
 import { createClient } from '@/lib/supabase/client'
-import { selectInspectorEligibility } from '@/lib/supabase/compliance'
-import { isInspectorTestModeEnabled } from '@/lib/inspectorTestMode'
 
 const supabase = createClient()
 
@@ -21,13 +19,25 @@ function getInspectorDestination(options: {
   onboardingStatus?: AuthUser['onboardingStatus']
   hasEligibilityProfile: boolean
   fallback: string
+  verified?: boolean
   testOverride?: boolean
 }) {
-  if (options.onboardingStatus === 'approved') return options.fallback
-  // testOverride (dev/demo mode without a real Supabase account) routes to onboarding,
-  // not straight to the Live Board — only fully-approved accounts skip the gate.
-  if (options.testOverride) return '/inspector/signup'
+  if (options.onboardingStatus === 'approved' || options.verified) return options.fallback
+  // Inspectors who have submitted but aren't yet approved should see the
+  // waiting/status screen, not the signup form again.
+  if (
+    options.onboardingStatus === 'submitted' ||
+    options.onboardingStatus === 'under_review' ||
+    options.onboardingStatus === 'needs_info' ||
+    options.onboardingStatus === 'rejected' ||
+    options.onboardingStatus === 'suspended'
+  ) return '/inspector/onboarding'
+  // draft / undefined — still needs to complete onboarding
   return '/inspector/signup'
+}
+
+function isUserRole(value: unknown): value is UserRole {
+  return value === 'builder' || value === 'inspector' || value === 'auditor' || value === 'admin'
 }
 
 // ─── Role config ──────────────────────────────────────────────────────────────
@@ -152,33 +162,48 @@ function SignInInner() {
         const metadata = (sbUser.user_metadata ?? {}) as Record<string, unknown>
         const name = (typeof metadata.name === 'string' && metadata.name) ? metadata.name : (sbUser.email?.split('@')[0] ?? 'User')
         let logoUrl: string | undefined
-        const inspectorEligibility = role === 'inspector'
-          ? await selectInspectorEligibility(sbUser.id)
-          : null
-        const onboardingStatus = role === 'inspector'
-          ? await getInspectorOnboardingStatusAsync(sbUser.id, sbUser.id)
-          : undefined
+        let onboardingStatus: string | undefined
+        let verified = false
+        let profileName: string | undefined
+        let profileFirm: string | undefined
         try {
           const { data: profileData } = await supabase
             .from('profiles')
-            .select('logo_url')
+            .select('logo_url, onboarding_status, verified, full_name, first_name, last_name, firm_name')
             .eq('id', sbUser.id)
             .maybeSingle()
           if (typeof profileData?.logo_url === 'string' && profileData.logo_url.trim()) {
             logoUrl = profileData.logo_url
           }
+          if (typeof profileData?.onboarding_status === 'string' && profileData.onboarding_status.trim()) {
+            onboardingStatus = profileData.onboarding_status
+          }
+          verified = profileData?.verified === true
+          if (typeof profileData?.full_name === 'string' && profileData.full_name.trim()) {
+            profileName = profileData.full_name
+          } else {
+            const first = typeof profileData?.first_name === 'string' ? profileData.first_name : ''
+            const last = typeof profileData?.last_name === 'string' ? profileData.last_name : ''
+            const joined = `${first} ${last}`.trim()
+            if (joined) profileName = joined
+          }
+          if (typeof profileData?.firm_name === 'string' && profileData.firm_name.trim()) {
+            profileFirm = profileData.firm_name
+          }
         } catch { /* ignore */ }
+        const resolvedRole: UserRole = isUserRole(metadata.role) ? metadata.role : role
+        const resolvedName = profileName ?? name
         const authUser: AuthUser = {
           id:           sbUser.id,
           supabaseId:   sbUser.id,
-          name,
-          firstName:    name.split(' ')[0],
-          role,
+          name:         resolvedName,
+          firstName:    resolvedName.split(' ')[0],
+          role:         resolvedRole,
           email:        sbUser.email ?? form.email,
           phone:        (typeof metadata.phone === 'string' ? metadata.phone : undefined) ?? form.phone ?? '',
-          avatar:       name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2),
+          avatar:       resolvedName.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2),
           logoUrl:      logoUrl ?? (typeof metadata.logo_url === 'string' ? metadata.logo_url : undefined),
-          company:      typeof metadata.company === 'string' ? metadata.company : undefined,
+          company:      profileFirm ?? (typeof metadata.company === 'string' ? metadata.company : undefined),
           position:     typeof metadata.position === 'string' ? metadata.position : undefined,
           licenseNumber:(typeof metadata.licenseNumber === 'string' ? metadata.licenseNumber : undefined)
             ?? (typeof metadata.license_number === 'string' ? metadata.license_number : undefined),
@@ -192,14 +217,14 @@ function SignInInner() {
           onboardingStatus: onboardingStatus as AuthUser['onboardingStatus'],
         }
         login(authUser)
-        const destination = role === 'inspector'
+        const destination = resolvedRole === 'inspector'
           ? getInspectorDestination({
               onboardingStatus: onboardingStatus as AuthUser['onboardingStatus'],
-              hasEligibilityProfile: Boolean(inspectorEligibility),
-              testOverride: isInspectorTestModeEnabled({ role: 'inspector', supabaseId: sbUser.id }),
+              hasEligibilityProfile: true,
               fallback: safeNextPath ?? cfg.dashHref,
+              verified,
             })
-          : safeNextPath ?? cfg.dashHref
+          : safeNextPath ?? ROLE_CONFIG[resolvedRole].dashHref
         router.push(destination)
         router.refresh()
         setLoading(false)
@@ -236,8 +261,7 @@ function SignInInner() {
     const destination = user.role === 'inspector'
       ? getInspectorDestination({
           onboardingStatus: user.onboardingStatus,
-          hasEligibilityProfile: false,
-          testOverride: isInspectorTestModeEnabled(user),
+          hasEligibilityProfile: true,
           fallback: safeNextPath ?? cfg.dashHref,
         })
       : safeNextPath ?? cfg.dashHref
@@ -314,62 +338,65 @@ function SignInInner() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-3">
 
-            {/* Name */}
-            <div>
-              <label className="label-mono mb-1.5 block">Full Name</label>
-              <input value={form.name} onChange={e => set('name', e.target.value)}
-                placeholder="e.g. Wyatt Davis" required className={inputCls} />
-            </div>
-
-            {/* Role-specific fields */}
-            {role === 'builder' && (
+            {/* Identity fields — only shown when creating a new account */}
+            {isNew && (
               <>
                 <div>
-                  <label className="label-mono mb-1.5 block">Company Name</label>
-                  <input value={form.company} onChange={e => set('company', e.target.value)}
-                    placeholder="e.g. Coastal Developments Inc." className={inputCls} />
+                  <label className="label-mono mb-1.5 block">Full Name</label>
+                  <input value={form.name} onChange={e => set('name', e.target.value)}
+                    placeholder="e.g. Wyatt Davis" required className={inputCls} />
                 </div>
-                <div>
-                  <label className="label-mono mb-1.5 block">Your Role</label>
-                  <select value={form.position} onChange={e => set('position', e.target.value)} className={selectCls}>
-                    <option value="">Select position…</option>
-                    {POSITIONS.map(p => <option key={p} value={p}>{p}</option>)}
-                  </select>
-                </div>
-              </>
-            )}
 
-            {role === 'inspector' && (
-              <>
-                <div>
-                  <label className="label-mono mb-1.5 block">EGBC / AIBC License #</label>
-                  <input value={form.license} onChange={e => set('license', e.target.value)}
-                    placeholder="e.g. BC-ENG-29847" className={inputCls} />
-                </div>
-                <div>
-                  <label className="label-mono mb-1.5 block">Designation</label>
-                  <select value={form.designation} onChange={e => set('designation', e.target.value)} className={selectCls}>
-                    <option value="">Select designation…</option>
-                    {DESIGNATIONS.map(d => <option key={d} value={d}>{d}</option>)}
-                  </select>
-                </div>
-              </>
-            )}
+                {role === 'builder' && (
+                  <>
+                    <div>
+                      <label className="label-mono mb-1.5 block">Company Name</label>
+                      <input value={form.company} onChange={e => set('company', e.target.value)}
+                        placeholder="e.g. Coastal Developments Inc." className={inputCls} />
+                    </div>
+                    <div>
+                      <label className="label-mono mb-1.5 block">Your Role</label>
+                      <select value={form.position} onChange={e => set('position', e.target.value)} className={selectCls}>
+                        <option value="">Select position…</option>
+                        {POSITIONS.map(p => <option key={p} value={p}>{p}</option>)}
+                      </select>
+                    </div>
+                  </>
+                )}
 
-            {role === 'auditor' && (
-              <>
-                <div>
-                  <label className="label-mono mb-1.5 block">Job Title</label>
-                  <input value={form.title} onChange={e => set('title', e.target.value)}
-                    placeholder="e.g. Senior Building Inspector" className={inputCls} />
-                </div>
-                <div>
-                  <label className="label-mono mb-1.5 block">Jurisdiction</label>
-                  <select value={form.jurisdiction} onChange={e => set('jurisdiction', e.target.value)} className={selectCls}>
-                    <option value="">Select jurisdiction…</option>
-                    {JURISDICTIONS.map(j => <option key={j} value={j}>{j}</option>)}
-                  </select>
-                </div>
+                {role === 'inspector' && (
+                  <>
+                    <div>
+                      <label className="label-mono mb-1.5 block">EGBC / AIBC License #</label>
+                      <input value={form.license} onChange={e => set('license', e.target.value)}
+                        placeholder="e.g. BC-ENG-29847" className={inputCls} />
+                    </div>
+                    <div>
+                      <label className="label-mono mb-1.5 block">Designation</label>
+                      <select value={form.designation} onChange={e => set('designation', e.target.value)} className={selectCls}>
+                        <option value="">Select designation…</option>
+                        {DESIGNATIONS.map(d => <option key={d} value={d}>{d}</option>)}
+                      </select>
+                    </div>
+                  </>
+                )}
+
+                {role === 'auditor' && (
+                  <>
+                    <div>
+                      <label className="label-mono mb-1.5 block">Job Title</label>
+                      <input value={form.title} onChange={e => set('title', e.target.value)}
+                        placeholder="e.g. Senior Building Inspector" className={inputCls} />
+                    </div>
+                    <div>
+                      <label className="label-mono mb-1.5 block">Jurisdiction</label>
+                      <select value={form.jurisdiction} onChange={e => set('jurisdiction', e.target.value)} className={selectCls}>
+                        <option value="">Select jurisdiction…</option>
+                        {JURISDICTIONS.map(j => <option key={j} value={j}>{j}</option>)}
+                      </select>
+                    </div>
+                  </>
+                )}
               </>
             )}
 
@@ -379,11 +406,13 @@ function SignInInner() {
               <input type="email" value={form.email} onChange={e => set('email', e.target.value)}
                 placeholder="you@example.com" required className={inputCls} />
             </div>
-            <div>
-              <label className="label-mono mb-1.5 block">Mobile Number</label>
-              <input type="tel" value={form.phone} onChange={e => set('phone', e.target.value)}
-                placeholder="604-555-0000" className={inputCls} />
-            </div>
+            {isNew && (
+              <div>
+                <label className="label-mono mb-1.5 block">Mobile Number</label>
+                <input type="tel" value={form.phone} onChange={e => set('phone', e.target.value)}
+                  placeholder="604-555-0000" className={inputCls} />
+              </div>
+            )}
 
             {/* Password */}
             <div>

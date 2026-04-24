@@ -26,9 +26,13 @@ import type { HoldRecord, DispatchTier } from '@/lib/types'
 import type { EvidenceItem as DomainEvidenceItem } from '@/lib/domain/types'
 import {
   addHoldEvidence,
+  createModificationHold,
   getLatestOpenHoldForJob,
   listHoldDetailsForJob,
   resolveHold,
+  type InspectionHold,
+  type InspectionHoldReasonCode,
+  type InspectionHoldType,
 } from '@/lib/supabase/holds'
 import { isHoldOpenStatus } from '@/lib/holds/workflow'
 import { buildHoldEvidenceItems, buildHoldHistorySummary } from '@/lib/holds/reporting'
@@ -541,6 +545,18 @@ export default function ActiveInspectionPage() {
   const holdVideoInputRef = useRef<HTMLInputElement>(null)
   const holdAttachmentInputRef = useRef<HTMLInputElement>(null)
 
+  // ── Modification Required (3-pathway) state ──
+  const [modHoldStep, setModHoldStep]                 = useState<1 | 2>(1)
+  const [modHoldType, setModHoldType]                 = useState<InspectionHoldType | null>(null)
+  const [modHoldReasonCode, setModHoldReasonCode]     = useState<InspectionHoldReasonCode>('other')
+  const [modHoldNotes, setModHoldNotes]               = useState('')
+  const [modHoldIsBlocking, setModHoldIsBlocking]     = useState(true)
+  const [modHoldEstimatedMinutes, setModHoldEstimatedMinutes] = useState(30)
+  const [modHoldReturnStart, setModHoldReturnStart]   = useState('')
+  const [modHoldReturnEnd, setModHoldReturnEnd]       = useState('')
+  const [activeModHold, setActiveModHold]             = useState<InspectionHold | null>(null)
+  const [isPlacingModHold, setIsPlacingModHold]       = useState(false)
+
   // Load real job data — store first, then Supabase fallback
   useEffect(() => {
     if (storeJob) return
@@ -600,6 +616,8 @@ export default function ActiveInspectionPage() {
   const holdBaseRate = holdPricingDetails.baseRate
   const holdPricingLabel = holdPricingDetails.label
   const hasOpenHold = activeHold !== null && isHoldOpenStatus(activeHold.status)
+  const hasOpenModHold = activeModHold !== null &&
+    ['proposed', 'acknowledged', 'active', 'awaiting_return'].includes(activeModHold.status)
   const baseHoldServiceFee = calculateBaseHoldServiceFee(holdBaseRate)
   const holdMissingFields = [
     !holdReason.trim() ? 'deficiency summary' : null,
@@ -608,6 +626,14 @@ export default function ActiveInspectionPage() {
   const openHoldForm = () => {
     setHoldMode(true)
     setHoldSameDayEligible(true)
+    setModHoldStep(1)
+    setModHoldType(null)
+    setModHoldNotes('')
+    setModHoldReasonCode('other')
+    setModHoldIsBlocking(true)
+    setModHoldEstimatedMinutes(30)
+    setModHoldReturnStart('')
+    setModHoldReturnEnd('')
   }
 
   useEffect(() => {
@@ -840,6 +866,33 @@ export default function ActiveInspectionPage() {
     setHoldEvidenceItems(prev => prev.filter(item => item.id !== evidenceId))
   }
 
+  const handlePlaceModHold = async () => {
+    if (!modHoldType) return
+    const inspectorId = user?.supabaseId ?? user?.id ?? ''
+    if (!inspectorId) return
+    if (modHoldType === 'same_day_return' && (!modHoldReturnStart || !modHoldReturnEnd)) return
+
+    setIsPlacingModHold(true)
+    const hold = await createModificationHold({
+      inspectionId: jobId,
+      inspectorId,
+      type: modHoldType,
+      reasonCode: modHoldReasonCode,
+      notes: modHoldNotes.trim() || undefined,
+      isBlocking: modHoldIsBlocking,
+      estimatedFixMinutes: modHoldEstimatedMinutes,
+      returnWindowStart: modHoldType === 'same_day_return' ? new Date(modHoldReturnStart).toISOString() : undefined,
+      returnWindowEnd:   modHoldType === 'same_day_return' ? new Date(modHoldReturnEnd).toISOString()   : undefined,
+    })
+    if (hold) {
+      setActiveModHold(hold)
+      setHoldMode(false)
+      setModHoldStep(1)
+      setModHoldType(null)
+    }
+    setIsPlacingModHold(false)
+  }
+
   const handleRetentionComplete = () => {
     const failIds = items.filter(item => checklistState[item.id] === 'fail').map(item => item.id)
     setChecklistState(prev => {
@@ -913,6 +966,7 @@ export default function ActiveInspectionPage() {
       })
     && failItemsMissingEvidence.length === 0
     && !hasOpenHold
+    && !hasOpenModHold
   const hasFails = items.some(item => checklistState[item.id] === 'fail')
   console.log('SEAL DEBUG allDone:', allDone, '| reviewed:', reviewed, '/ items:', items.length, '| failsMissingEvidence:', failItemsMissingEvidence.length)
 
@@ -1394,294 +1448,280 @@ export default function ActiveInspectionPage() {
           </div>
         )}
 
-        {/* ── Hold Placement Form ── */}
-        {holdMode && !activeHold && (
-          <div className="mb-5 bg-amber-500/10 border border-amber-500/30 rounded-2xl p-5">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-9 h-9 bg-amber-500/20 rounded-xl flex items-center justify-center">
-                <PauseCircle className="w-5 h-5 text-amber-400" />
+        {/* ── Active Modification Hold Banner ── */}
+        {activeModHold && hasOpenModHold && (
+          <div className="mb-5 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5">
+            <div className="flex items-start gap-3 mb-3">
+              <div className="w-10 h-10 bg-amber-500/20 rounded-xl flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5 text-amber-300" />
               </div>
-              <div>
-                <div className="font-bold text-amber-300 text-sm">Offer On-Site Hold</div>
-                <div className="text-xs text-amber-500">Use this when the issue can reasonably be corrected during the current visit, allowing the inspector to remain on site and re-review without rebooking.</div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="font-bold text-amber-200 text-sm">Modification Required</div>
+                  <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest bg-amber-900/50 text-amber-400">
+                    {activeModHold.type === 'onsite' ? 'On-Site Correction'
+                      : activeModHold.type === 'same_day_return' ? 'Same-Day Return'
+                      : 'Reinspection Required'}
+                  </span>
+                  <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest bg-amber-500/30 text-amber-200">
+                    {activeModHold.status.replace(/_/g, ' ')}
+                  </span>
+                </div>
+                <div className="text-xs text-amber-100/80 mt-1">
+                  {activeModHold.status === 'proposed'       && 'Awaiting builder acknowledgment. Checklist is locked.'}
+                  {activeModHold.status === 'acknowledged'   && 'Builder acknowledged — proceed with correction on site.'}
+                  {activeModHold.status === 'active'         && 'Hold is active. Re-verify the issue before closing.'}
+                  {activeModHold.status === 'awaiting_return' && 'Inspector has left site — awaiting return for re-verification.'}
+                </div>
               </div>
             </div>
-
-            {/* Failed items selection */}
-            {failedItemIds.length > 0 && (
-              <div className="mb-4">
-                <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-2">Failed Checklist Items</div>
-                <div className="space-y-1.5">
-                  {items.filter(item => checklistState[item.id] === 'fail').map(item => (
-                    <label key={item.id} className="flex items-center gap-2.5 p-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 cursor-pointer hover:bg-amber-500/10 transition-all">
-                      <input
-                        type="checkbox"
-                        checked={holdChecklistItems.includes(item.id)}
-                        onChange={e => {
-                          if (e.target.checked) setHoldChecklistItems(prev => [...prev, item.id])
-                          else setHoldChecklistItems(prev => prev.filter(id => id !== item.id))
-                        }}
-                        className="accent-amber-500 shrink-0"
-                      />
-                      <span className="text-xs text-amber-200">{item.label}</span>
-                    </label>
-                  ))}
+            <div className="grid grid-cols-3 gap-2 text-xs">
+              <div className="bg-amber-500/10 rounded-xl p-2.5">
+                <div className="text-[10px] font-bold text-amber-400 uppercase tracking-widest mb-1">Reason</div>
+                <div className="font-semibold text-amber-100 capitalize">{activeModHold.reasonCode.replace('_', ' ')}</div>
+              </div>
+              <div className="bg-amber-500/10 rounded-xl p-2.5">
+                <div className="text-[10px] font-bold text-amber-400 uppercase tracking-widest mb-1">Est. Fix</div>
+                <div className="font-semibold text-amber-100">{activeModHold.estimatedFixMinutes ?? '—'} min</div>
+              </div>
+              <div className="bg-amber-500/10 rounded-xl p-2.5">
+                <div className="text-[10px] font-bold text-amber-400 uppercase tracking-widest mb-1">Blocking</div>
+                <div className={`font-semibold ${activeModHold.isBlocking ? 'text-red-300' : 'text-emerald-300'}`}>
+                  {activeModHold.isBlocking ? 'Yes' : 'No'}
                 </div>
+              </div>
+            </div>
+            {activeModHold.notes && (
+              <div className="mt-3 rounded-xl bg-amber-500/10 border border-amber-500/20 px-3 py-2.5 text-xs text-amber-100">
+                {activeModHold.notes}
               </div>
             )}
+          </div>
+        )}
 
-            <div className="mb-4">
-              <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-1.5">Deficiency Summary</div>
-              <input
-                value={holdReason}
-                onChange={e => setHoldReason(e.target.value)}
-                placeholder="Handrail not installed on north stairwell"
-                className="w-full bg-amber-500/5 border border-amber-500/20 rounded-xl px-3 py-2.5 text-sm text-amber-100 placeholder-amber-600 focus:outline-none focus:border-amber-400"
-              />
-            </div>
+        {/* ── Modification Required Wizard ── */}
+        {holdMode && !activeHold && !activeModHold && (
+          <div className="mb-5 bg-amber-500/10 border border-amber-500/30 rounded-2xl p-5">
 
-            <div className="mb-4">
-              <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-1.5">Required Correction</div>
-              <textarea
-                value={holdDeficiencyReason}
-                onChange={e => setHoldDeficiencyReason(e.target.value)}
-                placeholder="Install code-compliant handrail on both sides"
-                rows={3}
-                className="w-full bg-amber-500/5 border border-amber-500/20 rounded-xl px-3 py-2.5 text-xs text-amber-100 placeholder-amber-600 focus:outline-none focus:border-amber-400 resize-none"
-              />
-            </div>
-
-            <div className="grid sm:grid-cols-2 gap-3 mb-4">
-              <label className="block">
-                <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-1.5">Hold Category</div>
-                <select
-                  value={holdCategory}
-                  onChange={e => setHoldCategory(e.target.value as HoldCategory)}
-                  className="w-full bg-amber-500/5 border border-amber-500/20 rounded-xl px-3 py-2.5 text-xs text-amber-100 focus:outline-none focus:border-amber-400"
-                >
-                  <option value="minor_deficiency">Minor Deficiency</option>
-                  <option value="coordination">Coordination</option>
-                  <option value="access">Access</option>
-                  <option value="safety">Safety</option>
-                  <option value="documentation">Documentation</option>
-                  <option value="other">Other</option>
-                </select>
-              </label>
-              <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-3">
-                <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-1.5">Base Hold Review Fee</div>
-                <div className="text-lg font-black text-amber-100">${baseHoldServiceFee.toFixed(2)}</div>
-                <div className="mt-1 text-[11px] text-amber-200/80">
-                  Flat fee — charged once the builder accepts. Builder selects their correction window at acceptance.
+            {/* ── Step 1: Choose pathway ── */}
+            {modHoldStep === 1 && (
+              <>
+                <div className="flex items-start justify-between gap-3 mb-5">
+                  <div>
+                    <div className="font-black text-amber-300 text-base">Modification Required</div>
+                    <div className="text-xs text-amber-500 mt-0.5">Select the pathway that fits this deficiency</div>
+                  </div>
+                  <button
+                    onClick={() => { setHoldMode(false); setModHoldType(null) }}
+                    className="text-[11px] font-bold text-amber-400 hover:text-amber-200 transition-colors shrink-0"
+                  >
+                    Cancel
+                  </button>
                 </div>
-              </div>
-            </div>
 
-            <div className="mb-4">
-              <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-2">Same-Day Correction Eligible</div>
-              <div className="mb-2 text-[11px] text-amber-200/80">
-                Mark as eligible if the deficiency can reasonably be corrected and re-verified before you leave site. The builder will select their correction window at acceptance.
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setHoldSameDayEligible(true)}
-                  className={`rounded-xl border px-4 py-3 text-left transition-all ${
-                    holdSameDayEligible
-                      ? 'border-amber-500 bg-amber-500/20'
-                      : 'border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10'
-                  }`}
-                >
-                  <div className="font-bold text-sm text-amber-100">Yes — Same-Day Eligible</div>
-                  <div className="mt-1 text-xs text-amber-200/70">Builder may reserve a correction window and receive same-day re-verification.</div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setHoldSameDayEligible(false)}
-                  className={`rounded-xl border px-4 py-3 text-left transition-all ${
-                    !holdSameDayEligible
-                      ? 'border-amber-500 bg-amber-500/20'
-                      : 'border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10'
-                  }`}
-                >
-                  <div className="font-bold text-sm text-amber-100">No — Rebook Required</div>
-                  <div className="mt-1 text-xs text-amber-200/70">Correction cannot be completed during this visit. A new inspection booking will be required.</div>
-                </button>
-              </div>
-            </div>
-
-            {/* Applicable base rate */}
-            <div className="mb-4">
-              <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-1.5">Applicable Base Rate</div>
-              <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-2.5">
-                <div className="text-xs font-semibold text-amber-100">{holdPricingLabel}</div>
-                <div className="mt-1 flex items-center justify-between gap-3">
-                  <span className="text-[11px] text-amber-200/80">Set by inspection role and pricing basis</span>
-                  <span className="text-xs font-black text-amber-100">${holdBaseRate.toFixed(2)}/hr</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="mb-4">
-              <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-1.5">Inspector Notes</div>
-              <textarea
-                value={holdNotes}
-                onChange={e => setHoldNotes(e.target.value)}
-                placeholder="Optional coordination notes for the builder regarding access, sequencing, or expected readiness for re-review."
-                rows={2}
-                className="w-full bg-amber-500/5 border border-amber-500/20 rounded-xl px-3 py-2.5 text-xs text-amber-100 placeholder-amber-600 focus:outline-none focus:border-amber-400 resize-none"
-              />
-            </div>
-
-            <div className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
-              <div className="flex items-start justify-between gap-3 mb-3">
-                <div>
-                  <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest">Supporting Evidence</div>
-                  <div className="mt-1 text-xs text-amber-200/80">Attach photos, video, or supporting documents to record the hold condition and required correction.</div>
-                </div>
-                <div className="rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-amber-900">
-                  Optional
-                </div>
-              </div>
-
-              <input
-                ref={holdPhotoInputRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                className="hidden"
-                onChange={event => void handleHoldPhotoSelected(event)}
-              />
-              <input
-                ref={holdVideoInputRef}
-                type="file"
-                accept="video/mp4,video/x-m4v,video/*"
-                capture="environment"
-                className="hidden"
-                onChange={event => void handleHoldVideoSelected(event)}
-              />
-              <input
-                ref={holdAttachmentInputRef}
-                type="file"
-                accept=".pdf,.doc,.docx,.txt,image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
-                className="hidden"
-                onChange={event => void handleHoldAttachmentSelected(event)}
-              />
-
-              <div className="grid gap-2 sm:grid-cols-3">
-                <button
-                  type="button"
-                  onClick={() => holdPhotoInputRef.current?.click()}
-                  className="rounded-xl border border-amber-500/25 bg-amber-100/10 px-3 py-3 text-sm font-bold text-amber-100 transition-all hover:bg-amber-100/15"
-                >
-                  <span className="inline-flex items-center gap-2">
-                    <Camera className="h-4 w-4" />
-                    <span>Photo</span>
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => holdVideoInputRef.current?.click()}
-                  className="rounded-xl border border-amber-500/25 bg-amber-100/10 px-3 py-3 text-sm font-bold text-amber-100 transition-all hover:bg-amber-100/15"
-                >
-                  <span className="inline-flex items-center gap-2">
-                    <Video className="h-4 w-4" />
-                    <span>Video</span>
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => holdAttachmentInputRef.current?.click()}
-                  className="rounded-xl border border-amber-500/25 bg-amber-100/10 px-3 py-3 text-sm font-bold text-amber-100 transition-all hover:bg-amber-100/15"
-                >
-                  <span className="inline-flex items-center gap-2">
-                    <FileText className="h-4 w-4" />
-                    <span>Upload Attachment</span>
-                  </span>
-                </button>
-              </div>
-
-              {holdEvidenceWarning && (
-                <div className="mt-3 rounded-xl border border-amber-300 bg-amber-100 px-3 py-3 text-xs font-medium text-amber-900">
-                  {holdEvidenceWarning}
-                </div>
-              )}
-
-              {holdEvidenceItems.length > 0 && (
-                <div className="mt-3 space-y-2">
-                  {holdEvidenceItems.map(evidence => (
-                    <div key={evidence.id} className="flex items-center justify-between gap-3 rounded-xl border border-amber-500/20 bg-[#120d08]/40 px-3 py-2.5">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 text-xs font-bold text-amber-100">
-                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] uppercase tracking-widest text-amber-900">
-                            {evidence.evidenceType}
-                          </span>
-                          <span className="truncate">{evidence.fileName}</span>
+                <div className="space-y-2">
+                  {([
+                    {
+                      type: 'onsite' as InspectionHoldType,
+                      Icon: PauseCircle,
+                      title: 'Fix while I remain on site',
+                      subtitle: 'Minor issue — builder corrects and inspector re-reviews before leaving',
+                      badge: 'On-Site',
+                    },
+                    {
+                      type: 'same_day_return' as InspectionHoldType,
+                      Icon: Clock,
+                      title: 'Leave and return later today',
+                      subtitle: 'Fix takes time — inspector will return within the same work day',
+                      badge: 'Same-Day Return',
+                    },
+                    {
+                      type: 'reinspection' as InspectionHoldType,
+                      Icon: AlertTriangle,
+                      title: 'Require reinspection',
+                      subtitle: 'Fix is complex or time window is not feasible — new booking required',
+                      badge: 'Reinspection',
+                    },
+                  ]).map(opt => (
+                    <button
+                      key={opt.type}
+                      onClick={() => { setModHoldType(opt.type); setModHoldStep(2) }}
+                      className="w-full text-left rounded-2xl border border-amber-500/20 bg-amber-500/5 px-4 py-4 transition-all hover:bg-amber-500/10 hover:border-amber-500/40 focus:outline-none"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-xl bg-amber-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                          <opt.Icon className="w-4 h-4 text-amber-300" />
                         </div>
-                        <div className="mt-1 text-[11px] text-amber-200/70">
-                          {(evidence.fileSize / (1024 * 1024)).toFixed(evidence.fileSize >= 1024 * 1024 ? 1 : 2)} MB
-                          {' · '}
-                          {new Date(evidence.capturedAt).toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit' })}
-                          {evidence.lat != null && evidence.lng != null ? ` · ${evidence.lat.toFixed(5)}, ${evidence.lng.toFixed(5)}` : ''}
+                        <div className="flex-1 min-w-0">
+                          <div className="font-black text-sm text-amber-100">{opt.title}</div>
+                          <div className="text-xs text-amber-400 mt-0.5">{opt.subtitle}</div>
+                        </div>
+                        <div className="shrink-0 text-[10px] font-bold uppercase tracking-wide text-amber-400 mt-1 whitespace-nowrap">
+                          {opt.badge}
                         </div>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => removePendingHoldEvidence(evidence.id)}
-                        className="rounded-lg border border-amber-500/25 px-2 py-1 text-[11px] font-bold text-amber-200 transition-all hover:bg-amber-500/10"
-                      >
-                        Remove
-                      </button>
-                    </div>
+                    </button>
                   ))}
                 </div>
-              )}
-            </div>
-
-            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 mb-4 text-xs text-amber-200">
-              Base Hold Review Fee of <span className="font-bold">${baseHoldServiceFee.toFixed(2)}</span> is charged once the builder accepts.
-              The builder will select their correction window — additional window and overrun fees apply based on their selection.
-            </div>
-
-            {holdMissingFields.length > 0 && (
-              <div className="mb-4 rounded-xl border border-amber-300 bg-amber-100 px-3 py-3 text-xs font-medium text-amber-900">
-                Complete the deficiency summary and required correction before issuing hold terms.
-              </div>
+              </>
             )}
 
-            <div className="flex gap-2">
-              <button
-                onClick={handlePlaceHold}
-                disabled={
-                  !holdReason.trim()
-                  || !holdDeficiencyReason.trim()
-                  || holdChecklistItems.length === 0
-                  || holdBaseRate <= 0
-                  || isPlacingHold
-                }
-                className="flex-1 bg-amber-500 hover:bg-amber-400 text-white font-bold py-3 rounded-xl text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {isPlacingHold ? (
-                  <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Sending Hold Terms...</>
-                ) : (
-                  <><PauseCircle className="w-4 h-4" /> Send Hold Terms</>
+            {/* ── Step 2: Details ── */}
+            {modHoldStep === 2 && modHoldType && (
+              <>
+                <div className="flex items-center gap-3 mb-5">
+                  <button
+                    onClick={() => setModHoldStep(1)}
+                    className="flex items-center gap-1 text-[11px] font-bold text-amber-400 hover:text-amber-200 transition-colors"
+                  >
+                    <ArrowLeft className="w-3 h-3" /> Back
+                  </button>
+                  <div className="h-px flex-1 bg-amber-500/20" />
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-amber-500">
+                    {modHoldType === 'onsite' ? 'On-Site Correction'
+                      : modHoldType === 'same_day_return' ? 'Same-Day Return'
+                      : 'Reinspection Required'}
+                  </div>
+                </div>
+
+                {/* Reason code */}
+                <div className="mb-4">
+                  <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-1.5">Reason Code</div>
+                  <select
+                    value={modHoldReasonCode}
+                    onChange={e => setModHoldReasonCode(e.target.value as InspectionHoldReasonCode)}
+                    className="w-full bg-amber-500/5 border border-amber-500/20 rounded-xl px-3 py-2.5 text-sm text-amber-100 focus:outline-none focus:border-amber-400"
+                  >
+                    <option value="framing">Framing</option>
+                    <option value="foundation">Foundation</option>
+                    <option value="envelope">Envelope</option>
+                    <option value="electrical">Electrical</option>
+                    <option value="plumbing">Plumbing</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+
+                {/* Notes */}
+                <div className="mb-4">
+                  <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-1.5">Inspector Notes</div>
+                  <textarea
+                    value={modHoldNotes}
+                    onChange={e => setModHoldNotes(e.target.value)}
+                    placeholder="Describe the deficiency and expected correction…"
+                    rows={3}
+                    className="w-full bg-amber-500/5 border border-amber-500/20 rounded-xl px-3 py-2.5 text-xs text-amber-100 placeholder-amber-600 focus:outline-none focus:border-amber-400 resize-none"
+                  />
+                </div>
+
+                {/* Blocking toggle */}
+                <div className="mb-4">
+                  <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-1.5">Does this block downstream checklist items?</div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setModHoldIsBlocking(true)}
+                      className={`rounded-xl border px-3 py-2.5 text-left transition-all ${
+                        modHoldIsBlocking
+                          ? 'border-red-400/60 bg-red-500/15'
+                          : 'border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10'
+                      }`}
+                    >
+                      <div className="font-bold text-sm text-amber-100">Yes — Blocking</div>
+                      <div className="text-[11px] text-amber-400 mt-0.5">Stops dependent checklist items</div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setModHoldIsBlocking(false)}
+                      className={`rounded-xl border px-3 py-2.5 text-left transition-all ${
+                        !modHoldIsBlocking
+                          ? 'border-emerald-400/60 bg-emerald-500/10'
+                          : 'border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10'
+                      }`}
+                    >
+                      <div className="font-bold text-sm text-amber-100">No — Non-Blocking</div>
+                      <div className="text-[11px] text-amber-400 mt-0.5">Inspector continues other items</div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Estimated fix time */}
+                <div className="mb-4">
+                  <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-1.5">Estimated Fix Time</div>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[30, 60, 90, 120].map(mins => (
+                      <button
+                        key={mins}
+                        type="button"
+                        onClick={() => setModHoldEstimatedMinutes(mins)}
+                        className={`rounded-xl py-2.5 text-xs font-black transition-all ${
+                          modHoldEstimatedMinutes === mins
+                            ? 'bg-amber-500 text-white'
+                            : 'border border-amber-500/25 text-amber-300 hover:bg-amber-500/15'
+                        }`}
+                      >
+                        {mins} min
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Return window — same_day_return only */}
+                {modHoldType === 'same_day_return' && (
+                  <div className="mb-4 grid gap-3 sm:grid-cols-2">
+                    <label className="block">
+                      <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-1.5">Return Window Start</div>
+                      <input
+                        type="datetime-local"
+                        value={modHoldReturnStart}
+                        onChange={e => setModHoldReturnStart(e.target.value)}
+                        className="w-full bg-amber-500/5 border border-amber-500/20 rounded-xl px-3 py-2.5 text-xs text-amber-100 focus:outline-none focus:border-amber-400"
+                      />
+                    </label>
+                    <label className="block">
+                      <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-1.5">Return Window End</div>
+                      <input
+                        type="datetime-local"
+                        value={modHoldReturnEnd}
+                        onChange={e => setModHoldReturnEnd(e.target.value)}
+                        className="w-full bg-amber-500/5 border border-amber-500/20 rounded-xl px-3 py-2.5 text-xs text-amber-100 focus:outline-none focus:border-amber-400"
+                      />
+                    </label>
+                  </div>
                 )}
-              </button>
-              <button
-                onClick={() => {
-                  setHoldMode(false)
-                  setHoldReason('')
-                  setHoldDeficiencyReason('')
-                  setHoldChecklistItems([])
-                  setHoldNotes('')
-                  setHoldSameDayEligible(true)
-                  setHoldEvidenceItems([])
-                  setHoldEvidenceWarning(null)
-                }}
-                className="px-4 bg-white/5 border border-white/10 text-muted text-xs font-semibold rounded-xl hover:bg-white/8 transition-all"
-              >
-                Cancel
-              </button>
-            </div>
+
+                {/* Fee info */}
+                <div className="mb-4 rounded-xl bg-amber-500/10 border border-amber-500/20 px-3 py-3 text-xs text-amber-200">
+                  {modHoldType === 'onsite' && 'Billing timer starts after builder acknowledges. Billed in 15-min increments with a 30-min minimum.'}
+                  {modHoldType === 'same_day_return' && 'Fixed same-day return fee of $150.00 is charged at builder acknowledgment.'}
+                  {modHoldType === 'reinspection' && 'This closes the current inspection. Builder must rebook through the platform — a new job fee applies.'}
+                </div>
+
+                {/* Submit */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => void handlePlaceModHold()}
+                    disabled={
+                      isPlacingModHold
+                      || (modHoldType === 'same_day_return' && (!modHoldReturnStart || !modHoldReturnEnd))
+                    }
+                    className="flex-1 bg-amber-500 hover:bg-amber-400 text-white font-black py-3 rounded-xl text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {isPlacingModHold ? (
+                      <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Issuing Hold...</>
+                    ) : (
+                      <><AlertTriangle className="w-4 h-4" /> Issue Modification Required</>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setModHoldStep(1)}
+                    className="px-4 bg-white/5 border border-white/10 text-muted text-xs font-semibold rounded-xl hover:bg-white/8 transition-all"
+                  >
+                    Back
+                  </button>
+                </div>
+              </>
+            )}
+
           </div>
         )}
 
@@ -1718,14 +1758,15 @@ export default function ActiveInspectionPage() {
       <div className="fixed bottom-0 inset-x-0 bg-[#060B15]/95 p-5 border-t border-blue-900/50 flex gap-3">
         <button
           onClick={openHoldForm}
-          disabled={holdMode || (activeHold !== null && isHoldOpenStatus(activeHold.status))}
+          disabled={holdMode || hasOpenModHold || (activeHold !== null && isHoldOpenStatus(activeHold.status))}
           className={`flex-1 py-3.5 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all ${
-            activeHold && isHoldOpenStatus(activeHold.status)
-              ? 'bg-red-500/20 border border-red-500/40 text-red-400 cursor-not-allowed'
-              : 'bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/15'
+            hasOpenModHold || (activeHold && isHoldOpenStatus(activeHold.status))
+              ? 'bg-amber-500/20 border border-amber-500/40 text-amber-400 cursor-not-allowed'
+              : 'bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/15'
           }`}
         >
-          <PauseCircle className="w-4 h-4" /> {activeHold && isHoldOpenStatus(activeHold.status) ? 'Hold Active' : 'Hold / Site Retainer'}
+          <AlertTriangle className="w-4 h-4" />
+          {hasOpenModHold ? 'Mod Hold Active' : activeHold && isHoldOpenStatus(activeHold.status) ? 'Hold Active' : 'Modification Required'}
         </button>
         <button
           disabled={!allDone || isSealing || sealApplied}

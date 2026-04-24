@@ -103,6 +103,7 @@ export async function issueAuthorityAccessGrant(input: {
     recordId: input.recordId,
     packageSealId: seal?.id ?? `seal-${input.recordId}`,
     exportedById: input.actorId,
+    exportedAt: issuedAt,
     exportScope: 'authority_scoped_access',
     recipientType: input.recipientType,
     recipientIdentity: input.recipientIdentity,

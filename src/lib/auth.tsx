@@ -192,29 +192,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const name = readMetadataString(metadata, 'name') ?? sbUser.email?.split('@')[0] ?? 'User'
         let onboardingStatus: string | undefined
         let logoUrl: string | undefined
+        let profileName: string | undefined
+        let firmName: string | undefined
         try {
           const { data: profileData } = await supabase
             .from('profiles')
-            .select('onboarding_status, logo_url')
+            .select('onboarding_status, verified, logo_url, full_name, first_name, last_name, firm_name')
             .eq('id', sbUser.id)
             .single()
           if (profileData?.onboarding_status) onboardingStatus = profileData.onboarding_status
+          if (!onboardingStatus && profileData?.verified === true) onboardingStatus = 'approved'
           if (typeof profileData?.logo_url === 'string' && profileData.logo_url.trim()) {
             logoUrl = profileData.logo_url
           }
+          if (typeof profileData?.full_name === 'string' && profileData.full_name.trim()) {
+            profileName = profileData.full_name
+          } else {
+            const first = typeof profileData?.first_name === 'string' ? profileData.first_name : ''
+            const last = typeof profileData?.last_name === 'string' ? profileData.last_name : ''
+            const joined = `${first} ${last}`.trim()
+            if (joined) profileName = joined
+          }
+          if (typeof profileData?.firm_name === 'string' && profileData.firm_name.trim()) {
+            firmName = profileData.firm_name
+          }
         } catch { /* ignore */ }
-        console.log('AUTH DEBUG onboardingStatus:', onboardingStatus)
+        const resolvedName = profileName ?? name
         setUser({
           id:              sbUser.id,
           supabaseId:      sbUser.id,
-          name,
-          firstName:       name.split(' ')[0],
+          name:            resolvedName,
+          firstName:       resolvedName.split(' ')[0],
           role,
           email:           sbUser.email ?? '',
           phone:           sbUser.user_metadata?.phone ?? '',
-          avatar:          name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2),
+          avatar:          resolvedName.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2),
           logoUrl:         logoUrl ?? readMetadataString(metadata, 'logo_url', 'logoUrl'),
-          company:         sbUser.user_metadata?.company,
+          company:         firmName ?? sbUser.user_metadata?.company,
           position:        sbUser.user_metadata?.position,
           licenseNumber:   readMetadataString(metadata, 'licenseNumber', 'license_number'),
           designation:     readMetadataString(metadata, 'designation'),
@@ -259,29 +273,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           let onboardingStatus: string | undefined
           let logoUrl: string | undefined
+          let profileName: string | undefined
+          let firmName: string | undefined
           try {
             const { data: profileData } = await supabase
               .from('profiles')
-              .select('onboarding_status, logo_url')
+              .select('onboarding_status, verified, logo_url, full_name, first_name, last_name, firm_name')
               .eq('id', sbUser.id)
               .single()
             if (profileData?.onboarding_status) onboardingStatus = profileData.onboarding_status
+            if (!onboardingStatus && profileData?.verified === true) onboardingStatus = 'approved'
             if (typeof profileData?.logo_url === 'string' && profileData.logo_url.trim()) {
               logoUrl = profileData.logo_url
             }
+            if (typeof profileData?.full_name === 'string' && profileData.full_name.trim()) {
+              profileName = profileData.full_name
+            } else {
+              const first = typeof profileData?.first_name === 'string' ? profileData.first_name : ''
+              const last = typeof profileData?.last_name === 'string' ? profileData.last_name : ''
+              const joined = `${first} ${last}`.trim()
+              if (joined) profileName = joined
+            }
+            if (typeof profileData?.firm_name === 'string' && profileData.firm_name.trim()) {
+              firmName = profileData.firm_name
+            }
           } catch { /* ignore */ }
+          const resolvedName = profileName ?? name
 
           const authUser: AuthUser = {
             id: sbUser.id,
             supabaseId: sbUser.id,
-            name,
-            firstName: name.split(' ')[0],
+            name: resolvedName,
+            firstName: resolvedName.split(' ')[0],
             role,
             email,
             phone: sbUser.user_metadata?.phone ?? '',
-            avatar: name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2),
+            avatar: resolvedName.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2),
             logoUrl: logoUrl ?? readMetadataString(metadata, 'logo_url', 'logoUrl'),
-            company: sbUser.user_metadata?.company,
+            company: firmName ?? sbUser.user_metadata?.company,
             position: sbUser.user_metadata?.position,
             licenseNumber: readMetadataString(metadata, 'licenseNumber', 'license_number'),
             designation: readMetadataString(metadata, 'designation'),
@@ -291,7 +320,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             onboardingStatus: onboardingStatus as AuthUser['onboardingStatus'],
           }
 
-          console.log('AUTH DEBUG onboardingStatus:', onboardingStatus)
           setUser(authUser)
           localStorage.setItem(STORAGE_KEY, JSON.stringify(authUser))
         }

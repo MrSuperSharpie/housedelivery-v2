@@ -16,6 +16,7 @@ export type InspectorDiscipline =
   | 'mechanical'
   | 'plumbing'
   | 'architectural'
+  | 'fire_protection'
 export type InspectorOnboardingStatus =
   | 'draft'
   | 'submitted'
@@ -452,18 +453,6 @@ export function validateClaimGovernance(input: ClaimGovernanceInput): Governance
           requiredDiscipline: input.requiredDiscipline,
           inspectorDisciplines: input.inspectorDisciplines,
         },
-      ),
-    )
-  }
-
-  if (!input.inspectorRegions.includes(input.region)) {
-    blockers.push(
-      blocker(
-        'R-018',
-        'region_ineligible',
-        'Inspector is not approved for the job region.',
-        'technical',
-        { region: input.region, inspectorRegions: input.inspectorRegions },
       ),
     )
   }

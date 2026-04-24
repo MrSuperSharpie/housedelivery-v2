@@ -1,7 +1,6 @@
 'use client'
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
-import { MOCK_JOBS } from './mockData'
 import type {
   Project,
   InspectionJob,
@@ -15,6 +14,7 @@ import type {
   PricingMode,
   SpecialistCredentialClass,
   SpecialistRoleId,
+  InspectorOnboardingStatus,
 } from './types'
 import type { TimeSlot } from '@/components/builder/SchedulingPicker'
 import { checkInspectorEligibility, type EligibilityResult } from './eligibility'
@@ -267,14 +267,17 @@ function normalizeJobTimeSlots(value: unknown): JobTimeSlot[] {
     .filter((slot): slot is JobTimeSlot => Boolean(slot))
 }
 
+const SUPPORTED_CITY_REGIONS: Array<{ city: string; region: Region }> = [
+  { city: 'Vancouver', region: 'vancouver' },
+  { city: 'Burnaby', region: 'burnaby' },
+  { city: 'Surrey', region: 'surrey' },
+  { city: 'Coquitlam', region: 'coquitlam' },
+  { city: 'Richmond', region: 'richmond' },
+]
+
 function normalizeRegionFromCity(city?: string): Region | null {
   const value = city?.trim().toLowerCase() ?? ''
-  if (value.includes('vancouver')) return 'vancouver'
-  if (value.includes('burnaby')) return 'burnaby'
-  if (value.includes('surrey')) return 'surrey'
-  if (value.includes('coquitlam')) return 'coquitlam'
-  if (value.includes('richmond')) return 'richmond'
-  return null
+  return SUPPORTED_CITY_REGIONS.find(({ city: supportedCity }) => value.includes(supportedCity.toLowerCase()))?.region ?? null
 }
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
@@ -402,18 +405,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
               id: dba.id,
               jobId: dba.jobId,
               projectName: (myJob?.project_name as string | undefined) ?? claimedJobNameMap.get(dba.jobId),
-              builderId: myJob?.builder_id ?? '',
+              builderId: (myJob?.builder_id as string | undefined) ?? '',
               inspectorId: dba.inspectorId,
-              inspectorName: prof ? `${prof.first_name} ${prof.last_name}` : 'Inspector',
-              inspectorLicense: prof?.license_number ?? '',
-              inspectorDisciplines: prof?.disciplines ?? [],
-              inspectorRegions: prof?.regions ?? [],
+              inspectorName: prof ? `${(prof.first_name as string | undefined) ?? ''} ${(prof.last_name as string | undefined) ?? ''}`.trim() || 'Inspector' : 'Inspector',
+              inspectorLicense: (prof?.license_number as string | undefined) ?? '',
+              inspectorDisciplines: (prof?.disciplines as Assignment['inspectorDisciplines'] | undefined) ?? [],
+              inspectorRegions: (prof?.regions as Assignment['inspectorRegions'] | undefined) ?? [],
               claimedAt: dba.assignedAt ?? new Date().toISOString(),
               objectionWindowClosesAt: dba.objectionWindowClosesAt ?? new Date().toISOString(),
               claimedSlot: dba.claimedSlot ?? { date: new Date().toISOString().split('T')[0], startTime: 'TBD', endTime: 'TBD' },
               status: snapshot.status as Assignment['status'],
               objectionState: snapshot.objectionState,
-              objectionReason: dba.objectionReason,
+              objectionReason: dba.objectionReason as Assignment['objectionReason'],
               objectionNote: dba.objectionNote,
             }
           })
@@ -422,62 +425,65 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           writeLS(ASSIGNMENTS_KEY, reconstructedAssignments)
 
           setJobs(prevJobs => {
-            const newJobs = [...prevJobs]
+            const newJobs: InspectionJob[] = []
             jobRows.forEach(mj => {
-              const existing = newJobs.find(j => j.id === mj.id)
+              const existing = prevJobs.find(j => j.id === mj.id)
               if (!existing) {
                 newJobs.push({
-                  id: mj.id,
-                  projectId: mj.project_id ?? mj.id,
-                  projectName: mj.project_name ?? 'Project',
-                  address: mj.address ?? '',
-                  city: mj.city ?? '',
-                  permitNumber: mj.permit_number ?? '',
-                  projectType: mj.project_type ?? 'Residential',
-                  stage: mj.stage ?? 1,
-                  stageName: mj.stage_name ?? 'Stage',
-                  dispatchTier: mj.dispatch_tier ?? 'standard',
-                  offeredRate: mj.offered_rate ?? 0,
-                  estimatedDuration: mj.estimated_duration_minutes ?? 60,
+                  id: mj.id as string,
+                  projectId: (mj.project_id as string | undefined) ?? (mj.id as string),
+                  projectName: (mj.project_name as string | undefined) ?? 'Project',
+                  address: (mj.address as string | undefined) ?? '',
+                  city: (mj.city as string | undefined) ?? '',
+                  permitNumber: (mj.permit_number as string | undefined) ?? '',
+                  projectType: (mj.project_type as string | undefined) ?? 'Residential',
+                  stage: (mj.stage as number | undefined) ?? 1,
+                  stageName: (mj.stage_name as string | undefined) ?? 'Stage',
+                  dispatchTier: (mj.dispatch_tier as InspectionJob['dispatchTier'] | undefined) ?? 'standard',
+                  offeredRate: (mj.offered_rate as number | undefined) ?? 0,
+                  estimatedDuration: (mj.estimated_duration_minutes as number | undefined) ?? 60,
                   distance: 0,
-                  region: mj.region ?? 'vancouver',
-                  requiredDiscipline: mj.required_discipline ?? 'structural',
+                  region: (mj.region as InspectionJob['region'] | undefined) ?? 'vancouver',
+                  requiredDiscipline: (mj.required_discipline as InspectionJob['requiredDiscipline'] | undefined) ?? 'structural',
                   status: mj.status as InspectionJob['status'],
-                  requestedAt: mj.requested_at ?? new Date().toISOString(),
-                  escrowAmount: mj.escrow_estimate_total ?? mj.offered_rate ?? 0,
-                  pricingMode: mj.pricing_mode ?? 'dispatch_fixed',
-                  specialistRole: mj.specialist_role ?? undefined,
-                  baseHourlyRate: mj.base_hourly_rate ?? undefined,
-                  effectiveHourlyRate: mj.effective_hourly_rate ?? undefined,
-                  billableHours: mj.billable_hours ?? undefined,
-                  holdHours: mj.hold_hours ?? undefined,
-                  holdCost: mj.hold_cost ?? undefined,
-                  urgencyMultiplier: mj.urgency_multiplier ?? undefined,
-                  platformCommissionAmount: mj.platform_commission_amount ?? undefined,
+                  requestedAt: (mj.requested_at as string | undefined) ?? new Date().toISOString(),
+                  escrowAmount: (mj.escrow_estimate_total as number | undefined) ?? (mj.offered_rate as number | undefined) ?? 0,
+                  pricingMode: (mj.pricing_mode as InspectionJob['pricingMode'] | undefined) ?? 'dispatch_fixed',
+                  specialistRole: (mj.specialist_role as InspectionJob['specialistRole'] | undefined) ?? undefined,
+                  baseHourlyRate: (mj.base_hourly_rate as number | undefined) ?? undefined,
+                  effectiveHourlyRate: (mj.effective_hourly_rate as number | undefined) ?? undefined,
+                  billableHours: (mj.billable_hours as number | undefined) ?? undefined,
+                  holdHours: (mj.hold_hours as number | undefined) ?? undefined,
+                  holdCost: (mj.hold_cost as number | undefined) ?? undefined,
+                  urgencyMultiplier: (mj.urgency_multiplier as number | undefined) ?? undefined,
+                  platformCommissionAmount: (mj.platform_commission_amount as number | undefined) ?? undefined,
                   requiresProfessionalSeal: mj.requires_professional_seal === true,
                   requiresCP: mj.requires_cp === true,
-                  inspectionType: mj.inspection_type ?? undefined,
-                  credentialClass: mj.credential_class ?? undefined,
+                  inspectionType: (mj.inspection_type as InspectionJob['inspectionType'] | undefined) ?? undefined,
+                  credentialClass: (mj.credential_class as InspectionJob['credentialClass'] | undefined) ?? undefined,
                   availableSlots: normalizeJobTimeSlots(mj.available_slots),
-                  builderName: mj.builder_name ?? '',
+                  builderName: (mj.builder_name as string | undefined) ?? '',
                   builderRating: 0,
                   builderCompletedJobs: 0,
                   isReinspection: false,
-                  builderNotes: mj.notes ?? '',
-                  builderId: mj.builder_id ?? '',
+                  builderNotes: (mj.notes as string | undefined) ?? '',
+                  builderId: (mj.builder_id as string | undefined) ?? '',
                 })
               } else {
-                existing.status = mj.status
-                existing.pricingMode = (mj.pricing_mode as InspectionJob['pricingMode']) ?? existing.pricingMode
-                existing.specialistRole = (mj.specialist_role as InspectionJob['specialistRole']) ?? existing.specialistRole
-                existing.baseHourlyRate = (mj.base_hourly_rate as number | undefined) ?? existing.baseHourlyRate
-                existing.effectiveHourlyRate = (mj.effective_hourly_rate as number | undefined) ?? existing.effectiveHourlyRate
-                existing.billableHours = (mj.billable_hours as number | undefined) ?? existing.billableHours
-                existing.holdHours = (mj.hold_hours as number | undefined) ?? existing.holdHours
-                existing.holdCost = (mj.hold_cost as number | undefined) ?? existing.holdCost
-                existing.urgencyMultiplier = (mj.urgency_multiplier as number | undefined) ?? existing.urgencyMultiplier
-                existing.platformCommissionAmount = (mj.platform_commission_amount as number | undefined) ?? existing.platformCommissionAmount
-                existing.escrowAmount = (mj.escrow_estimate_total as number | undefined) ?? existing.escrowAmount
+                newJobs.push({
+                  ...existing,
+                  status: mj.status as InspectionJob['status'],
+                  pricingMode: (mj.pricing_mode as InspectionJob['pricingMode']) ?? existing.pricingMode,
+                  specialistRole: (mj.specialist_role as InspectionJob['specialistRole']) ?? existing.specialistRole,
+                  baseHourlyRate: (mj.base_hourly_rate as number | undefined) ?? existing.baseHourlyRate,
+                  effectiveHourlyRate: (mj.effective_hourly_rate as number | undefined) ?? existing.effectiveHourlyRate,
+                  billableHours: (mj.billable_hours as number | undefined) ?? existing.billableHours,
+                  holdHours: (mj.hold_hours as number | undefined) ?? existing.holdHours,
+                  holdCost: (mj.hold_cost as number | undefined) ?? existing.holdCost,
+                  urgencyMultiplier: (mj.urgency_multiplier as number | undefined) ?? existing.urgencyMultiplier,
+                  platformCommissionAmount: (mj.platform_commission_amount as number | undefined) ?? existing.platformCommissionAmount,
+                  escrowAmount: (mj.escrow_estimate_total as number | undefined) ?? existing.escrowAmount,
+                })
               }
             })
             return newJobs
@@ -491,7 +497,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       } else {
         setActorId('system')
         setProjects(storedProjects)
-        setJobs(MOCK_JOBS)
+        setJobs([])
         setActiveRetention(null)
       }
     }
@@ -501,7 +507,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const addProject = useCallback((input: Partial<Project> & { name: string; address: string; city: string; builderApprovalStatus: string }) => {
     const governance = validateProjectGovernance({
       builderId: input.builderId,
-      builderStatus: input.builderApprovalStatus ?? 'draft',
+      builderStatus: (input.builderApprovalStatus ?? 'draft') as InspectorOnboardingStatus,
       name: input.name,
       address: input.address,
       city: input.city,
@@ -517,7 +523,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
 
     const id = 'proj-' + uid()
-    const nextProject = { ...input, id }
+    const nextProject: Project = {
+      ...input,
+      id,
+      builderId: input.builderId ?? 'unknown-builder',
+      permitNumber: input.permitNumber ?? '',
+      currentStage: input.currentStage ?? 1,
+      status: input.status ?? 'pending',
+      stages: input.stages ?? [],
+      photos: input.photos ?? [],
+      gpsCoord: input.gpsCoord ?? { lat: 0, lng: 0, accuracy: 0, timestamp: '', deviceId: '' },
+      createdAt: input.createdAt ?? new Date().toISOString(),
+      updatedAt: input.updatedAt ?? new Date().toISOString(),
+    }
     setProjects(prev => {
       const updated = [...prev, nextProject]
       writeLS(PROJECTS_KEY, updated)
@@ -593,7 +611,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       jobId: provisionalId,
       projectId: input.projectId,
       builderId: input.builderId,
-      builderStatus: input.builderApprovalStatus ?? 'draft',
+      builderStatus: (input.builderApprovalStatus ?? 'draft') as InspectorOnboardingStatus,
       projectName: input.projectName,
       address: input.address,
       city: input.city,
@@ -1224,7 +1242,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                 ...existing,
                 status: refreshed.status as Assignment['status'],
                 objectionState: refreshed.objectionState ?? 'pending_review',
-                objectionReason: refreshed.objectionReason,
+                objectionReason: refreshed.objectionReason as Assignment['objectionReason'],
                 objectionNote: refreshed.objectionNote,
               }
             : existing,

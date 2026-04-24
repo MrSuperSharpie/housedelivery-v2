@@ -1280,3 +1280,835 @@ export async function getLatestActiveRetentionSessionForActor(
 
   return rowToRetentionSession(data as Row)
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// 3-Pathway Modification Required Model
+//
+// Tables: inspection_jobs · inspection_holds · hold_time_logs · reinspections
+// Migration: 20260422030000_modification_required_schema.sql
+//
+// Three governed pathways:
+//   onsite          — On-Site Correction Hold
+//   same_day_return — Same-Day Return Hold
+//   reinspection    — Reinspection Required
+//
+// State transitions:
+//   onsite:          proposed → acknowledged → active → resolved_pass | resolved_fail
+//   same_day_return: proposed → acknowledged → active → awaiting_return → resolved_pass | converted
+//   reinspection:    proposed → acknowledged → active → converted (job → closed_mod_required)
+//
+// Billing:
+//   onsite:          timer starts at acknowledged; 15-min increments; 30-min minimum
+//   same_day_return: fixed SAME_DAY_RETURN_FEE added at acknowledgment
+//   reinspection:    new job, new fee — handled by the caller
+// ════════════════════════════════════════════════════════════════════════════
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+export type InspectionHoldType = 'onsite' | 'same_day_return' | 'reinspection'
+
+export type InspectionHoldStatus =
+  | 'proposed'
+  | 'acknowledged'
+  | 'declined'
+  | 'active'
+  | 'awaiting_return'
+  | 'converted'
+  | 'resolved_pass'
+  | 'resolved_fail'
+
+export type InspectionHoldReasonCode =
+  | 'framing'
+  | 'foundation'
+  | 'envelope'
+  | 'electrical'
+  | 'plumbing'
+  | 'other'
+
+export type InspectionJobStatus =
+  | 'confirmed'
+  | 'in_progress'
+  | 'hold_active'
+  | 'awaiting_return'
+  | 'closed_mod_required'
+  | 'submitted'
+  | 'sealed'
+
+export type ReinspectionStatus = 'scheduled' | 'completed' | 'failed' | 'passed'
+
+export interface InspectionHold {
+  id: string
+  inspectionId: string
+  type: InspectionHoldType
+  status: InspectionHoldStatus
+  reasonCode: InspectionHoldReasonCode
+  notes: string | null
+  isBlocking: boolean
+  estimatedFixMinutes: number | null
+  createdBy: 'inspector' | 'builder'
+  builderAcknowledged: boolean
+  builderAcknowledgedAt: string | null
+  startedAt: string | null
+  endedAt: string | null
+  returnWindowStart: string | null
+  returnWindowEnd: string | null
+  linkedReinspectionId: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ModHoldTimeLog {
+  id: string
+  holdId: string
+  startTime: string
+  endTime: string | null
+  billableMinutes: number | null
+  rateApplied: number | null
+  totalCost: number | null
+  createdAt: string
+}
+
+export interface ReinspectionRecord {
+  id: string
+  originalInspectionId: string
+  holdId: string | null
+  scheduledAt: string | null
+  inspectorId: string | null
+  status: ReinspectionStatus
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CreateModificationHoldInput {
+  inspectionId: string
+  inspectorId: string
+  type: InspectionHoldType
+  reasonCode: InspectionHoldReasonCode
+  notes?: string
+  isBlocking?: boolean
+  estimatedFixMinutes?: number
+  /** Required when type = 'same_day_return'. */
+  returnWindowStart?: string
+  returnWindowEnd?: string
+}
+
+export interface ResolveOnsiteHoldInput {
+  holdId: string
+  actorId: string
+  /** pass = issue fixed; fail = issue persists. */
+  resolution: 'resolved_pass' | 'resolved_fail'
+  resolutionNotes?: string
+  /** Cost per billable minute. Pass 0 if no charge applies. */
+  ratePerMinute?: number
+}
+
+export interface ResolveSameDayReturnInput {
+  holdId: string
+  actorId: string
+  /** pass = return inspection passes; converted = auto-convert to reinspection. */
+  resolution: 'resolved_pass' | 'converted'
+  resolutionNotes?: string
+  /** Used when resolution = 'converted' to book the reinspection. */
+  preferredInspectorId?: string
+  scheduledAt?: string
+}
+
+// ── Billing constants ─────────────────────────────────────────────────────────
+
+/** Onsite holds are billed in 15-minute increments. */
+const MOD_ONSITE_INCREMENT_MINUTES = 15
+
+/** Onsite holds carry a 30-minute minimum charge regardless of elapsed time. */
+const MOD_ONSITE_MINIMUM_MINUTES = 30
+
+/**
+ * Fixed fee charged to inspection_jobs.return_fee_total when a same-day return
+ * hold is acknowledged. Adjust once per-market pricing is finalised.
+ */
+const SAME_DAY_RETURN_FEE = 150.00
+
+function roundUpToIncrement(minutes: number, increment: number): number {
+  return Math.ceil(minutes / increment) * increment
+}
+
+/** Returns billable minutes for an onsite hold, applying increment and minimum. */
+function computeOnsiteBillableMinutes(elapsedMinutes: number): number {
+  const incremented = roundUpToIncrement(Math.max(0, elapsedMinutes), MOD_ONSITE_INCREMENT_MINUTES)
+  return Math.max(incremented, MOD_ONSITE_MINIMUM_MINUTES)
+}
+
+// ── Row converters ────────────────────────────────────────────────────────────
+
+function rowToInspectionHold(row: Row): InspectionHold {
+  return {
+    id: row.id as string,
+    inspectionId: row.inspection_id as string,
+    type: row.type as InspectionHoldType,
+    status: row.status as InspectionHoldStatus,
+    reasonCode: row.reason_code as InspectionHoldReasonCode,
+    notes: (row.notes as string) ?? null,
+    isBlocking: row.is_blocking !== false,
+    estimatedFixMinutes: typeof row.estimated_fix_minutes === 'number' ? row.estimated_fix_minutes : null,
+    createdBy: row.created_by as 'inspector' | 'builder',
+    builderAcknowledged: row.builder_acknowledged === true,
+    builderAcknowledgedAt: (row.builder_acknowledged_at as string) ?? null,
+    startedAt: (row.started_at as string) ?? null,
+    endedAt: (row.ended_at as string) ?? null,
+    returnWindowStart: (row.return_window_start as string) ?? null,
+    returnWindowEnd: (row.return_window_end as string) ?? null,
+    linkedReinspectionId: (row.linked_reinspection_id as string) ?? null,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  }
+}
+
+function rowToModHoldTimeLog(row: Row): ModHoldTimeLog {
+  return {
+    id: row.id as string,
+    holdId: row.hold_id as string,
+    startTime: row.start_time as string,
+    endTime: (row.end_time as string) ?? null,
+    billableMinutes: typeof row.billable_minutes === 'number' ? row.billable_minutes : null,
+    rateApplied: typeof row.rate_applied === 'number' ? row.rate_applied : null,
+    totalCost: typeof row.total_cost === 'number' ? row.total_cost : null,
+    createdAt: row.created_at as string,
+  }
+}
+
+function rowToReinspection(row: Row): ReinspectionRecord {
+  return {
+    id: row.id as string,
+    originalInspectionId: row.original_inspection_id as string,
+    holdId: (row.hold_id as string) ?? null,
+    scheduledAt: (row.scheduled_at as string) ?? null,
+    inspectorId: (row.inspector_id as string) ?? null,
+    status: row.status as ReinspectionStatus,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  }
+}
+
+// ── Internal helper ───────────────────────────────────────────────────────────
+
+type InspectionJobRow = {
+  id: string
+  inspector_id: string
+  builder_id: string
+  status: string
+  hold_fee_total: number
+  return_fee_total: number
+}
+
+/** Fetches the parent inspection_jobs row for a given hold (auth checks + fee accumulators). */
+async function getInspectionJobForHold(hold: InspectionHold): Promise<InspectionJobRow | null> {
+  const { data, error } = await supabase
+    .from('inspection_jobs')
+    .select('id, inspector_id, builder_id, status, hold_fee_total, return_fee_total')
+    .eq('id', hold.inspectionId)
+    .maybeSingle()
+  if (error || !data) return null
+  return data as InspectionJobRow
+}
+
+// ── Reads ─────────────────────────────────────────────────────────────────────
+
+export async function getInspectionHold(holdId: string): Promise<InspectionHold | null> {
+  const { data, error } = await supabase
+    .from('inspection_holds')
+    .select('*')
+    .eq('id', holdId)
+    .maybeSingle()
+  if (error || !data) return null
+  return rowToInspectionHold(data as Row)
+}
+
+export async function listInspectionHoldsForJob(
+  inspectionJobId: string,
+): Promise<InspectionHold[]> {
+  const { data, error } = await supabase
+    .from('inspection_holds')
+    .select('*')
+    .eq('inspection_id', inspectionJobId)
+    .order('created_at', { ascending: false })
+  if (error || !data) return []
+  return (data as Row[]).map(rowToInspectionHold)
+}
+
+export async function getOpenTimeLogForHold(holdId: string): Promise<ModHoldTimeLog | null> {
+  const { data, error } = await supabase
+    .from('hold_time_logs')
+    .select('*')
+    .eq('hold_id', holdId)
+    .is('end_time', null)
+    .maybeSingle()
+  if (error || !data) return null
+  return rowToModHoldTimeLog(data as Row)
+}
+
+// ── 1. createModificationHold (inspector) ─────────────────────────────────────
+//
+// Creates an inspection hold in 'proposed' status and transitions the parent
+// inspection_job to 'hold_active'. Returns the new hold record.
+//
+// Guard: same_day_return requires returnWindowStart + returnWindowEnd.
+
+export async function createModificationHold(
+  input: CreateModificationHoldInput,
+): Promise<InspectionHold | null> {
+  const actor = await getAuthenticatedHoldActor()
+  if (!actor || (actor.role !== 'admin' && actor.id !== input.inspectorId)) {
+    console.error('createModificationHold: auth rejected', { actorId: actor?.id, inspectorId: input.inspectorId })
+    return null
+  }
+
+  if (input.type === 'same_day_return' && (!input.returnWindowStart || !input.returnWindowEnd)) {
+    console.error('createModificationHold: same_day_return requires returnWindowStart and returnWindowEnd')
+    return null
+  }
+
+  const now = new Date().toISOString()
+  const { data, error } = await supabase
+    .from('inspection_holds')
+    .insert({
+      inspection_id: input.inspectionId,
+      type: input.type,
+      status: 'proposed',
+      reason_code: input.reasonCode,
+      notes: input.notes ?? null,
+      is_blocking: input.isBlocking ?? true,
+      estimated_fix_minutes: input.estimatedFixMinutes ?? null,
+      created_by: 'inspector',
+      builder_acknowledged: false,
+      return_window_start: input.returnWindowStart ?? null,
+      return_window_end: input.returnWindowEnd ?? null,
+      created_at: now,
+      updated_at: now,
+    })
+    .select('*')
+    .single()
+
+  if (error || !data) {
+    console.error('createModificationHold: insert failed', {
+      code: pgErrorCode(error),
+      message: pgErrorMessage(error),
+    })
+    return null
+  }
+
+  const hold = rowToInspectionHold(data as Row)
+
+  // Transition the parent job to hold_active and wire current_hold_id.
+  await supabase
+    .from('inspection_jobs')
+    .update({ status: 'hold_active', current_hold_id: hold.id, updated_at: now })
+    .eq('id', input.inspectionId)
+    .eq('inspector_id', input.inspectorId)
+
+  // STUB: Notify builder.
+  // Message: "Modification Required: Your inspection is on hold. Review deficiencies in the Vero app."
+  void _notifyModificationHoldProposed(hold)
+
+  return hold
+}
+
+// ── 2. acknowledgeModificationHold (builder) ──────────────────────────────────
+//
+// Builder acknowledges a 'proposed' hold → status: 'acknowledged'.
+//
+// Billing side-effects at acknowledgment:
+//   onsite:          Opens a hold_time_logs row (timer starts NOW).
+//   same_day_return: Adds SAME_DAY_RETURN_FEE to inspection_jobs.return_fee_total.
+//   reinspection:    None (new-job fee is handled by the caller at rebooking time).
+
+export async function acknowledgeModificationHold(
+  holdId: string,
+  builderNote?: string,
+): Promise<InspectionHold | null> {
+  const hold = await getInspectionHold(holdId)
+  const actor = await getAuthenticatedHoldActor()
+  if (!hold || !actor) {
+    console.error('acknowledgeModificationHold: no hold or actor', { holdId })
+    return null
+  }
+  if (hold.status !== 'proposed') {
+    console.error('acknowledgeModificationHold: hold not in proposed status', { status: hold.status })
+    return null
+  }
+
+  const job = await getInspectionJobForHold(hold)
+  if (!job) {
+    console.error('acknowledgeModificationHold: inspection job not found', { inspectionId: hold.inspectionId })
+    return null
+  }
+  if (actor.role !== 'admin' && actor.id !== job.builder_id) {
+    console.error('acknowledgeModificationHold: actor is not the builder', { actorId: actor.id, builderId: job.builder_id })
+    return null
+  }
+
+  const now = new Date().toISOString()
+  const { data, error } = await supabase
+    .from('inspection_holds')
+    .update({
+      status: 'acknowledged',
+      builder_acknowledged: true,
+      builder_acknowledged_at: now,
+      updated_at: now,
+    })
+    .eq('id', holdId)
+    .select('*')
+    .single()
+
+  if (error || !data) {
+    console.error('acknowledgeModificationHold: update failed', {
+      code: pgErrorCode(error),
+      message: pgErrorMessage(error),
+    })
+    return null
+  }
+
+  const acknowledgedHold = rowToInspectionHold(data as Row)
+
+  if (acknowledgedHold.type === 'onsite') {
+    // Start the billing timer — end_time/billable_minutes filled at resolveOnsiteHold.
+    await supabase
+      .from('hold_time_logs')
+      .insert({ hold_id: holdId, start_time: now, created_at: now })
+  }
+
+  if (acknowledgedHold.type === 'same_day_return') {
+    // Add the fixed same-day return fee to the parent job's running total.
+    await supabase
+      .from('inspection_jobs')
+      .update({
+        return_fee_total: job.return_fee_total + SAME_DAY_RETURN_FEE,
+        updated_at: now,
+      })
+      .eq('id', acknowledgedHold.inspectionId)
+  }
+
+  // STUB: Notify inspector.
+  // Message: "Action Required: Builder has acknowledged the modification hold. You may now proceed."
+  void _notifyModificationHoldAcknowledged(acknowledgedHold, job.inspector_id)
+
+  return acknowledgedHold
+}
+
+// ── 3. declineModificationHold (builder) ──────────────────────────────────────
+//
+// Builder declines a 'proposed' hold → status: 'declined'.
+// The parent job reverts to 'in_progress'; current_hold_id is cleared.
+
+export async function declineModificationHold(
+  holdId: string,
+  builderNote?: string,
+): Promise<InspectionHold | null> {
+  const hold = await getInspectionHold(holdId)
+  const actor = await getAuthenticatedHoldActor()
+  if (!hold || !actor) {
+    console.error('declineModificationHold: no hold or actor', { holdId })
+    return null
+  }
+  if (hold.status !== 'proposed') {
+    console.error('declineModificationHold: hold not in proposed status', { status: hold.status })
+    return null
+  }
+
+  const job = await getInspectionJobForHold(hold)
+  if (!job) {
+    console.error('declineModificationHold: inspection job not found', { inspectionId: hold.inspectionId })
+    return null
+  }
+  if (actor.role !== 'admin' && actor.id !== job.builder_id) {
+    console.error('declineModificationHold: actor is not the builder', { actorId: actor.id, builderId: job.builder_id })
+    return null
+  }
+
+  const now = new Date().toISOString()
+  const { data, error } = await supabase
+    .from('inspection_holds')
+    .update({ status: 'declined', ended_at: now, updated_at: now })
+    .eq('id', holdId)
+    .select('*')
+    .single()
+
+  if (error || !data) {
+    console.error('declineModificationHold: update failed', {
+      code: pgErrorCode(error),
+      message: pgErrorMessage(error),
+    })
+    return null
+  }
+
+  // Revert the parent job to in_progress and clear the current hold pointer.
+  await supabase
+    .from('inspection_jobs')
+    .update({ status: 'in_progress', current_hold_id: null, updated_at: now })
+    .eq('id', hold.inspectionId)
+
+  return rowToInspectionHold(data as Row)
+}
+
+// ── 4. activateModificationHold (inspector) ───────────────────────────────────
+//
+// Inspector activates an acknowledged hold → status: 'active'.
+// Inspector can now begin re-verification or wait on site.
+
+export async function activateModificationHold(holdId: string): Promise<InspectionHold | null> {
+  const hold = await getInspectionHold(holdId)
+  const actor = await getAuthenticatedHoldActor()
+  if (!hold || !actor) return null
+
+  if (hold.status !== 'acknowledged') {
+    console.error('activateModificationHold: hold must be in acknowledged status', { status: hold.status })
+    return null
+  }
+
+  const job = await getInspectionJobForHold(hold)
+  if (!job || (actor.role !== 'admin' && actor.id !== job.inspector_id)) {
+    console.error('activateModificationHold: auth rejected', { actorId: actor.id, inspectorId: job?.inspector_id })
+    return null
+  }
+
+  const now = new Date().toISOString()
+  const { data, error } = await supabase
+    .from('inspection_holds')
+    .update({ status: 'active', started_at: now, updated_at: now })
+    .eq('id', holdId)
+    .select('*')
+    .single()
+
+  if (error || !data) {
+    console.error('activateModificationHold: update failed', {
+      code: pgErrorCode(error),
+      message: pgErrorMessage(error),
+    })
+    return null
+  }
+
+  return rowToInspectionHold(data as Row)
+}
+
+// ── 5a. resolveOnsiteHold (inspector) ─────────────────────────────────────────
+//
+// Resolves an active onsite hold: active → resolved_pass | resolved_fail.
+// Closes the open hold_time_logs entry, computes billable minutes and total cost,
+// and posts the charge to inspection_jobs.hold_fee_total.
+// Job returns to 'in_progress' on both pass and fail (inspector continues).
+
+export async function resolveOnsiteHold(
+  input: ResolveOnsiteHoldInput,
+): Promise<InspectionHold | null> {
+  const hold = await getInspectionHold(input.holdId)
+  const actor = await getAuthenticatedHoldActor()
+  if (!hold || !actor) return null
+
+  if (hold.type !== 'onsite') {
+    console.error('resolveOnsiteHold: hold is not an onsite hold', { type: hold.type })
+    return null
+  }
+  if (hold.status !== 'active') {
+    console.error('resolveOnsiteHold: hold must be active', { status: hold.status })
+    return null
+  }
+
+  const job = await getInspectionJobForHold(hold)
+  if (!job || (actor.role !== 'admin' && actor.id !== job.inspector_id)) {
+    console.error('resolveOnsiteHold: auth rejected')
+    return null
+  }
+
+  const now = new Date().toISOString()
+
+  // Close the open time log and compute the onsite billing charge.
+  let holdFeeCharged = 0
+  const openLog = await getOpenTimeLogForHold(input.holdId)
+  if (openLog) {
+    const elapsedMs = new Date(now).getTime() - new Date(openLog.startTime).getTime()
+    const elapsedMinutes = Math.max(0, elapsedMs / (1000 * 60))
+    const billableMinutes = computeOnsiteBillableMinutes(elapsedMinutes)
+    const ratePerMinute = input.ratePerMinute ?? 0
+    holdFeeCharged = billableMinutes * ratePerMinute
+
+    await supabase
+      .from('hold_time_logs')
+      .update({
+        end_time: now,
+        billable_minutes: billableMinutes,
+        rate_applied: ratePerMinute,
+        total_cost: holdFeeCharged,
+      })
+      .eq('id', openLog.id)
+  }
+
+  // Resolve the hold.
+  const { data, error } = await supabase
+    .from('inspection_holds')
+    .update({ status: input.resolution, ended_at: now, updated_at: now })
+    .eq('id', input.holdId)
+    .select('*')
+    .single()
+
+  if (error || !data) {
+    console.error('resolveOnsiteHold: hold update failed', {
+      code: pgErrorCode(error),
+      message: pgErrorMessage(error),
+    })
+    return null
+  }
+
+  // Post the charge and resume the job (pass or fail — inspector continues other items).
+  await supabase
+    .from('inspection_jobs')
+    .update({
+      hold_fee_total: job.hold_fee_total + holdFeeCharged,
+      current_hold_id: null,
+      status: 'in_progress',
+      updated_at: now,
+    })
+    .eq('id', hold.inspectionId)
+
+  return rowToInspectionHold(data as Row)
+}
+
+// ── 5b. markSameDayHoldAwaitingReturn (inspector) ─────────────────────────────
+//
+// Inspector leaves site: hold status → awaiting_return.
+// inspection_job.status → awaiting_return.
+
+export async function markSameDayHoldAwaitingReturn(holdId: string): Promise<InspectionHold | null> {
+  const hold = await getInspectionHold(holdId)
+  const actor = await getAuthenticatedHoldActor()
+  if (!hold || !actor) return null
+
+  if (hold.type !== 'same_day_return') {
+    console.error('markSameDayHoldAwaitingReturn: not a same_day_return hold', { type: hold.type })
+    return null
+  }
+  if (hold.status !== 'active') {
+    console.error('markSameDayHoldAwaitingReturn: hold must be active', { status: hold.status })
+    return null
+  }
+
+  const job = await getInspectionJobForHold(hold)
+  if (!job || (actor.role !== 'admin' && actor.id !== job.inspector_id)) {
+    console.error('markSameDayHoldAwaitingReturn: auth rejected')
+    return null
+  }
+
+  const now = new Date().toISOString()
+  const { data, error } = await supabase
+    .from('inspection_holds')
+    .update({ status: 'awaiting_return', updated_at: now })
+    .eq('id', holdId)
+    .select('*')
+    .single()
+
+  if (error || !data) {
+    console.error('markSameDayHoldAwaitingReturn: update failed', {
+      code: pgErrorCode(error),
+      message: pgErrorMessage(error),
+    })
+    return null
+  }
+
+  await supabase
+    .from('inspection_jobs')
+    .update({ status: 'awaiting_return', updated_at: now })
+    .eq('id', hold.inspectionId)
+
+  return rowToInspectionHold(data as Row)
+}
+
+// ── 5c. resolveSameDayReturnHold (inspector) ──────────────────────────────────
+//
+// Called after the inspector returns to site.
+//   resolved_pass: awaiting_return → resolved_pass; job → in_progress; hold cleared.
+//   converted:     awaiting_return → converted; job → closed_mod_required;
+//                  a 'scheduled' reinspection record is created automatically.
+
+export async function resolveSameDayReturnHold(
+  input: ResolveSameDayReturnInput,
+): Promise<InspectionHold | null> {
+  const hold = await getInspectionHold(input.holdId)
+  const actor = await getAuthenticatedHoldActor()
+  if (!hold || !actor) return null
+
+  if (hold.type !== 'same_day_return') {
+    console.error('resolveSameDayReturnHold: not a same_day_return hold', { type: hold.type })
+    return null
+  }
+  if (hold.status !== 'awaiting_return') {
+    console.error('resolveSameDayReturnHold: hold must be awaiting_return', { status: hold.status })
+    return null
+  }
+
+  const job = await getInspectionJobForHold(hold)
+  if (!job || (actor.role !== 'admin' && actor.id !== job.inspector_id)) {
+    console.error('resolveSameDayReturnHold: auth rejected')
+    return null
+  }
+
+  const now = new Date().toISOString()
+  const { data, error } = await supabase
+    .from('inspection_holds')
+    .update({ status: input.resolution, ended_at: now, updated_at: now })
+    .eq('id', input.holdId)
+    .select('*')
+    .single()
+
+  if (error || !data) {
+    console.error('resolveSameDayReturnHold: update failed', {
+      code: pgErrorCode(error),
+      message: pgErrorMessage(error),
+    })
+    return null
+  }
+
+  if (input.resolution === 'resolved_pass') {
+    await supabase
+      .from('inspection_jobs')
+      .update({ status: 'in_progress', current_hold_id: null, updated_at: now })
+      .eq('id', hold.inspectionId)
+  } else {
+    // converted — close the job and generate a reinspection record.
+    await supabase
+      .from('inspection_jobs')
+      .update({ status: 'closed_mod_required', updated_at: now })
+      .eq('id', hold.inspectionId)
+
+    const { data: reinspData, error: reinspError } = await supabase
+      .from('reinspections')
+      .insert({
+        original_inspection_id: hold.inspectionId,
+        hold_id: input.holdId,
+        inspector_id: input.preferredInspectorId ?? job.inspector_id,
+        scheduled_at: input.scheduledAt ?? null,
+        status: 'scheduled',
+        created_at: now,
+        updated_at: now,
+      })
+      .select('id')
+      .single()
+
+    if (!reinspError && reinspData) {
+      await supabase
+        .from('inspection_holds')
+        .update({ linked_reinspection_id: (reinspData as Row).id as string, updated_at: now })
+        .eq('id', input.holdId)
+    }
+  }
+
+  return rowToInspectionHold(data as Row)
+}
+
+// ── 6. convertHoldToReinspection (inspector) ──────────────────────────────────
+//
+// Used for reinspection-type holds only.
+// Transitions: hold active → converted; job → closed_mod_required.
+// Creates and returns a reinspection record linked to this hold.
+
+export async function convertHoldToReinspection(
+  holdId: string,
+  preferredInspectorId?: string,
+  scheduledAt?: string,
+): Promise<ReinspectionRecord | null> {
+  const hold = await getInspectionHold(holdId)
+  const actor = await getAuthenticatedHoldActor()
+  if (!hold || !actor) return null
+
+  if (hold.type !== 'reinspection') {
+    console.error('convertHoldToReinspection: hold type must be reinspection', { type: hold.type })
+    return null
+  }
+  if (hold.status !== 'active') {
+    console.error('convertHoldToReinspection: hold must be active', { status: hold.status })
+    return null
+  }
+
+  const job = await getInspectionJobForHold(hold)
+  if (!job || (actor.role !== 'admin' && actor.id !== job.inspector_id)) {
+    console.error('convertHoldToReinspection: auth rejected')
+    return null
+  }
+
+  const now = new Date().toISOString()
+
+  // Close the hold.
+  const { error: holdError } = await supabase
+    .from('inspection_holds')
+    .update({ status: 'converted', ended_at: now, updated_at: now })
+    .eq('id', holdId)
+
+  if (holdError) {
+    console.error('convertHoldToReinspection: hold update failed', {
+      code: pgErrorCode(holdError),
+      message: pgErrorMessage(holdError),
+    })
+    return null
+  }
+
+  // Close the inspection job.
+  await supabase
+    .from('inspection_jobs')
+    .update({ status: 'closed_mod_required', updated_at: now })
+    .eq('id', hold.inspectionId)
+
+  // Create the reinspection record.
+  const { data: reinspData, error: reinspError } = await supabase
+    .from('reinspections')
+    .insert({
+      original_inspection_id: hold.inspectionId,
+      hold_id: holdId,
+      inspector_id: preferredInspectorId ?? job.inspector_id,
+      scheduled_at: scheduledAt ?? null,
+      status: 'scheduled',
+      created_at: now,
+      updated_at: now,
+    })
+    .select('*')
+    .single()
+
+  if (reinspError || !reinspData) {
+    console.error('convertHoldToReinspection: reinspection insert failed', {
+      code: pgErrorCode(reinspError),
+      message: pgErrorMessage(reinspError),
+    })
+    return null
+  }
+
+  // Back-link the hold to the new reinspection record.
+  await supabase
+    .from('inspection_holds')
+    .update({ linked_reinspection_id: (reinspData as Row).id as string, updated_at: now })
+    .eq('id', holdId)
+
+  return rowToReinspection(reinspData as Row)
+}
+
+// ── Communication stubs (fire-and-forget) ─────────────────────────────────────
+//
+// Prefixed with _ to mark as internal stubs. Wire to Resend/Twilio by looking up
+// email/phone from the profiles table, then call the /api/notifications/* routes.
+
+/** STUB: Notify builder that a Modification Required hold has been proposed.
+ *  Message: "Modification Required: Inspector placed a hold on your job. Review deficiencies in the Vero app." */
+function _notifyModificationHoldProposed(hold: InspectionHold): void {
+  console.info('[stub] modification hold proposed — notify builder', {
+    holdId: hold.id,
+    inspectionId: hold.inspectionId,
+    type: hold.type,
+    reasonCode: hold.reasonCode,
+    isBlocking: hold.isBlocking,
+  })
+}
+
+/** STUB: Notify inspector that the builder has acknowledged the modification hold.
+ *  Message: "Action Required: Builder has acknowledged the [type] hold. Re-verification is now authorized." */
+function _notifyModificationHoldAcknowledged(hold: InspectionHold, inspectorId: string): void {
+  console.info('[stub] modification hold acknowledged — notify inspector', {
+    holdId: hold.id,
+    inspectionId: hold.inspectionId,
+    type: hold.type,
+    inspectorId,
+  })
+}

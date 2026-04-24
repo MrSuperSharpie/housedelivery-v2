@@ -24,6 +24,33 @@ export interface EligibilityResult {
   reasons: string[]
 }
 
+function normalizeDiscipline(value: string): InspectorDiscipline | null {
+  const normalized = value.trim().toLowerCase().replace(/[\s-]+/g, '_')
+
+  switch (normalized) {
+    case 'structural':
+    case 'framing':
+      return 'structural'
+    case 'geotech':
+    case 'geotechnical':
+      return 'geotech'
+    case 'electrical':
+      return 'electrical'
+    case 'mechanical':
+      return 'mechanical'
+    case 'plumbing':
+      return 'plumbing'
+    case 'architectural':
+    case 'architecture':
+      return 'architectural'
+    case 'fire_protection':
+    case 'fire':
+      return 'fire_protection'
+    default:
+      return null
+  }
+}
+
 /**
  * Validates whether an inspector can be assigned to a job.
  *
@@ -31,41 +58,41 @@ export interface EligibilityResult {
  * 1. Inspector's disciplines must include the job's requiredDiscipline.
  * 2. If the job's requiredDiscipline is a building-permit discipline,
  *    an inspector whose ONLY discipline is electrical is ineligible.
- * 3. Inspector's regions must include the job's region.
- * 4. If credentialExpiryDate is provided and is in the past, assignment is blocked.
+ * 3. If credentialExpiryDate is provided and is in the past, assignment is blocked.
  */
 export function checkInspectorEligibility(
   requiredDiscipline: InspectorDiscipline,
-  jobRegion: Region,
+  _jobRegion: Region,
   inspectorDisciplines: InspectorDiscipline[],
-  inspectorRegions: Region[],
+  _inspectorRegions: Region[],
   credentialExpiryDate?: string,
   onboardingStatus?: InspectorOnboardingStatus | null,
 ): EligibilityResult {
   const reasons: string[] = []
+  const normalizedRequiredDiscipline = normalizeDiscipline(requiredDiscipline) ?? requiredDiscipline
+  const normalizedInspectorDisciplines = inspectorDisciplines
+    .map(value => normalizeDiscipline(value))
+    .filter((value): value is InspectorDiscipline => value !== null)
 
   if (onboardingStatus !== 'approved') {
     reasons.push('Onboarding not approved')
   }
 
   // Rule 1 — discipline match
-  if (!inspectorDisciplines.includes(requiredDiscipline)) {
-    reasons.push(`${requiredDiscipline.charAt(0).toUpperCase()}${requiredDiscipline.slice(1)} credential required`)
+  if (!normalizedInspectorDisciplines.includes(normalizedRequiredDiscipline)) {
+    reasons.push(`${normalizedRequiredDiscipline.charAt(0).toUpperCase()}${normalizedRequiredDiscipline.slice(1)} credential required`)
   }
 
   // Rule 2 — electrical-only block on building permit roles
   if (
-    isBuildingPermitDiscipline(requiredDiscipline) &&
-    inspectorDisciplines.length > 0 &&
-    inspectorDisciplines.every(d => d === ELECTRICAL_DISCIPLINE)
+    isBuildingPermitDiscipline(normalizedRequiredDiscipline) &&
+    normalizedInspectorDisciplines.length > 0 &&
+    normalizedInspectorDisciplines.every(d => d === ELECTRICAL_DISCIPLINE)
   ) {
     reasons.push('Building permit credential required')
   }
 
-  // Rule 3 — jurisdiction match
-  if (!inspectorRegions.includes(jobRegion)) {
-    reasons.push(`${jobRegion.charAt(0).toUpperCase()}${jobRegion.slice(1)} authorization required`)
-  }
+  // Rule 3 — open market: region never blocks eligibility.
 
   // Rule 4 — credential expiry
   if (credentialExpiryDate) {

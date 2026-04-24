@@ -113,6 +113,8 @@ export const MOCK_BUILDER: BuilderProfile = {
 
 export const MOCK_INSPECTOR: InspectorProfile = {
   id: 'inspector-001',
+  firstName: 'Sarah',
+  lastName: 'Chen',
   name: 'Dr. Sarah Chen, P.Eng',
   licenseNumber: 'BC-ENG-29847',
   discipline: ['structural', 'geotech'],

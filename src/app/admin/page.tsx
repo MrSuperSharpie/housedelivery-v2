@@ -61,12 +61,11 @@ async function fetchDashStats(): Promise<DashStats> {
   }
 }
 
-const SYSTEM_HEALTH = [
-  { label: 'Supabase DB', status: 'ok', latency: 'Live' },
-  { label: 'Storage bucket', status: 'ok', latency: 'Attached' },
-  { label: 'Escrow engine', status: 'pending', latency: 'Pending' },
-  { label: 'Email delivery', status: 'pending', latency: 'Pending' },
-] as const
+const STATIC_HEALTH: { label: string; status: 'ok' | 'pending'; latency: string }[] = [
+  { label: 'Supabase DB',    status: 'ok',      latency: 'Live'     },
+  { label: 'Storage bucket', status: 'ok',      latency: 'Attached' },
+  { label: 'Escrow engine',  status: 'pending', latency: 'Pending'  },
+]
 
 type Tone = 'default' | 'warning' | 'electric' | 'success' | 'danger'
 
@@ -261,6 +260,7 @@ export default function AdminHomePage() {
   const { user, isLoading: authLoading } = useAuth()
   const [stats, setStats] = useState<DashStats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [emailConfigured, setEmailConfigured] = useState(false)
 
   useEffect(() => {
     if (authLoading) return
@@ -274,6 +274,10 @@ export default function AdminHomePage() {
         console.error('[Admin] fetchDashStats failed', err)
         setLoading(false)
       })
+    fetch('/api/admin/health')
+      .then(r => r.json())
+      .then((d: { emailConfigured: boolean }) => setEmailConfigured(Boolean(d.emailConfigured)))
+      .catch(() => {})
   }, [authLoading, user?.role])
 
   const queueCards = stats ? [
@@ -285,8 +289,17 @@ export default function AdminHomePage() {
     { label: 'Submissions awaiting seal', count: 0, href: '/admin/submissions', icon: FileCheck, tone: 'electric' as const },
   ] : []
 
+  const systemHealth = [
+    ...STATIC_HEALTH,
+    {
+      label:   'Email delivery',
+      status:  emailConfigured ? 'ok' as const : 'pending' as const,
+      latency: emailConfigured ? 'Resend' : 'Pending',
+    },
+  ]
+
   const totalReviewPressure = (stats?.pendingBuilders ?? 0) + (stats?.pendingInspectors ?? 0)
-  const okSystems = SYSTEM_HEALTH.filter(item => item.status === 'ok').length
+  const okSystems = systemHealth.filter(item => item.status === 'ok').length
 
   return (
     <AdminShell
@@ -331,7 +344,7 @@ export default function AdminHomePage() {
                     <div className="label-mono admin-section-label">System watch</div>
                   </div>
                   <div className="mt-4 text-3xl font-black tracking-[-0.06em] text-ink">
-                    {okSystems}/{SYSTEM_HEALTH.length}
+                    {okSystems}/{systemHealth.length}
                   </div>
                   <div className="admin-body-strong mt-1 text-sm text-muted">
                     Stable systems reporting clean status.
@@ -527,7 +540,7 @@ export default function AdminHomePage() {
               </div>
 
               <div className="mt-5 space-y-3">
-                {SYSTEM_HEALTH.map(item => (
+                {systemHealth.map(item => (
                   <div
                     key={item.label}
                     className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3"

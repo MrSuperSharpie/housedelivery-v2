@@ -41,6 +41,11 @@ type InspectorIdentity = {
 
 type ProfileHint = Record<string, unknown>
 
+function readStr(obj: ProfileHint | undefined, key: string): string | undefined {
+  const v = obj?.[key]
+  return typeof v === 'string' && v.trim() ? v.trim() : undefined
+}
+
 function buildInspectorIdentity(
   userId: string,
   licenseNumber: string | undefined,
@@ -48,7 +53,6 @@ function buildInspectorIdentity(
   profileHint?: ProfileHint,
 ): InspectorIdentity {
   const demo = DEMO_USERS.find(d => d.id === userId || d.supabaseId === userId)
-
   if (demo) {
     return {
       displayName: demo.name,
@@ -58,39 +62,29 @@ function buildInspectorIdentity(
     }
   }
 
-  const hintedName = typeof profileHint?.name === 'string' && profileHint.name.trim()
-    ? profileHint.name.trim()
-    : undefined
-  const firstName = typeof profileHint?.first_name === 'string' && profileHint.first_name.trim()
-    ? profileHint.first_name.trim()
-    : undefined
-  const lastName = typeof profileHint?.last_name === 'string' && profileHint.last_name.trim()
-    ? profileHint.last_name.trim()
-    : undefined
-  const fullName = [firstName, lastName].filter(Boolean).join(' ').trim() || undefined
-  const businessName = typeof profileHint?.company_name === 'string' && profileHint.company_name.trim()
-    ? profileHint.company_name.trim()
-    : typeof profileHint?.business_name === 'string' && profileHint.business_name.trim()
-      ? profileHint.business_name.trim()
-      : typeof profileHint?.contact_name === 'string' && profileHint.contact_name.trim()
-        ? profileHint.contact_name.trim()
-        : undefined
-  const profileEmail = typeof profileHint?.email === 'string' && profileHint.email.trim()
-    ? profileHint.email.trim()
-    : typeof profileHint?.contact_email === 'string' && profileHint.contact_email.trim()
-      ? profileHint.contact_email.trim()
-      : undefined
+  // Primary: full_name and firm_name written directly to profiles during signup.
+  // Fallbacks cover older accounts or alternate trigger schemas.
+  const fullName =
+    readStr(profileHint, 'full_name') ??
+    readStr(profileHint, 'name') ??
+    ([readStr(profileHint, 'first_name'), readStr(profileHint, 'last_name')].filter(Boolean).join(' ') || undefined)
 
-  const optionalBusinessDoc = creds.find(cred => cred.credentialType === 'professional_designation')
-  const fileStem = optionalBusinessDoc?.fileName.replace(/\.[^/.]+$/, '').replace(/[-_]+/g, ' ').trim()
-  const readableStem = fileStem && /\s/.test(fileStem) ? fileStem : undefined
-  const displayName = fullName ?? hintedName ?? profileEmail ?? (licenseNumber ? `Inspector ${licenseNumber}` : 'Inspector account')
+  const firmName =
+    readStr(profileHint, 'firm_name') ??
+    readStr(profileHint, 'company_name') ??
+    readStr(profileHint, 'business_name')
+
+  const email =
+    readStr(profileHint, 'email') ??
+    readStr(profileHint, 'contact_email')
+
+  const displayName = fullName ?? email ?? (licenseNumber ? `Inspector ${licenseNumber}` : 'Inspector account')
 
   return {
     displayName,
-    companyName: businessName,
+    companyName: firmName,
     secondaryName: licenseNumber ? `Licence ${licenseNumber}` : undefined,
-    email: profileEmail,
+    email,
   }
 }
 
@@ -102,10 +96,13 @@ export default function AdminInspectorsPage() {
   const [loading, setLoading] = useState(true)
   const [savingId, setSavingId] = useState<string | null>(null)
   const [openingCredentialId, setOpeningCredentialId] = useState<string | null>(null)
+  const [openingSealUserId, setOpeningSealUserId] = useState<string | null>(null)
   const [credentialsByUser, setCredentialsByUser] = useState<Record<string, InspectorCredentialRow[]>>({})
   const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({})
   const [profileHintsByUser, setProfileHintsByUser] = useState<Record<string, ProfileHint>>({})
   const [approvedLaneDrafts, setApprovedLaneDrafts] = useState<Record<string, InspectorRoleLane[]>>({})
+  // Per-inspector toggle: when true, lane approval checkboxes ignore doc-readiness check
+  const [laneOverrides, setLaneOverrides] = useState<Record<string, boolean>>({})
 
   const reloadInspectorReview = async () => {
     const data = await listInspectorOnboardingStatuses()
@@ -116,12 +113,27 @@ export default function AdminInspectorsPage() {
     if (userIds.length > 0) {
       const { data: profileRows } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, full_name, firm_name, email, name, first_name, last_name, company_name, business_name, contact_email, digital_seal_url')
         .in('id', userIds)
 
       for (const row of (profileRows ?? []) as ProfileHint[]) {
         const id = typeof row.id === 'string' ? row.id : null
         if (id) profileHints[id] = row
+      }
+    }
+
+    // Supplement with the current user's own auth metadata — covers the case where
+    // an admin reviews their own inspector application and the profiles query returns
+    // empty due to RLS or the full_name column was null from an older signup.
+    const { data: { user: currentAuthUser } } = await supabase.auth.getUser()
+    if (currentAuthUser && userIds.includes(currentAuthUser.id)) {
+      const m = (currentAuthUser.user_metadata ?? {}) as Record<string, unknown>
+      const existing = profileHints[currentAuthUser.id] ?? {}
+      profileHints[currentAuthUser.id] = {
+        ...existing,
+        full_name: existing.full_name ?? m.name ?? ([m.first_name, m.last_name].filter(Boolean).join(' ') || null),
+        firm_name: existing.firm_name ?? m.firm_name ?? null,
+        email: existing.email ?? currentAuthUser.email ?? null,
       }
     }
 
@@ -170,17 +182,53 @@ export default function AdminInspectorsPage() {
       } else {
         await setInspectorOnboardingStatus(status, undefined, rowUserId, reviewerNote)
       }
-      if (previousStatus !== 'approved' && status === 'approved') {
-        console.info('[AdminInspectorApprovalEmail]', {
-          userId: rowUserId,
-          action: 'approval_activated',
-          emailHook: 'pending',
-          approvedRoleLanes: laneDraft,
+      // Keep profiles.onboarding_status in sync so auth.tsx reads the correct value
+      await supabase
+        .from('profiles')
+        .update({
+          onboarding_status: status,
+          verified: status === 'approved',
         })
+        .eq('id', rowUserId)
+
+      if (previousStatus !== status && (status === 'approved' || status === 'needs_info' || status === 'rejected')) {
+        const profileHint = profileHintsByUser[rowUserId]
+        const email = readStr(profileHint, 'email') ?? readStr(profileHint, 'contact_email')
+        const inspectorName = buildInspectorIdentity(rowUserId, existing?.licenseNumber, credentialsByUser[rowUserId] ?? [], profileHint).displayName
+        if (email) {
+          void fetch('/api/mail/application-status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: email,
+              inspectorName,
+              status,
+              reviewerNote,
+            }),
+          })
+        }
       }
       await reloadInspectorReview()
     } finally {
       setSavingId(null)
+    }
+  }
+
+  const handleViewSeal = async (userId: string, storagePath: string) => {
+    setOpeningSealUserId(userId)
+    try {
+      const { data, error } = await supabase.storage
+        .from(INSPECTOR_DOCUMENT_BUCKET)
+        .createSignedUrl(storagePath, 60)
+
+      if (error || !data?.signedUrl) {
+        console.error('Inspector digital seal view failed:', error)
+        return
+      }
+
+      window.open(data.signedUrl, '_blank', 'noopener,noreferrer')
+    } finally {
+      setOpeningSealUserId(null)
     }
   }
 
@@ -238,9 +286,12 @@ export default function AdminInspectorsPage() {
               const canAccessLiveBoard = isApproved
               const creds = credentialsByUser[row.userId] ?? []
               const identity = buildInspectorIdentity(row.userId, row.licenseNumber, creds, profileHintsByUser[row.userId])
+              const digitalSealPath = readStr(profileHintsByUser[row.userId], 'digital_seal_url')
               const note = noteDrafts[row.userId] ?? row.reviewerNote ?? ''
               const uploadedTypes = new Set(creds.map(c => c.credentialType))
               const readiness = checkPackageReadiness(row.requestedRoleLanes, uploadedTypes)
+              const overrideActive = laneOverrides[row.userId] ?? false
+              const canApproveOverall = readiness.ready || overrideActive
 
               // Per-lane approvability: baseline + all lane-specific docs must be uploaded.
               // CP additionally requires at least one base lane (Architect or Engineer) to have
@@ -261,8 +312,16 @@ export default function AdminInspectorsPage() {
               return (
                 <div
                   key={row.userId}
-                  className="rounded-2xl border border-white/8 bg-panel p-4 flex flex-col gap-3"
+                  className="rounded-2xl border border-white/8 bg-panel overflow-hidden flex flex-col"
                 >
+                  {/* Status accent stripe */}
+                  <div className={`h-1 w-full shrink-0 ${
+                    row.status === 'approved'    ? 'bg-success-green' :
+                    row.status === 'rejected' || row.status === 'suspended' ? 'bg-fail-red' :
+                    row.status === 'needs_info'  ? 'bg-warning-amber' :
+                    'bg-electric/40'
+                  }`} />
+                  <div className="p-4 flex flex-col gap-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-3">
                       <div className="w-9 h-9 rounded-xl bg-flame/15 border border-flame/30 flex items-center justify-center text-sm font-black text-flame shrink-0">
@@ -328,6 +387,18 @@ export default function AdminInspectorsPage() {
                         <span className="text-[11px] text-muted">No role lanes selected yet.</span>
                       )}
                     </div>
+                    {row.regions.length > 0 && (
+                      <div className="mt-3 pt-2 border-t border-white/5">
+                        <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-subtle mb-1.5">Service regions</div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {row.regions.map(r => (
+                            <span key={r} className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[11px] text-muted capitalize">
+                              {r}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex flex-wrap items-center gap-3">
@@ -360,13 +431,27 @@ export default function AdminInspectorsPage() {
                   <div className="rounded-xl border border-white/8 bg-white/5 px-3 py-3">
                     <div className="flex items-center justify-between mb-2">
                       <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-subtle">Approved role lanes</div>
-                      <div className="text-[10px] text-subtle flex items-center gap-1">
-                        <Lock className="w-2.5 h-2.5" /> Locked until required docs uploaded
-                      </div>
+                      <label className="flex items-center gap-1.5 cursor-pointer text-[10px]">
+                        <input
+                          type="checkbox"
+                          checked={laneOverrides[row.userId] ?? false}
+                          onChange={e => setLaneOverrides(prev => ({ ...prev, [row.userId]: e.target.checked }))}
+                          className="shrink-0"
+                        />
+                        <span className={laneOverrides[row.userId] ? 'text-warning-amber font-bold' : 'text-subtle'}>
+                          {laneOverrides[row.userId] ? 'Override active' : 'Admin override'}
+                        </span>
+                      </label>
                     </div>
+                    {!overrideActive && (
+                      <div className="text-[10px] text-subtle flex items-center gap-1 mb-2">
+                        <Lock className="w-2.5 h-2.5" /> Lanes locked until required docs uploaded — enable override to bypass
+                      </div>
+                    )}
                     <div className="grid gap-2 md:grid-cols-2">
                       {INSPECTOR_ROLE_LANES.map(lane => {
-                        const canApprove = laneApprovability[lane] ?? false
+                        const docReady = laneApprovability[lane] ?? false
+                        const canApprove = docReady || overrideActive
                         const isChecked = approvedRoleLanes.includes(lane)
                         return (
                           <label
@@ -394,9 +479,11 @@ export default function AdminInspectorsPage() {
                               disabled={savingId === row.userId || !canApprove}
                             />
                             <span className="flex-1 leading-snug">{getInspectorRoleLaneLabel(lane)}</span>
-                            {canApprove
+                            {docReady
                               ? <CheckCircle2 className="w-3 h-3 text-success-green shrink-0" />
-                              : <Lock className="w-3 h-3 text-warning-amber shrink-0" />
+                              : overrideActive
+                                ? <AlertCircle className="w-3 h-3 text-warning-amber shrink-0" />
+                                : <Lock className="w-3 h-3 text-warning-amber shrink-0" />
                             }
                           </label>
                         )
@@ -409,7 +496,7 @@ export default function AdminInspectorsPage() {
                       <ActionButton
                         variant="approve"
                         onClick={() => handleStatusChange(row.userId, 'approved', note || undefined)}
-                        disabled={savingId === row.userId}
+                        disabled={savingId === row.userId || !canApproveOverall}
                       >
                         <CheckCircle2 className="w-3.5 h-3.5" /> Save approved lanes
                       </ActionButton>
@@ -417,15 +504,17 @@ export default function AdminInspectorsPage() {
                       <ActionButton
                         variant="approve"
                         onClick={() => handleStatusChange(row.userId, 'approved', note || undefined)}
-                        disabled={savingId === row.userId}
+                        disabled={savingId === row.userId || !canApproveOverall}
                       >
                         <MailCheck className="w-3.5 h-3.5" /> Approve inspector
                       </ActionButton>
                     )}
-                    {!isApproved && !readiness.ready && (
+                    {!readiness.ready && (
                       <div className="flex items-center gap-1.5 text-[10px] text-warning-amber">
                         <AlertCircle className="w-3 h-3 shrink-0" />
-                        {readiness.totalUploaded}/{readiness.totalRequired} required docs present{' — '}review document checklist below before approving
+                        {overrideActive
+                          ? 'Admin override enabled — approval can proceed with incomplete checklist'
+                          : `${readiness.totalUploaded}/${readiness.totalRequired} required docs present — enable admin override to approve anyway`}
                       </div>
                     )}
                     <div className="rounded-xl border border-white/8 bg-white/5 px-3 py-2 text-[11px] text-muted">
@@ -623,12 +712,32 @@ export default function AdminInspectorsPage() {
                       </div>
                     )}
 
+                    {digitalSealPath && (
+                      <div className="mt-2 rounded-xl border border-white/8 bg-surface/50 px-3 py-2">
+                        <div className="flex items-center justify-between gap-2 text-[11px]">
+                          <div className="min-w-0">
+                            <div className="font-bold text-ink">Professional digital seal</div>
+                            <div className="truncate text-subtle">{digitalSealPath}</div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleViewSeal(row.userId, digitalSealPath)}
+                            disabled={openingSealUserId === row.userId}
+                            className="text-[10px] text-flame font-semibold hover:underline shrink-0"
+                          >
+                            {openingSealUserId === row.userId ? '…' : 'View seal'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     {creds.length === 0 && (
                       <p className="text-[11px] text-muted mt-1">
                         No documents uploaded yet — mark status as needs_info to request them.
                       </p>
                     )}
                   </div>
+                </div>
                 </div>
               )
             })}

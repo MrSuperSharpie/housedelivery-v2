@@ -12,8 +12,8 @@ import type { InspectorOnboardingStatus } from '@/lib/types'
 
 const STATUS_CONFIG: Record<InspectorOnboardingStatus, { label: string; desc: string; icon: React.ElementType; className: string }> = {
   draft:          { label: 'Draft',           desc: 'Complete your application to submit for review.',                    icon: FileText,   className: 'text-muted' },
-  submitted:      { label: 'Submitted',       desc: 'Your application is under Vero review.',                          icon: Clock,      className: 'text-warning-amber' },
-  under_review:  { label: 'Under review',     desc: 'Vero is verifying your credentials and documents.',             icon: Clock,      className: 'text-warning-amber' },
+  submitted:      { label: 'Waiting for approval', desc: 'Your application is under Vero review. You do not need to restart onboarding.', icon: Clock, className: 'text-warning-amber' },
+  under_review:  { label: 'Waiting for approval', desc: 'Vero is verifying your credentials and documents. You do not need to restart onboarding.', icon: Clock, className: 'text-warning-amber' },
   needs_info:    { label: 'More info needed', desc: 'Vero has requested additional information. Check your email.',   icon: AlertCircle, className: 'text-warning-amber' },
   approved:      { label: 'Approved',         desc: 'You can access the Live Board and apply to jobs.',                    icon: CheckCircle2, className: 'text-success-green' },
   rejected:      { label: 'Not approved',     desc: 'Your application was not approved. Contact support for details.',   icon: AlertCircle, className: 'text-fail-red' },

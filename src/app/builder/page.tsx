@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Building2, TrendingUp, DollarSign, ChevronRight, MapPin,
-  CheckCircle2, Clock,
+  CheckCircle2, Clock, AlertTriangle,
   Navigation, Shield, Zap, Lock, ExternalLink
 } from 'lucide-react'
 import { Navbar } from '@/components/shared/Navbar'
@@ -26,6 +26,10 @@ import {
   builderDeclineHold,
   listHoldsForJob,
   requestOnSiteCorrectionReview,
+  acknowledgeModificationHold,
+  declineModificationHold,
+  listInspectionHoldsForJob,
+  type InspectionHold,
 } from '@/lib/supabase/holds'
 import { listJobsByBuilder } from '@/lib/supabase/jobs'
 import type { JobOpportunityRow } from '@/lib/supabase/jobs'
@@ -264,6 +268,115 @@ function StatusBadge({ job }: { job: Pick<JobOpportunityRow, 'status' | 'validat
   )
 }
 
+const MOD_HOLD_TYPE_META = {
+  onsite: {
+    label: 'On-Site Correction',
+    feeNote: 'Billed by time — 15-min increments, 30-min minimum. Timer starts on acceptance.',
+    actionLabel: 'Accept — Inspector Stays On-Site',
+  },
+  same_day_return: {
+    label: 'Same-Day Return',
+    feeNote: 'Fixed return fee: $150.00. Inspector will leave and return within the stated window.',
+    actionLabel: 'Accept — Reserve Return Visit',
+  },
+  reinspection: {
+    label: 'Reinspection Required',
+    feeNote: 'A new inspection booking will be scheduled. Standard inspection fees apply.',
+    actionLabel: 'Accept — Schedule Reinspection',
+  },
+} as const
+
+function ModificationRequiredCard({
+  hold,
+  onAccept,
+  onDecline,
+  isResponding,
+}: {
+  hold: InspectionHold
+  onAccept: () => void
+  onDecline: (note: string) => void
+  isResponding: boolean
+}) {
+  const [declineNote, setDeclineNote] = React.useState('')
+  const meta = MOD_HOLD_TYPE_META[hold.type]
+
+  const formatWindow = (iso: string) =>
+    new Date(iso).toLocaleTimeString('en-CA', { timeZone: 'America/Vancouver', hour: '2-digit', minute: '2-digit' })
+
+  return (
+    <div className="mb-5 rounded-2xl border border-amber-500/30 border-l-[6px] border-l-amber-500 bg-white overflow-hidden">
+      <div className="px-5 py-4 border-b border-slate-200">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 bg-amber-500/15 border border-amber-500/25 rounded-xl flex items-center justify-center shrink-0">
+              <AlertTriangle className="w-5 h-5 text-amber-500" />
+            </div>
+            <div>
+              <div className="font-black text-slate-900 text-sm mb-0.5">Modification Required — {meta.label}</div>
+              <div className="text-xs text-slate-500 capitalize">{hold.reasonCode.replace('_', ' ')}{hold.estimatedFixMinutes ? ` · Est. ${hold.estimatedFixMinutes} min` : ''}</div>
+            </div>
+          </div>
+          <div className="bg-amber-500/15 border border-amber-500/30 rounded-lg px-2 py-1 shrink-0">
+            <div className="text-[10px] text-amber-600 font-bold uppercase tracking-wide">Action Required</div>
+          </div>
+        </div>
+      </div>
+
+      {hold.notes && (
+        <div className="px-5 py-3 border-b border-slate-200">
+          <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-1">Inspector Notes</div>
+          <div className="text-sm text-slate-700">{hold.notes}</div>
+        </div>
+      )}
+
+      <div className="px-5 py-3 border-b border-slate-200">
+        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Fee Information</div>
+        <div className="text-xs text-slate-700">{meta.feeNote}</div>
+        {hold.type === 'same_day_return' && hold.returnWindowStart && hold.returnWindowEnd && (
+          <div className="mt-2 text-xs text-slate-500">
+            Return window: <span className="font-bold text-slate-900">{formatWindow(hold.returnWindowStart)} – {formatWindow(hold.returnWindowEnd)}</span>
+          </div>
+        )}
+        {hold.isBlocking && (
+          <div className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-red-50 border border-red-200 px-2.5 py-1">
+            <Lock className="w-3 h-3 text-red-500" />
+            <span className="text-[11px] font-bold text-red-600">Blocking — downstream work paused</span>
+          </div>
+        )}
+      </div>
+
+      <div className="px-5 py-4 space-y-3">
+        <button
+          onClick={onAccept}
+          disabled={isResponding}
+          className="w-full bg-amber-500 hover:bg-amber-400 text-white font-black py-3 rounded-xl text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+        >
+          {isResponding
+            ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            : <CheckCircle2 className="w-4 h-4" />}
+          {meta.actionLabel}
+        </button>
+        <div className="flex gap-2">
+          <input
+            value={declineNote}
+            onChange={e => setDeclineNote(e.target.value)}
+            placeholder="Reason for declining (required)..."
+            className="flex-1 bg-white border border-slate-300 rounded-xl px-3 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-500"
+          />
+          <button
+            onClick={() => onDecline(declineNote)}
+            disabled={!declineNote.trim() || isResponding}
+            className="px-4 bg-slate-100 border border-slate-300 text-slate-700 font-bold rounded-xl text-xs hover:bg-slate-200 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Decline
+          </button>
+        </div>
+        <p className="text-[10px] text-slate-400">Declining a Modification Required will revert the inspection to in-progress and allow work to continue.</p>
+      </div>
+    </div>
+  )
+}
+
 export default function BuilderDashboard() {
   const { user }  = useAuth()
   const store     = useStore()
@@ -300,6 +413,8 @@ export default function BuilderDashboard() {
   const [declineNotes, setDeclineNotes]         = useState<Record<string, string>>({})
   // Builder-selected correction window per hold (minutes). Defaults to 60.
   const [correctionWindowByHold, setCorrectionWindowByHold] = useState<Record<string, number>>({})
+  const [activeModHolds, setActiveModHolds]     = useState<InspectionHold[]>([])
+  const [modHoldResponding, setModHoldResponding] = useState<string | null>(null)
 
   // ─── DATA BRIDGE: MATCH LOCAL AUTH ID OR SUPABASE ID ─────────────────────────
   const builderLocalId    = user?.id ?? ''
@@ -351,16 +466,16 @@ export default function BuilderDashboard() {
   useEffect(() => {
     const builderSupabaseUserId = user?.supabaseId
     if (!builderSupabaseUserId) return
-    async function loadJobs() {
+    async function loadJobs(builderId: string) {
       setIsLoadingJobs(true)
       try {
-        const nextJobs = await listJobsByBuilder(builderSupabaseUserId)
+        const nextJobs = await listJobsByBuilder(builderId)
         setDbJobs(nextJobs)
       } finally {
         setIsLoadingJobs(false)
       }
     }
-    void loadJobs()
+    void loadJobs(builderSupabaseUserId)
   }, [user?.supabaseId])
 
   // Fetch completed records for any completed jobs
@@ -409,6 +524,25 @@ export default function BuilderDashboard() {
     }
     void loadActiveHolds()
   }, [dbJobs])
+
+  // Fetch mod holds (inspection_holds status='proposed') for this builder
+  useEffect(() => {
+    const builderSid = user?.supabaseId
+    if (!builderSid) return
+    async function loadModHolds() {
+      const { data: inspJobs } = await supabase
+        .from('inspection_jobs')
+        .select('id')
+        .eq('builder_id', builderSid)
+        .in('status', ['hold_active', 'awaiting_return'])
+      if (!inspJobs?.length) { setActiveModHolds([]); return }
+      const results = await Promise.all(
+        inspJobs.map((j: { id: string }) => listInspectionHoldsForJob(j.id))
+      )
+      setActiveModHolds(results.flat().filter(h => h.status === 'proposed'))
+    }
+    void loadModHolds()
+  }, [user?.supabaseId])
 
   // ─── DATA BRIDGE: MAP STANDALONE JOBS TO PROJECTS ARRAY ──────────────────────
   const standaloneJobsAsProjects: Project[] = builderJobs.map(job => {
@@ -560,6 +694,21 @@ export default function BuilderDashboard() {
       'Builder requested on-site correction review.',
     )
     setHoldReviewRequesting(null)
+  }
+
+  const handleAcknowledgeModHold = async (hold: InspectionHold) => {
+    setModHoldResponding(hold.id)
+    const updated = await acknowledgeModificationHold(hold.id)
+    if (updated) setActiveModHolds(prev => prev.filter(h => h.id !== hold.id))
+    setModHoldResponding(null)
+  }
+
+  const handleDeclineModHold = async (hold: InspectionHold, note: string) => {
+    if (!note.trim()) return
+    setModHoldResponding(hold.id)
+    const updated = await declineModificationHold(hold.id, note)
+    if (updated) setActiveModHolds(prev => prev.filter(h => h.id !== hold.id))
+    setModHoldResponding(null)
   }
 
   const handleDispatch = (_dispatchTier: DispatchTier) => {
@@ -784,6 +933,17 @@ export default function BuilderDashboard() {
             </div>
           )
         })}
+
+        {/* ── Modification Required Holds ── */}
+        {activeModHolds.map(hold => (
+          <ModificationRequiredCard
+            key={hold.id}
+            hold={hold}
+            onAccept={() => void handleAcknowledgeModHold(hold)}
+            onDecline={note => void handleDeclineModHold(hold, note)}
+            isResponding={modHoldResponding === hold.id}
+          />
+        ))}
 
         {/* ── Provisional Assignments ── */}
         {store.assignments

@@ -3528,14 +3528,14 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                   variant="icon"
                                   label="Capture photo"
                                   buttonClassName={TACTILE_MEDIA_BUTTON_CLASS}
-                                  onCapture={payload => handleFieldEvidenceCapture(item.item_code, payload)}
+                                  onCapture={async payload => { await handleFieldEvidenceCapture(item.item_code, payload) }}
                                 />
                                 <FieldMediaUploader
                                   expectedType="video"
                                   variant="icon"
                                   label="Capture video"
                                   buttonClassName={TACTILE_MEDIA_BUTTON_CLASS}
-                                  onCapture={payload => handleFieldEvidenceCapture(item.item_code, payload)}
+                                  onCapture={async payload => { await handleFieldEvidenceCapture(item.item_code, payload) }}
                                 />
                                 <label className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-2xl bg-[#FF5F15] px-4 py-3 text-xs font-black text-white hover:bg-[#e25412]">
                                   <Upload className="h-4 w-4" />
@@ -3913,14 +3913,14 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                 variant="icon"
                                 label="Capture photo"
                                 buttonClassName={TACTILE_MEDIA_BUTTON_CLASS}
-                                onCapture={payload => handleFieldEvidenceCapture(item.item_code, payload)}
+                                onCapture={async payload => { await handleFieldEvidenceCapture(item.item_code, payload) }}
                               />
                               <FieldMediaUploader
                                 expectedType="video"
                                 variant="icon"
                                 label="Capture video"
                                 buttonClassName={TACTILE_MEDIA_BUTTON_CLASS}
-                                onCapture={payload => handleFieldEvidenceCapture(item.item_code, payload)}
+                                onCapture={async payload => { await handleFieldEvidenceCapture(item.item_code, payload) }}
                               />
                               <label className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-xl bg-[#FF5F15] px-4 py-3 text-xs font-black text-white hover:bg-[#e25412]">
                                 <Upload className="h-4 w-4" />

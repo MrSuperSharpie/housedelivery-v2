@@ -116,6 +116,8 @@ export async function upsertProject(project: Project, actorId?: string): Promise
       blockerType: 'technical',
       code: 'project_incomplete',
       message,
+      hardBlocker: true,
+      adminOverride: false,
     })),
     ruleSnapshot: {
       source: 'projects-table',

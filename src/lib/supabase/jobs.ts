@@ -20,7 +20,7 @@ import type {
   SpecialistCredentialClass,
   SpecialistRoleId,
 } from '@/lib/types'
-import type { GovernanceIssue, GovernanceValidationStatus } from '@/lib/governance'
+import type { GovernanceIssue, GovernanceValidationStatus, InspectorOnboardingStatus as GovernanceOnboardingStatus } from '@/lib/governance'
 import { validateJobPostingGovernance } from '@/lib/governance'
 import {
   canObjectAssignment,
@@ -520,7 +520,7 @@ export async function insertJobOpportunity(
     jobId: undefined,
     projectId: job.projectId,
     builderId: job.builderId,
-    builderStatus: (job.builderOnboardingStatus as JobOpportunityRow['builderOnboardingStatus']) ?? 'draft',
+    builderStatus: ((job.builderOnboardingStatus as JobOpportunityRow['builderOnboardingStatus']) ?? 'draft') as GovernanceOnboardingStatus,
     projectName: job.projectName,
     address: job.address,
     city: job.city,

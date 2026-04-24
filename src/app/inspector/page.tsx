@@ -94,7 +94,7 @@ export default function InspectorDashboard() {
       .filter(a => a.inspectorId === user?.id || a.inspectorId === user?.supabaseId)
       .map(a => a.jobId)
     if (jobIds.length === 0) {
-      setAcceptedHoldsForInspector([])
+      queueMicrotask(() => setAcceptedHoldsForInspector([]))
       return
     }
     let active = true
@@ -320,21 +320,21 @@ export default function InspectorDashboard() {
         )}
 
         {showOnboardingBanner && (
-          <div className="mb-6 rounded-2xl border border-electric/20 bg-electric/10 p-4">
+          <div className="mb-6 rounded-2xl border border-amber-300 bg-amber-100 p-4 text-amber-900">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
-                <div className="text-sm font-black text-electric">Complete onboarding to claim jobs</div>
-                <p className="mt-1 text-xs text-muted">
+                <div className="text-sm font-black">Waiting for Vero approval</div>
+                <p className="mt-1 text-xs">
                   {inspectorEligibility.status !== 'approved'
-                    ? 'You can browse the Live Board for discovery, but claims stay locked until Vero approves your onboarding.'
+                    ? 'Your application is under review. The Live Board and uploads stay locked until your profile is approved.'
                     : 'Your account is approved, but your approved role lanes do not include marketplace claim authority yet.'}
                 </p>
               </div>
               <button
                 onClick={() => router.push('/inspector/onboarding')}
-                className="shrink-0 rounded-xl bg-electric px-4 py-2.5 text-xs font-black text-surface hover:opacity-90"
+                className="shrink-0 rounded-xl bg-amber-900 px-4 py-2.5 text-xs font-black text-white hover:opacity-90"
               >
-                Continue Onboarding
+                View Approval Status
               </button>
             </div>
           </div>

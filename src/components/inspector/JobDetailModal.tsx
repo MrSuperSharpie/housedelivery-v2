@@ -88,6 +88,7 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim }: JobDetail
   })
   const hrlyRate = Math.round(pricing.inspectorPayout / (job.estimatedDuration / 60))
   const days = nextDays(14)
+  const isClaiming = step === 'confirming'
 
   const flexibleClaimSlot: JobTimeSlot = {
     date: '',
@@ -522,7 +523,7 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim }: JobDetail
           <>
             <button
               type="button"
-              disabled
+              disabled={!!primaryLockReason || isClaiming}
               className="w-full bg-electric/20 text-electric font-black py-4 rounded-2xl text-base border border-electric/20 cursor-not-allowed flex items-center justify-center gap-2.5"
             >
               <Lock className="w-5 h-5" />

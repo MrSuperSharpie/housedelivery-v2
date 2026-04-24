@@ -4,6 +4,7 @@
  */
 
 import type { InspectorOnboardingStatus } from '@/lib/types'
+import { createClient } from '@/lib/supabase/client'
 import {
   selectInspectorOnboardingStatus as selectServer,
   upsertInspectorOnboardingStatus as upsertServer,
@@ -11,6 +12,7 @@ import {
   type InspectorOnboardingRow,
 } from '@/lib/supabase/compliance'
 
+const supabase = createClient()
 const STORAGE_KEY = 'vero_inspector_onboarding'
 const ANON_KEY = 'vero_inspector_onboarding_anonymous'
 
@@ -66,6 +68,19 @@ export async function getInspectorOnboardingStatusAsync(
   const serverKey = supabaseId ?? userId
   if (serverKey) {
     try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('onboarding_status, verified')
+        .eq('id', serverKey)
+        .maybeSingle()
+      if (typeof profile?.onboarding_status === 'string') {
+        return profile.onboarding_status as InspectorOnboardingStatus
+      }
+      if (profile?.verified === true) return 'approved'
+    } catch {
+      // fallback
+    }
+    try {
       const s = await selectServer(serverKey)
       if (s) return s
     } catch {
@@ -107,6 +122,17 @@ export async function setInspectorOnboardingStatus(
     } catch {
       // fallback
     }
+    try {
+      await supabase
+        .from('profiles')
+        .update({
+          onboarding_status: status,
+          verified: status === 'approved',
+        })
+        .eq('id', serverKey)
+    } catch {
+      // fallback
+    }
   }
   if (userId) {
     const map = readByUserLocal()
@@ -131,6 +157,8 @@ export async function listInspectorOnboardingStatuses(): Promise<InspectorOnboar
       updatedAt: new Date().toISOString(),
       requestedRoleLanes: [],
       approvedRoleLanes: [],
+      regions: [],
+      disciplines: [],
     }))
   }
 }

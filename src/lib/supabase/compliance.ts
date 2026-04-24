@@ -426,11 +426,67 @@ export interface InspectorOnboardingRow {
   licenseNumber?: string
   requestedRoleLanes: InspectorRoleLane[]
   approvedRoleLanes: InspectorRoleLane[]
+  regions: string[]
+  disciplines: string[]
 }
 
 function normalizeTextArray(value: unknown): string[] {
   if (!Array.isArray(value)) return []
   return value.filter((entry): entry is string => typeof entry === 'string')
+}
+
+function normalizeDisciplineArray(value: unknown): InspectorEligibilityProfile['disciplines'] {
+  return normalizeTextArray(value)
+    .map(entry => {
+      const normalized = entry.trim().toLowerCase().replace(/[\s-]+/g, '_')
+
+      switch (normalized) {
+        case 'structural':
+        case 'framing':
+          return 'structural'
+        case 'geotech':
+        case 'geotechnical':
+          return 'geotech'
+        case 'electrical':
+          return 'electrical'
+        case 'mechanical':
+          return 'mechanical'
+        case 'plumbing':
+          return 'plumbing'
+        case 'architectural':
+        case 'architecture':
+          return 'architectural'
+        case 'fire_protection':
+        case 'fire':
+          return 'fire_protection'
+        default:
+          return null
+      }
+    })
+    .filter((entry): entry is InspectorEligibilityProfile['disciplines'][number] => entry !== null)
+}
+
+function normalizeRegionArray(value: unknown): InspectorEligibilityProfile['regions'] {
+  return normalizeTextArray(value)
+    .map(entry => {
+      const normalized = entry.trim().toLowerCase().replace(/[\s-]+/g, '_')
+
+      switch (normalized) {
+        case 'vancouver':
+          return 'vancouver'
+        case 'burnaby':
+          return 'burnaby'
+        case 'surrey':
+          return 'surrey'
+        case 'coquitlam':
+          return 'coquitlam'
+        case 'richmond':
+          return 'richmond'
+        default:
+          return null
+      }
+    })
+    .filter((entry): entry is InspectorEligibilityProfile['regions'][number] => entry !== null)
 }
 
 export async function upsertInspectorOnboardingStatus(
@@ -459,7 +515,7 @@ export async function selectInspectorOnboardingStatus(userId: string): Promise<I
 export async function selectAllInspectorOnboardingStatuses(): Promise<InspectorOnboardingRow[]> {
   const { data, error } = await supabase
     .from(ONBOARDING)
-    .select('user_id, status, updated_at, reviewer_note, license_number, requested_role_lanes, approved_role_lanes')
+    .select('user_id, status, updated_at, reviewer_note, license_number, requested_role_lanes, approved_role_lanes, regions, disciplines')
     .order('updated_at', { ascending: false })
   if (error || !data) return []
   return (data as {
@@ -470,6 +526,8 @@ export async function selectAllInspectorOnboardingStatuses(): Promise<InspectorO
     license_number?: string | null
     requested_role_lanes?: unknown
     approved_role_lanes?: unknown
+    regions?: unknown
+    disciplines?: unknown
   }[])
     .map(row => ({
       userId: row.user_id,
@@ -479,6 +537,8 @@ export async function selectAllInspectorOnboardingStatuses(): Promise<InspectorO
       licenseNumber: row.license_number ?? undefined,
       requestedRoleLanes: normalizeInspectorRoleLanes(row.requested_role_lanes),
       approvedRoleLanes: normalizeInspectorRoleLanes(row.approved_role_lanes),
+      regions: normalizeTextArray(row.regions),
+      disciplines: normalizeTextArray(row.disciplines),
     }))
 }
 
@@ -519,8 +579,8 @@ export async function selectInspectorEligibility(
   return {
     userId: row.user_id as string,
     status: row.status as InspectorOnboardingStatus,
-    disciplines: normalizeTextArray(row.disciplines) as InspectorEligibilityProfile['disciplines'],
-    regions: normalizeTextArray(row.regions) as InspectorEligibilityProfile['regions'],
+    disciplines: normalizeDisciplineArray(row.disciplines),
+    regions: normalizeRegionArray(row.regions),
     requestedRoleLanes: normalizeInspectorRoleLanes(row.requested_role_lanes),
     approvedRoleLanes: normalizeInspectorRoleLanes(row.approved_role_lanes),
     licenseNumber: (row.license_number as string) ?? undefined,

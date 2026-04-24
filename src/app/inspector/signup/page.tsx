@@ -135,15 +135,10 @@ function deriveRoleLanes(credentialTypes: string[]): InspectorRoleLane[] {
   return Array.from(lanes)
 }
 
-// Document definitions — credentialType maps to inspector_credentials.credential_type
-// isRequired maps to inspector_credentials.is_required
-//
-// Signup collects baseline docs only (applicable to every role lane).
-// Lane-specific documents (e.g. primary_license for Architect / Engineer,
-// good_standing_proof, FSR certificate, etc.) are uploaded post-signup via
-// the inspector profile page, where per-lane requirements are shown.
-const DOC_DEFS: {
-  key:            'id' | 'insurance' | 'resume'
+// ─── Baseline documents — required of every applicant ─────────────────────────
+
+const BASELINE_DOC_DEFS: {
+  key:            string
   label:          string
   credentialType: InspectorCredentialType
   isRequired:     boolean
@@ -170,7 +165,70 @@ const DOC_DEFS: {
     isRequired:     true,
     hint:           'Professional background relevant to your selected role lane(s)',
   },
+  {
+    key:            'conflict_declaration',
+    label:          'Conflict-of-Interest Declaration',
+    credentialType: 'conflict_of_interest_declaration',
+    isRequired:     true,
+    hint:           'Signed declaration confirming no material conflicts with builders or projects',
+  },
+  {
+    key:            'data_acknowledgement',
+    label:          'Evidence / Data-Handling Acknowledgement',
+    credentialType: 'data_handling_acknowledgement',
+    isRequired:     true,
+    hint:           'Signed acknowledgement of evidence retention and chain-of-custody rules',
+  },
 ]
+
+// Credential-type → extra required documents map.
+// Only the primary license doc that is uniquely identifiable at signup time.
+// Detailed lane-specific docs are collected post-signup on the profile page.
+const CREDENTIAL_EXTRA_DOCS: Record<string, { key: string; label: string; credentialType: InspectorCredentialType; hint: string }[]> = {
+  peng_structural:         [{ key: 'peng_certificate',  label: 'P.Eng Certificate (EGBC)',      credentialType: 'professional_designation', hint: 'EGBC registration letter or certificate of standing' }],
+  peng_mechanical:         [{ key: 'peng_certificate',  label: 'P.Eng Certificate (EGBC)',      credentialType: 'professional_designation', hint: 'EGBC registration letter or certificate of standing' }],
+  peng_electrical:         [{ key: 'peng_certificate',  label: 'P.Eng Certificate (EGBC)',      credentialType: 'professional_designation', hint: 'EGBC registration letter or certificate of standing' }],
+  civil_engineer:          [{ key: 'peng_certificate',  label: 'P.Eng Certificate (EGBC)',      credentialType: 'professional_designation', hint: 'EGBC registration letter or certificate of standing' }],
+  geotech_engineer:        [{ key: 'peng_certificate',  label: 'P.Eng Certificate (EGBC)',      credentialType: 'professional_designation', hint: 'EGBC registration letter or certificate of standing' }],
+  fire_protection_engineer:[{ key: 'peng_certificate',  label: 'P.Eng Certificate (EGBC)',      credentialType: 'professional_designation', hint: 'EGBC registration letter or certificate of standing' }],
+  architect_aibc:          [{ key: 'aibc_certificate',  label: 'AIBC Certificate of Practice',  credentialType: 'professional_designation', hint: 'AIBC certificate or current membership card' }],
+  building_envelope:       [{ key: 'bep_certificate',   label: 'Building Envelope Pro Certificate', credentialType: 'professional_designation', hint: 'HPO-issued BEP certificate' }],
+  fsr_class_a:             [{ key: 'fsr_certificate',   label: 'FSR Class A Certificate',       credentialType: 'primary_license',         hint: 'Technical Safety BC FSR licence' }],
+  fsr_class_b:             [{ key: 'fsr_certificate',   label: 'FSR Class B Certificate',       credentialType: 'primary_license',         hint: 'Technical Safety BC FSR licence' }],
+  gas_fitter_class_a:      [{ key: 'gas_certificate',   label: 'Gas Fitter Certificate',        credentialType: 'primary_license',         hint: 'Technical Safety BC gas fitter licence' }],
+  gas_fitter_class_b:      [{ key: 'gas_certificate',   label: 'Gas Fitter Certificate',        credentialType: 'primary_license',         hint: 'Technical Safety BC gas fitter licence' }],
+  red_seal_plumber:        [{ key: 'red_seal_certificate', label: 'Red Seal Certificate',       credentialType: 'primary_license',         hint: 'ITA BC Red Seal endorsement' }],
+  asct:                    [{ key: 'asttbc_certificate', label: 'ASTTBC Certificate',            credentialType: 'professional_designation', hint: 'ASTTBC membership certificate' }],
+  ctech:                   [{ key: 'asttbc_certificate', label: 'ASTTBC Certificate',            credentialType: 'professional_designation', hint: 'ASTTBC membership certificate' }],
+  municipal_inspector:     [{ key: 'municipal_appointment', label: 'Municipal Appointment Letter', credentialType: 'ahj_authorization',       hint: 'Letter from municipality confirming inspector role' }],
+}
+
+// Derive the deduplicated list of extra docs based on selected credential types.
+// Multiple credentials that need the same doc key (e.g. two P.Eng types) are merged.
+function deriveExtraDocs(credentialTypes: string[]) {
+  const seen = new Set<string>()
+  const result: { key: string; label: string; credentialType: InspectorCredentialType; hint: string; isRequired: boolean }[] = []
+  for (const typeId of credentialTypes) {
+    for (const doc of (CREDENTIAL_EXTRA_DOCS[typeId] ?? [])) {
+      if (!seen.has(doc.key)) {
+        seen.add(doc.key)
+        result.push({ ...doc, isRequired: true })
+      }
+    }
+  }
+  return result
+}
+
+// Keep DOC_DEFS as an alias so the existing handleSubmit references still compile.
+const DOC_DEFS = BASELINE_DOC_DEFS
+
+let credentialIdCounter = 0
+
+function createCredentialId(userId: string, credentialType: InspectorCredentialType) {
+  credentialIdCounter += 1
+  const suffix = globalThis.crypto?.randomUUID?.() ?? `local-${credentialIdCounter}`
+  return `cred-${userId}-${credentialType}-${suffix}`
+}
 
 // ─── Field helper ─────────────────────────────────────────────────────────────
 
@@ -330,17 +388,42 @@ export default function InspectorSignup() {
     id:        { uploaded: false, uploading: false, uploadError: null },
     insurance: { uploaded: false, uploading: false, uploadError: null },
     resume:    { uploaded: false, uploading: false, uploadError: null },
+    conflict_declaration: { uploaded: false, uploading: false, uploadError: null },
+    data_acknowledgement: { uploaded: false, uploading: false, uploadError: null },
     seal:      { uploaded: false, uploading: false, uploadError: null },
   })
 
-  // If a valid Supabase session already exists when the page loads, the user
-  // has already created their account (e.g. arrived via "Return to onboarding").
-  // Skip the personal/account-creation step and drop them at credential selection.
+  // If a valid Supabase session already exists when the page loads, check the
+  // inspector's onboarding status before deciding what to show:
+  //   - approved         → redirect to inspector dashboard (they don't need signup)
+  //   - submitted / under_review → redirect to onboarding status page (they wait)
+  //   - needs_info / draft       → resume credential step (they need to continue)
   const [existingUserId, setExistingUserId] = useState<string | null>(null)
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session?.user) return
       const u = session.user
+
+      // Use profiles.onboarding_status as the single source of truth.
+      const { data: profileRow } = await supabase
+        .from('profiles')
+        .select('onboarding_status, verified')
+        .eq('id', u.id)
+        .maybeSingle()
+      const onboardingStatus = typeof profileRow?.onboarding_status === 'string'
+        ? profileRow.onboarding_status
+        : 'draft'
+
+      if (onboardingStatus === 'approved' || profileRow?.verified === true) {
+        router.replace('/inspector')
+        return
+      }
+      if (onboardingStatus === 'submitted' || onboardingStatus === 'under_review') {
+        router.replace('/inspector/onboarding')
+        return
+      }
+
+      // needs_info or draft — let them continue through signup
       const metadata = (u.user_metadata ?? {}) as Record<string, unknown>
       const firstName = typeof metadata.first_name === 'string' ? metadata.first_name
         : (typeof metadata.name === 'string' ? metadata.name.split(' ')[0] : '')
@@ -356,7 +439,7 @@ export default function InspectorSignup() {
       }))
       setStep('credentials')
     })
-  }, [])
+  }, [router])
 
   const set = (field: keyof typeof form, value: string | boolean | string[]) =>
     setForm(prev => ({ ...prev, [field]: value }))
@@ -398,7 +481,9 @@ export default function InspectorSignup() {
     }))
   }
 
-  const allDocsSelected = DOC_DEFS.every(d => pendingFiles[d.key] || uploadStates[d.key].uploaded)
+  const extraDocs = deriveExtraDocs(form.credentialTypes)
+  const allDocDefs = [...DOC_DEFS, ...extraDocs]
+  const allDocsSelected = allDocDefs.every(d => pendingFiles[d.key] || uploadStates[d.key]?.uploaded)
   const stepIdx = STEP_IDX[step]
 
   const hasProfessionalCredential = form.credentialTypes.some(id => PROFESSIONAL_TYPES.has(id))
@@ -486,13 +571,17 @@ export default function InspectorSignup() {
       userId = data.user.id
     }
 
-    // Persist firm data directly to the profiles row (supplements auth trigger)
-    if (form.firmName || form.businessAddress) {
-      void supabase
-        .from('profiles')
-        .update({ firm_name: form.firmName || null, business_address: form.businessAddress || null })
-        .eq('id', userId)
-    }
+    // Persist identity data directly to the profiles row (supplements auth trigger)
+    await supabase
+      .from('profiles')
+      .update({
+        full_name: `${form.firstName} ${form.lastName}`.trim() || null,
+        firm_name: form.firmName || null,
+        business_address: form.businessAddress || null,
+        onboarding_status: 'submitted',
+        verified: false,
+      })
+      .eq('id', userId)
 
     await upsertInspectorEligibility({
       userId,
@@ -520,7 +609,7 @@ export default function InspectorSignup() {
     }
 
     // Step 2 & 3: upload each pending file and write the credential row
-    for (const docDef of DOC_DEFS) {
+    for (const docDef of allDocDefs) {
       const file = pendingFiles[docDef.key]
       if (!file) continue
 
@@ -551,7 +640,7 @@ export default function InspectorSignup() {
       }
 
       // Write the inspector_credentials metadata row
-      const credentialId = `cred-${userId}-${docDef.credentialType}-${Date.now()}`
+      const credentialId = createCredentialId(userId, docDef.credentialType)
       await insertInspectorCredential({
         id:             credentialId,
         userId,
@@ -587,7 +676,7 @@ export default function InspectorSignup() {
         }))
       } else {
         await insertInspectorCredential({
-          id:             `cred-${userId}-digital_seal-${Date.now()}`,
+          id:             createCredentialId(userId, 'digital_seal'),
           userId,
           credentialType: 'digital_seal',
           fileName:       sealFile.name,
@@ -595,7 +684,7 @@ export default function InspectorSignup() {
           isRequired:     false,
         })
         // Link seal path to profile for PDF injection
-        void supabase
+        await supabase
           .from('profiles')
           .update({ digital_seal_url: sealPath })
           .eq('id', userId)
@@ -608,6 +697,17 @@ export default function InspectorSignup() {
 
     setIsSubmitting(false)
     await setInspectorOnboardingStatus('submitted', userId, userId)
+
+    // Confirmation email — fire-and-forget, never blocks navigation
+    void fetch('/api/mail/application-received', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: form.email,
+        inspectorName: `${form.firstName} ${form.lastName}`.trim(),
+      }),
+    })
+
     try { sessionStorage.setItem('vero_just_submitted', '1') } catch {}
     router.replace('/inspector/onboarding?submitted=1')
   }
@@ -633,11 +733,51 @@ export default function InspectorSignup() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <div className="bg-[#0A192F] border-b border-blue-900/60 px-4 sm:px-6 py-4 flex items-center">
+      {/* Mobile-only top bar */}
+      <div className="lg:hidden bg-[#0A192F] border-b border-blue-900/60 px-4 sm:px-6 py-4 flex items-center">
         <BrandWordmark height={32} priority theme="dark" />
       </div>
 
-      <div className="max-w-xl mx-auto w-full px-4 py-12 flex-1">
+      <div className="flex flex-1">
+        {/* ── Left marketing panel — hidden on mobile ── */}
+        <aside className="hidden lg:flex flex-col justify-between w-[420px] shrink-0 bg-[#0A192F] text-white px-10 py-12 sticky top-0 h-screen overflow-y-auto">
+          <div>
+            <BrandWordmark height={36} priority theme="dark" />
+            <div className="mt-12">
+              <h2 className="text-3xl font-black leading-tight">
+                BC&apos;s professional inspection network
+              </h2>
+              <p className="mt-4 text-blue-300 text-sm leading-relaxed">
+                Vero connects licensed engineers, architects, and certified professionals with builders across Metro Vancouver. Earn on your schedule, on your terms.
+              </p>
+            </div>
+
+            <div className="mt-10 space-y-5">
+              {[
+                { icon: '🏗', title: 'Stage-gated work', body: 'Jobs are released per-stage so you always know exactly what to inspect.' },
+                { icon: '💰', title: 'Transparent pricing', body: 'Fixed escrow upfront. No chasing invoices — funds release automatically on seal.' },
+                { icon: '🔒', title: 'Credential-matched', body: 'Only jobs that match your verified credentials appear on your Live Board.' },
+                { icon: '📋', title: 'Auto-generated reports', body: 'Schedule C-B packets are built from your inspection notes — no extra paperwork.' },
+              ].map(item => (
+                <div key={item.title} className="flex gap-3">
+                  <span className="text-xl shrink-0 mt-0.5">{item.icon}</span>
+                  <div>
+                    <div className="text-sm font-bold text-white">{item.title}</div>
+                    <div className="text-xs text-blue-400 mt-0.5 leading-relaxed">{item.body}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="text-[11px] text-blue-700 mt-10">
+            Vero Permit Inc. · BC only · All credentials verified against EGBC, AIBC &amp; Technical Safety BC
+          </div>
+        </aside>
+
+        {/* ── Right form panel ── */}
+        <main className="flex-1 overflow-y-auto px-4 sm:px-8 py-10">
+          <div className="max-w-xl mx-auto">
         {/* Step progress */}
         <div className="flex gap-2 mb-8">
           {STEPS.map((s, i) => (
@@ -782,12 +922,31 @@ export default function InspectorSignup() {
                   label={docDef.label}
                   hint={docDef.hint}
                   required={docDef.isRequired}
-                  uploaded={uploadStates[docDef.key].uploaded || !!pendingFiles[docDef.key]}
-                  uploading={uploadStates[docDef.key].uploading}
-                  uploadError={uploadStates[docDef.key].uploadError}
+                  uploaded={(uploadStates[docDef.key]?.uploaded ?? false) || !!pendingFiles[docDef.key]}
+                  uploading={uploadStates[docDef.key]?.uploading ?? false}
+                  uploadError={uploadStates[docDef.key]?.uploadError ?? null}
                   onFileSelected={(file) => handleFileSelected(docDef.key, file)}
                 />
               ))}
+              {extraDocs.length > 0 && (
+                <div>
+                  <div className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 pt-2 border-t border-gray-100">
+                    Credential-specific documents
+                  </div>
+                  {extraDocs.map(docDef => (
+                    <DocUpload
+                      key={docDef.key}
+                      label={docDef.label}
+                      hint={docDef.hint}
+                      required
+                      uploaded={(uploadStates[docDef.key]?.uploaded ?? false) || !!pendingFiles[docDef.key]}
+                      uploading={uploadStates[docDef.key]?.uploading ?? false}
+                      uploadError={uploadStates[docDef.key]?.uploadError ?? null}
+                      onFileSelected={(file) => handleFileSelected(docDef.key, file)}
+                    />
+                  ))}
+                </div>
+              )}
               {showSealUpload && (
                 <div>
                   <div className="flex items-center gap-2 mb-2">
@@ -843,7 +1002,7 @@ export default function InspectorSignup() {
               <div>
                 <div className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Documents</div>
                 <div className="space-y-1.5">
-                  {DOC_DEFS.map(d => (
+                  {allDocDefs.map(d => (
                     <div key={d.key} className={`flex items-center gap-2 text-xs font-semibold p-2 rounded-lg ${
                       pendingFiles[d.key]
                         ? 'bg-green-50 text-[#10B981]'
@@ -940,6 +1099,8 @@ export default function InspectorSignup() {
             )}
           </div>
         </div>
+          </div>{/* max-w-xl */}
+        </main>
       </div>
     </div>
   )
