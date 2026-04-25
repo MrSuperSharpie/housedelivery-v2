@@ -10,14 +10,15 @@ import {
 import { INSPECTION_STAGES } from '@/lib/mockData'
 import type { EligibilityResult } from '@/lib/eligibility'
 import { formatCurrency, formatRelativeTime } from '@/lib/utils'
-import type { InspectionJob, JobTimeSlot } from '@/lib/types'
+import type { ClaimCommitment, InspectionJob, JobTimeSlot } from '@/lib/types'
+import { RELIABILITY_COMMITMENT_VERSION } from '@/lib/reliability'
 import { calculatePricingBreakdown } from '@/utils/pricing'
 
 interface JobDetailModalProps {
   job: InspectionJob
   eligibility: EligibilityResult
   onClose: () => void
-  onClaim: (jobId: string, slot?: JobTimeSlot, suggestedSlot?: JobTimeSlot) => Promise<{ ok: boolean; error?: string }>
+  onClaim: (jobId: string, slot?: JobTimeSlot, suggestedSlot?: JobTimeSlot, claimCommitment?: ClaimCommitment) => Promise<{ ok: boolean; error?: string }>
 }
 
 type ClaimStep = 'detail' | 'schedule' | 'suggest' | 'confirming'
@@ -71,6 +72,7 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim }: JobDetail
   const [suggestNote, setSuggestNote] = useState('')
   const [claimError, setClaimError]   = useState<string | null>(null)
   const [shareFeedback, setShareFeedback] = useState<string | null>(null)
+  const [commitmentAccepted, setCommitmentAccepted] = useState(false)
 
   const stage = INSPECTION_STAGES.find(s => s.id === job.stage)
   const tierMeta = TIER_META[job.dispatchTier]
@@ -98,6 +100,13 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim }: JobDetail
   }
 
   const primaryLockReason = eligibility.reasons[0] ?? 'Claim restricted to qualified inspectors'
+
+  const buildClaimCommitment = (): ClaimCommitment => ({
+    accepted: commitmentAccepted,
+    version: RELIABILITY_COMMITMENT_VERSION,
+    acceptedAt: new Date().toISOString(),
+    policyMode: 'observe_only',
+  })
 
   const handleSharePosting = async () => {
     const shareUrl = `${window.location.origin}/inspector?job=${job.id}`
@@ -131,10 +140,14 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim }: JobDetail
       setClaimError(primaryLockReason)
       return
     }
+    if (!commitmentAccepted) {
+      setClaimError('Accept the Vero Permit attendance commitment before claiming this job.')
+      return
+    }
     const slotToClaim = selectedSlot ?? flexibleClaimSlot
     setClaimError(null)
     setStep('confirming')
-    const result = await onClaim(job.id, slotToClaim)
+    const result = await onClaim(job.id, slotToClaim, undefined, buildClaimCommitment())
     if (!result || !result.ok) {
       setStep('schedule')
       setClaimError(result?.error ?? 'Could not claim this job. Please try again.')
@@ -147,13 +160,17 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim }: JobDetail
       return
     }
     if (!suggestDate || !suggestStart || !suggestEnd) return
+    if (!commitmentAccepted) {
+      setClaimError('Accept the Vero Permit attendance commitment before claiming this job.')
+      return
+    }
     setClaimError(null)
     setStep('confirming')
     const result = await onClaim(job.id, {
       date: suggestDate,
       startTime: suggestStart,
       endTime: suggestEnd,
-    })
+    }, undefined, buildClaimCommitment())
     if (!result || !result.ok) {
       setStep('suggest')
       setClaimError(result?.error ?? 'Could not claim this job. Please try again.')
@@ -184,6 +201,10 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim }: JobDetail
               {claimError}
             </div>
           )}
+          <CommitmentBox
+            checked={commitmentAccepted}
+            onChange={setCommitmentAccepted}
+          />
 
           {/* Date picker */}
           <div>
@@ -232,10 +253,10 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim }: JobDetail
 
           <button
             onClick={handleConfirmSuggest}
-            disabled={!suggestDate || !suggestStart || !suggestEnd}
+            disabled={!suggestDate || !suggestStart || !suggestEnd || !commitmentAccepted}
             className="flex w-full items-center justify-center gap-2 rounded-2xl bg-flame py-4 font-bold text-white transition-all hover:bg-flame-light focus:outline-none focus:ring-2 focus:ring-flame/30 disabled:cursor-not-allowed disabled:opacity-45 disabled:text-white/80">
             <Calendar className="w-4 h-4" />
-            Send Time Suggestion
+            Claim Suggested Time
           </button>
         </div>
       </ModalShell>
@@ -286,6 +307,11 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim }: JobDetail
             </div>
           )}
 
+          <CommitmentBox
+            checked={commitmentAccepted}
+            onChange={setCommitmentAccepted}
+          />
+
           {/* Separator */}
           <div className="flex items-center gap-3">
             <div className="flex-1 h-px bg-white/5" />
@@ -303,7 +329,7 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim }: JobDetail
           {/* Confirm selected slot */}
           <button
             onClick={handleConfirmSlot}
-            disabled={!selectedSlot && !!job.availableSlots && job.availableSlots.length > 0}
+            disabled={!commitmentAccepted || (!selectedSlot && !!job.availableSlots && job.availableSlots.length > 0)}
             className="flex w-full items-center justify-center gap-2 rounded-2xl bg-success-green py-4 text-base font-black text-white transition-all hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-success-green/30 disabled:cursor-not-allowed disabled:opacity-40 disabled:text-white/80">
             <CheckCircle2 className="w-5 h-5" />
             {selectedSlot
@@ -543,9 +569,21 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim }: JobDetail
           </>
         ) : job.dispatchTier === 'emergency' && (!job.availableSlots || job.availableSlots.length === 0) ? (
           <>
+            {claimError && (
+              <div className="mb-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300">
+                {claimError}
+              </div>
+            )}
+            <div className="mb-3">
+              <CommitmentBox
+                checked={commitmentAccepted}
+                onChange={setCommitmentAccepted}
+              />
+            </div>
             <button
               onClick={handleConfirmSlot}
-              className="flex w-full items-center justify-center gap-2.5 rounded-2xl bg-fail-red/90 py-4 text-base font-black text-white transition-all hover:bg-fail-red focus:outline-none focus:ring-2 focus:ring-fail-red/30">
+              disabled={!commitmentAccepted}
+              className="flex w-full items-center justify-center gap-2.5 rounded-2xl bg-fail-red/90 py-4 text-base font-black text-white transition-all hover:bg-fail-red focus:outline-none focus:ring-2 focus:ring-fail-red/30 disabled:cursor-not-allowed disabled:opacity-45 disabled:text-white/80">
               <Zap className="w-5 h-5" />
               Claim Emergency Slot — respond within 24h · {formatCurrency(job.offeredRate)}
             </button>
@@ -572,6 +610,34 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim }: JobDetail
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
+
+function CommitmentBox({ checked, onChange }: {
+  checked: boolean
+  onChange: (checked: boolean) => void
+}) {
+  return (
+    <label className={`flex cursor-pointer gap-3 rounded-2xl border p-3.5 transition-all ${
+      checked
+        ? 'border-success-green/40 bg-success-green/10'
+        : 'border-amber-300/40 bg-amber-100/70 dark:border-amber-400/20 dark:bg-amber-400/10'
+    }`}>
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={event => onChange(event.target.checked)}
+        className="mt-0.5 h-4 w-4 rounded border-subtle accent-success-green"
+      />
+      <span className="min-w-0">
+        <span className="block text-xs font-black uppercase tracking-wide text-ink">
+          Binding attendance commitment
+        </span>
+        <span className="mt-1 block text-xs leading-5 text-muted">
+          I will confirm before site, attend the selected window, or submit a valid cancellation reason with evidence if circumstances change. Inspection independence is preserved: Pass, Fail, and Hold / Modification Required all count as professional work when properly documented.
+        </span>
+      </span>
+    </label>
+  )
+}
 
 function ModalShell({ children, onClose, onBack, title }: {
   children: React.ReactNode

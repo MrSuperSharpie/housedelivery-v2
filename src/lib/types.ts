@@ -246,6 +246,15 @@ export interface JobTimeSlot {
   flexible?: boolean
 }
 
+export type ReliabilityEnforcementMode = 'observe_only' | 'soft_enforcement' | 'full_enforcement'
+
+export interface ClaimCommitment {
+  accepted: boolean
+  version: string
+  acceptedAt: string
+  policyMode?: ReliabilityEnforcementMode
+}
+
 export interface InspectionJob {
   id: string
   projectId: string

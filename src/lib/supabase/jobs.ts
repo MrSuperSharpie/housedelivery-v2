@@ -14,6 +14,7 @@ import type {
   Region,
   DispatchTier,
   JobTimeSlot,
+  ClaimCommitment,
   EscrowStatus,
   PricingInspectionType,
   PricingMode,
@@ -843,11 +844,13 @@ export async function insertJobAssignment(
 
 export async function claimLiveJobIfEligible(
   jobId: string,
-  claimedSlot?: JobTimeSlot
+  claimedSlot?: JobTimeSlot,
+  claimCommitment?: ClaimCommitment,
 ): Promise<ClaimJobRpcResult> {
   const { data, error } = await supabase.rpc('claim_live_job_if_eligible', {
     p_job_id: jobId,
     p_claimed_slot: claimedSlot ?? null,
+    p_claim_commitment: claimCommitment ?? null,
   })
 
   if (error || !data) {

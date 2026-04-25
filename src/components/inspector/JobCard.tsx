@@ -8,13 +8,13 @@ import { INSPECTION_STAGES } from '@/lib/mockData'
 import type { EligibilityResult } from '@/lib/eligibility'
 import { formatCurrency, formatRelativeTime } from '@/lib/utils'
 import { useTheme } from '@/lib/theme'
-import type { InspectionJob, JobTimeSlot } from '@/lib/types'
+import type { ClaimCommitment, InspectionJob, JobTimeSlot } from '@/lib/types'
 
 interface JobCardProps {
   job: InspectionJob
   eligibility: EligibilityResult
   primaryEligibilityReason?: string
-  onClaim: (jobId: string, slot?: JobTimeSlot, suggestedSlot?: JobTimeSlot) => Promise<{ ok: boolean; error?: string }>
+  onClaim: (jobId: string, slot?: JobTimeSlot, suggestedSlot?: JobTimeSlot, claimCommitment?: ClaimCommitment) => Promise<{ ok: boolean; error?: string }>
 }
 
 const DISC_COLOR: Record<string, string> = {
@@ -37,8 +37,8 @@ export function JobCard({ job, eligibility, primaryEligibilityReason, onClaim }:
     ? 'border-slate-600 bg-slate-900 text-slate-300'
     : 'border-slate-300 bg-white text-slate-600')
 
-  const handleClaim = async (jobId: string, slot?: JobTimeSlot, suggested?: JobTimeSlot): Promise<{ ok: boolean; error?: string }> => {
-    const result = await onClaim(jobId, slot, suggested)
+  const handleClaim = async (jobId: string, slot?: JobTimeSlot, suggested?: JobTimeSlot, claimCommitment?: ClaimCommitment): Promise<{ ok: boolean; error?: string }> => {
+    const result = await onClaim(jobId, slot, suggested, claimCommitment)
     if (result.ok) setShowDetail(false)
     return result
   }

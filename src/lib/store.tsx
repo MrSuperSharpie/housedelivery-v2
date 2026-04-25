@@ -8,6 +8,7 @@ import type {
   DispatchTier,
   Region,
   Assignment,
+  ClaimCommitment,
   ObjectionReason,
   JobTimeSlot,
   PricingInspectionType,
@@ -135,6 +136,7 @@ export interface NewClaimInput {
   inspectorDisciplines: InspectorDiscipline[]
   inspectorRegions:     Region[]
   claimedSlot:          import('@/lib/types').JobTimeSlot
+  claimCommitment?:     ClaimCommitment
   credentialExpiryDate?: string
 }
 
@@ -858,7 +860,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         }
 
         console.log('START claim', claimPayload)
-        const result = await claimLiveJobIfEligible(job.id, provisionalAssignment.claimedSlot)
+        const result = await claimLiveJobIfEligible(job.id, provisionalAssignment.claimedSlot, input.claimCommitment)
         console.log('RESULT', result.assignment, result.error)
 
         if (!result.ok || !result.assignment) {
@@ -887,6 +889,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           status: 'provisional' as const,
           objection_window_closes_at: provisionalAssignment.objectionWindowClosesAt,
           claimed_slot: provisionalAssignment.claimedSlot,
+          commitment_accepted: input.claimCommitment?.accepted === true,
+          commitment_version: input.claimCommitment?.version ?? null,
+          commitment_accepted_at: input.claimCommitment?.acceptedAt ?? null,
           escrow_amount: job.escrowAmount ?? job.offeredRate,
           escrow_status: 'held' as const,
           updated_at: provisionalAssignment.claimedAt,

@@ -20,6 +20,7 @@ export const ADMIN_NAV = [
   { href: '/admin/packages',    label: 'Packages',       icon: Package,         badge: 2 },
   { href: '/admin/payments',    label: 'Payments',       icon: DollarSign,      badge: null },
   { href: '/admin/disputes',    label: 'Disputes',       icon: ShieldAlert,     badge: 1 },
+  { href: '/admin/reliability', label: 'Reliability',    icon: Shield,          badge: null },
   { href: '/admin/audit',       label: 'Audit Log',      icon: ScrollText,      badge: null },
   { href: '/admin/settings',    label: 'Settings',       icon: Settings,        badge: null },
 ]

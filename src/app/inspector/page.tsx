@@ -13,7 +13,7 @@ import { getInspectorOnboardingStatusAsync } from '@/lib/persistence/inspectorOn
 import { selectInspectorEligibility } from '@/lib/supabase/compliance'
 import { useTheme } from '@/lib/theme'
 import { isInspectorTestModeEnabled } from '@/lib/inspectorTestMode'
-import type { Region, InspectorDiscipline, InspectorEligibilityProfile, HoldRecord } from '@/lib/types'
+import type { ClaimCommitment, JobTimeSlot, Region, InspectorDiscipline, InspectorEligibilityProfile, HoldRecord } from '@/lib/types'
 import { listHoldsForJob } from '@/lib/supabase/holds'
 
 const REGIONS: { value: Region | 'all'; label: string }[] = [
@@ -198,7 +198,8 @@ export default function InspectorDashboard() {
 
   const handleClaim = async (
     jobId: string,
-    slot: { date: string; startTime: string; endTime: string; flexible?: boolean } = { date: '', startTime: '', endTime: '', flexible: true }
+    slot: JobTimeSlot = { date: '', startTime: '', endTime: '', flexible: true },
+    claimCommitment?: ClaimCommitment,
   ): Promise<{ ok: boolean; error?: string }> => {
     if (!user) return { ok: false, error: 'Inspector is not signed in.' }
     const claimInput = {
@@ -210,6 +211,7 @@ export default function InspectorDashboard() {
       inspectorDisciplines: user.disciplines ?? [],
       inspectorRegions: user.regions ?? [],
       claimedSlot: slot,
+      claimCommitment,
       credentialExpiryDate: user.credentialExpiryDate,
     }
     const timeoutId = window.setTimeout(() => {
@@ -388,6 +390,38 @@ export default function InspectorDashboard() {
           </div>
         </div>
 
+        <div className={`mb-6 rounded-2xl border p-4 shadow-sm ${
+          isDark ? 'border-emerald-500/25 bg-emerald-500/10' : 'border-emerald-200 bg-emerald-50'
+        }`}>
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <div className={`text-[10px] font-black uppercase tracking-widest ${
+                isDark ? 'text-emerald-300' : 'text-emerald-800'
+              }`}>
+                Vero Permit Reliability
+              </div>
+              <h2 className="mt-1 text-base font-black text-ink">Earn more opportunity through dependable attendance.</h2>
+              <p className="mt-1 max-w-3xl text-xs leading-5 text-muted">
+                Confirm before site, show up inside the committed window, and document completed professional work. Pass, Fail, and Hold outcomes are treated equally when the inspection is properly performed.
+              </p>
+            </div>
+            <div className={`grid min-w-[16rem] grid-cols-3 gap-2 rounded-xl border p-2 ${
+              isDark ? 'border-emerald-500/20 bg-slate-900/40' : 'border-emerald-200 bg-white/70'
+            }`}>
+              {[
+                { label: 'Access', value: 'Priority' },
+                { label: 'Payout', value: 'Faster' },
+                { label: 'Reserve', value: 'Lower' },
+              ].map(item => (
+                <div key={item.label} className="text-center">
+                  <div className="text-[9px] font-bold uppercase tracking-wider text-subtle">{item.label}</div>
+                  <div className={`text-xs font-black ${isDark ? 'text-emerald-300' : 'text-emerald-800'}`}>{item.value}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* Filters */}
         <div className={`mb-6 rounded-2xl border p-4 shadow-sm ${
           isDark ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'
@@ -496,7 +530,7 @@ export default function InspectorDashboard() {
                       key={job.id}
                       job={job}
                       eligibility={eligibility}
-                      onClaim={(jobId, slot) => handleClaim(jobId, slot)}
+                      onClaim={(jobId, slot, _suggestedSlot, claimCommitment) => handleClaim(jobId, slot, claimCommitment)}
                     />
                   ))}
                 </section>
@@ -514,7 +548,7 @@ export default function InspectorDashboard() {
                       job={job}
                       eligibility={eligibility}
                       primaryEligibilityReason={primaryReason ?? undefined}
-                      onClaim={(jobId, slot) => handleClaim(jobId, slot)}
+                      onClaim={(jobId, slot, _suggestedSlot, claimCommitment) => handleClaim(jobId, slot, claimCommitment)}
                     />
                   ))}
                 </section>

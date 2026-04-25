@@ -1035,6 +1035,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
               {[
                 { icon: Radio,       text: 'Listing broadcast to all qualified local CPs via app + email' },
                 { icon: Eye,         text: 'First eligible inspector to claim the slot is automatically assigned — no manual selection' },
+                { icon: Shield,      text: 'Vero Reliability Guarantee starts backup dispatch and admin review if a confirmed inspector cannot attend' },
                 { icon: Lock,        text: `${formatCurrency(totalEscrow)} held in secure escrow until you approve the inspection results` },
                 { icon: FileText,    text: 'Inspector auto-generates a signed Schedule C-B on completion' },
               ].map(({ icon: Icon, text }, i) => (
@@ -1087,11 +1088,11 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                 },
                 {
                   bullet: '2',
-                  text: `If the inspection cannot proceed due to site not being ready — including restricted access, unsafe conditions, or work not at the declared stage — a <strong>50% cancellation fee of ${formatCurrency(pricing.inspectorPayout / 2)}</strong> will be charged to your account.`,
+                  text: 'If the inspection cannot proceed due to site not being ready — including restricted access, unsafe conditions, or work not at the declared stage — Vero Permit records a site-readiness incident for admin review and inspector protection.',
                 },
                 {
                   bullet: '3',
-                  text: `Cancellations or rescheduling requests made within <strong>2 hours</strong> of a confirmed appointment are subject to the <strong>full inspection fee of ${formatCurrency(pricing.inspectorPayout)}</strong>, as the inspector's time has been reserved.`,
+                  text: 'Late cancellation, reserve, payout, or fee consequences are governed only by the active reliability policy. The default mode is observe-only until legal review approves enforcement.',
                 },
                 {
                   bullet: '4',
@@ -1132,7 +1133,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                 )}
               </div>
               <span className={`text-xs font-semibold ${siteAgreed ? 'text-emerald-700' : 'text-gray-700'}`}>
-                I confirm the site will be ready and I accept the cancellation policy
+                I confirm the site will be ready and I understand Vero Permit will record readiness and late-change events for governed review
               </span>
             </button>
           </div>

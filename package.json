@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx --test src/lib/governance/*.test.ts src/lib/holds/*.test.ts src/lib/pdf/tests/*.test.ts",
+    "test": "tsx --test src/lib/*.test.ts src/lib/governance/*.test.ts src/lib/holds/*.test.ts src/lib/pdf/tests/*.test.ts",
     "pdf:install-browser": "playwright install chromium"
   },
   "dependencies": {
