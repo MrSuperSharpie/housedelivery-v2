@@ -202,27 +202,22 @@ export default function InspectorDashboard() {
     claimCommitment?: ClaimCommitment,
   ): Promise<{ ok: boolean; error?: string }> => {
     if (!user) return { ok: false, error: 'Inspector is not signed in.' }
-    const claimInput = {
-      jobId,
-      builderId: '',
-      inspectorId: user.supabaseId ?? user.id,
-      inspectorName: user.name,
-      inspectorLicense: user.licenseNumber || '',
-      inspectorDisciplines: user.disciplines ?? [],
-      inspectorRegions: user.regions ?? [],
-      claimedSlot: slot,
-      claimCommitment,
-      credentialExpiryDate: user.credentialExpiryDate,
-    }
-    const timeoutId = window.setTimeout(() => {
-      console.log('CLAIM TIMEOUT')
-    }, 5000)
-    const result = await store.claimJob(claimInput)
-    window.clearTimeout(timeoutId)
 
-    if (result.ok) {
-      console.log('ROUTING to assignment page', result.value.id)
-      router.push(`/inspector/assignment/${result.value.id}`)
+    let result: { ok: boolean; error?: string; assignment?: Record<string, unknown> }
+    try {
+      const res = await fetch('/api/jobs/claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobId, claimedSlot: slot, commitment: claimCommitment }),
+      })
+      result = await res.json() as typeof result
+    } catch {
+      return { ok: false, error: 'Network error. Please try again.' }
+    }
+
+    if (result.ok && result.assignment) {
+      const assignmentId = result.assignment.id as string
+      if (assignmentId) router.push(`/inspector/assignment/${assignmentId}`)
     }
 
     return result.ok ? { ok: true } : { ok: false, error: result.error }
