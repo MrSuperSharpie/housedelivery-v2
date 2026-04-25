@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Search, ChevronRight, PlayCircle, Clock, Activity, Filter, Briefcase } from 'lucide-react'
 import { Navbar } from '@/components/shared/Navbar'
 import { JobCard } from '@/components/inspector/JobCard'
+import { ReliabilityTierDashboard } from '@/components/inspector/ReliabilityTierDashboard'
 import { checkInspectorEligibility } from '@/lib/eligibility'
 import { formatCurrency } from '@/lib/utils'
 import { useAuth } from '@/lib/auth'
@@ -15,6 +16,9 @@ import { useTheme } from '@/lib/theme'
 import { isInspectorTestModeEnabled } from '@/lib/inspectorTestMode'
 import type { ClaimCommitment, JobTimeSlot, Region, InspectorDiscipline, InspectorEligibilityProfile, HoldRecord } from '@/lib/types'
 import { listHoldsForJob } from '@/lib/supabase/holds'
+import { getActiveReliabilityPolicyConfig, getInspectorReliabilityDashboardData, type InspectorReliabilityDashboardData } from '@/lib/supabase/reliability'
+import { buildInspectorReliabilityDashboardModel } from '@/lib/reliabilityDashboard'
+import { evaluateReliabilityRollout } from '@/lib/reliabilityRollout'
 
 const REGIONS: { value: Region | 'all'; label: string }[] = [
   { value: 'all',       label: 'All Regions' },
@@ -51,6 +55,8 @@ export default function InspectorDashboard() {
   const [eligibilityProfile, setEligibilityProfile] = useState<InspectorEligibilityProfile | null>(null)
   const [eligibilityLoaded, setEligibilityLoaded] = useState(false)
   const [acceptedHoldsForInspector, setAcceptedHoldsForInspector] = useState<HoldRecord[]>([])
+  const [reliabilityData, setReliabilityData] = useState<InspectorReliabilityDashboardData | null>(null)
+  const [reliabilityPolicyConfig, setReliabilityPolicyConfig] = useState<Record<string, unknown> | null>(null)
 
   useEffect(() => {
     if (!user) { router.replace('/sign-in?role=inspector'); return }
@@ -83,6 +89,41 @@ export default function InspectorDashboard() {
       active = false
     }
   }, [user, router])
+
+  useEffect(() => {
+    if (!user?.supabaseId) {
+      queueMicrotask(() => {
+        setReliabilityData(null)
+        setReliabilityPolicyConfig(null)
+      })
+      return
+    }
+
+    let active = true
+    const credentialStatus = eligibilityProfile?.credentialExpiresAt
+      && new Date(eligibilityProfile.credentialExpiresAt).getTime() < Date.now()
+      ? 'expired'
+      : eligibilityProfile?.status ?? onboardingStatus
+
+    Promise.all([
+      getInspectorReliabilityDashboardData(user.supabaseId, credentialStatus),
+      getActiveReliabilityPolicyConfig(),
+    ])
+      .then(([data, policy]) => {
+        if (!active) return
+        setReliabilityData(data)
+        setReliabilityPolicyConfig(policy?.config ?? null)
+      })
+      .catch(() => {
+        if (!active) return
+        setReliabilityData(null)
+        setReliabilityPolicyConfig(null)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [eligibilityProfile?.credentialExpiresAt, eligibilityProfile?.status, onboardingStatus, user?.supabaseId])
 
   const myAssignments = store.assignments.filter(a =>
     a.inspectorId === user?.id || a.inspectorId === user?.supabaseId
@@ -195,6 +236,22 @@ export default function InspectorDashboard() {
   const eligibleJobs = classifiedJobs.filter(entry => entry.eligibility.eligible)
   const ineligibleJobs = classifiedJobs.filter(entry => !entry.eligibility.eligible)
   const showOnboardingBanner = !inspectorTestOverride && inspectorEligibility.status !== 'approved'
+  const reliabilityDashboardModel = useMemo(() => buildInspectorReliabilityDashboardModel({
+    profile: reliabilityData?.profile ?? {
+      tierKey: user?.supabaseId ? 'standard' : 'preferred',
+      internalScore: user?.supabaseId ? 75 : 91,
+      completedProfessionalWorkCount: user?.supabaseId ? 0 : myAssignments.length + 8,
+      claimCommitmentCount: user?.supabaseId ? 0 : myAssignments.length + 10,
+      invalidLateCancellationCount: 0,
+      noShowCount: 0,
+      credentialStatus: inspectorEligibility.status,
+    },
+    events: reliabilityData?.events ?? [],
+  }), [inspectorEligibility.status, myAssignments.length, reliabilityData, user?.supabaseId])
+  const reliabilityRollout = useMemo(
+    () => evaluateReliabilityRollout(reliabilityPolicyConfig),
+    [reliabilityPolicyConfig],
+  )
 
   const handleClaim = async (
     jobId: string,
@@ -385,37 +442,10 @@ export default function InspectorDashboard() {
           </div>
         </div>
 
-        <div className={`mb-6 rounded-2xl border p-4 shadow-sm ${
-          isDark ? 'border-emerald-500/25 bg-emerald-500/10' : 'border-emerald-200 bg-emerald-50'
-        }`}>
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <div className={`text-[10px] font-black uppercase tracking-widest ${
-                isDark ? 'text-emerald-300' : 'text-emerald-800'
-              }`}>
-                Vero Permit Reliability
-              </div>
-              <h2 className="mt-1 text-base font-black text-ink">Earn more opportunity through dependable attendance.</h2>
-              <p className="mt-1 max-w-3xl text-xs leading-5 text-muted">
-                Confirm before site, show up inside the committed window, and document completed professional work. Pass, Fail, and Hold outcomes are treated equally when the inspection is properly performed.
-              </p>
-            </div>
-            <div className={`grid min-w-[16rem] grid-cols-3 gap-2 rounded-xl border p-2 ${
-              isDark ? 'border-emerald-500/20 bg-slate-900/40' : 'border-emerald-200 bg-white/70'
-            }`}>
-              {[
-                { label: 'Access', value: 'Priority' },
-                { label: 'Payout', value: 'Faster' },
-                { label: 'Reserve', value: 'Lower' },
-              ].map(item => (
-                <div key={item.label} className="text-center">
-                  <div className="text-[9px] font-bold uppercase tracking-wider text-subtle">{item.label}</div>
-                  <div className={`text-xs font-black ${isDark ? 'text-emerald-300' : 'text-emerald-800'}`}>{item.value}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        <ReliabilityTierDashboard
+          model={reliabilityDashboardModel}
+          enabled={reliabilityRollout.inspectorDashboardVisible}
+        />
 
         {/* Filters */}
         <div className={`mb-6 rounded-2xl border p-4 shadow-sm ${

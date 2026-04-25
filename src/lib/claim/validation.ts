@@ -16,6 +16,9 @@ export const DUPLICATE_CLAIM_ERROR = 'Job has already been claimed.'
 // Notification event keys queued by the RPC on successful claim.
 export const INSPECTOR_CLAIM_EVENT_KEY = 'inspector.claim_commitment_accepted'
 export const BUILDER_ASSIGNMENT_EVENT_KEY = 'builder.assignment_claimed'
+export const INSPECTOR_ATTENDANCE_REMINDER_EVENT_KEY = 'inspector.attendance_confirmation_reminder'
+export const ADMIN_CRITICAL_ATTENDANCE_RISK_EVENT_KEY = 'admin.critical_attendance_risk'
+export const STANDBY_ACTIVATION_REQUESTED_EVENT_KEY = 'standby.activation_requested'
 
 export function validateClaimEligibility(ctx: ClaimEligibilityContext): ClaimValidationResult {
   if (ctx.onboardingStatus === 'suspended') {

@@ -10,8 +10,12 @@ import {
 import { INSPECTION_STAGES } from '@/lib/mockData'
 import type { EligibilityResult } from '@/lib/eligibility'
 import { formatCurrency, formatRelativeTime } from '@/lib/utils'
-import type { ClaimCommitment, InspectionJob, JobTimeSlot } from '@/lib/types'
-import { RELIABILITY_COMMITMENT_VERSION } from '@/lib/reliability'
+import type { ClaimCommitment, InspectionJob, JobTimeSlot, NextAttendanceCheckIn } from '@/lib/types'
+import {
+  buildAttendanceConfirmationLadder,
+  deriveNextRequiredAttendanceCheckIn,
+  RELIABILITY_COMMITMENT_VERSION,
+} from '@/lib/reliability'
 import { calculatePricingBreakdown } from '@/utils/pricing'
 
 interface JobDetailModalProps {
@@ -19,6 +23,10 @@ interface JobDetailModalProps {
   eligibility: EligibilityResult
   onClose: () => void
   onClaim: (jobId: string, slot?: JobTimeSlot, suggestedSlot?: JobTimeSlot, claimCommitment?: ClaimCommitment) => Promise<{ ok: boolean; error?: string }>
+  onConfirmAttendance?: (
+    confirmationId: string,
+    input?: { confirmationToken?: string; checkpoint?: string; method?: 'manual' | 'geo_fence' | 'notification_link' },
+  ) => Promise<{ ok: boolean; error?: string }>
 }
 
 type ClaimStep = 'detail' | 'schedule' | 'suggest' | 'commitment' | 'confirming'
@@ -57,6 +65,55 @@ function fmtTime(t: string) {
   return `${h % 12 || 12}:${m.toString().padStart(2,'0')} ${h < 12 ? 'AM' : 'PM'}`
 }
 
+function fmtDateTime(iso: string) {
+  return new Date(iso).toLocaleString('en-CA', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+}
+
+function scheduledStartFromSlot(slot?: JobTimeSlot) {
+  if (!slot || slot.flexible || !slot.date || !slot.startTime) return null
+  return new Date(`${slot.date}T${slot.startTime}:00`).toISOString()
+}
+
+function getNextCheckIn(job: InspectionJob): NextAttendanceCheckIn {
+  if (job.nextAttendanceCheckIn) return job.nextAttendanceCheckIn
+
+  if (job.attendanceConfirmations?.length) {
+    const next = deriveNextRequiredAttendanceCheckIn(job.attendanceConfirmations)
+    if (next) return next
+  }
+
+  if (job.status === 'live') {
+    return {
+      checkpoint: 'initial_claim',
+      status: 'pending',
+      requiredAt: null,
+      label: 'Initial confirmation',
+      critical: false,
+    }
+  }
+
+  const scheduledStartAt = job.scheduledFor ?? scheduledStartFromSlot(job.availableSlots?.[0])
+  const next = deriveNextRequiredAttendanceCheckIn(
+    buildAttendanceConfirmationLadder({
+      scheduledStartAt,
+      claimedAt: job.requestedAt,
+    }),
+  )
+
+  return next ?? {
+    checkpoint: 'arrival',
+    status: 'not_required',
+    requiredAt: null,
+    label: 'No pending check-in',
+    critical: false,
+  }
+}
+
 const SUGGEST_TIMES = [
   '07:00','07:30','08:00','08:30','09:00','09:30',
   '10:00','10:30','11:00','11:30','12:00','12:30',
@@ -71,7 +128,7 @@ function nextDays(n: number): string[] {
   })
 }
 
-export function JobDetailModal({ job, eligibility, onClose, onClaim }: JobDetailModalProps) {
+export function JobDetailModal({ job, eligibility, onClose, onClaim, onConfirmAttendance }: JobDetailModalProps) {
   const [step, setStep]               = useState<ClaimStep>('detail')
   const [selectedSlot, setSelectedSlot] = useState<JobTimeSlot | null>(null)
   const [suggestDate, setSuggestDate] = useState('')
@@ -80,6 +137,8 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim }: JobDetail
   const [suggestNote, setSuggestNote] = useState('')
   const [claimError, setClaimError]   = useState<string | null>(null)
   const [shareFeedback, setShareFeedback] = useState<string | null>(null)
+  const [attendanceFeedback, setAttendanceFeedback] = useState<string | null>(null)
+  const [isConfirmingAttendance, setIsConfirmingAttendance] = useState(false)
   const [pendingSlot, setPendingSlot] = useState<JobTimeSlot | null>(null)
   const [checks, setChecks]           = useState<boolean[]>(Array(5).fill(false))
 
@@ -100,6 +159,9 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim }: JobDetail
   const hrlyRate = Math.round(pricing.inspectorPayout / (job.estimatedDuration / 60))
   const days = nextDays(14)
   const isClaiming = step === 'confirming'
+  const nextCheckIn = getNextCheckIn(job)
+  const nextCheckInTime = nextCheckIn.requiredAt ? fmtDateTime(nextCheckIn.requiredAt) : 'At claim'
+  const nextCheckInStatus = nextCheckIn.status.replace('_', ' ')
 
   const flexibleClaimSlot: JobTimeSlot = {
     date: '',
@@ -173,6 +235,21 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim }: JobDetail
       setStep('commitment')
       setClaimError(result?.error ?? 'Could not claim this job. Please try again.')
     }
+  }
+
+  const handleConfirmAttendance = async () => {
+    if (!onConfirmAttendance || !nextCheckIn.confirmationId) return
+    setAttendanceFeedback(null)
+    setIsConfirmingAttendance(true)
+
+    const result = await onConfirmAttendance(nextCheckIn.confirmationId, {
+      confirmationToken: nextCheckIn.confirmationToken,
+      checkpoint: nextCheckIn.checkpoint,
+      method: nextCheckIn.geoFenced ? 'geo_fence' : 'manual',
+    })
+
+    setIsConfirmingAttendance(false)
+    setAttendanceFeedback(result.ok ? 'Check-in recorded' : result.error ?? 'Could not record check-in')
   }
 
   // ── COMMITMENT ──────────────────────────────────────────────────────────────
@@ -441,6 +518,35 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim }: JobDetail
           <Row label="Stage"         val={`Stage ${job.stage} — ${job.stageName}`} />
           <Row label="Discipline"    val={job.requiredDiscipline.charAt(0).toUpperCase() + job.requiredDiscipline.slice(1)} />
           <Row label="Posted"        val={formatRelativeTime(job.requestedAt)} />
+        </Section>
+
+        <Section
+          title="Next Required Check-in"
+          icon={Clock}
+          accent={nextCheckIn.critical ? 'border-amber-300 bg-amber-100 text-amber-900 dark:border-warning-amber/30 dark:bg-warning-amber/10' : undefined}
+        >
+          <Row label="Checkpoint" val={nextCheckIn.label ?? 'Check-in'} />
+          <Row label="Status" val={nextCheckInStatus.charAt(0).toUpperCase() + nextCheckInStatus.slice(1)} />
+          <Row label="Required" val={nextCheckInTime} />
+          {nextCheckIn.checkpoint === 't_90m' && (
+            <p className="text-xs text-amber-900 dark:text-warning-amber">
+              Missing this go/no-go check may activate standby dispatch support.
+            </p>
+          )}
+          {nextCheckIn.confirmationId && onConfirmAttendance && nextCheckIn.status === 'pending' && (
+            <button
+              type="button"
+              onClick={handleConfirmAttendance}
+              disabled={isConfirmingAttendance}
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-success-green px-3 py-2.5 text-xs font-black text-white transition-all hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-success-green/30 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              {isConfirmingAttendance ? 'Recording check-in...' : 'Confirm Attendance'}
+            </button>
+          )}
+          {attendanceFeedback && (
+            <p className="text-xs font-semibold text-ink">{attendanceFeedback}</p>
+          )}
         </Section>
 
         {/* Re-inspection context */}

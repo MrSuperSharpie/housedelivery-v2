@@ -12,6 +12,7 @@ import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { SchedulingPicker, isSlotValidForTier, type TimeSlot } from '@/components/builder/SchedulingPicker'
+import { ReliabilityGuarantee } from '@/components/builder/ReliabilityGuarantee'
 import { INSPECTION_STAGES } from '@/lib/mockData'
 import { formatCurrency } from '@/lib/utils'
 import { useAuth } from '@/lib/auth'
@@ -1045,6 +1046,10 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                 </div>
               ))}
             </div>
+          </div>
+
+          <div className="mb-4">
+            <ReliabilityGuarantee compact />
           </div>
 
           {/* ── Site Readiness Agreement (collapsible) ── */}

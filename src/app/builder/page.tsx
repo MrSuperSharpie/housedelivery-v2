@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  Building2, TrendingUp, DollarSign, ChevronRight, MapPin,
+  Building2, TrendingUp, ChevronRight, MapPin,
   CheckCircle2, Clock, AlertTriangle,
   Navigation, Shield, Zap, Lock, ExternalLink
 } from 'lucide-react'
@@ -12,6 +12,7 @@ import { ProjectCard } from '@/components/builder/ProjectCard'
 import { DispatchModal } from '@/components/builder/DispatchModal'
 import { EnRouteTracker } from '@/components/builder/EnRouteTracker'
 import { DailyFlash } from '@/components/builder/DailyFlash'
+import { ReliabilityGuarantee } from '@/components/builder/ReliabilityGuarantee'
 import { MOCK_BUILDER } from '@/lib/mockData'
 import { useAuth } from '@/lib/auth'
 import { useStore } from '@/lib/store'
@@ -38,6 +39,7 @@ import { HOLD_BUILDER_ACTIONABLE_STATUSES } from '@/lib/holds/workflow'
 import { resolveHoldBaseRate } from '@/lib/pricing/config'
 import { calculateBaseHoldServiceFee, calculateWindowFee } from '@/utils/pricing'
 import { resolveReportDataMode } from '@/lib/dataSourceMode'
+import { buildBuilderReliabilityStatus } from '@/lib/builderReliabilityGuarantee'
 
 // FIX #1: createClient() must not be called between import statements.
 // Moved here, after all imports, as a module-level constant.
@@ -72,6 +74,31 @@ function useCountdown(targetIso: string) {
   return { h, m, s, expired, remaining }
 }
 
+function buildAssignmentReliabilityStatus(assignment: Assignment, objectionWindowExpired: boolean) {
+  const appointmentStart = getAssignmentAppointmentStart(assignment)
+  const nextRequiredAt = appointmentStart
+    ? new Date(appointmentStart.getTime() - 24 * 60 * 60 * 1000).toISOString()
+    : null
+
+  return buildBuilderReliabilityStatus({
+    assignmentStatus: assignment.status === 'provisional' && objectionWindowExpired ? 'confirmed' : assignment.status,
+    nextConfirmationCheckpoint: appointmentStart
+      ? '24-hour attendance reconfirmation'
+      : 'Next scheduled attendance check',
+    nextConfirmationRequiredAt: nextRequiredAt,
+    completed: assignment.status === 'completed',
+  })
+}
+
+function getAssignmentAppointmentStart(assignment: Assignment): Date | null {
+  if (assignment.claimedSlot.flexible || !assignment.claimedSlot.date || !assignment.claimedSlot.startTime) {
+    return null
+  }
+
+  const start = new Date(`${assignment.claimedSlot.date}T${assignment.claimedSlot.startTime}:00`)
+  return Number.isNaN(start.getTime()) ? null : start
+}
+
 function ProvisionalAssignmentPanel({
   assignment,
   jobName,
@@ -104,6 +131,8 @@ function ProvisionalAssignmentPanel({
   }
 
   if (assignment.status === 'confirmed' || expired) {
+    const reliabilityStatus = buildAssignmentReliabilityStatus(assignment, expired)
+
     return (
       <div className="mb-6 rounded-2xl border border-success-green/20 bg-success-green/5 overflow-hidden">
         <div className="px-5 py-4 flex items-start gap-3">
@@ -113,6 +142,14 @@ function ProvisionalAssignmentPanel({
             <div className="text-xs text-muted">Objection window closed. Inspector is confirmed for this job.</div>
             <div className="text-[11px] font-mono text-subtle mt-1 font-semibold text-success-green">{assignment.inspectorLicense}</div>
           </div>
+        </div>
+        <div className="px-5 pb-5">
+          <ReliabilityGuarantee
+            compact
+            showStatus
+            inspectorName={assignment.inspectorName}
+            status={reliabilityStatus}
+          />
         </div>
       </div>
     )
@@ -126,6 +163,8 @@ function ProvisionalAssignmentPanel({
     onObject(reason as ObjectionReason, note)
     setSubmitting(false)
   }
+
+  const reliabilityStatus = buildAssignmentReliabilityStatus(assignment, expired)
 
   return (
     <div className="mb-6 rounded-2xl border border-electric/25 bg-electric/5 overflow-hidden">
@@ -180,6 +219,15 @@ function ProvisionalAssignmentPanel({
       {/* Notice */}
       <div className="px-5 py-3 text-xs text-muted border-b border-electric/10">
         This assignment becomes <span className="text-success-green font-bold">confirmed</span> when the objection window closes. You may only raise an objection for the specific reasons below — all objections are reviewed by Vero admin.
+      </div>
+
+      <div className="px-5 py-4 border-b border-electric/10">
+        <ReliabilityGuarantee
+          compact
+          showStatus
+          inspectorName={assignment.inspectorName}
+          status={reliabilityStatus}
+        />
       </div>
 
       {/* Objection form toggle */}

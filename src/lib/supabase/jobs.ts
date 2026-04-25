@@ -192,6 +192,14 @@ export interface ClaimJobRpcResult {
   assignment?: JobAssignmentRow
 }
 
+export interface AttendanceConfirmationRpcResult {
+  ok: boolean
+  error?: string
+  checkpoint?: string
+  proximityStatus?: string
+  evidenceRequired?: boolean
+}
+
 type DbErrorShape = {
   code?: string
   message?: string
@@ -874,6 +882,36 @@ export async function claimLiveJobIfEligible(
     ok: true,
     assignment: rowToAssignment(assignmentPayload as Record<string, unknown>),
   }
+}
+
+export async function recordJobAttendanceConfirmation(
+  confirmationId: string,
+  input?: {
+    confirmationToken?: string | null
+    method?: 'manual' | 'notification_link' | 'geo_fence'
+    latitude?: number | null
+    longitude?: number | null
+    accuracyMeters?: number | null
+    etaMinutes?: number | null
+    metadata?: Record<string, unknown>
+  },
+): Promise<AttendanceConfirmationRpcResult> {
+  const { data, error } = await supabase.rpc('record_job_attendance_confirmation', {
+    p_confirmation_id: confirmationId,
+    p_confirmation_token: input?.confirmationToken ?? null,
+    p_method: input?.method ?? (input?.confirmationToken ? 'notification_link' : 'manual'),
+    p_latitude: input?.latitude ?? null,
+    p_longitude: input?.longitude ?? null,
+    p_accuracy_meters: input?.accuracyMeters ?? null,
+    p_eta_minutes: input?.etaMinutes ?? null,
+    p_metadata: input?.metadata ?? {},
+  })
+
+  if (error || !data) {
+    return { ok: false, error: error?.message ?? 'Could not record attendance confirmation.' }
+  }
+
+  return data as AttendanceConfirmationRpcResult
 }
 
 // ─── updateAssignmentStatus ───────────────────────────────────────────────────

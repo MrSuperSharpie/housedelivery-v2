@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, Clock, Zap, AlertTriangle, CheckCircle2, Lock, MapPin, FolderOpen } from 'lucide-react'
 import { Navbar } from '@/components/shared/Navbar'
 import { Button } from '@/components/ui/Button'
+import { ReliabilityGuarantee } from '@/components/builder/ReliabilityGuarantee'
 import { formatCurrency } from '@/lib/utils'
 import { useAuth } from '@/lib/auth'
 import { useStore } from '@/lib/store'
@@ -324,6 +325,10 @@ export default function DispatchPage() {
           <p className="text-sm text-gray-600">
             If your inspection requires a registered professional, Vero automatically assigns the appropriate specialist and applies the correct pricing.
           </p>
+        </div>
+
+        <div className="mb-5">
+          <ReliabilityGuarantee compact />
         </div>
 
         <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 mb-5">

@@ -1,4 +1,16 @@
-import type { ReliabilityEnforcementMode } from '@/lib/types'
+import type {
+  AttendanceConfirmationCheckpoint,
+  AttendanceEscalationStatus,
+  AttendanceProximityStatus,
+  AttendanceConfirmationStatus,
+  JobAttendanceConfirmation,
+  NextAttendanceCheckIn,
+  ReliabilityEnforcementMode,
+  PermitFamily,
+  InspectorDiscipline,
+  Region,
+} from '@/lib/types'
+import { evaluateReliabilityRollout } from '@/lib/reliabilityRollout'
 
 export type ReliabilityTierKey = 'restricted' | 'provisional' | 'standard' | 'preferred' | 'premier'
 export type InspectorReliabilityTier = 'verified' | 'preferred' | 'priority' | 'elite' | 'restricted' | 'suspension_review'
@@ -26,6 +38,214 @@ export type ReliabilityEventType =
   | 'dispute_resolved_inspector_fault'
   | 'dispute_resolved_no_fault'
   | 'response_recorded'
+  | 'CONFIRMATION_COMPLETED'
+  | 'CONFIRMATION_MISSED'
+  | 'DEPARTURE_CONFIRMED'
+  | 'ARRIVAL_CONFIRMED'
+  | 'LATE_ARRIVAL'
+  | 'ON_TIME_ARRIVAL'
+  | 'LATE_CANCELLATION'
+  | 'NO_SHOW'
+  | 'STANDBY_CANDIDATE_IDENTIFIED'
+  | 'STANDBY_SOFT_ALERTED'
+  | 'STANDBY_OFFERED'
+  | 'STANDBY_ACCEPTED'
+  | 'PRIMARY_REASSIGNED'
+
+export type CancellationReasonCode =
+  | 'illness'
+  | 'accident'
+  | 'documented_vehicle_failure'
+  | 'family_emergency'
+  | 'unsafe_site'
+  | 'severe_weather_road_closure'
+  | 'builder_site_not_ready'
+  | 'no_access'
+  | 'missing_required_documents'
+  | 'too_far'
+  | 'too_busy'
+  | 'double_booked'
+  | 'changed_mind'
+  | 'unsupported_other_reason'
+
+export type CancellationClassification = 'likely_valid' | 'likely_invalid' | 'admin_review_required'
+export type CancellationAdminDecision = 'approved' | 'rejected' | 'overridden'
+
+export interface CancellationPolicyInput {
+  reasonCode: CancellationReasonCode
+  explanation?: string | null
+  evidenceCount?: number
+  requestedAt: string
+  scheduledStartAt?: string | null
+  protectedWindowMinutes?: number
+}
+
+export interface CancellationPolicyResult {
+  reasonCode: CancellationReasonCode
+  protectedReason: boolean
+  avoidableReason: boolean
+  preliminaryClassification: CancellationClassification
+  isInsideProtectedWindow: boolean
+  requiresEvidence: boolean
+  reliabilityEvents: ReliabilityEventInput[]
+  builderNotificationCopy: string
+  inspectorNotificationCopy: string
+  appealAvailable: boolean
+}
+
+export interface NoShowPolicyResult {
+  reliabilityEvents: ReliabilityEventInput[]
+  payoutBlocked: boolean
+  adminReviewRequired: boolean
+  refundCreditWorkflow: 'policy_configured'
+  builderNotificationCopy: string
+  inspectorNotificationCopy: string
+  appealAvailable: boolean
+}
+
+export type StandbyCandidateStatus =
+  | 'identified'
+  | 'soft_alerted'
+  | 'offered'
+  | 'accepted'
+  | 'declined'
+  | 'expired'
+
+export type StandbyActivationTrigger =
+  | 'missed_4h_confirmation'
+  | 'missed_90m_confirmation'
+  | 'invalid_cancellation'
+  | 'admin_manual'
+
+export interface StandbyInspectorCandidateInput {
+  inspectorId: string
+  onboardingStatus: string
+  disciplines: InspectorDiscipline[]
+  regions: Region[]
+  reliabilityTier?: InspectorReliabilityTier | ReliabilityTierKey | null
+  reliabilityScore?: number | null
+  permitFamilies?: PermitFamily[]
+  stageEligibility?: string[]
+  available?: boolean
+  suspended?: boolean
+  restricted?: boolean
+}
+
+export interface StandbyJobContext {
+  jobId: string
+  primaryInspectorId: string
+  permitFamily: PermitFamily
+  requiredDiscipline: InspectorDiscipline
+  region: Region
+  stageName?: string | null
+}
+
+export interface StandbyCandidateSelection {
+  jobId: string
+  inspectorId: string
+  rank: number
+  status: StandbyCandidateStatus
+  reliabilityTier: string
+  reliabilityScore: number
+}
+
+export interface StandbyActivationEvaluation {
+  trigger: StandbyActivationTrigger
+  candidateStatus: StandbyCandidateStatus
+  sendInspectorOffers: boolean
+  softAlertOnly: boolean
+  builderNotified: boolean
+  builderNotificationCopy?: string
+  inspectorNotificationCopy?: string
+  rushMultiplierOffered?: number
+}
+
+export interface StandbyAcceptanceResult {
+  originalAssignmentId: string
+  originalAssignmentStatus: 'cancelled'
+  originalInspectorId: string
+  newAssignment: {
+    jobId: string
+    inspectorId: string
+    sourceInviteId: string
+    status: 'confirmed'
+  }
+  acceptedInviteStatus: 'accepted'
+  builderNotificationCopy: string
+  reliabilityEvents: ReliabilityEventInput[]
+}
+
+export type InspectionOutcomeForPayout = 'pass' | 'fail' | 'hold' | 'modification_required'
+export type ReliabilityPayoutStatus = 'eligible' | 'review' | 'blocked'
+export type BuilderCreditFundingSource = 'policy_configured' | 'escrow_refund' | 'platform_budget' | 'rush_budget' | 'inspector_reserve'
+
+export interface PayoutPolicyConfig {
+  enforcementMode: ReliabilityEnforcementMode
+  reserveHooksEnabled?: boolean
+  reserveReleaseDays?: number
+  tierReservePercents?: Partial<Record<InspectorReliabilityTier | ReliabilityTierKey, number>>
+  payoutSpeedDays?: Partial<Record<PayoutSpeedCategory, number>>
+  invalidLateCancellationPayoutAction?: 'review' | 'blocked'
+  builderCreditHooksEnabled?: boolean
+  builderCreditAmount?: number
+  builderCreditFundingSource?: BuilderCreditFundingSource
+  builderSiteNotReadyFeeAmount?: number
+}
+
+export interface InspectionPayoutEvaluationInput {
+  outcome: InspectionOutcomeForPayout
+  documentedProfessionalWork: boolean
+  evidenceComplete: boolean
+  hasCompletedHoldWorkflow?: boolean
+  holdPremiumAmount?: number
+  hasActiveDispute?: boolean
+  payoutAlreadyReleasedAt?: string | null
+  hasNoShow?: boolean
+  hasInvalidLateCancellation?: boolean
+  builderSiteNotReady?: boolean
+  builderCancelledAfterDeparture?: boolean
+  grossPayoutAmount: number
+  inspectorTier: InspectorReliabilityTier | ReliabilityTierKey
+  policyConfig?: Partial<PayoutPolicyConfig> | Record<string, unknown> | null
+  asOf?: string
+}
+
+export interface ReserveLedgerProjection {
+  entryType: 'observe_only_projection' | 'reserve_hold'
+  amount: number
+  releaseEligibleAt: string
+  enforcementMode: ReliabilityEnforcementMode
+  status: 'pending' | 'posted'
+  reason: string
+}
+
+export interface BuilderCreditProjection {
+  amount: number
+  fundingSource: BuilderCreditFundingSource
+  status: 'projected' | 'pending_admin_review'
+  escrowProtected: boolean
+}
+
+export interface PayoutEvaluationResult {
+  payoutStatus: ReliabilityPayoutStatus
+  escrowStatus: 'earned_pending_review' | 'payout_ready' | 'blocked'
+  blockReason?: string
+  payoutSpeedCategory: PayoutSpeedCategory
+  payoutEligibleAt: string
+  reserveLedgerEntries: ReserveLedgerProjection[]
+  builderCreditHook?: BuilderCreditProjection
+  inspectorProtected: boolean
+  consequencesEnforced: boolean
+  auditEvents: string[]
+}
+
+export interface AdminPayoutOverrideInput {
+  current: PayoutEvaluationResult
+  decision: 'approve_payout' | 'reduce_payout' | 'block_payout' | 'apply_reserve' | 'waive_consequence' | 'issue_builder_credit'
+  adminNote: string
+  payoutReductionAmount?: number
+  builderCreditAmount?: number
+}
 
 export interface ReliabilityTierDefinition {
   tierKey: ReliabilityTierKey
@@ -40,6 +260,10 @@ export interface ReliabilityPolicyConfig {
   eventScoreDeltas: Partial<Record<ReliabilityEventType, number>>
   thresholds?: Partial<ReliabilityPolicyThresholds>
   tierRules?: Partial<Record<InspectorReliabilityTier, Partial<InspectorReliabilityTierRule>>>
+  emergencyKillSwitch?: boolean
+  automaticRestrictionRulesEnabled?: boolean
+  automaticSuspensionEnabled?: boolean
+  suspensionsRequireAdminConfirmation?: boolean
 }
 
 export interface ReliabilityEventInput {
@@ -143,6 +367,776 @@ export interface InspectorReliabilityCalculationResult {
 
 export const RELIABILITY_COMMITMENT_VERSION = 'reliability-commitment-v1'
 
+export interface AttendanceCheckpointDefinition {
+  checkpoint: AttendanceConfirmationCheckpoint
+  label: string
+  offsetMinutesBeforeStart: number | null
+  reminderOffsetMinutesBeforeStart: number | null
+  manualTrigger: boolean
+  geoFenced: boolean
+  criticalAlertOnMiss: boolean
+  standbyPrepareOnMiss: boolean
+  standbyActivateOnMiss: boolean
+}
+
+export interface BuildAttendanceLadderInput {
+  scheduledStartAt?: string | null
+  claimedAt?: string | null
+}
+
+export interface MissedAttendanceEvaluation {
+  checkpoint: AttendanceConfirmationCheckpoint
+  escalationStatus: AttendanceEscalationStatus
+  markJobAtRisk: boolean
+  notifyAdmin: boolean
+  prepareStandbySearch: boolean
+  requestStandbyActivation: boolean
+  notifyBuilderAtRisk: boolean
+}
+
+export interface ArrivalCheckInInput {
+  scheduledStartAt?: string | null
+  arrivedAt: string
+  latitude?: number | null
+  longitude?: number | null
+  siteLatitude?: number | null
+  siteLongitude?: number | null
+  proximityThresholdMeters?: number
+  arrivalGraceMinutes?: number
+  networkAvailable?: boolean
+}
+
+export interface ArrivalCheckInResult {
+  jobStatus: 'in_progress'
+  proximityStatus: AttendanceProximityStatus
+  evidenceRequired: boolean
+  syncStatus: 'recorded' | 'queued_for_sync'
+  distanceFromSiteMeters?: number
+  reliabilityEvents: ReliabilityEventInput[]
+}
+
+export interface PreInspectionCredentialContinuityInput {
+  credentialComplianceStatus: CredentialComplianceStatus
+  checkedAt: string
+  scheduledStartAt?: string | null
+}
+
+export interface PreInspectionCredentialContinuityResult {
+  canProceed: boolean
+  requiresAdminReview: boolean
+  action: 'allow' | 'block_departure_or_arrival' | 'admin_review_required'
+  reliabilityEvents: ReliabilityEventInput[]
+}
+
+export interface AttendanceReschedulePlan {
+  scheduledStartAt: string
+  rescheduledAt: string
+  confirmations: JobAttendanceConfirmation[]
+  cancelledConfirmationIds: string[]
+  replacementConfirmations: JobAttendanceConfirmation[]
+}
+
+export const INSPECTOR_ATTENDANCE_REMINDER_COPY =
+  'Please reconfirm your Vero inspection appointment. Reliable attendance improves your Vero tier, job access, and payout speed.'
+
+export const BUILDER_INSPECTION_CONFIRMED_COPY =
+  'Your inspection is confirmed. Vero is monitoring the appointment and will notify you if anything changes.'
+
+export const BUILDER_INSPECTION_AT_RISK_COPY =
+  'Vero is monitoring your inspection appointment. If the assigned inspector becomes unavailable, we will begin reassignment support and keep your escrow protected.'
+
+export const BUILDER_REASSIGNMENT_COPY =
+  'The assigned inspector is no longer available. Vero has begun reassignment support to protect your schedule. Your escrow remains protected while we resolve the appointment.'
+
+export const BUILDER_STANDBY_ACTIVATION_COPY =
+  'Vero has begun reassignment support for your inspection. We are prioritizing qualified inspectors who match the required credential, region, and inspection stage.'
+
+export const INSPECTOR_STANDBY_OFFER_COPY =
+  'A priority Vero inspection is available due to reassignment. Accepting and completing priority work can improve your tier standing and earnings.'
+
+export const INSPECTOR_INVALID_LATE_CANCELLATION_COPY =
+  'This cancellation has been recorded as reliability-impacting because it occurred inside the protected appointment window without a supported reason. You may submit an appeal or additional context for Admin review.'
+
+export const INSPECTOR_VALID_CANCELLATION_COPY =
+  'This cancellation has been recorded as protected. Your reliability tier will not be materially affected.'
+
+export const PROTECTED_CANCELLATION_REASONS: CancellationReasonCode[] = [
+  'illness',
+  'accident',
+  'documented_vehicle_failure',
+  'family_emergency',
+  'unsafe_site',
+  'severe_weather_road_closure',
+  'builder_site_not_ready',
+  'no_access',
+  'missing_required_documents',
+]
+
+export const AVOIDABLE_CANCELLATION_REASONS: CancellationReasonCode[] = [
+  'too_far',
+  'too_busy',
+  'double_booked',
+  'changed_mind',
+  'unsupported_other_reason',
+]
+
+const EVIDENCE_RECOMMENDED_REASONS: CancellationReasonCode[] = [
+  'illness',
+  'accident',
+  'documented_vehicle_failure',
+  'family_emergency',
+  'unsafe_site',
+  'severe_weather_road_closure',
+  'no_access',
+  'missing_required_documents',
+]
+
+export const ATTENDANCE_CONFIRMATION_LADDER: AttendanceCheckpointDefinition[] = [
+  {
+    checkpoint: 'initial_claim',
+    label: 'Initial confirmation',
+    offsetMinutesBeforeStart: null,
+    reminderOffsetMinutesBeforeStart: null,
+    manualTrigger: false,
+    geoFenced: false,
+    criticalAlertOnMiss: false,
+    standbyPrepareOnMiss: false,
+    standbyActivateOnMiss: false,
+  },
+  {
+    checkpoint: 't_24h',
+    label: 'T-24h soft check',
+    offsetMinutesBeforeStart: 24 * 60,
+    reminderOffsetMinutesBeforeStart: 24 * 60,
+    manualTrigger: false,
+    geoFenced: false,
+    criticalAlertOnMiss: false,
+    standbyPrepareOnMiss: false,
+    standbyActivateOnMiss: false,
+  },
+  {
+    checkpoint: 't_4h',
+    label: 'T-4h critical check',
+    offsetMinutesBeforeStart: 4 * 60,
+    reminderOffsetMinutesBeforeStart: 4 * 60,
+    manualTrigger: false,
+    geoFenced: false,
+    criticalAlertOnMiss: true,
+    standbyPrepareOnMiss: true,
+    standbyActivateOnMiss: false,
+  },
+  {
+    checkpoint: 't_90m',
+    label: 'T-90m go/no-go',
+    offsetMinutesBeforeStart: 90,
+    reminderOffsetMinutesBeforeStart: 90,
+    manualTrigger: false,
+    geoFenced: false,
+    criticalAlertOnMiss: true,
+    standbyPrepareOnMiss: true,
+    standbyActivateOnMiss: true,
+  },
+  {
+    checkpoint: 'departure',
+    label: 'Departure',
+    offsetMinutesBeforeStart: 90,
+    reminderOffsetMinutesBeforeStart: null,
+    manualTrigger: true,
+    geoFenced: false,
+    criticalAlertOnMiss: false,
+    standbyPrepareOnMiss: false,
+    standbyActivateOnMiss: false,
+  },
+  {
+    checkpoint: 'arrival',
+    label: 'Arrival',
+    offsetMinutesBeforeStart: 0,
+    reminderOffsetMinutesBeforeStart: null,
+    manualTrigger: false,
+    geoFenced: true,
+    criticalAlertOnMiss: false,
+    standbyPrepareOnMiss: false,
+    standbyActivateOnMiss: false,
+  },
+]
+
+export function buildAttendanceConfirmationLadder(
+  input: BuildAttendanceLadderInput,
+): JobAttendanceConfirmation[] {
+  const claimedAt = input.claimedAt ? new Date(input.claimedAt) : new Date()
+  const scheduledStartAt = input.scheduledStartAt ? new Date(input.scheduledStartAt) : null
+  const hasValidStart = Boolean(scheduledStartAt && Number.isFinite(scheduledStartAt.getTime()))
+
+  return ATTENDANCE_CONFIRMATION_LADDER.map(definition => {
+    if (definition.checkpoint === 'initial_claim') {
+      return {
+        checkpoint: definition.checkpoint,
+        status: 'confirmed',
+        requiredAt: claimedAt.toISOString(),
+        scheduledStartAt: hasValidStart ? scheduledStartAt!.toISOString() : null,
+        reminderScheduledAt: null,
+        confirmedAt: claimedAt.toISOString(),
+        escalationStatus: 'none',
+        criticalAlertOnMiss: definition.criticalAlertOnMiss,
+        standbyPrepareOnMiss: definition.standbyPrepareOnMiss,
+        standbyActivateOnMiss: definition.standbyActivateOnMiss,
+      }
+    }
+
+    const requiredAt = hasValidStart && definition.offsetMinutesBeforeStart !== null
+      ? new Date(scheduledStartAt!.getTime() - (definition.offsetMinutesBeforeStart * 60_000))
+      : null
+    const reminderScheduledAt = hasValidStart && definition.reminderOffsetMinutesBeforeStart !== null
+      ? new Date(scheduledStartAt!.getTime() - (definition.reminderOffsetMinutesBeforeStart * 60_000))
+      : null
+    const isRelativeCheckAlreadyPassed = Boolean(
+      requiredAt
+      && requiredAt.getTime() <= claimedAt.getTime()
+      && definition.checkpoint !== 'departure'
+      && definition.checkpoint !== 'arrival',
+    )
+    const status: AttendanceConfirmationStatus = requiredAt && !isRelativeCheckAlreadyPassed
+      ? 'pending'
+      : 'not_required'
+
+    return {
+      checkpoint: definition.checkpoint,
+      status,
+      escalationStatus: 'none',
+      requiredAt: requiredAt?.toISOString() ?? null,
+      reminderScheduledAt: status === 'pending' ? reminderScheduledAt?.toISOString() ?? null : null,
+      scheduledStartAt: hasValidStart ? scheduledStartAt!.toISOString() : null,
+      criticalAlertOnMiss: definition.criticalAlertOnMiss,
+      standbyPrepareOnMiss: definition.standbyPrepareOnMiss,
+      standbyActivateOnMiss: definition.standbyActivateOnMiss,
+    }
+  })
+}
+
+export function deriveNextRequiredAttendanceCheckIn(
+  confirmations: JobAttendanceConfirmation[],
+  asOf: string | Date = new Date(),
+): NextAttendanceCheckIn | null {
+  const asOfTime = typeof asOf === 'string' ? new Date(asOf).getTime() : asOf.getTime()
+  const pending = confirmations
+    .filter(confirmation => confirmation.status === 'pending')
+    .sort((a, b) => checkpointSortValue(a, asOfTime) - checkpointSortValue(b, asOfTime))
+
+  const next = pending[0]
+  if (!next) return null
+
+  return {
+    confirmationId: next.id,
+    confirmationToken: next.confirmationToken,
+    checkpoint: next.checkpoint,
+    status: next.status,
+    requiredAt: next.requiredAt ?? null,
+    label: formatAttendanceCheckpointLabel(next.checkpoint),
+    critical: next.criticalAlertOnMiss === true,
+    manualTrigger: definitionForCheckpoint(next.checkpoint)?.manualTrigger === true,
+    geoFenced: definitionForCheckpoint(next.checkpoint)?.geoFenced === true,
+  }
+}
+
+export function formatAttendanceCheckpointLabel(checkpoint: AttendanceConfirmationCheckpoint): string {
+  return ATTENDANCE_CONFIRMATION_LADDER.find(item => item.checkpoint === checkpoint)?.label ?? checkpoint
+}
+
+export function buildMissedAttendanceReliabilityEvents(
+  checkpoint: AttendanceConfirmationCheckpoint,
+  occurredAt: string,
+): ReliabilityEventInput[] {
+  return [
+    {
+      eventType: 'CONFIRMATION_MISSED',
+      occurredAt,
+      metadata: { checkpoint, source: 'attendance_confirmation_ladder' },
+    },
+  ]
+}
+
+export function evaluateMissedAttendanceConfirmation(
+  checkpoint: AttendanceConfirmationCheckpoint,
+  options: { standbyActivationEnabled?: boolean } = {},
+): MissedAttendanceEvaluation {
+  if (checkpoint === 't_24h') {
+    return {
+      checkpoint,
+      escalationStatus: 'at_risk',
+      markJobAtRisk: true,
+      notifyAdmin: false,
+      prepareStandbySearch: false,
+      requestStandbyActivation: false,
+      notifyBuilderAtRisk: true,
+    }
+  }
+
+  if (checkpoint === 't_4h') {
+    return {
+      checkpoint,
+      escalationStatus: 'standby_prepared',
+      markJobAtRisk: true,
+      notifyAdmin: true,
+      prepareStandbySearch: true,
+      requestStandbyActivation: false,
+      notifyBuilderAtRisk: true,
+    }
+  }
+
+  if (checkpoint === 't_90m') {
+    const requestStandbyActivation = options.standbyActivationEnabled === true
+    return {
+      checkpoint,
+      escalationStatus: requestStandbyActivation ? 'standby_activation_requested' : 'standby_prepared',
+      markJobAtRisk: true,
+      notifyAdmin: true,
+      prepareStandbySearch: true,
+      requestStandbyActivation,
+      notifyBuilderAtRisk: true,
+    }
+  }
+
+  return {
+    checkpoint,
+    escalationStatus: 'none',
+    markJobAtRisk: false,
+    notifyAdmin: false,
+    prepareStandbySearch: false,
+    requestStandbyActivation: false,
+    notifyBuilderAtRisk: false,
+  }
+}
+
+export function evaluateArrivalCheckIn(input: ArrivalCheckInInput): ArrivalCheckInResult {
+  const threshold = input.proximityThresholdMeters ?? 250
+  const hasInspectorLocation = typeof input.latitude === 'number' && typeof input.longitude === 'number'
+  const hasSiteLocation = typeof input.siteLatitude === 'number' && typeof input.siteLongitude === 'number'
+  const distance = hasInspectorLocation && hasSiteLocation
+    ? distanceMeters(input.latitude!, input.longitude!, input.siteLatitude!, input.siteLongitude!)
+    : undefined
+  const proximityStatus: AttendanceProximityStatus = typeof distance === 'number'
+    ? distance <= threshold ? 'within_range' : 'outside_range'
+    : 'manual_evidence_required'
+  const scheduledStart = input.scheduledStartAt ? new Date(input.scheduledStartAt) : null
+  const arrivedAt = new Date(input.arrivedAt)
+  const graceMs = (input.arrivalGraceMinutes ?? 15) * 60_000
+  const isLate = Boolean(
+    scheduledStart
+    && Number.isFinite(scheduledStart.getTime())
+    && Number.isFinite(arrivedAt.getTime())
+    && arrivedAt.getTime() > scheduledStart.getTime() + graceMs,
+  )
+  const syncStatus = input.networkAvailable === false ? 'queued_for_sync' : 'recorded'
+
+  return {
+    jobStatus: 'in_progress',
+    proximityStatus,
+    evidenceRequired: proximityStatus !== 'within_range' || syncStatus === 'queued_for_sync',
+    syncStatus,
+    distanceFromSiteMeters: distance === undefined ? undefined : Number(distance.toFixed(2)),
+    reliabilityEvents: [
+      {
+        eventType: 'ARRIVAL_CONFIRMED',
+        occurredAt: input.arrivedAt,
+        metadata: {
+          proximityStatus,
+          distanceFromSiteMeters: distance === undefined ? undefined : Number(distance.toFixed(2)),
+          evidenceRequired: proximityStatus !== 'within_range' || syncStatus === 'queued_for_sync',
+          syncStatus,
+          offlineQueued: syncStatus === 'queued_for_sync',
+        },
+      },
+      {
+        eventType: isLate ? 'LATE_ARRIVAL' : 'ON_TIME_ARRIVAL',
+        occurredAt: input.arrivedAt,
+        metadata: {
+          scheduledStartAt: input.scheduledStartAt,
+        },
+      },
+    ],
+  }
+}
+
+export function evaluatePreInspectionCredentialContinuity(
+  input: PreInspectionCredentialContinuityInput,
+): PreInspectionCredentialContinuityResult {
+  if (input.credentialComplianceStatus === 'compliant') {
+    return {
+      canProceed: true,
+      requiresAdminReview: false,
+      action: 'allow',
+      reliabilityEvents: [],
+    }
+  }
+
+  return {
+    canProceed: false,
+    requiresAdminReview: true,
+    action: input.credentialComplianceStatus === 'needs_review'
+      ? 'admin_review_required'
+      : 'block_departure_or_arrival',
+    reliabilityEvents: [
+      {
+        eventType: 'admin_override',
+        occurredAt: input.checkedAt,
+        metadata: {
+          reason: 'credential_continuity_failed_before_inspection',
+          credentialComplianceStatus: input.credentialComplianceStatus,
+          scheduledStartAt: input.scheduledStartAt,
+        },
+      },
+    ],
+  }
+}
+
+export function buildAttendanceReschedulePlan(input: {
+  confirmations: JobAttendanceConfirmation[]
+  newScheduledStartAt: string
+  rescheduledAt: string
+}): AttendanceReschedulePlan {
+  const cancelledConfirmationIds = input.confirmations
+    .filter(confirmation => confirmation.status === 'pending')
+    .map(confirmation => confirmation.id)
+    .filter((id): id is string => Boolean(id))
+  const replacementConfirmations = buildAttendanceConfirmationLadder({
+    claimedAt: input.rescheduledAt,
+    scheduledStartAt: input.newScheduledStartAt,
+  })
+
+  return {
+    scheduledStartAt: new Date(input.newScheduledStartAt).toISOString(),
+    rescheduledAt: new Date(input.rescheduledAt).toISOString(),
+    confirmations: input.confirmations.map(confirmation => (
+      confirmation.status === 'pending'
+        ? { ...confirmation, status: 'cancelled' as const }
+        : confirmation
+    )),
+    cancelledConfirmationIds,
+    replacementConfirmations,
+  }
+}
+
+export function evaluateCancellationPolicy(input: CancellationPolicyInput): CancellationPolicyResult {
+  const protectedReason = PROTECTED_CANCELLATION_REASONS.includes(input.reasonCode)
+  const avoidableReason = AVOIDABLE_CANCELLATION_REASONS.includes(input.reasonCode)
+  const requiresEvidence = EVIDENCE_RECOMMENDED_REASONS.includes(input.reasonCode)
+  const hasEvidence = (input.evidenceCount ?? 0) > 0
+  const isInsideProtectedWindow = isWithinProtectedAppointmentWindow({
+    requestedAt: input.requestedAt,
+    scheduledStartAt: input.scheduledStartAt,
+    protectedWindowMinutes: input.protectedWindowMinutes,
+  })
+  const preliminaryClassification: CancellationClassification = protectedReason
+    ? requiresEvidence && !hasEvidence ? 'admin_review_required' : 'likely_valid'
+    : 'likely_invalid'
+  const isReliabilityImpacting = preliminaryClassification === 'likely_invalid' && isInsideProtectedWindow
+  const reliabilityEvents: ReliabilityEventInput[] = isReliabilityImpacting
+    ? [{
+        eventType: 'LATE_CANCELLATION',
+        occurredAt: input.requestedAt,
+        metadata: {
+          reasonCode: input.reasonCode,
+          preliminaryClassification,
+          protectedWindowMinutes: input.protectedWindowMinutes ?? 240,
+        },
+      }]
+    : protectedReason
+      ? [{
+          eventType: 'valid_cancellation',
+          occurredAt: input.requestedAt,
+          metadata: { reasonCode: input.reasonCode, validReason: true },
+        }]
+      : []
+
+  return {
+    reasonCode: input.reasonCode,
+    protectedReason,
+    avoidableReason,
+    preliminaryClassification,
+    isInsideProtectedWindow,
+    requiresEvidence,
+    reliabilityEvents,
+    builderNotificationCopy: BUILDER_REASSIGNMENT_COPY,
+    inspectorNotificationCopy: isReliabilityImpacting
+      ? INSPECTOR_INVALID_LATE_CANCELLATION_COPY
+      : INSPECTOR_VALID_CANCELLATION_COPY,
+    appealAvailable: isReliabilityImpacting || preliminaryClassification === 'admin_review_required',
+  }
+}
+
+export function evaluateNoShowPolicy(occurredAt: string): NoShowPolicyResult {
+  return {
+    reliabilityEvents: [{
+      eventType: 'NO_SHOW',
+      occurredAt,
+      metadata: {
+        adminReviewRequired: true,
+        payoutBlocked: true,
+      },
+    }],
+    payoutBlocked: true,
+    adminReviewRequired: true,
+    refundCreditWorkflow: 'policy_configured',
+    builderNotificationCopy: BUILDER_REASSIGNMENT_COPY,
+    inspectorNotificationCopy: INSPECTOR_INVALID_LATE_CANCELLATION_COPY,
+    appealAvailable: true,
+  }
+}
+
+export function selectStandbyInspectorCandidates(
+  job: StandbyJobContext,
+  candidates: StandbyInspectorCandidateInput[],
+  limit = 2,
+): StandbyCandidateSelection[] {
+  return candidates
+    .filter(candidate => isStandbyEligible(job, candidate))
+    .sort((a, b) => {
+      const tierComparison = standbyTierRank(a.reliabilityTier) - standbyTierRank(b.reliabilityTier)
+      if (tierComparison !== 0) return tierComparison
+      return (b.reliabilityScore ?? 75) - (a.reliabilityScore ?? 75)
+    })
+    .slice(0, Math.max(0, limit))
+    .map((candidate, index) => ({
+      jobId: job.jobId,
+      inspectorId: candidate.inspectorId,
+      rank: index + 1,
+      status: 'identified',
+      reliabilityTier: candidate.reliabilityTier ?? 'verified',
+      reliabilityScore: candidate.reliabilityScore ?? 75,
+    }))
+}
+
+export function evaluateStandbyActivation(
+  trigger: StandbyActivationTrigger,
+  options: {
+    notificationsEnabled?: boolean
+    rushMultiplierOffered?: number
+  } = {},
+): StandbyActivationEvaluation {
+  if (trigger === 'missed_4h_confirmation') {
+    const softAlertOnly = options.notificationsEnabled !== false
+    return {
+      trigger,
+      candidateStatus: softAlertOnly ? 'soft_alerted' : 'identified',
+      sendInspectorOffers: false,
+      softAlertOnly,
+      builderNotified: false,
+    }
+  }
+
+  return {
+    trigger,
+    candidateStatus: 'offered',
+    sendInspectorOffers: true,
+    softAlertOnly: false,
+    builderNotified: true,
+    builderNotificationCopy: BUILDER_STANDBY_ACTIVATION_COPY,
+    inspectorNotificationCopy: INSPECTOR_STANDBY_OFFER_COPY,
+    rushMultiplierOffered: options.rushMultiplierOffered ?? 1,
+  }
+}
+
+export function acceptStandbyOfferState(input: {
+  jobId: string
+  originalAssignmentId: string
+  originalInspectorId: string
+  standbyInspectorId: string
+  standbyInviteId: string
+  acceptedAt: string
+  reason?: string
+}): StandbyAcceptanceResult {
+  return {
+    originalAssignmentId: input.originalAssignmentId,
+    originalAssignmentStatus: 'cancelled',
+    originalInspectorId: input.originalInspectorId,
+    newAssignment: {
+      jobId: input.jobId,
+      inspectorId: input.standbyInspectorId,
+      sourceInviteId: input.standbyInviteId,
+      status: 'confirmed',
+    },
+    acceptedInviteStatus: 'accepted',
+    builderNotificationCopy: BUILDER_STANDBY_ACTIVATION_COPY,
+    reliabilityEvents: [
+      {
+        eventType: 'PRIMARY_REASSIGNED',
+        occurredAt: input.acceptedAt,
+        metadata: {
+          standbyInviteId: input.standbyInviteId,
+          originalInspectorId: input.originalInspectorId,
+          standbyInspectorId: input.standbyInspectorId,
+          reason: input.reason ?? 'standby_accepted',
+        },
+      },
+      {
+        eventType: 'STANDBY_ACCEPTED',
+        occurredAt: input.acceptedAt,
+        metadata: {
+          standbyInviteId: input.standbyInviteId,
+          originalAssignmentId: input.originalAssignmentId,
+        },
+      },
+    ],
+  }
+}
+
+export function evaluateInspectionPayout(
+  input: InspectionPayoutEvaluationInput,
+): PayoutEvaluationResult {
+  const policy = normalizePayoutPolicyConfig(input.policyConfig)
+  const rollout = evaluateReliabilityRollout(input.policyConfig)
+  const asOf = input.asOf ? new Date(input.asOf) : new Date()
+  const consequencesEnforced = rollout.financialConsequencesEnforced
+  const payoutSpeedCategory = payoutSpeedForTier(input.inspectorTier)
+  const payoutEligibleAt = new Date(
+    asOf.getTime() + ((policy.payoutSpeedDays?.[payoutSpeedCategory] ?? 5) * 24 * 60 * 60_000),
+  ).toISOString()
+  const auditEvents = ['payout.evaluated']
+  const inspectorProtected = input.builderSiteNotReady === true || input.builderCancelledAfterDeparture === true
+
+  let payoutStatus: ReliabilityPayoutStatus = 'eligible'
+  let blockReason: string | undefined
+
+  if (input.hasNoShow) {
+    payoutStatus = 'blocked'
+    blockReason = 'no_show'
+  } else if (input.hasActiveDispute) {
+    if (input.payoutAlreadyReleasedAt) {
+      payoutStatus = 'review'
+      blockReason = 'post_release_dispute'
+      auditEvents.push('payout.post_release_dispute_review')
+    } else {
+      payoutStatus = 'blocked'
+      blockReason = 'active_dispute'
+    }
+  } else if (!input.evidenceComplete || !input.documentedProfessionalWork) {
+    payoutStatus = 'review'
+    blockReason = 'incomplete_evidence'
+  } else if (input.hasInvalidLateCancellation) {
+    payoutStatus = policy.invalidLateCancellationPayoutAction === 'blocked' ? 'blocked' : 'review'
+    blockReason = 'invalid_late_cancellation'
+  } else if (inspectorProtected) {
+    blockReason = input.builderCancelledAfterDeparture
+      ? 'builder_cancelled_after_departure_protected'
+      : 'builder_site_not_ready_protected'
+    auditEvents.push('inspector.protected')
+  }
+
+  if (input.outcome === 'fail' || input.outcome === 'hold' || input.outcome === 'modification_required') {
+    auditEvents.push('valid_professional_work.payout_not_outcome_gated')
+  }
+
+  const reservePercent = policy.reserveHooksEnabled
+    ? policy.tierReservePercents?.[input.inspectorTier] ?? 0
+    : 0
+  const reserveAmount = roundMoney(input.grossPayoutAmount * reservePercent / 100)
+  const reserveLedgerEntries: ReserveLedgerProjection[] = reserveAmount > 0
+    ? [{
+        entryType: consequencesEnforced ? 'reserve_hold' : 'observe_only_projection',
+        amount: reserveAmount,
+        releaseEligibleAt: new Date(
+          asOf.getTime() + ((policy.reserveReleaseDays ?? 30) * 24 * 60 * 60_000),
+        ).toISOString(),
+        enforcementMode: policy.enforcementMode,
+        status: consequencesEnforced ? 'posted' : 'pending',
+        reason: 'Tier-based reserve hook calculated from active reliability policy.',
+      }]
+    : []
+
+  const needsBuilderCredit = input.hasNoShow === true || input.hasInvalidLateCancellation === true
+  const builderCreditHook: BuilderCreditProjection | undefined = needsBuilderCredit
+    ? {
+        amount: roundMoney(policy.builderCreditAmount ?? 0),
+        fundingSource: policy.builderCreditFundingSource ?? 'policy_configured',
+        status: !consequencesEnforced || !policy.builderCreditHooksEnabled
+          ? 'projected'
+          : 'pending_admin_review',
+        escrowProtected: true,
+      }
+    : (input.builderSiteNotReady || input.builderCancelledAfterDeparture) && (policy.builderSiteNotReadyFeeAmount ?? 0) > 0
+      ? {
+          amount: roundMoney(policy.builderSiteNotReadyFeeAmount ?? 0),
+          fundingSource: 'escrow_refund',
+          status: consequencesEnforced ? 'pending_admin_review' : 'projected',
+          escrowProtected: true,
+        }
+      : undefined
+
+  const escrowStatus = payoutStatus === 'blocked'
+    ? consequencesEnforced ? 'blocked' : 'earned_pending_review'
+    : payoutStatus === 'eligible' && consequencesEnforced
+      ? 'payout_ready'
+      : 'earned_pending_review'
+
+  return {
+    payoutStatus,
+    escrowStatus,
+    blockReason,
+    payoutSpeedCategory,
+    payoutEligibleAt,
+    reserveLedgerEntries,
+    builderCreditHook,
+    inspectorProtected,
+    consequencesEnforced,
+    auditEvents,
+  }
+}
+
+export function applyAdminPayoutOverride(input: AdminPayoutOverrideInput): PayoutEvaluationResult {
+  if (!input.adminNote.trim()) {
+    throw new Error('Admin rationale is required for payout override.')
+  }
+
+  if (input.decision === 'block_payout') {
+    return {
+      ...input.current,
+      payoutStatus: 'blocked',
+      escrowStatus: 'blocked',
+      blockReason: input.current.blockReason ?? 'admin_blocked',
+      auditEvents: [...input.current.auditEvents, 'payout.admin_blocked'],
+    }
+  }
+
+  if (
+    input.decision === 'approve_payout'
+    || input.decision === 'reduce_payout'
+    || input.decision === 'waive_consequence'
+  ) {
+    return {
+      ...input.current,
+      payoutStatus: 'eligible',
+      escrowStatus: 'payout_ready',
+      blockReason: input.decision === 'waive_consequence' ? undefined : input.current.blockReason,
+      auditEvents: [
+        ...input.current.auditEvents,
+        input.decision === 'reduce_payout' ? 'payout.admin_reduced' : 'payout.admin_released',
+      ],
+    }
+  }
+
+  if (input.decision === 'issue_builder_credit') {
+    return {
+      ...input.current,
+      builderCreditHook: {
+        amount: roundMoney(input.builderCreditAmount ?? input.current.builderCreditHook?.amount ?? 0),
+        fundingSource: input.current.builderCreditHook?.fundingSource ?? 'policy_configured',
+        status: 'pending_admin_review',
+        escrowProtected: true,
+      },
+      auditEvents: [...input.current.auditEvents, 'builder_credit.admin_approved'],
+    }
+  }
+
+  return {
+    ...input.current,
+    reserveLedgerEntries: input.current.reserveLedgerEntries.map(entry => ({
+      ...entry,
+      status: 'posted',
+    })),
+    auditEvents: [...input.current.auditEvents, 'reserve.admin_applied'],
+  }
+}
+
 export const DEFAULT_RELIABILITY_TIERS: ReliabilityTierDefinition[] = [
   { tierKey: 'restricted', label: 'Restricted', minScore: 0, maxScore: 59.99, opportunityRank: 500 },
   { tierKey: 'provisional', label: 'Provisional', minScore: 60, maxScore: 74.99, opportunityRank: 300 },
@@ -174,6 +1168,19 @@ export const DEFAULT_RELIABILITY_POLICY: ReliabilityPolicyConfig = {
     dispute_resolved_inspector_fault: -10,
     dispute_resolved_no_fault: 0,
     response_recorded: 0,
+    CONFIRMATION_COMPLETED: 0.5,
+    CONFIRMATION_MISSED: -2,
+    DEPARTURE_CONFIRMED: 0.5,
+    ARRIVAL_CONFIRMED: 1,
+    LATE_ARRIVAL: -3,
+    ON_TIME_ARRIVAL: 1,
+    LATE_CANCELLATION: -12,
+    NO_SHOW: -25,
+    STANDBY_CANDIDATE_IDENTIFIED: 0,
+    STANDBY_SOFT_ALERTED: 0,
+    STANDBY_OFFERED: 0,
+    STANDBY_ACCEPTED: 1,
+    PRIMARY_REASSIGNED: 0,
   },
   thresholds: {
     lookbackDays: 365,
@@ -307,10 +1314,10 @@ export function scoreReliabilityEvents(
     if (isCompletedProfessionalWork(event)) counts.completedProfessionalWork += 1
     if (event.eventType === 'claim_commitment_accepted') counts.claimCommitments += 1
     if (event.eventType === 'valid_cancellation') counts.validCancellations += 1
-    if (event.eventType === 'invalid_late_cancellation') counts.invalidLateCancellations += 1
-    if (event.eventType === 'no_show') counts.noShows += 1
+    if (event.eventType === 'invalid_late_cancellation' || event.eventType === 'LATE_CANCELLATION') counts.invalidLateCancellations += 1
+    if (event.eventType === 'no_show' || event.eventType === 'NO_SHOW') counts.noShows += 1
     if (event.eventType === 'builder_site_not_ready') counts.builderSiteNotReady += 1
-    if (event.eventType === 'pre_site_confirmation_missed') counts.missedConfirmations += 1
+    if (event.eventType === 'pre_site_confirmation_missed' || event.eventType === 'CONFIRMATION_MISSED') counts.missedConfirmations += 1
 
     const delta = event.scoreDelta ?? policy.eventScoreDeltas[event.eventType] ?? 0
     score = clampScore(score + delta)
@@ -327,6 +1334,7 @@ export function calculateInspectorReliability(
   input: InspectorReliabilityCalculationInput,
 ): InspectorReliabilityCalculationResult {
   const policy = normalizePolicyConfig(input.policyConfig)
+  const rollout = evaluateReliabilityRollout(input.policyConfig)
   const thresholds = normalizeThresholds(policy.thresholds)
   const tierRules = normalizeTierRules(policy)
   const asOf = input.asOf ? new Date(input.asOf) : new Date()
@@ -421,12 +1429,12 @@ export function calculateInspectorReliability(
       continue
     }
 
-    if (event.eventType === 'invalid_late_cancellation') {
+    if (event.eventType === 'invalid_late_cancellation' || event.eventType === 'LATE_CANCELLATION') {
       invalidLateCancellationWeight += weight
       attendanceObligationWeight += weight
     }
 
-    if (event.eventType === 'no_show') {
+    if (event.eventType === 'no_show' || event.eventType === 'NO_SHOW') {
       noShowCount += 1
       noShowWeightedPenaltyCount += seriousWeight
       attendanceObligationWeight += weight
@@ -435,7 +1443,11 @@ export function calculateInspectorReliability(
       }
     }
 
-    if (event.eventType === 'pre_site_confirmation_missed') {
+    if (event.eventType === 'pre_site_confirmation_missed' || event.eventType === 'CONFIRMATION_MISSED') {
+      missedConfirmationWeight += weight
+    }
+
+    if (event.eventType === 'LATE_ARRIVAL') {
       missedConfirmationWeight += weight
     }
 
@@ -454,6 +1466,8 @@ export function calculateInspectorReliability(
     || missedConfirmationWeight > 0
     || disputeWeightedCount > 0
     || evidenceIncompleteWeight > 0
+  const hasPositiveReliabilityEvidence = completedProfessionalWorkCount > 0
+    || responseScoreWeight > 0
 
   const attendanceRate = attendanceObligationWeight > 0
     ? completedWeight / attendanceObligationWeight
@@ -471,7 +1485,7 @@ export function calculateInspectorReliability(
     ? responseScoreWeightedTotal / responseScoreWeight
     : thresholds.newInspectorResponseTimeScore
 
-  let reliabilityScore = hasScoredHistory
+  let reliabilityScore = hasScoredHistory && hasPositiveReliabilityEvidence
     ? (
         (attendanceRate * 35)
         + (evidenceCompletenessRate * 20)
@@ -543,6 +1557,14 @@ export function calculateInspectorReliability(
     })
   }
 
+  if (rollout.emergencyKillSwitch) {
+    explanations.push({
+      code: 'emergency_kill_switch',
+      severity: 'critical',
+      message: 'Automatic reliability enforcement is disabled by Admin kill switch.',
+    })
+  }
+
   const consequenceTier = tierRules[recommendedTier]
   if (!consequenceTier) {
     recommendedTier = 'verified'
@@ -576,7 +1598,7 @@ export function calculateInspectorReliability(
     payoutSpeedCategory: finalTierRule.payoutSpeedCategory,
     dispatchPriorityWeight: finalTierRule.dispatchPriorityWeight,
     enforcementMode: policy.enforcementMode,
-    consequencesEnforced: policy.enforcementMode === 'full_enforcement',
+    consequencesEnforced: rollout.financialConsequencesEnforced || rollout.automaticInspectorRestrictionAllowed,
     explanations,
   }
 }
@@ -584,6 +1606,174 @@ export function calculateInspectorReliability(
 function clampScore(score: number): number {
   if (!Number.isFinite(score)) return 0
   return Math.min(100, Math.max(0, Number(score.toFixed(2))))
+}
+
+function definitionForCheckpoint(checkpoint: AttendanceConfirmationCheckpoint): AttendanceCheckpointDefinition | undefined {
+  return ATTENDANCE_CONFIRMATION_LADDER.find(item => item.checkpoint === checkpoint)
+}
+
+function checkpointSortValue(confirmation: JobAttendanceConfirmation, asOfTime: number): number {
+  if (!confirmation.requiredAt) return Number.MAX_SAFE_INTEGER
+  const requiredTime = new Date(confirmation.requiredAt).getTime()
+  if (!Number.isFinite(requiredTime)) return Number.MAX_SAFE_INTEGER
+  return requiredTime < asOfTime ? requiredTime - asOfTime : requiredTime
+}
+
+function isStandbyEligible(
+  job: StandbyJobContext,
+  candidate: StandbyInspectorCandidateInput,
+): boolean {
+  if (candidate.inspectorId === job.primaryInspectorId) return false
+  if (candidate.onboardingStatus !== 'approved') return false
+  if (candidate.suspended || candidate.restricted) return false
+  if (standbyTierRank(candidate.reliabilityTier) >= standbyTierRank('restricted')) return false
+  if (candidate.available === false) return false
+  if (!candidate.disciplines.includes(job.requiredDiscipline)) return false
+  if (!candidate.regions.includes(job.region)) return false
+  if (candidate.permitFamilies?.length && !candidate.permitFamilies.includes(job.permitFamily)) return false
+  if (
+    candidate.stageEligibility?.length
+    && job.stageName
+    && !candidate.stageEligibility.includes(job.stageName)
+  ) return false
+
+  return true
+}
+
+function standbyTierRank(tier?: InspectorReliabilityTier | ReliabilityTierKey | string | null): number {
+  switch (tier) {
+    case 'elite':
+    case 'premier':
+      return 1
+    case 'priority':
+    case 'preferred':
+      return 2
+    case 'verified':
+    case 'standard':
+      return 3
+    case 'provisional':
+      return 4
+    case 'restricted':
+    case 'suspension_review':
+      return 99
+    default:
+      return 5
+  }
+}
+
+function normalizePayoutPolicyConfig(
+  policyConfig?: Partial<PayoutPolicyConfig> | Record<string, unknown> | null,
+): PayoutPolicyConfig {
+  const config = isRecord(policyConfig) ? policyConfig : {}
+  const enforcementMode = isReliabilityEnforcementMode(config.enforcementMode)
+    ? config.enforcementMode
+    : 'observe_only'
+
+  return {
+    enforcementMode,
+    reserveHooksEnabled: config.reserveHooksEnabled === true,
+    reserveReleaseDays: numberOrUndefined(config.reserveReleaseDays),
+    tierReservePercents: isRecord(config.tierReservePercents)
+      ? Object.fromEntries(
+          Object.entries(config.tierReservePercents)
+            .filter(([, value]) => typeof value === 'number' && Number.isFinite(value))
+            .map(([key, value]) => [key, Math.max(0, value as number)]),
+        ) as PayoutPolicyConfig['tierReservePercents']
+      : {},
+    payoutSpeedDays: isRecord(config.payoutSpeedDays)
+      ? Object.fromEntries(
+          Object.entries(config.payoutSpeedDays)
+            .filter(([, value]) => typeof value === 'number' && Number.isFinite(value))
+            .map(([key, value]) => [key, Math.max(0, value as number)]),
+        ) as PayoutPolicyConfig['payoutSpeedDays']
+      : defaultPayoutSpeedDays(),
+    invalidLateCancellationPayoutAction: config.invalidLateCancellationPayoutAction === 'blocked'
+      ? 'blocked'
+      : 'review',
+    builderCreditHooksEnabled: config.builderCreditHooksEnabled === true,
+    builderCreditAmount: numberOrUndefined(config.builderCreditAmount),
+    builderCreditFundingSource: isBuilderCreditFundingSource(config.builderCreditFundingSource)
+      ? config.builderCreditFundingSource
+      : 'policy_configured',
+    builderSiteNotReadyFeeAmount: numberOrUndefined(config.builderSiteNotReadyFeeAmount),
+  }
+}
+
+function payoutSpeedForTier(tier: InspectorReliabilityTier | ReliabilityTierKey): PayoutSpeedCategory {
+  switch (tier) {
+    case 'elite':
+    case 'premier':
+      return 'fastest'
+    case 'priority':
+      return 'faster'
+    case 'preferred':
+      return 'slightly_faster'
+    case 'restricted':
+    case 'suspension_review':
+      return 'admin_hold'
+    default:
+      return 'normal'
+  }
+}
+
+function defaultPayoutSpeedDays(): Record<PayoutSpeedCategory, number> {
+  return {
+    normal: 5,
+    slightly_faster: 3,
+    faster: 2,
+    fastest: 1,
+    admin_hold: 999,
+  }
+}
+
+function roundMoney(amount: number): number {
+  if (!Number.isFinite(amount)) return 0
+  return Math.round(Math.max(0, amount) * 100) / 100
+}
+
+function numberOrUndefined(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined
+}
+
+function isBuilderCreditFundingSource(value: unknown): value is BuilderCreditFundingSource {
+  return value === 'policy_configured'
+    || value === 'escrow_refund'
+    || value === 'platform_budget'
+    || value === 'rush_budget'
+    || value === 'inspector_reserve'
+}
+
+function distanceMeters(
+  latitudeA: number,
+  longitudeA: number,
+  latitudeB: number,
+  longitudeB: number,
+): number {
+  const toRadians = (degrees: number) => (degrees * Math.PI) / 180
+  const radiusMeters = 6_371_000
+  const latitudeDelta = toRadians(latitudeB - latitudeA)
+  const longitudeDelta = toRadians(longitudeB - longitudeA)
+  const a = (
+    Math.sin(latitudeDelta / 2) ** 2
+    + Math.cos(toRadians(latitudeA))
+    * Math.cos(toRadians(latitudeB))
+    * Math.sin(longitudeDelta / 2) ** 2
+  )
+
+  return radiusMeters * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
+function isWithinProtectedAppointmentWindow(input: {
+  requestedAt: string
+  scheduledStartAt?: string | null
+  protectedWindowMinutes?: number
+}): boolean {
+  if (!input.scheduledStartAt) return false
+  const requestedAt = new Date(input.requestedAt).getTime()
+  const scheduledStartAt = new Date(input.scheduledStartAt).getTime()
+  if (!Number.isFinite(requestedAt) || !Number.isFinite(scheduledStartAt)) return false
+  const windowMs = (input.protectedWindowMinutes ?? 240) * 60_000
+  return scheduledStartAt - requestedAt <= windowMs
 }
 
 function normalizePolicyConfig(

@@ -291,6 +291,8 @@ export interface InspectionJob {
   credentialClass?: SpecialistCredentialClass
   // Scheduling
   availableSlots?: JobTimeSlot[]
+  attendanceConfirmations?: JobAttendanceConfirmation[]
+  nextAttendanceCheckIn?: NextAttendanceCheckIn
   // Builder context
   builderId?: string
   builderName?: string
@@ -302,6 +304,70 @@ export interface InspectionJob {
   previousFailNotes?: string[]
   // Gear / requirements
   requiredGear?: string[]
+}
+
+export type AttendanceConfirmationCheckpoint =
+  | 'initial_claim'
+  | 't_24h'
+  | 't_4h'
+  | 't_90m'
+  | 'departure'
+  | 'arrival'
+
+export type AttendanceConfirmationStatus =
+  | 'pending'
+  | 'confirmed'
+  | 'missed'
+  | 'not_required'
+  | 'cancelled'
+
+export type AttendanceEscalationStatus =
+  | 'none'
+  | 'at_risk'
+  | 'admin_alerted'
+  | 'standby_prepared'
+  | 'standby_activation_requested'
+
+export type AttendanceProximityStatus =
+  | 'not_checked'
+  | 'within_range'
+  | 'outside_range'
+  | 'manual_evidence_required'
+
+export interface JobAttendanceConfirmation {
+  id?: string
+  confirmationToken?: string
+  jobId?: string
+  assignmentId?: string
+  appointmentId?: string
+  inspectorId?: string
+  builderId?: string
+  checkpoint: AttendanceConfirmationCheckpoint
+  status: AttendanceConfirmationStatus
+  escalationStatus?: AttendanceEscalationStatus
+  requiredAt?: string | null
+  scheduledStartAt?: string | null
+  reminderScheduledAt?: string | null
+  reminderSentAt?: string | null
+  confirmedAt?: string | null
+  missedAt?: string | null
+  criticalAlertOnMiss?: boolean
+  standbyPrepareOnMiss?: boolean
+  standbyActivateOnMiss?: boolean
+  proximityStatus?: AttendanceProximityStatus | null
+  evidenceRequired?: boolean
+}
+
+export interface NextAttendanceCheckIn {
+  checkpoint: AttendanceConfirmationCheckpoint
+  status: AttendanceConfirmationStatus
+  confirmationId?: string
+  confirmationToken?: string
+  requiredAt?: string | null
+  label?: string
+  critical?: boolean
+  manualTrigger?: boolean
+  geoFenced?: boolean
 }
 
 // ─── Active Inspection ────────────────────────────────────────────────────────

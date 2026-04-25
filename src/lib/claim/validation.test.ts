@@ -6,6 +6,9 @@ import {
   DUPLICATE_CLAIM_ERROR,
   INSPECTOR_CLAIM_EVENT_KEY,
   BUILDER_ASSIGNMENT_EVENT_KEY,
+  INSPECTOR_ATTENDANCE_REMINDER_EVENT_KEY,
+  ADMIN_CRITICAL_ATTENDANCE_RISK_EVENT_KEY,
+  STANDBY_ACTIVATION_REQUESTED_EVENT_KEY,
 } from './validation'
 
 const FUTURE_EXPIRY = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
@@ -76,6 +79,12 @@ test('claim creates commitment and reliability event — event key matches RPC',
 test('builder receives assignment notification — event key matches RPC', () => {
   // The RPC queues builder.assignment_claimed to the builder on successful claim.
   assert.equal(BUILDER_ASSIGNMENT_EVENT_KEY, 'builder.assignment_claimed')
+})
+
+test('attendance ladder notification keys match RPC inserts', () => {
+  assert.equal(INSPECTOR_ATTENDANCE_REMINDER_EVENT_KEY, 'inspector.attendance_confirmation_reminder')
+  assert.equal(ADMIN_CRITICAL_ATTENDANCE_RISK_EVENT_KEY, 'admin.critical_attendance_risk')
+  assert.equal(STANDBY_ACTIVATION_REQUESTED_EVENT_KEY, 'standby.activation_requested')
 })
 
 test('duplicate claim is rejected safely — error matches RPC unique_violation handler', () => {
