@@ -13,6 +13,9 @@ import { DispatchModal } from '@/components/builder/DispatchModal'
 import { EnRouteTracker } from '@/components/builder/EnRouteTracker'
 import { DailyFlash } from '@/components/builder/DailyFlash'
 import { ReliabilityGuarantee } from '@/components/builder/ReliabilityGuarantee'
+import { InspectionStatusBanner } from '@/components/builder/InspectionStatusBanner'
+import { mapDepartureStateToBuilderDisplay } from '@/lib/departureMonitoring'
+import type { BuilderInspectionDisplayInput } from '@/lib/departureMonitoring'
 import { MOCK_BUILDER } from '@/lib/mockData'
 import { useAuth } from '@/lib/auth'
 import { useStore } from '@/lib/store'
@@ -103,10 +106,12 @@ function ProvisionalAssignmentPanel({
   assignment,
   jobName,
   onObject,
+  departureInput,
 }: {
   assignment: Assignment
   jobName: string
   onObject: (reason: ObjectionReason, note: string) => void
+  departureInput?: BuilderInspectionDisplayInput | null
 }) {
   const { h, m, s, expired } = useCountdown(assignment.objectionWindowClosesAt)
   const [showForm, setShowForm] = React.useState(false)
@@ -132,6 +137,7 @@ function ProvisionalAssignmentPanel({
 
   if (assignment.status === 'confirmed' || expired) {
     const reliabilityStatus = buildAssignmentReliabilityStatus(assignment, expired)
+    const departureDisplay = mapDepartureStateToBuilderDisplay(departureInput ?? { escrowProtected: true })
 
     return (
       <div className="mb-6 rounded-2xl border border-success-green/20 bg-success-green/5 overflow-hidden">
@@ -143,7 +149,8 @@ function ProvisionalAssignmentPanel({
             <div className="text-[11px] font-mono text-subtle mt-1 font-semibold text-success-green">{assignment.inspectorLicense}</div>
           </div>
         </div>
-        <div className="px-5 pb-5">
+        <div className="px-5 space-y-3 pb-5">
+          <InspectionStatusBanner display={departureDisplay} />
           <ReliabilityGuarantee
             compact
             showStatus

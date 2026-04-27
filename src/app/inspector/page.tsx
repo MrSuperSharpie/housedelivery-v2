@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Search, ChevronRight, PlayCircle, Clock, Activity, Filter, Briefcase } from 'lucide-react'
 import { Navbar } from '@/components/shared/Navbar'
 import { JobCard } from '@/components/inspector/JobCard'
+import { HardPingProvider } from '@/components/inspector/HardPingProvider'
 import { ReliabilityTierDashboard } from '@/components/inspector/ReliabilityTierDashboard'
 import { checkInspectorEligibility } from '@/lib/eligibility'
 import { formatCurrency } from '@/lib/utils'
@@ -283,6 +284,7 @@ export default function InspectorDashboard() {
   if (!user || onboardingStatus === null || !eligibilityLoaded) return null
 
   return (
+    <HardPingProvider>
     <div className={`app-theme-scope min-h-screen ${isDark ? 'bg-[#0f172a]' : 'bg-slate-50'}`}>
       <Navbar role="inspector" dark />
       <main className="max-w-5xl mx-auto px-4 py-8">
@@ -593,5 +595,6 @@ export default function InspectorDashboard() {
         </div>
       </main>
     </div>
+    </HardPingProvider>
   )
 }

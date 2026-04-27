@@ -16,60 +16,102 @@
 -- job_assignments). Existing functionality is unaffected.
 
 -- ── ENUMs ─────────────────────────────────────────────────────────────────────
+-- Supabase migrations may be replayed locally after a partially-applied branch.
+-- Guard enum creation so reruns remain idempotent.
 
-create type public.inspection_job_status as enum (
-  'confirmed',
-  'in_progress',
-  'hold_active',
-  'awaiting_return',
-  'closed_mod_required',
-  'submitted',
-  'sealed'
-);
+do $$
+begin
+  if not exists (
+    select 1 from pg_type t
+    join pg_namespace n on n.oid = t.typnamespace
+    where n.nspname = 'public' and t.typname = 'inspection_job_status'
+  ) then
+    create type public.inspection_job_status as enum (
+      'confirmed',
+      'in_progress',
+      'hold_active',
+      'awaiting_return',
+      'closed_mod_required',
+      'submitted',
+      'sealed'
+    );
+  end if;
 
-create type public.inspection_hold_type as enum (
-  'onsite',
-  'same_day_return',
-  'reinspection'
-);
+  if not exists (
+    select 1 from pg_type t
+    join pg_namespace n on n.oid = t.typnamespace
+    where n.nspname = 'public' and t.typname = 'inspection_hold_type'
+  ) then
+    create type public.inspection_hold_type as enum (
+      'onsite',
+      'same_day_return',
+      'reinspection'
+    );
+  end if;
 
-create type public.inspection_hold_status as enum (
-  'proposed',
-  'acknowledged',
-  'declined',
-  'active',
-  'awaiting_return',
-  'converted',
-  'resolved_pass',
-  'resolved_fail'
-);
+  if not exists (
+    select 1 from pg_type t
+    join pg_namespace n on n.oid = t.typnamespace
+    where n.nspname = 'public' and t.typname = 'inspection_hold_status'
+  ) then
+    create type public.inspection_hold_status as enum (
+      'proposed',
+      'acknowledged',
+      'declined',
+      'active',
+      'awaiting_return',
+      'converted',
+      'resolved_pass',
+      'resolved_fail'
+    );
+  end if;
 
-create type public.inspection_hold_reason_code as enum (
-  'framing',
-  'foundation',
-  'envelope',
-  'electrical',
-  'plumbing',
-  'other'
-);
+  if not exists (
+    select 1 from pg_type t
+    join pg_namespace n on n.oid = t.typnamespace
+    where n.nspname = 'public' and t.typname = 'inspection_hold_reason_code'
+  ) then
+    create type public.inspection_hold_reason_code as enum (
+      'framing',
+      'foundation',
+      'envelope',
+      'electrical',
+      'plumbing',
+      'other'
+    );
+  end if;
 
-create type public.inspection_hold_created_by as enum (
-  'inspector',
-  'builder'
-);
+  if not exists (
+    select 1 from pg_type t
+    join pg_namespace n on n.oid = t.typnamespace
+    where n.nspname = 'public' and t.typname = 'inspection_hold_created_by'
+  ) then
+    create type public.inspection_hold_created_by as enum (
+      'inspector',
+      'builder'
+    );
+  end if;
 
-create type public.reinspection_status as enum (
-  'scheduled',
-  'completed',
-  'failed',
-  'passed'
-);
+  if not exists (
+    select 1 from pg_type t
+    join pg_namespace n on n.oid = t.typnamespace
+    where n.nspname = 'public' and t.typname = 'reinspection_status'
+  ) then
+    create type public.reinspection_status as enum (
+      'scheduled',
+      'completed',
+      'failed',
+      'passed'
+    );
+  end if;
+end;
+$$;
 
 -- ── inspection_jobs ───────────────────────────────────────────────────────────
 -- project_id is stored as text to accommodate external project reference formats.
 -- current_hold_id FK is added after inspection_holds is created (circular ref).
 
-create table public.inspection_jobs (
+create table if not exists public.inspection_jobs (
   id               uuid        primary key default gen_random_uuid(),
   project_id       text        not null,
   inspector_id     uuid        references auth.users(id),
@@ -88,7 +130,7 @@ create table public.inspection_jobs (
 -- ── inspection_holds ──────────────────────────────────────────────────────────
 -- linked_reinspection_id FK is added after reinspections is created.
 
-create table public.inspection_holds (
+create table if not exists public.inspection_holds (
   id                      uuid        primary key default gen_random_uuid(),
   inspection_id           uuid        not null
                             references public.inspection_jobs(id) on delete cascade,
@@ -112,13 +154,15 @@ create table public.inspection_holds (
 
 -- Wire current_hold_id → inspection_holds now that the table exists.
 alter table public.inspection_jobs
+  drop constraint if exists inspection_jobs_current_hold_id_fkey;
+alter table public.inspection_jobs
   add constraint inspection_jobs_current_hold_id_fkey
   foreign key (current_hold_id) references public.inspection_holds(id);
 
 -- ── hold_time_logs ────────────────────────────────────────────────────────────
 -- billable_minutes and total_cost may be null until the log segment is closed.
 
-create table public.hold_time_logs (
+create table if not exists public.hold_time_logs (
   id               uuid        primary key default gen_random_uuid(),
   hold_id          uuid        not null
                      references public.inspection_holds(id) on delete cascade,
@@ -132,7 +176,7 @@ create table public.hold_time_logs (
 
 -- ── reinspections ─────────────────────────────────────────────────────────────
 
-create table public.reinspections (
+create table if not exists public.reinspections (
   id                     uuid        primary key default gen_random_uuid(),
   original_inspection_id uuid        not null
                            references public.inspection_jobs(id) on delete restrict,
@@ -147,25 +191,27 @@ create table public.reinspections (
 
 -- Wire linked_reinspection_id → reinspections now that the table exists.
 alter table public.inspection_holds
+  drop constraint if exists inspection_holds_linked_reinspection_id_fkey;
+alter table public.inspection_holds
   add constraint inspection_holds_linked_reinspection_id_fkey
   foreign key (linked_reinspection_id) references public.reinspections(id);
 
 -- ── Indexes ───────────────────────────────────────────────────────────────────
 
-create index on public.inspection_jobs (inspector_id);
-create index on public.inspection_jobs (builder_id);
-create index on public.inspection_jobs (status);
-create index on public.inspection_jobs (project_id);
+create index if not exists idx_inspection_jobs_inspector_id on public.inspection_jobs (inspector_id);
+create index if not exists idx_inspection_jobs_builder_id on public.inspection_jobs (builder_id);
+create index if not exists idx_inspection_jobs_status on public.inspection_jobs (status);
+create index if not exists idx_inspection_jobs_project_id on public.inspection_jobs (project_id);
 
-create index on public.inspection_holds (inspection_id);
-create index on public.inspection_holds (status);
-create index on public.inspection_holds (type);
+create index if not exists idx_inspection_holds_inspection_id on public.inspection_holds (inspection_id);
+create index if not exists idx_inspection_holds_status on public.inspection_holds (status);
+create index if not exists idx_inspection_holds_type on public.inspection_holds (type);
 
-create index on public.hold_time_logs (hold_id);
+create index if not exists idx_hold_time_logs_hold_id on public.hold_time_logs (hold_id);
 
-create index on public.reinspections (original_inspection_id);
-create index on public.reinspections (inspector_id);
-create index on public.reinspections (status);
+create index if not exists idx_reinspections_original_inspection_id on public.reinspections (original_inspection_id);
+create index if not exists idx_reinspections_inspector_id on public.reinspections (inspector_id);
+create index if not exists idx_reinspections_status on public.reinspections (status);
 
 -- ── Row-Level Security ────────────────────────────────────────────────────────
 -- Baseline policies: each party sees only their own records.
@@ -177,16 +223,19 @@ alter table public.hold_time_logs       enable row level security;
 alter table public.reinspections        enable row level security;
 
 -- inspection_jobs --
+drop policy if exists "inspection_jobs: inspector read own" on public.inspection_jobs;
 create policy "inspection_jobs: inspector read own"
   on public.inspection_jobs for select
   using (inspector_id = auth.uid());
 
+drop policy if exists "inspection_jobs: builder read own" on public.inspection_jobs;
 create policy "inspection_jobs: builder read own"
   on public.inspection_jobs for select
   using (builder_id = auth.uid());
 
 -- inspection_holds --
 -- Both inspector and builder on the parent job can read holds.
+drop policy if exists "inspection_holds: parties read own" on public.inspection_holds;
 create policy "inspection_holds: parties read own"
   on public.inspection_holds for select
   using (
@@ -199,6 +248,7 @@ create policy "inspection_holds: parties read own"
 
 -- hold_time_logs --
 -- Inspectors see time logs for holds on their jobs.
+drop policy if exists "hold_time_logs: inspector read own" on public.hold_time_logs;
 create policy "hold_time_logs: inspector read own"
   on public.hold_time_logs for select
   using (
@@ -211,6 +261,7 @@ create policy "hold_time_logs: inspector read own"
   );
 
 -- reinspections --
+drop policy if exists "reinspections: parties read own" on public.reinspections;
 create policy "reinspections: parties read own"
   on public.reinspections for select
   using (

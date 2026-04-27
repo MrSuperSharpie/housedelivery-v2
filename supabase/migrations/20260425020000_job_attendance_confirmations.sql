@@ -41,7 +41,9 @@ alter table public.inspector_reliability_events
 
 create table if not exists public.job_attendance_confirmations (
   id uuid primary key default gen_random_uuid(),
-  confirmation_token text not null default encode(gen_random_bytes(24), 'hex') unique,
+  confirmation_token text not null default (
+    replace(gen_random_uuid()::text, '-', '') || replace(gen_random_uuid()::text, '-', '')
+  ) unique,
   job_id uuid not null references public.job_opportunities(id) on delete cascade,
   assignment_id uuid not null references public.job_assignments(id) on delete cascade,
   appointment_id uuid references public.inspection_appointments(id) on delete cascade,

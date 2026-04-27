@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Building2, HardHat, Briefcase, FileCheck,
   PauseCircle, Package, DollarSign, ShieldAlert, ScrollText,
-  Settings, Menu, X, ChevronRight, Shield,
+  Settings, Menu, X, ChevronRight, Shield, AlertTriangle,
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/shared/ThemeToggle'
 
@@ -15,6 +15,7 @@ export const ADMIN_NAV = [
   { href: '/admin/builders',    label: 'Builders',       icon: Building2,       badge: 3 },
   { href: '/admin/inspectors',  label: 'Inspectors',     icon: HardHat,         badge: 2 },
   { href: '/admin/jobs',        label: 'Jobs',           icon: Briefcase,       badge: null },
+  { href: '/admin/interventions', label: 'Interventions', icon: AlertTriangle,  badge: 'Live' },
   { href: '/admin/submissions', label: 'Submissions',    icon: FileCheck,       badge: 4 },
   { href: '/admin/holds',       label: 'Holds',          icon: PauseCircle,     badge: 1 },
   { href: '/admin/packages',    label: 'Packages',       icon: Package,         badge: 2 },
