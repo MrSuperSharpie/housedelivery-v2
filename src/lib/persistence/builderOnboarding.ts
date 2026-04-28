@@ -76,9 +76,9 @@ export async function getBuilderOnboardingStatusAsync(
       // fallback to local
     }
   }
-  // Real Supabase accounts: never apply demo bypass, even as a fallback.
-  const isRealAccount = !!supabaseId
-  return getBuilderOnboardingStatus(userId, isRealAccount)
+  // Authenticated accounts with no explicit status pre-date the onboarding gate — grant access.
+  if (supabaseId) return 'approved'
+  return getBuilderOnboardingStatus(userId)
 }
 
 /**

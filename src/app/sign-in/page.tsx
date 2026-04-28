@@ -167,8 +167,10 @@ function SignInInner() {
     setLoading(true)
     setError('')
 
-    // Try Supabase auth first (if not using demo accounts)
-    if (!isNew && form.password) {
+    // Try Supabase auth first (sign-in mode)
+    if (!isNew) {
+      if (!form.password) { setError('Password is required.'); setLoading(false); return }
+
       const { user: sbUser, error: sbError } = await signInWithSupabase(form.email, form.password)
       if (sbUser && !sbError) {
         // Build AuthUser from Supabase session and set in context
@@ -243,10 +245,16 @@ function SignInInner() {
         setLoading(false)
         return
       }
-      // If Supabase fails (e.g. placeholder keys), fall through to demo login
+      // Supabase is configured but credentials failed — surface the real error
+      const errorMessage = sbError instanceof Error
+        ? sbError.message
+        : (sbError as { message?: string } | null)?.message
+      setError(errorMessage ?? 'Sign in failed. Please check your email and password.')
+      setLoading(false)
+      return
     }
 
-    // Demo / local login fallback
+    // Demo / local login fallback (sign-up flow only)
     if (!form.name) { setError('Name and email are required.'); setLoading(false); return }
     if (isNew) {
       const duplicateError = await checkRegistrationAvailability({

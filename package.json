@@ -7,8 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx --test src/lib/*.test.ts src/lib/claim/*.test.ts src/lib/governance/*.test.ts src/lib/holds/*.test.ts src/lib/pdf/tests/*.test.ts",
-    "pdf:install-browser": "playwright install chromium"
+    "test": "tsx --test src/lib/*.test.ts src/lib/claim/*.test.ts src/lib/governance/*.test.ts src/lib/holds/*.test.ts src/lib/inspections/*.test.ts src/lib/pdf/tests/*.test.ts",
+    "pdf:install-browser": "playwright install chromium",
+    "types:supabase": "npx supabase gen types typescript --project-id llbcoqdtuvbwamptzipo > src/types/supabase.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.9.0",
