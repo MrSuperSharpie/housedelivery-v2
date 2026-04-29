@@ -1,10 +1,10 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import { evaluateDbProjectReadiness } from './projects.ts'
-import { normalizeAssignmentUiSnapshot } from './assignments.ts'
-import { evaluateGeofence } from '../geofence.ts'
-import { hydrateGovernedPaymentAmounts } from './payments.ts'
+import { evaluateDbProjectReadiness } from './projects'
+import { normalizeAssignmentUiSnapshot } from './assignments'
+import { evaluateGeofence } from '../geofence'
+import { hydrateGovernedPaymentAmounts } from './payments'
 
 test('project readiness is derived from database-backed state, not stale local-only data', () => {
   const readiness = evaluateDbProjectReadiness(

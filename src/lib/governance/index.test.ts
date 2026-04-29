@@ -9,7 +9,9 @@ import {
   validateOutcomeSelection,
   validatePayoutRelease,
   validateSealSubmissionRequest,
-} from './index.ts'
+} from './index'
+
+import { isHoldOpenStatus } from '../holds/workflow'
 
 test('job posting stays pending validation when escrow is not authorized', () => {
   const result = validateJobPostingGovernance({
@@ -122,4 +124,48 @@ test('payout release stays blocked while a dispute is open', () => {
 
   assert.equal(result.ok, false)
   assert.ok(result.blockers.some(issue => issue.ruleId === 'R-047'))
+})
+
+test('seal remains blocked until all stage holds are resolved, not just one', () => {
+  const BASE_SEAL_INPUT = {
+    hasTechnicalBlockers: false,
+    evidenceCount: 4,
+    sealed: false,
+    checklistPendingCount: 0,
+  }
+
+  const bothOpen = [
+    { stage: 1, status: 'hold_active' },
+    { stage: 4, status: 'hold_active' },
+  ]
+  assert.equal(
+    validateSealSubmissionRequest({
+      ...BASE_SEAL_INPUT,
+      hasOpenHold: bothOpen.some(h => isHoldOpenStatus(h.status)),
+    }).ok,
+    false,
+  )
+
+  const stageOneResolved = [
+    { stage: 1, status: 'hold_resolved_pass' },
+    { stage: 4, status: 'hold_active' },
+  ]
+  const partialResult = validateSealSubmissionRequest({
+    ...BASE_SEAL_INPUT,
+    hasOpenHold: stageOneResolved.some(h => isHoldOpenStatus(h.status)),
+  })
+  assert.equal(partialResult.ok, false)
+  assert.ok(partialResult.blockers.some(issue => issue.ruleId === 'R-036'))
+
+  const bothResolved = [
+    { stage: 1, status: 'hold_resolved_pass' },
+    { stage: 4, status: 'hold_resolved_pass' },
+  ]
+  assert.equal(
+    validateSealSubmissionRequest({
+      ...BASE_SEAL_INPUT,
+      hasOpenHold: bothResolved.some(h => isHoldOpenStatus(h.status)),
+    }).ok,
+    true,
+  )
 })

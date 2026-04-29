@@ -53,6 +53,7 @@ export const SAMPLE_SCHEDULE_CB_PACKET_SOURCE: ScheduleCBPacketSource = {
       responseNote: 'All statutory schedules and field review records were reconciled before seal issuance.',
       stageNumber: 15,
       stageName: 'Final Occupancy',
+      inspectionStatus: 'Passed',
     },
     {
       itemCode: 'S15-02',
@@ -60,6 +61,7 @@ export const SAMPLE_SCHEDULE_CB_PACKET_SOURCE: ScheduleCBPacketSource = {
       responseNote: 'Occupancy conditions photographed at final walkthrough.',
       stageNumber: 15,
       stageName: 'Final Occupancy',
+      inspectionStatus: 'Passed',
     },
   ],
   documents: [
@@ -99,6 +101,7 @@ export const SAMPLE_SCHEDULE_CB_PACKET_SOURCE: ScheduleCBPacketSource = {
     buildingPermitNumber: 'BP-2026-1842',
   },
   buildingPermitNumber: 'BP-2026-1842',
+  exportMode: 'authority_facing',
   generatedAtIso: '2026-04-11T16:21:15.000Z',
   verificationId: 'VERO-PACKET-2026-0001',
 }
