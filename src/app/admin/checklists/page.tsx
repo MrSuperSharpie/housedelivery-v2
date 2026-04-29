@@ -276,11 +276,11 @@ export default function AdminChecklistsPage() {
       {loading ? (
         <Spinner />
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-8">
 
           {/* Selectors */}
-          <section className="rounded-2xl border border-white/8 bg-white/5 p-5">
-            <div className="text-[10px] font-black uppercase tracking-widest text-subtle mb-3">
+          <section className="rounded-xl border border-white/8 bg-white/5 p-6">
+            <div className="text-[10px] font-bold uppercase tracking-[0.28em] text-subtle mb-3">
               Select Template
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -292,7 +292,7 @@ export default function AdminChecklistsPage() {
                   id="jurisdiction-select"
                   value={selectedJurisdictionId}
                   onChange={e => setSelectedJurisdictionId(e.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-surface/80 px-3 py-2.5 text-sm text-ink focus:border-flame/40 focus:outline-none"
+                  className="w-full rounded-xl border border-white/10 bg-surface/80 px-3 py-2.5 text-sm text-ink focus:border-flame/40 focus:outline-none focus-visible:ring-1 focus-visible:ring-flame/40"
                 >
                   <option value="">— Select jurisdiction —</option>
                   {jurisdictions.map(j => (
@@ -308,7 +308,7 @@ export default function AdminChecklistsPage() {
                   id="stage-select"
                   value={selectedStageId}
                   onChange={e => setSelectedStageId(e.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-surface/80 px-3 py-2.5 text-sm text-ink focus:border-flame/40 focus:outline-none"
+                  className="w-full rounded-xl border border-white/10 bg-surface/80 px-3 py-2.5 text-sm text-ink focus:border-flame/40 focus:outline-none focus-visible:ring-1 focus-visible:ring-flame/40"
                 >
                   <option value="">— Select stage —</option>
                   {stages.map(s => (
@@ -324,29 +324,29 @@ export default function AdminChecklistsPage() {
             templateLoading ? (
               <Spinner />
             ) : template ? (
-              <div className="space-y-4">
+              <div className="space-y-6">
 
                 {/* Template header */}
-                <section className="rounded-2xl border border-white/8 bg-white/5 p-5">
+                <section className="rounded-xl border border-white/8 bg-white/5 p-6">
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h2 className="text-base font-black text-ink">{template.title}</h2>
-                        <span className={`rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wide ${template.isActive ? 'border-emerald-400/25 bg-emerald-500/10 text-emerald-300' : 'border-white/10 bg-white/5 text-muted'}`}>
+                        <h2 className="text-lg font-black text-ink">{template.title}</h2>
+                        <span className={`rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wide ${template.isActive ? 'border-success-green/25 bg-success-green/10 text-success-green' : 'border-white/10 bg-white/5 text-muted'}`}>
                           {template.isActive ? 'Active' : 'Inactive'}
                         </span>
                       </div>
-                      <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted">
-                        <span><span className="text-subtle">Jurisdiction</span> {selectedJurisdiction?.name}</span>
+                      <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs">
+                        <span className="text-subtle">Jurisdiction <span className="text-ink/70">{selectedJurisdiction?.name}</span></span>
                         {selectedJurisdiction?.codeVersion && (
-                          <span><span className="text-subtle">Code Version</span> {selectedJurisdiction.codeVersion}</span>
+                          <span className="text-subtle">Code Version <span className="text-ink/70">{selectedJurisdiction.codeVersion}</span></span>
                         )}
-                        <span><span className="text-subtle">Template Version</span> {template.version}</span>
+                        <span className="text-subtle">Version <span className="text-ink/70">{template.version}</span></span>
                         {template.effectiveFrom && (
-                          <span><span className="text-subtle">Effective From</span> {formatDate(template.effectiveFrom)}</span>
+                          <span className="text-subtle">From <span className="text-ink/70">{formatDate(template.effectiveFrom)}</span></span>
                         )}
                         {selectedStage && (
-                          <span><span className="text-subtle">Stage</span> {selectedStage.stageNumber} — {selectedStage.title}</span>
+                          <span className="text-subtle">Stage <span className="text-ink/70">{selectedStage.stageNumber} — {selectedStage.title}</span></span>
                         )}
                       </div>
                     </div>
@@ -378,7 +378,7 @@ export default function AdminChecklistsPage() {
                   </div>
 
                   {responseCount > 0 && (
-                    <div className="mt-4 rounded-xl border border-amber-300/25 bg-amber-300/8 px-4 py-3 text-xs text-amber-300">
+                    <div className="mt-4 rounded-xl border border-warning-amber/25 bg-warning-amber/10 px-4 py-3 text-xs text-warning-amber">
                       <span className="font-black">{responseCount} permit response{responseCount !== 1 ? 's' : ''} exist</span> for this template.
                       Use <strong>Create New Version</strong> to preserve audit history before making changes.
                     </div>
@@ -387,13 +387,13 @@ export default function AdminChecklistsPage() {
 
                 {/* Action message */}
                 {msg && (
-                  <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-muted">
+                  <div role="alert" className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-muted">
                     {msg}
                   </div>
                 )}
 
                 {/* Items list */}
-                <section className="rounded-2xl border border-white/8 bg-white/5 p-5">
+                <section className="rounded-xl border border-white/8 bg-white/5 p-6">
                   <div className="mb-4 flex items-center justify-between gap-3">
                     <div>
                       <h3 className="text-base font-black text-ink">Checklist Items</h3>
@@ -413,9 +413,9 @@ export default function AdminChecklistsPage() {
                     )}
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {items.length === 0 && !addingNew && (
-                      <EmptyState text="No checklist items yet. Add the first item above." />
+                      <EmptyState text={template.isActive ? 'No checklist items yet. Use the button to add the first item.' : 'No checklist items on this template.'} />
                     )}
 
                     {items.map(item => (
@@ -441,8 +441,8 @@ export default function AdminChecklistsPage() {
                     ))}
 
                     {addingNew && (
-                      <div className="mt-3 rounded-2xl border border-flame/20 bg-flame/5 p-4">
-                        <div className="mb-3 text-xs font-black uppercase tracking-widest text-flame/80">
+                      <div className="mt-2 border-t border-white/8 pt-5">
+                        <div className="mb-4 text-[10px] font-black uppercase tracking-widest text-flame/70">
                           New Checklist Item
                         </div>
                         <ItemEditForm
@@ -459,7 +459,7 @@ export default function AdminChecklistsPage() {
                 </section>
               </div>
             ) : (
-              <section className="rounded-2xl border border-white/8 bg-white/5 p-8 text-center">
+              <section className="rounded-xl border border-white/8 bg-white/5 p-10 text-center">
                 <ClipboardList className="mx-auto mb-3 h-8 w-8 text-subtle" />
                 <div className="text-sm font-bold text-ink">No Checklist Template Assigned</div>
                 <p className="mt-1 text-xs text-muted">
@@ -490,11 +490,13 @@ function ItemRow({
   canEdit: boolean
 }) {
   return (
-    <div className={`rounded-xl border px-4 py-3 ${item.isActive ? 'border-white/8 bg-surface/50' : 'border-white/5 bg-white/2 opacity-50'}`}>
-      <div className="flex items-start justify-between gap-3">
+    <div className={`rounded-xl border px-4 py-4 ${item.isActive ? 'border-white/8 bg-surface/50' : 'border-white/5 bg-white/2 opacity-50'}`}>
+      <div className="flex items-start gap-4">
+        <div className="w-7 shrink-0 pt-0.5 text-right">
+          <span className="font-mono text-xs font-bold text-subtle">{String(item.sortOrder).padStart(2, '0')}</span>
+        </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[10px] font-mono text-subtle">#{item.sortOrder}</span>
             <span className="text-sm font-bold text-ink">{item.label}</span>
             <span className={`rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${item.isRequired ? 'border-electric/25 bg-electric/10 text-electric' : 'border-white/10 bg-white/5 text-muted'}`}>
               {item.isRequired ? 'Required' : 'Optional'}
@@ -505,9 +507,9 @@ function ItemRow({
               </span>
             )}
           </div>
-          <p className="mt-1 text-xs leading-5 text-muted">{item.requirementText}</p>
+          <p className="mt-1.5 text-xs leading-5 text-muted">{item.requirementText}</p>
           {item.legalReference && (
-            <p className="mt-1 text-[11px] text-subtle">{item.legalReference}</p>
+            <p className="mt-1.5 text-[11px] text-subtle">{item.legalReference}</p>
           )}
           {item.sourceTitle && (
             <p className="mt-0.5 text-[11px] text-subtle">
@@ -523,11 +525,11 @@ function ItemRow({
           <div className="flex shrink-0 gap-1.5">
             {item.isActive ? (
               <>
-                <AdminBtn size="xs" onClick={onEdit}>Edit</AdminBtn>
-                <AdminBtn size="xs" variant="warn" onClick={onDeactivate}>Deactivate</AdminBtn>
+                <AdminBtn size="xs" onClick={onEdit} aria-label={`Edit ${item.label}`}>Edit</AdminBtn>
+                <AdminBtn size="xs" variant="warn" onClick={onDeactivate} aria-label={`Deactivate ${item.label}`}>Deactivate</AdminBtn>
               </>
             ) : (
-              <AdminBtn size="xs" onClick={onReactivate}>Reactivate</AdminBtn>
+              <AdminBtn size="xs" onClick={onReactivate} aria-label={`Reactivate ${item.label}`}>Reactivate</AdminBtn>
             )}
           </div>
         )}
@@ -586,6 +588,7 @@ function ItemEditForm({
           onChange={e => set('label', e.target.value)}
           placeholder="Short item name shown in the checklist"
           className={fieldClass}
+          autoFocus
         />
       </Field>
       <Field label="Requirement Text">
@@ -657,7 +660,7 @@ function ItemEditForm({
 
 // ─── Small components ─────────────────────────────────────────────────────────
 
-const fieldClass = 'w-full rounded-xl border border-white/10 bg-surface/80 px-3 py-2 text-sm text-ink placeholder:text-subtle focus:border-flame/40 focus:outline-none'
+const fieldClass = 'w-full rounded-xl border border-white/10 bg-surface/80 px-3 py-2 text-sm text-ink placeholder:text-subtle focus:border-flame/40 focus:outline-none focus-visible:ring-1 focus-visible:ring-flame/40'
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -674,25 +677,28 @@ function AdminBtn({
   disabled,
   variant = 'default',
   size = 'sm',
+  'aria-label': ariaLabel,
 }: {
   children: React.ReactNode
   onClick: () => void
   disabled?: boolean
   variant?: 'default' | 'warn'
   size?: 'sm' | 'xs'
+  'aria-label'?: string
 }) {
   const sizeClass = size === 'xs'
     ? 'px-2.5 py-1.5 text-[10px]'
     : 'px-3.5 py-2 text-xs'
 
   const colorClass = variant === 'warn'
-    ? 'border-amber-300/25 bg-amber-300/8 text-amber-300 hover:bg-amber-300/15'
+    ? 'border-warning-amber/25 bg-warning-amber/10 text-warning-amber hover:bg-warning-amber/15'
     : 'border-white/10 bg-white/5 text-muted hover:bg-white/10 hover:text-ink'
 
   return (
     <button
       onClick={onClick}
       disabled={disabled}
+      aria-label={ariaLabel}
       className={`rounded-xl border font-bold transition-all disabled:cursor-not-allowed disabled:opacity-40 ${sizeClass} ${colorClass}`}
     >
       {children}

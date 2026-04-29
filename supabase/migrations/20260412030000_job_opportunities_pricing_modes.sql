@@ -17,14 +17,7 @@ alter table public.job_opportunities
 update public.job_opportunities
 set
   pricing_mode = coalesce(pricing_mode, 'dispatch_fixed'),
-  urgency_multiplier = coalesce(
-    nullif(urgency_multiplier, 0),
-    case
-      when dispatch_tier = 'emergency' then 2
-      when dispatch_tier = 'priority' then 1.5
-      else 1
-    end
-  ),
+  urgency_multiplier = coalesce(nullif(urgency_multiplier, 0), 1),
   hold_hours = coalesce(hold_hours, 0),
   hold_cost = coalesce(hold_cost, 0),
   platform_commission_amount = coalesce(platform_commission_amount, round(coalesce(offered_rate, 0) * 0.10)),

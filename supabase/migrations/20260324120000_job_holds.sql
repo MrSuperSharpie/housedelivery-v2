@@ -4,7 +4,7 @@
 -- 1. Create the table
 CREATE TABLE IF NOT EXISTS job_holds (
   id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  job_id       uuid REFERENCES compliance_completed_records(id),
+  job_id uuid REFERENCES public.job_opportunities(id) on delete cascade,
   inspector_id uuid NOT NULL,
   builder_id   uuid NOT NULL,
   reason       text NOT NULL,

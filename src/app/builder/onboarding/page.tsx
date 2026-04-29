@@ -101,7 +101,7 @@ function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
-      className={`w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-flame focus:outline-none text-sm font-medium transition-colors ${props.className ?? ''}`}
+      className={`w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-flame focus:outline-none text-sm font-medium text-gray-900 transition-colors ${props.className ?? ''}`}
     />
   )
 }
@@ -110,7 +110,7 @@ function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <select
       {...props}
-      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-flame focus:outline-none text-sm font-medium transition-colors bg-white"
+      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-flame focus:outline-none text-sm font-medium text-gray-900 transition-colors bg-white"
     />
   )
 }
@@ -120,7 +120,7 @@ function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
     <textarea
       rows={3}
       {...props}
-      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-flame focus:outline-none text-sm font-medium transition-colors resize-none"
+      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-flame focus:outline-none text-sm font-medium text-gray-900 transition-colors resize-none"
     />
   )
 }

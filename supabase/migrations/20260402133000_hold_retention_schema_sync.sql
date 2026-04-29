@@ -58,27 +58,6 @@ alter table public.job_holds
   add constraint job_holds_status_check
   check (status in ('open', 'builder_approved', 'builder_declined', 'expired', 'admin_resolved'));
 
-alter table public.job_holds
-  drop constraint if exists job_holds_job_id_fkey;
-
-do $$
-begin
-  if not exists (
-    select 1
-    from pg_constraint
-    where conname = 'job_holds_job_id_fkey'
-      and conrelid = 'public.job_holds'::regclass
-  ) then
-    alter table public.job_holds
-      add constraint job_holds_job_id_fkey
-      foreign key (job_id)
-      references public.job_opportunities(id)
-      on delete cascade
-      not valid;
-  end if;
-end
-$$;
-
 create index if not exists idx_job_holds_status on public.job_holds(status);
 create index if not exists idx_job_holds_placed_at on public.job_holds(placed_at desc);
 

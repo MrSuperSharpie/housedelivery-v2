@@ -8,17 +8,17 @@ create policy "profiles_select_own"
 on public.profiles
 for select
 to authenticated
-using ((select auth.uid()) = id);
+using ((select auth.uid())::text = id);
 
 create policy "profiles_insert_own"
 on public.profiles
 for insert
 to authenticated
-with check ((select auth.uid()) = id);
+with check ((select auth.uid())::text = id);
 
 create policy "profiles_update_own"
 on public.profiles
 for update
 to authenticated
-using ((select auth.uid()) = id)
-with check ((select auth.uid()) = id);
+using ((select auth.uid())::text = id)
+with check ((select auth.uid())::text = id);
