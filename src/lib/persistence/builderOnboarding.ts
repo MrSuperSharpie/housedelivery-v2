@@ -76,8 +76,7 @@ export async function getBuilderOnboardingStatusAsync(
       // fallback to local
     }
   }
-  // Authenticated accounts with no explicit status pre-date the onboarding gate — grant access.
-  if (supabaseId) return 'approved'
+  if (supabaseId) return 'draft'
   return getBuilderOnboardingStatus(userId)
 }
 
