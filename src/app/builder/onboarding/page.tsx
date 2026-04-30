@@ -59,7 +59,12 @@ const REGIONS = [
 const PERMIT_FAMILY_LABELS: Record<string, string> = {
   building:   'Building Permit',
   electrical: 'Electrical Permit',
+  plumbing:   'Plumbing Permit',
+  mechanical: 'Mechanical Permit',
+  occupancy:  'Final / Occupancy',
 }
+
+const DEFAULT_BUILDER_PERMIT_FAMILIES = ['building', 'electrical', 'plumbing', 'mechanical', 'occupancy']
 
 const ENTITY_TYPES = [
   'Corporation (Ltd. / Inc.)',
@@ -418,9 +423,7 @@ export default function BuilderOnboardingPage() {
 
   // Derived: auto-assign permit families based on builder type
   const autoPermitFamilies: string[] =
-    form.builderType === 'commercial' ? ['building'] :
-    form.builderType === 'residential' || form.builderType === 'both' ? ['building', 'electrical'] :
-    []
+    form.builderType ? DEFAULT_BUILDER_PERMIT_FAMILIES : []
 
   // Derived: does this builder need BC Housing docs?
   const needsBcHousing = form.builderType === 'residential' || form.builderType === 'both'
@@ -744,9 +747,7 @@ export default function BuilderOnboardingPage() {
                     ))}
                   </div>
                   <p className="text-xs text-blue-600">
-                    {form.builderType === 'commercial'
-                      ? 'Based on your builder type, your projects will require Building inspections. Electrical permits can be added during approval review if needed.'
-                      : 'Based on your builder type, your projects will require Building and Electrical inspections.'}
+                    Based on your builder type, your projects will default to Building, Electrical, Plumbing, Mechanical, and Final / Occupancy permit coverage. Admin review can adjust this set if needed.
                   </p>
                 </div>
               )}
