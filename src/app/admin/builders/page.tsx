@@ -12,13 +12,18 @@ import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/lib/auth'
 
 const supabase = createClient()
+const BUILDER_DOCUMENT_BUCKET = 'inspection-evidence'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
 type BuilderStatus = 'submitted' | 'under_review' | 'needs_info' | 'approved' | 'rejected' | 'suspended'
 
 interface BuilderDoc {
-  name: string
+  id: string
+  documentType: string
+  fileName: string
+  storagePath: string
+  status: string
   uploaded: boolean
   required: boolean
 }
@@ -90,6 +95,14 @@ function builderRowToRecord(row: Record<string, unknown>): BuilderRecord {
   }
 }
 
+function formatDocumentType(type: string) {
+  return type
+    .split('_')
+    .filter(Boolean)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
+
 const BUILDER_TYPE_ICON = {
   residential: Home,
   commercial: Store,
@@ -103,6 +116,7 @@ function BuilderRow({ record: initial, isLive }: { record: BuilderRecord; isLive
   const [expanded, setExpanded] = useState(record.status === 'under_review' || record.status === 'submitted')
   const [note, setNote] = useState(record.reviewerNote)
   const [saving, setSaving] = useState(false)
+  const [openingDocId, setOpeningDocId] = useState<string | null>(null)
 
   const allDocsUploaded = record.docs.length === 0
     ? true   // no doc records yet — don't block for live accounts
@@ -135,6 +149,24 @@ function BuilderRow({ record: initial, isLive }: { record: BuilderRecord; isLive
     }
     setRecord(prev => ({ ...prev, status, reviewerNote: note }))
     setSaving(false)
+  }
+
+  const handleViewDocument = async (doc: BuilderDoc) => {
+    setOpeningDocId(doc.id)
+    try {
+      const { data, error } = await supabase.storage
+        .from(BUILDER_DOCUMENT_BUCKET)
+        .createSignedUrl(doc.storagePath, 60)
+
+      if (error || !data?.signedUrl) {
+        console.error('Builder document view failed:', error)
+        return
+      }
+
+      window.open(data.signedUrl, '_blank', 'noopener,noreferrer')
+    } finally {
+      setOpeningDocId(null)
+    }
   }
 
   const Icon = BUILDER_TYPE_ICON[record.builderType]
@@ -207,7 +239,7 @@ function BuilderRow({ record: initial, isLive }: { record: BuilderRecord; isLive
               <div className="label-mono mb-2">Document checklist</div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                 {record.docs.map(doc => (
-                  <div key={doc.name} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] ${
+                  <div key={doc.id} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] ${
                     doc.uploaded ? 'bg-success-green/8 border border-success-green/15' :
                     doc.required ? 'bg-fail-red/8 border border-fail-red/15' :
                     'bg-white/3 border border-white/5'
@@ -216,8 +248,20 @@ function BuilderRow({ record: initial, isLive }: { record: BuilderRecord; isLive
                       ? <CheckCircle2 className="w-3.5 h-3.5 text-success-green shrink-0" />
                       : <AlertCircle className={`w-3.5 h-3.5 shrink-0 ${doc.required ? 'text-fail-red' : 'text-subtle'}`} />
                     }
-                    <span className={`flex-1 ${doc.uploaded ? 'text-success-green' : doc.required ? 'text-fail-red' : 'text-muted'}`}>{doc.name}</span>
-                    {doc.uploaded && <span className="text-[10px] text-muted font-mono cursor-pointer hover:text-flame">View</span>}
+                    <span className={`flex-1 min-w-0 ${doc.uploaded ? 'text-success-green' : doc.required ? 'text-fail-red' : 'text-muted'}`}>
+                      <span className="block font-semibold">{formatDocumentType(doc.documentType)}</span>
+                      <span className="block truncate text-[10px] text-muted">{doc.fileName} · {doc.status}</span>
+                    </span>
+                    {doc.uploaded && (
+                      <button
+                        type="button"
+                        onClick={() => handleViewDocument(doc)}
+                        disabled={openingDocId === doc.id}
+                        className="text-[10px] text-flame font-semibold hover:underline shrink-0"
+                      >
+                        {openingDocId === doc.id ? '…' : 'View'}
+                      </button>
+                    )}
                     {!doc.required && <span className="text-[9px] text-subtle">optional</span>}
                   </div>
                 ))}
@@ -231,7 +275,7 @@ function BuilderRow({ record: initial, isLive }: { record: BuilderRecord; isLive
             </div>
           ) : isLive ? (
             <div className="text-[11px] text-muted bg-white/3 border border-white/8 rounded-xl px-3 py-2">
-              Document uploads not yet tracked in database — review credentials out-of-band before approving.
+              No builder verification documents are available for this submission.
             </div>
           ) : null}
 
@@ -299,8 +343,45 @@ export default function AdminBuildersPage() {
 
           console.log('[AdminBuilders] query:', { rowCount: data?.length ?? 0, error })
 
-          // Admin always uses live data — never fall back to mock
-          setBuilders(error || !data ? [] : (data as Record<string, unknown>[]).map(builderRowToRecord))
+          if (error || !data) {
+            setBuilders([])
+          } else {
+            const records = (data as Record<string, unknown>[]).map(builderRowToRecord)
+            const builderIds = records.map(record => record.supabaseId ?? record.id).filter(Boolean)
+            const docsByBuilder: Record<string, BuilderDoc[]> = {}
+
+            if (builderIds.length > 0) {
+              const { data: docData, error: docError } = await supabase
+                .from('builder_documents')
+                .select('id, user_id, document_type, file_name, storage_path, status, is_required')
+                .in('user_id', builderIds)
+                .order('uploaded_at', { ascending: false })
+
+              if (docError) {
+                console.error('[AdminBuilders] builder document query failed:', docError)
+              }
+
+              for (const doc of (docData ?? []) as Record<string, unknown>[]) {
+                const userId = doc.user_id as string | undefined
+                if (!userId) continue
+                docsByBuilder[userId] ??= []
+                docsByBuilder[userId].push({
+                  id:           doc.id as string,
+                  documentType: (doc.document_type as string) ?? 'document',
+                  fileName:     (doc.file_name as string) ?? 'Document',
+                  storagePath:  (doc.storage_path as string) ?? '',
+                  status:       (doc.status as string) ?? 'uploaded',
+                  uploaded:     Boolean(doc.storage_path),
+                  required:     Boolean(doc.is_required),
+                })
+              }
+            }
+
+            setBuilders(records.map(record => ({
+              ...record,
+              docs: docsByBuilder[record.supabaseId ?? record.id] ?? [],
+            })))
+          }
           setIsLive(true)
           setLoading(false)
           return
