@@ -599,49 +599,27 @@ export default function InspectorSignup() {
       userId = data.user.id
     }
 
-    // Persist identity data directly to the profiles row (supplements auth trigger)
-    await supabase
-      .from('profiles')
-      .update({
-        full_name: `${form.firstName} ${form.lastName}`.trim() || null,
-        email: form.email.trim().toLowerCase() || null,
-        phone: normalizePhoneForProfile(form.phone) || null,
-        firm_name: form.firmName || null,
-        business_address: form.businessAddress || null,
-        onboarding_status: 'submitted',
-        verified: false,
-      })
-      .eq('id', userId)
-
-    await upsertInspectorEligibility({
-      userId,
-      status: 'submitted',
-      disciplines: derivedDisciplines as InspectorDiscipline[],
-      regions: form.regions as Region[],
-      requestedRoleLanes: derivedRoleLanes,
-      approvedRoleLanes: [],
-      licenseNumber: form.licenseNumber,
-    })
-
-    // Insert credential claims into inspector_held_credentials (requires active session for RLS)
-    if (hasActiveSession) {
-      for (const typeId of form.credentialTypes) {
-        const isGeneralist = GENERALIST_TYPES.has(typeId)
-        const { error: credError } = await supabase.from('inspector_held_credentials').insert({
-          inspector_id: userId,
-          credential_type_id: typeId,
-          license_number: form.licenseNumber || null,
-          discipline_scope: isGeneralist ? form.disciplineScope : [],
-          verification_status: 'unverified',
-        })
-        if (credError) console.warn(`credential claim ${typeId}:`, credError.message)
-      }
+    const { data: { session: uploadSession } } = await supabase.auth.getSession()
+    if (!uploadSession) {
+      setSubmitError('We could not verify your sign-in session before uploading documents. Please sign in and try again.')
+      setIsSubmitting(false)
+      return
     }
+    if (uploadSession.user.id !== userId) {
+      setSubmitError('Your sign-in session does not match this application. Please sign in again and retry your submission.')
+      setIsSubmitting(false)
+      return
+    }
+    hasActiveSession = true
 
     // Step 2 & 3: upload each pending file and write the credential row
     for (const docDef of allDocDefs) {
       const file = pendingFiles[docDef.key]
-      if (!file) continue
+      if (!file) {
+        setSubmitError(`Please re-select ${docDef.label} before submitting.`)
+        setIsSubmitting(false)
+        return
+      }
 
       setUploadStates(prev => ({
         ...prev,
@@ -665,13 +643,14 @@ export default function InspectorSignup() {
             uploadError: `Upload failed: ${storageError.message}`,
           },
         }))
-        // Continue uploading other docs — don't block on a single failure
-        continue
+        setSubmitError(`We could not upload ${docDef.label}. Please try again.`)
+        setIsSubmitting(false)
+        return
       }
 
       // Write the inspector_credentials metadata row
       const credentialId = createCredentialId(userId, docDef.credentialType)
-      await insertInspectorCredential({
+      const metadataSaved = await insertInspectorCredential({
         id:             credentialId,
         userId,
         credentialType: docDef.credentialType,
@@ -679,6 +658,19 @@ export default function InspectorSignup() {
         storagePath,
         isRequired:     docDef.isRequired,
       })
+      if (!metadataSaved) {
+        setUploadStates(prev => ({
+          ...prev,
+          [docDef.key]: {
+            uploaded:    false,
+            uploading:   false,
+            uploadError: 'Document metadata could not be saved.',
+          },
+        }))
+        setSubmitError(`We could not save ${docDef.label}. Please try again.`)
+        setIsSubmitting(false)
+        return
+      }
 
       setUploadStates(prev => ({
         ...prev,
@@ -725,8 +717,47 @@ export default function InspectorSignup() {
       }
     }
 
-    setIsSubmitting(false)
+    // Persist identity data directly to the profiles row (supplements auth trigger)
+    await supabase
+      .from('profiles')
+      .update({
+        full_name: `${form.firstName} ${form.lastName}`.trim() || null,
+        email: form.email.trim().toLowerCase() || null,
+        phone: normalizePhoneForProfile(form.phone) || null,
+        firm_name: form.firmName || null,
+        business_address: form.businessAddress || null,
+        onboarding_status: 'submitted',
+        verified: false,
+      })
+      .eq('id', userId)
+
+    await upsertInspectorEligibility({
+      userId,
+      status: 'submitted',
+      disciplines: derivedDisciplines as InspectorDiscipline[],
+      regions: form.regions as Region[],
+      requestedRoleLanes: derivedRoleLanes,
+      approvedRoleLanes: [],
+      licenseNumber: form.licenseNumber,
+    })
+
+    // Insert credential claims into inspector_held_credentials (requires active session for RLS)
+    if (hasActiveSession) {
+      for (const typeId of form.credentialTypes) {
+        const isGeneralist = GENERALIST_TYPES.has(typeId)
+        const { error: credError } = await supabase.from('inspector_held_credentials').insert({
+          inspector_id: userId,
+          credential_type_id: typeId,
+          license_number: form.licenseNumber || null,
+          discipline_scope: isGeneralist ? form.disciplineScope : [],
+          verification_status: 'unverified',
+        })
+        if (credError) console.warn(`credential claim ${typeId}:`, credError.message)
+      }
+    }
+
     await setInspectorOnboardingStatus('submitted', userId, userId)
+    setIsSubmitting(false)
 
     // Confirmation email — fire-and-forget, never blocks navigation
     void fetch('/api/mail/application-received', {
