@@ -14,8 +14,9 @@ import {
   getBuilderOnboardingStatusAsync,
   setBuilderOnboardingStatus,
   submitBuilderOnboarding,
+  uploadBuilderDocuments,
 } from '@/lib/persistence/builderOnboarding'
-import type { BuilderOnboardingStatus } from '@/lib/persistence/builderOnboarding'
+import type { BuilderDocumentUploadInput, BuilderOnboardingStatus } from '@/lib/persistence/builderOnboarding'
 
 // ─── Steps ────────────────────────────────────────────────────────────────────
 
@@ -131,7 +132,7 @@ function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
 }
 
 function DocUpload({ label, required, conditional, hint, uploaded, onUpload }: {
-  label: string; required?: boolean; conditional?: boolean; hint?: string; uploaded: boolean; onUpload: () => void
+  label: string; required?: boolean; conditional?: boolean; hint?: string; uploaded: boolean; onUpload: (file: File) => void
 }) {
   const inputRef = React.useRef<HTMLInputElement>(null)
   const [fileName, setFileName] = React.useState<string | null>(null)
@@ -140,7 +141,7 @@ function DocUpload({ label, required, conditional, hint, uploaded, onUpload }: {
     const file = e.target.files?.[0]
     if (!file) return
     setFileName(file.name)
-    onUpload()
+    onUpload(file)
     // Reset value so picking the same file again still fires onChange
     e.target.value = ''
   }
@@ -308,6 +309,16 @@ function StatusPage({ status, userEmail }: { status: BuilderOnboardingStatus; us
 
 // ─── Form state type ──────────────────────────────────────────────────────────
 
+type BuilderDocumentKey =
+  | 'businessRegistration'
+  | 'signingAuthority'
+  | 'insurance'
+  | 'bcHousingLicence'
+  | 'homeWarranty'
+  | 'govId'
+
+type WorksafeDocumentKey = 'clearanceLetter' | 'exemptionDeclaration'
+
 interface FormState {
   // Step 1 — Business
   legalBusinessName: string
@@ -331,23 +342,16 @@ interface FormState {
   newResidentialConstruction: boolean  // triggers home warranty requirement
 
   // Step 3 — Documents
-  docs: {
-    businessRegistration: boolean
-    signingAuthority: boolean
-    insurance: boolean
-    bcHousingLicence: boolean      // conditional: residential/both
-    homeWarranty: boolean          // conditional: newResidentialConstruction
-    govId: boolean                 // conditional: only if requested
-  }
+  docs: Record<BuilderDocumentKey, boolean>
+  docFiles: Partial<Record<BuilderDocumentKey, File>>
   worksafeMode: WorksafeMode
-  worksafeDocs: {
-    clearanceLetter: boolean
-    exemptionDeclaration: boolean
-  }
+  worksafeDocs: Record<WorksafeDocumentKey, boolean>
+  worksafeDocFiles: Partial<Record<WorksafeDocumentKey, File>>
   // Compliance disclosure
   complianceHasIssues: boolean | null
   complianceExplanation: string
   complianceUpload: boolean
+  complianceUploadFile: File | null
 
   // Step 4 — Declarations
   agreeTerms: boolean
@@ -392,14 +396,17 @@ export default function BuilderOnboardingPage() {
       homeWarranty: false,
       govId: false,
     },
+    docFiles: {},
     worksafeMode: '',
     worksafeDocs: {
       clearanceLetter: false,
       exemptionDeclaration: false,
     },
+    worksafeDocFiles: {},
     complianceHasIssues: null,
     complianceExplanation: '',
     complianceUpload: false,
+    complianceUploadFile: null,
 
     agreeTerms: false,
     agreeAccuracy: false,
@@ -416,11 +423,19 @@ export default function BuilderOnboardingPage() {
         : [...prev[field], val],
     }))
 
-  const setDocUploaded = (doc: keyof FormState['docs']) =>
-    setForm(prev => ({ ...prev, docs: { ...prev.docs, [doc]: true } }))
+  const setDocUploaded = (doc: BuilderDocumentKey, file: File) =>
+    setForm(prev => ({
+      ...prev,
+      docs: { ...prev.docs, [doc]: true },
+      docFiles: { ...prev.docFiles, [doc]: file },
+    }))
 
-  const setWorksafeDocUploaded = (doc: keyof FormState['worksafeDocs']) =>
-    setForm(prev => ({ ...prev, worksafeDocs: { ...prev.worksafeDocs, [doc]: true } }))
+  const setWorksafeDocUploaded = (doc: WorksafeDocumentKey, file: File) =>
+    setForm(prev => ({
+      ...prev,
+      worksafeDocs: { ...prev.worksafeDocs, [doc]: true },
+      worksafeDocFiles: { ...prev.worksafeDocFiles, [doc]: file },
+    }))
 
   // Derived: auto-assign permit families based on builder type
   const autoPermitFamilies: string[] =
@@ -484,6 +499,46 @@ export default function BuilderOnboardingPage() {
     if (status === 'approved' && user?.role === 'builder') router.replace('/builder')
   }, [status, user?.role, router])
 
+  const buildBuilderDocumentUploads = (): BuilderDocumentUploadInput[] => {
+    const uploads: BuilderDocumentUploadInput[] = []
+
+    const addRequired = (documentType: string, file: File | undefined, label: string) => {
+      if (!file) throw new Error(`Please re-upload ${label} before submitting.`)
+      uploads.push({ documentType, file, isRequired: true })
+    }
+
+    const addOptional = (documentType: string, uploaded: boolean, file: File | null | undefined, label: string) => {
+      if (!uploaded) return
+      if (!file) throw new Error(`Please re-upload ${label} before submitting.`)
+      uploads.push({ documentType, file, isRequired: false })
+    }
+
+    addRequired('business_registration', form.docFiles.businessRegistration, 'Business Registration / Incorporation Documents')
+    addRequired('signing_authority', form.docFiles.signingAuthority, 'Proof of Signing Authority')
+    addRequired('insurance', form.docFiles.insurance, 'Certificate of Insurance')
+
+    if (form.worksafeMode === 'clearance') {
+      addRequired('worksafe_clearance_letter', form.worksafeDocFiles.clearanceLetter, 'WorkSafeBC Clearance Letter')
+    } else if (form.worksafeMode === 'exemption') {
+      addRequired('worksafe_exemption_declaration', form.worksafeDocFiles.exemptionDeclaration, 'WorkSafeBC Exemption / Non-Registration Declaration')
+    } else {
+      throw new Error('Please select and upload a WorkSafeBC document before submitting.')
+    }
+
+    if (needsBcHousing) {
+      addRequired('bc_housing_licence', form.docFiles.bcHousingLicence, 'BC Housing Residential Builder Licence')
+    }
+
+    if (needsHomeWarranty) {
+      addRequired('home_warranty', form.docFiles.homeWarranty, 'Home Warranty Acceptance / Registration Evidence')
+    }
+
+    addOptional('compliance_supporting_document', form.complianceUpload, form.complianceUploadFile, 'Supporting Documentation')
+    addOptional('government_id', form.docs.govId, form.docFiles.govId, 'Government-Issued Photo ID')
+
+    return uploads
+  }
+
   const handleSubmit = async () => {
     setIsSubmitting(true)
     setSubmitError(null)
@@ -492,6 +547,24 @@ export default function BuilderOnboardingPage() {
     if (!user?.supabaseId) {
       console.error('[BuilderOnboarding] missing supabaseId — blocking submission')
       setSubmitError('We could not verify your account session. Please sign in again before submitting builder verification.')
+      setIsSubmitting(false)
+      return
+    }
+
+    let documentUploads: BuilderDocumentUploadInput[]
+    try {
+      documentUploads = buildBuilderDocumentUploads()
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Please re-upload your verification documents before submitting.')
+      setIsSubmitting(false)
+      return
+    }
+
+    const uploadsOk = await uploadBuilderDocuments(user.supabaseId, documentUploads)
+    console.log('[BuilderOnboarding] uploadBuilderDocuments result:', uploadsOk)
+
+    if (!uploadsOk) {
+      setSubmitError('We could not upload your verification documents. Please try again.')
       setIsSubmitting(false)
       return
     }
@@ -884,21 +957,21 @@ export default function BuilderOnboardingPage() {
                   required
                   hint="Certificate of Incorporation, BC Registries notice, or equivalent."
                   uploaded={form.docs.businessRegistration}
-                  onUpload={() => setDocUploaded('businessRegistration')}
+                  onUpload={file => setDocUploaded('businessRegistration', file)}
                 />
                 <DocUpload
                   label="Proof of Signing Authority"
                   required
                   hint="Articles of incorporation, corporate resolution, or power of attorney showing signing authority."
                   uploaded={form.docs.signingAuthority}
-                  onUpload={() => setDocUploaded('signingAuthority')}
+                  onUpload={file => setDocUploaded('signingAuthority', file)}
                 />
                 <DocUpload
                   label="Certificate of Insurance"
                   required
                   hint="Current commercial general liability or builder's risk certificate meeting Vero participation requirements."
                   uploaded={form.docs.insurance}
-                  onUpload={() => setDocUploaded('insurance')}
+                  onUpload={file => setDocUploaded('insurance', file)}
                 />
               </div>
 
@@ -936,7 +1009,7 @@ export default function BuilderOnboardingPage() {
                     required
                     hint="Current clearance letter from WorkSafeBC confirming good standing."
                     uploaded={form.worksafeDocs.clearanceLetter}
-                    onUpload={() => setWorksafeDocUploaded('clearanceLetter')}
+                    onUpload={file => setWorksafeDocUploaded('clearanceLetter', file)}
                   />
                 )}
                 {form.worksafeMode === 'exemption' && (
@@ -945,7 +1018,7 @@ export default function BuilderOnboardingPage() {
                     required
                     hint="Signed declaration of exemption or non-registration, where applicable."
                     uploaded={form.worksafeDocs.exemptionDeclaration}
-                    onUpload={() => setWorksafeDocUploaded('exemptionDeclaration')}
+                    onUpload={file => setWorksafeDocUploaded('exemptionDeclaration', file)}
                   />
                 )}
               </div>
@@ -961,7 +1034,7 @@ export default function BuilderOnboardingPage() {
                     required
                     hint="Required for residential builders where applicable. Upload your current BC Housing licence certificate."
                     uploaded={form.docs.bcHousingLicence}
-                    onUpload={() => setDocUploaded('bcHousingLicence')}
+                    onUpload={file => setDocUploaded('bcHousingLicence', file)}
                   />
 
                   {needsHomeWarranty && (
@@ -970,7 +1043,7 @@ export default function BuilderOnboardingPage() {
                       required
                       hint="Required for applicable new residential construction. Evidence of home warranty acceptance or registration as required under BC law."
                       uploaded={form.docs.homeWarranty}
-                      onUpload={() => setDocUploaded('homeWarranty')}
+                      onUpload={file => setDocUploaded('homeWarranty', file)}
                     />
                   )}
                 </div>
@@ -1014,7 +1087,7 @@ export default function BuilderOnboardingPage() {
                         conditional
                         hint="Upload any relevant court orders, regulatory decisions, or supporting documentation."
                         uploaded={form.complianceUpload}
-                        onUpload={() => set('complianceUpload', true)}
+                        onUpload={file => setForm(prev => ({ ...prev, complianceUpload: true, complianceUploadFile: file }))}
                       />
                     </div>
                   )}
@@ -1032,7 +1105,7 @@ export default function BuilderOnboardingPage() {
                   conditional
                   hint="Passport, driver's licence, or BC Services Card for the authorized signatory — only if requested."
                   uploaded={form.docs.govId}
-                  onUpload={() => setDocUploaded('govId')}
+                  onUpload={file => setDocUploaded('govId', file)}
                 />
               </div>
 

@@ -153,6 +153,92 @@ export interface BuilderOnboardingFormData {
   autoPermitFamilies: string[]
 }
 
+export interface BuilderDocumentUploadInput {
+  documentType: string
+  file: File
+  isRequired: boolean
+}
+
+const BUILDER_DOCUMENT_BUCKET = 'inspection-evidence'
+const BUILDER_DOCUMENT_PREFIX = 'builder_documents'
+
+function safeStorageFileName(name: string) {
+  return name.trim().replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-+|-+$/g, '') || 'document'
+}
+
+/**
+ * Upload builder verification files and insert review metadata.
+ * Returns false on the first storage or metadata error so callers can fail closed.
+ */
+export async function uploadBuilderDocuments(
+  supabaseId: string,
+  documents: BuilderDocumentUploadInput[],
+): Promise<boolean> {
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+  const sessionUserId = sessionData.session?.user.id
+
+  if (sessionError || !sessionUserId) {
+    console.error('[BuilderOnboarding] document upload blocked: no active Supabase session', {
+      error: sessionError,
+    })
+    return false
+  }
+
+  if (sessionUserId !== supabaseId) {
+    console.error('[BuilderOnboarding] document upload blocked: session user mismatch', {
+      sessionUserId,
+      supabaseId,
+    })
+    return false
+  }
+
+  for (const doc of documents) {
+    const safeFileName = safeStorageFileName(doc.file.name)
+    const storagePath = `${BUILDER_DOCUMENT_PREFIX}/${supabaseId}/${doc.documentType}/${Date.now()}-${safeFileName}`
+
+    const { error: uploadError } = await supabase.storage
+      .from(BUILDER_DOCUMENT_BUCKET)
+      .upload(storagePath, doc.file, {
+        contentType: doc.file.type || undefined,
+        upsert: false,
+      })
+
+    if (uploadError) {
+      console.error('[BuilderOnboarding] document upload failed', {
+        documentType: doc.documentType,
+        storagePath,
+        message: uploadError.message,
+        name: uploadError.name,
+        statusCode: 'statusCode' in uploadError ? uploadError.statusCode : undefined,
+        error: uploadError,
+      })
+      return false
+    }
+
+    const { error: metadataError } = await supabase
+      .from('builder_documents')
+      .insert({
+        user_id:       supabaseId,
+        document_type: doc.documentType,
+        file_name:     doc.file.name,
+        storage_path:  storagePath,
+        status:        'uploaded',
+        is_required:   doc.isRequired,
+      })
+
+    if (metadataError) {
+      console.error('[BuilderOnboarding] document metadata insert failed', {
+        documentType: doc.documentType,
+        storagePath,
+        error: metadataError,
+      })
+      return false
+    }
+  }
+
+  return true
+}
+
 /**
  * Upsert the full onboarding form to `builder_onboarding_status`.
  * Called on submission before setBuilderOnboardingStatus.
