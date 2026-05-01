@@ -629,7 +629,7 @@ export default function BuilderOnboardingPage() {
                 <Building2 className="w-3.5 h-3.5 text-white" />
               </div>
               <span className="text-sm font-black text-gray-900 tracking-tight">
-                Site<span className="text-flame">Line</span>
+                Vero<span className="text-flame"> Permit</span>
               </span>
             </Link>
           </div>
@@ -820,7 +820,7 @@ export default function BuilderOnboardingPage() {
 
               {form.builderType && (
                 <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
-                  <div className="text-xs font-bold text-blue-700 uppercase tracking-wide mb-2">Permit types assigned automatically</div>
+                  <div className="text-xs font-bold text-blue-700 uppercase tracking-wide mb-2">Default Permit Coverage</div>
                   <div className="flex flex-wrap gap-2 mb-2">
                     {autoPermitFamilies.map(f => (
                       <span key={f} className="inline-flex items-center gap-1.5 bg-white border border-blue-200 text-blue-800 text-xs font-semibold px-3 py-1.5 rounded-lg">
