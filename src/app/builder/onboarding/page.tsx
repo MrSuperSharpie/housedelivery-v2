@@ -363,6 +363,7 @@ export default function BuilderOnboardingPage() {
   const [status, setStatus]     = useState<BuilderOnboardingStatus | null>(() => getBuilderOnboardingStatus())
   const [step, setStep]         = useState<Step>('business')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const [form, setForm] = useState<FormState>({
     legalBusinessName: '',
@@ -485,38 +486,47 @@ export default function BuilderOnboardingPage() {
 
   const handleSubmit = async () => {
     setIsSubmitting(true)
+    setSubmitError(null)
     console.log('[BuilderOnboarding] submit started', { userId: user?.id, supabaseId: user?.supabaseId })
 
-    // Write full form data to builder_onboarding_status (real accounts only)
-    if (user?.supabaseId) {
-      const ok = await submitBuilderOnboarding(user.supabaseId, {
-        legalBusinessName:        form.legalBusinessName,
-        builderType:              form.builderType,
-        primaryContactName:       form.primaryContactName,
-        signatoryTitle:           form.signatoryTitle,
-        businessEmail:            form.businessEmail,
-        businessPhone:            form.businessPhone,
-        businessAddress:          form.businessAddress,
-        regions:                  form.regions,
-        entityType:               form.entityType,
-        companyNumber:            form.companyNumber,
-        provinceOfIncorporation:  form.provinceOfIncorporation,
-        yearsOperating:           form.yearsOperating,
-        website:                  form.website,
-        bcHousingLicenceNumber:   form.bcHousingLicenceNumber,
-        bcHousingLicenceType:     form.bcHousingLicenceType,
-        newResidentialConstruction: form.newResidentialConstruction,
-        complianceHasIssues:      form.complianceHasIssues,
-        complianceExplanation:    form.complianceExplanation,
-        autoPermitFamilies,
-      })
-      console.log('[BuilderOnboarding] submitBuilderOnboarding result:', ok)
-    } else {
-      console.log('[BuilderOnboarding] no supabaseId — skipping DB write, demo/local only')
+    if (!user?.supabaseId) {
+      console.error('[BuilderOnboarding] missing supabaseId — blocking submission')
+      setSubmitError('We could not verify your account session. Please sign in again before submitting builder verification.')
+      setIsSubmitting(false)
+      return
+    }
+
+    const ok = await submitBuilderOnboarding(user.supabaseId, {
+      legalBusinessName:        form.legalBusinessName,
+      builderType:              form.builderType,
+      primaryContactName:       form.primaryContactName,
+      signatoryTitle:           form.signatoryTitle,
+      businessEmail:            form.businessEmail,
+      businessPhone:            form.businessPhone,
+      businessAddress:          form.businessAddress,
+      regions:                  form.regions,
+      entityType:               form.entityType,
+      companyNumber:            form.companyNumber,
+      provinceOfIncorporation:  form.provinceOfIncorporation,
+      yearsOperating:           form.yearsOperating,
+      website:                  form.website,
+      bcHousingLicenceNumber:   form.bcHousingLicenceNumber,
+      bcHousingLicenceType:     form.bcHousingLicenceType,
+      newResidentialConstruction: form.newResidentialConstruction,
+      complianceHasIssues:      form.complianceHasIssues,
+      complianceExplanation:    form.complianceExplanation,
+      autoPermitFamilies,
+    })
+    console.log('[BuilderOnboarding] submitBuilderOnboarding result:', ok)
+
+    if (!ok) {
+      setSubmitError('We could not save your builder verification. Please try again.')
+      setIsSubmitting(false)
+      return
     }
 
     // Update status in profiles table and localStorage
-    await setBuilderOnboardingStatus('submitted', user?.id, user?.supabaseId)
+    await setBuilderOnboardingStatus('submitted', user.id, user.supabaseId)
     console.log('[BuilderOnboarding] setBuilderOnboardingStatus done')
 
     await new Promise(r => setTimeout(r, 800))
@@ -1144,6 +1154,13 @@ export default function BuilderOnboardingPage() {
           )}
 
           {/* ── Navigation ── */}
+          {submitError && (
+            <div className="mt-6 bg-red-50 border border-red-100 rounded-xl p-3 flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+              <div className="text-xs font-semibold text-red-700">{submitError}</div>
+            </div>
+          )}
+
           <div className="flex gap-3 mt-6 pt-5 border-t border-gray-100">
             {stepIdx > 0 && (
               <button

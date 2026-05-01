@@ -164,6 +164,10 @@ function SignInInner() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.email) { setError('Email is required.'); return }
+    if (role === 'admin' && isNew) {
+      setError('Admin accounts cannot be created publicly. Please sign in with an existing admin account.')
+      return
+    }
     setLoading(true)
     setError('')
 
@@ -181,12 +185,16 @@ function SignInInner() {
         let verified = false
         let profileName: string | undefined
         let profileFirm: string | undefined
+        let profileRole: UserRole | undefined
         try {
           const { data: profileData } = await supabase
             .from('profiles')
-            .select('logo_url, onboarding_status, verified, full_name, first_name, last_name, firm_name')
+            .select('logo_url, onboarding_status, verified, full_name, first_name, last_name, firm_name, role')
             .eq('id', sbUser.id)
             .maybeSingle()
+          if (isUserRole(profileData?.role)) {
+            profileRole = profileData.role
+          }
           if (typeof profileData?.logo_url === 'string' && profileData.logo_url.trim()) {
             logoUrl = profileData.logo_url
           }
@@ -206,7 +214,8 @@ function SignInInner() {
             profileFirm = profileData.firm_name
           }
         } catch { /* ignore */ }
-        const resolvedRole: UserRole = isUserRole(metadata.role) ? metadata.role : role
+        const metadataRole = isUserRole(metadata.role) ? metadata.role : undefined
+        const resolvedRole: UserRole = profileRole ?? metadataRole ?? role
         const resolvedName = profileName ?? name
         const authUser: AuthUser = {
           id:           sbUser.id,
@@ -232,14 +241,17 @@ function SignInInner() {
           onboardingStatus: onboardingStatus as AuthUser['onboardingStatus'],
         }
         login(authUser)
+        const roleSafeNextPath = resolvedRole === 'builder' && (
+          safeNextPath?.startsWith('/inspector') || safeNextPath?.startsWith('/live-board')
+        ) ? null : safeNextPath
         const destination = resolvedRole === 'inspector'
           ? getInspectorDestination({
               onboardingStatus: onboardingStatus as AuthUser['onboardingStatus'],
               hasEligibilityProfile: true,
-              fallback: safeNextPath ?? cfg.dashHref,
+              fallback: roleSafeNextPath ?? cfg.dashHref,
               verified,
             })
-          : safeNextPath ?? ROLE_CONFIG[resolvedRole].dashHref
+          : roleSafeNextPath ?? ROLE_CONFIG[resolvedRole].dashHref
         router.push(destination)
         router.refresh()
         setLoading(false)
@@ -267,6 +279,84 @@ function SignInInner() {
         return
       }
     }
+
+    if (role === 'builder' && isNew) {
+      if (!form.password) { setError('Password is required.'); setLoading(false); return }
+
+      const builderName = form.name.trim()
+      const builderEmail = form.email.trim().toLowerCase()
+      const builderCompany = form.company.trim()
+      const { data, error } = await supabase.auth.signUp({
+        email:    builderEmail,
+        password: form.password,
+        options: {
+          data: {
+            role:       'builder',
+            name:       builderName || null,
+            phone:      form.phone || null,
+            company:    builderCompany || null,
+            position:   form.position || null,
+          },
+        },
+      })
+
+      if (error || !data.user) {
+        setError(error?.message ?? 'Signup failed. Please try again.')
+        setLoading(false)
+        return
+      }
+
+      if (!data.session) {
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email:    builderEmail,
+          password: form.password,
+        })
+        if (signInError) {
+          setError(signInError.message)
+          setLoading(false)
+          return
+        }
+      }
+
+      const resolvedName = builderName || data.user.email?.split('@')[0] || 'Builder'
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert({
+          id:                data.user.id,
+          email:             builderEmail,
+          phone:             form.phone || null,
+          role:              'builder',
+          full_name:         resolvedName,
+          firm_name:         builderCompany || null,
+          onboarding_status: 'draft',
+          verified:          false,
+        })
+
+      if (profileError) {
+        setError(profileError.message)
+        setLoading(false)
+        return
+      }
+
+      const user: AuthUser = {
+        id:               data.user.id,
+        supabaseId:       data.user.id,
+        name:             resolvedName,
+        firstName:        resolvedName.split(' ')[0],
+        role:             'builder',
+        email:            data.user.email ?? builderEmail,
+        phone:            form.phone,
+        avatar:           resolvedName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2),
+        company:          builderCompany || undefined,
+        position:         form.position || undefined,
+        onboardingStatus: 'draft',
+      }
+      login(user)
+      router.push(safeNextPath ?? ROLE_CONFIG.builder.dashHref)
+      setLoading(false)
+      return
+    }
+
     await new Promise(r => setTimeout(r, 600))
 
     const demoUser = DEMO_USERS.find(d => d.email === form.email && d.role === role)
@@ -342,37 +432,41 @@ function SignInInner() {
                   {isNew ? 'Create account' : 'Sign in'}
                 </div>
                 <div className="text-xs text-muted">{cfg.label}</div>
-                <button
-                  type="button"
-                  onClick={() => setIsNew(n => !n)}
-                  className="mt-2 text-left text-sm font-semibold text-ink underline decoration-flame decoration-2 underline-offset-4 hover:text-flame transition-colors"
-                >
-                  {isNew ? 'Already have an account? Sign in' : "Don't have an account? Create one"}
-                </button>
+                {role !== 'admin' && (
+                  <button
+                    type="button"
+                    onClick={() => setIsNew(n => !n)}
+                    className="mt-2 text-left text-sm font-semibold text-ink underline decoration-flame decoration-2 underline-offset-4 hover:text-flame transition-colors"
+                  >
+                    {isNew ? 'Already have an account? Sign in' : "Don't have an account? Create one"}
+                  </button>
+                )}
               </div>
             </div>
           </div>
 
           {/* Demo quick-fills */}
-          <div className="mb-5">
-            <div className="label-mono mb-2">Demo accounts</div>
-            <div className="flex gap-2 flex-wrap">
-              {DEMO_USERS.filter(u => u.role === role).map(u => (
-                <button key={u.id} onClick={() => fill(u)}
-                  className="flex items-center gap-2 bg-panel border border-white/10 hover:border-flame/30 rounded-xl px-3 py-2 text-left transition-all group">
-                  <div className="w-7 h-7 bg-flame/15 rounded-lg flex items-center justify-center text-xs font-black text-flame">
-                    {u.avatar}
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-ink group-hover:text-flame transition-colors">{u.name}</div>
-                    <div className="text-[10px] text-muted">{u.company ?? u.designation ?? u.jurisdiction}</div>
-                  </div>
-                  <Zap className="w-3 h-3 text-warning-amber ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </button>
-              ))}
+          {role !== 'admin' && (
+            <div className="mb-5">
+              <div className="label-mono mb-2">Demo accounts</div>
+              <div className="flex gap-2 flex-wrap">
+                {DEMO_USERS.filter(u => u.role === role).map(u => (
+                  <button key={u.id} onClick={() => fill(u)}
+                    className="flex items-center gap-2 bg-panel border border-white/10 hover:border-flame/30 rounded-xl px-3 py-2 text-left transition-all group">
+                    <div className="w-7 h-7 bg-flame/15 rounded-lg flex items-center justify-center text-xs font-black text-flame">
+                      {u.avatar}
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-ink group-hover:text-flame transition-colors">{u.name}</div>
+                      <div className="text-[10px] text-muted">{u.company ?? u.designation ?? u.jurisdiction}</div>
+                    </div>
+                    <Zap className="w-3 h-3 text-warning-amber ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </button>
+                ))}
+              </div>
+              <p className="text-[10px] text-subtle mt-1.5">Click a demo account to pre-fill the form</p>
             </div>
-            <p className="text-[10px] text-subtle mt-1.5">Click a demo account to pre-fill the form</p>
-          </div>
+          )}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-3">
