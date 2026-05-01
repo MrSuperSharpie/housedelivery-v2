@@ -103,6 +103,11 @@ const PROFESSIONAL_TYPES = new Set([
 ])
 
 const GENERALIST_TYPES = new Set(['asct', 'ctech', 'qa_field_verifier'])
+const ACCOUNT_EXISTS_MESSAGE = 'This email already has an account. Please sign in to continue your inspector application.'
+
+function isAlreadyRegisteredError(message?: string) {
+  return Boolean(message?.toLowerCase().includes('already registered'))
+}
 
 function getCredentialDisplayName(typeId: string): string {
   return ALL_CREDENTIAL_TYPES.find(t => t.id === typeId)?.name ?? typeId
@@ -569,7 +574,10 @@ export default function InspectorSignup() {
       })
 
       if (error || !data.user) {
-        setSubmitError(error?.message ?? 'Signup failed. Please try again.')
+        setSubmitError(isAlreadyRegisteredError(error?.message)
+          ? ACCOUNT_EXISTS_MESSAGE
+          : error?.message ?? 'Signup failed. Please try again.'
+        )
         setIsSubmitting(false)
         return
       }
@@ -1128,7 +1136,14 @@ export default function InspectorSignup() {
               {submitError && (
                 <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl p-3">
                   <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
-                  <p className="text-xs text-red-600 font-medium">{submitError}</p>
+                  <div>
+                    <p className="text-xs text-red-600 font-medium">{submitError}</p>
+                    {submitError === ACCOUNT_EXISTS_MESSAGE && (
+                      <Link href="/sign-in?role=inspector" className="mt-1 inline-block text-xs font-bold text-red-700 underline underline-offset-2">
+                        Sign in to continue
+                      </Link>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
