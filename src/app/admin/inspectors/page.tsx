@@ -8,7 +8,7 @@ import { HardHat, Shield, Loader2, CheckCircle2, AlertCircle, FileText, MailChec
 import { AdminShell, ActionButton, StatusPill } from '@/components/admin/AdminShell'
 import { useAuth, DEMO_USERS } from '@/lib/auth'
 import { listInspectorOnboardingStatuses, setInspectorOnboardingStatus } from '@/lib/persistence/inspectorOnboarding'
-import type { InspectorOnboardingStatus, InspectorRoleLane } from '@/lib/types'
+import type { InspectorCredentialType, InspectorOnboardingStatus, InspectorRoleLane } from '@/lib/types'
 import { listInspectorCredentials, selectInspectorEligibility, type InspectorCredentialRow, upsertInspectorEligibility } from '@/lib/supabase/compliance'
 import { createClient } from '@/lib/supabase/client'
 import { getInspectorRoleLaneLabel, INSPECTOR_ROLE_LANES } from '@/lib/inspectorRoleLanes'
@@ -32,6 +32,18 @@ const REVIEW_STATUSES: InspectorOnboardingStatus[] = [
 
 const INSPECTOR_DOCUMENT_BUCKET = 'inspection-evidence'
 
+const REQUIREMENT_TYPE_ALIASES: Partial<Record<InspectorRoleLane, Partial<Record<InspectorCredentialType, InspectorCredentialType[]>>>> = {
+  architect: {
+    firm_practice_cert: ['professional_designation'],
+  },
+  engineer: {
+    primary_license: ['professional_designation'],
+  },
+  electrical_fsr: {
+    tsbc_or_fsr: ['primary_license'],
+  },
+}
+
 type InspectorIdentity = {
   displayName: string
   companyName?: string
@@ -44,6 +56,35 @@ type ProfileHint = Record<string, unknown>
 function readStr(obj: ProfileHint | undefined, key: string): string | undefined {
   const v = obj?.[key]
   return typeof v === 'string' && v.trim() ? v.trim() : undefined
+}
+
+function getRequirementAliases(lane: InspectorRoleLane, requirementType: InspectorCredentialType): InspectorCredentialType[] {
+  return REQUIREMENT_TYPE_ALIASES[lane]?.[requirementType] ?? []
+}
+
+function expandUploadedTypesForReview(
+  requestedLanes: InspectorRoleLane[],
+  uploadedTypes: Set<InspectorCredentialType>,
+): Set<InspectorCredentialType> {
+  const expanded = new Set(uploadedTypes)
+  for (const lane of requestedLanes) {
+    const aliases = REQUIREMENT_TYPE_ALIASES[lane] ?? {}
+    for (const [requirementType, equivalentTypes] of Object.entries(aliases) as [InspectorCredentialType, InspectorCredentialType[]][]) {
+      if (equivalentTypes.some(type => uploadedTypes.has(type))) expanded.add(requirementType)
+    }
+  }
+  return expanded
+}
+
+function findCredentialForRequirement(
+  creds: InspectorCredentialRow[],
+  requirementType: InspectorCredentialType,
+  lane?: InspectorRoleLane,
+): InspectorCredentialRow | undefined {
+  return creds.find(c => c.credentialType === requirementType)
+    ?? (lane
+      ? creds.find(c => getRequirementAliases(lane, requirementType).includes(c.credentialType))
+      : undefined)
 }
 
 function buildInspectorIdentity(
@@ -289,7 +330,8 @@ export default function AdminInspectorsPage() {
               const digitalSealPath = readStr(profileHintsByUser[row.userId], 'digital_seal_url')
               const note = noteDrafts[row.userId] ?? row.reviewerNote ?? ''
               const uploadedTypes = new Set(creds.map(c => c.credentialType))
-              const readiness = checkPackageReadiness(row.requestedRoleLanes, uploadedTypes)
+              const reviewUploadedTypes = expandUploadedTypesForReview(row.requestedRoleLanes, uploadedTypes)
+              const readiness = checkPackageReadiness(row.requestedRoleLanes, reviewUploadedTypes)
               const overrideActive = laneOverrides[row.userId] ?? false
               const canApproveOverall = readiness.ready || overrideActive
 
@@ -298,10 +340,11 @@ export default function AdminInspectorsPage() {
               // its own documents ready before CP itself can be approved.
               const laneApprovability = Object.fromEntries(
                 INSPECTOR_ROLE_LANES.map(lane => {
-                  const laneReady = checkPackageReadiness([lane], uploadedTypes).ready
+                  const laneUploadedTypes = expandUploadedTypesForReview([lane], uploadedTypes)
+                  const laneReady = checkPackageReadiness([lane], laneUploadedTypes).ready
                   if (lane === 'certified_professional') {
                     const baseReady = CP_BASE_LANES.some(
-                      base => checkPackageReadiness([base], uploadedTypes).ready
+                      base => checkPackageReadiness([base], expandUploadedTypesForReview([base], uploadedTypes)).ready
                     )
                     return [lane, laneReady && baseReady]
                   }
@@ -568,7 +611,7 @@ export default function AdminInspectorsPage() {
                         Baseline — all applicants
                       </div>
                       {BASELINE_REQUIREMENTS.map(req => {
-                        const doc = creds.find(c => c.credentialType === req.type)
+                        const doc = findCredentialForRequirement(creds, req.type)
                         return (
                           <div key={req.type} className="flex items-center justify-between gap-2 py-0.5 text-[11px]">
                             <div className="flex items-center gap-1.5 flex-1 min-w-0">
@@ -647,7 +690,7 @@ export default function AdminInspectorsPage() {
                                 </p>
                               ) : (
                                 laneReqs.map(req => {
-                                  const doc = creds.find(c => c.credentialType === req.type)
+                                  const doc = findCredentialForRequirement(creds, req.type, lane)
                                   return (
                                     <div key={req.type} className="flex items-center justify-between gap-2 py-0.5 text-[11px]">
                                       <div className="flex items-center gap-1.5 flex-1 min-w-0">
