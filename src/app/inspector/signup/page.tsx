@@ -109,6 +109,33 @@ function isAlreadyRegisteredError(message?: string) {
   return Boolean(message?.toLowerCase().includes('already registered'))
 }
 
+function inspectorProfilePayload(userId: string, form: {
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  licenseNumber: string
+  firmName: string
+  businessAddress: string
+}, onboardingStatus: 'draft' | 'submitted') {
+  const fullName = `${form.firstName} ${form.lastName}`.trim() || null
+  return {
+    id: userId,
+    role: 'inspector' as const,
+    first_name: form.firstName || null,
+    last_name: form.lastName || null,
+    full_name: fullName,
+    email: form.email.trim().toLowerCase() || null,
+    phone: normalizePhoneForProfile(form.phone) || null,
+    firm_name: form.firmName || null,
+    business_address: form.businessAddress || null,
+    license_number: form.licenseNumber || null,
+    inspector_license_no: form.licenseNumber || null,
+    onboarding_status: onboardingStatus,
+    verified: false,
+  }
+}
+
 function getCredentialDisplayName(typeId: string): string {
   return ALL_CREDENTIAL_TYPES.find(t => t.id === typeId)?.name ?? typeId
 }
@@ -620,6 +647,17 @@ export default function InspectorSignup() {
     }
     hasActiveSession = true
 
+    const { error: draftProfileError } = await supabase
+      .from('profiles')
+      .upsert(inspectorProfilePayload(userId, form, 'draft'))
+
+    if (draftProfileError) {
+      console.error('[InspectorSignup] profile draft upsert failed:', draftProfileError)
+      setSubmitError('We could not save your inspector profile. Please try again before submitting.')
+      setIsSubmitting(false)
+      return
+    }
+
     // Step 2 & 3: upload each pending file and write the credential row
     for (const docDef of allDocDefs) {
       const file = pendingFiles[docDef.key]
@@ -726,20 +764,18 @@ export default function InspectorSignup() {
     }
 
     // Persist identity data directly to the profiles row (supplements auth trigger)
-    await supabase
+    const { error: submittedProfileError } = await supabase
       .from('profiles')
-      .update({
-        full_name: `${form.firstName} ${form.lastName}`.trim() || null,
-        email: form.email.trim().toLowerCase() || null,
-        phone: normalizePhoneForProfile(form.phone) || null,
-        firm_name: form.firmName || null,
-        business_address: form.businessAddress || null,
-        onboarding_status: 'submitted',
-        verified: false,
-      })
-      .eq('id', userId)
+      .upsert(inspectorProfilePayload(userId, form, 'submitted'))
 
-    await upsertInspectorEligibility({
+    if (submittedProfileError) {
+      console.error('[InspectorSignup] profile submitted upsert failed:', submittedProfileError)
+      setSubmitError('Your documents were uploaded, but we could not save your inspector profile for review. Please try again.')
+      setIsSubmitting(false)
+      return
+    }
+
+    const eligibilitySaved = await upsertInspectorEligibility({
       userId,
       status: 'submitted',
       disciplines: derivedDisciplines as InspectorDiscipline[],
@@ -748,6 +784,11 @@ export default function InspectorSignup() {
       approvedRoleLanes: [],
       licenseNumber: form.licenseNumber,
     })
+    if (!eligibilitySaved) {
+      setSubmitError('Your documents were uploaded, but we could not submit your inspector eligibility for review. Please try again.')
+      setIsSubmitting(false)
+      return
+    }
 
     // Insert credential claims into inspector_held_credentials (requires active session for RLS)
     if (hasActiveSession) {
