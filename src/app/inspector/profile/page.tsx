@@ -9,7 +9,7 @@ import {
   Star, Shield, Clock, DollarSign, CheckCircle2,
   Edit3, Save, X, Award, UploadCloud, AlertCircle, Layers
 } from 'lucide-react'
-import { Navbar } from '@/components/shared/Navbar'
+import { BrandWordmark, Navbar } from '@/components/shared/Navbar'
 import { useAuth } from '@/lib/auth'
 import { getInspectorOnboardingStatusAsync } from '@/lib/persistence/inspectorOnboarding'
 import { createClient } from '@/lib/supabase/client'
@@ -94,7 +94,7 @@ const COMPLETED_JOBS = [
 
 export default function InspectorProfilePage() {
   const router = useRouter()
-  const { user, login } = useAuth()
+  const { user, login, logout } = useAuth()
   const [onboardingStatus, setOnboardingStatus] = useState<string | null>(null)
   const [credentialOwnerId, setCredentialOwnerId] = useState<string | null>(null)
   const [eligibilityProfile, setEligibilityProfile] = useState<InspectorEligibilityProfile | null>(null)
@@ -147,7 +147,7 @@ export default function InspectorProfilePage() {
   }, [user?.id, user?.supabaseId])
   useEffect(() => {
     if (!user || user.role !== 'inspector' || onboardingStatus === null) return
-    if (onboardingStatus !== 'approved') router.replace('/inspector/onboarding-status')
+    if (onboardingStatus !== 'approved' && onboardingStatus !== 'needs_info') router.replace('/inspector/onboarding-status')
   }, [user, onboardingStatus, router])
 
   useEffect(() => {
@@ -174,7 +174,11 @@ export default function InspectorProfilePage() {
     }
   }, [user?.id, user?.supabaseId])
 
-  if (!user || user.role !== 'inspector' || onboardingStatus !== 'approved' || onboardingStatus === null) {
+  const isApprovedInspector = onboardingStatus === 'approved'
+  const isNeedsInfo = onboardingStatus === 'needs_info'
+  const canAccessDocumentFollowUp = isApprovedInspector || isNeedsInfo
+
+  if (!user || user.role !== 'inspector' || !canAccessDocumentFollowUp || onboardingStatus === null) {
     return (
       <div className="app-theme-scope min-h-screen bg-surface flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-flame/30 border-t-flame rounded-full animate-spin" />
@@ -189,6 +193,9 @@ export default function InspectorProfilePage() {
   const missingRequired = REQUIRED_CREDENTIALS.filter(doc => !uploadedCredentialTypes.has(doc.type))
   const requiredCredentials = credentials.filter(c => REQUIRED_CREDENTIALS.some(doc => doc.type === c.credentialType))
   const optionalCredentials = credentials.filter(c => OPTIONAL_CREDENTIALS.some(doc => doc.type === c.credentialType))
+  const visibleRoleLanes = isApprovedInspector
+    ? INSPECTOR_ROLE_LANES
+    : (eligibilityProfile?.requestedRoleLanes ?? [])
 
   const handleAvatarUpload = async (files: FileList | null) => {
     if (!user || !files || files.length === 0) return
@@ -435,14 +442,59 @@ export default function InspectorProfilePage() {
 
   return (
     <div className="app-theme-scope min-h-screen bg-surface">
-      <Navbar role="inspector" dark />
+      {isApprovedInspector ? (
+        <Navbar role="inspector" dark />
+      ) : (
+        <nav className="sticky top-0 z-40 border-b border-white/5 bg-surface/90 backdrop-blur-xl">
+          <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6">
+            <BrandWordmark priority />
+            <button
+              type="button"
+              onClick={() => {
+                logout()
+                router.push('/')
+              }}
+              className="text-xs font-semibold text-muted hover:text-ink"
+            >
+              Sign out
+            </button>
+          </div>
+        </nav>
+      )}
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6">
-        <Link href="/inspector" className="inline-flex items-center gap-1.5 text-xs text-muted hover:text-ink mb-5 transition-colors">
-          <ArrowLeft className="w-3.5 h-3.5" /> Live Board
-        </Link>
+        {isApprovedInspector ? (
+          <Link href="/inspector" className="inline-flex items-center gap-1.5 text-xs text-muted hover:text-ink mb-5 transition-colors">
+            <ArrowLeft className="w-3.5 h-3.5" /> Live Board
+          </Link>
+        ) : (
+          <Link href="/inspector/onboarding" className="inline-flex items-center gap-1.5 text-xs text-muted hover:text-ink mb-5 transition-colors">
+            <ArrowLeft className="w-3.5 h-3.5" /> Approval status
+          </Link>
+        )}
+
+        {isNeedsInfo && (
+          <div className="mb-5 rounded-2xl border-2 border-warning-amber/30 bg-warning-amber/10 p-5 text-warning-amber">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
+              <div>
+                <div className="text-sm font-black">More information requested</div>
+                <p className="mt-1 text-xs leading-relaxed">
+                  Upload the requested documents below. Your inspector account remains under review until Vero approves it.
+                </p>
+                {eligibilityProfile?.reviewerNote && (
+                  <div className="mt-3 rounded-xl border border-warning-amber/20 bg-surface/60 px-3 py-2">
+                    <div className="text-[10px] font-bold uppercase tracking-widest">Reviewer note</div>
+                    <p className="mt-1 text-xs leading-relaxed">{eligibilityProfile.reviewerNote}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Profile header */}
+        {isApprovedInspector && (
         <div className="card-dark rounded-2xl p-6 mb-5 inset-top">
           <div className="flex items-start gap-4">
             <div className="w-16 h-16 bg-flame/15 border-2 border-flame/30 rounded-2xl flex items-center justify-center font-black text-flame text-xl shrink-0 overflow-hidden">
@@ -546,8 +598,10 @@ export default function InspectorProfilePage() {
             ))}
           </div>
         </div>
+        )}
 
         {/* Stats */}
+        {isApprovedInspector && (
         <div className="card-dark rounded-2xl p-5 mb-5 inset-top">
           <div className="label-mono mb-3">Approved role lanes</div>
           <div className="flex flex-wrap gap-2">
@@ -567,7 +621,9 @@ export default function InspectorProfilePage() {
             </div>
           )}
         </div>
+        )}
 
+        {isApprovedInspector && (
         <div className="grid grid-cols-4 gap-3 mb-5">
           {[
             { icon: CheckCircle2, label: 'Completed',    value: completedJobs.length, color: 'text-success-green' },
@@ -582,8 +638,10 @@ export default function InspectorProfilePage() {
             </div>
           ))}
         </div>
+        )}
 
         {/* Job history */}
+        {isApprovedInspector && (
         <div className="card-dark rounded-2xl overflow-hidden inset-top">
           <div className="px-5 py-4 border-b border-white/5 flex items-center justify-between">
             <div className="label-mono">Inspection History</div>
@@ -612,6 +670,7 @@ export default function InspectorProfilePage() {
             ))}
           </div>
         </div>
+        )}
 
         {/* Credentials */}
         <div className="card-dark rounded-2xl p-6 mt-5 inset-top">
@@ -817,7 +876,12 @@ export default function InspectorProfilePage() {
           </p>
 
           <div className="space-y-2">
-            {INSPECTOR_ROLE_LANES.map(lane => {
+            {visibleRoleLanes.length === 0 && (
+              <div className="rounded-xl border border-white/8 bg-surface/50 px-3 py-3 text-xs text-muted">
+                No requested role lanes are on file yet. Use the document selector above to upload any files Vero requested.
+              </div>
+            )}
+            {visibleRoleLanes.map(lane => {
               const laneReqs = LANE_REQUIREMENTS[lane] ?? []
               const isLaneApproved  = eligibilityProfile?.approvedRoleLanes.includes(lane)  ?? false
               const isLaneRequested = eligibilityProfile?.requestedRoleLanes.includes(lane) ?? false
@@ -870,7 +934,7 @@ export default function InspectorProfilePage() {
                         }
                       </span>
 
-                      {!isLaneRequested && !isLaneApproved && credentialOwnerId && (
+                      {isApprovedInspector && !isLaneRequested && !isLaneApproved && credentialOwnerId && (
                         <button
                           type="button"
                           onClick={() => handleRequestLane(lane)}

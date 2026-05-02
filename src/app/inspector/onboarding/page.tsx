@@ -61,6 +61,7 @@ function InspectorOnboardingEntryInner() {
   const { user } = useAuth()
   const [status, setStatus] = useState<InspectorOnboardingStatus>('submitted')
   const [hasEligibilityProfile, setHasEligibilityProfile] = useState<boolean | null>(null)
+  const [reviewerNote, setReviewerNote] = useState<string | null>(null)
 
   useEffect(() => {
     if (!user?.id) {
@@ -73,12 +74,19 @@ function InspectorOnboardingEntryInner() {
     getInspectorOnboardingStatusAsync(user.id, user.supabaseId).then(setStatus)
     if (user.role === 'inspector' && user.supabaseId) {
       selectInspectorEligibility(user.supabaseId)
-        .then(profile => setHasEligibilityProfile(Boolean(profile)))
-        .catch(() => setHasEligibilityProfile(false))
+        .then(profile => {
+          setHasEligibilityProfile(Boolean(profile))
+          setReviewerNote(profile?.reviewerNote ?? null)
+        })
+        .catch(() => {
+          setHasEligibilityProfile(false)
+          setReviewerNote(null)
+        })
       return
     }
     queueMicrotask(() => {
       setHasEligibilityProfile(false)
+      setReviewerNote(null)
     })
   }, [user?.id, user?.role, user?.supabaseId])
 
@@ -142,6 +150,16 @@ function InspectorOnboardingEntryInner() {
             </div>
           )}
 
+          {status === 'needs_info' && reviewerNote && (
+            <div className="mt-5 flex items-start gap-3 rounded-2xl border-2 border-warning-amber/30 bg-warning-amber/10 px-4 py-3.5 text-sm text-warning-amber">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              <div>
+                <div className="font-black">Reviewer note</div>
+                <p className="mt-1 text-xs leading-relaxed">{reviewerNote}</p>
+              </div>
+            </div>
+          )}
+
           <div className="mt-8 grid gap-4 md:grid-cols-2">
             <div className="rounded-2xl border border-rim bg-surface p-5">
               <div className="text-[10px] font-bold uppercase tracking-widest text-subtle">What happens next</div>
@@ -162,7 +180,15 @@ function InspectorOnboardingEntryInner() {
           </div>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            {status === 'needs_info' || status === 'draft' ? (
+            {status === 'needs_info' ? (
+              <Link
+                href="/inspector/profile"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-flame px-5 py-4 text-sm font-black text-white hover:bg-flame-light"
+              >
+                <FileText className="h-4 w-4" />
+                Upload requested documents
+              </Link>
+            ) : status === 'draft' ? (
               <Link
                 href="/inspector/signup"
                 className="inline-flex items-center justify-center gap-2 rounded-2xl bg-flame px-5 py-4 text-sm font-black text-white hover:bg-flame-light"
