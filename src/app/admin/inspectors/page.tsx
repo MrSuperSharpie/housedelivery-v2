@@ -87,6 +87,36 @@ function findCredentialForRequirement(
       : undefined)
 }
 
+function hasMissingDocuments(readiness: ReturnType<typeof checkPackageReadiness>): boolean {
+  return readiness.baselineMissing.length > 0 || readiness.perLane.some(lane => lane.missing.length > 0)
+}
+
+function buildMissingDocumentNote(readiness: ReturnType<typeof checkPackageReadiness>): string {
+  const sections: string[] = []
+
+  if (readiness.baselineMissing.length > 0) {
+    sections.push(
+      `Baseline documents:\n${readiness.baselineMissing.map(req => `- ${req.label}`).join('\n')}`
+    )
+  }
+
+  for (const lane of readiness.perLane) {
+    if (lane.missing.length === 0) continue
+    sections.push(
+      `${getInspectorRoleLaneLabel(lane.lane)}:\n${lane.missing.map(req => `- ${req.label}`).join('\n')}`
+    )
+  }
+
+  const missingList = sections.length > 0
+    ? sections.join('\n\n')
+    : '- No missing required documents are currently listed in the admin checklist.'
+  const receivedCopy = readiness.baselineMissing.length === 0
+    ? 'We have received your baseline documents.'
+    : 'We have reviewed the documents received so far.'
+
+  return `Thank you for your submission. ${receivedCopy} Before we can approve your inspector profile, please upload the following additional documents:\n\n${missingList}\n\nOnce uploaded, your application will be reviewed again.`
+}
+
 function buildInspectorIdentity(
   userId: string,
   licenseNumber: string | undefined,
@@ -334,6 +364,8 @@ export default function AdminInspectorsPage() {
               const readiness = checkPackageReadiness(row.requestedRoleLanes, reviewUploadedTypes)
               const overrideActive = laneOverrides[row.userId] ?? false
               const canApproveOverall = readiness.ready || overrideActive
+              const missingDocumentsExist = hasMissingDocuments(readiness)
+              const suggestedMissingDocumentNote = buildMissingDocumentNote(readiness)
 
               // Per-lane approvability: baseline + all lane-specific docs must be uploaded.
               // CP additionally requires at least one base lane (Architect or Engineer) to have
@@ -566,7 +598,29 @@ export default function AdminInspectorsPage() {
                   </div>
 
                   <div>
-                    <div className="text-[11px] text-muted mb-1">Reviewer notes (optional)</div>
+                    <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+                      <div className="text-[11px] text-muted">Reviewer notes (visible to inspector)</div>
+                      {missingDocumentsExist && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setNoteDrafts(prev => ({ ...prev, [row.userId]: suggestedMissingDocumentNote }))
+                          }
+                          disabled={savingId === row.userId}
+                          className="text-[10px] font-bold text-flame hover:underline disabled:opacity-50"
+                        >
+                          Insert missing-document note
+                        </button>
+                      )}
+                    </div>
+                    {row.status === 'needs_info' && missingDocumentsExist && !note.trim() && (
+                      <div className="mb-2 flex items-start gap-1.5 rounded-xl border border-warning-amber/20 bg-warning-amber/10 px-3 py-2 text-[11px] text-warning-amber">
+                        <AlertCircle className="mt-0.5 h-3 w-3 shrink-0" />
+                        <span>
+                          Missing documents are listed below. Add a reviewer note before saving needs info so the inspector knows what to upload.
+                        </span>
+                      </div>
+                    )}
                     <textarea
                       value={note}
                       onChange={e =>
@@ -575,7 +629,7 @@ export default function AdminInspectorsPage() {
                       onBlur={e =>
                         handleStatusChange(row.userId, row.status, e.target.value || undefined)
                       }
-                      placeholder="Internal notes for Vero reviewers (not visible to inspectors yet)"
+                      placeholder="Reviewer note shown to the inspector when more information is requested"
                       rows={2}
                       className="w-full bg-surface border border-white/10 rounded-xl px-3 py-2 text-xs text-ink placeholder-subtle focus:outline-none focus:border-flame resize-none"
                     />
