@@ -154,7 +154,9 @@ function InspectorOnboardingEntryInner() {
 
             <div className="rounded-2xl border border-rim bg-surface p-5">
               <div className="text-[10px] font-bold uppercase tracking-widest text-subtle">Current status</div>
-              <div className={`mt-3 text-lg font-black ${copy.tone}`}>{copy.title}</div>
+              <div className={`mt-3 text-lg font-black ${copy.tone}`}>
+                {justSubmitted ? 'Submitted for review' : copy.title}
+              </div>
               <p className="mt-2 text-sm text-muted">{copy.detail}</p>
             </div>
           </div>
