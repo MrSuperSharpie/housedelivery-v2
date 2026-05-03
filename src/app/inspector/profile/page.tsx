@@ -15,7 +15,7 @@ import { getInspectorOnboardingStatusAsync } from '@/lib/persistence/inspectorOn
 import { createClient } from '@/lib/supabase/client'
 const supabase = createClient()
 import { listInspectorCredentials, insertInspectorCredential, selectInspectorEligibility, upsertInspectorEligibility, type InspectorCredentialRow } from '@/lib/supabase/compliance'
-import type { InspectorCredentialType, InspectorEligibilityProfile, InspectorRoleLane } from '@/lib/types'
+import type { InspectorCredentialType, InspectorEligibilityProfile, InspectorOnboardingStatus, InspectorRoleLane } from '@/lib/types'
 import { getInspectorRoleLaneLabel, INSPECTOR_ROLE_LANES, INSPECTOR_ROLE_LANE_CONFIG } from '@/lib/inspectorRoleLanes'
 import { LANE_REQUIREMENTS, checkPackageReadiness, NON_SIGNING_LANES } from '@/lib/inspectorCredentialRequirements'
 
@@ -107,6 +107,9 @@ export default function InspectorProfilePage() {
   const [credentials, setCredentials] = useState<InspectorCredentialRow[]>([])
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
+  const [resubmitting, setResubmitting] = useState(false)
+  const [resubmitError, setResubmitError] = useState<string | null>(null)
+  const [resubmitSuccess, setResubmitSuccess] = useState<string | null>(null)
   const [selectedType, setSelectedType] = useState<InspectorCredentialType>('primary_license')
   // Lane-specific upload state — used by the Manage Role Lanes section
   const laneUploadRef = useRef<HTMLInputElement>(null)
@@ -374,6 +377,53 @@ export default function InspectorProfilePage() {
     }
   }
 
+  const handleResubmitForReview = async () => {
+    if (!credentialOwnerId || !eligibilityProfile) {
+      setResubmitError('We could not submit your updated documents for review. Please try again.')
+      return
+    }
+
+    const nextStatus: InspectorOnboardingStatus = 'under_review'
+    setResubmitting(true)
+    setResubmitError(null)
+    setResubmitSuccess(null)
+
+    try {
+      const ok = await upsertInspectorEligibility({
+        ...eligibilityProfile,
+        status: nextStatus,
+        reviewerNote: eligibilityProfile.reviewerNote,
+      })
+
+      if (!ok) {
+        setResubmitError('We could not submit your updated documents for review. Please try again.')
+        return
+      }
+
+      const { data: profileRow, error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          onboarding_status: nextStatus,
+          verified: false,
+        })
+        .eq('id', credentialOwnerId)
+        .select('id')
+        .maybeSingle()
+
+      if (profileError || !profileRow) {
+        setResubmitError('We could not submit your updated documents for review. Please try again.')
+        return
+      }
+
+      setEligibilityProfile(prev => prev ? { ...prev, status: nextStatus } : prev)
+      setResubmitSuccess('Updated documents submitted. Your inspector application is back under Vero review. You will not have access to the live job board until your account is approved.')
+    } catch {
+      setResubmitError('We could not submit your updated documents for review. Please try again.')
+    } finally {
+      setResubmitting(false)
+    }
+  }
+
   const handleProfileSave = async () => {
     if (!user?.supabaseId) {
       setProfileSaveError('Profile saving is only available for signed-in Supabase inspector accounts.')
@@ -480,12 +530,36 @@ export default function InspectorProfilePage() {
               <div>
                 <div className="text-sm font-black">More information requested</div>
                 <p className="mt-1 text-xs leading-relaxed">
-                  Upload the requested documents below. Your inspector account remains under review until Vero approves it.
+                  Upload the requested documents below. When everything is complete, submit your updated package for Vero review.
                 </p>
                 {eligibilityProfile?.reviewerNote && (
                   <div className="mt-3 rounded-xl border border-warning-amber/20 bg-surface/60 px-3 py-2">
                     <div className="text-[10px] font-bold uppercase tracking-widest">Reviewer note</div>
                     <p className="mt-1 text-xs leading-relaxed">{eligibilityProfile.reviewerNote}</p>
+                  </div>
+                )}
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <button
+                    type="button"
+                    onClick={handleResubmitForReview}
+                    disabled={resubmitting || Boolean(resubmitSuccess)}
+                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-electric px-4 py-3 text-xs font-black text-surface hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <CheckCircle2 className="h-4 w-4" />
+                    {resubmitting ? 'Submitting…' : 'Submit Updated Documents for Review'}
+                  </button>
+                  <span className="text-[11px] leading-relaxed text-warning-amber/90">
+                    Upload document adds files only; this button returns your package to Vero review.
+                  </span>
+                </div>
+                {resubmitSuccess && (
+                  <div className="mt-3 rounded-xl border border-success-green/20 bg-success-green/10 px-3 py-2 text-xs leading-relaxed text-success-green">
+                    {resubmitSuccess}
+                  </div>
+                )}
+                {resubmitError && (
+                  <div className="mt-3 rounded-xl border border-fail-red/20 bg-fail-red/10 px-3 py-2 text-xs leading-relaxed text-fail-red">
+                    {resubmitError}
                   </div>
                 )}
               </div>
@@ -710,12 +784,20 @@ export default function InspectorProfilePage() {
               : 'border-warning-amber/20 bg-warning-amber/10 text-warning-amber'
           }`}>
             <div className="font-bold">
-              {missingRequired.length === 0
+              {isNeedsInfo
+                ? missingRequired.length === 0
+                  ? 'Documents uploaded'
+                  : 'More documents required'
+                : missingRequired.length === 0
                 ? 'Ready for Vero review'
                 : 'More documents required before review'}
             </div>
             <div className="mt-1 text-[11px] leading-relaxed">
-              {missingRequired.length === 0
+              {isNeedsInfo
+                ? missingRequired.length === 0
+                  ? 'Your uploaded documents are saved. When you have finished adding the requested information, click Submit Updated Documents for Review to send your application back to Vero admin review.'
+                  : 'Upload the required documents below. When everything is complete, submit your updated package for Vero review.'
+                : missingRequired.length === 0
                 ? 'No separate submit button is required. Once the required documents are uploaded, your approval package is on file for Vero admin review. Admin will move your status to under review, needs info, or approved.'
                 : 'Upload the remaining required approval documents above. Once all required items are on file, the package is ready for Vero admin review.'}
             </div>
