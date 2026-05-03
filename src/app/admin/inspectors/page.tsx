@@ -170,6 +170,7 @@ export default function AdminInspectorsPage() {
   const [openingSealUserId, setOpeningSealUserId] = useState<string | null>(null)
   const [credentialsByUser, setCredentialsByUser] = useState<Record<string, InspectorCredentialRow[]>>({})
   const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({})
+  const [needsInfoFeedback, setNeedsInfoFeedback] = useState<Record<string, { tone: 'success' | 'warning' | 'error'; message: string }>>({})
   const [profileHintsByUser, setProfileHintsByUser] = useState<Record<string, ProfileHint>>({})
   const [approvedLaneDrafts, setApprovedLaneDrafts] = useState<Record<string, InspectorRoleLane[]>>({})
   // Per-inspector toggle: when true, lane approval checkboxes ignore doc-readiness check
@@ -285,6 +286,80 @@ export default function AdminInspectorsPage() {
     }
   }
 
+  const handleNeedsInfoRequest = async (rowUserId: string, reviewerNote: string) => {
+    const note = reviewerNote.trim()
+    const laneDraft = approvedLaneDrafts[rowUserId] ?? []
+
+    setSavingId(rowUserId)
+    setNeedsInfoFeedback(prev => ({ ...prev, [rowUserId]: { tone: 'warning', message: 'Saving needs info request…' } }))
+
+    try {
+      const existing = await selectInspectorEligibility(rowUserId)
+      if (existing) {
+        const ok = await upsertInspectorEligibility({
+          ...existing,
+          status: 'needs_info',
+          reviewerNote: note || undefined,
+          approvedRoleLanes: laneDraft,
+        })
+        if (!ok) {
+          setNeedsInfoFeedback(prev => ({ ...prev, [rowUserId]: { tone: 'error', message: 'Could not save needs info request.' } }))
+          return
+        }
+      } else {
+        await setInspectorOnboardingStatus('needs_info', undefined, rowUserId, note || undefined)
+      }
+
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          onboarding_status: 'needs_info',
+          verified: false,
+        })
+        .eq('id', rowUserId)
+
+      if (profileError) {
+        setNeedsInfoFeedback(prev => ({ ...prev, [rowUserId]: { tone: 'error', message: 'Needs info was saved, but profile status sync failed.' } }))
+        return
+      }
+
+      const profileHint = profileHintsByUser[rowUserId]
+      const email = readStr(profileHint, 'email') ?? readStr(profileHint, 'contact_email')
+      const inspectorName = buildInspectorIdentity(rowUserId, existing?.licenseNumber, credentialsByUser[rowUserId] ?? [], profileHint).displayName
+      let notificationSent = false
+
+      if (email) {
+        const response = await fetch('/api/mail/application-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: email,
+            inspectorName,
+            status: 'needs_info',
+            reviewerNote: note || undefined,
+          }),
+        })
+        notificationSent = response.ok
+      }
+
+      setNeedsInfoFeedback(prev => ({
+        ...prev,
+        [rowUserId]: {
+          tone: notificationSent ? 'success' : 'warning',
+          message: notificationSent
+            ? 'Needs info request saved and notification sent.'
+            : 'Needs info request saved. No notification was sent because no inspector email is available or the mail service did not confirm delivery.',
+        },
+      }))
+      await reloadInspectorReview()
+    } catch (error) {
+      console.error('Needs info request failed:', error)
+      setNeedsInfoFeedback(prev => ({ ...prev, [rowUserId]: { tone: 'error', message: 'Could not send needs info request.' } }))
+    } finally {
+      setSavingId(null)
+    }
+  }
+
   const handleViewSeal = async (userId: string, storagePath: string) => {
     setOpeningSealUserId(userId)
     try {
@@ -366,6 +441,7 @@ export default function AdminInspectorsPage() {
               const canApproveOverall = readiness.ready || overrideActive
               const missingDocumentsExist = hasMissingDocuments(readiness)
               const suggestedMissingDocumentNote = buildMissingDocumentNote(readiness)
+              const needsInfoFeedbackForRow = needsInfoFeedback[row.userId]
 
               // Per-lane approvability: baseline + all lane-specific docs must be uploaded.
               // CP additionally requires at least one base lane (Architect or Engineer) to have
@@ -633,6 +709,33 @@ export default function AdminInspectorsPage() {
                       rows={2}
                       className="w-full bg-surface border border-white/10 rounded-xl px-3 py-2 text-xs text-ink placeholder-subtle focus:outline-none focus:border-flame resize-none"
                     />
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleNeedsInfoRequest(row.userId, note)}
+                        disabled={savingId === row.userId || (missingDocumentsExist && !note.trim())}
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-warning-amber/30 bg-warning-amber/10 px-3 py-2 text-[11px] font-black text-warning-amber hover:bg-warning-amber/15 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <AlertCircle className="h-3.5 w-3.5" />
+                        Send Needs Info Request
+                      </button>
+                      {missingDocumentsExist && !note.trim() && (
+                        <span className="text-[10px] text-warning-amber">
+                          Add or insert a reviewer note before sending.
+                        </span>
+                      )}
+                    </div>
+                    {needsInfoFeedbackForRow && (
+                      <div className={`mt-2 rounded-xl border px-3 py-2 text-[11px] ${
+                        needsInfoFeedbackForRow.tone === 'success'
+                          ? 'border-success-green/20 bg-success-green/10 text-success-green'
+                          : needsInfoFeedbackForRow.tone === 'error'
+                            ? 'border-fail-red/20 bg-fail-red/10 text-fail-red'
+                            : 'border-warning-amber/20 bg-warning-amber/10 text-warning-amber'
+                      }`}>
+                        {needsInfoFeedbackForRow.message}
+                      </div>
+                    )}
                   </div>
 
                   {/* Credential package — role-based document review */}
