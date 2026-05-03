@@ -87,6 +87,22 @@ function findCredentialForRequirement(
       : undefined)
 }
 
+function formatCredentialTypeLabel(credentialType: InspectorCredentialType): string {
+  const baseline = BASELINE_REQUIREMENTS.find(req => req.type === credentialType)
+  if (baseline) return baseline.label
+
+  for (const requirements of Object.values(LANE_REQUIREMENTS)) {
+    const match = requirements.find(req => req.type === credentialType)
+    if (match) return match.label
+  }
+
+  return credentialType
+    .split('_')
+    .filter(Boolean)
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ') || 'Document'
+}
+
 function hasMissingDocuments(readiness: ReturnType<typeof checkPackageReadiness>): boolean {
   return readiness.baselineMissing.length > 0 || readiness.perLane.some(lane => lane.missing.length > 0)
 }
@@ -900,9 +916,14 @@ export default function AdminInspectorsPage() {
                         <div className="space-y-1">
                           {creds.map(c => (
                             <div key={c.id} className="flex items-center justify-between gap-2 text-[11px]">
-                              <span className="text-muted truncate flex-1 min-w-0">
-                                {c.credentialType} · {c.fileName}
-                              </span>
+                              <div className="flex-1 min-w-0">
+                                <div className="font-semibold text-ink truncate">
+                                  {formatCredentialTypeLabel(c.credentialType)}
+                                </div>
+                                <div className="text-[10px] font-normal text-muted truncate">
+                                  {c.fileName}
+                                </div>
+                              </div>
                               <button
                                 type="button"
                                 onClick={() => handleViewCredential(c)}
