@@ -310,16 +310,21 @@ export default function AdminInspectorsPage() {
         await setInspectorOnboardingStatus('needs_info', undefined, rowUserId, note || undefined)
       }
 
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          onboarding_status: 'needs_info',
-          verified: false,
-        })
-        .eq('id', rowUserId)
+      const profileSyncResponse = await fetch('/api/admin/inspectors/needs-info', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: rowUserId }),
+      })
 
-      if (profileError) {
-        setNeedsInfoFeedback(prev => ({ ...prev, [rowUserId]: { tone: 'error', message: 'Needs info was saved, but profile status sync failed.' } }))
+      if (!profileSyncResponse.ok) {
+        const result = await profileSyncResponse.json().catch(() => null) as { error?: string } | null
+        setNeedsInfoFeedback(prev => ({
+          ...prev,
+          [rowUserId]: {
+            tone: 'error',
+            message: result?.error ?? 'Needs info was saved, but profile status sync failed.',
+          },
+        }))
         return
       }
 
