@@ -91,6 +91,20 @@ export default function InspectorOnboardingStatusPage() {
           >
             <HardHat className="w-5 h-5" /> Go to Live Board
           </Link>
+        ) : user?.role === 'inspector' && status === 'needs_info' ? (
+          <Link
+            href="/inspector/profile"
+            className="w-full flex items-center justify-center gap-2 bg-[#FF5F15] text-white font-bold py-4 rounded-xl hover:opacity-90 transition-opacity"
+          >
+            <FileText className="w-5 h-5" /> Upload requested documents
+          </Link>
+        ) : user?.role === 'inspector' && (status === 'submitted' || status === 'under_review') ? (
+          <Link
+            href="/inspector/onboarding"
+            className="w-full flex items-center justify-center gap-2 bg-electric text-[#0A192F] font-bold py-4 rounded-xl hover:opacity-90 transition-opacity"
+          >
+            <Clock className="w-5 h-5" /> Back to approval page
+          </Link>
         ) : (
           <div className="flex flex-col gap-3 w-full">
             <Link
