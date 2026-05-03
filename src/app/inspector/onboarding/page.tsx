@@ -212,14 +212,6 @@ function InspectorOnboardingEntryInner() {
                 </div>
               )
             )}
-
-            <Link
-              href="/inspector/onboarding-status"
-              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-rim bg-surface px-5 py-4 text-sm font-bold text-ink hover:bg-raised"
-            >
-              <Clock className="h-4 w-4" />
-              Check approval status
-            </Link>
           </div>
         </div>
       </main>
