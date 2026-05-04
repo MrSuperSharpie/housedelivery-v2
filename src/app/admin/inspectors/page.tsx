@@ -282,18 +282,15 @@ export default function AdminInspectorsPage() {
         }))
         return
       }
-      // Keep profiles.onboarding_status in sync so auth.tsx reads the correct value
-      const { data: profileRows, error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          onboarding_status: status,
-          verified: status === 'approved',
-        })
-        .eq('id', rowUserId)
-        .select('id')
+      const profileSyncResponse = await fetch('/api/admin/inspectors/profile-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: rowUserId, status }),
+      })
 
-      if (profileError || !profileRows || profileRows.length === 0) {
-        console.error('Inspector profile status sync failed:', profileError)
+      if (!profileSyncResponse.ok) {
+        const result = await profileSyncResponse.json().catch(() => null) as { error?: string } | null
+        console.error('Inspector profile status sync failed:', result?.error ?? profileSyncResponse.statusText)
         setNeedsInfoFeedback(prev => ({
           ...prev,
           [rowUserId]: { tone: 'error', message: 'Review status was saved, but profile status sync failed. Please try again before notifying the inspector.' },
