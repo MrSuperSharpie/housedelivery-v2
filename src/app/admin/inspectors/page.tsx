@@ -8,7 +8,7 @@ import { HardHat, Shield, Loader2, CheckCircle2, AlertCircle, FileText, MailChec
 import { AdminShell, ActionButton, StatusPill } from '@/components/admin/AdminShell'
 import { useAuth, DEMO_USERS } from '@/lib/auth'
 import { listInspectorOnboardingStatuses, setInspectorOnboardingStatus } from '@/lib/persistence/inspectorOnboarding'
-import type { InspectorCredentialType, InspectorOnboardingStatus, InspectorRoleLane } from '@/lib/types'
+import type { InspectorCredentialType, InspectorDiscipline, InspectorOnboardingStatus, InspectorRoleLane, Region } from '@/lib/types'
 import { listInspectorCredentials, selectInspectorEligibility, type InspectorCredentialRow, upsertInspectorEligibility } from '@/lib/supabase/compliance'
 import { createClient } from '@/lib/supabase/client'
 import { getInspectorRoleLaneLabel, INSPECTOR_ROLE_LANES } from '@/lib/inspectorRoleLanes'
@@ -255,29 +255,51 @@ export default function AdminInspectorsPage() {
     status: InspectorOnboardingStatus,
     reviewerNote?: string
   ) => {
-    const previousStatus = rows.find(row => row.userId === rowUserId)?.status
-    const laneDraft = approvedLaneDrafts[rowUserId] ?? []
+    const currentRow = rows.find(row => row.userId === rowUserId)
+    const previousStatus = currentRow?.status
+    const laneDraft = approvedLaneDrafts[rowUserId] ?? currentRow?.approvedRoleLanes ?? []
     setSavingId(rowUserId)
+    setNeedsInfoFeedback(prev => ({ ...prev, [rowUserId]: { tone: 'warning', message: 'Saving review state…' } }))
     try {
       const existing = await selectInspectorEligibility(rowUserId)
-      if (existing) {
-        await upsertInspectorEligibility({
-          ...existing,
-          status,
-          reviewerNote,
-          approvedRoleLanes: laneDraft,
-        })
-      } else {
-        await setInspectorOnboardingStatus(status, undefined, rowUserId, reviewerNote)
+      const onboardingSaved = await upsertInspectorEligibility({
+        ...(existing ?? {
+          userId: rowUserId,
+          disciplines: (currentRow?.disciplines ?? []) as InspectorDiscipline[],
+          regions: (currentRow?.regions ?? []) as Region[],
+          requestedRoleLanes: currentRow?.requestedRoleLanes ?? [],
+          approvedRoleLanes: currentRow?.approvedRoleLanes ?? [],
+          licenseNumber: currentRow?.licenseNumber,
+        }),
+        status,
+        reviewerNote,
+        approvedRoleLanes: laneDraft,
+      })
+      if (!onboardingSaved) {
+        setNeedsInfoFeedback(prev => ({
+          ...prev,
+          [rowUserId]: { tone: 'error', message: 'Could not save inspector review status. No profile changes were applied.' },
+        }))
+        return
       }
       // Keep profiles.onboarding_status in sync so auth.tsx reads the correct value
-      await supabase
+      const { data: profileRows, error: profileError } = await supabase
         .from('profiles')
         .update({
           onboarding_status: status,
           verified: status === 'approved',
         })
         .eq('id', rowUserId)
+        .select('id')
+
+      if (profileError || !profileRows || profileRows.length === 0) {
+        console.error('Inspector profile status sync failed:', profileError)
+        setNeedsInfoFeedback(prev => ({
+          ...prev,
+          [rowUserId]: { tone: 'error', message: 'Review status was saved, but profile status sync failed. Please try again before notifying the inspector.' },
+        }))
+        return
+      }
 
       if (previousStatus !== status && (status === 'approved' || status === 'needs_info' || status === 'rejected')) {
         const profileHint = profileHintsByUser[rowUserId]
@@ -296,6 +318,7 @@ export default function AdminInspectorsPage() {
           })
         }
       }
+      setNeedsInfoFeedback(prev => ({ ...prev, [rowUserId]: { tone: 'success', message: 'Review state saved and profile status synced.' } }))
       await reloadInspectorReview()
     } finally {
       setSavingId(null)
