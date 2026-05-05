@@ -282,6 +282,25 @@ export default function AdminInspectorsPage() {
         }))
         return
       }
+
+      if (status === 'approved') {
+        const authoritySyncResponse = await fetch('/api/admin/inspectors/credential-authority', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: rowUserId, approvedRoleLanes: laneDraft }),
+        })
+
+        if (!authoritySyncResponse.ok) {
+          const result = await authoritySyncResponse.json().catch(() => null) as { error?: string } | null
+          console.error('Inspector credential authority sync failed:', result?.error ?? authoritySyncResponse.statusText)
+          setNeedsInfoFeedback(prev => ({
+            ...prev,
+            [rowUserId]: { tone: 'error', message: 'Review status was saved, but credential authority sync failed. Please verify the inspector credential records before notifying the inspector.' },
+          }))
+          return
+        }
+      }
+
       const profileSyncResponse = await fetch('/api/admin/inspectors/profile-status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -315,7 +334,7 @@ export default function AdminInspectorsPage() {
           })
         }
       }
-      setNeedsInfoFeedback(prev => ({ ...prev, [rowUserId]: { tone: 'success', message: 'Review state saved and profile status synced.' } }))
+      setNeedsInfoFeedback(prev => ({ ...prev, [rowUserId]: { tone: 'success', message: 'Review state saved, credential authority synced, and profile status synced.' } }))
       await reloadInspectorReview()
     } finally {
       setSavingId(null)
