@@ -483,6 +483,25 @@ export default function AdminInspectorsPage() {
               const missingDocumentsExist = hasMissingDocuments(readiness)
               const suggestedMissingDocumentNote = buildMissingDocumentNote(readiness)
               const needsInfoFeedbackForRow = needsInfoFeedback[row.userId]
+              const savedRoleLanes = [...row.approvedRoleLanes].sort()
+              const draftRoleLanes = [...approvedRoleLanes].sort()
+              const approvedWorkAreasChanged =
+                savedRoleLanes.length !== draftRoleLanes.length ||
+                savedRoleLanes.some((lane, idx) => lane !== draftRoleLanes[idx])
+              const approvedWorkAreasSummary = approvedRoleLanes.length > 0
+                ? approvedRoleLanes.map(getInspectorRoleLaneLabel).join(', ')
+                : 'No approved work areas yet'
+              const reviewStatusLabel = row.status.replace(/_/g, ' ')
+              const decisionTitle =
+                row.status === 'approved' ? 'Inspector approved' :
+                row.status === 'under_review' ? 'Inspector under review' :
+                row.status === 'needs_info' ? 'More information requested' :
+                row.status === 'rejected' ? 'Inspector not approved' :
+                row.status === 'suspended' ? 'Inspector suspended' :
+                'Inspector submitted for review'
+              const decisionSummary = canAccessLiveBoard
+                ? 'Live Board access is enabled. This inspector can claim eligible jobs for the approved work areas below.'
+                : 'Live Board access remains blocked until approval is complete.'
 
               // Per-lane approvability: baseline + all lane-specific docs must be uploaded.
               // CP additionally requires at least one base lane (Architect or Engineer) to have
@@ -564,6 +583,34 @@ export default function AdminInspectorsPage() {
                       >
                         <HardHat className="w-3 h-3" />
                         {canAccessLiveBoard ? 'Enabled' : isApproved ? 'Restricted' : 'Blocked'}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-white/8 bg-white/5 px-3 py-3">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <div className="text-[12px] font-black text-ink">{decisionTitle}</div>
+                        <div className="mt-0.5 text-[11px] text-muted">{decisionSummary}</div>
+                      </div>
+                      <div className="text-[10px] text-subtle">
+                        Last reviewed {new Date(row.updatedAt).toLocaleString('en-CA')}
+                      </div>
+                    </div>
+                    <div className="mt-3 grid gap-2 md:grid-cols-3">
+                      <div className="rounded-lg bg-surface/50 px-2.5 py-2">
+                        <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-subtle">Approval status</div>
+                        <div className="mt-0.5 text-[11px] font-semibold capitalize text-ink">{reviewStatusLabel}</div>
+                      </div>
+                      <div className="rounded-lg bg-surface/50 px-2.5 py-2">
+                        <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-subtle">Live Board access</div>
+                        <div className={`mt-0.5 text-[11px] font-semibold ${canAccessLiveBoard ? 'text-success-green' : 'text-muted'}`}>
+                          {canAccessLiveBoard ? 'Enabled' : 'Blocked'}
+                        </div>
+                      </div>
+                      <div className="rounded-lg bg-surface/50 px-2.5 py-2">
+                        <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-subtle">Approved work areas</div>
+                        <div className="mt-0.5 truncate text-[11px] font-semibold text-ink">{approvedWorkAreasSummary}</div>
                       </div>
                     </div>
                   </div>
@@ -684,14 +731,20 @@ export default function AdminInspectorsPage() {
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    {isApproved ? (
+                    {isApproved && approvedWorkAreasChanged ? (
                       <ActionButton
                         variant="approve"
                         onClick={() => handleStatusChange(row.userId, 'approved', note || undefined)}
                         disabled={savingId === row.userId || !canApproveOverall}
                       >
-                        <CheckCircle2 className="w-3.5 h-3.5" /> Save work areas
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        Update approved work areas
                       </ActionButton>
+                    ) : isApproved ? (
+                      <div className="inline-flex items-center gap-1.5 rounded-xl border border-success-green/20 bg-success-green/10 px-3 py-2 text-[11px] font-black text-success-green">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        Approved work areas saved
+                      </div>
                     ) : (
                       <ActionButton
                         variant="approve"
@@ -755,7 +808,11 @@ export default function AdminInspectorsPage() {
                         type="button"
                         onClick={() => handleNeedsInfoRequest(row.userId, note)}
                         disabled={savingId === row.userId || (missingDocumentsExist && !note.trim())}
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-warning-amber/30 bg-warning-amber/10 px-3 py-2 text-[11px] font-black text-warning-amber hover:bg-warning-amber/15 disabled:cursor-not-allowed disabled:opacity-50"
+                        className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-[11px] font-black disabled:cursor-not-allowed disabled:opacity-50 ${
+                          isApproved
+                            ? 'border-white/10 bg-white/5 text-muted hover:bg-white/8'
+                            : 'border-warning-amber/30 bg-warning-amber/10 text-warning-amber hover:bg-warning-amber/15'
+                        }`}
                       >
                         <AlertCircle className="h-3.5 w-3.5" />
                         Send Needs Info Request
@@ -785,7 +842,7 @@ export default function AdminInspectorsPage() {
                     {/* Overall readiness header */}
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-subtle flex items-center gap-1.5">
-                        <FileText className="w-3 h-3" /> Document review
+                        <FileText className="w-3 h-3" /> Required documents matched to this application
                       </span>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                         readiness.ready
@@ -934,7 +991,7 @@ export default function AdminInspectorsPage() {
                           All uploaded files ({creds.length})
                         </div>
                         <div className="mb-1 text-[10px] text-subtle">
-                          Reference list only. Approval is based on the required document checklist above.
+                          Reference list only. Required documents are matched above.
                         </div>
                         <div className="space-y-1">
                           {creds.map(c => (
