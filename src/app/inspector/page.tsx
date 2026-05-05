@@ -13,6 +13,7 @@ import { useAuth } from '@/lib/auth'
 import { useStore } from '@/lib/store'
 import { getInspectorOnboardingStatusAsync } from '@/lib/persistence/inspectorOnboarding'
 import { selectInspectorEligibility } from '@/lib/supabase/compliance'
+import { listEligibleJobsForInspector } from '@/lib/supabase/jobs'
 import { useTheme } from '@/lib/theme'
 import { isInspectorTestModeEnabled } from '@/lib/inspectorTestMode'
 import type { ClaimCommitment, JobTimeSlot, Region, InspectorDiscipline, InspectorEligibilityProfile, HoldRecord } from '@/lib/types'
@@ -55,6 +56,8 @@ export default function InspectorDashboard() {
   const [onboardingStatus, setOnboardingStatus] = useState<string | null>(null)
   const [eligibilityProfile, setEligibilityProfile] = useState<InspectorEligibilityProfile | null>(null)
   const [eligibilityLoaded, setEligibilityLoaded] = useState(false)
+  const [authorityEligibleJobIds, setAuthorityEligibleJobIds] = useState<Set<string> | null>(null)
+  const [authorityEligibilityLoaded, setAuthorityEligibilityLoaded] = useState(false)
   const [acceptedHoldsForInspector, setAcceptedHoldsForInspector] = useState<HoldRecord[]>([])
   const [reliabilityData, setReliabilityData] = useState<InspectorReliabilityDashboardData | null>(null)
   const [reliabilityPolicyConfig, setReliabilityPolicyConfig] = useState<Record<string, unknown> | null>(null)
@@ -68,21 +71,30 @@ export default function InspectorDashboard() {
     })
 
     if (user.supabaseId) {
-      selectInspectorEligibility(user.supabaseId)
-        .then(profile => {
+      Promise.all([
+        selectInspectorEligibility(user.supabaseId),
+        listEligibleJobsForInspector(user.supabaseId),
+      ])
+        .then(([profile, authorityEligibleJobs]) => {
           if (!active) return
           setEligibilityProfile(profile)
+          setAuthorityEligibleJobIds(new Set(authorityEligibleJobs.map(job => job.id)))
           setEligibilityLoaded(true)
+          setAuthorityEligibilityLoaded(true)
         })
         .catch(() => {
           if (!active) return
           setEligibilityProfile(null)
+          setAuthorityEligibleJobIds(new Set())
           setEligibilityLoaded(true)
+          setAuthorityEligibilityLoaded(true)
         })
     } else {
       queueMicrotask(() => {
         if (!active) return
+        setAuthorityEligibleJobIds(null)
         setEligibilityLoaded(true)
+        setAuthorityEligibilityLoaded(true)
       })
     }
 
@@ -222,6 +234,17 @@ export default function InspectorDashboard() {
         inspectorEligibility.credentialExpiryDate,
         inspectorEligibility.status as InspectorEligibilityProfile['status'] | null,
       )
+      if (
+        user?.supabaseId &&
+        authorityEligibleJobIds &&
+        !authorityEligibleJobIds.has(job.id)
+      ) {
+        eligibility.eligible = false
+        if (eligibility.reasons.length === 0) {
+          const discipline = `${job.requiredDiscipline.charAt(0).toUpperCase()}${job.requiredDiscipline.slice(1)}`
+          eligibility.reasons.push(`Credential for ${discipline} is not yet verified`)
+        }
+      }
       if (job.projectName?.includes('TEST AAA') || job.requiredDiscipline === 'mechanical') {
         console.log('  eligibility result:', JSON.stringify(eligibility))
       }
@@ -232,7 +255,7 @@ export default function InspectorDashboard() {
         primaryReason: eligibility.reasons[0] ?? null,
       }
     })
-  }, [filteredJobs, inspectorEligibility, inspectorTestOverride])
+  }, [authorityEligibleJobIds, filteredJobs, inspectorEligibility, inspectorTestOverride, user?.supabaseId])
 
   const eligibleJobs = classifiedJobs.filter(entry => entry.eligibility.eligible)
   const ineligibleJobs = classifiedJobs.filter(entry => !entry.eligibility.eligible)
@@ -281,7 +304,7 @@ export default function InspectorDashboard() {
     return result.ok ? { ok: true } : { ok: false, error: result.error }
   }
 
-  if (!user || onboardingStatus === null || !eligibilityLoaded) return null
+  if (!user || onboardingStatus === null || !eligibilityLoaded || !authorityEligibilityLoaded) return null
 
   return (
     <HardPingProvider>

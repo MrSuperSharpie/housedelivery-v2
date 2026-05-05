@@ -21,7 +21,7 @@ import type { TimeSlot } from '@/components/builder/SchedulingPicker'
 import { checkInspectorEligibility, type EligibilityResult } from './eligibility'
 import { createClient } from '@/lib/supabase/client'
 const supabase = createClient()
-import { claimLiveJobIfEligible, insertJobOpportunity, listEligibleJobsForInspector, listOpenJobOpportunities, updateApplicationStatus, updateJobStatus } from '@/lib/supabase/jobs'
+import { claimLiveJobIfEligible, insertJobOpportunity, listOpenJobOpportunities, updateApplicationStatus, updateJobStatus } from '@/lib/supabase/jobs'
 import {
   confirmJobAssignment,
   getAssignmentForJob as getDbAssignmentForJob,
@@ -316,10 +316,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         const dbProjects = await listProjectsByBuilder(session.user.id)
         setProjects(dbProjects.length > 0 ? dbProjects : storedProjects)
 
-        const userRole = (session.user.user_metadata?.role as string) ?? ''
-        const dbJobs = userRole === 'inspector'
-          ? await listEligibleJobsForInspector(session.user.id)
-          : await listOpenJobOpportunities()
+        // Load the full Live Board. Inspector eligibility is classified in the
+        // Live Board UI so "All Live Jobs" can show ineligible-but-visible work.
+        const dbJobs = await listOpenJobOpportunities()
         const dbMapped: InspectionJob[] = dbJobs.map(j => ({
           id:                   j.id,
           projectId:            j.projectId ?? j.id,
