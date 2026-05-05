@@ -523,6 +523,28 @@ export default function InspectorProfilePage() {
           </Link>
         )}
 
+        {isApprovedInspector && (
+          <div className="mb-5 rounded-2xl border border-success-green/20 bg-success-green/10 p-5 text-success-green">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
+                <div>
+                  <div className="text-sm font-black">You’re approved for Live Board access</div>
+                  <p className="mt-1 text-xs leading-relaxed">
+                    You can now view and claim eligible inspections for your approved work areas.
+                  </p>
+                </div>
+              </div>
+              <Link
+                href="/inspector"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-success-green px-4 py-3 text-xs font-black text-white hover:opacity-90"
+              >
+                Go to Live Board
+              </Link>
+            </div>
+          </div>
+        )}
+
         {isNeedsInfo && (
           <div className="mb-5 rounded-2xl border-2 border-warning-amber/30 bg-warning-amber/10 p-5 text-warning-amber">
             <div className="flex items-start gap-3">
@@ -753,10 +775,13 @@ export default function InspectorProfilePage() {
         <div className="card-dark rounded-2xl p-6 mt-5 inset-top">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <div className="label-mono mb-1">Credential package for Vero review</div>
+              <div className="label-mono mb-1">
+                {isApprovedInspector ? 'Verified credential package' : 'Credential package for Vero review'}
+              </div>
               <p className="text-xs text-muted">
-                Baseline approval documents unlock Vero review. Additional qualifications can be uploaded anytime to
-                support expanded eligibility later.
+                {isApprovedInspector
+                  ? 'Your approval package has been reviewed by Vero. You can continue to upload updated documents or request additional work areas.'
+                  : 'Baseline approval documents unlock Vero review. Additional qualifications can be uploaded anytime to support expanded eligibility later.'}
               </p>
             </div>
           </div>
@@ -782,12 +807,16 @@ export default function InspectorProfilePage() {
           </div>
 
           <div className={`mb-4 rounded-xl border px-4 py-3 text-xs ${
-            missingRequired.length === 0
+            isApprovedInspector
+              ? 'border-success-green/20 bg-success-green/10 text-success-green'
+              : missingRequired.length === 0
               ? 'border-electric/20 bg-electric/10 text-electric'
               : 'border-warning-amber/20 bg-warning-amber/10 text-warning-amber'
           }`}>
             <div className="font-bold">
-              {isNeedsInfo
+              {isApprovedInspector
+                ? 'Credentials verified'
+                : isNeedsInfo
                 ? missingRequired.length === 0
                   ? 'Documents uploaded'
                   : 'More documents required'
@@ -796,7 +825,9 @@ export default function InspectorProfilePage() {
                 : 'More documents required before review'}
             </div>
             <div className="mt-1 text-[11px] leading-relaxed">
-              {isNeedsInfo
+              {isApprovedInspector
+                ? 'Your approval package has been reviewed by Vero. You can continue to upload updated documents or request additional work areas.'
+                : isNeedsInfo
                 ? missingRequired.length === 0
                   ? 'Your uploaded documents are saved. When you have finished adding the requested information, click Submit Updated Documents for Review to send your application back to Vero admin review.'
                   : 'Upload the required documents below. When everything is complete, submit your updated package for Vero review.'
