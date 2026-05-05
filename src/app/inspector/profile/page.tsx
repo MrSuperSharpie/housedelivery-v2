@@ -882,7 +882,7 @@ export default function InspectorProfilePage() {
 
           <div className="mb-4 rounded-xl border border-white/5 overflow-hidden">
             <div className="px-3 py-2 bg-raised text-[11px] text-subtle">
-              Required documents for Vero approval
+              Required approval documents
             </div>
             <div className="divide-y divide-white/5">
               {REQUIRED_CREDENTIALS.map(doc => {
@@ -941,9 +941,9 @@ export default function InspectorProfilePage() {
 
           <div className="rounded-xl border border-white/5 overflow-hidden">
             <div className="px-3 py-2 bg-raised text-[11px] text-subtle">
-              All uploaded files
+              Additional uploaded documents
               <div className="mt-0.5 text-[10px] text-subtle">
-                Reference list only. Required documents are matched above.
+                These files are kept on your profile and may support current or future work areas.
               </div>
             </div>
             {credentials.length === 0 ? (
