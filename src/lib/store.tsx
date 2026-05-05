@@ -278,7 +278,7 @@ const SUPPORTED_CITY_REGIONS: Array<{ city: string; region: Region }> = [
 ]
 
 function normalizeRegionFromCity(city?: string): Region | null {
-  const value = city?.trim().toLowerCase() ?? ''
+  const value = city?.trim().toLowerCase().replace(/\s+/g, ' ') ?? ''
   return SUPPORTED_CITY_REGIONS.find(({ city: supportedCity }) => value.includes(supportedCity.toLowerCase()))?.region ?? null
 }
 
@@ -601,13 +601,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       : 120
     const dbProject = input.projectId ? projects.find(project => project.id === input.projectId) : null
     const normalizedRegion = normalizeRegionFromCity(input.city)
-
-    if (!normalizedRegion) {
-      return {
-        ok: false,
-        error: 'The site city must be one of the supported live-board regions.',
-      }
-    }
+    const dispatchRegion = normalizedRegion ?? ('' as Region)
 
     const governance = validateJobPostingGovernance({
       jobId: provisionalId,
@@ -620,7 +614,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       permitFamily,
       permitNumber: input.permitNumber,
       requiredDiscipline: input.discipline,
-      region: normalizedRegion,
+      region: dispatchRegion,
       stage: input.stage,
       stageName: input.stageName,
       projectComplete: dbProject
@@ -658,7 +652,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       credentialClass:          input.credentialClass ?? undefined,
       builderId:                input.builderId,
       builderName:              input.builderName,
-      region:                   normalizedRegion,
+      region:                   dispatchRegion,
       status:                   nextStatus,
       permitFamily,
       notes:                    input.safetyNotes,
@@ -692,7 +686,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       offeredRate:          pricing.inspectorPayout,
       estimatedDuration:    estimatedDurationMinutes,
       distance:             0,
-      region:               normalizedRegion,
+      region:               dispatchRegion,
       requiredDiscipline:   input.discipline,
       status:               nextStatus,
       requestedAt:          new Date().toISOString(),

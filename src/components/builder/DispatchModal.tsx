@@ -222,6 +222,12 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
   const handlePost = async () => {
     setPostError(null)
 
+    if (!address.trim()) {
+      setPostError('Enter a British Columbia project location before posting.')
+      setStep('address')
+      return
+    }
+
     if (!hasValidSchedulingWindow) {
       setPostError('Add at least one valid availability window for the selected dispatch speed before posting.')
       setStep('schedule')
@@ -231,7 +237,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
     const stageInfo = INSPECTION_STAGES.find(s => s.id === (selectedStage ?? 1))
     const cityPart  = address.includes(',')
       ? address.split(',').slice(1).join(',').trim()
-      : 'Vancouver, BC'
+      : address.trim()
 
     const approvalStatus = await getBuilderOnboardingStatusAsync(user?.id, user?.supabaseId)
 
@@ -365,7 +371,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
       {step === 'address' && (
         <div>
           <h2 className="text-xl font-black text-gray-900 mb-1">Where&apos;s the site?</h2>
-          <p className="text-sm text-gray-500 mb-5">Enter the property address and permit number.</p>
+          <p className="text-sm text-gray-500 mb-5">Enter the project site address in British Columbia.</p>
 
           <div className="relative z-10 mb-3">
             <button
