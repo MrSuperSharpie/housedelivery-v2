@@ -750,20 +750,15 @@ export default function AdminInspectorsPage() {
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    {isApproved && approvedWorkAreasChanged ? (
+                    {isApproved ? (
                       <ActionButton
-                        variant="approve"
+                        variant={approvedWorkAreasChanged || overrideActive ? 'approve' : 'ghost'}
                         onClick={() => handleStatusChange(row.userId, 'approved', note || undefined)}
-                        disabled={savingId === row.userId || !canApproveOverall}
+                        disabled={savingId === row.userId || ((approvedWorkAreasChanged || overrideActive) && !canApproveOverall)}
                       >
                         <CheckCircle2 className="w-3.5 h-3.5" />
-                        Update approved work areas
+                        {approvedWorkAreasChanged || overrideActive ? 'Apply approval changes' : 'Re-sync credential authority'}
                       </ActionButton>
-                    ) : isApproved ? (
-                      <div className="inline-flex items-center gap-1.5 rounded-xl border border-success-green/20 bg-success-green/10 px-3 py-2 text-[11px] font-black text-success-green">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        Approved work areas saved
-                      </div>
                     ) : (
                       <ActionButton
                         variant="approve"
@@ -772,6 +767,12 @@ export default function AdminInspectorsPage() {
                       >
                         <MailCheck className="w-3.5 h-3.5" /> Approve inspector
                       </ActionButton>
+                    )}
+                    {isApproved && !approvedWorkAreasChanged && !overrideActive && (
+                      <div className="inline-flex items-center gap-1.5 rounded-xl border border-success-green/20 bg-success-green/10 px-3 py-2 text-[11px] font-black text-success-green">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        Approved work areas saved
+                      </div>
                     )}
                     {!readiness.ready && (
                       <div className="flex items-center gap-1.5 text-[10px] text-warning-amber">
