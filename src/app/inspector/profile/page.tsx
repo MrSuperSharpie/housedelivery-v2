@@ -723,20 +723,27 @@ export default function InspectorProfilePage() {
         )}
 
         {isApprovedInspector && (
-        <div className="grid grid-cols-4 gap-3 mb-5">
-          {[
-            { icon: CheckCircle2, label: 'Completed',    value: completedJobs.length, color: 'text-success-green' },
-            { icon: Star,         label: 'Rating',       value: user?.rating != null ? `${user.rating.toFixed(1)} ★` : '—', color: 'text-warning-amber' },
-            { icon: DollarSign,   label: 'This Month',   value: user?.earningsMonth != null ? `$${user.earningsMonth.toLocaleString()}` : `$${totalEarnings.toLocaleString()}`, color: 'text-ink' },
-            { icon: Award,        label: 'Disputes',     value: '0',                   color: 'text-success-green' },
-          ].map(({ icon: Icon, label, value, color }) => (
-            <div key={label} className="card-dark rounded-2xl p-4 inset-top text-center">
-              <Icon className="w-4 h-4 text-muted mx-auto mb-1.5" />
-              <div className={`text-lg font-black ${color}`}>{value}</div>
-              <div className="text-[10px] text-subtle mt-0.5">{label}</div>
+          <>
+            <div className="grid grid-cols-4 gap-3 mb-3">
+              {[
+                { icon: CheckCircle2, label: 'Completed',    value: completedJobs.length, color: 'text-success-green' },
+                { icon: Star,         label: 'Rating',       value: user?.rating != null ? `${user.rating.toFixed(1)} ★` : '—', color: 'text-warning-amber' },
+                { icon: DollarSign,   label: 'This Month',   value: user?.earningsMonth != null ? `$${user.earningsMonth.toLocaleString()}` : `$${totalEarnings.toLocaleString()}`, color: 'text-ink' },
+                { icon: Award,        label: 'Disputes',     value: '0',                   color: 'text-success-green' },
+              ].map(({ icon: Icon, label, value, color }) => (
+                <div key={label} className="card-dark rounded-2xl p-4 inset-top text-center">
+                  <Icon className="w-4 h-4 text-muted mx-auto mb-1.5" />
+                  <div className={`text-lg font-black ${color}`}>{value}</div>
+                  <div className="text-[10px] text-subtle mt-0.5">{label}</div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+            {completedJobs.length === 0 && (
+              <div className="card-dark rounded-2xl px-4 py-3 mb-5 inset-top text-xs text-muted">
+                Your inspection activity will appear here after your first completed job.
+              </div>
+            )}
+          </>
         )}
 
         {/* Job history */}
@@ -748,7 +755,9 @@ export default function InspectorProfilePage() {
           </div>
           <div className="divide-y divide-white/5">
             {completedJobs.length === 0 && (
-              <div className="px-5 py-8 text-center text-xs text-muted">No completed inspections yet.</div>
+              <div className="px-5 py-8 text-center text-xs text-muted">
+                No completed inspections yet. Once you complete your first job, it will appear here.
+              </div>
             )}
             {completedJobs.map((j, i) => (
               <div key={i} className="flex items-start gap-3 px-5 py-3.5">
