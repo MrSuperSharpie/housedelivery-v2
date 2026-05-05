@@ -554,7 +554,7 @@ export default function AdminInspectorsPage() {
                       </div>
                     </div>
                     <div className="text-right text-[11px]">
-                      <div className="text-muted mb-1">Marketplace access</div>
+                      <div className="text-muted mb-1">Live Board access</div>
                       <div
                         className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-bold ${
                           canAccessLiveBoard
@@ -622,7 +622,7 @@ export default function AdminInspectorsPage() {
 
                   <div className="rounded-xl border border-white/8 bg-white/5 px-3 py-3">
                     <div className="flex items-center justify-between mb-2">
-                      <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-subtle">Approved role lanes</div>
+                      <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-subtle">Approved work areas</div>
                       <label className="flex items-center gap-1.5 cursor-pointer text-[10px]">
                         <input
                           type="checkbox"
@@ -690,7 +690,7 @@ export default function AdminInspectorsPage() {
                         onClick={() => handleStatusChange(row.userId, 'approved', note || undefined)}
                         disabled={savingId === row.userId || !canApproveOverall}
                       >
-                        <CheckCircle2 className="w-3.5 h-3.5" /> Save approved lanes
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Save work areas
                       </ActionButton>
                     ) : (
                       <ActionButton
@@ -710,7 +710,7 @@ export default function AdminInspectorsPage() {
                       </div>
                     )}
                     <div className="rounded-xl border border-white/8 bg-white/5 px-3 py-2 text-[11px] text-muted">
-                      Approved role lanes are recorded for future scope controls. Current Live Board access still follows the overall inspector approval status.
+                      Approved work areas determine which Live Board jobs this inspector can claim. Live Board access still follows the overall approval status.
                     </div>
                   </div>
 
@@ -795,7 +795,7 @@ export default function AdminInspectorsPage() {
                             : 'bg-warning-amber/15 text-warning-amber'
                       }`}>
                         {readiness.ready
-                          ? 'Package complete'
+                          ? 'Required documents complete'
                           : row.requestedRoleLanes.length === 0
                             ? 'No lanes selected'
                             : `${readiness.totalUploaded} / ${readiness.totalRequired} required present`
@@ -858,7 +858,7 @@ export default function AdminInspectorsPage() {
                                     ? 'bg-success-green/15 text-success-green'
                                     : 'bg-warning-amber/15 text-warning-amber'
                                 }`}>
-                                  {laneReady ? '✓ Ready' : `${missing.length} missing`}
+                                  {laneReady ? '✓ Lane documents complete' : `${missing.length} missing`}
                                 </span>
                               </div>
 
@@ -927,11 +927,14 @@ export default function AdminInspectorsPage() {
                       </div>
                     )}
 
-                    {/* All uploaded documents */}
+                    {/* All uploaded files */}
                     {creds.length > 0 && (
                       <div className="mt-2">
-                        <div className="text-[11px] text-subtle mb-1">
-                          All uploaded ({creds.length} file{creds.length === 1 ? '' : 's'})
+                        <div className="text-[11px] text-subtle">
+                          All uploaded files ({creds.length})
+                        </div>
+                        <div className="mb-1 text-[10px] text-subtle">
+                          Reference list only. Approval is based on the required document checklist above.
                         </div>
                         <div className="space-y-1">
                           {creds.map(c => (

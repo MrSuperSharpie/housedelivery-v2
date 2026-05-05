@@ -677,7 +677,10 @@ export default function InspectorProfilePage() {
         {/* Stats */}
         {isApprovedInspector && (
         <div className="card-dark rounded-2xl p-5 mb-5 inset-top">
-          <div className="label-mono mb-3">Approved role lanes</div>
+          <div className="label-mono mb-1">Your approved work areas</div>
+          <p className="mb-3 text-xs text-muted">
+            These are the inspection roles you can currently use on the Live Board.
+          </p>
           <div className="flex flex-wrap gap-2">
             {(eligibilityProfile?.approvedRoleLanes ?? []).length > 0 ? (
               eligibilityProfile?.approvedRoleLanes.map(lane => (
@@ -686,7 +689,7 @@ export default function InspectorProfilePage() {
                 </span>
               ))
             ) : (
-              <span className="text-xs text-muted">No approved role lanes on file yet.</span>
+              <span className="text-xs text-muted">No approved work areas on file yet.</span>
             )}
           </div>
           {(eligibilityProfile?.requestedRoleLanes ?? []).length > 0 && (
@@ -789,7 +792,7 @@ export default function InspectorProfilePage() {
                   ? 'Documents uploaded'
                   : 'More documents required'
                 : missingRequired.length === 0
-                ? 'Ready for Vero review'
+                ? 'Required documents on file'
                 : 'More documents required before review'}
             </div>
             <div className="mt-1 text-[11px] leading-relaxed">
@@ -907,7 +910,10 @@ export default function InspectorProfilePage() {
 
           <div className="rounded-xl border border-white/5 overflow-hidden">
             <div className="px-3 py-2 bg-raised text-[11px] text-subtle">
-              All uploaded documents
+              All uploaded files
+              <div className="mt-0.5 text-[10px] text-subtle">
+                Reference list only. Required documents are matched above.
+              </div>
             </div>
             {credentials.length === 0 ? (
               <div className="px-3 py-3 text-xs text-muted">
@@ -1007,9 +1013,9 @@ export default function InspectorProfilePage() {
                             : 'bg-warning-amber/15 text-warning-amber'
                       }`}>
                         {readiness.ready
-                          ? 'Ready for approval'
+                          ? 'Documents complete'
                           : laneDocReady
-                            ? 'Lane docs ready'
+                            ? 'Documents complete'
                             : missingCount > 0
                               ? `${missingCount} missing`
                               : 'No docs required'
