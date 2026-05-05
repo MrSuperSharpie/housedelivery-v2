@@ -974,7 +974,7 @@ export default function InspectorProfilePage() {
           </div>
         </div>
 
-        {/* ── Manage Role Lanes ─────────────────────────────────────────────── */}
+        {/* ── Work Areas ────────────────────────────────────────────────────── */}
         <div className="card-dark rounded-2xl p-6 mt-5 inset-top">
           {/* Hidden file input shared across all lane-doc upload buttons */}
           <input
@@ -988,10 +988,10 @@ export default function InspectorProfilePage() {
 
           <div className="flex items-center gap-2 mb-1">
             <Layers className="w-4 h-4 text-flame" />
-            <div className="label-mono">Manage Role Lanes</div>
+            <div className="label-mono">Add or maintain work areas</div>
           </div>
           <p className="text-xs text-muted mb-4">
-            Upload the required documents for each role lane. Once all lane documents are on file, request admin review to unlock that lane.
+            Upload new documents here if you want to add another work area or keep credentials current.
           </p>
 
           <div className="space-y-2">
@@ -1008,6 +1008,12 @@ export default function InspectorProfilePage() {
               const missingCount    = laneReqs.length - presentCount
               const laneDocReady    = laneReqs.length > 0 && missingCount === 0
               const readiness       = checkPackageReadiness([lane], uploadedCredentialTypes)
+              const laneReviewReady = readiness.ready || laneDocReady || missingCount === 0
+              const laneStatusLabel = isLaneApproved
+                ? 'Approved'
+                : laneReviewReady
+                  ? 'Ready for Vero review'
+                  : 'Action required'
 
               return (
                 <div key={lane} className="rounded-xl border border-white/8 bg-surface/50 overflow-hidden">
@@ -1023,16 +1029,15 @@ export default function InspectorProfilePage() {
                           Non-signing
                         </span>
                       )}
-                      {isLaneApproved && (
-                        <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-success-green/15 text-success-green">
-                          Approved
-                        </span>
-                      )}
-                      {!isLaneApproved && isLaneRequested && (
-                        <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-warning-amber/15 text-warning-amber">
-                          Pending review
-                        </span>
-                      )}
+                      <span className={`shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                        isLaneApproved
+                          ? 'bg-success-green/15 text-success-green'
+                          : laneReviewReady
+                            ? 'bg-electric/15 text-electric'
+                            : 'bg-warning-amber/15 text-warning-amber'
+                      }`}>
+                        {laneStatusLabel}
+                      </span>
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
