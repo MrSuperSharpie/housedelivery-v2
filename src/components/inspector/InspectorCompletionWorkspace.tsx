@@ -94,6 +94,7 @@ interface JobContext {
   projectType?: string
   notes?: string
   permitNumber?: string
+  stage?: number
   stageName: string
   builderId?: string
   builderName?: string
@@ -450,6 +451,26 @@ function getStageDefinitionByNumber(
   stageNumber: number,
 ): CompletionChecklistStageDefinition | null {
   return stages.find(stage => stage.stage_number === stageNumber) ?? null
+}
+
+function resolveRequestedChecklistStage(
+  stages: CompletionChecklistStageDefinition[],
+  requestedStage?: number,
+): number {
+  if (typeof requestedStage !== 'number' || !Number.isFinite(requestedStage)) return 1
+  const stageNumber = Math.trunc(requestedStage)
+  return getStageDefinitionByNumber(stages, stageNumber)?.stage_number ?? 1
+}
+
+function reportHasMeaningfulProgress(
+  report: InspectorCompletionReportRow,
+  persistedItems: NonNullable<Awaited<ReturnType<typeof getInspectorCompletionBundle>>>['items'],
+  persistedDocuments: InspectorCompletionDocumentRow[],
+): boolean {
+  return report.status !== 'draft'
+    || report.sealApplied
+    || persistedItems.length > 0
+    || persistedDocuments.length > 0
 }
 
 function getNextSequentialStage(
@@ -1182,6 +1203,7 @@ export function InspectorCompletionWorkspace() {
           projectType: DEV_PREVIEW_JOB.projectType,
           notes: DEV_PREVIEW_JOB.notes,
           permitNumber: DEV_PREVIEW_JOB.permitNumber,
+          stage: 1,
           stageName: DEV_PREVIEW_JOB.stageName,
           builderId: DEV_PREVIEW_JOB.builderId,
           builderName: DEV_PREVIEW_JOB.builderName,
@@ -1257,6 +1279,7 @@ export function InspectorCompletionWorkspace() {
         projectType: (jobData.project_type as string) ?? undefined,
         notes: (jobData.notes as string) ?? undefined,
         permitNumber: (jobData.permit_number as string) ?? undefined,
+        stage: typeof jobData.stage === 'number' ? jobData.stage : undefined,
         stageName: (jobData.stage_name as string) ?? 'Inspector Completion',
         builderId: (jobData.builder_id as string) ?? undefined,
         builderName: (jobData.builder_name as string) ?? undefined,
@@ -1295,12 +1318,13 @@ export function InspectorCompletionWorkspace() {
         notes: jobRow.notes,
         region: jobRow.region,
       })
+      const requestedChecklistStage = resolveRequestedChecklistStage(definitionSet.stages, jobRow.stage)
       setOverlay(definitionSet.overlay)
       setStages(definitionSet.stages)
 
       const bundle = await getInspectorCompletionBundle(assignmentId)
 
-      const ensuredReport = bundle.report ?? await upsertInspectorCompletionReport({
+      let ensuredReport = bundle.report ?? await upsertInspectorCompletionReport({
         id: createRuntimeId(`completion-${assignmentId}`),
         assignmentId,
         jobId: jobRow.id,
@@ -1311,7 +1335,7 @@ export function InspectorCompletionWorkspace() {
         city: jobRow.city,
         region: jobRow.region,
         projectType: jobRow.projectType,
-        currentStage: 1,
+        currentStage: requestedChecklistStage,
         stageCount: definitionSet.stages.length,
         jurisdictionName: definitionSet.overlay.jurisdictionName,
         ahjOverlayType: definitionSet.overlay.type,
@@ -1325,6 +1349,39 @@ export function InspectorCompletionWorkspace() {
         sealedAt: undefined,
         submittedAt: undefined,
       })
+
+      if (
+        bundle.report
+        && bundle.report.currentStage === 1
+        && requestedChecklistStage !== 1
+        && !reportHasMeaningfulProgress(bundle.report, bundle.items, bundle.documents)
+      ) {
+        ensuredReport = await upsertInspectorCompletionReport({
+          id: bundle.report.id,
+          assignmentId: bundle.report.assignmentId,
+          jobId: bundle.report.jobId,
+          inspectorId: bundle.report.inspectorId,
+          projectId: bundle.report.projectId,
+          projectName: bundle.report.projectName,
+          address: bundle.report.address,
+          city: bundle.report.city,
+          region: bundle.report.region,
+          projectType: bundle.report.projectType,
+          currentStage: requestedChecklistStage,
+          stageCount: bundle.report.stageCount,
+          jurisdictionName: bundle.report.jurisdictionName,
+          ahjOverlayType: bundle.report.ahjOverlayType,
+          ahjOverlayLabel: bundle.report.ahjOverlayLabel,
+          overlaySnapshot: bundle.report.overlaySnapshot,
+          checklistSnapshot: bundle.report.checklistSnapshot,
+          status: bundle.report.status,
+          sealApplied: bundle.report.sealApplied,
+          sealReference: bundle.report.sealReference,
+          sealPayload: bundle.report.sealPayload,
+          sealedAt: bundle.report.sealedAt,
+          submittedAt: bundle.report.submittedAt,
+        })
+      }
 
       if (!ensuredReport) {
         setError('Could not initialize the completion report.')
@@ -2584,6 +2641,12 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                   <MapPin className="mt-0.5 h-4 w-4 text-cyan-300" />
                   <span>{job.address}, {job.city}</span>
                 </div>
+                {job.stage && (
+                  <div className="flex items-start gap-2">
+                    <FileCheck2 className="mt-0.5 h-4 w-4 text-cyan-300" />
+                    <span>Requested inspection stage: Stage {job.stage} — {job.stageName}</span>
+                  </div>
+                )}
                 <div className="flex items-start gap-2">
                   <Building2 className="mt-0.5 h-4 w-4 text-cyan-300" />
                   <span>{overlay.jurisdictionName}</span>
@@ -2735,6 +2798,11 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                 <div>
                   <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Current Stage</div>
                   <h2 className="mt-2 text-3xl font-black">Stage {currentStage}: {currentProgress?.stage.stage_name}</h2>
+                  {job.stage && (
+                    <p className="mt-1 text-xs font-semibold uppercase tracking-[0.14em] text-cyan-300/80">
+                      Requested inspection stage: Stage {job.stage} — {job.stageName}
+                    </p>
+                  )}
                   <p className="mt-2 max-w-3xl text-sm leading-relaxed text-zinc-400">{currentProgress?.stage.summary}</p>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-3 shrink-0 overflow-hidden">
