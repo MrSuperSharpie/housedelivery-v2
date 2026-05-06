@@ -2421,12 +2421,80 @@ function normalize(value?: string): string {
   return (value ?? '').trim().toLowerCase()
 }
 
+const BC_MUNICIPALITY_HINTS = [
+  'abbotsford',
+  'burnaby',
+  'chilliwack',
+  'coquitlam',
+  'delta',
+  'kamloops',
+  'kelowna',
+  'langley',
+  'maple ridge',
+  'nanaimo',
+  'new westminster',
+  'north vancouver',
+  'port moody',
+  'prince george',
+  'richmond',
+  'surrey',
+  'victoria',
+  'west vancouver',
+  'vancouver',
+]
+
 function slugify(value: string): string {
   return value
     .toLowerCase()
     .replace(/&/g, 'and')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '')
+}
+
+function titleCaseMunicipality(value: string): string {
+  return value
+    .trim()
+    .replace(/\s+/g, ' ')
+    .split(' ')
+    .map(part => part ? `${part.charAt(0).toUpperCase()}${part.slice(1).toLowerCase()}` : part)
+    .join(' ')
+}
+
+function isProvinceOnlySegment(value: string): boolean {
+  return /^(b\.?c\.?|british columbia)$/i.test(value.trim())
+}
+
+function cleanMunicipalityCandidate(value?: string): string | null {
+  const parts = (value ?? '')
+    .split(',')
+    .map(part => part.trim())
+    .filter(Boolean)
+
+  const candidate = parts.find(part => !isProvinceOnlySegment(part))
+  if (!candidate) return null
+
+  const withoutProvince = candidate
+    .replace(/^city\s+of\s+/i, '')
+    .replace(/\s+(bc|b\.c\.|british columbia)$/i, '')
+    .trim()
+
+  if (!withoutProvince || isProvinceOnlySegment(withoutProvince)) return null
+  return titleCaseMunicipality(withoutProvince)
+}
+
+function inferBcMunicipality(context: CompletionProjectContext): string | null {
+  const blob = [context.city, context.address, context.region]
+    .map(value => normalize(value))
+    .filter(Boolean)
+    .join(' ')
+
+  const knownMunicipality = BC_MUNICIPALITY_HINTS.find(municipality => {
+    const escaped = municipality.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    return new RegExp(`\\b${escaped}\\b`, 'i').test(blob)
+  })
+
+  if (knownMunicipality) return titleCaseMunicipality(knownMunicipality)
+  return cleanMunicipalityCandidate(context.city)
 }
 
 function createItemCode(stageNumber: number, index: number): string {
@@ -2463,8 +2531,8 @@ export function inferAhjOverlay(context: CompletionProjectContext): AhjOverlayCo
     }
   }
 
-  const city = normalize(context.city)
-  if (city.includes('vancouver')) {
+  const municipalityName = inferBcMunicipality(context)
+  if (municipalityName?.toLowerCase() === 'vancouver') {
     return {
       type: 'vancouver',
       label: 'Vancouver By-law Overlay',
@@ -2474,17 +2542,20 @@ export function inferAhjOverlay(context: CompletionProjectContext): AhjOverlayCo
     }
   }
 
-  const jurisdictionName = context.city?.trim()
-    ? `City of ${context.city.trim().replace(/,?\s*bc$/i, '')}`
+  const hasMunicipalSignal = Boolean(municipalityName || context.city?.trim() || context.region?.trim())
+  const jurisdictionName = municipalityName
+    ? `City of ${municipalityName}`
     : 'Municipal AHJ'
 
   return {
-    type: city || context.region ? 'municipal' : 'province_base',
-    label: city || context.region ? 'Municipal AHJ Overlay' : 'Province-Wide Base',
+    type: hasMunicipalSignal ? 'municipal' : 'province_base',
+    label: municipalityName
+      ? `City of ${municipalityName} AHJ Overlay`
+      : hasMunicipalSignal ? 'Municipal AHJ Overlay' : 'Province-Wide Base',
     jurisdictionName,
     signals,
-    summary: city || context.region
-      ? 'Municipal servicing, tree, frontage, and occupancy expectations are layered onto the BC base checklist.'
+    summary: hasMunicipalSignal
+      ? 'British Columbia Building Code 2024 base checklist with municipal servicing, tree, frontage, and occupancy expectations layered on.'
       : 'Only the province-wide base checklist is currently inferred from the available project data.',
   }
 }

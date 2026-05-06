@@ -453,13 +453,23 @@ function getStageDefinitionByNumber(
   return stages.find(stage => stage.stage_number === stageNumber) ?? null
 }
 
+const BUILDER_STAGE_TO_COMPLETION_STAGE: Record<number, number> = {
+  1: 1,
+  2: 5,
+  3: 6,
+  4: 12,
+  5: 15,
+}
+
 function resolveRequestedChecklistStage(
   stages: CompletionChecklistStageDefinition[],
-  requestedStage?: number,
+  requestedBuilderStage?: number,
 ): number {
-  if (typeof requestedStage !== 'number' || !Number.isFinite(requestedStage)) return 1
-  const stageNumber = Math.trunc(requestedStage)
-  return getStageDefinitionByNumber(stages, stageNumber)?.stage_number ?? 1
+  if (typeof requestedBuilderStage !== 'number' || !Number.isFinite(requestedBuilderStage)) return 1
+  const builderStageNumber = Math.trunc(requestedBuilderStage)
+  const completionStageNumber = BUILDER_STAGE_TO_COMPLETION_STAGE[builderStageNumber]
+  if (!completionStageNumber) return 1
+  return getStageDefinitionByNumber(stages, completionStageNumber)?.stage_number ?? 1
 }
 
 function reportHasMeaningfulProgress(
@@ -1352,8 +1362,7 @@ export function InspectorCompletionWorkspace() {
 
       if (
         bundle.report
-        && bundle.report.currentStage === 1
-        && requestedChecklistStage !== 1
+        && bundle.report.currentStage !== requestedChecklistStage
         && !reportHasMeaningfulProgress(bundle.report, bundle.items, bundle.documents)
       ) {
         ensuredReport = await upsertInspectorCompletionReport({
