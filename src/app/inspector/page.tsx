@@ -19,6 +19,7 @@ import { useTheme } from '@/lib/theme'
 import { isInspectorTestModeEnabled } from '@/lib/inspectorTestMode'
 import type { ClaimCommitment, JobTimeSlot, Region, InspectorDiscipline, InspectorEligibilityProfile, HoldRecord } from '@/lib/types'
 import { listHoldsForJob } from '@/lib/supabase/holds'
+import { isHoldOpenStatus } from '@/lib/holds/workflow'
 import { getActiveReliabilityPolicyConfig, getInspectorReliabilityDashboardData, type InspectorReliabilityDashboardData } from '@/lib/supabase/reliability'
 import { buildInspectorReliabilityDashboardModel } from '@/lib/reliabilityDashboard'
 import { evaluateReliabilityRollout } from '@/lib/reliabilityRollout'
@@ -54,6 +55,7 @@ interface ActiveWorklistItem {
   statusLabel: string
   claimedSlot?: JobTimeSlot
   assignedAt?: string
+  openHold?: HoldRecord
 }
 
 const TERMINAL_ASSIGNMENT_STATUSES = new Set(['cancelled', 'invalidated', 'completed'])
@@ -97,6 +99,15 @@ function getWorklistStatusLabel(input: {
   if (input.assignmentStatus === 'confirmed') return 'Confirmed'
   if (input.assignmentStatus === 'active') return 'Active'
   return formatStoredStatus(input.assignmentStatus)
+}
+
+function getHoldResponseLabel(hold?: HoldRecord): string {
+  if (!hold) return 'No hold response recorded'
+  if (hold.status === 'hold_active') return 'Builder accepted correction window'
+  if (hold.status === 'hold_declined' || hold.builderDeclinedAt) return 'Builder declined — rebook required'
+  if (hold.builderAcceptedAt) return 'Builder accepted correction window'
+  if (hold.status === 'hold_pending_builder_ack' || hold.status === 'hold_offered') return 'Builder action pending'
+  return formatStoredStatus(hold.status)
 }
 
 function isActiveWorklistStatus(assignmentStatus: string, jobStatus?: string): boolean {
@@ -289,6 +300,7 @@ export default function InspectorDashboard() {
         { data: jobRows },
         { data: reportRows },
         { data: confirmationRows },
+        holdResults,
       ] = await Promise.all([
         supabase
           .from('job_opportunities')
@@ -304,6 +316,15 @@ export default function InspectorDashboard() {
           .in('assignment_id', assignmentIds)
           .in('checkpoint', ['t_24h', 't_4h', 't_90m'])
           .eq('status', 'pending'),
+        Promise.all(jobIds.map(async jobId => {
+          try {
+            const holds = await listHoldsForJob(jobId)
+            return [jobId, holds.find(hold => isHoldOpenStatus(hold.status)) ?? null] as const
+          } catch (error) {
+            console.warn('Inspector active worklist: hold lookup failed', { jobId, error })
+            return [jobId, null] as const
+          }
+        })),
       ])
 
       if (!active) return
@@ -326,6 +347,7 @@ export default function InspectorDashboard() {
         ])
       )
       const awaitingReconfirmationByAssignmentId = new Set<string>()
+      const openHoldsByJobId = new Map(holdResults.filter((entry): entry is readonly [string, HoldRecord] => entry[1] !== null))
       const now = Date.now()
       for (const row of (confirmationRows ?? []) as Array<Record<string, unknown>>) {
         const assignmentId = typeof row.assignment_id === 'string' ? row.assignment_id : null
@@ -341,6 +363,7 @@ export default function InspectorDashboard() {
         .map(assignment => {
           const job = jobsById.get(assignment.jobId)
           const reportStatus = reportsByAssignmentId.get(assignment.id)
+          const openHold = openHoldsByJobId.get(assignment.jobId)
           return {
             id: assignment.id,
             jobId: assignment.jobId,
@@ -357,6 +380,7 @@ export default function InspectorDashboard() {
             claimedSlot: assignment.claimedSlot,
             assignedAt: assignment.assignedAt,
             jobStatus: job?.status,
+            openHold,
           }
         })
         .filter(item => isActiveWorklistStatus(item.status, item.jobStatus))
@@ -370,6 +394,7 @@ export default function InspectorDashboard() {
           statusLabel: item.statusLabel,
           claimedSlot: item.claimedSlot,
           assignedAt: item.assignedAt,
+          openHold: item.openHold,
         }))
 
       setDbActiveWorklist(worklist)
@@ -594,10 +619,19 @@ export default function InspectorDashboard() {
             </div>
             <div className="space-y-3">
               {activeWorklist.map(assignment => {
+                const holdDetailsHref = assignment.openHold
+                  ? `/inspector/completion/${assignment.id}?hold=${assignment.openHold.id}#hold`
+                  : `/inspector/completion/${assignment.id}#hold`
+                const holdResponseLabel = getHoldResponseLabel(assignment.openHold)
+                const holdHeadline = assignment.openHold?.status === 'hold_active'
+                  ? 'Hold active — correction window accepted'
+                  : assignment.openHold?.builderDeclinedAt || assignment.openHold?.status === 'hold_declined'
+                    ? 'Hold active — builder declined terms'
+                    : 'Hold active — builder action pending'
                 return (
                   <div
                     key={assignment.id}
-                    className={`flex items-center gap-4 rounded-2xl border p-4 shadow-sm transition-all hover:border-electric/30 ${
+                    className={`flex flex-col gap-4 rounded-2xl border p-4 shadow-sm transition-all hover:border-electric/30 md:flex-row md:items-center ${
                       isDark
                         ? 'border-slate-700 bg-slate-800 hover:bg-slate-800/90'
                         : 'border-slate-200 bg-white hover:bg-slate-50'
@@ -627,13 +661,57 @@ export default function InspectorDashboard() {
                           <Clock className="w-3 h-3" /> {assignment.claimedSlot?.flexible ? 'Flexible timing' : assignment.claimedSlot?.date || 'Upcoming'}
                         </div>
                       </div>
+                      {assignment.openHold && (
+                        <div className={`mt-3 rounded-xl border px-3 py-3 ${
+                          isDark
+                            ? 'border-amber-500/40 bg-amber-500/10 text-amber-100'
+                            : 'border-amber-300 bg-amber-50 text-amber-950'
+                        }`}>
+                          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                              <div className="text-sm font-black">{holdHeadline}</div>
+                              <div className="mt-1 text-xs font-semibold">
+                                {assignment.openHold.deficiencyReason || assignment.openHold.reason}
+                              </div>
+                              {assignment.openHold.deficiencyReason && (
+                                <div className="mt-1 text-[11px] opacity-80">Required correction: {assignment.openHold.reason}</div>
+                              )}
+                            </div>
+                            <div className="shrink-0 rounded-lg border border-amber-400/50 bg-amber-100 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-amber-900">
+                              {holdResponseLabel}
+                            </div>
+                          </div>
+                          <div className="mt-2 flex flex-wrap gap-2 text-[10px] font-bold">
+                            <span className="rounded-full bg-white/70 px-2 py-1 text-amber-950">
+                              Fee terms: {formatCurrency(assignment.openHold.holdCapAmount)}
+                            </span>
+                            <span className="rounded-full bg-white/70 px-2 py-1 text-amber-950">
+                              {assignment.openHold.holdEligibleForOnSiteCorrection ? 'Same-day eligible' : 'Rebook required'}
+                            </span>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <button
-                      onClick={() => router.push(`/inspector/completion/${assignment.id}`)}
-                      className="bg-flame text-white px-4 py-2.5 rounded-xl text-xs font-black flex items-center gap-2 hover:bg-flame-light transition-all shrink-0 glow-flame-sm"
-                    >
-                      Open Assignment <ChevronRight className="w-4 h-4" />
-                    </button>
+                    <div className="flex w-full flex-col gap-2 md:w-auto md:shrink-0">
+                      {assignment.openHold && (
+                        <button
+                          onClick={() => router.push(holdDetailsHref)}
+                          className={`px-4 py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all ${
+                            isDark
+                              ? 'border border-amber-500/40 bg-amber-500/10 text-amber-100 hover:bg-amber-500/20'
+                              : 'border border-amber-300 bg-amber-100 text-amber-950 hover:bg-amber-200'
+                          }`}
+                        >
+                          View Hold Details <ChevronRight className="w-4 h-4" />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => router.push(`/inspector/completion/${assignment.id}`)}
+                        className="bg-flame text-white px-4 py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 hover:bg-flame-light transition-all glow-flame-sm"
+                      >
+                        Open Assignment <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 )
               })}

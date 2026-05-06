@@ -28,11 +28,12 @@ import type { HoldRecord } from '@/lib/types'
 import {
   builderApproveHold,
   builderDeclineHold,
-  listHoldsForJob,
+  listHoldDetailsForJob,
   requestOnSiteCorrectionReview,
   acknowledgeModificationHold,
   declineModificationHold,
   listInspectionHoldsForJob,
+  type HoldDetail,
   type InspectionHold,
 } from '@/lib/supabase/holds'
 import { listJobsByBuilder } from '@/lib/supabase/jobs'
@@ -461,6 +462,7 @@ export default function BuilderDashboard() {
   const [dbJobs, setDbJobs]                     = useState<JobOpportunityRow[] | null>(null)
   const [completedRecords, setCompletedRecords] = useState<Record<string, { certRef: string; result: string; completedAt: string }>>({})
   const [activeHolds, setActiveHolds]           = useState<HoldRecord[]>([])
+  const [activeHoldDetails, setActiveHoldDetails] = useState<Record<string, HoldDetail>>({})
   const [acceptedHolds, setAcceptedHolds]       = useState<Array<{ hold: HoldRecord; projectName: string; feeAmount: number; acceptedAt: string }>>([])
   const [holdResponding, setHoldResponding]     = useState<string | null>(null)
   const [holdReviewRequesting, setHoldReviewRequesting] = useState<string | null>(null)
@@ -555,9 +557,22 @@ export default function BuilderDashboard() {
   useEffect(() => {
     async function loadActiveHolds() {
       const onHoldJobs = (dbJobs ?? []).filter(j => j.status === 'on_hold')
-      if (onHoldJobs.length === 0) { setActiveHolds([]); return }
-      const results = await Promise.all(onHoldJobs.map(j => listHoldsForJob(j.id)))
-      const allHolds = results.flat()
+      if (onHoldJobs.length === 0) {
+        setActiveHolds([])
+        setActiveHoldDetails({})
+        return
+      }
+      const detailResults = await Promise.all(onHoldJobs.map(async job => {
+        try {
+          return await listHoldDetailsForJob(job.id)
+        } catch (error) {
+          console.warn('Builder dashboard: hold detail lookup failed', { jobId: job.id, error })
+          return []
+        }
+      }))
+      const allDetails = detailResults.flat()
+      const allHolds = allDetails.map(detail => detail.hold)
+      setActiveHoldDetails(Object.fromEntries(allDetails.map(detail => [detail.hold.id, detail])))
       // Only show holds the builder can actually respond to — 'hold_active' means already accepted.
       setActiveHolds(allHolds.filter(h => HOLD_BUILDER_ACTIONABLE_STATUSES.includes(h.status)))
       // Hydrate acceptedHolds for holds already in hold_active state (e.g. page refresh after acceptance)
@@ -836,6 +851,8 @@ export default function BuilderDashboard() {
         {/* ── Active Hold Notifications (always first — action required) ── */}
         {activeHolds.map(hold => {
           const holdJob    = (dbJobs ?? []).find(j => j.id === hold.jobId)
+          const holdDetail = activeHoldDetails[hold.id]
+          const holdEvidence = holdDetail?.evidence ?? []
           const holdBaseRate = hold.premiumRateAmount || resolveHoldBaseRate({
             pricingMode: holdJob?.pricingMode,
             specialistRole: holdJob?.specialistRole,
@@ -852,18 +869,24 @@ export default function BuilderDashboard() {
           const selectedWindow = correctionWindowByHold[hold.id] ?? 60
           const windowFee = calculateWindowFee(holdBaseRate, selectedWindow)
           const totalAcceptanceFee = baseHoldServiceFee + windowFee
+          const builderResponseStatus = hold.builderAcceptedAt
+            ? 'Correction window accepted'
+            : hold.builderDeclinedAt
+              ? 'Declined — rebook required'
+              : 'Builder response pending'
 
           return (
-            <div key={hold.id} className="mb-5 rounded-2xl border border-slate-200 border-l-[6px] border-l-flame bg-white overflow-hidden">
-              <div className="px-5 py-4 border-b border-slate-200">
+            <div key={hold.id} className="mb-5 rounded-2xl border border-flame/40 border-l-[6px] border-l-flame bg-white overflow-hidden shadow-[0_18px_34px_rgba(245,124,0,0.16)]">
+              <div className="px-5 py-4 border-b border-flame/20 bg-flame-dim/70">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-flame-dim border border-flame/20 rounded-xl flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 bg-white border border-flame/20 rounded-xl flex items-center justify-center shrink-0">
                       <Shield className="w-5 h-5 text-flame" />
                     </div>
                     <div>
-                      <div className="font-black text-slate-900 text-sm mb-0.5">Hold Point Raised</div>
-                      <div className="text-xs text-slate-500">{holdJob?.projectName ?? 'Project'} · Stage {holdJob?.stage ?? ''}</div>
+                      <div className="font-black text-slate-900 text-base mb-0.5">Action required — project on hold</div>
+                      <div className="text-xs font-semibold text-slate-600">{holdJob?.projectName ?? 'Project'} · Stage {holdJob?.stage ?? ''}</div>
+                      <div className="mt-1 text-[11px] text-slate-600">{builderResponseStatus}</div>
                     </div>
                   </div>
                   <div className="bg-flame-dim border border-flame/30 rounded-lg px-2 py-1">
@@ -873,12 +896,50 @@ export default function BuilderDashboard() {
               </div>
 
               <div className="px-5 py-3 border-b border-slate-200">
-                <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-1">Inspector&apos;s Hold Reason</div>
-                <div className="text-sm font-bold text-slate-900">{hold.reason}</div>
+                <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-1">Deficiency Summary</div>
+                <div className="text-sm font-bold text-slate-900">{hold.deficiencyReason || hold.reason}</div>
+                {hold.deficiencyReason && (
+                  <>
+                    <div className="mt-3 text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-1">Required Correction</div>
+                    <div className="text-sm font-semibold text-slate-900">{hold.reason}</div>
+                  </>
+                )}
                 <div className="mt-2 text-xs text-slate-500">
                   {hold.affectedItemSummaries.length > 0
                     ? `Affected items: ${hold.affectedItemSummaries.join(' · ')}`
                     : `Affected checklist items: ${hold.checklistItemIds.join(', ')}`}
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-bold">
+                  <span className="rounded-full bg-slate-100 px-2 py-1 text-slate-700">
+                    {hold.holdEligibleForOnSiteCorrection ? 'Same-day correction eligible' : 'Rebook required'}
+                  </span>
+                  <span className="rounded-full bg-slate-100 px-2 py-1 text-slate-700">
+                    Response: {builderResponseStatus}
+                  </span>
+                </div>
+              </div>
+
+              {holdEvidence.length > 0 && (
+                <div className="px-5 py-3 border-b border-slate-200">
+                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Supporting Evidence</div>
+                  <div className="space-y-1.5">
+                    {holdEvidence.slice(0, 3).map(evidence => (
+                      <div key={evidence.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs">
+                        <span className="font-semibold text-slate-700 truncate">{evidence.fileName || evidence.noteText || 'Hold evidence'}</span>
+                        <span className="shrink-0 rounded-full bg-white px-2 py-0.5 text-[10px] font-bold uppercase text-slate-500">{evidence.evidenceType}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {holdEvidence.length > 3 && (
+                    <div className="mt-2 text-[10px] font-semibold text-slate-500">+{holdEvidence.length - 3} more evidence item{holdEvidence.length - 3 === 1 ? '' : 's'}</div>
+                  )}
+                </div>
+              )}
+
+              <div id={`hold-${hold.id}`} className="px-5 py-3 border-b border-slate-200">
+                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Review Hold Request</div>
+                <div className="text-xs text-slate-600">
+                  Accept a correction window to reserve the inspector for re-verification, or request same-visit review if the correction can be made while they are still available.
                 </div>
               </div>
 
@@ -945,7 +1006,7 @@ export default function BuilderDashboard() {
                       {isResponding
                         ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                         : <CheckCircle2 className="w-4 h-4" />}
-                      Reserve {selectedWindow}-Min Correction Window (Guaranteed Re-Inspection)
+                      Accept Correction Window — Reserve {selectedWindow} Min
                     </button>
                   </div>
                   <p className="text-[11px] text-muted mt-2 text-center">

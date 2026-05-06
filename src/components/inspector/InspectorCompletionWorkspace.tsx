@@ -72,7 +72,7 @@ import { buildHoldEvidenceItems, buildHoldHistorySummary } from '@/lib/holds/rep
 import {
   resolveHoldBaseRate,
 } from '@/lib/pricing/config'
-import type { HoldCategory, HoldEvidenceType } from '@/lib/types'
+import type { HoldCategory, HoldEvidenceType, HoldRecord } from '@/lib/types'
 import { calculateBaseHoldServiceFee } from '@/utils/pricing'
 
 const supabase = createClient()
@@ -779,6 +779,23 @@ const TACTILE_MEDIA_BUTTON_CLASS = 'inline-flex min-h-[44px] min-w-[44px] items-
 const EMPHASIZED_BODY_TEXT_CLASS = 'text-[17px] leading-7 text-zinc-300'
 const HOLD_ACTION_BUTTON_CLASS = 'min-h-12 rounded-2xl border border-amber-300 bg-amber-100 px-4 py-3 text-sm font-black text-amber-900 shadow-sm transition-colors hover:bg-amber-200 disabled:cursor-not-allowed disabled:border-amber-200 disabled:bg-amber-50 disabled:text-amber-400 disabled:opacity-60'
 
+type ActiveJobHoldSummary = Pick<HoldRecord, 'id' | 'status' | 'reason'> & Partial<Pick<
+  HoldRecord,
+  | 'deficiencyReason'
+  | 'holdCapAmount'
+  | 'holdEligibleForOnSiteCorrection'
+  | 'builderAcceptedAt'
+  | 'builderDeclinedAt'
+  | 'builderSelectedCorrectionMinutes'
+>>
+
+function getWorkspaceHoldResponseLabel(hold: ActiveJobHoldSummary): string {
+  if (hold.builderAcceptedAt || hold.status === 'hold_active') return 'Builder accepted correction window'
+  if (hold.builderDeclinedAt || hold.status === 'hold_declined') return 'Builder declined — rebook required'
+  if (hold.status === 'hold_pending_builder_ack' || hold.status === 'hold_offered') return 'Builder action pending'
+  return hold.status.split('_').filter(Boolean).map(part => `${part.charAt(0).toUpperCase()}${part.slice(1)}`).join(' ')
+}
+
 export function InspectorCompletionWorkspace() {
   const params = useParams()
   const router = useRouter()
@@ -798,7 +815,7 @@ export function InspectorCompletionWorkspace() {
   const [stages, setStages] = useState<CompletionChecklistStageDefinition[]>([])
   const [items, setItems] = useState<WorkspaceItem[]>([])
   const [projectReferencePoint, setProjectReferencePoint] = useState<ProjectReferencePoint | null>(null)
-  const [activeJobHold, setActiveJobHold] = useState<{ id: string; status: string; reason: string } | null>(null)
+  const [activeJobHold, setActiveJobHold] = useState<ActiveJobHoldSummary | null>(null)
   const [holdMode, setHoldMode] = useState(false)
   const [holdTargetItemCode, setHoldTargetItemCode] = useState<string | null>(null)
   const [holdTargetItemLabel, setHoldTargetItemLabel] = useState<string | null>(null)
@@ -1210,6 +1227,9 @@ export function InspectorCompletionWorkspace() {
         id: result.value.id,
         status: 'hold_pending_builder_ack',
         reason: result.value.reason,
+        deficiencyReason: holdDeficiencyReason.trim(),
+        holdCapAmount: baseHoldServiceFee,
+        holdEligibleForOnSiteCorrection: holdSameDayEligible,
       })
       window.alert('Hold Request Sent: The builder has been notified of the critical stop conditions.')
       resetHoldForm()
@@ -1223,6 +1243,9 @@ export function InspectorCompletionWorkspace() {
       id: crypto.randomUUID(),
       status: 'hold_pending_builder_ack',
       reason: holdReason.trim(),
+      deficiencyReason: holdDeficiencyReason.trim(),
+      holdCapAmount: baseHoldServiceFee,
+      holdEligibleForOnSiteCorrection: holdSameDayEligible,
     })
     window.alert("Hold request submitted. The builder has been notified and will review the item and confirm the correction window.")
     resetHoldForm()
@@ -1344,12 +1367,35 @@ export function InspectorCompletionWorkspace() {
         status: (jobData.status as string) ?? undefined,
       }
       setJob(jobRow)
-      const latestOpenHold = await getLatestOpenHoldForJob(jobRow.id)
-      setActiveJobHold(latestOpenHold ? {
-        id: latestOpenHold.id,
-        status: latestOpenHold.status,
-        reason: latestOpenHold.reason,
-      } : null)
+      try {
+        const holdDetails = await listHoldDetailsForJob(jobRow.id)
+        const latestOpenHold = holdDetails.find(detail => isHoldOpenStatus(detail.hold.status))?.hold ?? null
+        setActiveJobHold(latestOpenHold ? {
+          id: latestOpenHold.id,
+          status: latestOpenHold.status,
+          reason: latestOpenHold.reason,
+          deficiencyReason: latestOpenHold.deficiencyReason,
+          holdCapAmount: latestOpenHold.holdCapAmount,
+          holdEligibleForOnSiteCorrection: latestOpenHold.holdEligibleForOnSiteCorrection,
+          builderAcceptedAt: latestOpenHold.builderAcceptedAt,
+          builderDeclinedAt: latestOpenHold.builderDeclinedAt,
+          builderSelectedCorrectionMinutes: latestOpenHold.builderSelectedCorrectionMinutes,
+        } : null)
+      } catch (holdLookupError) {
+        console.warn('InspectorCompletionWorkspace: hold lookup failed', holdLookupError)
+        const latestOpenHold = await getLatestOpenHoldForJob(jobRow.id)
+        setActiveJobHold(latestOpenHold ? {
+          id: latestOpenHold.id,
+          status: latestOpenHold.status,
+          reason: latestOpenHold.reason,
+          deficiencyReason: latestOpenHold.deficiencyReason,
+          holdCapAmount: latestOpenHold.holdCapAmount,
+          holdEligibleForOnSiteCorrection: latestOpenHold.holdEligibleForOnSiteCorrection,
+          builderAcceptedAt: latestOpenHold.builderAcceptedAt,
+          builderDeclinedAt: latestOpenHold.builderDeclinedAt,
+          builderSelectedCorrectionMinutes: latestOpenHold.builderSelectedCorrectionMinutes,
+        } : null)
+      }
 
       if (jobRow.projectId) {
         const { data: projectData, error: projectError } = await supabase
@@ -2672,6 +2718,42 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                 <div className="mt-1 text-base font-medium text-emerald-900">
                   Stage {stageTransitionHandshake.completedStageNumber} Complete! You are now working on Stage {stageTransitionHandshake.nextStageNumber}.
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+        {activeJobHold && isHoldOpenStatus(activeJobHold.status) && (
+          <div id="hold" className={`mb-6 rounded-[1.75rem] border border-amber-400/40 bg-amber-100 px-5 py-4 text-amber-950 ${FLOATING_PANEL_CLASS}`}>
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
+                <div>
+                  <div className="text-[11px] font-black uppercase tracking-[0.18em] text-amber-800/80">Hold Active</div>
+                  <div className="mt-1 text-lg font-black text-amber-950">{getWorkspaceHoldResponseLabel(activeJobHold)}</div>
+                  <div className="mt-2 text-sm font-semibold text-amber-950">
+                    {activeJobHold.deficiencyReason || activeJobHold.reason}
+                  </div>
+                  {activeJobHold.deficiencyReason && (
+                    <div className="mt-1 text-sm text-amber-900">Required correction: {activeJobHold.reason}</div>
+                  )}
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2 lg:justify-end">
+                {typeof activeJobHold.holdCapAmount === 'number' && (
+                  <div className="rounded-xl border border-amber-300 bg-white/70 px-3 py-2 text-xs font-black text-amber-950">
+                    Fee terms: ${activeJobHold.holdCapAmount.toFixed(2)}
+                  </div>
+                )}
+                {typeof activeJobHold.holdEligibleForOnSiteCorrection === 'boolean' && (
+                  <div className="rounded-xl border border-amber-300 bg-white/70 px-3 py-2 text-xs font-black text-amber-950">
+                    {activeJobHold.holdEligibleForOnSiteCorrection ? 'Same-day correction eligible' : 'Rebook required'}
+                  </div>
+                )}
+                {activeJobHold.builderSelectedCorrectionMinutes && (
+                  <div className="rounded-xl border border-amber-300 bg-white/70 px-3 py-2 text-xs font-black text-amber-950">
+                    Builder window: {activeJobHold.builderSelectedCorrectionMinutes} min
+                  </div>
+                )}
               </div>
             </div>
           </div>
