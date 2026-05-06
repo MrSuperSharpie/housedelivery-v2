@@ -11,6 +11,7 @@ import { checkInspectorEligibility } from '@/lib/eligibility'
 import { formatCurrency } from '@/lib/utils'
 import { useAuth } from '@/lib/auth'
 import { useStore } from '@/lib/store'
+import { createClient } from '@/lib/supabase/client'
 import { getInspectorOnboardingStatusAsync } from '@/lib/persistence/inspectorOnboarding'
 import { selectInspectorEligibility } from '@/lib/supabase/compliance'
 import { listEligibleJobsForInspector } from '@/lib/supabase/jobs'
@@ -21,6 +22,8 @@ import { listHoldsForJob } from '@/lib/supabase/holds'
 import { getActiveReliabilityPolicyConfig, getInspectorReliabilityDashboardData, type InspectorReliabilityDashboardData } from '@/lib/supabase/reliability'
 import { buildInspectorReliabilityDashboardModel } from '@/lib/reliabilityDashboard'
 import { evaluateReliabilityRollout } from '@/lib/reliabilityRollout'
+
+const supabase = createClient()
 
 const REGIONS: { value: Region | 'all'; label: string }[] = [
   { value: 'all',       label: 'All Regions' },
@@ -40,6 +43,67 @@ const DISCS: { value: InspectorDiscipline | 'all'; label: string }[] = [
   { value: 'plumbing',      label: 'Plumbing' },
   { value: 'architectural', label: 'Architectural' },
 ]
+
+interface ActiveWorklistItem {
+  id: string
+  jobId: string
+  projectName: string
+  address: string
+  city?: string
+  status: string
+  statusLabel: string
+  claimedSlot?: JobTimeSlot
+  assignedAt?: string
+}
+
+const TERMINAL_ASSIGNMENT_STATUSES = new Set(['cancelled', 'invalidated', 'completed'])
+const TERMINAL_JOB_STATUSES = new Set(['completed', 'cancelled', 'stopped'])
+
+function formatStoredStatus(value: string): string {
+  return value
+    .split('_')
+    .filter(Boolean)
+    .map(part => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+    .join(' ')
+}
+
+function parseWorklistSlot(value: unknown): JobTimeSlot | undefined {
+  if (!value || typeof value !== 'object') return undefined
+  const slot = value as Record<string, unknown>
+  if (slot.flexible === true) {
+    return { date: '', startTime: '', endTime: '', flexible: true }
+  }
+  if (typeof slot.date !== 'string' || typeof slot.startTime !== 'string' || typeof slot.endTime !== 'string') {
+    return undefined
+  }
+  return {
+    date: slot.date,
+    startTime: slot.startTime,
+    endTime: slot.endTime,
+    flexible: slot.flexible === true,
+  }
+}
+
+function getWorklistStatusLabel(input: {
+  assignmentStatus: string
+  jobStatus?: string
+  reportStatus?: string
+  awaitingReconfirmation?: boolean
+}): string {
+  if (input.awaitingReconfirmation) return 'Awaiting Reconfirmation'
+  if (input.jobStatus === 'on_hold') return 'Hold'
+  if (input.reportStatus === 'draft' || input.jobStatus === 'in_progress') return 'Draft / In Progress'
+  if (input.assignmentStatus === 'provisional') return 'Provisional'
+  if (input.assignmentStatus === 'confirmed') return 'Confirmed'
+  if (input.assignmentStatus === 'active') return 'Active'
+  return formatStoredStatus(input.assignmentStatus)
+}
+
+function isActiveWorklistStatus(assignmentStatus: string, jobStatus?: string): boolean {
+  if (TERMINAL_ASSIGNMENT_STATUSES.has(assignmentStatus)) return false
+  if (jobStatus && TERMINAL_JOB_STATUSES.has(jobStatus)) return false
+  return true
+}
 
 export default function InspectorDashboard() {
   const router = useRouter()
@@ -61,6 +125,7 @@ export default function InspectorDashboard() {
   const [acceptedHoldsForInspector, setAcceptedHoldsForInspector] = useState<HoldRecord[]>([])
   const [reliabilityData, setReliabilityData] = useState<InspectorReliabilityDashboardData | null>(null)
   const [reliabilityPolicyConfig, setReliabilityPolicyConfig] = useState<Record<string, unknown> | null>(null)
+  const [dbActiveWorklist, setDbActiveWorklist] = useState<ActiveWorklistItem[] | null>(null)
 
   useEffect(() => {
     if (!user) { router.replace('/sign-in?role=inspector'); return }
@@ -141,6 +206,181 @@ export default function InspectorDashboard() {
   const myAssignments = store.assignments.filter(a =>
     a.inspectorId === user?.id || a.inspectorId === user?.supabaseId
   )
+
+  const storedActiveWorklist = useMemo<ActiveWorklistItem[]>(() => {
+    return myAssignments
+      .map(assignment => {
+        const job = store.jobs.find(j => j.id === assignment.jobId)
+        return {
+          id: assignment.id,
+          jobId: assignment.jobId,
+          projectName: assignment.projectName || job?.projectName || 'Assigned Project',
+          address: job?.address ?? '',
+          city: job?.city,
+          status: assignment.status,
+          statusLabel: getWorklistStatusLabel({
+            assignmentStatus: assignment.status,
+            jobStatus: job?.status,
+          }),
+          claimedSlot: assignment.claimedSlot,
+          assignedAt: assignment.claimedAt,
+          jobStatus: job?.status,
+        }
+      })
+      .filter(item => isActiveWorklistStatus(item.status, item.jobStatus))
+      .map(item => ({
+        id: item.id,
+        jobId: item.jobId,
+        projectName: item.projectName,
+        address: item.address,
+        city: item.city,
+        status: item.status,
+        statusLabel: item.statusLabel,
+        claimedSlot: item.claimedSlot,
+        assignedAt: item.assignedAt,
+      }))
+  }, [myAssignments, store.jobs])
+
+  const activeWorklist = user?.supabaseId ? (dbActiveWorklist ?? []) : storedActiveWorklist
+
+  useEffect(() => {
+    if (!user?.supabaseId) {
+      setDbActiveWorklist(null)
+      return
+    }
+
+    let active = true
+
+    async function loadActiveWorklist() {
+      const inspectorId = user?.supabaseId
+      if (!inspectorId) return
+
+      const { data: assignmentRows, error: assignmentError } = await supabase
+        .from('job_assignments')
+        .select('id, job_id, inspector_id, status, assigned_at, claimed_slot')
+        .eq('inspector_id', inspectorId)
+        .order('assigned_at', { ascending: false })
+
+      if (!active) return
+      if (assignmentError || !assignmentRows) {
+        setDbActiveWorklist([])
+        return
+      }
+
+      const assignmentRecords = (assignmentRows as Array<Record<string, unknown>>)
+        .map(row => ({
+          id: String(row.id ?? ''),
+          jobId: String(row.job_id ?? ''),
+          status: String(row.status ?? 'provisional'),
+          assignedAt: typeof row.assigned_at === 'string' ? row.assigned_at : undefined,
+          claimedSlot: parseWorklistSlot(row.claimed_slot),
+        }))
+        .filter(row => row.id && row.jobId && !TERMINAL_ASSIGNMENT_STATUSES.has(row.status))
+
+      if (assignmentRecords.length === 0) {
+        setDbActiveWorklist([])
+        return
+      }
+
+      const assignmentIds = assignmentRecords.map(row => row.id)
+      const jobIds = [...new Set(assignmentRecords.map(row => row.jobId))]
+
+      const [
+        { data: jobRows },
+        { data: reportRows },
+        { data: confirmationRows },
+      ] = await Promise.all([
+        supabase
+          .from('job_opportunities')
+          .select('id, project_name, address, city, status')
+          .in('id', jobIds),
+        supabase
+          .from('inspector_completion_reports')
+          .select('assignment_id, status')
+          .in('assignment_id', assignmentIds),
+        supabase
+          .from('job_attendance_confirmations')
+          .select('assignment_id, checkpoint, status, required_at, reminder_sent_at')
+          .in('assignment_id', assignmentIds)
+          .in('checkpoint', ['t_24h', 't_4h', 't_90m'])
+          .eq('status', 'pending'),
+      ])
+
+      if (!active) return
+
+      const jobsById = new Map(
+        ((jobRows ?? []) as Array<Record<string, unknown>>).map(row => [
+          String(row.id ?? ''),
+          {
+            projectName: typeof row.project_name === 'string' ? row.project_name : 'Assigned Project',
+            address: typeof row.address === 'string' ? row.address : '',
+            city: typeof row.city === 'string' ? row.city : undefined,
+            status: typeof row.status === 'string' ? row.status : undefined,
+          },
+        ])
+      )
+      const reportsByAssignmentId = new Map(
+        ((reportRows ?? []) as Array<Record<string, unknown>>).map(row => [
+          String(row.assignment_id ?? ''),
+          typeof row.status === 'string' ? row.status : undefined,
+        ])
+      )
+      const awaitingReconfirmationByAssignmentId = new Set<string>()
+      const now = Date.now()
+      for (const row of (confirmationRows ?? []) as Array<Record<string, unknown>>) {
+        const assignmentId = typeof row.assignment_id === 'string' ? row.assignment_id : null
+        if (!assignmentId) continue
+        const requiredAt = typeof row.required_at === 'string' ? Date.parse(row.required_at) : NaN
+        const reminderSent = typeof row.reminder_sent_at === 'string'
+        if (reminderSent || (Number.isFinite(requiredAt) && requiredAt <= now)) {
+          awaitingReconfirmationByAssignmentId.add(assignmentId)
+        }
+      }
+
+      const worklist = assignmentRecords
+        .map(assignment => {
+          const job = jobsById.get(assignment.jobId)
+          const reportStatus = reportsByAssignmentId.get(assignment.id)
+          return {
+            id: assignment.id,
+            jobId: assignment.jobId,
+            projectName: job?.projectName ?? 'Assigned Project',
+            address: job?.address ?? '',
+            city: job?.city,
+            status: assignment.status,
+            statusLabel: getWorklistStatusLabel({
+              assignmentStatus: assignment.status,
+              jobStatus: job?.status,
+              reportStatus,
+              awaitingReconfirmation: awaitingReconfirmationByAssignmentId.has(assignment.id),
+            }),
+            claimedSlot: assignment.claimedSlot,
+            assignedAt: assignment.assignedAt,
+            jobStatus: job?.status,
+          }
+        })
+        .filter(item => isActiveWorklistStatus(item.status, item.jobStatus))
+        .map(item => ({
+          id: item.id,
+          jobId: item.jobId,
+          projectName: item.projectName,
+          address: item.address,
+          city: item.city,
+          status: item.status,
+          statusLabel: item.statusLabel,
+          claimedSlot: item.claimedSlot,
+          assignedAt: item.assignedAt,
+        }))
+
+      setDbActiveWorklist(worklist)
+    }
+
+    void loadActiveWorklist()
+
+    return () => {
+      active = false
+    }
+  }, [user?.supabaseId])
 
   // Poll for holds that builders have accepted — these need a re-verification action.
   useEffect(() => {
@@ -346,15 +586,14 @@ export default function InspectorDashboard() {
         ))}
 
         {/* Active Worklist */}
-        {myAssignments.length > 0 && (
+        {activeWorklist.length > 0 && (
           <div className="mb-10">
             <div className="flex items-center gap-2 mb-4">
               <PlayCircle className="w-4 h-4 text-flame" />
               <h2 className="text-xs font-bold text-electric tracking-widest uppercase">Your Active Worklist</h2>
             </div>
             <div className="space-y-3">
-              {myAssignments.map(assignment => {
-                const job = store.jobs.find(j => j.id === assignment.jobId)
+              {activeWorklist.map(assignment => {
                 return (
                   <div
                     key={assignment.id}
@@ -369,16 +608,20 @@ export default function InspectorDashboard() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-bold text-ink text-base truncate">{assignment.projectName || job?.projectName || 'Assigned Project'}</span>
+                        <span className="font-bold text-ink text-base truncate">{assignment.projectName || 'Assigned Project'}</span>
                         <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase ${
                           isDark
                             ? 'border-slate-600 bg-slate-700/50 text-slate-300'
                             : 'border-slate-300 bg-slate-200 text-slate-700'
                         }`}>
-                          {assignment.status}
+                          {assignment.statusLabel}
                         </span>
                       </div>
-                      <div className="text-xs text-muted truncate">{job?.address || 'Vancouver, BC'}</div>
+                      <div className="text-xs text-muted truncate">
+                        {assignment.address
+                          ? `${assignment.address}${assignment.city ? `, ${assignment.city}` : ''}`
+                          : 'Address unavailable'}
+                      </div>
                       <div className="flex items-center gap-3 mt-2">
                         <div className="flex items-center gap-1 text-[10px] text-subtle">
                           <Clock className="w-3 h-3" /> {assignment.claimedSlot?.flexible ? 'Flexible timing' : assignment.claimedSlot?.date || 'Upcoming'}
@@ -386,7 +629,7 @@ export default function InspectorDashboard() {
                       </div>
                     </div>
                     <button
-                      onClick={() => router.push(`/inspector/assignment/${assignment.id}`)}
+                      onClick={() => router.push(`/inspector/completion/${assignment.id}`)}
                       className="bg-flame text-white px-4 py-2.5 rounded-xl text-xs font-black flex items-center gap-2 hover:bg-flame-light transition-all shrink-0 glow-flame-sm"
                     >
                       Open Assignment <ChevronRight className="w-4 h-4" />

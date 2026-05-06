@@ -40,6 +40,21 @@ function isUserRole(value: unknown): value is UserRole {
   return value === 'builder' || value === 'inspector' || value === 'auditor' || value === 'admin'
 }
 
+function getRoleSafeNextPath(role: UserRole, path: string | null): string | null {
+  if (!path) return null
+
+  if (role === 'inspector') {
+    if (path.startsWith('/inspector/completion/')) return null
+    return path
+  }
+
+  if (role === 'builder' && (path.startsWith('/inspector') || path.startsWith('/live-board'))) {
+    return null
+  }
+
+  return path
+}
+
 async function checkRegistrationAvailability(input: { email: string; phone?: string }) {
   const response = await fetch('/api/auth/check-registration', {
     method: 'POST',
@@ -241,9 +256,7 @@ function SignInInner() {
           onboardingStatus: onboardingStatus as AuthUser['onboardingStatus'],
         }
         login(authUser)
-        const roleSafeNextPath = resolvedRole === 'builder' && (
-          safeNextPath?.startsWith('/inspector') || safeNextPath?.startsWith('/live-board')
-        ) ? null : safeNextPath
+        const roleSafeNextPath = getRoleSafeNextPath(resolvedRole, safeNextPath)
         const destination = resolvedRole === 'inspector'
           ? getInspectorDestination({
               onboardingStatus: onboardingStatus as AuthUser['onboardingStatus'],
@@ -352,7 +365,7 @@ function SignInInner() {
         onboardingStatus: 'draft',
       }
       login(user)
-      router.push(safeNextPath ?? ROLE_CONFIG.builder.dashHref)
+      router.push(getRoleSafeNextPath(user.role, safeNextPath) ?? ROLE_CONFIG.builder.dashHref)
       setLoading(false)
       return
     }
@@ -384,9 +397,9 @@ function SignInInner() {
       ? getInspectorDestination({
           onboardingStatus: user.onboardingStatus,
           hasEligibilityProfile: true,
-          fallback: safeNextPath ?? cfg.dashHref,
+          fallback: getRoleSafeNextPath(user.role, safeNextPath) ?? cfg.dashHref,
         })
-      : safeNextPath ?? cfg.dashHref
+      : getRoleSafeNextPath(user.role, safeNextPath) ?? cfg.dashHref
     router.push(destination)
     setLoading(false)
   }
