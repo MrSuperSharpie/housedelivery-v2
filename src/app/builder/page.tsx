@@ -12,10 +12,6 @@ import { ProjectCard } from '@/components/builder/ProjectCard'
 import { DispatchModal } from '@/components/builder/DispatchModal'
 import { EnRouteTracker } from '@/components/builder/EnRouteTracker'
 import { DailyFlash } from '@/components/builder/DailyFlash'
-import { ReliabilityGuarantee } from '@/components/builder/ReliabilityGuarantee'
-import { InspectionStatusBanner } from '@/components/builder/InspectionStatusBanner'
-import { mapDepartureStateToBuilderDisplay } from '@/lib/departureMonitoring'
-import type { BuilderInspectionDisplayInput } from '@/lib/departureMonitoring'
 import { MOCK_BUILDER } from '@/lib/mockData'
 import { useAuth } from '@/lib/auth'
 import { useStore } from '@/lib/store'
@@ -39,7 +35,7 @@ import {
 import { listJobsByBuilder } from '@/lib/supabase/jobs'
 import type { JobOpportunityRow } from '@/lib/supabase/jobs'
 import { getJobWorkflowLabel, getJobWorkflowState } from '@/lib/workflow'
-import { HOLD_BUILDER_ACTIONABLE_STATUSES } from '@/lib/holds/workflow'
+import { HOLD_BUILDER_ACTIONABLE_STATUSES, isHoldOpenStatus } from '@/lib/holds/workflow'
 import { resolveHoldBaseRate } from '@/lib/pricing/config'
 import { calculateBaseHoldServiceFee, calculateWindowFee } from '@/utils/pricing'
 import { resolveReportDataMode } from '@/lib/dataSourceMode'
@@ -108,13 +104,11 @@ function ProvisionalAssignmentPanel({
   jobName,
   jobAddress,
   onObject,
-  departureInput,
 }: {
   assignment: Assignment
   jobName: string
   jobAddress?: string
   onObject: (reason: ObjectionReason, note: string) => void
-  departureInput?: BuilderInspectionDisplayInput | null
 }) {
   const { h, m, s, expired } = useCountdown(assignment.objectionWindowClosesAt)
   const [showForm, setShowForm] = React.useState(false)
@@ -141,37 +135,34 @@ function ProvisionalAssignmentPanel({
 
   if (assignment.status === 'confirmed' || expired) {
     const reliabilityStatus = buildAssignmentReliabilityStatus(assignment, expired)
-    const departureDisplay = mapDepartureStateToBuilderDisplay(departureInput ?? { escrowProtected: true })
     const nextCheckpoint = reliabilityStatus.nextConfirmationCheckpoint
 
     return (
-      <div className="rounded-2xl border border-success-green/20 bg-success-green/5 overflow-hidden">
-        <div className="px-5 py-4 flex items-start gap-3">
+      <div className="rounded-2xl border border-success-green/20 bg-success-green/5 px-5 py-4">
+        <div className="flex items-start gap-3">
           <CheckCircle2 className="w-5 h-5 text-success-green shrink-0 mt-0.5" />
           <div className="min-w-0 flex-1">
-            <div className="font-bold text-ink text-sm mb-0.5">Inspection appointment confirmed</div>
-            <div className="text-xs font-bold text-ink truncate">{jobName}</div>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="font-bold text-ink text-sm">Inspection appointment confirmed</div>
+              <span className="rounded-full border border-success-green/20 bg-success-green/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-success-green">
+                Confirmed
+              </span>
+            </div>
+            <div className="mt-1 text-sm font-black text-ink truncate">{jobName}</div>
             {jobAddress && <div className="mt-0.5 text-[11px] text-muted truncate">{jobAddress}</div>}
             <div className="mt-2 text-xs text-muted">
-              Inspector: <span className="font-bold text-ink">{assignment.inspectorName}</span>
+              Inspector: <span className="font-bold text-ink">{assignment.inspectorName || 'Inspector assigned'}</span>
               {assignment.inspectorLicense ? <span className="font-mono text-success-green"> · {assignment.inspectorLicense}</span> : null}
             </div>
-            <div className="mt-2 rounded-xl border border-success-green/15 bg-success-green/5 px-3 py-2">
-              <div className="text-[11px] font-black text-success-green">No builder action required right now</div>
-              <div className="mt-0.5 text-[11px] text-muted">
-                Vero is waiting for the next inspector reconfirmation{nextCheckpoint ? `: ${nextCheckpoint}` : ''}.
+            <div className="mt-3 grid gap-2 text-[11px] sm:grid-cols-2">
+              <div className="rounded-xl border border-success-green/15 bg-success-green/5 px-3 py-2">
+                <div className="font-black text-success-green">No builder action required right now.</div>
+              </div>
+              <div className="rounded-xl border border-rim bg-panel/70 px-3 py-2 text-muted">
+                <span className="font-bold text-ink">Next checkpoint:</span> {nextCheckpoint || 'Vero monitoring'}
               </div>
             </div>
           </div>
-        </div>
-        <div className="px-5 space-y-3 pb-5">
-          <InspectionStatusBanner display={departureDisplay} />
-          <ReliabilityGuarantee
-            compact
-            showStatus
-            inspectorName={assignment.inspectorName}
-            status={reliabilityStatus}
-          />
         </div>
       </div>
     )
@@ -202,7 +193,7 @@ function ProvisionalAssignmentPanel({
                 <span className="font-bold text-ink text-sm">Provisional Assignment</span>
                 <span className="text-[10px] font-bold bg-electric/20 text-electric border border-electric/30 px-1.5 py-0.5 rounded-full uppercase">Active</span>
               </div>
-              <div className="text-xs font-bold text-ink">{jobName}</div>
+              <div className="text-sm font-black text-ink">{jobName}</div>
               {jobAddress && <div className="mt-0.5 text-[11px] text-muted">{jobAddress}</div>}
               <div className="mt-2 inline-flex rounded-lg border border-electric/25 bg-electric/10 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-electric">
                 Optional builder action
@@ -247,13 +238,18 @@ function ProvisionalAssignmentPanel({
         This appointment becomes <span className="text-success-green font-bold">confirmed</span> when the objection window closes. No action is required unless you need to raise one of the specific objections below.
       </div>
 
-      <div className="px-5 py-4 border-b border-electric/10">
-        <ReliabilityGuarantee
-          compact
-          showStatus
-          inspectorName={assignment.inspectorName}
-          status={reliabilityStatus}
-        />
+      <div className="px-5 py-3 border-b border-electric/10">
+        <div className="grid gap-2 text-[11px] sm:grid-cols-2">
+          <div className="rounded-xl border border-rim bg-panel/70 px-3 py-2">
+            <span className="font-bold text-ink">Inspector:</span>{' '}
+            <span className="text-muted">{assignment.inspectorName || 'Inspector assigned'}</span>
+            {assignment.inspectorLicense ? <span className="font-mono text-muted"> · {assignment.inspectorLicense}</span> : null}
+          </div>
+          <div className="rounded-xl border border-rim bg-panel/70 px-3 py-2">
+            <span className="font-bold text-ink">Next checkpoint:</span>{' '}
+            <span className="text-muted">{reliabilityStatus.nextConfirmationCheckpoint}</span>
+          </div>
+        </div>
       </div>
 
       {/* Objection form toggle */}
@@ -838,10 +834,30 @@ export default function BuilderDashboard() {
       const openStages = project.stages.filter(stage => stage.status !== 'pass').length
       return sum + Math.max(openStages, 1)
     }, 0)
-  const hasBuilderActions = activeHolds.length > 0 || activeModHolds.length > 0
+  const dbJobsById = new Map((dbJobs ?? []).map(job => [job.id, job]))
+  const storeJobsById = new Map(store.jobs.map(job => [job.id, job]))
+  const projectsById = new Map(projects.map(project => [project.id, project]))
+  const openHoldDetails = Object.values(activeHoldDetails).filter(detail => isHoldOpenStatus(detail.hold.status))
+  const onHoldJobs = (dbJobs ?? []).filter(job => job.status === 'on_hold')
+  const getOpenHoldDetailForJob = (jobId: string) => openHoldDetails.find(detail => detail.hold.jobId === jobId)
+  const hasBuilderActions = onHoldJobs.length > 0 || activeModHolds.length > 0
   const activeInspectionAppointments = store.assignments.filter(
     a => isMatch(a.builderId) && (a.status === 'provisional' || a.status === 'confirmed' || a.objectionState === 'pending_review')
   )
+  const resolveAppointmentJobDisplay = (assignment: Assignment) => {
+    const dbJob = dbJobsById.get(assignment.jobId)
+    const storeJob = storeJobsById.get(assignment.jobId)
+    const project = projectsById.get(dbJob?.projectId ?? assignment.jobId)
+    const projectName = storeJob?.projectName
+      ?? dbJob?.projectName
+      ?? assignment.projectName
+      ?? project?.name
+      ?? 'Inspection appointment'
+    const dbAddress = [dbJob?.address, dbJob?.city].filter(Boolean).join(', ')
+    const projectAddress = [project?.address, project?.city].filter(Boolean).join(', ')
+    const address = storeJob?.address || dbAddress || projectAddress || undefined
+    return { projectName, address }
+  }
 
   // FIX #4: show spinner while either projects OR jobs are loading
   const isLoading = isLoadingProjects || isLoadingJobs
@@ -887,38 +903,54 @@ export default function BuilderDashboard() {
                 <div className="mt-1 text-sm font-extrabold text-ink">Review holds and builder decisions</div>
               </div>
               <div className="rounded-full border border-flame/25 bg-flame/10 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-flame">
-                {activeHolds.length + activeModHolds.length} open
+                {onHoldJobs.length + activeModHolds.length} open
               </div>
             </div>
             <div className="space-y-5">
-        {activeHolds.map(hold => {
-          const holdJob    = (dbJobs ?? []).find(j => j.id === hold.jobId)
-          const holdDetail = activeHoldDetails[hold.id]
+        {onHoldJobs.map(holdJob => {
+          const holdDetail = getOpenHoldDetailForJob(holdJob.id)
+          const hold = holdDetail?.hold
+          const holdMissing = !hold
+          const isActionableHold = hold ? HOLD_BUILDER_ACTIONABLE_STATUSES.includes(hold.status) : false
+          const holdId = hold?.id ?? holdJob.id
           const holdEvidence = holdDetail?.evidence ?? []
-          const holdBaseRate = hold.premiumRateAmount || resolveHoldBaseRate({
+          const holdBaseRate = hold?.premiumRateAmount || resolveHoldBaseRate({
             pricingMode: holdJob?.pricingMode,
             specialistRole: holdJob?.specialistRole,
             discipline: holdJob?.requiredDiscipline,
             credentialClass: holdJob?.credentialClass,
             inspectionType: holdJob?.inspectionType,
           }).baseRate
-          const isResponding = holdResponding === hold.id
-          const requestingReview = holdReviewRequesting === hold.id
+          const isResponding = hold ? holdResponding === hold.id : false
+          const requestingReview = hold ? holdReviewRequesting === hold.id : false
           // FIX #7: each hold gets its own decline note
-          const thisDeclineNote = declineNotes[hold.id] ?? ''
+          const thisDeclineNote = hold ? declineNotes[hold.id] ?? '' : ''
 
           const baseHoldServiceFee = calculateBaseHoldServiceFee(holdBaseRate)
-          const selectedWindow = correctionWindowByHold[hold.id] ?? 60
+          const selectedWindow = hold ? correctionWindowByHold[hold.id] ?? 60 : 60
           const windowFee = calculateWindowFee(holdBaseRate, selectedWindow)
           const totalAcceptanceFee = baseHoldServiceFee + windowFee
-          const builderResponseStatus = hold.builderAcceptedAt
+          const builderResponseStatus = holdMissing
+            ? 'Hold details not found'
+            : hold.builderAcceptedAt
             ? 'Correction window accepted'
             : hold.builderDeclinedAt
               ? 'Declined — rebook required'
               : 'Builder response pending'
+          const deficiencySummary = hold
+            ? hold.deficiencyReason || hold.reason
+            : 'The project is marked on hold, but no open job_holds record was returned for this job.'
+          const affectedItemsSummary = hold
+            ? hold.affectedItemSummaries.length > 0
+              ? `Affected items: ${hold.affectedItemSummaries.join(' · ')}`
+              : `Affected checklist items: ${hold.checklistItemIds.join(', ')}`
+            : 'Hold details are unavailable from the existing hold records.'
+          const sameDayLabel = hold
+            ? hold.holdEligibleForOnSiteCorrection ? 'Same-day correction eligible' : 'Rebook required'
+            : 'Hold detail unavailable'
 
           return (
-            <div key={hold.id} className="mb-5 rounded-2xl border border-flame/40 border-l-[6px] border-l-flame bg-white overflow-hidden shadow-[0_18px_34px_rgba(245,124,0,0.16)]">
+            <div key={holdId} className="rounded-2xl border border-flame/40 border-l-[6px] border-l-flame bg-white overflow-hidden shadow-[0_18px_34px_rgba(245,124,0,0.16)]">
               <div className="px-5 py-4 border-b border-flame/20 bg-flame-dim/70">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3">
@@ -942,21 +974,19 @@ export default function BuilderDashboard() {
 
               <div className="px-5 py-3 border-b border-slate-200">
                 <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-1">Deficiency Summary</div>
-                <div className="text-sm font-bold text-slate-900">{hold.deficiencyReason || hold.reason}</div>
-                {hold.deficiencyReason && (
+                <div className="text-sm font-bold text-slate-900">{deficiencySummary}</div>
+                {hold?.deficiencyReason && (
                   <>
                     <div className="mt-3 text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-1">Required Correction</div>
                     <div className="text-sm font-semibold text-slate-900">{hold.reason}</div>
                   </>
                 )}
                 <div className="mt-2 text-xs text-slate-500">
-                  {hold.affectedItemSummaries.length > 0
-                    ? `Affected items: ${hold.affectedItemSummaries.join(' · ')}`
-                    : `Affected checklist items: ${hold.checklistItemIds.join(', ')}`}
+                  {affectedItemsSummary}
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-bold">
                   <span className="rounded-full bg-slate-100 px-2 py-1 text-slate-700">
-                    {hold.holdEligibleForOnSiteCorrection ? 'Same-day correction eligible' : 'Rebook required'}
+                    {sameDayLabel}
                   </span>
                   <span className="rounded-full bg-slate-100 px-2 py-1 text-slate-700">
                     Response: {builderResponseStatus}
@@ -981,10 +1011,12 @@ export default function BuilderDashboard() {
                 </div>
               )}
 
-              <div id={`hold-${hold.id}`} className="px-5 py-3 border-b border-slate-200">
+              <div id={`hold-${holdId}`} className="px-5 py-3 border-b border-slate-200">
                 <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Review Hold Request</div>
                 <div className="text-xs text-slate-600">
-                  Accept a correction window to reserve the inspector for re-verification, or request same-visit review if the correction can be made while they are still available.
+                  {hold
+                    ? 'Accept a correction window to reserve the inspector for re-verification, or request same-visit review if the correction can be made while they are still available.'
+                    : 'This project is on hold, but the dashboard could not find an open hold detail record to power the existing response controls.'}
                 </div>
               </div>
 
@@ -995,56 +1027,66 @@ export default function BuilderDashboard() {
                     <span className="text-slate-500">Base Hold Review Fee</span>
                     <span className="font-bold text-slate-900">${baseHoldServiceFee.toFixed(2)}</span>
                   </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-500">Recorded Hold Cap</span>
-                    <span className="font-bold text-slate-900">${hold.holdCapAmount.toFixed(2)}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-500">Reserved Correction Window ({selectedWindow} min @ 1.5×)</span>
-                    <span className="font-bold text-slate-900">${windowFee.toFixed(2)}</span>
-                  </div>
-                  <div className="border-t border-slate-200 pt-1.5 flex items-center justify-between text-xs">
-                    <span className="font-bold text-slate-900">Total at Acceptance</span>
-                    <span className="font-black text-slate-900">${totalAcceptanceFee.toFixed(2)}</span>
-                  </div>
+                  {hold && (
+                    <>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-slate-500">Recorded Hold Cap</span>
+                        <span className="font-bold text-slate-900">${hold.holdCapAmount.toFixed(2)}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-slate-500">Reserved Correction Window ({selectedWindow} min @ 1.5×)</span>
+                        <span className="font-bold text-slate-900">${windowFee.toFixed(2)}</span>
+                      </div>
+                      <div className="border-t border-slate-200 pt-1.5 flex items-center justify-between text-xs">
+                        <span className="font-bold text-slate-900">Total at Acceptance</span>
+                        <span className="font-black text-slate-900">${totalAcceptanceFee.toFixed(2)}</span>
+                      </div>
+                    </>
+                  )}
                 </div>
                 <div className="mt-2 text-[10px] text-slate-400">Additional fees apply if correction exceeds the selected window or extends beyond inspector availability.</div>
               </div>
 
-              <div className="px-5 py-3 border-b border-slate-200">
-                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Select Correction Window</div>
-                <div className="grid grid-cols-5 gap-1.5">
-                  {[30, 60, 90, 120, 150].map(minutes => (
-                    <button
-                      key={minutes}
-                      type="button"
-                      onClick={() => setCorrectionWindowByHold(prev => ({ ...prev, [hold.id]: minutes }))}
-                      className={`rounded-xl py-2 text-xs font-bold transition-all ${
-                        selectedWindow === minutes
-                          ? 'bg-slate-800 text-white'
-                          : 'border border-slate-300 text-slate-600 hover:bg-slate-100'
-                      }`}
-                    >
-                      {minutes}m
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="px-5 py-3 border-b border-slate-200 grid gap-2 sm:grid-cols-2">
-                <div>
-                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Expiry</div>
-                  <div className="text-xs font-mono font-bold text-slate-900">
-                    {new Date(hold.expiresAt).toLocaleTimeString('en-CA', { timeZone: 'America/Vancouver', hour: '2-digit', minute: '2-digit' })}
+              {isActionableHold && hold && (
+                <div className="px-5 py-3 border-b border-slate-200">
+                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Select Correction Window</div>
+                  <div className="grid grid-cols-5 gap-1.5">
+                    {[30, 60, 90, 120, 150].map(minutes => (
+                      <button
+                        key={minutes}
+                        type="button"
+                        onClick={() => setCorrectionWindowByHold(prev => ({ ...prev, [hold.id]: minutes }))}
+                        className={`rounded-xl py-2 text-xs font-bold transition-all ${
+                          selectedWindow === minutes
+                            ? 'bg-slate-800 text-white'
+                            : 'border border-slate-300 text-slate-600 hover:bg-slate-100'
+                        }`}
+                      >
+                        {minutes}m
+                      </button>
+                    ))}
                   </div>
                 </div>
-                <div>
-                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Base Rate</div>
-                  <div className="text-xs font-semibold text-ink">${holdBaseRate.toFixed(2)}/hr</div>
+              )}
+
+              {hold && (
+                <div className="px-5 py-3 border-b border-slate-200 grid gap-2 sm:grid-cols-2">
+                  <div>
+                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Expiry</div>
+                    <div className="text-xs font-mono font-bold text-slate-900">
+                      {new Date(hold.expiresAt).toLocaleTimeString('en-CA', { timeZone: 'America/Vancouver', hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Base Rate</div>
+                    <div className="text-xs font-semibold text-ink">${holdBaseRate.toFixed(2)}/hr</div>
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="px-5 py-4 space-y-4">
+                {isActionableHold && hold ? (
+                  <>
                 <div>
                   <div className="flex gap-2">
                     <button
@@ -1094,6 +1136,14 @@ export default function BuilderDashboard() {
                   </div>
                   <p className="text-[10px] text-slate-400 mt-2">Declining stops the inspection. A new booking will be required.</p>
                 </div>
+                  </>
+                ) : (
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-xs text-slate-700">
+                    {hold
+                      ? 'No builder response is available from this card right now. Review the hold status above and continue through the existing re-verification flow.'
+                      : 'Hold response controls are unavailable because no open job_holds detail was found for this on-hold project.'}
+                  </div>
+                )}
               </div>
             </div>
           )
@@ -1127,13 +1177,13 @@ export default function BuilderDashboard() {
             </div>
             <div className="space-y-3">
         {activeInspectionAppointments.map(assignment => {
-            const job = store.jobs.find(j => j.id === assignment.jobId)
+            const appointmentJob = resolveAppointmentJobDisplay(assignment)
             return (
               <ProvisionalAssignmentPanel
                 key={assignment.id}
                 assignment={assignment}
-                jobName={job?.projectName ?? assignment.jobId}
-                jobAddress={job?.address}
+                jobName={appointmentJob.projectName}
+                jobAddress={appointmentJob.address}
                 onObject={(reason, note) => store.objectAssignment(assignment.id, reason, note)}
               />
             )
@@ -1242,7 +1292,7 @@ export default function BuilderDashboard() {
           <div className="space-y-5 mb-6">
             {dbJobs.map(job => {
               const rec = completedRecords[job.id]
-              const openHoldForJob = Object.values(activeHoldDetails).find(detail => detail.hold.jobId === job.id)?.hold
+              const openHoldForJob = getOpenHoldDetailForJob(job.id)?.hold
               const actionableHoldForJob = activeHolds.find(hold => hold.jobId === job.id)
               const postedDate = job.requestedAt
                 ? new Date(job.requestedAt).toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: 'numeric' })
