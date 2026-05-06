@@ -106,11 +106,13 @@ function getAssignmentAppointmentStart(assignment: Assignment): Date | null {
 function ProvisionalAssignmentPanel({
   assignment,
   jobName,
+  jobAddress,
   onObject,
   departureInput,
 }: {
   assignment: Assignment
   jobName: string
+  jobAddress?: string
   onObject: (reason: ObjectionReason, note: string) => void
   departureInput?: BuilderInspectionDisplayInput | null
 }) {
@@ -123,13 +125,14 @@ function ProvisionalAssignmentPanel({
 
   if (assignment.objectionState === 'pending_review' || objected) {
     return (
-      <div className="mb-6 rounded-2xl border border-warning-amber/25 bg-warning-amber/5 overflow-hidden">
+      <div className="rounded-2xl border border-warning-amber/25 bg-warning-amber/5 overflow-hidden">
         <div className="px-5 py-4 flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-warning-amber shrink-0 mt-0.5" />
           <div>
             <div className="font-bold text-ink text-sm mb-0.5">Objection filed — admin review required</div>
-            <div className="text-xs text-muted">Your objection has been recorded. Admin will review and either uphold or reject it. If rejected, the provisional assignment stands.</div>
-            <div className="text-[11px] font-mono text-subtle mt-1">{jobName}</div>
+            <div className="text-xs font-bold text-ink">{jobName}</div>
+            {jobAddress && <div className="mt-0.5 text-[11px] text-muted">{jobAddress}</div>}
+            <div className="mt-2 text-xs text-muted">Your objection has been recorded. Admin will review and either uphold or reject it. If rejected, the provisional assignment stands.</div>
           </div>
         </div>
       </div>
@@ -139,15 +142,26 @@ function ProvisionalAssignmentPanel({
   if (assignment.status === 'confirmed' || expired) {
     const reliabilityStatus = buildAssignmentReliabilityStatus(assignment, expired)
     const departureDisplay = mapDepartureStateToBuilderDisplay(departureInput ?? { escrowProtected: true })
+    const nextCheckpoint = reliabilityStatus.nextConfirmationCheckpoint
 
     return (
-      <div className="mb-6 rounded-2xl border border-success-green/20 bg-success-green/5 overflow-hidden">
+      <div className="rounded-2xl border border-success-green/20 bg-success-green/5 overflow-hidden">
         <div className="px-5 py-4 flex items-start gap-3">
           <CheckCircle2 className="w-5 h-5 text-success-green shrink-0 mt-0.5" />
-          <div>
-            <div className="font-bold text-ink text-sm mb-0.5">Assignment confirmed — {assignment.inspectorName}</div>
-            <div className="text-xs text-muted">Objection window closed. Inspector is confirmed for this job.</div>
-            <div className="text-[11px] font-mono text-subtle mt-1 font-semibold text-success-green">{assignment.inspectorLicense}</div>
+          <div className="min-w-0 flex-1">
+            <div className="font-bold text-ink text-sm mb-0.5">Inspection appointment confirmed</div>
+            <div className="text-xs font-bold text-ink truncate">{jobName}</div>
+            {jobAddress && <div className="mt-0.5 text-[11px] text-muted truncate">{jobAddress}</div>}
+            <div className="mt-2 text-xs text-muted">
+              Inspector: <span className="font-bold text-ink">{assignment.inspectorName}</span>
+              {assignment.inspectorLicense ? <span className="font-mono text-success-green"> · {assignment.inspectorLicense}</span> : null}
+            </div>
+            <div className="mt-2 rounded-xl border border-success-green/15 bg-success-green/5 px-3 py-2">
+              <div className="text-[11px] font-black text-success-green">No builder action required right now</div>
+              <div className="mt-0.5 text-[11px] text-muted">
+                Vero is waiting for the next inspector reconfirmation{nextCheckpoint ? `: ${nextCheckpoint}` : ''}.
+              </div>
+            </div>
           </div>
         </div>
         <div className="px-5 space-y-3 pb-5">
@@ -175,7 +189,7 @@ function ProvisionalAssignmentPanel({
   const reliabilityStatus = buildAssignmentReliabilityStatus(assignment, expired)
 
   return (
-    <div className="mb-6 rounded-2xl border border-electric/25 bg-electric/5 overflow-hidden">
+    <div className="rounded-2xl border border-electric/25 bg-electric/5 overflow-hidden">
       {/* Header */}
       <div className="px-5 py-4 border-b border-electric/15">
         <div className="flex items-start justify-between gap-3">
@@ -188,7 +202,11 @@ function ProvisionalAssignmentPanel({
                 <span className="font-bold text-ink text-sm">Provisional Assignment</span>
                 <span className="text-[10px] font-bold bg-electric/20 text-electric border border-electric/30 px-1.5 py-0.5 rounded-full uppercase">Active</span>
               </div>
-              <div className="text-xs text-muted">{jobName}</div>
+              <div className="text-xs font-bold text-ink">{jobName}</div>
+              {jobAddress && <div className="mt-0.5 text-[11px] text-muted">{jobAddress}</div>}
+              <div className="mt-2 inline-flex rounded-lg border border-electric/25 bg-electric/10 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-electric">
+                Optional builder action
+              </div>
             </div>
           </div>
           {/* Countdown */}
@@ -226,7 +244,7 @@ function ProvisionalAssignmentPanel({
 
       {/* Notice */}
       <div className="px-5 py-3 text-xs text-muted border-b border-electric/10">
-        This assignment becomes <span className="text-success-green font-bold">confirmed</span> when the objection window closes. You may only raise an objection for the specific reasons below — all objections are reviewed by Vero admin.
+        This appointment becomes <span className="text-success-green font-bold">confirmed</span> when the objection window closes. No action is required unless you need to raise one of the specific objections below.
       </div>
 
       <div className="px-5 py-4 border-b border-electric/10">
@@ -313,6 +331,14 @@ const WORKFLOW_BADGE_CONFIG: Record<string, { cls: string; icon?: React.ReactNod
 }
 
 function StatusBadge({ job }: { job: Pick<JobOpportunityRow, 'status' | 'validationStatus'> }) {
+  if (job.status === 'on_hold') {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black border border-amber-500/40 bg-amber-500/15 text-amber-400">
+        <AlertTriangle className="w-2.5 h-2.5" />
+        HOLD
+      </span>
+    )
+  }
   const workflowState = getJobWorkflowState(job)
   const cfg = WORKFLOW_BADGE_CONFIG[workflowState] ?? { cls: 'bg-white/5 text-white/40 border-white/10' }
   const label = getJobWorkflowLabel(job)
@@ -812,6 +838,10 @@ export default function BuilderDashboard() {
       const openStages = project.stages.filter(stage => stage.status !== 'pass').length
       return sum + Math.max(openStages, 1)
     }, 0)
+  const hasBuilderActions = activeHolds.length > 0 || activeModHolds.length > 0
+  const activeInspectionAppointments = store.assignments.filter(
+    a => isMatch(a.builderId) && (a.status === 'provisional' || a.status === 'confirmed' || a.objectionState === 'pending_review')
+  )
 
   // FIX #4: show spinner while either projects OR jobs are loading
   const isLoading = isLoadingProjects || isLoadingJobs
@@ -848,7 +878,19 @@ export default function BuilderDashboard() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
 
-        {/* ── Active Hold Notifications (always first — action required) ── */}
+        {/* ── Action Required (always first) ── */}
+        {hasBuilderActions && (
+          <section className="mb-6">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-flame">Action Required</div>
+                <div className="mt-1 text-sm font-extrabold text-ink">Review holds and builder decisions</div>
+              </div>
+              <div className="rounded-full border border-flame/25 bg-flame/10 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-flame">
+                {activeHolds.length + activeModHolds.length} open
+              </div>
+            </div>
+            <div className="space-y-5">
         {activeHolds.map(hold => {
           const holdJob    = (dbJobs ?? []).find(j => j.id === hold.jobId)
           const holdDetail = activeHoldDetails[hold.id]
@@ -886,6 +928,9 @@ export default function BuilderDashboard() {
                     <div>
                       <div className="font-black text-slate-900 text-base mb-0.5">Action required — project on hold</div>
                       <div className="text-xs font-semibold text-slate-600">{holdJob?.projectName ?? 'Project'} · Stage {holdJob?.stage ?? ''}</div>
+                      {holdJob?.address && (
+                        <div className="mt-0.5 text-[11px] text-slate-600">{holdJob.address}{holdJob.city ? `, ${holdJob.city}` : ''}</div>
+                      )}
                       <div className="mt-1 text-[11px] text-slate-600">{builderResponseStatus}</div>
                     </div>
                   </div>
@@ -949,6 +994,10 @@ export default function BuilderDashboard() {
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-slate-500">Base Hold Review Fee</span>
                     <span className="font-bold text-slate-900">${baseHoldServiceFee.toFixed(2)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-500">Recorded Hold Cap</span>
+                    <span className="font-bold text-slate-900">${hold.holdCapAmount.toFixed(2)}</span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-slate-500">Reserved Correction Window ({selectedWindow} min @ 1.5×)</span>
@@ -1060,22 +1109,38 @@ export default function BuilderDashboard() {
             isResponding={modHoldResponding === hold.id}
           />
         ))}
+            </div>
+          </section>
+        )}
 
-        {/* ── Provisional Assignments ── */}
-        {store.assignments
-          .filter(a => isMatch(a.builderId) && (a.status === 'provisional' || a.status === 'confirmed' || a.objectionState === 'pending_review'))
-          .map(assignment => {
+        {/* ── Active Inspection Appointments ── */}
+        {activeInspectionAppointments.length > 0 && (
+          <section className="mb-6">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-muted">Active Inspection Appointments</div>
+                <div className="mt-1 text-sm font-extrabold text-ink">Confirmed and provisional inspector assignments</div>
+              </div>
+              <div className="rounded-full border border-rim bg-panel px-3 py-1 text-[10px] font-black uppercase tracking-wide text-muted">
+                {activeInspectionAppointments.length} active
+              </div>
+            </div>
+            <div className="space-y-3">
+        {activeInspectionAppointments.map(assignment => {
             const job = store.jobs.find(j => j.id === assignment.jobId)
             return (
               <ProvisionalAssignmentPanel
                 key={assignment.id}
                 assignment={assignment}
                 jobName={job?.projectName ?? assignment.jobId}
+                jobAddress={job?.address}
                 onObject={(reason, note) => store.objectAssignment(assignment.id, reason, note)}
               />
             )
-          })
-        }
+          })}
+            </div>
+          </section>
+        )}
 
         {/* ── Re-verification Pending ── */}
         {acceptedHolds.map(({ hold, projectName, feeAmount, acceptedAt }) => (
@@ -1177,6 +1242,8 @@ export default function BuilderDashboard() {
           <div className="space-y-5 mb-6">
             {dbJobs.map(job => {
               const rec = completedRecords[job.id]
+              const openHoldForJob = Object.values(activeHoldDetails).find(detail => detail.hold.jobId === job.id)?.hold
+              const actionableHoldForJob = activeHolds.find(hold => hold.jobId === job.id)
               const postedDate = job.requestedAt
                 ? new Date(job.requestedAt).toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: 'numeric' })
                 : '—'
@@ -1198,6 +1265,30 @@ export default function BuilderDashboard() {
                     {job.requiredDiscipline && <span className="capitalize">{job.requiredDiscipline}</span>}
                     <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> Posted {postedDate}</span>
                   </div>
+
+                  {job.status === 'on_hold' && (
+                    <div className="mb-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2.5">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <div className="text-[10px] font-black uppercase tracking-widest text-amber-400">Project on Hold</div>
+                          <div className="mt-1 text-xs font-semibold text-ink">
+                            {openHoldForJob?.deficiencyReason || openHoldForJob?.reason || 'Builder action may be required before inspection can proceed.'}
+                          </div>
+                        </div>
+                        {actionableHoldForJob && (
+                          <button
+                            onClick={() => {
+                              const target = document.getElementById(`hold-${actionableHoldForJob.id}`)
+                              target?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                            }}
+                            className="shrink-0 rounded-xl border border-amber-500/30 bg-amber-500/15 px-3 py-2 text-[11px] font-black text-amber-300 transition-all hover:bg-amber-500/25"
+                          >
+                            Review Hold Request
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   {job.status === 'completed' && (
                     <div className="flex items-center justify-between bg-emerald-500/5 border border-emerald-500/20 rounded-xl px-3 py-2.5">
