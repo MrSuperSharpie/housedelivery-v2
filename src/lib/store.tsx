@@ -716,7 +716,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (nextStatus !== 'live') {
       return {
         ok: false,
-        error: 'Inspection request saved, but it is pending review and is not on the Live Board yet.',
+        error: 'Your inspection request is ready. Post it to the Live Job Board so qualified inspectors can claim one of your available time windows.',
       }
     }
     return { ok: true as const, value: insertedId }
