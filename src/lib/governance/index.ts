@@ -332,14 +332,26 @@ export function validateJobPostingGovernance(input: JobPostingGovernanceInput): 
     )
   }
 
-  if (input.projectComplete === false || !input.permitNumber?.trim()) {
+  if (input.projectComplete === false) {
     blockers.push(
       blocker(
         'R-012',
         'project_not_complete',
-        'Project identity and permit details must be complete before live posting.',
+        'Project identity must be complete before live posting.',
         'technical',
         { projectId: input.projectId },
+      ),
+    )
+  }
+
+  if (input.stage >= 2 && !input.permitNumber?.trim()) {
+    blockers.push(
+      blocker(
+        'R-012',
+        'permit_number_required_for_stage',
+        'Permit number is required for Stage 2 and later inspections.',
+        'technical',
+        { projectId: input.projectId, stage: input.stage },
       ),
     )
   }

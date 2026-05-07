@@ -36,6 +36,50 @@ test('job posting stays pending validation when escrow is not authorized', () =>
   assert.ok(result.blockers.some(issue => issue.ruleId === 'R-016'))
 })
 
+test('stage 1 live posting does not require permit number', () => {
+  const result = validateJobPostingGovernance({
+    builderId: 'builder-1',
+    builderStatus: 'approved',
+    projectName: 'Oak Street Duplex',
+    address: '123 Oak St',
+    city: 'Vancouver',
+    permitFamily: 'building',
+    requiredDiscipline: 'geotech',
+    region: 'vancouver',
+    stage: 1,
+    stageName: 'Site Survey & Excavation',
+    projectComplete: true,
+    dependencySealed: true,
+    escrowAuthorized: true,
+  })
+
+  assert.equal(result.ok, true)
+  assert.equal(result.status, 'live')
+})
+
+test('stage 2 and later live posting requires permit number', () => {
+  const result = validateJobPostingGovernance({
+    builderId: 'builder-1',
+    builderStatus: 'approved',
+    projectName: 'Oak Street Duplex',
+    address: '123 Oak St',
+    city: 'Vancouver',
+    permitFamily: 'building',
+    requiredDiscipline: 'structural',
+    region: 'vancouver',
+    stage: 2,
+    stageName: 'Foundation Pour',
+    projectComplete: true,
+    dependencySealed: true,
+    escrowAuthorized: true,
+  })
+
+  assert.equal(result.ok, false)
+  assert.equal(result.status, 'pending_validation')
+  assert.ok(result.blockers.some(issue => issue.code === 'permit_number_required_for_stage'))
+  assert.ok(result.blockers.some(issue => issue.message === 'Permit number is required for Stage 2 and later inspections.'))
+})
+
 test('claim governance blocks expired inspector credentials', () => {
   const result = validateClaimGovernance({
     jobStatus: 'live',

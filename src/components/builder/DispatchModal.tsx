@@ -96,6 +96,8 @@ const STAGE_WORKFLOW_DESCRIPTIONS: Record<number, string> = {
   5: 'Final-stage inspection to verify completion, outstanding deficiencies, and occupancy readiness.',
 }
 
+const STAGE_PERMIT_REQUIRED_MESSAGE = 'Permit number is required for Stage 2 and later inspections.'
+
 export function DispatchModal({ project, isOpen, onClose, onDispatch }: DispatchModalProps) {
   const { user }    = useAuth()
   const { addJob }  = useStore()
@@ -121,6 +123,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
   const [vaultTier, setVaultTier]           = useState<VaultRetentionTier>('standard')
   const [paymentLoading, setPaymentLoading] = useState(false)
   const [postError, setPostError]           = useState<string | null>(null)
+  const [permitError, setPermitError]       = useState<string | null>(null)
   const [txnId] = useState(() => `TXN-${Date.now()}`)
   const [jobRef] = useState(() => `VERO-${Date.now().toString(36).toUpperCase().slice(-6)}`)
   const [isLocating, setIsLocating] = useState(false)
@@ -170,6 +173,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
     setSiteAgreementExpanded(false)
     setPaymentStatus('idle')
     setPostError(null)
+    setPermitError(null)
     setIsLocating(false)
     setLocationError(null)
     setLocationHint(null)
@@ -180,6 +184,15 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
   const handleTierSelection = (tier: DispatchTier) => {
     setSelectedTier(tier)
     setSlots(currentSlots => currentSlots.filter(slot => isSlotValidForTier(slot, tier)))
+  }
+
+  const requiresPermitNumber = (stage: number | null | undefined) => (stage ?? 1) >= 2
+  const permitNumberIsMissing = requiresPermitNumber(selectedStage) && !permitNumber.trim()
+  const requirePermitBeforeContinuing = () => {
+    if (!permitNumberIsMissing) return false
+    setPermitError(STAGE_PERMIT_REQUIRED_MESSAGE)
+    setStep('address')
+    return true
   }
 
   const handleUseCurrentLocation = () => {
@@ -233,6 +246,8 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
       setStep('schedule')
       return
     }
+
+    if (requirePermitBeforeContinuing()) return
 
     const stageInfo = INSPECTION_STAGES.find(s => s.id === (selectedStage ?? 1))
     const cityPart  = address.includes(',')
@@ -417,15 +432,29 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             className="relative z-10 mb-3 w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-3.5 text-sm font-medium text-gray-900 caret-gray-900 transition-colors placeholder:text-gray-400 focus:border-flame focus:ring-1 focus:ring-flame/30 focus:outline-none" />
 
           <div className="relative z-10 mb-1">
-            <input type="text" value={permitNumber} onChange={e => setPermitNumber(e.target.value)}
-              placeholder="Building permit # (optional)"
-              className="w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-3.5 text-sm font-medium font-mono text-gray-900 caret-gray-900 transition-colors placeholder:text-gray-400 focus:border-flame focus:ring-1 focus:ring-flame/30 focus:outline-none" />
+            <input type="text" value={permitNumber} onChange={e => {
+              setPermitNumber(e.target.value)
+              if (e.target.value.trim()) setPermitError(null)
+            }}
+              placeholder={requiresPermitNumber(selectedStage) ? 'Building permit # or formal permit reference' : 'Building permit # (optional for Stage 1)'}
+              aria-invalid={permitError || permitNumberIsMissing ? 'true' : 'false'}
+              className={`w-full rounded-xl border-2 bg-white px-4 py-3.5 text-sm font-medium font-mono text-gray-900 caret-gray-900 transition-colors placeholder:text-gray-400 focus:ring-1 focus:outline-none ${
+                permitError || permitNumberIsMissing
+                  ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20'
+                  : 'border-gray-200 focus:border-flame focus:ring-flame/30'
+              }`} />
           </div>
-          <p className="text-xs text-gray-400 mb-5 px-1">
-            Your permit number is issued by the municipality when plans are approved — add it if you have it, or leave blank and add later.
-          </p>
+          {permitError || permitNumberIsMissing ? (
+            <p className="text-xs text-red-600 font-semibold mb-5 px-1">{permitError ?? STAGE_PERMIT_REQUIRED_MESSAGE}</p>
+          ) : (
+            <p className="text-xs text-gray-400 mb-5 px-1">
+              {requiresPermitNumber(selectedStage)
+                ? 'Stage 2 and later inspections must reference the issued permit or formal permit file before posting.'
+                : 'Stage 1 may be posted before the permit is issued. Add a permit number if you already have it, or leave it blank for permit pending / pre-permit review.'}
+            </p>
+          )}
 
-          <Button variant="primary" size="lg" fullWidth disabled={!address.trim()} onClick={() => setStep('schedule')}>
+          <Button variant="primary" size="lg" fullWidth disabled={!address.trim() || permitNumberIsMissing} onClick={() => setStep('schedule')}>
             Continue <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
@@ -516,7 +545,10 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             Selecting a stage loads the detailed inspection requirements for that phase.
           </p>
 
-          <Button variant="primary" size="lg" fullWidth disabled={!selectedStage} onClick={() => setStep('discipline')}>
+          <Button variant="primary" size="lg" fullWidth disabled={!selectedStage} onClick={() => {
+            if (requirePermitBeforeContinuing()) return
+            setStep('discipline')
+          }}>
             Continue <ChevronRight className="w-4 h-4" />
           </Button>
         </div>

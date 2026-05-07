@@ -8,6 +8,8 @@
 
 import { createClient } from '@/lib/supabase/client'
 const supabase = createClient()
+
+const PERMIT_NUMBER_READINESS_BLOCKER = 'Permit number is required.'
 import type {
   PermitFamily,
   InspectorDiscipline,
@@ -532,6 +534,9 @@ export async function insertJobOpportunity(
   const projectReadiness = job.projectId
     ? await getDbProjectReadiness(job.projectId)
     : null
+  const projectIdentityReady = projectReadiness
+    ? projectReadiness.blockers.filter(blocker => blocker !== PERMIT_NUMBER_READINESS_BLOCKER).length === 0
+    : Boolean(job.projectName && job.address && job.city)
   const governance = validateJobPostingGovernance({
     jobId: undefined,
     projectId: job.projectId,
@@ -546,7 +551,7 @@ export async function insertJobOpportunity(
     region: job.region,
     stage: job.stage,
     stageName: job.stageName,
-    projectComplete: projectReadiness ? projectReadiness.ready : Boolean(job.projectName && job.address && job.city && job.permitNumber),
+    projectComplete: projectIdentityReady,
     dependencySealed: true,
     escrowAuthorized: job.escrowAuthorized === true,
   })

@@ -617,8 +617,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       stage: input.stage,
       stageName: input.stageName,
       projectComplete: dbProject
-        ? Boolean(dbProject.name && dbProject.address && dbProject.city && dbProject.permitNumber)
-        : Boolean(input.projectName && input.address && input.city && input.permitNumber),
+        ? Boolean(dbProject.name && dbProject.address && dbProject.city)
+        : Boolean(input.projectName && input.address && input.city),
       dependencySealed: true,
       escrowAuthorized: true,
     })
