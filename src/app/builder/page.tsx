@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import {
   Building2, TrendingUp, ChevronRight, MapPin,
   CheckCircle2, Clock, AlertTriangle,
-  Navigation, Shield, Zap, Lock, ExternalLink
+  Navigation, Shield, Lock, ExternalLink
 } from 'lucide-react'
 import { Navbar } from '@/components/shared/Navbar'
 import { ProjectCard } from '@/components/builder/ProjectCard'
@@ -86,6 +86,22 @@ type PermitProgressProject = {
   jobs: JobOpportunityRow[]
 }
 
+type StageScorecardEntry = {
+  stage: BuilderStageDefinition
+  stageJob?: JobOpportunityRow
+  report?: CompletionReportSummary
+  status: BuilderStageStatus
+}
+
+type NextUpItem = {
+  progressProject: PermitProgressProject
+  stageScorecard: StageScorecardEntry[]
+  availableStage?: StageScorecardEntry
+  latestPassedStage?: StageScorecardEntry
+  requestProject: Project | null
+  ambiguous: boolean
+}
+
 const OBJECTION_REASONS: { value: ObjectionReason; label: string; desc: string }[] = [
   { value: 'conflict_of_interest',    label: 'Conflict of interest',      desc: 'Inspector has a personal or financial conflict with this project.' },
   { value: 'access_concern',          label: 'Access concern',            desc: 'Inspector cannot safely or practically access the site.' },
@@ -151,61 +167,26 @@ function ProvisionalAssignmentPanel({
 }) {
   const { h, m, s, expired } = useCountdown(assignment.objectionWindowClosesAt)
   const [showForm, setShowForm] = React.useState(false)
+  const [showDetails, setShowDetails] = React.useState(false)
   const [reason, setReason] = React.useState<ObjectionReason | ''>('')
   const [note, setNote] = React.useState('')
   const [submitting, setSubmitting] = React.useState(false)
   const [objected, setObjected] = React.useState(false)
-
-  if (assignment.objectionState === 'pending_review' || objected) {
-    return (
-      <div className="rounded-2xl border border-warning-amber/25 bg-warning-amber/5 overflow-hidden">
-        <div className="px-5 py-4 flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-warning-amber shrink-0 mt-0.5" />
-          <div>
-            <div className="font-bold text-ink text-sm mb-0.5">Objection filed — admin review required</div>
-            <div className="text-xs font-bold text-ink">{jobName}</div>
-            {jobAddress && <div className="mt-0.5 text-[11px] text-muted">{jobAddress}</div>}
-            <div className="mt-2 text-xs text-muted">Your objection has been recorded. Admin will review and either uphold or reject it. If rejected, the provisional assignment stands.</div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (assignment.status === 'confirmed' || expired) {
-    const reliabilityStatus = buildAssignmentReliabilityStatus(assignment, expired)
-    const nextCheckpoint = reliabilityStatus.nextConfirmationCheckpoint
-
-    return (
-      <div className="rounded-2xl border border-success-green/20 bg-success-green/5 px-5 py-4">
-        <div className="flex items-start gap-3">
-          <CheckCircle2 className="w-5 h-5 text-success-green shrink-0 mt-0.5" />
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="font-bold text-ink text-sm">Inspection appointment confirmed</div>
-              <span className="rounded-full border border-success-green/20 bg-success-green/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-success-green">
-                Confirmed
-              </span>
-            </div>
-            <div className="mt-1 text-sm font-black text-ink truncate">{jobName}</div>
-            {jobAddress && <div className="mt-0.5 text-[11px] text-muted truncate">{jobAddress}</div>}
-            <div className="mt-2 text-xs text-muted">
-              Inspector: <span className="font-bold text-ink">{assignment.inspectorName || 'Inspector assigned'}</span>
-              {assignment.inspectorLicense ? <span className="font-mono text-success-green"> · {assignment.inspectorLicense}</span> : null}
-            </div>
-            <div className="mt-3 grid gap-2 text-[11px] sm:grid-cols-2">
-              <div className="rounded-xl border border-success-green/15 bg-success-green/5 px-3 py-2">
-                <div className="font-black text-success-green">No builder action required right now.</div>
-              </div>
-              <div className="rounded-xl border border-rim bg-panel/70 px-3 py-2 text-muted">
-                <span className="font-bold text-ink">Next checkpoint:</span> {nextCheckpoint || 'Vero monitoring'}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  const isConfirmed = assignment.status === 'confirmed' || expired
+  const reliabilityStatus = buildAssignmentReliabilityStatus(assignment, expired)
+  const statusLabel = assignment.objectionState === 'pending_review' || objected
+    ? 'Builder objection under admin review'
+    : isConfirmed
+      ? 'Confirmed'
+      : 'Provisional'
+  const actionCopy = assignment.objectionState === 'pending_review' || objected
+    ? 'Builder action recorded'
+    : isConfirmed
+      ? 'No builder action required right now'
+      : 'Optional builder objection window open'
+  const appointmentTime = assignment.claimedSlot.flexible
+    ? 'Flexible timing'
+    : `${new Date(assignment.claimedSlot.date + 'T12:00:00').toLocaleDateString('en-CA', { weekday: 'short', month: 'short', day: 'numeric' })} · ${assignment.claimedSlot.startTime}–${assignment.claimedSlot.endTime}`
 
   const handleObject = async () => {
     if (!reason || !note.trim()) return
@@ -216,138 +197,110 @@ function ProvisionalAssignmentPanel({
     setSubmitting(false)
   }
 
-  const reliabilityStatus = buildAssignmentReliabilityStatus(assignment, expired)
-
   return (
-    <div className="rounded-2xl border border-electric/25 bg-electric/5 overflow-hidden">
-      {/* Header */}
-      <div className="px-5 py-4 border-b border-electric/15">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-3">
-            <div className="w-9 h-9 bg-electric/15 border border-electric/25 rounded-xl flex items-center justify-center shrink-0">
-              <Zap className="w-4 h-4 text-electric" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2 mb-0.5">
-                <span className="font-bold text-ink text-sm">Provisional Assignment</span>
-                <span className="text-[10px] font-bold bg-electric/20 text-electric border border-electric/30 px-1.5 py-0.5 rounded-full uppercase">Active</span>
-              </div>
-              <div className="text-sm font-black text-ink">{jobName}</div>
-              {jobAddress && <div className="mt-0.5 text-[11px] text-muted">{jobAddress}</div>}
-              <div className="mt-2 inline-flex rounded-lg border border-electric/25 bg-electric/10 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-electric">
-                Optional builder action
-              </div>
-            </div>
+    <div className="rounded-2xl border border-rim bg-panel p-4 shadow-card">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${
+              isConfirmed
+                ? 'border-emerald-500/30 bg-emerald-500/10 text-ink'
+                : assignment.objectionState === 'pending_review' || objected
+                  ? 'border-amber-500/40 bg-amber-500/10 text-ink'
+                  : 'border-blue-500/30 bg-blue-500/10 text-ink'
+            }`}>
+              {isConfirmed ? <CheckCircle2 className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
+              {statusLabel}
+            </span>
+            <span className="text-xs font-semibold text-muted">{appointmentTime}</span>
           </div>
-          {/* Countdown */}
-          <div className="text-right shrink-0">
-            <div className="text-[10px] text-muted mb-0.5">Objection window</div>
-            <div className={`text-sm font-black font-mono ${h === 0 && m < 30 ? 'text-warning-amber' : 'text-ink'}`}>
-              {h > 0 ? `${h}h ${m}m` : `${m}m ${s}s`}
-            </div>
+          <div className="mt-2 truncate text-sm font-extrabold text-ink">{jobName}</div>
+          {jobAddress && <div className="mt-0.5 truncate text-xs font-medium text-muted">{jobAddress}</div>}
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
+            <span>Inspector: <span className="font-bold text-ink">{assignment.inspectorName || 'Inspector assigned'}</span></span>
+            {assignment.inspectorLicense && <span>Licence: <span className="font-mono font-semibold text-ink">{assignment.inspectorLicense}</span></span>}
+            <span>Next checkpoint: <span className="font-semibold text-ink">{reliabilityStatus.nextConfirmationCheckpoint}</span></span>
           </div>
         </div>
-      </div>
-
-      {/* Inspector info */}
-      <div className="px-5 py-3 border-b border-electric/10">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-flame/15 border border-flame/25 rounded-xl flex items-center justify-center font-black text-flame text-sm shrink-0">
-            {assignment.inspectorName.split(' ').map(w => w[0]).join('').slice(0, 2)}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="font-bold text-ink text-sm">{assignment.inspectorName}</div>
-            <div className="text-xs font-mono text-muted">{assignment.inspectorLicense}</div>
-          </div>
-          <div className="text-right">
-            <div className="text-[10px] text-muted">Claimed</div>
-            <div className="text-xs text-ink">{new Date(assignment.claimedAt).toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit' })}</div>
-          </div>
-        </div>
-        <div className="mt-2 text-[11px] text-muted flex items-center gap-1.5">
-          <Clock className="w-3 h-3 shrink-0" />
-          {assignment.claimedSlot.flexible
-            ? 'Timing: Flexible / any time works'
-            : `Slot: ${new Date(assignment.claimedSlot.date + 'T12:00:00').toLocaleDateString('en-CA', { weekday: 'short', month: 'short', day: 'numeric' })} · ${assignment.claimedSlot.startTime}–${assignment.claimedSlot.endTime}`}
-        </div>
-      </div>
-
-      {/* Notice */}
-      <div className="px-5 py-3 text-xs text-muted border-b border-electric/10">
-        This appointment becomes <span className="text-success-green font-bold">confirmed</span> when the objection window closes. No action is required unless you need to raise one of the specific objections below.
-      </div>
-
-      <div className="px-5 py-3 border-b border-electric/10">
-        <div className="grid gap-2 text-[11px] sm:grid-cols-2">
-          <div className="rounded-xl border border-rim bg-panel/70 px-3 py-2">
-            <span className="font-bold text-ink">Inspector:</span>{' '}
-            <span className="text-muted">{assignment.inspectorName || 'Inspector assigned'}</span>
-            {assignment.inspectorLicense ? <span className="font-mono text-muted"> · {assignment.inspectorLicense}</span> : null}
-          </div>
-          <div className="rounded-xl border border-rim bg-panel/70 px-3 py-2">
-            <span className="font-bold text-ink">Next checkpoint:</span>{' '}
-            <span className="text-muted">{reliabilityStatus.nextConfirmationCheckpoint}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Objection form toggle */}
-      {!showForm ? (
-        <div className="px-5 py-3">
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <span className="rounded-xl border border-rim bg-surface px-3 py-2 text-[11px] font-bold text-ink">{actionCopy}</span>
           <button
-            onClick={() => setShowForm(true)}
-            className="text-xs text-warning-amber font-bold hover:underline flex items-center gap-1"
+            type="button"
+            onClick={() => setShowDetails(prev => !prev)}
+            className="rounded-xl border border-rim bg-panel px-3 py-2 text-[11px] font-black text-ink transition-colors hover:border-flame/40"
           >
-            <AlertTriangle className="w-3 h-3" /> Raise an objection
+            View Appointment
           </button>
         </div>
-      ) : (
-        <div className="px-5 py-4 space-y-3">
-          <div className="text-[11px] font-bold text-muted uppercase tracking-wide">Select objection reason</div>
-          <div className="space-y-2">
-            {OBJECTION_REASONS.map(r => (
-              <label key={r.value} className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${reason === r.value ? 'border-warning-amber/40 bg-warning-amber/8' : 'border-white/8 bg-surface hover:border-white/15'}`}>
-                <input
-                  type="radio"
-                  name="objection"
-                  value={r.value}
-                  checked={reason === r.value}
-                  onChange={() => setReason(r.value)}
-                  className="mt-0.5 accent-amber-500 shrink-0"
-                />
-                <div>
-                  <div className="text-xs font-bold text-ink">{r.label}</div>
-                  <div className="text-[11px] text-muted mt-0.5 leading-relaxed">{r.desc}</div>
-                </div>
-              </label>
-            ))}
-          </div>
-          <div>
-            <div className="text-[11px] font-bold text-muted uppercase tracking-wide mb-1.5">Supporting note (required)</div>
-            <textarea
-              value={note}
-              onChange={e => setNote(e.target.value)}
-              placeholder="Provide specific details to support your objection. Admin will review this before deciding."
-              rows={3}
-              className="w-full bg-surface border border-white/10 rounded-xl px-3 py-2 text-xs text-ink placeholder-subtle focus:outline-none focus:border-warning-amber resize-none"
-            />
-          </div>
-          <div className="flex gap-2">
+      </div>
+
+      {showDetails && (
+        <div className="mt-3 rounded-xl border border-rim bg-surface px-3 py-2 text-xs text-muted">
+          Claimed {new Date(assignment.claimedAt).toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit' })}
+          {!isConfirmed && assignment.objectionState !== 'pending_review' && !objected && (
+            <span> · Objection window closes in {h > 0 ? `${h}h ${m}m` : `${m}m ${s}s`}</span>
+          )}
+        </div>
+      )}
+
+      {assignment.objectionState === 'pending_review' || objected ? (
+        <div className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-ink">
+          Your objection has been recorded. Admin will review and either uphold or reject it.
+        </div>
+      ) : !isConfirmed && (
+        <div className="mt-3">
+          {!showForm ? (
             <button
-              disabled={!reason || !note.trim() || submitting}
-              onClick={handleObject}
-              className="flex-1 bg-warning-amber text-[#080D18] text-xs font-black py-2.5 rounded-xl hover:opacity-90 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              onClick={() => setShowForm(true)}
+              className="text-xs font-bold text-ink hover:underline"
             >
-              {submitting ? 'Filing…' : 'File Objection'}
+              Raise an objection
             </button>
-            <button
-              onClick={() => { setShowForm(false); setReason(''); setNote('') }}
-              className="px-4 bg-white/5 border border-white/10 text-muted text-xs font-semibold rounded-xl hover:bg-white/8 transition-all"
-            >
-              Cancel
-            </button>
-          </div>
-          <p className="text-[10px] text-subtle">All objections require admin review. Unfounded objections are rejected and the assignment stands.</p>
+          ) : (
+            <div className="space-y-3 rounded-xl border border-rim bg-surface p-3">
+              <div className="text-[11px] font-bold uppercase tracking-wide text-muted">Select objection reason</div>
+              <div className="grid gap-2 md:grid-cols-2">
+                {OBJECTION_REASONS.map(r => (
+                  <label key={r.value} className={`flex items-start gap-2 rounded-xl border p-3 text-xs ${reason === r.value ? 'border-amber-500/40 bg-amber-500/10' : 'border-rim bg-panel'}`}>
+                    <input
+                      type="radio"
+                      name="objection"
+                      value={r.value}
+                      checked={reason === r.value}
+                      onChange={() => setReason(r.value)}
+                      className="mt-0.5 accent-amber-500"
+                    />
+                    <span>
+                      <span className="block font-bold text-ink">{r.label}</span>
+                      <span className="mt-0.5 block text-muted">{r.desc}</span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+              <textarea
+                value={note}
+                onChange={e => setNote(e.target.value)}
+                placeholder="Provide specific details to support your objection."
+                rows={3}
+                className="w-full rounded-xl border border-rim bg-panel px-3 py-2 text-xs text-ink placeholder-subtle focus:border-warning-amber focus:outline-none"
+              />
+              <div className="flex gap-2">
+                <button
+                  disabled={!reason || !note.trim() || submitting}
+                  onClick={handleObject}
+                  className="rounded-xl bg-warning-amber px-4 py-2 text-xs font-black text-[#080D18] transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {submitting ? 'Filing...' : 'File Objection'}
+                </button>
+                <button
+                  onClick={() => { setShowForm(false); setReason(''); setNote('') }}
+                  className="rounded-xl border border-rim px-4 py-2 text-xs font-bold text-muted"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -357,25 +310,25 @@ function ProvisionalAssignmentPanel({
 // ─── Job status badge ─────────────────────────────────────────────────────────
 
 const WORKFLOW_BADGE_CONFIG: Record<string, { cls: string; icon?: React.ReactNode }> = {
-  draft:        { cls: 'bg-white/5 text-white/40 border-white/10' },
-  submitted:    { cls: 'bg-blue-500/15 text-blue-400 border-blue-500/30' },
-  under_review: { cls: 'bg-amber-500/15 text-amber-400 border-amber-500/30' },
-  live:         { cls: 'bg-flame/15 text-flame border-flame/30' },
-  closed:       { cls: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30', icon: <Lock className="w-2.5 h-2.5" /> },
-  archived:     { cls: 'bg-white/5 text-white/40 border-white/10' },
+  draft:        { cls: 'bg-slate-500/10 text-ink border-slate-400/30' },
+  submitted:    { cls: 'bg-blue-500/10 text-ink border-blue-500/30' },
+  under_review: { cls: 'bg-amber-500/10 text-ink border-amber-500/30' },
+  live:         { cls: 'bg-flame/10 text-ink border-flame/30' },
+  closed:       { cls: 'bg-emerald-500/10 text-ink border-emerald-500/30', icon: <Lock className="w-2.5 h-2.5" /> },
+  archived:     { cls: 'bg-slate-500/10 text-ink border-slate-400/30' },
 }
 
 function StatusBadge({ job }: { job: Pick<JobOpportunityRow, 'status' | 'validationStatus'> }) {
   if (job.status === 'on_hold') {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black border border-amber-500/40 bg-amber-500/15 text-amber-400">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black border border-amber-500/40 bg-amber-500/15 text-ink">
         <AlertTriangle className="w-2.5 h-2.5" />
         HOLD
       </span>
     )
   }
   const workflowState = getJobWorkflowState(job)
-  const cfg = WORKFLOW_BADGE_CONFIG[workflowState] ?? { cls: 'bg-white/5 text-white/40 border-white/10' }
+  const cfg = WORKFLOW_BADGE_CONFIG[workflowState] ?? { cls: 'bg-slate-500/10 text-ink border-slate-400/30' }
   const label = getJobWorkflowLabel(job)
   return (
     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black border ${cfg.cls}`}>
@@ -429,40 +382,105 @@ function getPermitProgressGroupKey(job: JobOpportunityRow): string {
 const BUILDER_STAGE_STATUS_COPY: Record<BuilderStageStatus, { label: string; cls: string }> = {
   not_requested: {
     label: 'Not requested',
-    cls: 'border-slate-600/30 bg-slate-700/20 text-slate-300',
+    cls: 'border-slate-400/40 bg-panel text-ink',
   },
   requested_live: {
     label: 'Requested / live',
-    cls: 'border-blue-400/30 bg-blue-400/10 text-blue-200',
+    cls: 'border-blue-500/40 bg-blue-500/10 text-ink',
   },
   inspector_assigned: {
     label: 'Inspector assigned',
-    cls: 'border-cyan-400/30 bg-cyan-400/10 text-cyan-200',
+    cls: 'border-cyan-500/40 bg-cyan-500/10 text-ink',
   },
   in_progress: {
     label: 'In progress',
-    cls: 'border-flame/30 bg-flame/10 text-[#FFB089]',
+    cls: 'border-flame/40 bg-flame/10 text-ink',
   },
   passed: {
     label: 'Passed / complete',
-    cls: 'border-emerald-400/30 bg-emerald-400/10 text-emerald-200',
+    cls: 'border-emerald-600/40 bg-emerald-500/10 text-ink',
   },
   hold: {
     label: 'Hold',
-    cls: 'border-amber-400/40 bg-amber-400/10 text-amber-200',
+    cls: 'border-amber-600/50 bg-amber-500/10 text-ink',
   },
   failed: {
     label: 'Failed / correction required',
-    cls: 'border-red-400/40 bg-red-400/10 text-red-200',
+    cls: 'border-red-600/50 bg-red-500/10 text-ink',
   },
   available_next: {
     label: 'Available next',
-    cls: 'border-emerald-400/30 bg-emerald-400/10 text-emerald-200',
+    cls: 'border-blue-600/40 bg-blue-500/10 text-ink',
   },
   locked: {
     label: 'Locked / waiting on prerequisite',
-    cls: 'border-zinc-600/40 bg-zinc-800/60 text-zinc-400',
+    cls: 'border-slate-400/40 bg-slate-500/10 text-muted',
   },
+}
+
+const STAGE_DOT_CLASS: Record<BuilderStageStatus, string> = {
+  not_requested: 'border-slate-400 bg-panel text-muted',
+  requested_live: 'border-blue-500 bg-blue-500 text-white',
+  inspector_assigned: 'border-cyan-500 bg-cyan-500 text-white',
+  in_progress: 'border-flame bg-flame text-white',
+  passed: 'border-emerald-600 bg-emerald-600 text-white',
+  hold: 'border-amber-600 bg-amber-500 text-white',
+  failed: 'border-red-600 bg-red-600 text-white',
+  available_next: 'border-blue-600 bg-blue-600 text-white',
+  locked: 'border-slate-400 bg-slate-100 text-slate-600',
+}
+
+function StageStatusIcon({ status }: { status: BuilderStageStatus }) {
+  if (status === 'passed') return <CheckCircle2 className="h-3 w-3" />
+  if (status === 'hold' || status === 'failed') return <AlertTriangle className="h-3 w-3" />
+  if (status === 'locked') return <Lock className="h-3 w-3" />
+  if (status === 'requested_live' || status === 'inspector_assigned' || status === 'in_progress') return <Clock className="h-3 w-3" />
+  return <span className="h-1.5 w-1.5 rounded-full bg-current" />
+}
+
+function StageProgressRail({ scorecard }: { scorecard: StageScorecardEntry[] }) {
+  return (
+    <div className="grid grid-cols-5 gap-1.5">
+      {scorecard.map(({ stage, status }) => (
+        <div key={stage.number} className="min-w-0">
+          <div className={`mx-auto flex h-8 w-8 items-center justify-center rounded-full border text-[10px] font-black ${STAGE_DOT_CLASS[status]}`}>
+            <StageStatusIcon status={status} />
+          </div>
+          <div className="mt-1 truncate text-center text-[10px] font-bold text-ink">S{stage.number}</div>
+          <div className="truncate text-center text-[9px] font-semibold text-muted">{BUILDER_STAGE_STATUS_COPY[status].label}</div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function getLatestStageEntry(scorecard: StageScorecardEntry[]): StageScorecardEntry | undefined {
+  return [...scorecard].reverse().find(entry => entry.stageJob || entry.status === 'passed')
+}
+
+function findSafeAvailableStage(scorecard: StageScorecardEntry[]): { entry?: StageScorecardEntry; ambiguous: boolean } {
+  const passedIndexes = scorecard
+    .map((entry, index) => entry.status === 'passed' ? index : -1)
+    .filter(index => index >= 0)
+  const firstGapBeforePassed = passedIndexes.some(index =>
+    scorecard.slice(0, index).some(prior => prior.status !== 'passed')
+  )
+  if (firstGapBeforePassed) return { ambiguous: true }
+
+  const blockingActive = scorecard.some(entry =>
+    ['requested_live', 'inspector_assigned', 'in_progress', 'hold', 'failed'].includes(entry.status)
+  )
+  if (blockingActive) return { ambiguous: false }
+
+  const entry = scorecard.find((candidate, index) =>
+    candidate.status === 'available_next'
+    && scorecard.slice(0, index).every(prior => prior.status === 'passed')
+  )
+  return { entry, ambiguous: false }
+}
+
+function getProgressDomId(key: string): string {
+  return `project-progress-${key.replace(/[^a-zA-Z0-9_-]/g, '-')}`
 }
 
 const MOD_HOLD_TYPE_META = {
@@ -999,8 +1017,10 @@ export default function BuilderDashboard() {
   const projectsById = new Map(projects.map(project => [project.id, project]))
   const openHoldDetails = Object.values(activeHoldDetails).filter(detail => isHoldOpenStatus(detail.hold.status))
   const onHoldJobs = (dbJobs ?? []).filter(job => job.status === 'on_hold')
+  const actionableHoldJobIds = new Set(activeHolds.map(hold => hold.jobId))
+  const actionRequiredHoldJobs = onHoldJobs.filter(job => actionableHoldJobIds.has(job.id))
   const getOpenHoldDetailForJob = (jobId: string) => openHoldDetails.find(detail => detail.hold.jobId === jobId)
-  const hasBuilderActions = onHoldJobs.length > 0 || activeModHolds.length > 0
+  const hasBuilderActions = actionRequiredHoldJobs.length > 0 || activeModHolds.length > 0
   const activeInspectionAppointments = store.assignments.filter(
     a => isMatch(a.builderId) && (a.status === 'provisional' || a.status === 'confirmed' || a.objectionState === 'pending_review')
   )
@@ -1017,15 +1037,6 @@ export default function BuilderDashboard() {
     const projectAddress = [project?.address, project?.city].filter(Boolean).join(', ')
     const address = storeJob?.address || dbAddress || projectAddress || undefined
     return { projectName, address }
-  }
-  const getRelatedJobsForProject = (job: JobOpportunityRow) => {
-    return (dbJobs ?? [])
-      .filter(candidate => {
-        if (job.projectId && candidate.projectId) return candidate.projectId === job.projectId
-        if (!job.projectId && !candidate.projectId) return getPermitProgressGroupKey(candidate) === getPermitProgressGroupKey(job)
-        return candidate.id === job.id
-      })
-      .sort((a, b) => a.stage - b.stage || a.requestedAt.localeCompare(b.requestedAt))
   }
   const permitProgressProjects: PermitProgressProject[] = (() => {
     const groups = new Map<string, PermitProgressProject>()
@@ -1063,9 +1074,9 @@ export default function BuilderDashboard() {
 
     return Array.from(groups.values()).sort((a, b) => a.projectName.localeCompare(b.projectName))
   })()
-  const buildStageScorecard = (relatedJobs: JobOpportunityRow[]) => {
+  const buildStageScorecard = (relatedJobs: JobOpportunityRow[]): StageScorecardEntry[] => {
     let previousStagePassed = true
-    return BUILDER_STAGE_DEFINITIONS.map((stage, index) => {
+    const entries = BUILDER_STAGE_DEFINITIONS.map((stage, index) => {
       const stageJob = relatedJobs.find(candidate => candidate.stage === stage.number)
       const report = stageJob ? completionReportsByJobId[stageJob.id] : undefined
       const status = getBuilderStageStatus({
@@ -1078,6 +1089,12 @@ export default function BuilderDashboard() {
       previousStagePassed = status === 'passed'
       return { stage, stageJob, report, status }
     })
+    const hasPassedStageGap = entries.some((entry, index) =>
+      entry.status === 'passed' && entries.slice(0, index).some(prior => prior.status !== 'passed')
+    )
+    return hasPassedStageGap
+      ? entries.map(entry => entry.status === 'available_next' ? { ...entry, status: 'locked' as const } : entry)
+      : entries
   }
   const buildProjectRequestForStage = (job: JobOpportunityRow, stage: BuilderStageDefinition): Project => ({
     id: job.projectId ?? job.id,
@@ -1115,6 +1132,24 @@ export default function BuilderDashboard() {
       }],
     }
   }
+  const nextUpItems: NextUpItem[] = permitProgressProjects
+    .map(progressProject => {
+      const stageScorecard = buildStageScorecard(progressProject.jobs)
+      const latestPassedStage = getLatestStageEntry(stageScorecard.filter(entry => entry.status === 'passed'))
+      const { entry: availableStage, ambiguous } = findSafeAvailableStage(stageScorecard)
+      const requestProject = availableStage
+        ? buildProjectRequestForProgressStage(progressProject, availableStage.stage)
+        : null
+      return {
+        progressProject,
+        stageScorecard,
+        availableStage,
+        latestPassedStage,
+        requestProject,
+        ambiguous,
+      }
+    })
+    .filter(item => item.availableStage || item.ambiguous)
 
   // FIX #4: show spinner while either projects OR jobs are loading
   const isLoading = isLoadingProjects || isLoadingJobs
@@ -1160,11 +1195,11 @@ export default function BuilderDashboard() {
                 <div className="mt-1 text-sm font-extrabold text-ink">Review holds and builder decisions</div>
               </div>
               <div className="rounded-full border border-flame/25 bg-flame/10 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-flame">
-                {onHoldJobs.length + activeModHolds.length} open
+                {actionRequiredHoldJobs.length + activeModHolds.length} open
               </div>
             </div>
             <div className="space-y-5">
-        {onHoldJobs.map(holdJob => {
+        {actionRequiredHoldJobs.map(holdJob => {
           const holdDetail = getOpenHoldDetailForJob(holdJob.id)
           const hold = holdDetail?.hold
           const holdMissing = !hold
@@ -1420,88 +1455,67 @@ export default function BuilderDashboard() {
           </section>
         )}
 
-        {/* ── Permit Stage Progress ── */}
-        {permitProgressProjects.length > 0 && (
+        {/* ── Next Up ── */}
+        {nextUpItems.length > 0 && (
           <section className="mb-6">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
-                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-muted">Permit Stage Progress</div>
-                <div className="mt-1 text-sm font-extrabold text-ink">Project Permit Progress</div>
+                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-muted">Next Up</div>
+                <div className="mt-1 text-sm font-extrabold text-ink">Clear builder actions</div>
               </div>
               <div className="rounded-full border border-rim bg-panel px-3 py-1 text-[10px] font-black uppercase tracking-wide text-muted">
-                {permitProgressProjects.length} project{permitProgressProjects.length === 1 ? '' : 's'}
+                {nextUpItems.length} ready
               </div>
             </div>
 
-            <div className="space-y-4">
-              {permitProgressProjects.map(progressProject => {
-                const stageScorecard = buildStageScorecard(progressProject.jobs)
-                const availableStage = stageScorecard.find(entry => entry.status === 'available_next')
-                const passedStages = stageScorecard.filter(entry => entry.status === 'passed')
-                const latestPassedStage = passedStages[passedStages.length - 1]
-                const requestProject = availableStage
-                  ? buildProjectRequestForProgressStage(progressProject, availableStage.stage)
-                  : null
+            <div className="grid gap-3 lg:grid-cols-2">
+              {nextUpItems.map(({ progressProject, stageScorecard, availableStage, latestPassedStage, requestProject, ambiguous }) => {
                 return (
-                  <div key={progressProject.key} className="card-dark rounded-2xl border border-rim p-4">
-                    <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div className="min-w-0">
+                  <div key={progressProject.key} className="rounded-2xl border border-rim bg-panel p-4 shadow-card">
+                    <div className="flex items-start gap-3">
+                      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-blue-500/25 bg-blue-500/10 text-ink">
+                        <ChevronRight className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
                         <div className="truncate text-sm font-extrabold text-ink">{progressProject.projectName}</div>
                         {progressProject.address && (
-                          <div className="mt-1 flex items-center gap-1 text-xs font-medium text-muted">
-                            <MapPin className="h-3 w-3 shrink-0" />
-                            <span className="truncate">{progressProject.address}{progressProject.city ? `, ${progressProject.city}` : ''}</span>
-                          </div>
+                          <div className="mt-0.5 truncate text-xs font-medium text-muted">{progressProject.address}{progressProject.city ? `, ${progressProject.city}` : ''}</div>
                         )}
-                        <div className="mt-2 text-xs font-semibold text-muted">
-                          {latestPassedStage
-                            ? `${latestPassedStage.stage.label.split(' — ')[0]} passed · Vero inspection record complete`
-                            : 'No Vero inspection stage has been completed yet'}
+                        <div className="mt-2 text-xs font-semibold text-ink">
+                          {ambiguous
+                            ? 'Review project progress'
+                            : latestPassedStage
+                              ? `${latestPassedStage.stage.label.split(' — ')[0]} passed · Vero inspection record complete`
+                              : 'Ready to begin permit-stage inspections'}
+                        </div>
+                        <div className="mt-1 text-xs text-muted">
+                          {availableStage && !ambiguous
+                            ? `${availableStage.stage.label} is available when ready.`
+                            : 'Progress data needs review before Vero shows a stage request shortcut.'}
+                        </div>
+                        <div className="mt-3">
+                          <StageProgressRail scorecard={stageScorecard} />
                         </div>
                       </div>
-
-                      {availableStage && requestProject && (
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {availableStage && requestProject && !ambiguous ? (
                         <button
                           type="button"
                           onClick={() => handleRequestInspection(requestProject)}
-                          className="shrink-0 rounded-xl bg-flame px-3 py-2 text-[11px] font-black text-white transition-colors hover:bg-flame-light"
+                          className="rounded-xl bg-flame px-3 py-2 text-[11px] font-black text-white transition-colors hover:bg-flame-light"
                         >
                           Request {availableStage.stage.label.split(' — ')[0]} Inspection
                         </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => document.getElementById(getProgressDomId(progressProject.key))?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                          className="rounded-xl border border-rim bg-surface px-3 py-2 text-[11px] font-black text-ink transition-colors hover:border-flame/40"
+                        >
+                          Review project progress
+                        </button>
                       )}
-                    </div>
-
-                    {availableStage && (
-                      <div className="mb-3 rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs font-semibold text-emerald-100">
-                        {latestPassedStage
-                          ? `${latestPassedStage.stage.label.split(' — ')[0]} passed. ${availableStage.stage.label.split(' — ')[0]} is available for request when ready.`
-                          : `${availableStage.stage.label.split(' — ')[0]} is available for request when ready.`}
-                      </div>
-                    )}
-
-                    <div className="grid gap-2 md:grid-cols-5">
-                      {stageScorecard.map(({ stage, stageJob, status }) => {
-                        const copy = BUILDER_STAGE_STATUS_COPY[status]
-                        return (
-                          <div key={stage.number} className={`rounded-xl border px-3 py-2 ${copy.cls}`}>
-                            <div className="text-[10px] font-black uppercase tracking-wide">{stage.label.split(' — ')[0]}</div>
-                            <div className="mt-1 min-h-8 text-[11px] font-semibold leading-snug">{stage.label.split(' — ')[1]}</div>
-                            <div className="mt-2 text-[10px] font-black uppercase tracking-wide">{copy.label}</div>
-                            {status === 'passed' && (
-                              <div className="mt-1 text-[10px] font-semibold normal-case tracking-normal">Vero inspection record complete</div>
-                            )}
-                            {status === 'passed' && stageJob && (
-                              <button
-                                type="button"
-                                onClick={() => router.push('/vault')}
-                                className="mt-2 text-[10px] font-black underline decoration-current/40 underline-offset-2"
-                              >
-                                View Stage Record
-                              </button>
-                            )}
-                          </div>
-                        )
-                      })}
                     </div>
                   </div>
                 )
@@ -1567,22 +1581,6 @@ export default function BuilderDashboard() {
           </div>
         ))}
 
-        {/* Stats row */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          {[
-            { icon: Building2,  label: 'Active Sites',  value: activeCount,    color: 'text-ink' },
-            { icon: TrendingUp, label: 'Passed / Week', value: passedThisWeek, color: 'text-success-green' },
-            { icon: Clock,      label: 'Active Stages', value: activeStages,   color: 'text-ink' },
-          ].map(({ icon: Icon, label, value, color }) => (
-            <div key={label} className="card-dark inset-top rounded-2xl border border-rim p-4">
-              <div className="flex items-center gap-1.5 label-mono mb-2">
-                <Icon className="w-3.5 h-3.5" />{label}
-              </div>
-              <div className={`text-2xl font-extrabold ${color}`}>{value}</div>
-            </div>
-          ))}
-        </div>
-
         {/* En route — live tracker card */}
         {projects.some(p => p.status === 'in_progress') && (
           <button
@@ -1617,13 +1615,16 @@ export default function BuilderDashboard() {
           </button>
         )}
 
-        {/* Section header */}
-        <div className="flex items-center justify-between mb-4">
-          <span className="text-sm font-extrabold text-ink">Active Projects</span>
-          <span className="label-mono">{(dbJobs ?? projects).length} posted</span>
-        </div>
+        {/* ── Project Portfolio ── */}
+        <section className="mb-6">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div>
+              <div className="text-[11px] font-black uppercase tracking-[0.18em] text-muted">Project Portfolio</div>
+              <div className="mt-1 text-sm font-extrabold text-ink">Compact permit-stage progress</div>
+            </div>
+            <span className="label-mono">{permitProgressProjects.length || (dbJobs ?? projects).length} project{(permitProgressProjects.length || (dbJobs ?? projects).length) === 1 ? '' : 's'}</span>
+          </div>
 
-        {/* Job status list */}
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
             <div className="w-8 h-8 border-2 border-flame/30 border-t-flame rounded-full animate-spin" />
@@ -1636,93 +1637,104 @@ export default function BuilderDashboard() {
             <div className="mt-1 text-xs font-medium text-muted">Post your first inspection request to get started</div>
           </div>
         ) : dbJobs !== null ? (
-          <div className="space-y-5 mb-6">
-            {dbJobs.map(job => {
-              const rec = completedRecords[job.id]
-              const openHoldForJob = getOpenHoldDetailForJob(job.id)?.hold
-              const actionableHoldForJob = activeHolds.find(hold => hold.jobId === job.id)
-              const relatedJobs = getRelatedJobsForProject(job)
-              let previousStagePassed = true
-              const stageScorecard = BUILDER_STAGE_DEFINITIONS.map((stage, index) => {
-                const stageJob = relatedJobs.find(candidate => candidate.stage === stage.number)
-                const report = stageJob ? completionReportsByJobId[stageJob.id] : undefined
-                const status = getBuilderStageStatus({
-                  stage,
-                  job: stageJob,
-                  report,
-                  previousStagePassed,
-                  isFirstStage: index === 0,
-                })
-                const passed = status === 'passed'
-                previousStagePassed = passed
-                return { stage, stageJob, report, status }
-              })
-              const availableStage = stageScorecard.find(entry => entry.status === 'available_next')
-              const passedStages = stageScorecard.filter(entry => entry.status === 'passed')
-              const postedDate = job.requestedAt
-                ? new Date(job.requestedAt).toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: 'numeric' })
-                : '—'
+          <div className="space-y-3">
+            {permitProgressProjects.map(progressProject => {
+              const stageScorecard = buildStageScorecard(progressProject.jobs)
+              const latestStage = getLatestStageEntry(stageScorecard)
+              const latestJob = latestStage?.stageJob ?? progressProject.representativeJob
+              const latestPassedStage = [...stageScorecard].reverse().find(entry => entry.status === 'passed')
+              const { entry: availableStage, ambiguous } = findSafeAvailableStage(stageScorecard)
+              const requestProject = availableStage ? buildProjectRequestForProgressStage(progressProject, availableStage.stage) : null
+              const actionableHoldForJob = activeHolds.find(hold => progressProject.jobs.some(job => job.id === hold.jobId))
+              const openHoldForJob = progressProject.jobs.map(job => getOpenHoldDetailForJob(job.id)?.hold).find(Boolean)
+              const completedJob = progressProject.jobs.find(job => job.status === 'completed')
+              const rec = completedJob ? completedRecords[completedJob.id] : undefined
+              const latestStatus = latestJob
+                ? getJobWorkflowLabel(latestJob)
+                : latestPassedStage
+                  ? 'Record complete'
+                  : 'Project created'
+              const latestStageCopy = latestStage
+                ? `${latestStage.stage.label.split(' — ')[0]} · ${latestStage.stage.label.split(' — ')[1]}`
+                : 'No inspection stage requested yet'
               return (
-                <div key={job.id} className="card-dark rounded-2xl border border-rim p-4 transition-all hover:border-flame/20">
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <div className="min-w-0 flex-1">
-                      <div className="mb-0.5 truncate text-sm font-extrabold text-ink">{job.projectName}</div>
-                      <div className="flex items-center gap-1 text-xs font-medium text-muted">
-                        <MapPin className="w-3 h-3 shrink-0" />
-                        <span className="truncate">{job.address}{job.city ? `, ${job.city}` : ''}</span>
+                <div id={getProgressDomId(progressProject.key)} key={progressProject.key} className="rounded-2xl border border-rim bg-panel p-4 shadow-card">
+                  <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.9fr)_auto] lg:items-center">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="truncate text-sm font-extrabold text-ink">{progressProject.projectName}</div>
+                        {latestJob && <StatusBadge job={latestJob} />}
+                      </div>
+                      {progressProject.address && (
+                        <div className="mt-1 flex items-center gap-1 text-xs font-medium text-muted">
+                          <MapPin className="h-3 w-3 shrink-0" />
+                          <span className="truncate">{progressProject.address}{progressProject.city ? `, ${progressProject.city}` : ''}</span>
+                        </div>
+                      )}
+                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] font-medium text-muted">
+                        <span>Status: <span className="font-bold text-ink">{latestStatus}</span></span>
+                        <span>Latest stage: <span className="font-bold text-ink">{latestStageCopy}</span></span>
+                        {latestPassedStage && <span>{latestPassedStage.stage.label.split(' — ')[0]} passed · Vero inspection record complete</span>}
                       </div>
                     </div>
-                    <StatusBadge job={job} />
-                  </div>
-
-                  <div className="mb-3 flex flex-wrap gap-x-4 gap-y-1.5 text-[11px] font-medium text-muted">
-                    <span>Stage {job.stage} · {job.stageName}</span>
-                    {job.requiredDiscipline && <span className="capitalize">{job.requiredDiscipline}</span>}
-                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> Posted {postedDate}</span>
-                  </div>
-
-                  <div className="mb-3 rounded-2xl border border-rim bg-panel/50 p-3">
-                    <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                      <div>
-                        <div className="text-[10px] font-black uppercase tracking-widest text-muted">Project Progress</div>
-                        <div className="mt-1 text-xs font-semibold text-ink">
-                          {passedStages.length > 0
-                            ? `${passedStages[passedStages.length - 1].stage.label.split(' — ')[0]} passed`
-                            : 'No Vero inspection stage has been completed yet'}
-                        </div>
-                      </div>
-                      {availableStage && (
+                    <StageProgressRail scorecard={stageScorecard} />
+                    <div className="flex flex-wrap gap-2 lg:justify-end">
+                      {actionableHoldForJob ? (
+                        <button
+                          onClick={() => document.getElementById(`hold-${actionableHoldForJob.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                          className="rounded-xl border border-amber-600/40 bg-amber-500/10 px-3 py-2 text-[11px] font-black text-ink transition-colors hover:bg-amber-500/15"
+                        >
+                          Review hold
+                        </button>
+                      ) : availableStage && requestProject && !ambiguous ? (
                         <button
                           type="button"
-                          onClick={() => handleRequestInspection(buildProjectRequestForStage(job, availableStage.stage))}
+                          onClick={() => handleRequestInspection(requestProject)}
                           className="rounded-xl bg-flame px-3 py-2 text-[11px] font-black text-white transition-colors hover:bg-flame-light"
                         >
                           Request {availableStage.stage.label.split(' — ')[0]} Inspection
                         </button>
+                      ) : completedJob ? (
+                        <button
+                          type="button"
+                          onClick={() => router.push('/vault')}
+                          className="rounded-xl border border-emerald-600/30 bg-emerald-500/10 px-3 py-2 text-[11px] font-black text-ink transition-colors hover:bg-emerald-500/15"
+                        >
+                          Open Vault
+                        </button>
+                      ) : (
+                        <span className="rounded-xl border border-rim bg-surface px-3 py-2 text-[11px] font-bold text-muted">View progress</span>
                       )}
                     </div>
+                  </div>
 
-                    {availableStage && (
-                      <div className="mb-3 rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs text-emerald-100">
-                        {passedStages.length > 0
-                          ? `${passedStages[passedStages.length - 1].stage.label.split(' — ')[0]} passed. ${availableStage.stage.label.split(' — ')[0]} is available for request when ready.`
-                          : `${availableStage.stage.label.split(' — ')[0]} is available for request when ready.`}
-                      </div>
-                    )}
+                  {openHoldForJob && (
+                    <div className="mt-3 rounded-xl border border-amber-600/30 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-ink">
+                      Project on hold: {openHoldForJob.deficiencyReason || openHoldForJob.reason || 'Builder action may be required before inspection can proceed.'}
+                    </div>
+                  )}
 
-                    <div className="grid gap-2 md:grid-cols-5">
+                  <details className="mt-3 rounded-xl border border-rim bg-surface">
+                    <summary className="cursor-pointer px-3 py-2 text-xs font-black text-ink">View Progress</summary>
+                    <div className="grid gap-2 border-t border-rim p-3 md:grid-cols-5">
                       {stageScorecard.map(({ stage, stageJob, status }) => {
                         const copy = BUILDER_STAGE_STATUS_COPY[status]
                         return (
                           <div key={stage.number} className={`rounded-xl border px-3 py-2 ${copy.cls}`}>
-                            <div className="text-[10px] font-black uppercase tracking-wide">{stage.label.split(' — ')[0]}</div>
-                            <div className="mt-1 min-h-8 text-[11px] font-semibold leading-snug">{stage.label.split(' — ')[1]}</div>
+                            <div className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wide">
+                              <StageStatusIcon status={status} />
+                              {stage.label.split(' — ')[0]}
+                            </div>
+                            <div className="mt-1 min-h-8 text-[11px] font-semibold leading-snug text-ink">{stage.label.split(' — ')[1]}</div>
                             <div className="mt-2 text-[10px] font-black uppercase tracking-wide">{copy.label}</div>
+                            {status === 'passed' && (
+                              <div className="mt-1 text-[10px] font-semibold normal-case tracking-normal text-ink">Vero inspection record complete</div>
+                            )}
                             {status === 'passed' && stageJob && (
                               <button
                                 type="button"
                                 onClick={() => router.push('/vault')}
-                                className="mt-2 text-[10px] font-black underline decoration-current/40 underline-offset-2"
+                                className="mt-2 text-[10px] font-black text-ink underline decoration-current/40 underline-offset-2"
                               >
                                 View Stage Record
                               </button>
@@ -1731,43 +1743,19 @@ export default function BuilderDashboard() {
                         )
                       })}
                     </div>
-                  </div>
+                  </details>
 
-                  {job.status === 'on_hold' && (
-                    <div className="mb-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2.5">
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                          <div className="text-[10px] font-black uppercase tracking-widest text-amber-400">Project on Hold</div>
-                          <div className="mt-1 text-xs font-semibold text-ink">
-                            {openHoldForJob?.deficiencyReason || openHoldForJob?.reason || 'Builder action may be required before inspection can proceed.'}
-                          </div>
-                        </div>
-                        {actionableHoldForJob && (
-                          <button
-                            onClick={() => {
-                              const target = document.getElementById(`hold-${actionableHoldForJob.id}`)
-                              target?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-                            }}
-                            className="shrink-0 rounded-xl border border-amber-500/30 bg-amber-500/15 px-3 py-2 text-[11px] font-black text-amber-300 transition-all hover:bg-amber-500/25"
-                          >
-                            Review Hold Request
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {job.status === 'completed' && (
-                    <div className="flex items-center justify-between bg-emerald-500/5 border border-emerald-500/20 rounded-xl px-3 py-2.5">
+                  {completedJob && (
+                    <div className="mt-3 flex items-center justify-between rounded-xl border border-emerald-600/25 bg-emerald-500/10 px-3 py-2.5">
                       <div>
-                        <div className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-0.5">Certificate Reference</div>
-                        <div className="font-mono font-black text-emerald-400 text-sm">
+                        <div className="mb-0.5 text-[10px] font-bold uppercase tracking-widest text-ink">Vero Inspection Record</div>
+                        <div className="font-mono text-sm font-black text-ink">
                           {rec?.certRef ?? 'Report filed'}
                         </div>
                       </div>
                       <button
                         onClick={() => router.push('/vault')}
-                        className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-400 hover:text-emerald-300 transition-colors"
+                        className="flex items-center gap-1.5 text-[11px] font-bold text-ink hover:underline"
                       >
                         View Report <ExternalLink className="w-3 h-3" />
                       </button>
@@ -1784,6 +1772,28 @@ export default function BuilderDashboard() {
             ))}
           </div>
         )}
+        </section>
+
+        {/* ── Weekly Activity ── */}
+        <section className="mb-6">
+          <div className="mb-3">
+            <div className="text-[11px] font-black uppercase tracking-[0.18em] text-muted">Weekly Activity</div>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { icon: Building2,  label: 'Active Sites',  value: activeCount,    color: 'text-ink' },
+              { icon: TrendingUp, label: 'Passed / Week', value: passedThisWeek, color: 'text-ink' },
+              { icon: Clock,      label: 'Active Stages', value: activeStages,   color: 'text-ink' },
+            ].map(({ icon: Icon, label, value, color }) => (
+              <div key={label} className="rounded-2xl border border-rim bg-panel p-4 shadow-card">
+                <div className="mb-2 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wide text-muted">
+                  <Icon className="h-3.5 w-3.5" />{label}
+                </div>
+                <div className={`text-2xl font-extrabold ${color}`}>{value}</div>
+              </div>
+            ))}
+          </div>
+        </section>
 
         <DailyFlash projects={dailyFlashProjects} dataMode={dailyFlashMode} />
       </main>
