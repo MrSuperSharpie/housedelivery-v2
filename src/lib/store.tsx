@@ -622,9 +622,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       dependencySealed: true,
       escrowAuthorized: true,
     })
-    const nextStatus = input.projectId ? 'pending_validation' : governance.status
+    const nextStatus = governance.status
 
-    const insertedId = await insertJobOpportunity({
+    const insertedJob = await insertJobOpportunity({
       projectId:                input.projectId,
       projectName:              input.projectName,
       address:                  input.address,
@@ -664,13 +664,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       return null
     })
 
-    if (!insertedId) {
+    if (!insertedJob) {
       return {
         ok: false,
         error: 'Could not save the inspection request. Please review the site details and try again.',
       }
     }
 
+    const insertedId = insertedJob.id
+    const persistedStatus = insertedJob.status
     const newJob: InspectionJob = {
       id:                   insertedId,
       projectId:            input.projectId ?? insertedId,
@@ -687,7 +689,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       distance:             0,
       region:               dispatchRegion,
       requiredDiscipline:   input.discipline,
-      status:               nextStatus,
+      status:               persistedStatus,
       requestedAt:          new Date().toISOString(),
       escrowAmount:         pricing.builderEscrowTotal,
       pricingMode:          pricing.pricingMode,
@@ -713,10 +715,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
 
     setJobs(prev => [...prev, newJob])
-    if (nextStatus !== 'live') {
+    if (persistedStatus !== 'live') {
       return {
         ok: false,
-        error: 'Your inspection request is ready. Post it to the Live Job Board so qualified inspectors can claim one of your available time windows.',
+        error: insertedJob.blockers.map(issue => issue.message).join(' ') || 'This inspection request could not be posted to the Live Job Board yet.',
       }
     }
     return { ok: true as const, value: insertedId }

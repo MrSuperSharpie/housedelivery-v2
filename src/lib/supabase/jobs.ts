@@ -186,6 +186,13 @@ export interface JobStatusEvent {
   createdAt: string
 }
 
+export interface InsertJobOpportunityResult {
+  id: string
+  status: JobStatus
+  validationStatus: GovernanceValidationStatus
+  blockers: GovernanceIssue[]
+}
+
 export interface ClaimJobRpcResult {
   ok: boolean
   error?: string
@@ -520,7 +527,7 @@ export async function listJobsByBuilder(builderId: string): Promise<JobOpportuni
 
 export async function insertJobOpportunity(
   job: Omit<JobOpportunityRow, 'id' | 'createdAt' | 'updatedAt' | 'requestedAt'>
-): Promise<string | null> {
+): Promise<InsertJobOpportunityResult | null> {
   const now = new Date().toISOString()
   const projectReadiness = job.projectId
     ? await getDbProjectReadiness(job.projectId)
@@ -682,7 +689,12 @@ export async function insertJobOpportunity(
     },
   })
 
-  return insertedId
+  return {
+    id: insertedId,
+    status: finalStatus,
+    validationStatus,
+    blockers: governance.blockers,
+  }
 }
 
 export async function updateJobStatus(
