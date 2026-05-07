@@ -47,6 +47,35 @@ const supabase = createClient()
 
 // ─── Assignment panel helpers ──────────────────────────────────────────────────
 
+const BUILDER_STAGE_DEFINITIONS = [
+  { number: 1, internalStage: 1, label: 'Stage 1 — Site Survey & Excavation' },
+  { number: 2, internalStage: 5, label: 'Stage 2 — Foundation Pour' },
+  { number: 3, internalStage: 6, label: 'Stage 3 — Framing & Lock-up' },
+  { number: 4, internalStage: 12, label: 'Stage 4 — Insulation & Vapor Barrier' },
+  { number: 5, internalStage: 15, label: 'Stage 5 — Final Occupancy Permit' },
+] as const
+
+type BuilderStageDefinition = typeof BUILDER_STAGE_DEFINITIONS[number]
+type BuilderStageStatus =
+  | 'not_requested'
+  | 'requested_live'
+  | 'inspector_assigned'
+  | 'in_progress'
+  | 'passed'
+  | 'hold'
+  | 'failed'
+  | 'available_next'
+  | 'locked'
+
+type CompletionReportSummary = {
+  jobId: string
+  status?: string
+  sealPayload: Record<string, unknown>
+  submittedAt?: string
+  sealedAt?: string
+  updatedAt?: string
+}
+
 const OBJECTION_REASONS: { value: ObjectionReason; label: string; desc: string }[] = [
   { value: 'conflict_of_interest',    label: 'Conflict of interest',      desc: 'Inspector has a personal or financial conflict with this project.' },
   { value: 'access_concern',          label: 'Access concern',            desc: 'Inspector cannot safely or practically access the site.' },
@@ -346,6 +375,75 @@ function StatusBadge({ job }: { job: Pick<JobOpportunityRow, 'status' | 'validat
   )
 }
 
+function getReportStageSignOff(report: CompletionReportSummary | undefined, internalStage: number): Record<string, unknown> | null {
+  const stageSignOffs = report?.sealPayload?.stageSignOffs
+  if (!stageSignOffs || typeof stageSignOffs !== 'object' || Array.isArray(stageSignOffs)) return null
+  const signOff = (stageSignOffs as Record<string, unknown>)[String(internalStage)]
+  return signOff && typeof signOff === 'object' && !Array.isArray(signOff)
+    ? signOff as Record<string, unknown>
+    : null
+}
+
+function getBuilderStageStatus(input: {
+  stage: BuilderStageDefinition
+  job?: JobOpportunityRow
+  report?: CompletionReportSummary
+  previousStagePassed: boolean
+  isFirstStage: boolean
+}): BuilderStageStatus {
+  const { stage, job, report, previousStagePassed, isFirstStage } = input
+  const stageSignedOff = Boolean(getReportStageSignOff(report, stage.internalStage))
+
+  if (job?.status === 'on_hold') return 'hold'
+  if (job?.status === 'stopped' || job?.status === 'disputed') return 'failed'
+  if (job?.status === 'completed' || report?.status === 'sealed' || report?.status === 'submitted' || stageSignedOff) return 'passed'
+  if (job?.status === 'in_progress') return 'in_progress'
+  if (job?.status === 'confirmed' || job?.status === 'provisionally_assigned') return 'inspector_assigned'
+  if (job?.status === 'live' || job?.status === 'pending_validation') return 'requested_live'
+  if (!job && (isFirstStage || previousStagePassed)) return 'available_next'
+  if (!job) return 'locked'
+  return 'not_requested'
+}
+
+const BUILDER_STAGE_STATUS_COPY: Record<BuilderStageStatus, { label: string; cls: string }> = {
+  not_requested: {
+    label: 'Not requested',
+    cls: 'border-slate-600/30 bg-slate-700/20 text-slate-300',
+  },
+  requested_live: {
+    label: 'Requested / live',
+    cls: 'border-blue-400/30 bg-blue-400/10 text-blue-200',
+  },
+  inspector_assigned: {
+    label: 'Inspector assigned',
+    cls: 'border-cyan-400/30 bg-cyan-400/10 text-cyan-200',
+  },
+  in_progress: {
+    label: 'In progress',
+    cls: 'border-flame/30 bg-flame/10 text-[#FFB089]',
+  },
+  passed: {
+    label: 'Passed / complete',
+    cls: 'border-emerald-400/30 bg-emerald-400/10 text-emerald-200',
+  },
+  hold: {
+    label: 'Hold',
+    cls: 'border-amber-400/40 bg-amber-400/10 text-amber-200',
+  },
+  failed: {
+    label: 'Failed / correction required',
+    cls: 'border-red-400/40 bg-red-400/10 text-red-200',
+  },
+  available_next: {
+    label: 'Available next',
+    cls: 'border-emerald-400/30 bg-emerald-400/10 text-emerald-200',
+  },
+  locked: {
+    label: 'Locked / waiting on prerequisite',
+    cls: 'border-zinc-600/40 bg-zinc-800/60 text-zinc-400',
+  },
+}
+
 const MOD_HOLD_TYPE_META = {
   onsite: {
     label: 'On-Site Correction',
@@ -483,6 +581,7 @@ export default function BuilderDashboard() {
   const [supabaseProjects, setSupabaseProjects] = useState<Project[] | null>(null)
   const [dbJobs, setDbJobs]                     = useState<JobOpportunityRow[] | null>(null)
   const [completedRecords, setCompletedRecords] = useState<Record<string, { certRef: string; result: string; completedAt: string }>>({})
+  const [completionReportsByJobId, setCompletionReportsByJobId] = useState<Record<string, CompletionReportSummary>>({})
   const [activeHolds, setActiveHolds]           = useState<HoldRecord[]>([])
   const [activeHoldDetails, setActiveHoldDetails] = useState<Record<string, HoldDetail>>({})
   const [acceptedHolds, setAcceptedHolds]       = useState<Array<{ hold: HoldRecord; projectName: string; feeAmount: number; acceptedAt: string }>>([])
@@ -572,6 +671,46 @@ export default function BuilderDashboard() {
           map[row.job_ref] = { certRef: row.cert_ref, result: row.result, completedAt: row.completed_at }
         }
         setCompletedRecords(map)
+      })
+  }, [dbJobs])
+
+  useEffect(() => {
+    const jobIds = (dbJobs ?? []).map(job => job.id)
+    if (jobIds.length === 0) {
+      setCompletionReportsByJobId({})
+      return
+    }
+
+    supabase
+      .from('inspector_completion_reports')
+      .select('job_id, status, seal_payload, submitted_at, sealed_at, updated_at')
+      .in('job_id', jobIds)
+      .then(({ data, error }) => {
+        if (error) {
+          console.warn('Builder dashboard: completion report lookup failed', error)
+          setCompletionReportsByJobId({})
+          return
+        }
+
+        const reports = new Map<string, CompletionReportSummary>()
+        for (const row of (data ?? []) as Array<Record<string, unknown>>) {
+          const jobId = typeof row.job_id === 'string' ? row.job_id : null
+          if (!jobId) continue
+          const existing = reports.get(jobId)
+          const updatedAt = typeof row.updated_at === 'string' ? row.updated_at : ''
+          if (existing?.updatedAt && existing.updatedAt > updatedAt) continue
+          reports.set(jobId, {
+            jobId,
+            status: typeof row.status === 'string' ? row.status : undefined,
+            sealPayload: row.seal_payload && typeof row.seal_payload === 'object' && !Array.isArray(row.seal_payload)
+              ? row.seal_payload as Record<string, unknown>
+              : {},
+            submittedAt: typeof row.submitted_at === 'string' ? row.submitted_at : undefined,
+            sealedAt: typeof row.sealed_at === 'string' ? row.sealed_at : undefined,
+            updatedAt,
+          })
+        }
+        setCompletionReportsByJobId(Object.fromEntries(reports))
       })
   }, [dbJobs])
 
@@ -858,6 +997,34 @@ export default function BuilderDashboard() {
     const address = storeJob?.address || dbAddress || projectAddress || undefined
     return { projectName, address }
   }
+  const getRelatedJobsForProject = (job: JobOpportunityRow) => {
+    return (dbJobs ?? [])
+      .filter(candidate => {
+        if (job.projectId && candidate.projectId) return candidate.projectId === job.projectId
+        return candidate.id === job.id
+      })
+      .sort((a, b) => a.stage - b.stage || a.requestedAt.localeCompare(b.requestedAt))
+  }
+  const buildProjectRequestForStage = (job: JobOpportunityRow, stage: BuilderStageDefinition): Project => ({
+    id: job.projectId ?? job.id,
+    builderId: job.builderId,
+    name: job.projectName,
+    address: job.address,
+    city: job.city,
+    permitNumber: job.permitNumber ?? '',
+    currentStage: stage.number,
+    status: 'pending',
+    stages: [{
+      stageNumber: stage.number,
+      stageName: stage.label.replace(/^Stage \d+ — /, ''),
+      status: 'pending' as InspectionStatus,
+    }],
+    photos: [],
+    gpsCoord: { lat: 0, lng: 0, accuracy: 0, timestamp: '', deviceId: '' },
+    createdAt: job.createdAt,
+    updatedAt: job.updatedAt,
+    dispatchTier: job.dispatchTier,
+  })
 
   // FIX #4: show spinner while either projects OR jobs are loading
   const isLoading = isLoadingProjects || isLoadingJobs
@@ -1294,6 +1461,24 @@ export default function BuilderDashboard() {
               const rec = completedRecords[job.id]
               const openHoldForJob = getOpenHoldDetailForJob(job.id)?.hold
               const actionableHoldForJob = activeHolds.find(hold => hold.jobId === job.id)
+              const relatedJobs = getRelatedJobsForProject(job)
+              let previousStagePassed = true
+              const stageScorecard = BUILDER_STAGE_DEFINITIONS.map((stage, index) => {
+                const stageJob = relatedJobs.find(candidate => candidate.stage === stage.number)
+                const report = stageJob ? completionReportsByJobId[stageJob.id] : undefined
+                const status = getBuilderStageStatus({
+                  stage,
+                  job: stageJob,
+                  report,
+                  previousStagePassed,
+                  isFirstStage: index === 0,
+                })
+                const passed = status === 'passed'
+                previousStagePassed = passed
+                return { stage, stageJob, report, status }
+              })
+              const availableStage = stageScorecard.find(entry => entry.status === 'available_next')
+              const passedStages = stageScorecard.filter(entry => entry.status === 'passed')
               const postedDate = job.requestedAt
                 ? new Date(job.requestedAt).toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: 'numeric' })
                 : '—'
@@ -1314,6 +1499,58 @@ export default function BuilderDashboard() {
                     <span>Stage {job.stage} · {job.stageName}</span>
                     {job.requiredDiscipline && <span className="capitalize">{job.requiredDiscipline}</span>}
                     <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> Posted {postedDate}</span>
+                  </div>
+
+                  <div className="mb-3 rounded-2xl border border-rim bg-panel/50 p-3">
+                    <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <div className="text-[10px] font-black uppercase tracking-widest text-muted">Project Progress</div>
+                        <div className="mt-1 text-xs font-semibold text-ink">
+                          {passedStages.length > 0
+                            ? `${passedStages[passedStages.length - 1].stage.label.split(' — ')[0]} passed`
+                            : 'No Vero inspection stage has been completed yet'}
+                        </div>
+                      </div>
+                      {availableStage && (
+                        <button
+                          type="button"
+                          onClick={() => handleRequestInspection(buildProjectRequestForStage(job, availableStage.stage))}
+                          className="rounded-xl bg-flame px-3 py-2 text-[11px] font-black text-white transition-colors hover:bg-flame-light"
+                        >
+                          Request {availableStage.stage.label.split(' — ')[0]} Inspection
+                        </button>
+                      )}
+                    </div>
+
+                    {availableStage && (
+                      <div className="mb-3 rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs text-emerald-100">
+                        {passedStages.length > 0
+                          ? `${passedStages[passedStages.length - 1].stage.label.split(' — ')[0]} passed. ${availableStage.stage.label.split(' — ')[0]} is available for request when ready.`
+                          : `${availableStage.stage.label.split(' — ')[0]} is available for request when ready.`}
+                      </div>
+                    )}
+
+                    <div className="grid gap-2 md:grid-cols-5">
+                      {stageScorecard.map(({ stage, stageJob, status }) => {
+                        const copy = BUILDER_STAGE_STATUS_COPY[status]
+                        return (
+                          <div key={stage.number} className={`rounded-xl border px-3 py-2 ${copy.cls}`}>
+                            <div className="text-[10px] font-black uppercase tracking-wide">{stage.label.split(' — ')[0]}</div>
+                            <div className="mt-1 min-h-8 text-[11px] font-semibold leading-snug">{stage.label.split(' — ')[1]}</div>
+                            <div className="mt-2 text-[10px] font-black uppercase tracking-wide">{copy.label}</div>
+                            {status === 'passed' && stageJob && (
+                              <button
+                                type="button"
+                                onClick={() => router.push('/vault')}
+                                className="mt-2 text-[10px] font-black underline decoration-current/40 underline-offset-2"
+                              >
+                                View Stage Record
+                              </button>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
                   </div>
 
                   {job.status === 'on_hold' && (

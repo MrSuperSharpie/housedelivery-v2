@@ -482,6 +482,14 @@ const BUILDER_STAGE_TO_COMPLETION_STAGE: Record<number, number> = {
   5: 15,
 }
 
+const BUILDER_STAGE_LABELS: Record<number, string> = {
+  1: 'Stage 1 — Site Survey & Excavation',
+  2: 'Stage 2 — Foundation Pour',
+  3: 'Stage 3 — Framing & Lock-up',
+  4: 'Stage 4 — Insulation & Vapor Barrier',
+  5: 'Stage 5 — Final Occupancy Permit',
+}
+
 function resolveRequestedChecklistStage(
   stages: CompletionChecklistStageDefinition[],
   requestedBuilderStage?: number,
@@ -491,6 +499,29 @@ function resolveRequestedChecklistStage(
   const completionStageNumber = BUILDER_STAGE_TO_COMPLETION_STAGE[builderStageNumber]
   if (!completionStageNumber) return 1
   return getStageDefinitionByNumber(stages, completionStageNumber)?.stage_number ?? 1
+}
+
+function resolveBuilderStageNumber(requestedBuilderStage?: number): number {
+  if (typeof requestedBuilderStage !== 'number' || !Number.isFinite(requestedBuilderStage)) return 1
+  const builderStageNumber = Math.trunc(requestedBuilderStage)
+  return BUILDER_STAGE_TO_COMPLETION_STAGE[builderStageNumber] ? builderStageNumber : 1
+}
+
+function getBuilderStageLabel(builderStageNumber: number): string {
+  return BUILDER_STAGE_LABELS[builderStageNumber] ?? `Stage ${builderStageNumber}`
+}
+
+function getBuilderStageForCompletionStage(completionStageNumber: number): number | null {
+  const entry = Object.entries(BUILDER_STAGE_TO_COMPLETION_STAGE)
+    .find(([, stageNumber]) => stageNumber === completionStageNumber)
+  return entry ? Number(entry[0]) : null
+}
+
+function getBuilderRequestMessageForCompletionStage(completionStageNumber: number): string {
+  const builderStageNumber = getBuilderStageForCompletionStage(completionStageNumber)
+  return builderStageNumber
+    ? `Requires a new builder request for ${getBuilderStageLabel(builderStageNumber)}`
+    : 'Requires a separate builder request before this stage can be inspected.'
 }
 
 function reportHasMeaningfulProgress(
@@ -811,6 +842,12 @@ export function InspectorCompletionWorkspace() {
   const [assignment, setAssignment] = useState<AssignmentContext | null>(null)
   const [job, setJob] = useState<JobContext | null>(null)
   const [report, setReport] = useState<InspectorCompletionReportRow | null>(null)
+  const [assignmentScope, setAssignmentScope] = useState<{
+    builderStageNumber: number
+    internalStageNumber: number
+    builderStageLabel: string
+  } | null>(null)
+  const [assignmentScopeComplete, setAssignmentScopeComplete] = useState(false)
   const [overlay, setOverlay] = useState<AhjOverlayContext | null>(null)
   const [stages, setStages] = useState<CompletionChecklistStageDefinition[]>([])
   const [items, setItems] = useState<WorkspaceItem[]>([])
@@ -967,6 +1004,14 @@ export function InspectorCompletionWorkspace() {
     [currentStage, stageSignOffs]
   )
 
+  const assignmentScopeStageSignOff = useMemo(
+    () => assignmentScope ? stageSignOffs[String(assignmentScope.internalStageNumber)] ?? null : null,
+    [assignmentScope, stageSignOffs]
+  )
+
+  const currentStageInAssignmentScope = !assignmentScope || currentStage === assignmentScope.internalStageNumber
+  const assignmentScopeIsComplete = assignmentScopeComplete || Boolean(assignmentScopeStageSignOff)
+
   const isFinalOccupancyStage = useMemo(
     () => stageItems.some(item => item.item_code === 'S15-02'),
     [stageItems]
@@ -1020,6 +1065,7 @@ export function InspectorCompletionWorkspace() {
   )
 
   const stageReadyForSignOff = useMemo(() => {
+    if (!currentStageInAssignmentScope) return false
     if (stageRequiredItems.length === 0) {
       return stageItems.length > 0 && stageItems.every(item => isStageItemReadyForSignOff(item, items))
     }
@@ -1027,7 +1073,7 @@ export function InspectorCompletionWorkspace() {
     return failedStageItems.length === 0
       && blockedStageItems.length === 0
       && requiredStageItemsComplete === stageRequiredItems.length
-  }, [blockedStageItems.length, failedStageItems.length, items, requiredStageItemsComplete, stageItems, stageRequiredItems.length])
+  }, [blockedStageItems.length, currentStageInAssignmentScope, failedStageItems.length, items, requiredStageItemsComplete, stageItems, stageRequiredItems.length])
 
   const stageCompletionPercent = (() => {
     const total = stageRequiredItems.length || stageItems.length
@@ -1042,6 +1088,7 @@ export function InspectorCompletionWorkspace() {
 
   const finalOccupancyReady = useMemo(() => {
     if (!isFinalOccupancyStage) return false
+    if (!currentStageInAssignmentScope) return false
     if (items.some(item => isRequiredStageItem(item) && getUnresolvedDependencyCodes(item, items).length > 0)) {
       return false
     }
@@ -1053,7 +1100,7 @@ export function InspectorCompletionWorkspace() {
 
       return status === 'passed'
     })
-  }, [currentStage, isFinalOccupancyStage, items, projectOverviewStages, stageReadyForSignOff])
+  }, [currentStage, currentStageInAssignmentScope, isFinalOccupancyStage, items, projectOverviewStages, stageReadyForSignOff])
 
   const sealPendingCount = unresolvedRequired.length
   const sealDocumentGapCount = missingDocuments.length
@@ -1061,7 +1108,12 @@ export function InspectorCompletionWorkspace() {
     isRequiredStageItem(item) && getUnresolvedDependencyCodes(item, items).length > 0
   ).length
   const hasOpenHold = activeJobHold !== null && isHoldOpenStatus(activeJobHold.status)
-  const sealReady = items.length > 0 && sealPendingCount === 0 && sealDocumentGapCount === 0 && sealDependencyBlockerCount === 0 && !hasOpenHold
+  const sealReady = (!assignmentScope || isFinalOccupancyStage)
+    && items.length > 0
+    && sealPendingCount === 0
+    && sealDocumentGapCount === 0
+    && sealDependencyBlockerCount === 0
+    && !hasOpenHold
   const workspaceJob = useMemo(
     () => (job ? store.jobs.find(candidate => candidate.id === job.id) : undefined),
     [job, store.jobs]
@@ -1422,7 +1474,13 @@ export function InspectorCompletionWorkspace() {
         notes: jobRow.notes,
         region: jobRow.region,
       })
+      const builderStageNumber = resolveBuilderStageNumber(jobRow.stage)
       const requestedChecklistStage = resolveRequestedChecklistStage(definitionSet.stages, jobRow.stage)
+      setAssignmentScope({
+        builderStageNumber,
+        internalStageNumber: requestedChecklistStage,
+        builderStageLabel: getBuilderStageLabel(builderStageNumber),
+      })
       setOverlay(definitionSet.overlay)
       setStages(definitionSet.stages)
 
@@ -1493,7 +1551,9 @@ export function InspectorCompletionWorkspace() {
       }
 
       setReport(ensuredReport)
-      setCurrentStage(ensuredReport.currentStage)
+      const ensuredStageSignOffs = getStageSignOffs(ensuredReport.sealPayload)
+      setAssignmentScopeComplete(Boolean(ensuredStageSignOffs[String(requestedChecklistStage)]))
+      setCurrentStage(requestedChecklistStage)
       setItems(mergeItems(definitionSet.stages, ensuredReport.id, assignmentId, bundle.items, bundle.documents))
       if (ensuredReport.sealApplied) setSealed(true)
       setLastSavedLabel(
@@ -1727,6 +1787,10 @@ export function InspectorCompletionWorkspace() {
 
   function navigateToStage(stageNumber: number) {
     setStageSignOffError(null)
+    if (assignmentScope && stageNumber !== assignmentScope.internalStageNumber) {
+      setStageSignOffError(getBuilderRequestMessageForCompletionStage(stageNumber))
+      return
+    }
     setCurrentStage(stageNumber)
   }
 
@@ -2392,9 +2456,16 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
         : item
     ))
 
-    const unlockedStages = getUnlockedFutureStages(nextItems, stages, currentStage)
+    const isScopedAssignmentCompletion = Boolean(
+      assignmentScope
+      && currentStage === assignmentScope.internalStageNumber
+      && assignmentScope.internalStageNumber !== 15
+    )
+    const unlockedStages = isScopedAssignmentCompletion ? [] : getUnlockedFutureStages(nextItems, stages, currentStage)
     const sequentialNextStage = getNextSequentialStage(stages, currentStage)
-    const nextStage = unlockedStages[0] ?? sequentialNextStage?.stage_number ?? currentStage
+    const nextStage = isScopedAssignmentCompletion
+      ? currentStage
+      : unlockedStages[0] ?? sequentialNextStage?.stage_number ?? currentStage
     const nextStageSignOffs = {
       ...stageSignOffs,
       [String(currentStage)]: {
@@ -2410,6 +2481,8 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
     }
 
     const saved = await persistDraft(nextItems, nextStage, {
+      status: isScopedAssignmentCompletion ? 'submitted' : report.status,
+      submittedAt: isScopedAssignmentCompletion ? signedAt : report.submittedAt,
       sealPayload: {
         ...report.sealPayload,
         stageSignOffs: nextStageSignOffs,
@@ -2419,6 +2492,59 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
     if (!saved) {
       setStageSigning(false)
       setStageSignOffError('The stage sign-off could not be saved. Please try again.')
+      return
+    }
+
+    if (isScopedAssignmentCompletion && assignmentScope) {
+      setItems(nextItems)
+      setAssignmentScopeComplete(true)
+      setCurrentStage(currentStage)
+
+      if (!previewMode) {
+        if (job.status !== 'completed') {
+          const jobUpdated = await updateJobStatus(
+            job.id,
+            'completed',
+            signedById,
+            'inspector',
+            `${assignmentScope.builderStageLabel} Vero inspection record complete`,
+            job.status as Parameters<typeof updateJobStatus>[5],
+          )
+
+          if (!jobUpdated) {
+            reportPersistenceFailure(
+              'The stage record was saved, but Vero could not update the inspection request status. Please refresh and verify the job state.',
+              { jobId: job.id, inspectorId: signedById },
+            )
+          } else {
+            setJob(current => current ? { ...current, status: 'completed' } : current)
+          }
+        }
+
+        await completeJobAssignment(assignment.id, signedById)
+      }
+
+      if (anomalyReview.geofenceState.state === 'anomalous' && report && assignment && job) {
+        await createFieldGeoAnomaly({
+          assignmentId: assignment.id,
+          jobId: job.id,
+          reportId: report.id,
+          anomalyType: 'stage_check_in_out_of_range',
+          distanceMeters: anomalyReview.geofenceState.distanceMeters,
+          thresholdMeters: anomalyReview.geofenceState.thresholdMeters,
+          explanation: anomalyReview.explanation,
+          inspectorId: activeUser?.supabaseId ?? activeUser?.id,
+          metadata: {
+            stageNumber: currentStage,
+          },
+        })
+      }
+
+      setLastSavedLabel(`${assignmentScope.builderStageLabel} complete`)
+      if (location.error) {
+        setStageSignOffError(location.error)
+      }
+      setStageSigning(false)
       return
     }
 
@@ -2758,6 +2884,31 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
             </div>
           </div>
         )}
+        {assignmentScope && assignmentScopeIsComplete && !isFinalOccupancyStage && (
+          <div className={`mb-6 rounded-[1.75rem] border border-emerald-400/40 bg-emerald-100 px-5 py-4 text-emerald-950 ${FLOATING_PANEL_CLASS}`}>
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" />
+                <div>
+                  <div className="text-[11px] font-black uppercase tracking-[0.18em] text-emerald-800/80">Assignment Scope Complete</div>
+                  <div className="mt-1 text-lg font-black text-emerald-950">
+                    {assignmentScope.builderStageLabel} inspection complete.
+                  </div>
+                  <div className="mt-1 text-sm text-emerald-900">
+                    The builder can request the next inspection stage when ready.
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => router.push('/inspector')}
+                className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-2xl bg-emerald-800 px-4 py-2.5 text-xs font-black text-white transition-colors hover:bg-emerald-900"
+              >
+                Return to Inspector Board <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
           <aside className={`completion-sidebar rounded-[2rem] border border-white/10 bg-[#0a1020] p-4 lg:w-[300px] lg:flex-none lg:h-auto lg:min-h-full lg:sticky lg:top-4 lg:self-start lg:max-h-none lg:overflow-visible ${FLOATING_PANEL_CLASS}`}>
             {previewMode && (
@@ -2859,15 +3010,25 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         {phase.stages.map(({ stage, total, resolved, status, unlocked, signOff }) => {
                           const stageCode = `S${String(stage.stage_number).padStart(2, '0')}`
                           const isCurrent = currentStage === stage.stage_number
-                          const isClickable = status !== 'pending'
+                          const isInAssignmentScope = !assignmentScope || stage.stage_number === assignmentScope.internalStageNumber
+                          const isClickable = isInAssignmentScope && status !== 'pending'
+                          const scopeLockMessage = isInAssignmentScope
+                            ? null
+                            : stage.stage_number > (assignmentScope?.internalStageNumber ?? 0)
+                              ? getBuilderRequestMessageForCompletionStage(stage.stage_number)
+                              : 'Outside this builder request scope.'
                           const containerClass =
-                            status === 'passed'
+                            !isInAssignmentScope
+                              ? 'border-white/8 bg-white/[0.03]'
+                              : status === 'passed'
                               ? 'border-emerald-500/30 bg-emerald-500/10'
                               : status === 'active'
                                 ? 'border-cyan-500/30 bg-cyan-500/10'
                                 : 'border-white/8 bg-white/[0.03]'
                           const badgeClass =
-                            status === 'passed'
+                            !isInAssignmentScope
+                              ? 'border-white/10 bg-white/5 text-zinc-400'
+                              : status === 'passed'
                               ? 'border-emerald-400/30 bg-emerald-400/15 text-emerald-200'
                               : status === 'active'
                                 ? 'border-cyan-400/30 bg-cyan-400/15 text-cyan-200'
@@ -2896,7 +3057,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                       {stageCode}
                                     </span>
                                     <span className={`rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] ${badgeClass}`}>
-                                      {status === 'passed' ? 'Passed' : status === 'active' ? 'Active' : 'Locked'}
+                                      {!isInAssignmentScope ? 'Locked' : status === 'passed' ? 'Passed' : status === 'active' ? 'Active' : 'Locked'}
                                     </span>
                                     {isCurrent && (
                                       <span className="rounded-full border border-[#FF5F15]/40 bg-[#FF5F15]/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-[#FFB089]">
@@ -2906,7 +3067,9 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                   </div>
                                   <div className="mt-2 text-sm font-bold text-zinc-100">{stage.stage_name}</div>
                                   <div className="mt-1 text-[11px] text-zinc-400">
-                                    {status === 'passed'
+                                    {scopeLockMessage
+                                      ? scopeLockMessage
+                                      : status === 'passed'
                                       ? `Signed ${signOff ? new Date(signOff.signedAt).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' }) : ''}`.trim()
                                       : unlocked
                                         ? 'Unlocked and ready for field work.'
@@ -4389,7 +4552,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
               </div>
             )}
 
-            {!isFinalOccupancyStage && (
+            {!isFinalOccupancyStage && !assignmentScope && (
               <div className={`rounded-[2rem] border border-white/10 bg-[#0a1020] p-5 ${FLOATING_PANEL_CLASS}`}>
                 <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                   <div>
@@ -4466,7 +4629,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4">
           <button
             type="button"
-            disabled={currentStage === 1}
+            disabled={currentStage === 1 || Boolean(assignmentScope)}
             onClick={() => navigateToStage(Math.max(1, currentStage - 1))}
             className="inline-flex min-h-[48px] items-center gap-2 rounded-2xl border border-white/10 px-5 py-3 text-sm font-bold text-zinc-200 disabled:cursor-not-allowed disabled:opacity-40"
           >
@@ -4487,7 +4650,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
             )}
             <button
               type="button"
-              disabled={currentStage === stages.length || footerIssueCount > 0}
+              disabled={currentStage === stages.length || footerIssueCount > 0 || Boolean(assignmentScope)}
               onClick={() => navigateToStage(Math.min(stages.length, currentStage + 1))}
               className={`inline-flex min-h-[48px] items-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold text-white ${
                 footerIssueCount > 0
