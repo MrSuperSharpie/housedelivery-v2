@@ -76,6 +76,16 @@ type CompletionReportSummary = {
   updatedAt?: string
 }
 
+type PermitProgressProject = {
+  key: string
+  projectName: string
+  address: string
+  city?: string
+  representativeJob?: JobOpportunityRow
+  sourceProject?: Project
+  jobs: JobOpportunityRow[]
+}
+
 const OBJECTION_REASONS: { value: ObjectionReason; label: string; desc: string }[] = [
   { value: 'conflict_of_interest',    label: 'Conflict of interest',      desc: 'Inspector has a personal or financial conflict with this project.' },
   { value: 'access_concern',          label: 'Access concern',            desc: 'Inspector cannot safely or practically access the site.' },
@@ -403,6 +413,17 @@ function getBuilderStageStatus(input: {
   if (!job && (isFirstStage || previousStagePassed)) return 'available_next'
   if (!job) return 'locked'
   return 'not_requested'
+}
+
+function getPermitProgressGroupKey(job: JobOpportunityRow): string {
+  if (job.projectId) return job.projectId
+  return [
+    job.builderId,
+    job.permitNumber ?? '',
+    String(job.projectName ?? '').trim().toLowerCase(),
+    String(job.address ?? '').trim().toLowerCase(),
+    String(job.city ?? '').trim().toLowerCase(),
+  ].join('|')
 }
 
 const BUILDER_STAGE_STATUS_COPY: Record<BuilderStageStatus, { label: string; cls: string }> = {
@@ -1001,9 +1022,62 @@ export default function BuilderDashboard() {
     return (dbJobs ?? [])
       .filter(candidate => {
         if (job.projectId && candidate.projectId) return candidate.projectId === job.projectId
+        if (!job.projectId && !candidate.projectId) return getPermitProgressGroupKey(candidate) === getPermitProgressGroupKey(job)
         return candidate.id === job.id
       })
       .sort((a, b) => a.stage - b.stage || a.requestedAt.localeCompare(b.requestedAt))
+  }
+  const permitProgressProjects: PermitProgressProject[] = (() => {
+    const groups = new Map<string, PermitProgressProject>()
+    for (const job of dbJobs ?? []) {
+      const key = getPermitProgressGroupKey(job)
+      const existing = groups.get(key)
+      if (existing) {
+        existing.jobs.push(job)
+        existing.jobs.sort((a, b) => a.stage - b.stage || a.requestedAt.localeCompare(b.requestedAt))
+        existing.representativeJob = existing.jobs[0]
+      } else {
+        groups.set(key, {
+          key,
+          projectName: job.projectName || 'Inspection project',
+          address: job.address,
+          city: job.city,
+          representativeJob: job,
+          jobs: [job],
+        })
+      }
+    }
+
+    const projectRowsWithoutJobs = supabaseProjects ?? (dbJobs === null ? storeProjects : [])
+    for (const project of projectRowsWithoutJobs) {
+      if (groups.has(project.id)) continue
+      groups.set(project.id, {
+        key: project.id,
+        projectName: project.name || 'Inspection project',
+        address: project.address,
+        city: project.city,
+        sourceProject: project,
+        jobs: [],
+      })
+    }
+
+    return Array.from(groups.values()).sort((a, b) => a.projectName.localeCompare(b.projectName))
+  })()
+  const buildStageScorecard = (relatedJobs: JobOpportunityRow[]) => {
+    let previousStagePassed = true
+    return BUILDER_STAGE_DEFINITIONS.map((stage, index) => {
+      const stageJob = relatedJobs.find(candidate => candidate.stage === stage.number)
+      const report = stageJob ? completionReportsByJobId[stageJob.id] : undefined
+      const status = getBuilderStageStatus({
+        stage,
+        job: stageJob,
+        report,
+        previousStagePassed,
+        isFirstStage: index === 0,
+      })
+      previousStagePassed = status === 'passed'
+      return { stage, stageJob, report, status }
+    })
   }
   const buildProjectRequestForStage = (job: JobOpportunityRow, stage: BuilderStageDefinition): Project => ({
     id: job.projectId ?? job.id,
@@ -1025,6 +1099,22 @@ export default function BuilderDashboard() {
     updatedAt: job.updatedAt,
     dispatchTier: job.dispatchTier,
   })
+  const buildProjectRequestForProgressStage = (progressProject: PermitProgressProject, stage: BuilderStageDefinition): Project | null => {
+    if (progressProject.representativeJob) {
+      return buildProjectRequestForStage(progressProject.representativeJob, stage)
+    }
+    if (!progressProject.sourceProject) return null
+    return {
+      ...progressProject.sourceProject,
+      currentStage: stage.number,
+      status: 'pending',
+      stages: [{
+        stageNumber: stage.number,
+        stageName: stage.label.replace(/^Stage \d+ — /, ''),
+        status: 'pending' as InspectionStatus,
+      }],
+    }
+  }
 
   // FIX #4: show spinner while either projects OR jobs are loading
   const isLoading = isLoadingProjects || isLoadingJobs
@@ -1326,6 +1416,96 @@ export default function BuilderDashboard() {
             isResponding={modHoldResponding === hold.id}
           />
         ))}
+            </div>
+          </section>
+        )}
+
+        {/* ── Permit Stage Progress ── */}
+        {permitProgressProjects.length > 0 && (
+          <section className="mb-6">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-muted">Permit Stage Progress</div>
+                <div className="mt-1 text-sm font-extrabold text-ink">Project Permit Progress</div>
+              </div>
+              <div className="rounded-full border border-rim bg-panel px-3 py-1 text-[10px] font-black uppercase tracking-wide text-muted">
+                {permitProgressProjects.length} project{permitProgressProjects.length === 1 ? '' : 's'}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {permitProgressProjects.map(progressProject => {
+                const stageScorecard = buildStageScorecard(progressProject.jobs)
+                const availableStage = stageScorecard.find(entry => entry.status === 'available_next')
+                const passedStages = stageScorecard.filter(entry => entry.status === 'passed')
+                const latestPassedStage = passedStages[passedStages.length - 1]
+                const requestProject = availableStage
+                  ? buildProjectRequestForProgressStage(progressProject, availableStage.stage)
+                  : null
+                return (
+                  <div key={progressProject.key} className="card-dark rounded-2xl border border-rim p-4">
+                    <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-extrabold text-ink">{progressProject.projectName}</div>
+                        {progressProject.address && (
+                          <div className="mt-1 flex items-center gap-1 text-xs font-medium text-muted">
+                            <MapPin className="h-3 w-3 shrink-0" />
+                            <span className="truncate">{progressProject.address}{progressProject.city ? `, ${progressProject.city}` : ''}</span>
+                          </div>
+                        )}
+                        <div className="mt-2 text-xs font-semibold text-muted">
+                          {latestPassedStage
+                            ? `${latestPassedStage.stage.label.split(' — ')[0]} passed · Vero inspection record complete`
+                            : 'No Vero inspection stage has been completed yet'}
+                        </div>
+                      </div>
+
+                      {availableStage && requestProject && (
+                        <button
+                          type="button"
+                          onClick={() => handleRequestInspection(requestProject)}
+                          className="shrink-0 rounded-xl bg-flame px-3 py-2 text-[11px] font-black text-white transition-colors hover:bg-flame-light"
+                        >
+                          Request {availableStage.stage.label.split(' — ')[0]} Inspection
+                        </button>
+                      )}
+                    </div>
+
+                    {availableStage && (
+                      <div className="mb-3 rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs font-semibold text-emerald-100">
+                        {latestPassedStage
+                          ? `${latestPassedStage.stage.label.split(' — ')[0]} passed. ${availableStage.stage.label.split(' — ')[0]} is available for request when ready.`
+                          : `${availableStage.stage.label.split(' — ')[0]} is available for request when ready.`}
+                      </div>
+                    )}
+
+                    <div className="grid gap-2 md:grid-cols-5">
+                      {stageScorecard.map(({ stage, stageJob, status }) => {
+                        const copy = BUILDER_STAGE_STATUS_COPY[status]
+                        return (
+                          <div key={stage.number} className={`rounded-xl border px-3 py-2 ${copy.cls}`}>
+                            <div className="text-[10px] font-black uppercase tracking-wide">{stage.label.split(' — ')[0]}</div>
+                            <div className="mt-1 min-h-8 text-[11px] font-semibold leading-snug">{stage.label.split(' — ')[1]}</div>
+                            <div className="mt-2 text-[10px] font-black uppercase tracking-wide">{copy.label}</div>
+                            {status === 'passed' && (
+                              <div className="mt-1 text-[10px] font-semibold normal-case tracking-normal">Vero inspection record complete</div>
+                            )}
+                            {status === 'passed' && stageJob && (
+                              <button
+                                type="button"
+                                onClick={() => router.push('/vault')}
+                                className="mt-2 text-[10px] font-black underline decoration-current/40 underline-offset-2"
+                              >
+                                View Stage Record
+                              </button>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </section>
         )}
