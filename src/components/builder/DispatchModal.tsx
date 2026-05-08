@@ -97,12 +97,19 @@ const STAGE_WORKFLOW_DESCRIPTIONS: Record<number, string> = {
 }
 
 const STAGE_PERMIT_REQUIRED_MESSAGE = 'Permit number is required for Stage 2 and later inspections.'
+const PERMIT_REFERENCE_MATCHES_PROJECT_MESSAGE =
+  'Permit reference cannot match the project name. Enter the issued permit number or municipal file reference.'
+
+function formatProjectAddress(project: Project | null | undefined) {
+  if (!project) return ''
+  return [project.address, project.city].filter(Boolean).join(', ')
+}
 
 export function DispatchModal({ project, isOpen, onClose, onDispatch }: DispatchModalProps) {
   const { user }    = useAuth()
   const { addJob }  = useStore()
   const [step, setStep]                     = useState<Step>('address')
-  const [address, setAddress]               = useState(project ? `${project.address}, ${project.city}` : '')
+  const [address, setAddress]               = useState(formatProjectAddress(project))
   const [permitNumber, setPermitNumber]     = useState(project?.permitNumber ?? '')
   const [projectName, setProjectName]       = useState(project?.name ?? '')
   const [selectedStage, setSelectedStage]   = useState<number | null>(project?.currentStage ?? null)
@@ -130,6 +137,12 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
   const [locationError, setLocationError] = useState<string | null>(null)
   const [locationHint, setLocationHint] = useState<string | null>(null)
   const addressInputRef = useRef<HTMLInputElement | null>(null)
+  const manuallyEditedRef = useRef({
+    address: false,
+    permitNumber: false,
+    projectName: false,
+    selectedStage: false,
+  })
 
   const toggleItem = (arr: string[], setArr: (a: string[]) => void, id: string) =>
     setArr(arr.includes(id) ? arr.filter(x => x !== id) : [...arr, id])
@@ -154,9 +167,29 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
     return () => clearInterval(interval)
   }, [step])
 
+  useEffect(() => {
+    if (!isOpen || !project) return
+
+    const nextAddress = formatProjectAddress(project)
+    if (!manuallyEditedRef.current.address) setAddress(nextAddress)
+    if (!manuallyEditedRef.current.projectName) setProjectName(project.name ?? '')
+    if (!manuallyEditedRef.current.permitNumber) setPermitNumber(project.permitNumber ?? '')
+    if (!manuallyEditedRef.current.selectedStage) {
+      setSelectedStage(project.currentStage ?? null)
+      setSelectedDisc(STAGE_TO_DISCIPLINE[project.currentStage ?? 0] ?? null)
+    }
+    if (project.permitNumber?.trim()) setPermitError(null)
+  }, [isOpen, project])
+
   const reset = () => {
     setStep('address')
-    setAddress(project ? `${project.address}, ${project.city}` : '')
+    manuallyEditedRef.current = {
+      address: false,
+      permitNumber: false,
+      projectName: false,
+      selectedStage: false,
+    }
+    setAddress(formatProjectAddress(project))
     setPermitNumber(project?.permitNumber ?? '')
     setProjectName(project?.name ?? '')
     setSelectedStage(project?.currentStage ?? null)
@@ -188,13 +221,21 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
 
   const requiresPermitNumber = (stage: number | null | undefined) => (stage ?? 1) >= 2
   const permitNumberIsMissing = requiresPermitNumber(selectedStage) && !permitNumber.trim()
-  const requirePermitBeforeContinuing = () => {
-    if (!permitNumberIsMissing) return false
-    setPermitError(STAGE_PERMIT_REQUIRED_MESSAGE)
-    setStep('address')
-    return true
+  const permitReferenceMatchesProjectName =
+    Boolean(permitNumber.trim() && projectName.trim() && permitNumber.trim() === projectName.trim())
+  const validatePermitReferenceBeforeContinuing = () => {
+    if (permitNumberIsMissing) {
+      setPermitError(STAGE_PERMIT_REQUIRED_MESSAGE)
+      setStep('address')
+      return true
+    }
+    if (requiresPermitNumber(selectedStage) && permitReferenceMatchesProjectName) {
+      setPermitError(PERMIT_REFERENCE_MATCHES_PROJECT_MESSAGE)
+      setStep('address')
+      return true
+    }
+    return false
   }
-
   const handleUseCurrentLocation = () => {
     setLocationError(null)
     setLocationHint(null)
@@ -209,6 +250,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
       ({ coords }) => {
         const lat = coords.latitude.toFixed(6)
         const lng = coords.longitude.toFixed(6)
+        manuallyEditedRef.current.address = true
         setAddress(`Current location (${lat}, ${lng})`)
         setLocationHint('GPS coordinates inserted. You can refine the civic address if needed.')
         setIsLocating(false)
@@ -247,7 +289,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
       return
     }
 
-    if (requirePermitBeforeContinuing()) return
+    if (validatePermitReferenceBeforeContinuing()) return
 
     const stageInfo = INSPECTION_STAGES.find(s => s.id === (selectedStage ?? 1))
     const cityPart  = address.includes(',')
@@ -403,7 +445,10 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
               ref={addressInputRef}
               type="text"
               value={address}
-              onChange={e => setAddress(e.target.value)}
+              onChange={e => {
+                manuallyEditedRef.current.address = true
+                setAddress(e.target.value)
+              }}
               placeholder="123 Main St, Vancouver, BC"
               className="w-full rounded-xl border-2 border-gray-200 bg-white py-3.5 pl-13 pr-4 text-sm font-medium text-gray-900 caret-gray-900 transition-colors placeholder:text-gray-400 focus:border-flame focus:ring-1 focus:ring-flame/30 focus:outline-none"
             />
@@ -418,7 +463,10 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             <div className="relative z-10 mb-4 overflow-hidden rounded-xl border border-gray-100 bg-gray-50">
               <div className="px-3 py-2 text-xs text-gray-400 font-semibold tracking-wide uppercase border-b border-gray-100">Recent Sites</div>
               {['2847 Cornwall Ave, Vancouver, BC', '155 E 10th Ave, Vancouver, BC', '4521 Kingsway, Burnaby, BC'].map(a => (
-                <button key={a} onClick={() => setAddress(a)}
+                <button key={a} onClick={() => {
+                  manuallyEditedRef.current.address = true
+                  setAddress(a)
+                }}
                   className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-100 transition-colors text-left">
                   <Clock className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                   <span className="text-sm text-gray-700">{a}</span>
@@ -427,34 +475,47 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             </div>
           )}
 
-          <input type="text" value={projectName} onChange={e => setProjectName(e.target.value)}
+          <input type="text" value={projectName} onChange={e => {
+            manuallyEditedRef.current.projectName = true
+            setProjectName(e.target.value)
+            if (permitNumber.trim() !== e.target.value.trim()) setPermitError(null)
+          }}
             placeholder="Project name (e.g. Kitsilano Infill Duplex)"
             className="relative z-10 mb-3 w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-3.5 text-sm font-medium text-gray-900 caret-gray-900 transition-colors placeholder:text-gray-400 focus:border-flame focus:ring-1 focus:ring-flame/30 focus:outline-none" />
 
+          <label htmlFor="permit-reference" className="mb-1 block px-1 text-xs font-black uppercase tracking-wide text-gray-600">
+            Permit number or municipal file reference
+          </label>
           <div className="relative z-10 mb-1">
-            <input type="text" value={permitNumber} onChange={e => {
+            <input id="permit-reference" type="text" value={permitNumber} onChange={e => {
+              manuallyEditedRef.current.permitNumber = true
               setPermitNumber(e.target.value)
               if (e.target.value.trim()) setPermitError(null)
             }}
-              placeholder={requiresPermitNumber(selectedStage) ? 'Building permit # or formal permit reference' : 'Building permit # (optional for Stage 1)'}
-              aria-invalid={permitError || permitNumberIsMissing ? 'true' : 'false'}
+              placeholder={requiresPermitNumber(selectedStage) ? 'Permit number or municipal file reference' : 'Permit number or municipal file reference'}
+              aria-invalid={permitError || permitNumberIsMissing || permitReferenceMatchesProjectName ? 'true' : 'false'}
               className={`w-full rounded-xl border-2 bg-white px-4 py-3.5 text-sm font-medium font-mono text-gray-900 caret-gray-900 transition-colors placeholder:text-gray-400 focus:ring-1 focus:outline-none ${
-                permitError || permitNumberIsMissing
+                permitError || permitNumberIsMissing || permitReferenceMatchesProjectName
                   ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20'
                   : 'border-gray-200 focus:border-flame focus:ring-flame/30'
               }`} />
           </div>
-          {permitError || permitNumberIsMissing ? (
-            <p className="text-xs text-red-600 font-semibold mb-5 px-1">{permitError ?? STAGE_PERMIT_REQUIRED_MESSAGE}</p>
+          {permitError || permitNumberIsMissing || (requiresPermitNumber(selectedStage) && permitReferenceMatchesProjectName) ? (
+            <p className="text-xs text-red-600 font-semibold mb-5 px-1">
+              {permitError ?? (permitReferenceMatchesProjectName ? PERMIT_REFERENCE_MATCHES_PROJECT_MESSAGE : STAGE_PERMIT_REQUIRED_MESSAGE)}
+            </p>
           ) : (
             <p className="text-xs text-gray-400 mb-5 px-1">
               {requiresPermitNumber(selectedStage)
-                ? 'Stage 2 and later inspections must reference the issued permit or formal permit file before posting.'
-                : 'Stage 1 may be posted before the permit is issued. Add a permit number if you already have it, or leave it blank for permit pending / pre-permit review.'}
+                ? 'Required for Stage 2 and later. Enter the issued building permit number or formal municipal permit file reference. Vero records this reference but does not independently verify it with the municipality.'
+                : 'Stage 1 may be posted before the permit is issued. Add a permit number if available, or leave blank for pre-permit review.'}
             </p>
           )}
 
-          <Button variant="primary" size="lg" fullWidth disabled={!address.trim() || permitNumberIsMissing} onClick={() => setStep('schedule')}>
+          <Button variant="primary" size="lg" fullWidth disabled={!address.trim() || permitNumberIsMissing} onClick={() => {
+            if (validatePermitReferenceBeforeContinuing()) return
+            setStep('schedule')
+          }}>
             Continue <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
@@ -521,7 +582,12 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
               const isSelected = selectedStage === stage.id
               const workflowDescription = STAGE_WORKFLOW_DESCRIPTIONS[stage.id] ?? stage.description
               return (
-                <button key={stage.id} onClick={() => { setSelectedStage(stage.id); setSelectedDisc(STAGE_TO_DISCIPLINE[stage.id] ?? null) }}
+                <button key={stage.id} onClick={() => {
+                  manuallyEditedRef.current.selectedStage = true
+                  setSelectedStage(stage.id)
+                  setSelectedDisc(STAGE_TO_DISCIPLINE[stage.id] ?? null)
+                  if (stage.id < 2 || permitNumber.trim()) setPermitError(null)
+                }}
                   className={`w-full text-left rounded-xl border-2 p-4 transition-all ${
                     isSelected ? 'border-flame bg-orange-50' : 'border-gray-200 hover:border-gray-300 bg-white'
                   }`}>
@@ -546,7 +612,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
           </p>
 
           <Button variant="primary" size="lg" fullWidth disabled={!selectedStage} onClick={() => {
-            if (requirePermitBeforeContinuing()) return
+            if (validatePermitReferenceBeforeContinuing()) return
             setStep('discipline')
           }}>
             Continue <ChevronRight className="w-4 h-4" />
