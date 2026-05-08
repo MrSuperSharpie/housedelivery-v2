@@ -534,9 +534,15 @@ export async function insertJobOpportunity(
   const projectReadiness = job.projectId
     ? await getDbProjectReadiness(job.projectId)
     : null
+  const jobIdentityReady = Boolean(job.projectName && job.address && job.city)
   const projectIdentityReady = projectReadiness
-    ? projectReadiness.blockers.filter(blocker => blocker !== PERMIT_NUMBER_READINESS_BLOCKER).length === 0
-    : Boolean(job.projectName && job.address && job.city)
+    ? jobIdentityReady && projectReadiness.blockers
+      .filter(blocker => blocker !== PERMIT_NUMBER_READINESS_BLOCKER)
+      .filter(blocker => !(blocker === 'Project name is required.' && job.projectName))
+      .filter(blocker => !(blocker === 'Project address is required.' && job.address))
+      .filter(blocker => !(blocker === 'Project city is required.' && job.city))
+      .length === 0
+    : jobIdentityReady
   const governance = validateJobPostingGovernance({
     jobId: undefined,
     projectId: job.projectId,

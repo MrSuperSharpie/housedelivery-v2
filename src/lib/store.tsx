@@ -598,9 +598,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const estimatedDurationMinutes = pricing.pricingMode === 'specialist_hourly'
       ? Math.max(90, Math.round(pricing.billableHours * 60))
       : 120
-    const dbProject = input.projectId ? projects.find(project => project.id === input.projectId) : null
     const normalizedRegion = normalizeRegionFromCity(input.city)
     const dispatchRegion = normalizedRegion ?? ('' as Region)
+    const projectIdentityComplete = Boolean(input.projectName && input.address && input.city)
 
     const governance = validateJobPostingGovernance({
       jobId: provisionalId,
@@ -616,9 +616,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       region: dispatchRegion,
       stage: input.stage,
       stageName: input.stageName,
-      projectComplete: dbProject
-        ? Boolean(dbProject.name && dbProject.address && dbProject.city)
-        : Boolean(input.projectName && input.address && input.city),
+      projectComplete: projectIdentityComplete,
       dependencySealed: true,
       escrowAuthorized: true,
     })

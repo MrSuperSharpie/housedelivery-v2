@@ -105,6 +105,17 @@ function formatProjectAddress(project: Project | null | undefined) {
   return [project.address, project.city].filter(Boolean).join(', ')
 }
 
+function getPostingIdentity(address: string, project: Project | null | undefined) {
+  const trimmedAddress = address.trim()
+  const addressParts = trimmedAddress.split(',').map(part => part.trim()).filter(Boolean)
+  return {
+    siteAddress: addressParts[0] ?? trimmedAddress,
+    city: addressParts.length > 1
+      ? addressParts.slice(1).join(', ')
+      : project?.city?.trim() ?? '',
+  }
+}
+
 export function DispatchModal({ project, isOpen, onClose, onDispatch }: DispatchModalProps) {
   const { user }    = useAuth()
   const { addJob }  = useStore()
@@ -223,7 +234,38 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
   const permitNumberIsMissing = requiresPermitNumber(selectedStage) && !permitNumber.trim()
   const permitReferenceMatchesProjectName =
     Boolean(permitNumber.trim() && projectName.trim() && permitNumber.trim() === projectName.trim())
+  const validateProjectIdentityBeforeContinuing = () => {
+    setPostError(null)
+    const identity = getPostingIdentity(address, project)
+    if (!projectName.trim()) {
+      setPostError('Project name is required.')
+      setStep('address')
+      return true
+    }
+    if (!identity.siteAddress.trim()) {
+      setPostError('Site address is required.')
+      setStep('address')
+      return true
+    }
+    if (!identity.city.trim()) {
+      setPostError('City or municipality is required.')
+      setStep('address')
+      return true
+    }
+    if (!selectedStage) {
+      setPostError('Inspection stage is required.')
+      setStep('stage')
+      return true
+    }
+    if (!selectedDisc) {
+      setPostError('Discipline is required.')
+      setStep('discipline')
+      return true
+    }
+    return false
+  }
   const validatePermitReferenceBeforeContinuing = () => {
+    setPostError(null)
     if (permitNumberIsMissing) {
       setPermitError(STAGE_PERMIT_REQUIRED_MESSAGE)
       setStep('address')
@@ -277,11 +319,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
   const handlePost = async () => {
     setPostError(null)
 
-    if (!address.trim()) {
-      setPostError('Enter a British Columbia project location before posting.')
-      setStep('address')
-      return
-    }
+    if (validateProjectIdentityBeforeContinuing()) return
 
     if (!hasValidSchedulingWindow) {
       setPostError('Add at least one valid availability window for the selected dispatch speed before posting.')
@@ -292,17 +330,15 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
     if (validatePermitReferenceBeforeContinuing()) return
 
     const stageInfo = INSPECTION_STAGES.find(s => s.id === (selectedStage ?? 1))
-    const cityPart  = address.includes(',')
-      ? address.split(',').slice(1).join(',').trim()
-      : address.trim()
+    const identity = getPostingIdentity(address, project)
 
     const approvalStatus = await getBuilderOnboardingStatusAsync(user?.id, user?.supabaseId)
 
     const result = await addJob({
       projectId:             project?.id,
-      projectName:          projectName || address.split(',')[0].trim() || 'New Project',
-      address:              address.split(',')[0].trim() || address,
-      city:                 cityPart,
+      projectName:          projectName.trim(),
+      address:              identity.siteAddress,
+      city:                 identity.city,
       permitNumber:         permitNumber,
       stage:                selectedStage ?? 1,
       stageName:            stageInfo?.name ?? 'Site Survey',
@@ -424,6 +460,12 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
         </div>
       )}
 
+      {postError && step !== 'confirm' && (
+        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-semibold text-red-600">
+          {postError}
+        </div>
+      )}
+
       {/* ─── STEP 1: ADDRESS ─────────────────────── */}
       {step === 'address' && (
         <div>
@@ -513,6 +555,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
           )}
 
           <Button variant="primary" size="lg" fullWidth disabled={!address.trim() || permitNumberIsMissing} onClick={() => {
+            setPostError(null)
             if (validatePermitReferenceBeforeContinuing()) return
             setStep('schedule')
           }}>
@@ -612,6 +655,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
           </p>
 
           <Button variant="primary" size="lg" fullWidth disabled={!selectedStage} onClick={() => {
+            setPostError(null)
             if (validatePermitReferenceBeforeContinuing()) return
             setStep('discipline')
           }}>
@@ -866,7 +910,11 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
           </div>
 
           <div className="sticky bottom-0 -mx-5 -mb-5 px-5 pt-3 pb-5 bg-white/95 backdrop-blur border-t border-gray-100 z-10">
-            <Button variant="primary" size="lg" fullWidth disabled={!hasValidSchedulingWindow} onClick={() => setStep('vault')}>
+            <Button variant="primary" size="lg" fullWidth disabled={!hasValidSchedulingWindow} onClick={() => {
+              if (validateProjectIdentityBeforeContinuing()) return
+              if (validatePermitReferenceBeforeContinuing()) return
+              setStep('vault')
+            }}>
               Review Listing <ChevronRight className="w-4 h-4" />
             </Button>
             {!hasValidSchedulingWindow && (
@@ -1257,6 +1305,8 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                 loading={paymentLoading}
                 disabled={!siteAgreed}
                 onClick={async () => {
+                  if (validateProjectIdentityBeforeContinuing()) return
+                  if (validatePermitReferenceBeforeContinuing()) return
                   setPaymentLoading(true)
                   await new Promise(r => setTimeout(r, 1400))
                   setPaymentLoading(false)
