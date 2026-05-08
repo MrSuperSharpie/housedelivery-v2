@@ -410,12 +410,16 @@ function dependencyStatusSatisfiesGate(item: WorkspaceItem | undefined): boolean
   return item?.inspection_status === 'Passed' || item?.inspection_status === 'N/A'
 }
 
-function getUnresolvedDependencyCodes(item: WorkspaceItem, items: WorkspaceItem[]): string[] {
+function getUnresolvedDependencyCodes(item: WorkspaceItem, items: WorkspaceItem[], scopedToStageNumber?: number): string[] {
   if (item.inspection_status === 'N/A') return []
 
   return item.dependencies.filter(dep => {
     const dependency = items.find(candidate => candidate.item_code === dep)
-    return dependency ? !dependencyStatusSatisfiesGate(dependency) : false
+    if (!dependency) return false
+    // In a scoped assignment, dependencies from earlier stages are treated as already satisfied.
+    // The builder's request implicitly asserts prior stages are complete.
+    if (scopedToStageNumber !== undefined && dependency.stage_number < scopedToStageNumber) return false
+    return !dependencyStatusSatisfiesGate(dependency)
   })
 }
 
@@ -432,11 +436,11 @@ function isChecklistEntryComplete(item: WorkspaceItem, checklistLabel: string): 
   return entryState.checked === true && hasRequiredEvidence
 }
 
-function isStageItemReadyForSignOff(item: WorkspaceItem, items: WorkspaceItem[]): boolean {
+function isStageItemReadyForSignOff(item: WorkspaceItem, items: WorkspaceItem[], scopedToStageNumber?: number): boolean {
   if (item.inspection_status === 'Failed') return false
   if (item.inspection_status === 'N/A') return true
   if (item.inspection_status !== 'Passed') return false
-  if (getUnresolvedDependencyCodes(item, items).length > 0) return false
+  if (getUnresolvedDependencyCodes(item, items, scopedToStageNumber).length > 0) return false
 
   const checklistItems = getRuntimeChecklistItems(item)
   const checklistReady = checklistItems.length === 0
@@ -446,10 +450,10 @@ function isStageItemReadyForSignOff(item: WorkspaceItem, items: WorkspaceItem[])
   return checklistReady && itemHasRequiredDocument(item)
 }
 
-function getFirstIncompleteStageItem(items: WorkspaceItem[], stageNumber: number): WorkspaceItem | null {
+function getFirstIncompleteStageItem(items: WorkspaceItem[], stageNumber: number, scopedToStageNumber?: number): WorkspaceItem | null {
   const stageRows = items.filter(item => item.stage_number === stageNumber)
   const firstDependencyBlocker = stageRows.find(item =>
-    isRequiredStageItem(item) && getUnresolvedDependencyCodes(item, items).length > 0
+    isRequiredStageItem(item) && getUnresolvedDependencyCodes(item, items, scopedToStageNumber).length > 0
   )
   if (firstDependencyBlocker) return firstDependencyBlocker
 
@@ -460,7 +464,7 @@ function getFirstIncompleteStageItem(items: WorkspaceItem[], stageNumber: number
   )
   if (firstEvidenceGap) return firstEvidenceGap
 
-  const firstRequiredIncomplete = stageRows.find(item => isRequiredStageItem(item) && !isStageItemReadyForSignOff(item, items))
+  const firstRequiredIncomplete = stageRows.find(item => isRequiredStageItem(item) && !isStageItemReadyForSignOff(item, items, scopedToStageNumber))
   if (firstRequiredIncomplete) return firstRequiredIncomplete
 
   const firstIncomplete = stageRows.find(item => !isStageItemResolved(item))
@@ -970,13 +974,13 @@ export function InspectorCompletionWorkspace() {
   )
 
   const requiredStageItemsComplete = useMemo(
-    () => stageRequiredItems.filter(item => isStageItemReadyForSignOff(item, items)).length,
-    [items, stageRequiredItems]
+    () => stageRequiredItems.filter(item => isStageItemReadyForSignOff(item, items, assignmentScope?.internalStageNumber)).length,
+    [assignmentScope, items, stageRequiredItems]
   )
 
   const incompleteStageItems = useMemo(
-    () => stageRequiredItems.filter(item => !isStageItemReadyForSignOff(item, items)),
-    [items, stageRequiredItems]
+    () => stageRequiredItems.filter(item => !isStageItemReadyForSignOff(item, items, assignmentScope?.internalStageNumber)),
+    [assignmentScope, items, stageRequiredItems]
   )
 
   const failedStageItems = useMemo(
@@ -988,10 +992,10 @@ export function InspectorCompletionWorkspace() {
     () => stageRequiredItems
       .map(item => ({
         item,
-        blockedBy: getUnresolvedDependencyCodes(item, items),
+        blockedBy: getUnresolvedDependencyCodes(item, items, assignmentScope?.internalStageNumber),
       }))
       .filter(entry => entry.blockedBy.length > 0),
-    [items, stageRequiredItems]
+    [assignmentScope, items, stageRequiredItems]
   )
 
   const stageSignOffs = useMemo(
@@ -1067,19 +1071,19 @@ export function InspectorCompletionWorkspace() {
   const stageReadyForSignOff = useMemo(() => {
     if (!currentStageInAssignmentScope) return false
     if (stageRequiredItems.length === 0) {
-      return stageItems.length > 0 && stageItems.every(item => isStageItemReadyForSignOff(item, items))
+      return stageItems.length > 0 && stageItems.every(item => isStageItemReadyForSignOff(item, items, assignmentScope?.internalStageNumber))
     }
 
     return failedStageItems.length === 0
       && blockedStageItems.length === 0
       && requiredStageItemsComplete === stageRequiredItems.length
-  }, [blockedStageItems.length, currentStageInAssignmentScope, failedStageItems.length, items, requiredStageItemsComplete, stageItems, stageRequiredItems.length])
+  }, [assignmentScope, blockedStageItems.length, currentStageInAssignmentScope, failedStageItems.length, items, requiredStageItemsComplete, stageItems, stageRequiredItems.length])
 
   const stageCompletionPercent = (() => {
     const total = stageRequiredItems.length || stageItems.length
     const complete = stageRequiredItems.length > 0
       ? requiredStageItemsComplete
-      : stageItems.filter(item => isStageItemReadyForSignOff(item, items)).length
+      : stageItems.filter(item => isStageItemReadyForSignOff(item, items, assignmentScope?.internalStageNumber)).length
 
     return total > 0 ? Math.round((complete / total) * 100) : 0
   })()
@@ -1801,7 +1805,7 @@ export function InspectorCompletionWorkspace() {
   function handleStatusSelection(itemCode: string, value: CompletionInspectionStatus) {
     if (value === 'Passed') {
       const item = items.find(candidate => candidate.item_code === itemCode)
-      const blockedBy = item ? getUnresolvedDependencyCodes(item, items) : []
+      const blockedBy = item ? getUnresolvedDependencyCodes(item, items, assignmentScope?.internalStageNumber) : []
       if (blockedBy.length > 0) {
         setStageSignOffError(`Resolve ${blockedBy.join(', ')} before this item can be passed.`)
         return
@@ -3107,8 +3111,8 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
             <div className={`rounded-[2rem] border border-white/10 bg-[#0a1020] p-5 ${FLOATING_PANEL_CLASS}`}>
               <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                 <div>
-                  <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Current Stage</div>
-                  <h2 className="mt-2 text-3xl font-black">Stage {currentStage}: {currentProgress?.stage.stage_name}</h2>
+                  <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Current Checklist</div>
+                  <h2 className="mt-2 text-3xl font-black">S{String(currentStage).padStart(2, '0')} — {currentProgress?.stage.stage_name}</h2>
                   {job.stage && (
                     <p className="mt-1 text-xs font-semibold uppercase tracking-[0.14em] text-cyan-300/80">
                       Requested inspection stage: Stage {job.stage} — {job.stageName}
@@ -3420,7 +3424,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
 
               {stageItems.map(item => {
                 const requiredLabel = typeof item.is_required === 'string' ? item.is_required : item.is_required ? 'Required' : 'Optional'
-                const blockedBy = getUnresolvedDependencyCodes(item, items)
+                const blockedBy = getUnresolvedDependencyCodes(item, items, assignmentScope?.internalStageNumber)
                 const passRequiresEvidence = item.evidence_mode === 'required_upload' && item.document_upload_required
                 const passBlockedForEvidence = passRequiresEvidence && item.documents.length === 0
                 const passBlockedForDependency = blockedBy.length > 0
@@ -4445,7 +4449,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                 <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                   <div className="max-w-2xl">
                     <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#FFB089]">Stage Summary Footer</div>
-                    <h3 className="mt-2 text-2xl font-black">Sign Off Stage {currentStage}</h3>
+                    <h3 className="mt-2 text-2xl font-black">Sign Off S{String(currentStage).padStart(2, '0')}</h3>
                     <p className="mt-2 text-sm text-zinc-300">
                       Required containers must be fully checked, evidence-backed, and clear of failures before this stage can be signed and pushed forward.
                     </p>
