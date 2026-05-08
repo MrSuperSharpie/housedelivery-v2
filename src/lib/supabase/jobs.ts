@@ -557,7 +557,7 @@ export async function insertJobOpportunity(
     region: job.region,
     stage: job.stage,
     stageName: job.stageName,
-    projectComplete: projectIdentityReady,
+    projectComplete: jobIdentityReady,
     dependencySealed: true,
     escrowAuthorized: job.escrowAuthorized === true,
   })
