@@ -102,6 +102,28 @@ type NextUpItem = {
   ambiguous: boolean
 }
 
+type StageRequestCandidate = {
+  id: string
+  projectId?: string
+  builderId?: string
+  projectName?: string
+  address?: string
+  city?: string
+  permitNumber?: string
+  stage?: number
+  status?: string
+}
+
+const ACTIVE_STAGE_REQUEST_STATUSES = new Set([
+  'live',
+  'pending_validation',
+  'validated',
+  'provisionally_assigned',
+  'confirmed',
+  'in_progress',
+  'on_hold',
+])
+
 const OBJECTION_REASONS: { value: ObjectionReason; label: string; desc: string }[] = [
   { value: 'conflict_of_interest',    label: 'Conflict of interest',      desc: 'Inspector has a personal or financial conflict with this project.' },
   { value: 'access_concern',          label: 'Access concern',            desc: 'Inspector cannot safely or practically access the site.' },
@@ -362,10 +384,43 @@ function getBuilderStageStatus(input: {
   if (job?.status === 'completed' || report?.status === 'sealed' || report?.status === 'submitted' || stageSignedOff) return 'passed'
   if (job?.status === 'in_progress') return 'in_progress'
   if (job?.status === 'confirmed' || job?.status === 'provisionally_assigned') return 'inspector_assigned'
-  if (job?.status === 'live' || job?.status === 'pending_validation') return 'requested_live'
+  if (job?.status === 'live' || job?.status === 'pending_validation' || String(job?.status) === 'validated') return 'requested_live'
   if (!job && (isFirstStage || previousStagePassed)) return 'available_next'
   if (!job) return 'locked'
   return 'not_requested'
+}
+
+function normalizeProjectIdentity(value: string | undefined): string {
+  return (value ?? '').trim().toLowerCase()
+}
+
+function isNonTerminalStageRequest(job: StageRequestCandidate): boolean {
+  return ACTIVE_STAGE_REQUEST_STATUSES.has(String(job.status ?? '').trim())
+}
+
+function isSameProgressProject(job: StageRequestCandidate, project: Project): boolean {
+  if (job.projectId && job.projectId === project.id) return true
+  if (job.id === project.id) return true
+
+  return Boolean(
+    job.builderId
+    && job.builderId === project.builderId
+    && normalizeProjectIdentity(job.projectName) === normalizeProjectIdentity(project.name)
+    && normalizeProjectIdentity(job.address) === normalizeProjectIdentity(project.address)
+    && normalizeProjectIdentity(job.city) === normalizeProjectIdentity(project.city)
+  )
+}
+
+function findExistingStageRequest(
+  project: Project,
+  stageNumber: number,
+  jobs: StageRequestCandidate[],
+): StageRequestCandidate | undefined {
+  return jobs.find(job =>
+    job.stage === stageNumber
+    && isNonTerminalStageRequest(job)
+    && isSameProgressProject(job, project)
+  )
 }
 
 function getPermitProgressGroupKey(job: JobOpportunityRow): string {
@@ -377,6 +432,14 @@ function getPermitProgressGroupKey(job: JobOpportunityRow): string {
     String(job.address ?? '').trim().toLowerCase(),
     String(job.city ?? '').trim().toLowerCase(),
   ].join('|')
+}
+
+function getPermitProgressGroupKeyForJob(
+  job: JobOpportunityRow,
+  jobsById: Map<string, JobOpportunityRow>,
+): string {
+  const parentJob = job.projectId ? jobsById.get(job.projectId) : undefined
+  return getPermitProgressGroupKey(parentJob ?? job)
 }
 
 const BUILDER_STAGE_STATUS_COPY: Record<BuilderStageStatus, { label: string; cls: string }> = {
@@ -632,6 +695,7 @@ export default function BuilderDashboard() {
   const [correctionWindowByHold, setCorrectionWindowByHold] = useState<Record<string, number>>({})
   const [activeModHolds, setActiveModHolds]     = useState<InspectionHold[]>([])
   const [modHoldResponding, setModHoldResponding] = useState<string | null>(null)
+  const [requestGuardMessage, setRequestGuardMessage] = useState<string | null>(null)
 
   // ─── DATA BRIDGE: MATCH LOCAL AUTH ID OR SUPABASE ID ─────────────────────────
   const builderLocalId    = user?.id ?? ''
@@ -641,6 +705,20 @@ export default function BuilderDashboard() {
 
   const storeProjects = store.projects.filter(p => isMatch(p.builderId))
   const builderJobs   = store.jobs.filter(j => isMatch(j.builderId))
+
+  const reloadBuilderJobs = React.useCallback(async () => {
+    const builderSupabaseUserId = user?.supabaseId
+    if (!builderSupabaseUserId) return []
+
+    setIsLoadingJobs(true)
+    try {
+      const nextJobs = await listJobsByBuilder(builderSupabaseUserId)
+      setDbJobs(nextJobs)
+      return nextJobs
+    } finally {
+      setIsLoadingJobs(false)
+    }
+  }, [user?.supabaseId])
 
   // Fetch projects from Supabase
   useEffect(() => {
@@ -681,19 +759,8 @@ export default function BuilderDashboard() {
 
   // Fetch job_opportunities directly by builder_id
   useEffect(() => {
-    const builderSupabaseUserId = user?.supabaseId
-    if (!builderSupabaseUserId) return
-    async function loadJobs(builderId: string) {
-      setIsLoadingJobs(true)
-      try {
-        const nextJobs = await listJobsByBuilder(builderId)
-        setDbJobs(nextJobs)
-      } finally {
-        setIsLoadingJobs(false)
-      }
-    }
-    void loadJobs(builderSupabaseUserId)
-  }, [user?.supabaseId])
+    void reloadBuilderJobs()
+  }, [reloadBuilderJobs])
 
   // Fetch completed records for any completed jobs
   useEffect(() => {
@@ -898,6 +965,31 @@ export default function BuilderDashboard() {
         ...standaloneJobsAsProjects,
       ]
 
+  const stageRequestCandidates: StageRequestCandidate[] = [
+    ...(dbJobs ?? []).map(job => ({
+      id: job.id,
+      projectId: job.projectId,
+      builderId: job.builderId,
+      projectName: job.projectName,
+      address: job.address,
+      city: job.city,
+      permitNumber: job.permitNumber,
+      stage: job.stage,
+      status: job.status,
+    })),
+    ...builderJobs.map(job => ({
+      id: job.id,
+      projectId: job.projectId,
+      builderId: job.builderId,
+      projectName: job.projectName,
+      address: job.address,
+      city: job.city,
+      permitNumber: job.permitNumber,
+      stage: job.stage,
+      status: job.status,
+    })),
+  ]
+
   // FIX #6: wrap confirm() in a try/catch — it throws in some SSR/edge environments
   const handleDeleteProject = async (projectId: string) => {
     try {
@@ -916,11 +1008,22 @@ export default function BuilderDashboard() {
   }
 
   const handleRequestInspection = (project: Project) => {
+    const stageNumber = project.currentStage ?? project.stages?.[0]?.stageNumber ?? 1
+    const existingStageRequest = findExistingStageRequest(project, stageNumber, stageRequestCandidates)
+    if (existingStageRequest) {
+      setRequestGuardMessage(`Stage ${stageNumber} has already been requested and is waiting for inspector claim or completion.`)
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+      return
+    }
+    setRequestGuardMessage(null)
     setDispatchProject(project)
     setIsDispatchOpen(true)
   }
 
   const handleNewRequest = () => {
+    setRequestGuardMessage(null)
     setDispatchProject(null)
     setIsDispatchOpen(true)
   }
@@ -984,6 +1087,7 @@ export default function BuilderDashboard() {
   const handleDispatch = (_dispatchTier: DispatchTier) => {
     // Job creation handled inside DispatchModal via store.addJob()
     void _dispatchTier
+    void reloadBuilderJobs()
   }
 
   // Active assignment — drives the en-route tracker
@@ -1040,8 +1144,9 @@ export default function BuilderDashboard() {
   }
   const permitProgressProjects: PermitProgressProject[] = (() => {
     const groups = new Map<string, PermitProgressProject>()
+    const jobsById = new Map((dbJobs ?? []).map(job => [job.id, job]))
     for (const job of dbJobs ?? []) {
-      const key = getPermitProgressGroupKey(job)
+      const key = getPermitProgressGroupKeyForJob(job, jobsById)
       const existing = groups.get(key)
       if (existing) {
         existing.jobs.push(job)
@@ -1185,6 +1290,11 @@ export default function BuilderDashboard() {
       </div>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+        {requestGuardMessage && (
+          <div className="mb-6 rounded-2xl border border-amber-600/30 bg-amber-500/10 px-4 py-3 text-sm font-semibold text-ink">
+            {requestGuardMessage}
+          </div>
+        )}
 
         {/* ── Action Required (always first) ── */}
         {hasBuilderActions && (

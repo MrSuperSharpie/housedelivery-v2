@@ -671,6 +671,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
     const insertedId = insertedJob.id
     const persistedStatus = insertedJob.status
+    if (persistedStatus !== 'live') {
+      return {
+        ok: false,
+        error: insertedJob.blockers.map(issue => issue.message).join(' ') || 'This inspection request could not be posted to the Live Job Board yet.',
+      }
+    }
+
     const newJob: InspectionJob = {
       id:                   insertedId,
       projectId:            input.projectId ?? insertedId,
@@ -713,12 +720,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
 
     setJobs(prev => [...prev, newJob])
-    if (persistedStatus !== 'live') {
-      return {
-        ok: false,
-        error: insertedJob.blockers.map(issue => issue.message).join(' ') || 'This inspection request could not be posted to the Live Job Board yet.',
-      }
-    }
     return { ok: true as const, value: insertedId }
   }, [projects])
 

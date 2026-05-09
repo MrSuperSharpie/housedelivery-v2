@@ -195,6 +195,54 @@ export interface InsertJobOpportunityResult {
   blockers: GovernanceIssue[]
 }
 
+const ACTIVE_STAGE_REQUEST_STATUSES = new Set([
+  'live',
+  'pending_validation',
+  'validated',
+  'provisionally_assigned',
+  'confirmed',
+  'in_progress',
+  'on_hold',
+])
+
+function normalizeProjectIdentity(value: unknown): string {
+  return typeof value === 'string' ? value.trim().toLowerCase() : ''
+}
+
+function rowMatchesJobProjectIdentity(row: Record<string, unknown>, job: Omit<JobOpportunityRow, 'id' | 'createdAt' | 'updatedAt' | 'requestedAt'>): boolean {
+  const rowProjectId = typeof row.project_id === 'string' ? row.project_id : ''
+  const rowId = typeof row.id === 'string' ? row.id : ''
+  const jobProjectId = job.projectId?.trim() ?? ''
+
+  if (jobProjectId && (rowProjectId === jobProjectId || rowId === jobProjectId)) return true
+
+  return Boolean(
+    normalizeProjectIdentity(row.project_name) === normalizeProjectIdentity(job.projectName)
+    && normalizeProjectIdentity(row.address) === normalizeProjectIdentity(job.address)
+    && normalizeProjectIdentity(row.city) === normalizeProjectIdentity(job.city)
+  )
+}
+
+async function findActiveDuplicateStageRequest(
+  job: Omit<JobOpportunityRow, 'id' | 'createdAt' | 'updatedAt' | 'requestedAt'>,
+): Promise<Record<string, unknown> | null> {
+  const { data, error } = await supabase
+    .from('job_opportunities')
+    .select('id, project_id, project_name, address, city, stage, status')
+    .eq('builder_id', job.builderId)
+    .eq('stage', job.stage)
+
+  if (error) {
+    console.warn('findActiveDuplicateStageRequest:', formatDbError(error))
+    return null
+  }
+
+  return ((data ?? []) as Record<string, unknown>[]).find(row => (
+    ACTIVE_STAGE_REQUEST_STATUSES.has(String(row.status ?? '').trim())
+    && rowMatchesJobProjectIdentity(row, job)
+  )) ?? null
+}
+
 export interface ClaimJobRpcResult {
   ok: boolean
   error?: string
@@ -564,6 +612,53 @@ export async function insertJobOpportunity(
 
   const finalStatus = governance.ok && job.status === 'live' ? 'live' : 'pending_validation'
   const validationStatus: GovernanceValidationStatus = governance.ok ? 'validated' : 'blocked'
+
+  const duplicateStageRequest = await findActiveDuplicateStageRequest(job)
+  if (duplicateStageRequest) {
+    const duplicateBlocker: GovernanceIssue = {
+      ruleId: 'R-010',
+      code: 'duplicate_active_stage_request',
+      message: `Stage ${job.stage} has already been requested and is waiting for inspector claim or completion.`,
+      blockerType: 'technical',
+      hardBlocker: true,
+      adminOverride: false,
+      metadata: {
+        existingJobId: duplicateStageRequest.id,
+        existingStatus: duplicateStageRequest.status,
+        projectId: job.projectId ?? null,
+      },
+    }
+
+    await appendGovernanceAuditEvent({
+      entityType: 'job',
+      entityId: String(duplicateStageRequest.id ?? 'duplicate-stage-request'),
+      action: 'job.duplicate_stage_request_blocked',
+      actorId: job.builderId,
+      actorRole: 'builder',
+      ruleIds: [duplicateBlocker.ruleId],
+      blockerType: duplicateBlocker.blockerType,
+      reason: duplicateBlocker.message,
+      beforeState: {
+        requestedStatus: job.status,
+        stage: job.stage,
+      },
+      afterState: {
+        status: 'blocked',
+        existingJobId: duplicateStageRequest.id ?? null,
+      },
+      metadata: {
+        projectId: job.projectId ?? null,
+        projectName: job.projectName,
+      },
+    })
+
+    return {
+      id: String(duplicateStageRequest.id ?? ''),
+      status: 'pending_validation',
+      validationStatus: 'blocked',
+      blockers: [duplicateBlocker],
+    }
+  }
 
   const fullInsertPayload = {
     project_id:                  job.projectId ?? null,
