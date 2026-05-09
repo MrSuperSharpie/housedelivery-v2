@@ -56,6 +56,11 @@ interface ActiveWorklistItem {
   claimedSlot?: JobTimeSlot
   assignedAt?: string
   openHold?: HoldRecord
+  stage?: number
+  stageName?: string
+  jobStatus?: string
+  reportStatus?: string
+  assignmentIdSuffix: string
 }
 
 const TERMINAL_ASSIGNMENT_STATUSES = new Set(['cancelled', 'invalidated', 'completed'])
@@ -236,6 +241,8 @@ export default function InspectorDashboard() {
           claimedSlot: assignment.claimedSlot,
           assignedAt: assignment.claimedAt,
           jobStatus: job?.status,
+          stage: job?.stage,
+          stageName: job?.stageName,
         }
       })
       .filter(item => isActiveWorklistStatus(item.status, item.jobStatus))
@@ -249,6 +256,11 @@ export default function InspectorDashboard() {
         statusLabel: item.statusLabel,
         claimedSlot: item.claimedSlot,
         assignedAt: item.assignedAt,
+        stage: item.stage,
+        stageName: item.stageName,
+        jobStatus: item.jobStatus,
+        reportStatus: undefined,
+        assignmentIdSuffix: item.id.slice(-6).toUpperCase(),
       }))
   }, [myAssignments, store.jobs])
 
@@ -304,7 +316,7 @@ export default function InspectorDashboard() {
       ] = await Promise.all([
         supabase
           .from('job_opportunities')
-          .select('id, project_name, address, city, status')
+          .select('id, project_name, address, city, status, stage, stage_name')
           .in('id', jobIds),
         supabase
           .from('inspector_completion_reports')
@@ -337,6 +349,8 @@ export default function InspectorDashboard() {
             address: typeof row.address === 'string' ? row.address : '',
             city: typeof row.city === 'string' ? row.city : undefined,
             status: typeof row.status === 'string' ? row.status : undefined,
+            stage: typeof row.stage === 'number' ? row.stage : undefined,
+            stageName: typeof row.stage_name === 'string' ? row.stage_name : undefined,
           },
         ])
       )
@@ -380,6 +394,9 @@ export default function InspectorDashboard() {
             claimedSlot: assignment.claimedSlot,
             assignedAt: assignment.assignedAt,
             jobStatus: job?.status,
+            stage: job?.stage,
+            stageName: job?.stageName,
+            reportStatus,
             openHold,
           }
         })
@@ -395,6 +412,11 @@ export default function InspectorDashboard() {
           claimedSlot: item.claimedSlot,
           assignedAt: item.assignedAt,
           openHold: item.openHold,
+          stage: item.stage,
+          stageName: item.stageName,
+          jobStatus: item.jobStatus,
+          reportStatus: item.reportStatus,
+          assignmentIdSuffix: item.id.slice(-6).toUpperCase(),
         }))
 
       setDbActiveWorklist(worklist)
@@ -641,7 +663,7 @@ export default function InspectorDashboard() {
                       <Activity className="w-6 h-6 text-white" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <span className="font-bold text-ink text-base truncate">{assignment.projectName || 'Assigned Project'}</span>
                         <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase ${
                           isDark
@@ -650,15 +672,50 @@ export default function InspectorDashboard() {
                         }`}>
                           {assignment.statusLabel}
                         </span>
+                        {assignment.jobStatus && assignment.jobStatus !== assignment.status && (
+                          <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase ${
+                            isDark
+                              ? 'border-blue-700/50 bg-blue-900/30 text-blue-300'
+                              : 'border-blue-200 bg-blue-50 text-blue-700'
+                          }`}>
+                            Job: {formatStoredStatus(assignment.jobStatus)}
+                          </span>
+                        )}
+                        {assignment.reportStatus && (
+                          <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase ${
+                            assignment.reportStatus === 'sealed'
+                              ? isDark
+                                ? 'border-emerald-700/50 bg-emerald-900/30 text-emerald-300'
+                                : 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                              : isDark
+                                ? 'border-amber-700/50 bg-amber-900/30 text-amber-300'
+                                : 'border-amber-200 bg-amber-50 text-amber-700'
+                          }`}>
+                            Report: {formatStoredStatus(assignment.reportStatus)}
+                          </span>
+                        )}
                       </div>
+                      {assignment.stage != null && (
+                        <div className={`text-xs font-semibold mb-1 ${isDark ? 'text-electric' : 'text-blue-700'}`}>
+                          Stage {assignment.stage}{assignment.stageName ? ` — ${assignment.stageName}` : ''}
+                        </div>
+                      )}
                       <div className="text-xs text-muted truncate">
                         {assignment.address
                           ? `${assignment.address}${assignment.city ? `, ${assignment.city}` : ''}`
                           : 'Address unavailable'}
                       </div>
-                      <div className="flex items-center gap-3 mt-2">
+                      <div className="flex items-center gap-3 mt-2 flex-wrap">
                         <div className="flex items-center gap-1 text-[10px] text-subtle">
-                          <Clock className="w-3 h-3" /> {assignment.claimedSlot?.flexible ? 'Flexible timing' : assignment.claimedSlot?.date || 'Upcoming'}
+                          <Clock className="w-3 h-3" />
+                          {assignment.claimedSlot?.flexible
+                            ? 'Flexible timing'
+                            : assignment.claimedSlot?.date
+                              ? `${assignment.claimedSlot.date}${assignment.claimedSlot.startTime ? ` · ${assignment.claimedSlot.startTime}–${assignment.claimedSlot.endTime}` : ''}`
+                              : 'Upcoming'}
+                        </div>
+                        <div className={`font-mono text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                          #{assignment.assignmentIdSuffix}
                         </div>
                       </div>
                       {assignment.openHold && (
@@ -776,6 +833,9 @@ export default function InspectorDashboard() {
             <h1 className="text-2xl font-black text-ink">Open Requests</h1>
             <p className="text-sm text-muted mt-1">
               {eligibleJobs.length} eligible of {classifiedJobs.length} live requests matching your filters
+            </p>
+            <p className="text-xs text-subtle mt-1">
+              Open Requests are unclaimed live jobs. Jobs you&apos;ve already claimed appear in Your Active Worklist above. Some jobs may be hidden if they do not match your verified credentials, region, or are already assigned.
             </p>
           </div>
           <div className={`flex items-center gap-3 rounded-2xl border px-4 py-3 shadow-sm ${
