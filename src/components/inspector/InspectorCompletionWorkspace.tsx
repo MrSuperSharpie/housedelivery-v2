@@ -1556,7 +1556,9 @@ export function InspectorCompletionWorkspace() {
 
       setReport(ensuredReport)
       const ensuredStageSignOffs = getStageSignOffs(ensuredReport.sealPayload)
-      setAssignmentScopeComplete(Boolean(ensuredStageSignOffs[String(requestedChecklistStage)]))
+      setAssignmentScopeComplete(
+        Boolean(ensuredStageSignOffs[String(requestedChecklistStage)]) && assignmentRow.status === 'completed'
+      )
       setCurrentStage(requestedChecklistStage)
       setItems(mergeItems(definitionSet.stages, ensuredReport.id, assignmentId, bundle.items, bundle.documents))
       if (ensuredReport.sealApplied) setSealed(true)
@@ -2906,7 +2908,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
             </div>
           </div>
         )}
-        {assignmentScope && assignmentScopeIsComplete && !isFinalOccupancyStage && (
+        {assignmentScope && assignmentScopeComplete && !isFinalOccupancyStage && (
           <div className={`mb-6 rounded-[1.75rem] border border-emerald-400/40 bg-emerald-100 px-5 py-4 text-emerald-950 ${FLOATING_PANEL_CLASS}`}>
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex items-start gap-3">
