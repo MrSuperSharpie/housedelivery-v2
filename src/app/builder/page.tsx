@@ -1149,7 +1149,7 @@ export default function BuilderDashboard() {
         ambiguous,
       }
     })
-    .filter(item => item.availableStage || item.ambiguous)
+    .filter(item => item.availableStage && item.requestProject && !item.ambiguous)
 
   // FIX #4: show spinner while either projects OR jobs are loading
   const isLoading = isLoadingProjects || isLoadingJobs
@@ -1469,7 +1469,7 @@ export default function BuilderDashboard() {
             </div>
 
             <div className="grid gap-3 lg:grid-cols-2">
-              {nextUpItems.map(({ progressProject, stageScorecard, availableStage, latestPassedStage, requestProject, ambiguous }) => {
+              {nextUpItems.map(({ progressProject, stageScorecard, availableStage, latestPassedStage, requestProject }) => {
                 return (
                   <div key={progressProject.key} className="rounded-2xl border border-rim bg-panel p-4 shadow-card">
                     <div className="flex items-start gap-3">
@@ -1482,16 +1482,14 @@ export default function BuilderDashboard() {
                           <div className="mt-0.5 truncate text-xs font-medium text-muted">{progressProject.address}{progressProject.city ? `, ${progressProject.city}` : ''}</div>
                         )}
                         <div className="mt-2 text-xs font-semibold text-ink">
-                          {ambiguous
-                            ? 'Review project progress'
-                            : latestPassedStage
+                          {latestPassedStage
                               ? `${latestPassedStage.stage.label.split(' — ')[0]} passed · Vero inspection record complete`
                               : 'Ready to begin permit-stage inspections'}
                         </div>
                         <div className="mt-1 text-xs text-muted">
-                          {availableStage && !ambiguous
+                          {availableStage
                             ? `${availableStage.stage.label} is available when ready.`
-                            : 'Progress data needs review before Vero shows a stage request shortcut.'}
+                            : 'A permit-stage inspection is ready to request.'}
                         </div>
                         <div className="mt-3">
                           <StageProgressRail scorecard={stageScorecard} />
@@ -1499,7 +1497,7 @@ export default function BuilderDashboard() {
                       </div>
                     </div>
                     <div className="mt-4 flex flex-wrap gap-2">
-                      {availableStage && requestProject && !ambiguous ? (
+                      {availableStage && requestProject ? (
                         <button
                           type="button"
                           onClick={() => handleRequestInspection(requestProject)}
@@ -1507,15 +1505,7 @@ export default function BuilderDashboard() {
                         >
                           Request {availableStage.stage.label.split(' — ')[0]} Inspection
                         </button>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => document.getElementById(getProgressDomId(progressProject.key))?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-                          className="rounded-xl border border-rim bg-surface px-3 py-2 text-[11px] font-black text-ink transition-colors hover:border-flame/40"
-                        >
-                          Review project progress
-                        </button>
-                      )}
+                      ) : null}
                     </div>
                   </div>
                 )
@@ -1711,6 +1701,12 @@ export default function BuilderDashboard() {
                   {openHoldForJob && (
                     <div className="mt-3 rounded-xl border border-amber-600/30 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-ink">
                       Project on hold: {openHoldForJob.deficiencyReason || openHoldForJob.reason || 'Builder action may be required before inspection can proceed.'}
+                    </div>
+                  )}
+
+                  {ambiguous && (
+                    <div className="mt-3 rounded-xl border border-amber-600/30 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-ink">
+                      Progress review needed. This project has an out-of-sequence inspection record. Vero support needs to review the stage history before the next request can be opened.
                     </div>
                   )}
 
