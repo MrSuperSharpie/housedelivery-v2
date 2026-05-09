@@ -1528,11 +1528,18 @@ export function InspectorCompletionWorkspace() {
 
       const bundle = await getInspectorCompletionBundle(assignmentId)
 
+      const sessionInspector = await getAuthenticatedInspectorIdentity()
+      if (!sessionInspector) {
+        setError('Session expired. Please sign in again before opening this report.')
+        setLoading(false)
+        return
+      }
+
       let ensuredReport = bundle.report ?? await upsertInspectorCompletionReport({
         id: createRuntimeId(`completion-${assignmentId}`),
         assignmentId,
         jobId: jobRow.id,
-        inspectorId: activeUser.supabaseId ?? activeUser.id,
+        inspectorId: sessionInspector.id,
         projectId: jobRow.projectId,
         projectName: jobRow.projectName,
         address: jobRow.address,
@@ -1563,7 +1570,7 @@ export function InspectorCompletionWorkspace() {
           id: bundle.report.id,
           assignmentId: bundle.report.assignmentId,
           jobId: bundle.report.jobId,
-          inspectorId: bundle.report.inspectorId,
+          inspectorId: sessionInspector.id,
           projectId: bundle.report.projectId,
           projectName: bundle.report.projectName,
           address: bundle.report.address,

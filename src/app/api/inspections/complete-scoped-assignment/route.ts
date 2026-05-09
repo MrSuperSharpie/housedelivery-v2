@@ -165,12 +165,14 @@ export async function POST(req: NextRequest) {
 
   if (!jobData) return fail('job_not_found', 'Job not found for this assignment.', 404)
 
+  // Ownership is already verified above (assignment.inspector_id === user.id).
+  // Do not filter by inspector_id here — older reports may carry the app-level
+  // user id rather than the Supabase auth uid.
   let reportQuery = serviceSupabase
     .from('inspector_completion_reports')
     .select('id, assignment_id, job_id, inspector_id, status, submitted_at, seal_payload, current_stage')
     .eq('assignment_id', assignmentId)
     .eq('job_id', jobId)
-    .eq('inspector_id', user.id)
 
   if (reportId) reportQuery = reportQuery.eq('id', reportId)
 
@@ -190,6 +192,14 @@ export async function POST(req: NextRequest) {
   if (!reportData) return fail('report_missing', 'Submitted inspection report was not found.', 409)
 
   const report = reportData as CompletionReportRow
+
+  if (report.inspector_id !== user.id) {
+    console.warn('[inspections/complete-scoped-assignment] report inspector_id differs from auth uid (legacy record)', {
+      assignmentId,
+      authenticatedUserId: user.id,
+      reportInspectorId: report.inspector_id,
+    })
+  }
   const reportSubmitted = report.status === 'submitted' || report.status === 'sealed' || Boolean(report.submitted_at)
   if (!reportSubmitted) {
     console.error('[inspections/complete-scoped-assignment] report not submitted', {
