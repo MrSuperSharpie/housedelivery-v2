@@ -914,6 +914,7 @@ export function InspectorCompletionWorkspace() {
   const [expandedContainerNotes, setExpandedContainerNotes] = useState<Record<string, boolean>>({})
   const [expandedJurisdictionNotes, setExpandedJurisdictionNotes] = useState<Record<string, boolean>>({})
   const [stageSigning, setStageSigning] = useState(false)
+  const [assignmentCloseRetrying, setAssignmentCloseRetrying] = useState(false)
   const [stageSignOffError, setStageSignOffError] = useState<string | null>(null)
   const [projectOverviewOpen, setProjectOverviewOpen] = useState(true)
   const [stageTransitionHandshake, setStageTransitionHandshake] = useState<StageTransitionHandshake | null>(null)
@@ -1116,6 +1117,19 @@ export function InspectorCompletionWorkspace() {
       && blockedStageItems.length === 0
       && requiredStageItemsComplete === stageRequiredItems.length
   }, [assignmentScope, blockedStageItems.length, currentStageInAssignmentScope, failedStageItems.length, items, requiredStageItemsComplete, stageItems, stageRequiredItems.length])
+
+  const currentStageAlreadySignedOrSubmitted = Boolean(currentStageSignOff)
+    || report?.status === 'submitted'
+    || Boolean(report?.submittedAt)
+  const assignmentCloseRetryAvailable = Boolean(
+    assignmentScope
+      && !isFinalOccupancyStage
+      && currentStageInAssignmentScope
+      && currentStageAlreadySignedOrSubmitted
+      && stageReadyForSignOff
+      && assignment?.status !== 'completed'
+      && job?.status !== 'completed'
+  )
 
   const stageCompletionPercent = (() => {
     const total = stageRequiredItems.length || stageItems.length
@@ -2464,6 +2478,47 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
     }
     setSealed(true)
     return true
+  }
+
+  async function handleScopedAssignmentCloseRetry() {
+    if (!report || !job || !assignment || !assignmentScope) return
+    if (!assignmentCloseRetryAvailable) return
+
+    const closeFailureMessage = 'Inspection saved, but the assignment could not be closed. Please try again or contact support.'
+    setAssignmentCloseRetrying(true)
+    setStageSignOffError(null)
+
+    const closeResult = await closeScopedAssignmentOnServer({
+      assignmentId: assignment.id,
+      jobId: job.id,
+      reportId: report.id,
+      stageNumber: currentStage,
+    })
+
+    if (!closeResult.ok) {
+      reportPersistenceFailure(
+        closeFailureMessage,
+        {
+          assignmentId: assignment.id,
+          jobId: job.id,
+          reportId: report.id,
+          stageNumber: currentStage,
+          phase: closeResult.phase,
+          error: closeResult.error,
+        },
+      )
+      const serverDetail = [closeResult.phase, closeResult.error].filter(Boolean).join(': ')
+      setStageSignOffError(serverDetail ? `${closeFailureMessage} ${serverDetail}` : closeFailureMessage)
+      setAssignmentCloseRetrying(false)
+      return
+    }
+
+    setJob(current => current ? { ...current, status: 'completed' } : current)
+    setAssignment(current => current ? { ...current, status: 'completed' } : current)
+    setAssignmentScopeComplete(true)
+    setLastSavedLabel(`${assignmentScope.builderStageLabel} complete`)
+    setAssignmentCloseRetrying(false)
+    router.push('/inspector')
   }
 
   async function handleStageSignOff() {
@@ -4597,19 +4652,35 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                     )}
                   </div>
 
-                  <button
-                    type="button"
-                    disabled={!stageReadyForSignOff || stageSigning || Boolean(currentStageSignOff)}
-                    onClick={() => void handleStageSignOff()}
-                    className={`inline-flex min-h-[52px] items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-black transition-colors ${
-                      !stageReadyForSignOff || currentStageSignOff
-                        ? 'cursor-not-allowed bg-zinc-800 text-zinc-500'
-                        : 'bg-[#FF5F15] text-white shadow-[0_14px_30px_rgba(255,95,21,0.28)] hover:bg-[#e25412]'
-                    }`}
-                  >
-                    {stageSigning ? <Loader2 className="h-4 w-4 animate-spin" /> : currentStageSignOff ? <ShieldCheck className="h-4 w-4" /> : <Stamp className="h-4 w-4" />}
-                    {stageSigning ? 'Signing Stage...' : currentStageSignOff ? 'Stage Signed' : 'Sign & Submit'}
-                  </button>
+                  <div className="flex flex-col gap-3 sm:items-end">
+                    {assignmentCloseRetryAvailable && (
+                      <div className="rounded-2xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-amber-100/90 sm:max-w-sm">
+                        <div className="font-black text-amber-100">Stage is signed. Finish closing the assignment record.</div>
+                        <button
+                          type="button"
+                          disabled={assignmentCloseRetrying}
+                          onClick={() => void handleScopedAssignmentCloseRetry()}
+                          className="mt-3 inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-amber-400 px-4 py-2.5 text-xs font-black text-zinc-950 transition-colors hover:bg-amber-300 disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500"
+                        >
+                          {assignmentCloseRetrying ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+                          {assignmentCloseRetrying ? 'Closing Assignment...' : 'Complete Assignment Close'}
+                        </button>
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      disabled={!stageReadyForSignOff || stageSigning || Boolean(currentStageSignOff)}
+                      onClick={() => void handleStageSignOff()}
+                      className={`inline-flex min-h-[52px] items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-black transition-colors ${
+                        !stageReadyForSignOff || currentStageSignOff
+                          ? 'cursor-not-allowed bg-zinc-800 text-zinc-500'
+                          : 'bg-[#FF5F15] text-white shadow-[0_14px_30px_rgba(255,95,21,0.28)] hover:bg-[#e25412]'
+                      }`}
+                    >
+                      {stageSigning ? <Loader2 className="h-4 w-4 animate-spin" /> : currentStageSignOff ? <ShieldCheck className="h-4 w-4" /> : <Stamp className="h-4 w-4" />}
+                      {stageSigning ? 'Signing Stage...' : currentStageSignOff ? 'Stage Signed' : 'Sign & Submit'}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
