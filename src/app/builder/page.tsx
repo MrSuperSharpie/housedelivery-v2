@@ -1256,6 +1256,14 @@ export default function BuilderDashboard() {
     })
     .filter(item => item.availableStage && item.requestProject && !item.ambiguous)
 
+  const liveUnclaimedJobs = (dbJobs ?? [])
+    .filter(job => job.status === 'live' && job.validationStatus === 'validated')
+    .sort((a, b) => {
+      const ta = a.publishedAt ?? a.requestedAt ?? a.createdAt
+      const tb = b.publishedAt ?? b.requestedAt ?? b.createdAt
+      return tb.localeCompare(ta)
+    })
+
   // FIX #4: show spinner while either projects OR jobs are loading
   const isLoading = isLoadingProjects || isLoadingJobs
 
@@ -1561,6 +1569,69 @@ export default function BuilderDashboard() {
             isResponding={modHoldResponding === hold.id}
           />
         ))}
+            </div>
+          </section>
+        )}
+
+        {/* ── Live Requests Awaiting Inspector Claim ── */}
+        {liveUnclaimedJobs.length > 0 && (
+          <section className="mb-6">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-blue-500">Live Requests Awaiting Inspector Claim</div>
+                <div className="mt-1 text-xs font-medium text-muted">Posted requests are visible to qualified inspectors on the Live Job Board until claimed.</div>
+              </div>
+              <div className="rounded-full border border-blue-500/25 bg-blue-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-blue-500">
+                {liveUnclaimedJobs.length} live
+              </div>
+            </div>
+            <div className="grid gap-3 lg:grid-cols-2">
+              {liveUnclaimedJobs.map(job => {
+                const stageLabel = BUILDER_STAGE_DEFINITIONS.find(s => s.number === job.stage)?.label ?? `Stage ${job.stage} — ${job.stageName}`
+                const postedAt = job.publishedAt ?? job.requestedAt ?? job.createdAt
+                const portfolioDomId = getProgressDomId(getPermitProgressGroupKey(job))
+                return (
+                  <div key={job.id} className="rounded-2xl border border-blue-500/25 bg-panel p-4 shadow-card">
+                    <div className="flex items-start gap-3">
+                      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-blue-500/25 bg-blue-500/10">
+                        <Navigation className="h-4 w-4 text-blue-500" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-sm font-extrabold text-ink">{job.projectName}</div>
+                        {job.address && (
+                          <div className="mt-0.5 truncate text-xs font-medium text-muted">{job.address}{job.city ? `, ${job.city}` : ''}</div>
+                        )}
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <span className="inline-flex items-center gap-1 rounded-full border border-blue-500/30 bg-blue-500/10 px-2 py-0.5 text-[10px] font-black text-ink">
+                            Posted to Live Board
+                          </span>
+                          <span className="inline-flex items-center gap-1 rounded-full border border-rim bg-surface px-2 py-0.5 text-[10px] font-semibold text-muted">
+                            Waiting for inspector claim
+                          </span>
+                        </div>
+                        <div className="mt-2 text-xs font-semibold text-ink">{stageLabel}</div>
+                        {postedAt && (
+                          <div className="mt-1 text-[11px] text-muted">
+                            Posted {new Date(postedAt).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' })} at {new Date(postedAt).toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="mt-4">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const el = document.getElementById(portfolioDomId)
+                          el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                        }}
+                        className="rounded-xl border border-rim bg-surface px-3 py-2 text-[11px] font-bold text-ink transition-colors hover:border-blue-500/40"
+                      >
+                        View in Project Portfolio
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </section>
         )}
