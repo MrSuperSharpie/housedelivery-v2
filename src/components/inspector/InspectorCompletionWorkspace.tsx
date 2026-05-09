@@ -831,6 +831,44 @@ function getWorkspaceHoldResponseLabel(hold: ActiveJobHoldSummary): string {
   return hold.status.split('_').filter(Boolean).map(part => `${part.charAt(0).toUpperCase()}${part.slice(1)}`).join(' ')
 }
 
+async function closeScopedAssignmentOnServer(input: {
+  assignmentId: string
+  jobId: string
+  reportId?: string
+  stageNumber?: number
+}): Promise<{ ok: true } | { ok: false; error: string; phase?: string }> {
+  try {
+    const response = await fetch('/api/inspections/complete-scoped-assignment', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(input),
+    })
+    const payload = await response.json().catch(() => null) as {
+      ok?: boolean
+      error?: string
+      phase?: string
+    } | null
+
+    if (!response.ok || payload?.ok !== true) {
+      return {
+        ok: false,
+        error: payload?.error ?? 'Scoped assignment close failed.',
+        phase: payload?.phase,
+      }
+    }
+
+    return { ok: true }
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : 'Scoped assignment close failed.',
+      phase: 'request_failed',
+    }
+  }
+}
+
 export function InspectorCompletionWorkspace() {
   const params = useParams()
   const router = useRouter()
@@ -2508,40 +2546,33 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
       const closeFailureMessage = 'Inspection saved, but the assignment could not be closed. Please try again or contact support.'
 
       if (!previewMode) {
-        if (job.status !== 'completed') {
-          const jobUpdated = await updateJobStatus(
-            job.id,
-            'completed',
-            signedById,
-            'inspector',
-            `${assignmentScope.builderStageLabel} Vero inspection record complete`,
-            job.status as Parameters<typeof updateJobStatus>[5],
-          )
-
-          if (!jobUpdated) {
-            reportPersistenceFailure(
-              closeFailureMessage,
-              { jobId: job.id, inspectorId: signedById },
-              { alert: true },
-            )
-            setStageSignOffError(closeFailureMessage)
-            setStageSigning(false)
-            return
-          }
-          setJob(current => current ? { ...current, status: 'completed' } : current)
-        }
-
-        const assignmentClosed = await completeJobAssignment(assignment.id, signedById)
-        if (!assignmentClosed) {
+        const closeResult = await closeScopedAssignmentOnServer({
+          assignmentId: assignment.id,
+          jobId: job.id,
+          reportId: report.id,
+          stageNumber: currentStage,
+        })
+        if (!closeResult.ok) {
           reportPersistenceFailure(
             closeFailureMessage,
-            { assignmentId: assignment.id, inspectorId: signedById },
+            {
+              assignmentId: assignment.id,
+              jobId: job.id,
+              reportId: report.id,
+              stageNumber: currentStage,
+              inspectorId: signedById,
+              phase: closeResult.phase,
+              error: closeResult.error,
+            },
             { alert: true },
           )
           setStageSignOffError(closeFailureMessage)
           setStageSigning(false)
           return
         }
+
+        setJob(current => current ? { ...current, status: 'completed' } : current)
+        setAssignment(current => current ? { ...current, status: 'completed' } : current)
       }
 
       if (anomalyReview.geofenceState.state === 'anomalous' && report && assignment && job) {
