@@ -2501,8 +2501,9 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
 
     if (isScopedAssignmentCompletion && assignmentScope) {
       setItems(nextItems)
-      setAssignmentScopeComplete(true)
       setCurrentStage(currentStage)
+
+      const closeFailureMessage = 'Inspection saved, but the assignment could not be closed. Please try again or contact support.'
 
       if (!previewMode) {
         if (job.status !== 'completed') {
@@ -2517,15 +2518,28 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
 
           if (!jobUpdated) {
             reportPersistenceFailure(
-              'The stage record was saved, but Vero could not update the inspection request status. Please refresh and verify the job state.',
+              closeFailureMessage,
               { jobId: job.id, inspectorId: signedById },
+              { alert: true },
             )
-          } else {
-            setJob(current => current ? { ...current, status: 'completed' } : current)
+            setStageSignOffError(closeFailureMessage)
+            setStageSigning(false)
+            return
           }
+          setJob(current => current ? { ...current, status: 'completed' } : current)
         }
 
-        await completeJobAssignment(assignment.id, signedById)
+        const assignmentClosed = await completeJobAssignment(assignment.id, signedById)
+        if (!assignmentClosed) {
+          reportPersistenceFailure(
+            closeFailureMessage,
+            { assignmentId: assignment.id, inspectorId: signedById },
+            { alert: true },
+          )
+          setStageSignOffError(closeFailureMessage)
+          setStageSigning(false)
+          return
+        }
       }
 
       if (anomalyReview.geofenceState.state === 'anomalous' && report && assignment && job) {
@@ -2544,11 +2558,15 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
         })
       }
 
+      setAssignmentScopeComplete(true)
       setLastSavedLabel(`${assignmentScope.builderStageLabel} complete`)
       if (location.error) {
         setStageSignOffError(location.error)
       }
       setStageSigning(false)
+      if (!previewMode) {
+        router.push('/inspector')
+      }
       return
     }
 
