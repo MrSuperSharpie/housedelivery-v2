@@ -403,7 +403,7 @@ export async function POST(req: NextRequest) {
   const itemRows = items.map(item => itemToUpsertRow(item, reportId, assignmentId))
   const { error: itemError } = itemRows.length > 0
     ? await serviceSupabase
-      .from('inspector_completion_checklist_items')
+      .from('inspector_completion_stage_items')
       .upsert(itemRows, { onConflict: 'report_id,item_code' })
     : { error: null }
 
