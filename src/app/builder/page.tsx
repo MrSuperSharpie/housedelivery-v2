@@ -10,8 +10,10 @@ import {
 import { Navbar } from '@/components/shared/Navbar'
 import { ProjectCard } from '@/components/builder/ProjectCard'
 import { DispatchModal } from '@/components/builder/DispatchModal'
+import { SchedulingPicker, type TimeSlot } from '@/components/builder/SchedulingPicker'
 import { EnRouteTracker } from '@/components/builder/EnRouteTracker'
 import { DailyFlash } from '@/components/builder/DailyFlash'
+import { Modal } from '@/components/ui/Modal'
 import { MOCK_BUILDER } from '@/lib/mockData'
 import { useAuth } from '@/lib/auth'
 import { useStore } from '@/lib/store'
@@ -546,6 +548,16 @@ function getProgressDomId(key: string): string {
   return `project-progress-${key.replace(/[^a-zA-Z0-9_-]/g, '-')}`
 }
 
+function getManageableTimeSlots(slots: JobOpportunityRow['availableSlots']): TimeSlot[] {
+  return (slots ?? [])
+    .filter(slot => !slot.flexible && slot.date && slot.startTime && slot.endTime)
+    .map(slot => ({
+      date: slot.date,
+      startTime: slot.startTime,
+      endTime: slot.endTime,
+    }))
+}
+
 const MOD_HOLD_TYPE_META = {
   onsite: {
     label: 'On-Site Correction',
@@ -696,6 +708,12 @@ export default function BuilderDashboard() {
   const [activeModHolds, setActiveModHolds]     = useState<InspectionHold[]>([])
   const [modHoldResponding, setModHoldResponding] = useState<string | null>(null)
   const [requestGuardMessage, setRequestGuardMessage] = useState<string | null>(null)
+  const [managedLiveJob, setManagedLiveJob] = useState<JobOpportunityRow | null>(null)
+  const [managedSlots, setManagedSlots] = useState<TimeSlot[]>([])
+  const [manageRequestError, setManageRequestError] = useState<string | null>(null)
+  const [manageRequestMessage, setManageRequestMessage] = useState<string | null>(null)
+  const [manageRequestSaving, setManageRequestSaving] = useState(false)
+  const [manageRequestCancelling, setManageRequestCancelling] = useState(false)
 
   // ─── DATA BRIDGE: MATCH LOCAL AUTH ID OR SUPABASE ID ─────────────────────────
   const builderLocalId    = user?.id ?? ''
@@ -1090,6 +1108,111 @@ export default function BuilderDashboard() {
     void reloadBuilderJobs()
   }
 
+  const openManageRequest = (job: JobOpportunityRow) => {
+    setManagedLiveJob(job)
+    setManagedSlots(getManageableTimeSlots(job.availableSlots))
+    setManageRequestError(null)
+    setManageRequestMessage(null)
+  }
+
+  const closeManageRequest = () => {
+    if (manageRequestSaving || manageRequestCancelling) return
+    setManagedLiveJob(null)
+    setManagedSlots([])
+    setManageRequestError(null)
+    setManageRequestMessage(null)
+  }
+
+  const formatManageRequestFailure = (fallback: string, payload: unknown) => {
+    if (!payload || typeof payload !== 'object') return fallback
+    const error = (payload as Record<string, unknown>).error
+    const phase = (payload as Record<string, unknown>).phase
+    const detail = [typeof phase === 'string' ? phase : '', typeof error === 'string' ? error : '']
+      .filter(Boolean)
+      .join(': ')
+    return detail || fallback
+  }
+
+  const handleSaveManagedRequest = async () => {
+    if (!managedLiveJob) return
+    if (managedSlots.length === 0) {
+      setManageRequestError('Add at least one availability window before saving.')
+      return
+    }
+
+    setManageRequestSaving(true)
+    setManageRequestError(null)
+    setManageRequestMessage(null)
+
+    try {
+      const response = await fetch('/api/jobs/live-request', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          jobId: managedLiveJob.id,
+          availableSlots: managedSlots,
+        }),
+      })
+      const payload = await response.json().catch(() => null)
+
+      if (!response.ok || payload?.ok !== true) {
+        setManageRequestError(formatManageRequestFailure('Could not update this request. Please try again.', payload))
+        return
+      }
+
+      const nextJobs = await reloadBuilderJobs()
+      const refreshedJob = nextJobs.find(job => job.id === managedLiveJob.id)
+      if (refreshedJob) setManagedLiveJob(refreshedJob)
+      setManageRequestMessage('Time windows updated. The request remains visible on the Live Job Board.')
+    } catch (error) {
+      console.error('handleSaveManagedRequest:', error)
+      setManageRequestError('Could not update this request. Please try again.')
+    } finally {
+      setManageRequestSaving(false)
+    }
+  }
+
+  const handleCancelManagedRequest = async () => {
+    if (!managedLiveJob) return
+
+    setManageRequestCancelling(true)
+    setManageRequestError(null)
+    setManageRequestMessage(null)
+
+    try {
+      const response = await fetch('/api/jobs/live-request', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          jobId: managedLiveJob.id,
+        }),
+      })
+      const payload = await response.json().catch(() => null)
+
+      if (!response.ok || payload?.ok !== true) {
+        setManageRequestError(formatManageRequestFailure('Could not cancel this request. Please try again.', payload))
+        return
+      }
+
+      await reloadBuilderJobs()
+      setManagedLiveJob(null)
+      setManagedSlots([])
+      setRequestGuardMessage('Live request cancelled. You can request this stage again from the existing project when ready.')
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+    } catch (error) {
+      console.error('handleCancelManagedRequest:', error)
+      setManageRequestError('Could not cancel this request. Please try again.')
+    } finally {
+      setManageRequestCancelling(false)
+    }
+  }
+
   // Active assignment — drives the en-route tracker
   const activeAssignment = store.assignments.find(
     a => isMatch(a.builderId) && (a.status === 'provisional' || a.status === 'confirmed')
@@ -1179,10 +1302,15 @@ export default function BuilderDashboard() {
 
     return Array.from(groups.values()).sort((a, b) => a.projectName.localeCompare(b.projectName))
   })()
+  const getScorecardJobForStage = (relatedJobs: JobOpportunityRow[], stageNumber: number) => {
+    const candidates = relatedJobs.filter(candidate => candidate.stage === stageNumber)
+    return candidates.find(candidate => candidate.status !== 'cancelled')
+  }
+
   const buildStageScorecard = (relatedJobs: JobOpportunityRow[]): StageScorecardEntry[] => {
     let previousStagePassed = true
     const entries = BUILDER_STAGE_DEFINITIONS.map((stage, index) => {
-      const stageJob = relatedJobs.find(candidate => candidate.stage === stage.number)
+      const stageJob = getScorecardJobForStage(relatedJobs, stage.number)
       const report = stageJob ? completionReportsByJobId[stageJob.id] : undefined
       const status = getBuilderStageStatus({
         stage,
@@ -1256,8 +1384,9 @@ export default function BuilderDashboard() {
     })
     .filter(item => item.availableStage && item.requestProject && !item.ambiguous)
 
+  const activeAppointmentJobIds = new Set(activeInspectionAppointments.map(assignment => assignment.jobId))
   const liveUnclaimedJobs = (dbJobs ?? [])
-    .filter(job => job.status === 'live' && job.validationStatus === 'validated')
+    .filter(job => job.status === 'live' && job.validationStatus === 'validated' && !activeAppointmentJobIds.has(job.id))
     .sort((a, b) => {
       const ta = a.publishedAt ?? a.requestedAt ?? a.createdAt
       const tb = b.publishedAt ?? b.requestedAt ?? b.createdAt
@@ -1617,7 +1746,14 @@ export default function BuilderDashboard() {
                         )}
                       </div>
                     </div>
-                    <div className="mt-4">
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => openManageRequest(job)}
+                        className="rounded-xl bg-blue-600 px-3 py-2 text-[11px] font-black text-white transition-colors hover:bg-blue-500"
+                      >
+                        Manage Request
+                      </button>
                       <button
                         type="button"
                         onClick={() => {
@@ -1974,6 +2110,89 @@ export default function BuilderDashboard() {
 
         <DailyFlash projects={dailyFlashProjects} dataMode={dailyFlashMode} />
       </main>
+
+      <Modal
+        isOpen={Boolean(managedLiveJob)}
+        onClose={closeManageRequest}
+        title="Manage Request"
+        size="lg"
+      >
+        {managedLiveJob && (
+          <div className="space-y-5">
+            <div className="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3">
+              <div className="text-[11px] font-black uppercase tracking-[0.18em] text-blue-700">Live request awaiting inspector claim</div>
+              <div className="mt-2 text-lg font-black text-slate-950">{managedLiveJob.projectName}</div>
+              <div className="mt-1 text-sm font-medium text-slate-600">
+                {managedLiveJob.address}{managedLiveJob.city ? `, ${managedLiveJob.city}` : ''}
+              </div>
+              <div className="mt-2 text-sm font-bold text-slate-800">
+                {BUILDER_STAGE_DEFINITIONS.find(stage => stage.number === managedLiveJob.stage)?.label ?? `Stage ${managedLiveJob.stage} — ${managedLiveJob.stageName}`}
+              </div>
+            </div>
+
+            <div>
+              <div className="mb-2 text-sm font-black text-slate-950">Available time windows</div>
+              <SchedulingPicker
+                slots={managedSlots}
+                onChange={setManagedSlots}
+                max={3}
+                tier={managedLiveJob.dispatchTier}
+              />
+              <p className="mt-2 text-xs font-medium text-slate-500">
+                Updating these windows keeps the same Live Job Board request. It does not create a new project or duplicate stage request.
+              </p>
+            </div>
+
+            {manageRequestMessage && (
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-900">
+                {manageRequestMessage}
+              </div>
+            )}
+
+            {manageRequestError && (
+              <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-900">
+                {manageRequestError}
+              </div>
+            )}
+
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+              <div className="font-black">Cancel Request</div>
+              <div className="mt-1 text-xs font-medium">
+                Cancelling removes this unclaimed request from the Live Job Board. The same stage can be requested again from this existing project.
+              </div>
+            </div>
+
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <button
+                type="button"
+                disabled={manageRequestSaving || manageRequestCancelling}
+                onClick={() => void handleCancelManagedRequest()}
+                className="rounded-xl border border-red-300 bg-white px-4 py-2.5 text-sm font-black text-red-700 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {manageRequestCancelling ? 'Cancelling...' : 'Cancel Request'}
+              </button>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <button
+                  type="button"
+                  disabled={manageRequestSaving || manageRequestCancelling}
+                  onClick={closeManageRequest}
+                  className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  disabled={manageRequestSaving || manageRequestCancelling || managedSlots.length === 0}
+                  onClick={() => void handleSaveManagedRequest()}
+                  className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-black text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-slate-300"
+                >
+                  {manageRequestSaving ? 'Saving...' : 'Save Time Windows'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
 
       <DispatchModal
         project={dispatchProject}
