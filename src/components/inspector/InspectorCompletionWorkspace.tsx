@@ -1155,7 +1155,8 @@ export function InspectorCompletionWorkspace() {
   const finalOccupancyReady = useMemo(() => {
     if (!isFinalOccupancyStage) return false
     if (!currentStageInAssignmentScope) return false
-    if (items.some(item => isRequiredStageItem(item) && getUnresolvedDependencyCodes(item, items).length > 0)) {
+    const depScopeStage = isScopedFinalOccupancy ? assignmentScope?.internalStageNumber : undefined
+    if (items.some(item => isRequiredStageItem(item) && getUnresolvedDependencyCodes(item, items, depScopeStage).length > 0)) {
       return false
     }
 
@@ -1171,12 +1172,17 @@ export function InspectorCompletionWorkspace() {
 
       return status === 'passed'
     })
-  }, [currentStage, currentStageInAssignmentScope, isFinalOccupancyStage, isScopedFinalOccupancy, items, projectOverviewStages, siblingBuilderStagesCompleted, stageReadyForSignOff])
+  }, [assignmentScope, currentStage, currentStageInAssignmentScope, isFinalOccupancyStage, isScopedFinalOccupancy, items, projectOverviewStages, siblingBuilderStagesCompleted, stageReadyForSignOff])
 
-  const sealPendingCount = unresolvedRequired.length
-  const sealDocumentGapCount = missingDocuments.length
+  const sealPendingCount = isScopedFinalOccupancy
+    ? stageItems.filter(item => item.inspection_status === 'Pending').length
+    : unresolvedRequired.length
+  const sealDocumentGapCount = isScopedFinalOccupancy
+    ? stageItems.filter(item => !itemHasRequiredDocument(item)).length
+    : missingDocuments.length
+  const sealDepScopeStage = isScopedFinalOccupancy ? assignmentScope?.internalStageNumber : undefined
   const sealDependencyBlockerCount = items.filter(item =>
-    isRequiredStageItem(item) && getUnresolvedDependencyCodes(item, items).length > 0
+    isRequiredStageItem(item) && getUnresolvedDependencyCodes(item, items, sealDepScopeStage).length > 0
   ).length
   const hasOpenHold = activeJobHold !== null && isHoldOpenStatus(activeJobHold.status)
   const sealReady = (!assignmentScope || isFinalOccupancyStage)
