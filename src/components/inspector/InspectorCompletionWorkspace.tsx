@@ -890,6 +890,7 @@ export function InspectorCompletionWorkspace() {
     builderStageLabel: string
   } | null>(null)
   const [assignmentScopeComplete, setAssignmentScopeComplete] = useState(false)
+  const [siblingBuilderStagesCompleted, setSiblingBuilderStagesCompleted] = useState<Set<number>>(new Set())
   const [overlay, setOverlay] = useState<AhjOverlayContext | null>(null)
   const [stages, setStages] = useState<CompletionChecklistStageDefinition[]>([])
   const [items, setItems] = useState<WorkspaceItem[]>([])
@@ -1060,6 +1061,8 @@ export function InspectorCompletionWorkspace() {
     [stageItems]
   )
 
+  const isScopedFinalOccupancy = Boolean(assignmentScope && isFinalOccupancyStage)
+
   const projectOverviewStages = useMemo(() => {
     const itemMap = new Map(items.map(item => [item.item_code, item]))
 
@@ -1118,6 +1121,13 @@ export function InspectorCompletionWorkspace() {
       && requiredStageItemsComplete === stageRequiredItems.length
   }, [assignmentScope, blockedStageItems.length, currentStageInAssignmentScope, failedStageItems.length, items, requiredStageItemsComplete, stageItems, stageRequiredItems.length])
 
+  const scopedBuilderStagePassedCount = useMemo(() => {
+    if (!isScopedFinalOccupancy) return 0
+    const priorPassed = [1, 2, 3, 4].filter(n => siblingBuilderStagesCompleted.has(n)).length
+    const currentReady = (stageReadyForSignOff || Boolean(currentStageSignOff)) ? 1 : 0
+    return priorPassed + currentReady
+  }, [isScopedFinalOccupancy, siblingBuilderStagesCompleted, stageReadyForSignOff, currentStageSignOff])
+
   const currentStageAlreadySignedOrSubmitted = Boolean(currentStageSignOff)
     || report?.status === 'submitted'
     || Boolean(report?.submittedAt)
@@ -1149,6 +1159,11 @@ export function InspectorCompletionWorkspace() {
       return false
     }
 
+    if (isScopedFinalOccupancy) {
+      const priorStagesAllPassed = [1, 2, 3, 4].every(n => siblingBuilderStagesCompleted.has(n))
+      return priorStagesAllPassed && stageReadyForSignOff
+    }
+
     return projectOverviewStages.every(({ stage, status }) => {
       if (stage.stage_number === currentStage) {
         return status === 'passed' || stageReadyForSignOff
@@ -1156,7 +1171,7 @@ export function InspectorCompletionWorkspace() {
 
       return status === 'passed'
     })
-  }, [currentStage, currentStageInAssignmentScope, isFinalOccupancyStage, items, projectOverviewStages, stageReadyForSignOff])
+  }, [currentStage, currentStageInAssignmentScope, isFinalOccupancyStage, isScopedFinalOccupancy, items, projectOverviewStages, siblingBuilderStagesCompleted, stageReadyForSignOff])
 
   const sealPendingCount = unresolvedRequired.length
   const sealDocumentGapCount = missingDocuments.length
@@ -1537,6 +1552,23 @@ export function InspectorCompletionWorkspace() {
         internalStageNumber: requestedChecklistStage,
         builderStageLabel: getBuilderStageLabel(builderStageNumber),
       })
+
+      if (builderStageNumber === 5 && jobRow.projectId) {
+        const { data: siblingJobRows } = await supabase
+          .from('job_opportunities')
+          .select('id, stage, status, project_id')
+          .or(`project_id.eq.${jobRow.projectId},id.eq.${jobRow.projectId}`)
+          .neq('id', jobRow.id)
+        const completedStages = new Set<number>()
+        for (const sib of (siblingJobRows ?? [])) {
+          const sibStage = typeof sib.stage === 'number' ? sib.stage : null
+          if (sibStage && sibStage >= 1 && sibStage <= 4 && sib.status === 'completed') {
+            completedStages.add(sibStage)
+          }
+        }
+        setSiblingBuilderStagesCompleted(completedStages)
+      }
+
       setOverlay(definitionSet.overlay)
       setStages(definitionSet.stages)
 
@@ -2789,6 +2821,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
       projectState: 'COMPLETED',
       auditNote: 'Final occupancy issued and project certified',
       location,
+      successBehavior: isScopedFinalOccupancy ? 'return_to_dashboard' : 'stay',
     })
 
     if (!completed) {
@@ -4497,7 +4530,10 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                   }`}>
                     <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Certification Gate</div>
                     <div className={`mt-2 text-lg font-black ${finalOccupancyReady ? 'text-emerald-200' : 'text-zinc-200'}`}>
-                      {passedStageCount + (stageReadyForSignOff && !currentStageSignOff ? 1 : 0)} / {stages.length} stages ready
+                      {isScopedFinalOccupancy
+                        ? `${scopedBuilderStagePassedCount} / 5`
+                        : `${passedStageCount + (stageReadyForSignOff && !currentStageSignOff ? 1 : 0)} / ${stages.length}`
+                      } stages ready
                     </div>
                     <div className="mt-1 text-xs text-zinc-400">
                       {finalOccupancyReady ? 'All prerequisite gates are satisfied.' : 'Resolve prerequisite stage and item gates before issuing occupancy.'}
@@ -4508,12 +4544,17 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                 <div className="mt-6">
                   <div className="flex items-center justify-between gap-3 text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">
                     <span>Global Certification Progress</span>
-                    <span>{passedStageCount + (stageReadyForSignOff && !currentStageSignOff ? 1 : 0)} / {stages.length} stages passed</span>
+                    <span>
+                      {isScopedFinalOccupancy
+                        ? `${scopedBuilderStagePassedCount} / 5`
+                        : `${passedStageCount + (stageReadyForSignOff && !currentStageSignOff ? 1 : 0)} / ${stages.length}`
+                      } stages passed
+                    </span>
                   </div>
                   <div className="mt-3 h-3 overflow-hidden rounded-full bg-white/10">
                     <div
                       className="h-full rounded-full bg-emerald-500 transition-all"
-                      style={{ width: `${Math.min(100, Math.round(((passedStageCount + (stageReadyForSignOff && !currentStageSignOff ? 1 : 0)) / Math.max(stages.length, 1)) * 100))}%` }}
+                      style={{ width: `${Math.min(100, Math.round(((isScopedFinalOccupancy ? scopedBuilderStagePassedCount : passedStageCount + (stageReadyForSignOff && !currentStageSignOff ? 1 : 0)) / Math.max(isScopedFinalOccupancy ? 5 : stages.length, 1)) * 100))}%` }}
                     />
                   </div>
                 </div>
