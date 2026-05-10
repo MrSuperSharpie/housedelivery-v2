@@ -21,10 +21,10 @@ export function DailyFlash({ projects, dataMode }: DailyFlashProps) {
   const today = new Date().toLocaleDateString('en-CA', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'America/Vancouver' })
 
   const weekData = [
-    { day: 'Mon', pass: 1, fail: 0 },
-    { day: 'Tue', pass: 2, fail: 1 },
-    { day: 'Wed', pass: 1, fail: 0 },
-    { day: 'Thu', pass: 0, fail: 1 },
+    { day: 'Mon', pass: 0, fail: 0 },
+    { day: 'Tue', pass: 0, fail: 0 },
+    { day: 'Wed', pass: 0, fail: 0 },
+    { day: 'Thu', pass: 0, fail: 0 },
     { day: 'Fri', pass: passed.length, fail: failed.length },
     { day: 'Sat', pass: 0, fail: 0 },
     { day: 'Sun', pass: 0, fail: 0 },

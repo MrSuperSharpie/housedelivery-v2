@@ -95,15 +95,6 @@ type StageScorecardEntry = {
   status: BuilderStageStatus
 }
 
-type NextUpItem = {
-  progressProject: PermitProgressProject
-  stageScorecard: StageScorecardEntry[]
-  availableStage?: StageScorecardEntry
-  latestPassedStage?: StageScorecardEntry
-  requestProject: Project | null
-  ambiguous: boolean
-}
-
 type StageRequestCandidate = {
   id: string
   projectId?: string
@@ -1231,9 +1222,10 @@ export default function BuilderDashboard() {
     ? activeAssignment.inspectorName.split(' ').filter(Boolean).map(w => w[0]).join('').slice(0, 2).toUpperCase()
     : 'IN'
 
-  const activeCount    = projects.filter(p => p.status !== 'pass' && p.status !== 'completed').length
-  const passedThisWeek = projects.filter(p => p.status === 'pass').length
-  const activeStages   = projects
+  const statsSource    = supabaseProjects ?? storeProjects
+  const activeCount    = statsSource.filter(p => p.status !== 'pass' && p.status !== 'completed').length
+  const passedThisWeek = statsSource.filter(p => p.status === 'pass').length
+  const activeStages   = statsSource
     .filter(p => p.status !== 'pass' && p.status !== 'completed')
     .reduce((sum, project) => {
       const openStages = project.stages.filter(stage => stage.status !== 'pass').length
@@ -1247,7 +1239,7 @@ export default function BuilderDashboard() {
   const actionableHoldJobIds = new Set(activeHolds.map(hold => hold.jobId))
   const actionRequiredHoldJobs = onHoldJobs.filter(job => actionableHoldJobIds.has(job.id))
   const getOpenHoldDetailForJob = (jobId: string) => openHoldDetails.find(detail => detail.hold.jobId === jobId)
-  const hasBuilderActions = actionRequiredHoldJobs.length > 0 || activeModHolds.length > 0
+  const hasBuilderActions = actionRequiredHoldJobs.length > 0 || activeModHolds.length > 0 || acceptedHolds.length > 0
   const activeInspectionAppointments = store.assignments.filter(
     a => isMatch(a.builderId) && (a.status === 'provisional' || a.status === 'confirmed' || a.objectionState === 'pending_review')
   )
@@ -1365,25 +1357,6 @@ export default function BuilderDashboard() {
       }],
     }
   }
-  const nextUpItems: NextUpItem[] = permitProgressProjects
-    .map(progressProject => {
-      const stageScorecard = buildStageScorecard(progressProject.jobs)
-      const latestPassedStage = getLatestStageEntry(stageScorecard.filter(entry => entry.status === 'passed'))
-      const { entry: availableStage, ambiguous } = findSafeAvailableStage(stageScorecard)
-      const requestProject = availableStage
-        ? buildProjectRequestForProgressStage(progressProject, availableStage.stage)
-        : null
-      return {
-        progressProject,
-        stageScorecard,
-        availableStage,
-        latestPassedStage,
-        requestProject,
-        ambiguous,
-      }
-    })
-    .filter(item => item.availableStage && item.requestProject && !item.ambiguous)
-
   const activeAppointmentJobIds = new Set(activeInspectionAppointments.map(assignment => assignment.jobId))
   const liveUnclaimedJobs = (dbJobs ?? [])
     .filter(job => job.status === 'live' && job.validationStatus === 'validated' && !activeAppointmentJobIds.has(job.id))
@@ -1392,6 +1365,20 @@ export default function BuilderDashboard() {
       const tb = b.publishedAt ?? b.requestedAt ?? b.createdAt
       return tb.localeCompare(ta)
     })
+
+  const { activeProgressProjects, completedProgressProjects } = (() => {
+    const active: PermitProgressProject[] = []
+    const completed: PermitProgressProject[] = []
+    for (const pp of permitProgressProjects) {
+      const sc = buildStageScorecard(pp.jobs)
+      if (sc.every(e => e.status === 'passed')) {
+        completed.push(pp)
+      } else {
+        active.push(pp)
+      }
+    }
+    return { activeProgressProjects: active, completedProgressProjects: completed }
+  })()
 
   // FIX #4: show spinner while either projects OR jobs are loading
   const isLoading = isLoadingProjects || isLoadingJobs
@@ -1698,6 +1685,34 @@ export default function BuilderDashboard() {
             isResponding={modHoldResponding === hold.id}
           />
         ))}
+
+        {/* ── Re-verification Pending ── */}
+        {acceptedHolds.map(({ hold, projectName, feeAmount, acceptedAt }) => (
+          <div key={hold.id} className="mb-5 rounded-2xl border border-amber-500/25 bg-amber-500/5 overflow-hidden">
+            <div className="px-5 py-4">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 bg-amber-500/15 border border-amber-500/25 rounded-xl flex items-center justify-center shrink-0">
+                  <Clock className="w-5 h-5 text-amber-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-ink text-sm mb-0.5">Re-verification Pending</div>
+                  <div className="text-xs text-muted truncate">{projectName}</div>
+                  <div className="mt-2 text-[11px] text-muted">
+                    Inspector is returning to verify the correction. Your site is reserved.{' '}
+                    Fee locked: <span className="font-bold text-amber-400">${feeAmount.toFixed(2)}</span>
+                  </div>
+                  <div className="mt-1 text-[10px] text-subtle">
+                    Accepted {new Date(acceptedAt).toLocaleTimeString('en-CA', { timeZone: 'America/Vancouver', hour: '2-digit', minute: '2-digit' })}
+                    {' · '}Correction window: {correctionWindowByHold[hold.id] ?? 60} min
+                  </div>
+                </div>
+                <div className="bg-amber-500/15 border border-amber-500/30 rounded-lg px-2 py-1 shrink-0">
+                  <div className="text-[10px] text-amber-400 font-bold">In Progress</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
             </div>
           </section>
         )}
@@ -1718,7 +1733,6 @@ export default function BuilderDashboard() {
               {liveUnclaimedJobs.map(job => {
                 const stageLabel = BUILDER_STAGE_DEFINITIONS.find(s => s.number === job.stage)?.label ?? `Stage ${job.stage} — ${job.stageName}`
                 const postedAt = job.publishedAt ?? job.requestedAt ?? job.createdAt
-                const portfolioDomId = getProgressDomId(getPermitProgressGroupKey(job))
                 return (
                   <div key={job.id} className="rounded-2xl border border-blue-500/25 bg-panel p-4 shadow-card">
                     <div className="flex items-start gap-3">
@@ -1754,75 +1768,6 @@ export default function BuilderDashboard() {
                       >
                         Manage Request
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const el = document.getElementById(portfolioDomId)
-                          el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-                        }}
-                        className="rounded-xl border border-rim bg-surface px-3 py-2 text-[11px] font-bold text-ink transition-colors hover:border-blue-500/40"
-                      >
-                        View in Project Portfolio
-                      </button>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </section>
-        )}
-
-        {/* ── Next Up ── */}
-        {nextUpItems.length > 0 && (
-          <section className="mb-6">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div>
-                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-muted">Next Up</div>
-                <div className="mt-1 text-sm font-extrabold text-ink">Clear builder actions</div>
-              </div>
-              <div className="rounded-full border border-rim bg-panel px-3 py-1 text-[10px] font-black uppercase tracking-wide text-muted">
-                {nextUpItems.length} ready
-              </div>
-            </div>
-
-            <div className="grid gap-3 lg:grid-cols-2">
-              {nextUpItems.map(({ progressProject, stageScorecard, availableStage, latestPassedStage, requestProject }) => {
-                return (
-                  <div key={progressProject.key} className="rounded-2xl border border-rim bg-panel p-4 shadow-card">
-                    <div className="flex items-start gap-3">
-                      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-blue-500/25 bg-blue-500/10 text-ink">
-                        <ChevronRight className="h-4 w-4" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-extrabold text-ink">{progressProject.projectName}</div>
-                        {progressProject.address && (
-                          <div className="mt-0.5 truncate text-xs font-medium text-muted">{progressProject.address}{progressProject.city ? `, ${progressProject.city}` : ''}</div>
-                        )}
-                        <div className="mt-2 text-xs font-semibold text-ink">
-                          {latestPassedStage
-                              ? `${latestPassedStage.stage.label.split(' — ')[0]} passed · Vero inspection record complete`
-                              : 'Ready to begin permit-stage inspections'}
-                        </div>
-                        <div className="mt-1 text-xs text-muted">
-                          {availableStage
-                            ? `${availableStage.stage.label} is available when ready.`
-                            : 'A permit-stage inspection is ready to request.'}
-                        </div>
-                        <div className="mt-3">
-                          <StageProgressRail scorecard={stageScorecard} />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {availableStage && requestProject ? (
-                        <button
-                          type="button"
-                          onClick={() => handleRequestInspection(requestProject)}
-                          className="rounded-xl bg-flame px-3 py-2 text-[11px] font-black text-white transition-colors hover:bg-flame-light"
-                        >
-                          Request {availableStage.stage.label.split(' — ')[0]} Inspection
-                        </button>
-                      ) : null}
                     </div>
                   </div>
                 )
@@ -1859,34 +1804,6 @@ export default function BuilderDashboard() {
             </div>
           </section>
         )}
-
-        {/* ── Re-verification Pending ── */}
-        {acceptedHolds.map(({ hold, projectName, feeAmount, acceptedAt }) => (
-          <div key={hold.id} className="mb-5 rounded-2xl border border-amber-500/25 bg-amber-500/5 overflow-hidden">
-            <div className="px-5 py-4">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-amber-500/15 border border-amber-500/25 rounded-xl flex items-center justify-center shrink-0">
-                  <Clock className="w-5 h-5 text-amber-400" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-bold text-ink text-sm mb-0.5">Re-verification Pending</div>
-                  <div className="text-xs text-muted truncate">{projectName}</div>
-                  <div className="mt-2 text-[11px] text-muted">
-                    Inspector is returning to verify the correction. Your site is reserved.{' '}
-                    Fee locked: <span className="font-bold text-amber-400">${feeAmount.toFixed(2)}</span>
-                  </div>
-                  <div className="mt-1 text-[10px] text-subtle">
-                    Accepted {new Date(acceptedAt).toLocaleTimeString('en-CA', { timeZone: 'America/Vancouver', hour: '2-digit', minute: '2-digit' })}
-                    {' · '}Correction window: {correctionWindowByHold[hold.id] ?? 60} min
-                  </div>
-                </div>
-                <div className="bg-amber-500/15 border border-amber-500/30 rounded-lg px-2 py-1 shrink-0">
-                  <div className="text-[10px] text-amber-400 font-bold">In Progress</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
 
         {/* En route — live tracker card */}
         {projects.some(p => p.status === 'in_progress') && (
@@ -1945,7 +1862,7 @@ export default function BuilderDashboard() {
           </div>
         ) : dbJobs !== null ? (
           <div className="space-y-3">
-            {permitProgressProjects.map(progressProject => {
+            {activeProgressProjects.map(progressProject => {
               const stageScorecard = buildStageScorecard(progressProject.jobs)
               const latestStage = getLatestStageEntry(stageScorecard)
               const latestJob = latestStage?.stageJob ?? progressProject.representativeJob
@@ -2077,6 +1994,41 @@ export default function BuilderDashboard() {
                 </div>
               )
             })}
+
+            {completedProgressProjects.length > 0 && (
+              <details className="mt-2 rounded-2xl border border-emerald-600/20 bg-emerald-500/5">
+                <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-black text-ink">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                  Completed / Certified — {completedProgressProjects.length} project{completedProgressProjects.length !== 1 ? 's' : ''}
+                </summary>
+                <div className="space-y-2 border-t border-emerald-600/15 p-3">
+                  {completedProgressProjects.map(pp => {
+                    const completedJob = pp.jobs.find(j => j.status === 'completed')
+                    const rec = completedJob ? completedRecords[completedJob.id] : undefined
+                    return (
+                      <div key={pp.key} className="flex items-center justify-between rounded-xl border border-rim bg-panel px-3 py-2.5">
+                        <div className="min-w-0">
+                          <div className="truncate text-sm font-extrabold text-ink">{pp.projectName}</div>
+                          {pp.address && (
+                            <div className="mt-0.5 truncate text-xs text-muted">{pp.address}{pp.city ? `, ${pp.city}` : ''}</div>
+                          )}
+                          {rec?.certRef && (
+                            <div className="mt-0.5 font-mono text-xs font-bold text-ink">{rec.certRef}</div>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => router.push('/vault')}
+                          className="ml-3 shrink-0 rounded-xl border border-emerald-600/30 bg-emerald-500/10 px-3 py-2 text-[11px] font-black text-ink transition-colors hover:bg-emerald-500/15"
+                        >
+                          Open Vault
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              </details>
+            )}
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-3 gap-y-5 mb-6">
