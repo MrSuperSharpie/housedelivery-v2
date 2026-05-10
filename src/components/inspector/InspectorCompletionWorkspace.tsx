@@ -869,6 +869,49 @@ async function closeScopedAssignmentOnServer(input: {
   }
 }
 
+async function finalizeScopedFinalOccupancyOnServer(input: {
+  assignmentId: string
+  jobId: string
+  reportId: string
+  stageNumber: number
+  sealedAt: string
+  sealReference: string
+  sealPayload: Record<string, unknown>
+  completedRecord: Record<string, unknown>
+  items: WorkspaceItem[]
+}): Promise<{ ok: true } | { ok: false; error: string; phase?: string }> {
+  try {
+    const response = await fetch('/api/inspections/final-occupancy', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(input),
+    })
+    const payload = await response.json().catch(() => null) as {
+      ok?: boolean
+      error?: string
+      phase?: string
+    } | null
+
+    if (!response.ok || payload?.ok !== true) {
+      return {
+        ok: false,
+        error: payload?.error ?? 'Final occupancy could not be issued.',
+        phase: payload?.phase,
+      }
+    }
+
+    return { ok: true }
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : 'Final occupancy could not be issued.',
+      phase: 'request_failed',
+    }
+  }
+}
+
 export function InspectorCompletionWorkspace() {
   const params = useParams()
   const router = useRouter()
@@ -2430,11 +2473,84 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
       })),
     }
 
+    if (certificationType === 'final_occupancy' && isScopedFinalOccupancy) {
+      const scopedFinalResult = await finalizeScopedFinalOccupancyOnServer({
+        assignmentId: assignment.id,
+        jobId: job.id,
+        reportId: report.id,
+        stageNumber: currentStage,
+        sealedAt,
+        sealReference,
+        sealPayload,
+        completedRecord,
+        items: nextItems,
+      })
+
+      if (!scopedFinalResult.ok) {
+        const detail = [scopedFinalResult.phase, scopedFinalResult.error].filter(Boolean).join(': ')
+        const message = detail
+          ? `Final certification could not be written to Supabase. ${detail}`
+          : 'Final certification could not be written to Supabase. Please try again.'
+        reportPersistenceFailure(
+          message,
+          {
+            assignmentId,
+            reportId: report.id,
+            inspectorId: sessionInspector.id,
+            phase: scopedFinalResult.phase,
+            error: scopedFinalResult.error,
+          },
+          { alert: true },
+        )
+        setStageSignOffError(message)
+        setSealing(false)
+        return false
+      }
+
+      setReport(current => current ? {
+        ...current,
+        inspectorId: sessionInspector.id,
+        status: 'sealed',
+        sealApplied: true,
+        sealReference,
+        sealPayload,
+        sealedAt,
+        submittedAt: sealedAt,
+      } : current)
+      setItems(nextItems)
+      setJob(current => current ? { ...current, status: 'completed' } : current)
+      setAssignment(current => current ? { ...current, status: 'completed' } : current)
+      setAssignmentScopeComplete(true)
+      setSealing(false)
+
+      if (successBehavior === 'return_to_dashboard') {
+        setSealSuccessMessage('Final Occupancy Issued Successfully!')
+        if (typeof window !== 'undefined') {
+          window.scrollTo({ top: 0, behavior: 'smooth' })
+        }
+        if (sealSuccessTimerRef.current) clearTimeout(sealSuccessTimerRef.current)
+        if (sealRedirectTimerRef.current) clearTimeout(sealRedirectTimerRef.current)
+        sealSuccessTimerRef.current = setTimeout(() => {
+          setSealSuccessMessage(null)
+        }, 6000)
+        sealRedirectTimerRef.current = setTimeout(() => {
+          router.push('/inspector')
+        }, 1400)
+      } else {
+        setSealed(true)
+      }
+
+      return true
+    }
+
     const recordInsert = await insertCompletedRecordStrict(completedRecord as Parameters<typeof insertCompletedRecordStrict>[0])
 
     if (!recordInsert.ok) {
+      const message = recordInsert.error
+        ? `Final certification could not be written to Supabase. ${recordInsert.error}`
+        : 'Final certification could not be written to Supabase. Please try again.'
       reportPersistenceFailure(
-        'Final certification could not be written to Supabase. Please try again.',
+        message,
         {
           assignmentId,
           reportId: report.id,
@@ -2443,6 +2559,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
         },
         { alert: true }
       )
+      setStageSignOffError(message)
       setSealing(false)
       return false
     }
