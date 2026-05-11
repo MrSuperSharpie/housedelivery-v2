@@ -474,6 +474,14 @@ const BUILDER_STAGE_STATUS_COPY: Record<BuilderStageStatus, { label: string; cls
   },
 }
 
+const ACTIVE_STAGE_CARD_LABEL: Partial<Record<BuilderStageStatus, string>> = {
+  requested_live:     'Awaiting Inspector',
+  inspector_assigned: 'Inspector Assigned',
+  in_progress:        'Inspection In Progress',
+  hold:               'On Hold',
+  failed:             'Failed — Action Required',
+}
+
 const STAGE_DOT_CLASS: Record<BuilderStageStatus, string> = {
   not_requested: 'border-slate-400 bg-panel text-muted',
   requested_live: 'border-blue-500 bg-blue-500 text-white',
@@ -1873,6 +1881,9 @@ export default function BuilderDashboard() {
               const openHoldForJob = progressProject.jobs.map(job => getOpenHoldDetailForJob(job.id)?.hold).find(Boolean)
               const completedJob = progressProject.jobs.find(job => job.status === 'completed')
               const rec = completedJob ? completedRecords[completedJob.id] : undefined
+              const activeStageEntry = stageScorecard.find(e =>
+                (['requested_live', 'inspector_assigned', 'in_progress', 'hold', 'failed'] as BuilderStageStatus[]).includes(e.status)
+              )
               const latestStatus = latestJob
                 ? getJobWorkflowLabel(latestJob)
                 : latestPassedStage
@@ -1926,6 +1937,21 @@ export default function BuilderDashboard() {
                         >
                           Open Vault
                         </button>
+                      ) : activeStageEntry ? (
+                        <>
+                          <span className={`rounded-xl border px-3 py-2 text-[11px] font-bold ${BUILDER_STAGE_STATUS_COPY[activeStageEntry.status].cls}`}>
+                            {ACTIVE_STAGE_CARD_LABEL[activeStageEntry.status] ?? BUILDER_STAGE_STATUS_COPY[activeStageEntry.status].label}
+                          </span>
+                          {activeStageEntry.status === 'requested_live' && activeStageEntry.stageJob && (
+                            <button
+                              type="button"
+                              onClick={() => openManageRequest(activeStageEntry.stageJob!)}
+                              className="rounded-xl bg-blue-600 px-3 py-2 text-[11px] font-black text-white transition-colors hover:bg-blue-500"
+                            >
+                              Manage Request
+                            </button>
+                          )}
+                        </>
                       ) : (
                         <span className="rounded-xl border border-rim bg-surface px-3 py-2 text-[11px] font-bold text-muted">View progress</span>
                       )}
