@@ -2,7 +2,7 @@
 
 import React from 'react'
 import Link from 'next/link'
-import { CheckCircle2, XCircle, TrendingUp, Calendar } from 'lucide-react'
+import { CheckCircle2, XCircle, Calendar } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { Card } from '@/components/ui/Card'
 import type { Project } from '@/lib/types'
@@ -43,9 +43,8 @@ export function DailyFlash({ projects, dataMode, reportsByJobId }: DailyFlashPro
           <h3 className="text-lg font-extrabold text-ink">Daily Flash Report</h3>
           <p className="mt-0.5 text-sm font-medium text-muted">Summary of today&apos;s inspection activity</p>
         </div>
-        <div className="flex items-center gap-1.5 rounded-lg border border-rim bg-panel px-3 py-1.5 text-xs font-bold text-ink">
-          <TrendingUp className="w-3.5 h-3.5" />
-          Weekly View
+        <div className="rounded-lg border border-rim bg-panel px-3 py-1.5 text-xs font-bold text-muted">
+          Weekly
         </div>
       </div>
 

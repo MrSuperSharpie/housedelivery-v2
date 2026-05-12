@@ -975,40 +975,71 @@ export default function BuilderDashboard() {
   ]
   const dailyFlashMode = resolveReportDataMode(Boolean(user?.supabaseId))
 
-  // Deduplicate dbJobsAsProjects by project identity for the Daily Flash.
-  // job_opportunities has one row per stage inspection; grouping by projectId (or
-  // projectName as fallback) collapses them to one representative row per project.
-  // We keep the highest-stage row, using updatedAt as the tiebreaker.
-  const dedupedDbJobsForFlash: typeof dbJobsAsProjects = (() => {
-    if (!dbJobs) return []
-    const best = new Map<string, { proj: (typeof dbJobsAsProjects)[0]; job: JobOpportunityRow }>()
-    for (let i = 0; i < dbJobs.length; i++) {
-      const job = dbJobs[i]
-      const key = job.projectId ?? job.projectName
-      const candidate = dbJobsAsProjects[i]
+  // Two-pass deduplication for Daily Flash.
+  //
+  // Pass 1: collapse job_opportunities rows to one per project.
+  //   job_opportunities has one row per stage inspection, so a 5-stage project
+  //   produces 5 rows. Group by projectId (when present) or projectName as fallback,
+  //   keeping the highest-stage row (latest updatedAt as tiebreaker).
+  //
+  // Pass 2: cross-source dedup by normalised name+address.
+  //   supabaseProjects (projects table) and the Pass-1 job rows can both contain
+  //   Saturday Morning Coffee. Normalise name+address into a single key and keep
+  //   the best candidate:
+  //   (a) prefer the row whose id resolves a Schedule C-B reportId (shows Download C-B),
+  //   (b) then prefer highest currentStage,
+  //   (c) then prefer most recent updatedAt.
+  const dailyFlashProjects: Project[] = (() => {
+    const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '')
+
+    // Pass 1
+    const dedupedJobRows: Project[] = (() => {
+      if (!dbJobs) return []
+      const best = new Map<string, { proj: Project; job: JobOpportunityRow }>()
+      for (let i = 0; i < dbJobs.length; i++) {
+        const job = dbJobs[i]
+        const key = job.projectId ?? job.projectName
+        const candidate = dbJobsAsProjects[i]
+        const existing = best.get(key)
+        if (!existing) {
+          best.set(key, { proj: candidate, job })
+        } else {
+          const isHigherStage = job.stage > existing.job.stage
+          const isSameStageNewer = job.stage === existing.job.stage && job.updatedAt > existing.job.updatedAt
+          if (isHigherStage || isSameStageNewer) best.set(key, { proj: candidate, job })
+        }
+      }
+      return [...best.values()].map(v => v.proj)
+    })()
+
+    // Pass 2
+    const raw: Project[] = dailyFlashMode === 'live'
+      ? [...(supabaseProjects ?? []), ...dedupedJobRows]
+      : [...storeProjects, ...standaloneJobsAsProjects]
+
+    const best = new Map<string, Project>()
+    for (const proj of raw) {
+      const key = norm(proj.name) + '|' + norm(proj.address)
       const existing = best.get(key)
       if (!existing) {
-        best.set(key, { proj: candidate, job })
+        best.set(key, proj)
       } else {
-        const isHigherStage = job.stage > existing.job.stage
-        const isSameStageNewer = job.stage === existing.job.stage && job.updatedAt > existing.job.updatedAt
-        if (isHigherStage || isSameStageNewer) {
-          best.set(key, { proj: candidate, job })
+        const hasReport   = Boolean(completionReportsByJobId[proj.id]?.id)
+        const existHasReport = Boolean(completionReportsByJobId[existing.id]?.id)
+        if (hasReport && !existHasReport) {
+          best.set(key, proj)
+        } else if (hasReport === existHasReport) {
+          if (
+            proj.currentStage > existing.currentStage ||
+            (proj.currentStage === existing.currentStage && proj.updatedAt > existing.updatedAt)
+          ) {
+            best.set(key, proj)
+          }
         }
       }
     }
-    return [...best.values()].map(v => v.proj)
+    return [...best.values()]
   })()
-
-  const dailyFlashProjects = dailyFlashMode === 'live'
-    ? [
-        ...(supabaseProjects ?? []),
-        ...dedupedDbJobsForFlash,
-      ]
-    : [
-        ...storeProjects,
-        ...standaloneJobsAsProjects,
-      ]
 
   const stageRequestCandidates: StageRequestCandidate[] = [
     ...(dbJobs ?? []).map(job => ({
