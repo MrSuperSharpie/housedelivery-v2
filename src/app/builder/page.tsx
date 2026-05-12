@@ -2098,45 +2098,47 @@ export default function BuilderDashboard() {
       >
         {managedLiveJob && (
           <div className="space-y-5">
-            <div className="rounded-2xl border border-flame/25 bg-flame/10 px-4 py-3">
+            <div className="rounded-2xl border border-flame/40 bg-flame/15 px-4 py-3">
               <div className="text-[11px] font-black uppercase tracking-[0.18em] text-flame">Live request awaiting inspector claim</div>
-              <div className="mt-2 text-lg font-black text-ink">{managedLiveJob.projectName}</div>
-              <div className="mt-1 text-sm font-medium text-muted">
+              <div className="mt-2 text-lg font-black text-white">{managedLiveJob.projectName}</div>
+              <div className="mt-1 text-sm font-medium text-slate-300">
                 {managedLiveJob.address}{managedLiveJob.city ? `, ${managedLiveJob.city}` : ''}
               </div>
-              <div className="mt-2 text-sm font-bold text-ink">
+              <div className="mt-2 text-sm font-bold text-slate-200">
                 {BUILDER_STAGE_DEFINITIONS.find(stage => stage.number === managedLiveJob.stage)?.label ?? `Stage ${managedLiveJob.stage} — ${managedLiveJob.stageName}`}
               </div>
             </div>
 
             <div>
-              <div className="mb-2 text-sm font-black text-ink">Available time windows</div>
-              <SchedulingPicker
-                slots={managedSlots}
-                onChange={setManagedSlots}
-                max={3}
-                tier={managedLiveJob.dispatchTier}
-              />
-              <p className="mt-2 text-xs font-medium text-muted">
+              <div className="mb-2 text-sm font-black text-white">Available time windows</div>
+              <div className="[&_.bg-white]:!bg-raised [&_.bg-gray-50]:!bg-panel [&_.bg-gray-100]:!bg-surface [&_.border-gray-200]:!border-rim [&_.border-gray-300]:!border-rim [&_.text-gray-900]:!text-white [&_.text-gray-600]:!text-slate-300 [&_.text-gray-500]:!text-slate-400 [&_.text-gray-400]:!text-slate-500 [&_.text-gray-300]:!text-slate-500 [&_.bg-orange-50]:!bg-flame/10 [&_.border-orange-100]:!border-flame/30">
+                <SchedulingPicker
+                  slots={managedSlots}
+                  onChange={setManagedSlots}
+                  max={3}
+                  tier={managedLiveJob.dispatchTier}
+                />
+              </div>
+              <p className="mt-2 text-xs font-medium text-slate-300">
                 Updating these windows keeps the same Live Job Board request. It does not create a new project or duplicate stage request.
               </p>
             </div>
 
             {manageRequestMessage && (
-              <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-ink">
+              <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-white">
                 {manageRequestMessage}
               </div>
             )}
 
             {manageRequestError && (
-              <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-semibold text-ink">
+              <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-semibold text-white">
                 {manageRequestError}
               </div>
             )}
 
-            <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-ink">
-              <div className="font-black">Cancel Request</div>
-              <div className="mt-1 text-xs font-medium">
+            <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm">
+              <div className="font-black text-amber-400">Cancel Request</div>
+              <div className="mt-1 text-xs font-medium text-slate-300">
                 Cancelling removes this unclaimed request from the Live Job Board. The same stage can be requested again from this existing project.
               </div>
             </div>
@@ -2155,7 +2157,7 @@ export default function BuilderDashboard() {
                   type="button"
                   disabled={manageRequestSaving || manageRequestCancelling}
                   onClick={closeManageRequest}
-                  className="rounded-xl border border-rim bg-panel px-4 py-2.5 text-sm font-bold text-ink transition-colors hover:bg-raised disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-xl border border-slate-600 bg-slate-700/40 px-4 py-2.5 text-sm font-bold text-slate-300 transition-colors hover:bg-slate-700/70 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   Close
                 </button>
