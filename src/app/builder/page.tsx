@@ -2094,6 +2094,7 @@ export default function BuilderDashboard() {
         onClose={closeManageRequest}
         title="Manage Request"
         size="lg"
+        dark
       >
         {managedLiveJob && (
           <div className="space-y-5">
