@@ -11,9 +11,10 @@ import type { ReportDataMode } from '@/lib/dataSourceMode'
 interface DailyFlashProps {
   projects: Project[]
   dataMode: ReportDataMode
+  reportsByJobId?: Record<string, { id?: string }>
 }
 
-export function DailyFlash({ projects, dataMode }: DailyFlashProps) {
+export function DailyFlash({ projects, dataMode, reportsByJobId }: DailyFlashProps) {
   const passed = projects.filter(p => p.status === 'pass')
   const failed = projects.filter(p => p.status === 'fail')
   const pending = projects.filter(p => p.status === 'pending' || p.status === 'awaiting_reinspection')
@@ -98,33 +99,47 @@ export function DailyFlash({ projects, dataMode }: DailyFlashProps) {
 
       {/* Site thumbnails */}
       <div className="space-y-2">
-        {[...passed.map(p => ({ ...p, flash: 'pass' as const })), ...failed.map(p => ({ ...p, flash: 'fail' as const }))].slice(0, 4).map((project) => (
-          <Link
-            key={project.id}
-            href={`/builder/project/${project.id}`}
-            className={`flex items-center gap-3 p-3 rounded-xl border transition-opacity hover:opacity-80 ${
-              project.flash === 'pass' ? 'border-emerald-200 bg-emerald-50' : 'border-red-200 bg-red-50'
-            }`}
-          >
-            {project.photos[0] && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={project.photos[0].thumbnailUrl}
-                alt={project.name}
-                className="w-12 h-12 rounded-lg object-cover shrink-0"
-              />
-            )}
-            <div className="flex-1 min-w-0">
-              <div className="truncate text-sm font-bold text-ink">{project.name}</div>
-              <div className="truncate text-xs font-medium text-muted">{project.address}</div>
+        {[...passed.map(p => ({ ...p, flash: 'pass' as const })), ...failed.map(p => ({ ...p, flash: 'fail' as const }))].slice(0, 4).map((project) => {
+          const reportId = project.flash === 'pass' ? (reportsByJobId?.[project.id]?.id ?? null) : null
+          return (
+            <div
+              key={project.id}
+              className={`flex items-center gap-3 p-3 rounded-xl border ${
+                project.flash === 'pass' ? 'border-emerald-200 bg-emerald-50' : 'border-red-200 bg-red-50'
+              }`}
+            >
+              {project.photos[0] && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={project.photos[0].thumbnailUrl}
+                  alt={project.name}
+                  className="w-12 h-12 rounded-lg object-cover shrink-0"
+                />
+              )}
+              <Link
+                href={`/builder/project/${project.id}`}
+                className="flex-1 min-w-0 hover:opacity-80 transition-opacity"
+              >
+                <div className="truncate text-sm font-bold text-ink">{project.name}</div>
+                <div className="truncate text-xs font-medium text-muted">{project.address}</div>
+              </Link>
+              {reportId ? (
+                <a
+                  href={`/api/schedule-cb?reportId=${encodeURIComponent(reportId)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="shrink-0 rounded-lg bg-emerald-700 px-2.5 py-1.5 text-[10px] font-black text-white transition-colors hover:bg-emerald-800"
+                >
+                  Download C-B
+                </a>
+              ) : project.flash === 'pass' ? (
+                <CheckCircle2 className="w-5 h-5 text-success-green shrink-0" />
+              ) : (
+                <XCircle className="w-5 h-5 text-fail-red shrink-0" />
+              )}
             </div>
-            {project.flash === 'pass' ? (
-              <CheckCircle2 className="w-5 h-5 text-success-green shrink-0" />
-            ) : (
-              <XCircle className="w-5 h-5 text-fail-red shrink-0" />
-            )}
-          </Link>
-        ))}
+          )
+        })}
       </div>
     </Card>
   )

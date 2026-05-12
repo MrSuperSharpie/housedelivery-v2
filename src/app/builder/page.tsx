@@ -974,10 +974,36 @@ export default function BuilderDashboard() {
     ...(dbJobs !== null ? dbJobsAsProjects : standaloneJobsAsProjects),
   ]
   const dailyFlashMode = resolveReportDataMode(Boolean(user?.supabaseId))
+
+  // Deduplicate dbJobsAsProjects by project identity for the Daily Flash.
+  // job_opportunities has one row per stage inspection; grouping by projectId (or
+  // projectName as fallback) collapses them to one representative row per project.
+  // We keep the highest-stage row, using updatedAt as the tiebreaker.
+  const dedupedDbJobsForFlash: typeof dbJobsAsProjects = (() => {
+    if (!dbJobs) return []
+    const best = new Map<string, { proj: (typeof dbJobsAsProjects)[0]; job: JobOpportunityRow }>()
+    for (let i = 0; i < dbJobs.length; i++) {
+      const job = dbJobs[i]
+      const key = job.projectId ?? job.projectName
+      const candidate = dbJobsAsProjects[i]
+      const existing = best.get(key)
+      if (!existing) {
+        best.set(key, { proj: candidate, job })
+      } else {
+        const isHigherStage = job.stage > existing.job.stage
+        const isSameStageNewer = job.stage === existing.job.stage && job.updatedAt > existing.job.updatedAt
+        if (isHigherStage || isSameStageNewer) {
+          best.set(key, { proj: candidate, job })
+        }
+      }
+    }
+    return [...best.values()].map(v => v.proj)
+  })()
+
   const dailyFlashProjects = dailyFlashMode === 'live'
     ? [
         ...(supabaseProjects ?? []),
-        ...(dbJobs !== null ? dbJobsAsProjects : []),
+        ...dedupedDbJobsForFlash,
       ]
     : [
         ...storeProjects,
@@ -2119,7 +2145,7 @@ export default function BuilderDashboard() {
           </div>
         </section>
 
-        <DailyFlash projects={dailyFlashProjects} dataMode={dailyFlashMode} />
+        <DailyFlash projects={dailyFlashProjects} dataMode={dailyFlashMode} reportsByJobId={completionReportsByJobId} />
       </main>
 
       <Modal
