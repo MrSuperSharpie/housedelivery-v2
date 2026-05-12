@@ -8,7 +8,7 @@ export async function renderHtmlToPdf(html: string): Promise<Uint8Array> {
     browser = await playwrightChromium.launch({
       args: chromium.args,
       executablePath: await chromium.executablePath(),
-      headless: chromium.headless,
+      headless: true,
     })
   } catch (error) {
     throw new Error(
