@@ -70,6 +70,7 @@ type BuilderStageStatus =
   | 'locked'
 
 type CompletionReportSummary = {
+  id?: string
   jobId: string
   status?: string
   sealPayload: Record<string, unknown>
@@ -806,7 +807,7 @@ export default function BuilderDashboard() {
 
     supabase
       .from('inspector_completion_reports')
-      .select('job_id, status, seal_payload, submitted_at, sealed_at, updated_at')
+      .select('id, job_id, status, seal_payload, submitted_at, sealed_at, updated_at')
       .in('job_id', jobIds)
       .then(({ data, error }) => {
         if (error) {
@@ -823,6 +824,7 @@ export default function BuilderDashboard() {
           const updatedAt = typeof row.updated_at === 'string' ? row.updated_at : ''
           if (existing?.updatedAt && existing.updatedAt > updatedAt) continue
           reports.set(jobId, {
+            id: typeof row.id === 'string' ? row.id : undefined,
             jobId,
             status: typeof row.status === 'string' ? row.status : undefined,
             sealPayload: row.seal_payload && typeof row.seal_payload === 'object' && !Array.isArray(row.seal_payload)
@@ -1973,7 +1975,7 @@ export default function BuilderDashboard() {
                   <details className="mt-3 rounded-xl border border-rim bg-surface">
                     <summary className="cursor-pointer px-3 py-2 text-xs font-black text-ink">View Progress</summary>
                     <div className="grid gap-2 border-t border-rim p-3 md:grid-cols-5">
-                      {stageScorecard.map(({ stage, stageJob, status }) => {
+                      {stageScorecard.map(({ stage, stageJob, report, status }) => {
                         const copy = BUILDER_STAGE_STATUS_COPY[status]
                         return (
                           <div key={stage.number} className={`rounded-xl border px-3 py-2 ${copy.cls}`}>
@@ -1987,13 +1989,20 @@ export default function BuilderDashboard() {
                               <div className="mt-1 text-[10px] font-semibold normal-case tracking-normal text-ink">Vero inspection record complete</div>
                             )}
                             {status === 'passed' && stageJob && (
-                              <button
-                                type="button"
-                                onClick={() => router.push('/vault')}
-                                className="mt-2 text-[10px] font-black text-ink underline decoration-current/40 underline-offset-2"
-                              >
-                                View Stage Record
-                              </button>
+                              report?.id ? (
+                                <a
+                                  href={`/api/schedule-cb?reportId=${encodeURIComponent(report.id)}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="mt-2 block text-[10px] font-black text-flame underline decoration-current/40 underline-offset-2"
+                                >
+                                  View Schedule C-B
+                                </a>
+                              ) : (
+                                <span className="mt-2 block text-[10px] font-semibold text-muted">
+                                  Record filed
+                                </span>
+                              )
                             )}
                           </div>
                         )
@@ -2009,12 +2018,18 @@ export default function BuilderDashboard() {
                           {rec?.certRef ?? 'Report filed'}
                         </div>
                       </div>
-                      <button
-                        onClick={() => router.push('/vault')}
-                        className="flex items-center gap-1.5 text-[11px] font-bold text-ink hover:underline"
-                      >
-                        View Report <ExternalLink className="w-3 h-3" />
-                      </button>
+                      {completionReportsByJobId[completedJob.id]?.id ? (
+                        <a
+                          href={`/api/schedule-cb?reportId=${encodeURIComponent(completionReportsByJobId[completedJob.id]!.id!)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 text-[11px] font-bold text-flame hover:underline"
+                        >
+                          Download Schedule C-B <ExternalLink className="w-3 h-3" />
+                        </a>
+                      ) : (
+                        <span className="text-[11px] font-semibold text-muted">Report filed</span>
+                      )}
                     </div>
                   )}
                 </div>
@@ -2042,13 +2057,20 @@ export default function BuilderDashboard() {
                             <div className="mt-0.5 font-mono text-xs font-bold text-ink">{rec.certRef}</div>
                           )}
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => router.push('/vault')}
-                          className="ml-3 shrink-0 rounded-xl border border-emerald-600/30 bg-emerald-500/10 px-3 py-2 text-[11px] font-black text-ink transition-colors hover:bg-emerald-500/15"
-                        >
-                          Open Vault
-                        </button>
+                        {completedJob && completionReportsByJobId[completedJob.id]?.id ? (
+                          <a
+                            href={`/api/schedule-cb?reportId=${encodeURIComponent(completionReportsByJobId[completedJob.id]!.id!)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="ml-3 shrink-0 rounded-xl bg-flame px-3 py-2 text-[11px] font-black text-white transition-colors hover:bg-flame-light"
+                          >
+                            Download Schedule C-B
+                          </a>
+                        ) : (
+                          <span className="ml-3 shrink-0 rounded-xl border border-rim bg-surface px-3 py-2 text-[11px] font-semibold text-muted">
+                            Report filed
+                          </span>
+                        )}
                       </div>
                     )
                   })}
