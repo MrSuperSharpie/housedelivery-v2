@@ -1,21 +1,18 @@
-import { chromium } from 'playwright'
+import chromium from '@sparticuz/chromium'
+import { chromium as playwrightChromium } from 'playwright-core'
 
 export async function renderHtmlToPdf(html: string): Promise<Uint8Array> {
-  // PLAYWRIGHT_BROWSERS_PATH=0 tells Playwright to look for the browser binary
-  // inside the playwright package directory (node_modules/playwright/.local-browsers)
-  // rather than the user home cache (~/.cache/ms-playwright), which does not exist
-  // in Vercel's serverless execution environment.
-  process.env.PLAYWRIGHT_BROWSERS_PATH ??= '0'
-
   let browser
 
   try {
-    browser = await chromium.launch({
-      headless: true,
+    browser = await playwrightChromium.launch({
+      args: chromium.args,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
     })
   } catch (error) {
     throw new Error(
-      `Playwright Chromium could not launch. Install the browser with "npx playwright install chromium". ${error instanceof Error ? error.message : ''}`.trim()
+      `Playwright Chromium could not launch. ${error instanceof Error ? error.message : ''}`.trim()
     )
   }
 
