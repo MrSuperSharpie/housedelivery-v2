@@ -222,7 +222,7 @@ function ProvisionalAssignmentPanel({
                 ? 'border-emerald-500/30 bg-emerald-500/10 text-ink'
                 : assignment.objectionState === 'pending_review' || objected
                   ? 'border-amber-500/40 bg-amber-500/10 text-ink'
-                  : 'border-blue-500/30 bg-blue-500/10 text-ink'
+                  : 'border-slate-400/30 bg-slate-500/10 text-ink'
             }`}>
               {isConfirmed ? <CheckCircle2 className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
               {statusLabel}
@@ -326,7 +326,7 @@ function ProvisionalAssignmentPanel({
 
 const WORKFLOW_BADGE_CONFIG: Record<string, { cls: string; icon?: React.ReactNode }> = {
   draft:        { cls: 'bg-slate-500/10 text-ink border-slate-400/30' },
-  submitted:    { cls: 'bg-blue-500/10 text-ink border-blue-500/30' },
+  submitted:    { cls: 'bg-slate-500/10 text-ink border-slate-400/30' },
   under_review: { cls: 'bg-amber-500/10 text-ink border-amber-500/30' },
   live:         { cls: 'bg-flame/10 text-ink border-flame/30' },
   closed:       { cls: 'bg-emerald-500/10 text-ink border-emerald-500/30', icon: <Lock className="w-2.5 h-2.5" /> },
@@ -442,11 +442,11 @@ const BUILDER_STAGE_STATUS_COPY: Record<BuilderStageStatus, { label: string; cls
   },
   requested_live: {
     label: 'Requested / live',
-    cls: 'border-blue-500/40 bg-blue-500/10 text-ink',
+    cls: 'border-flame/40 bg-flame/10 text-ink',
   },
   inspector_assigned: {
     label: 'Inspector assigned',
-    cls: 'border-cyan-500/40 bg-cyan-500/10 text-ink',
+    cls: 'border-flame/40 bg-flame/10 text-ink',
   },
   in_progress: {
     label: 'In progress',
@@ -466,7 +466,7 @@ const BUILDER_STAGE_STATUS_COPY: Record<BuilderStageStatus, { label: string; cls
   },
   available_next: {
     label: 'Available next',
-    cls: 'border-blue-600/40 bg-blue-500/10 text-ink',
+    cls: 'border-flame/40 bg-flame/10 text-ink',
   },
   locked: {
     label: 'Locked / waiting on prerequisite',
@@ -484,14 +484,14 @@ const ACTIVE_STAGE_CARD_LABEL: Partial<Record<BuilderStageStatus, string>> = {
 
 const STAGE_DOT_CLASS: Record<BuilderStageStatus, string> = {
   not_requested: 'border-slate-400 bg-panel text-muted',
-  requested_live: 'border-blue-500 bg-blue-500 text-white',
-  inspector_assigned: 'border-cyan-500 bg-cyan-500 text-white',
+  requested_live: 'border-flame bg-flame text-white',
+  inspector_assigned: 'border-flame bg-flame text-white',
   in_progress: 'border-flame bg-flame text-white',
   passed: 'border-emerald-600 bg-emerald-600 text-white',
   hold: 'border-amber-600 bg-amber-500 text-white',
   failed: 'border-red-600 bg-red-600 text-white',
-  available_next: 'border-blue-600 bg-blue-600 text-white',
-  locked: 'border-slate-400 bg-slate-100 text-slate-600',
+  available_next: 'border-flame bg-flame text-white',
+  locked: 'border-slate-500 bg-surface text-subtle',
 }
 
 function StageStatusIcon({ status }: { status: BuilderStageStatus }) {
@@ -593,43 +593,43 @@ function ModificationRequiredCard({
     new Date(iso).toLocaleTimeString('en-CA', { timeZone: 'America/Vancouver', hour: '2-digit', minute: '2-digit' })
 
   return (
-    <div className="mb-5 rounded-2xl border border-amber-500/30 border-l-[6px] border-l-amber-500 bg-white overflow-hidden">
-      <div className="px-5 py-4 border-b border-slate-200">
+    <div className="mb-5 rounded-2xl border border-amber-500/30 border-l-[6px] border-l-amber-500 bg-panel overflow-hidden">
+      <div className="px-5 py-4 border-b border-rim">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 bg-amber-500/15 border border-amber-500/25 rounded-xl flex items-center justify-center shrink-0">
               <AlertTriangle className="w-5 h-5 text-amber-500" />
             </div>
             <div>
-              <div className="font-black text-slate-900 text-sm mb-0.5">Modification Required — {meta.label}</div>
-              <div className="text-xs text-slate-500 capitalize">{hold.reasonCode.replace('_', ' ')}{hold.estimatedFixMinutes ? ` · Est. ${hold.estimatedFixMinutes} min` : ''}</div>
+              <div className="font-black text-ink text-sm mb-0.5">Modification Required — {meta.label}</div>
+              <div className="text-xs text-muted capitalize">{hold.reasonCode.replace('_', ' ')}{hold.estimatedFixMinutes ? ` · Est. ${hold.estimatedFixMinutes} min` : ''}</div>
             </div>
           </div>
           <div className="bg-amber-500/15 border border-amber-500/30 rounded-lg px-2 py-1 shrink-0">
-            <div className="text-[10px] text-amber-600 font-bold uppercase tracking-wide">Action Required</div>
+            <div className="text-[10px] text-amber-400 font-bold uppercase tracking-wide">Action Required</div>
           </div>
         </div>
       </div>
 
       {hold.notes && (
-        <div className="px-5 py-3 border-b border-slate-200">
-          <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-1">Inspector Notes</div>
-          <div className="text-sm text-slate-700">{hold.notes}</div>
+        <div className="px-5 py-3 border-b border-rim">
+          <div className="text-[10px] font-semibold text-muted uppercase tracking-widest mb-1">Inspector Notes</div>
+          <div className="text-sm text-ink">{hold.notes}</div>
         </div>
       )}
 
-      <div className="px-5 py-3 border-b border-slate-200">
-        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Fee Information</div>
-        <div className="text-xs text-slate-700">{meta.feeNote}</div>
+      <div className="px-5 py-3 border-b border-rim">
+        <div className="text-[10px] font-bold text-muted uppercase tracking-widest mb-2">Fee Information</div>
+        <div className="text-xs text-muted">{meta.feeNote}</div>
         {hold.type === 'same_day_return' && hold.returnWindowStart && hold.returnWindowEnd && (
-          <div className="mt-2 text-xs text-slate-500">
-            Return window: <span className="font-bold text-slate-900">{formatWindow(hold.returnWindowStart)} – {formatWindow(hold.returnWindowEnd)}</span>
+          <div className="mt-2 text-xs text-muted">
+            Return window: <span className="font-bold text-ink">{formatWindow(hold.returnWindowStart)} – {formatWindow(hold.returnWindowEnd)}</span>
           </div>
         )}
         {hold.isBlocking && (
-          <div className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-red-50 border border-red-200 px-2.5 py-1">
-            <Lock className="w-3 h-3 text-red-500" />
-            <span className="text-[11px] font-bold text-red-600">Blocking — downstream work paused</span>
+          <div className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-red-500/10 border border-red-500/30 px-2.5 py-1">
+            <Lock className="w-3 h-3 text-red-400" />
+            <span className="text-[11px] font-bold text-red-400">Blocking — downstream work paused</span>
           </div>
         )}
       </div>
@@ -650,17 +650,17 @@ function ModificationRequiredCard({
             value={declineNote}
             onChange={e => setDeclineNote(e.target.value)}
             placeholder="Reason for declining (required)..."
-            className="flex-1 bg-white border border-slate-300 rounded-xl px-3 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-500"
+            className="flex-1 bg-surface border border-rim rounded-xl px-3 py-2.5 text-xs text-ink placeholder-subtle focus:outline-none focus:border-flame/60"
           />
           <button
             onClick={() => onDecline(declineNote)}
             disabled={!declineNote.trim() || isResponding}
-            className="px-4 bg-slate-100 border border-slate-300 text-slate-700 font-bold rounded-xl text-xs hover:bg-slate-200 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            className="px-4 bg-surface border border-rim text-muted font-bold rounded-xl text-xs hover:bg-raised transition-all disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Decline
           </button>
         </div>
-        <p className="text-[10px] text-slate-400">Declining a Modification Required will revert the inspection to in-progress and allow work to continue.</p>
+        <p className="text-[10px] text-subtle">Declining a Modification Required will revert the inspection to in-progress and allow work to continue.</p>
       </div>
     </div>
   )
@@ -1484,20 +1484,20 @@ export default function BuilderDashboard() {
             : 'Hold detail unavailable'
 
           return (
-            <div key={holdId} className="rounded-2xl border border-flame/40 border-l-[6px] border-l-flame bg-white overflow-hidden shadow-[0_18px_34px_rgba(245,124,0,0.16)]">
+            <div key={holdId} className="rounded-2xl border border-flame/40 border-l-[6px] border-l-flame bg-panel overflow-hidden shadow-[0_18px_34px_rgba(245,124,0,0.16)]">
               <div className="px-5 py-4 border-b border-flame/20 bg-flame-dim/70">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-white border border-flame/20 rounded-xl flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 bg-panel/50 border border-flame/20 rounded-xl flex items-center justify-center shrink-0">
                       <Shield className="w-5 h-5 text-flame" />
                     </div>
                     <div>
-                      <div className="font-black text-slate-900 text-base mb-0.5">Action required — project on hold</div>
-                      <div className="text-xs font-semibold text-slate-600">{holdJob?.projectName ?? 'Project'} · Stage {holdJob?.stage ?? ''}</div>
+                      <div className="font-black text-ink text-base mb-0.5">Action required — project on hold</div>
+                      <div className="text-xs font-semibold text-muted">{holdJob?.projectName ?? 'Project'} · Stage {holdJob?.stage ?? ''}</div>
                       {holdJob?.address && (
-                        <div className="mt-0.5 text-[11px] text-slate-600">{holdJob.address}{holdJob.city ? `, ${holdJob.city}` : ''}</div>
+                        <div className="mt-0.5 text-[11px] text-muted">{holdJob.address}{holdJob.city ? `, ${holdJob.city}` : ''}</div>
                       )}
-                      <div className="mt-1 text-[11px] text-slate-600">{builderResponseStatus}</div>
+                      <div className="mt-1 text-[11px] text-muted">{builderResponseStatus}</div>
                     </div>
                   </div>
                   <div className="bg-flame-dim border border-flame/30 rounded-lg px-2 py-1">
@@ -1506,84 +1506,84 @@ export default function BuilderDashboard() {
                 </div>
               </div>
 
-              <div className="px-5 py-3 border-b border-slate-200">
-                <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-1">Deficiency Summary</div>
-                <div className="text-sm font-bold text-slate-900">{deficiencySummary}</div>
+              <div className="px-5 py-3 border-b border-rim">
+                <div className="text-[10px] font-semibold text-muted uppercase tracking-widest mb-1">Deficiency Summary</div>
+                <div className="text-sm font-bold text-ink">{deficiencySummary}</div>
                 {hold?.deficiencyReason && (
                   <>
-                    <div className="mt-3 text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-1">Required Correction</div>
-                    <div className="text-sm font-semibold text-slate-900">{hold.reason}</div>
+                    <div className="mt-3 text-[10px] font-semibold text-muted uppercase tracking-widest mb-1">Required Correction</div>
+                    <div className="text-sm font-semibold text-ink">{hold.reason}</div>
                   </>
                 )}
-                <div className="mt-2 text-xs text-slate-500">
+                <div className="mt-2 text-xs text-muted">
                   {affectedItemsSummary}
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-bold">
-                  <span className="rounded-full bg-slate-100 px-2 py-1 text-slate-700">
+                  <span className="rounded-full bg-surface px-2 py-1 text-muted">
                     {sameDayLabel}
                   </span>
-                  <span className="rounded-full bg-slate-100 px-2 py-1 text-slate-700">
+                  <span className="rounded-full bg-surface px-2 py-1 text-muted">
                     Response: {builderResponseStatus}
                   </span>
                 </div>
               </div>
 
               {holdEvidence.length > 0 && (
-                <div className="px-5 py-3 border-b border-slate-200">
-                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Supporting Evidence</div>
+                <div className="px-5 py-3 border-b border-rim">
+                  <div className="text-[10px] font-bold text-muted uppercase tracking-widest mb-2">Supporting Evidence</div>
                   <div className="space-y-1.5">
                     {holdEvidence.slice(0, 3).map(evidence => (
-                      <div key={evidence.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs">
-                        <span className="font-semibold text-slate-700 truncate">{evidence.fileName || evidence.noteText || 'Hold evidence'}</span>
-                        <span className="shrink-0 rounded-full bg-white px-2 py-0.5 text-[10px] font-bold uppercase text-slate-500">{evidence.evidenceType}</span>
+                      <div key={evidence.id} className="flex items-center justify-between gap-3 rounded-xl border border-rim bg-surface px-3 py-2 text-xs">
+                        <span className="font-semibold text-ink truncate">{evidence.fileName || evidence.noteText || 'Hold evidence'}</span>
+                        <span className="shrink-0 rounded-full bg-panel px-2 py-0.5 text-[10px] font-bold uppercase text-muted">{evidence.evidenceType}</span>
                       </div>
                     ))}
                   </div>
                   {holdEvidence.length > 3 && (
-                    <div className="mt-2 text-[10px] font-semibold text-slate-500">+{holdEvidence.length - 3} more evidence item{holdEvidence.length - 3 === 1 ? '' : 's'}</div>
+                    <div className="mt-2 text-[10px] font-semibold text-muted">+{holdEvidence.length - 3} more evidence item{holdEvidence.length - 3 === 1 ? '' : 's'}</div>
                   )}
                 </div>
               )}
 
-              <div id={`hold-${holdId}`} className="px-5 py-3 border-b border-slate-200">
-                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Review Hold Request</div>
-                <div className="text-xs text-slate-600">
+              <div id={`hold-${holdId}`} className="px-5 py-3 border-b border-rim">
+                <div className="text-[10px] font-bold text-muted uppercase tracking-widest mb-2">Review Hold Request</div>
+                <div className="text-xs text-muted">
                   {hold
                     ? 'Accept a correction window to reserve the inspector for re-verification, or request same-visit review if the correction can be made while they are still available.'
                     : 'This project is on hold, but the dashboard could not find an open hold detail record to power the existing response controls.'}
                 </div>
               </div>
 
-              <div className="px-5 py-3 border-b border-slate-200">
-                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Fee Breakdown</div>
+              <div className="px-5 py-3 border-b border-rim">
+                <div className="text-[10px] font-bold text-muted uppercase tracking-widest mb-2">Fee Breakdown</div>
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-500">Base Hold Review Fee</span>
-                    <span className="font-bold text-slate-900">${baseHoldServiceFee.toFixed(2)}</span>
+                    <span className="text-muted">Base Hold Review Fee</span>
+                    <span className="font-bold text-ink">${baseHoldServiceFee.toFixed(2)}</span>
                   </div>
                   {hold && (
                     <>
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-slate-500">Recorded Hold Cap</span>
-                        <span className="font-bold text-slate-900">${hold.holdCapAmount.toFixed(2)}</span>
+                        <span className="text-muted">Recorded Hold Cap</span>
+                        <span className="font-bold text-ink">${hold.holdCapAmount.toFixed(2)}</span>
                       </div>
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-slate-500">Reserved Correction Window ({selectedWindow} min @ 1.5×)</span>
-                        <span className="font-bold text-slate-900">${windowFee.toFixed(2)}</span>
+                        <span className="text-muted">Reserved Correction Window ({selectedWindow} min @ 1.5×)</span>
+                        <span className="font-bold text-ink">${windowFee.toFixed(2)}</span>
                       </div>
-                      <div className="border-t border-slate-200 pt-1.5 flex items-center justify-between text-xs">
-                        <span className="font-bold text-slate-900">Total at Acceptance</span>
-                        <span className="font-black text-slate-900">${totalAcceptanceFee.toFixed(2)}</span>
+                      <div className="border-t border-rim pt-1.5 flex items-center justify-between text-xs">
+                        <span className="font-bold text-ink">Total at Acceptance</span>
+                        <span className="font-black text-ink">${totalAcceptanceFee.toFixed(2)}</span>
                       </div>
                     </>
                   )}
                 </div>
-                <div className="mt-2 text-[10px] text-slate-400">Additional fees apply if correction exceeds the selected window or extends beyond inspector availability.</div>
+                <div className="mt-2 text-[10px] text-subtle">Additional fees apply if correction exceeds the selected window or extends beyond inspector availability.</div>
               </div>
 
               {isActionableHold && hold && (
-                <div className="px-5 py-3 border-b border-slate-200">
-                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Select Correction Window</div>
+                <div className="px-5 py-3 border-b border-rim">
+                  <div className="text-[10px] font-bold text-muted uppercase tracking-widest mb-2">Select Correction Window</div>
                   <div className="grid grid-cols-5 gap-1.5">
                     {[30, 60, 90, 120, 150].map(minutes => (
                       <button
@@ -1592,8 +1592,8 @@ export default function BuilderDashboard() {
                         onClick={() => setCorrectionWindowByHold(prev => ({ ...prev, [hold.id]: minutes }))}
                         className={`rounded-xl py-2 text-xs font-bold transition-all ${
                           selectedWindow === minutes
-                            ? 'bg-slate-800 text-white'
-                            : 'border border-slate-300 text-slate-600 hover:bg-slate-100'
+                            ? 'bg-flame text-white'
+                            : 'border border-rim text-muted hover:bg-surface'
                         }`}
                       >
                         {minutes}m
@@ -1604,15 +1604,15 @@ export default function BuilderDashboard() {
               )}
 
               {hold && (
-                <div className="px-5 py-3 border-b border-slate-200 grid gap-2 sm:grid-cols-2">
+                <div className="px-5 py-3 border-b border-rim grid gap-2 sm:grid-cols-2">
                   <div>
-                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Expiry</div>
-                    <div className="text-xs font-mono font-bold text-slate-900">
+                    <div className="text-[10px] font-bold text-muted uppercase tracking-widest">Expiry</div>
+                    <div className="text-xs font-mono font-bold text-ink">
                       {new Date(hold.expiresAt).toLocaleTimeString('en-CA', { timeZone: 'America/Vancouver', hour: '2-digit', minute: '2-digit' })}
                     </div>
                   </div>
                   <div>
-                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Base Rate</div>
+                    <div className="text-[10px] font-bold text-muted uppercase tracking-widest">Base Rate</div>
                     <div className="text-xs font-semibold text-ink">${holdBaseRate.toFixed(2)}/hr</div>
                   </div>
                 </div>
@@ -1643,7 +1643,7 @@ export default function BuilderDashboard() {
                   <button
                     onClick={() => handleRequestReview(hold)}
                     disabled={requestingReview}
-                    className="w-full rounded-xl border border-slate-300 bg-white py-2.5 text-xs font-bold text-slate-700 transition-all hover:bg-slate-50 disabled:opacity-40"
+                    className="w-full rounded-xl border border-rim bg-surface py-2.5 text-xs font-bold text-muted transition-all hover:bg-raised disabled:opacity-40"
                   >
                     {requestingReview ? 'Sending Request...' : 'Fix During Current Visit (No Time Reserved — Re-Inspection Not Guaranteed)'}
                   </button>
@@ -1652,27 +1652,27 @@ export default function BuilderDashboard() {
                   </p>
                 </div>
 
-                <div className="pt-2 border-t border-slate-200">
+                <div className="pt-2 border-t border-rim">
                   <div className="flex gap-2">
                     <input
                       value={thisDeclineNote}
                       onChange={e => setDeclineNotes(prev => ({ ...prev, [hold.id]: e.target.value }))}
                       placeholder="Reason for declining (required)..."
-                      className="flex-1 bg-white border border-slate-300 rounded-xl px-3 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-500"
+                      className="flex-1 bg-surface border border-rim rounded-xl px-3 py-2.5 text-xs text-ink placeholder-subtle focus:outline-none focus:border-flame/60"
                     />
                     <button
                       onClick={() => handleDeclineHold(hold)}
                       disabled={!thisDeclineNote.trim() || isResponding}
-                      className="px-4 bg-slate-100 border border-slate-300 text-slate-700 font-bold rounded-xl text-xs hover:bg-slate-200 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="px-4 bg-surface border border-rim text-muted font-bold rounded-xl text-xs hover:bg-raised transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       Decline and Rebook
                     </button>
                   </div>
-                  <p className="text-[10px] text-slate-400 mt-2">Declining stops the inspection. A new booking will be required.</p>
+                  <p className="text-[10px] text-subtle mt-2">Declining stops the inspection. A new booking will be required.</p>
                 </div>
                   </>
                 ) : (
-                  <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-xs text-slate-700">
+                  <div className="rounded-xl border border-rim bg-surface px-3 py-3 text-xs text-muted">
                     {hold
                       ? 'No builder response is available from this card right now. Review the hold status above and continue through the existing re-verification flow.'
                       : 'Hold response controls are unavailable because no open job_holds detail was found for this on-hold project.'}
@@ -1730,10 +1730,10 @@ export default function BuilderDashboard() {
           <section className="mb-6">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
-                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-blue-500">Live Requests Awaiting Inspector Claim</div>
+                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-flame">Live Requests Awaiting Inspector Claim</div>
                 <div className="mt-1 text-xs font-medium text-muted">Posted requests are visible to qualified inspectors on the Live Job Board until claimed.</div>
               </div>
-              <div className="rounded-full border border-blue-500/25 bg-blue-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-blue-500">
+              <div className="rounded-full border border-flame/25 bg-flame/10 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-flame">
                 {liveUnclaimedJobs.length} live
               </div>
             </div>
@@ -1742,10 +1742,10 @@ export default function BuilderDashboard() {
                 const stageLabel = BUILDER_STAGE_DEFINITIONS.find(s => s.number === job.stage)?.label ?? `Stage ${job.stage} — ${job.stageName}`
                 const postedAt = job.publishedAt ?? job.requestedAt ?? job.createdAt
                 return (
-                  <div key={job.id} className="rounded-2xl border border-blue-500/25 bg-panel p-4 shadow-card">
+                  <div key={job.id} className="rounded-2xl border border-flame/25 bg-panel p-4 shadow-card">
                     <div className="flex items-start gap-3">
-                      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-blue-500/25 bg-blue-500/10">
-                        <Navigation className="h-4 w-4 text-blue-500" />
+                      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-flame/25 bg-flame/10">
+                        <Navigation className="h-4 w-4 text-flame" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-sm font-extrabold text-ink">{job.projectName}</div>
@@ -1753,7 +1753,7 @@ export default function BuilderDashboard() {
                           <div className="mt-0.5 truncate text-xs font-medium text-muted">{job.address}{job.city ? `, ${job.city}` : ''}</div>
                         )}
                         <div className="mt-2 flex flex-wrap gap-2">
-                          <span className="inline-flex items-center gap-1 rounded-full border border-blue-500/30 bg-blue-500/10 px-2 py-0.5 text-[10px] font-black text-ink">
+                          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-black text-ink">
                             Posted to Live Board
                           </span>
                           <span className="inline-flex items-center gap-1 rounded-full border border-rim bg-surface px-2 py-0.5 text-[10px] font-semibold text-muted">
@@ -1772,7 +1772,7 @@ export default function BuilderDashboard() {
                       <button
                         type="button"
                         onClick={() => openManageRequest(job)}
-                        className="rounded-xl bg-blue-600 px-3 py-2 text-[11px] font-black text-white transition-colors hover:bg-blue-500"
+                        className="rounded-xl bg-flame px-3 py-2 text-[11px] font-black text-white transition-colors hover:bg-flame-light"
                       >
                         Manage Request
                       </button>
@@ -1946,7 +1946,7 @@ export default function BuilderDashboard() {
                             <button
                               type="button"
                               onClick={() => openManageRequest(activeStageEntry.stageJob!)}
-                              className="rounded-xl bg-blue-600 px-3 py-2 text-[11px] font-black text-white transition-colors hover:bg-blue-500"
+                              className="rounded-xl bg-flame px-3 py-2 text-[11px] font-black text-white transition-colors hover:bg-flame-light"
                             >
                               Manage Request
                             </button>
@@ -2097,43 +2097,43 @@ export default function BuilderDashboard() {
       >
         {managedLiveJob && (
           <div className="space-y-5">
-            <div className="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3">
-              <div className="text-[11px] font-black uppercase tracking-[0.18em] text-blue-700">Live request awaiting inspector claim</div>
-              <div className="mt-2 text-lg font-black text-slate-950">{managedLiveJob.projectName}</div>
-              <div className="mt-1 text-sm font-medium text-slate-600">
+            <div className="rounded-2xl border border-flame/25 bg-flame/10 px-4 py-3">
+              <div className="text-[11px] font-black uppercase tracking-[0.18em] text-flame">Live request awaiting inspector claim</div>
+              <div className="mt-2 text-lg font-black text-ink">{managedLiveJob.projectName}</div>
+              <div className="mt-1 text-sm font-medium text-muted">
                 {managedLiveJob.address}{managedLiveJob.city ? `, ${managedLiveJob.city}` : ''}
               </div>
-              <div className="mt-2 text-sm font-bold text-slate-800">
+              <div className="mt-2 text-sm font-bold text-ink">
                 {BUILDER_STAGE_DEFINITIONS.find(stage => stage.number === managedLiveJob.stage)?.label ?? `Stage ${managedLiveJob.stage} — ${managedLiveJob.stageName}`}
               </div>
             </div>
 
             <div>
-              <div className="mb-2 text-sm font-black text-slate-950">Available time windows</div>
+              <div className="mb-2 text-sm font-black text-ink">Available time windows</div>
               <SchedulingPicker
                 slots={managedSlots}
                 onChange={setManagedSlots}
                 max={3}
                 tier={managedLiveJob.dispatchTier}
               />
-              <p className="mt-2 text-xs font-medium text-slate-500">
+              <p className="mt-2 text-xs font-medium text-muted">
                 Updating these windows keeps the same Live Job Board request. It does not create a new project or duplicate stage request.
               </p>
             </div>
 
             {manageRequestMessage && (
-              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-900">
+              <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-ink">
                 {manageRequestMessage}
               </div>
             )}
 
             {manageRequestError && (
-              <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-900">
+              <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-semibold text-ink">
                 {manageRequestError}
               </div>
             )}
 
-            <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+            <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-ink">
               <div className="font-black">Cancel Request</div>
               <div className="mt-1 text-xs font-medium">
                 Cancelling removes this unclaimed request from the Live Job Board. The same stage can be requested again from this existing project.
@@ -2145,7 +2145,7 @@ export default function BuilderDashboard() {
                 type="button"
                 disabled={manageRequestSaving || manageRequestCancelling}
                 onClick={() => void handleCancelManagedRequest()}
-                className="rounded-xl border border-red-300 bg-white px-4 py-2.5 text-sm font-black text-red-700 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-2.5 text-sm font-black text-red-400 transition-colors hover:bg-red-500/15 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {manageRequestCancelling ? 'Cancelling...' : 'Cancel Request'}
               </button>
@@ -2154,7 +2154,7 @@ export default function BuilderDashboard() {
                   type="button"
                   disabled={manageRequestSaving || manageRequestCancelling}
                   onClick={closeManageRequest}
-                  className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-xl border border-rim bg-panel px-4 py-2.5 text-sm font-bold text-ink transition-colors hover:bg-raised disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   Close
                 </button>
@@ -2162,7 +2162,7 @@ export default function BuilderDashboard() {
                   type="button"
                   disabled={manageRequestSaving || manageRequestCancelling || managedSlots.length === 0}
                   onClick={() => void handleSaveManagedRequest()}
-                  className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-black text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-slate-300"
+                  className="rounded-xl bg-flame px-4 py-2.5 text-sm font-black text-white transition-colors hover:bg-flame-light disabled:cursor-not-allowed disabled:bg-surface"
                 >
                   {manageRequestSaving ? 'Saving...' : 'Save Time Windows'}
                 </button>
