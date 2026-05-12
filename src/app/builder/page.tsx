@@ -1932,13 +1932,24 @@ export default function BuilderDashboard() {
                           Request {availableStage.stage.label.split(' — ')[0]} Inspection
                         </button>
                       ) : completedJob ? (
-                        <button
-                          type="button"
-                          onClick={() => router.push('/vault')}
-                          className="rounded-xl border border-emerald-600/30 bg-emerald-500/10 px-3 py-2 text-[11px] font-black text-ink transition-colors hover:bg-emerald-500/15"
-                        >
-                          Open Vault
-                        </button>
+                        completionReportsByJobId[completedJob.id]?.id ? (
+                          <a
+                            href={`/api/schedule-cb?reportId=${encodeURIComponent(completionReportsByJobId[completedJob.id]!.id!)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="rounded-xl bg-flame px-3 py-2 text-[11px] font-black text-white transition-colors hover:bg-flame-light"
+                          >
+                            Download Schedule C-B
+                          </a>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => router.push('/vault')}
+                            className="rounded-xl border border-emerald-600/30 bg-emerald-500/10 px-3 py-2 text-[11px] font-black text-ink transition-colors hover:bg-emerald-500/15"
+                          >
+                            Open Vault
+                          </button>
+                        )
                       ) : activeStageEntry ? (
                         <>
                           <span className={`rounded-xl border px-3 py-2 text-[11px] font-bold ${BUILDER_STAGE_STATUS_COPY[activeStageEntry.status].cls}`}>

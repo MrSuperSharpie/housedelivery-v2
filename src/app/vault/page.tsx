@@ -8,6 +8,7 @@ import { Navbar } from '@/components/shared/Navbar'
 import { Badge } from '@/components/ui/Badge'
 import { useAuth } from '@/lib/auth'
 import { loadCompletedInspections, loadCompletedInspectionsFromServer } from '@/lib/persistence/completedInspections'
+import { createClient } from '@/lib/supabase/client'
 import { issueAuthorityAccessGrant } from '@/lib/supabase/authorityAccess'
 import { listPackageExports } from '@/lib/supabase/governance'
 import { formatDate } from '@/lib/utils'
@@ -164,6 +165,7 @@ export default function VaultPage() {
   const [records, setRecords] = useState<VaultRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
+  const [reportIdByJobRef, setReportIdByJobRef] = useState<Record<string, string>>({})
 
   useEffect(() => {
     let active = true
@@ -184,6 +186,41 @@ export default function VaultPage() {
       active = false
     }
   }, [])
+
+  // Resolve vault records' jobRef values to inspector_completion_reports.id
+  // so the "Open Package" link can target /api/schedule-cb instead of the old package-preview.
+  useEffect(() => {
+    const jobRefs = [...new Set(records.map(r => r.jobRef).filter((r): r is string => Boolean(r)))]
+    if (jobRefs.length === 0) return
+
+    let active = true
+    const supabase = createClient()
+
+    supabase
+      .from('inspector_completion_reports')
+      .select('id, job_id, sealed_at, submitted_at')
+      .in('job_id', jobRefs)
+      .in('status', ['sealed', 'submitted'])
+      .then(({ data }) => {
+        if (!active || !data) return
+        const map: Record<string, string> = {}
+        for (const row of data as Array<{ id: string; job_id: string; sealed_at: string | null; submitted_at: string | null }>) {
+          const existing = map[row.job_id]
+          if (!existing) {
+            map[row.job_id] = row.id
+          } else {
+            // Prefer the most recently sealed/submitted report if multiple exist for one job
+            const existingRow = (data as typeof data).find((r: { id: string }) => r.id === existing) as { sealed_at: string | null; submitted_at: string | null } | undefined
+            const existingTs = existingRow?.sealed_at ?? existingRow?.submitted_at ?? ''
+            const candidateTs = row.sealed_at ?? row.submitted_at ?? ''
+            if (candidateTs > existingTs) map[row.job_id] = row.id
+          }
+        }
+        setReportIdByJobRef(map)
+      })
+
+    return () => { active = false }
+  }, [records])
 
   const scopedRecords = useMemo(
     () => filterVaultRecordsForUser(records, user),
@@ -298,10 +335,16 @@ export default function VaultPage() {
                         <p className="text-sm text-muted mt-1">{record.stageName}</p>
                       </div>
                       <Link
-                        href={`/vault/package-preview?id=${encodeURIComponent(record.id)}`}
+                        href={
+                          record.jobRef && reportIdByJobRef[record.jobRef]
+                            ? `/api/schedule-cb?reportId=${encodeURIComponent(reportIdByJobRef[record.jobRef])}`
+                            : `/vault/package-preview?id=${encodeURIComponent(record.id)}`
+                        }
+                        target={record.jobRef && reportIdByJobRef[record.jobRef] ? '_blank' : undefined}
+                        rel={record.jobRef && reportIdByJobRef[record.jobRef] ? 'noopener noreferrer' : undefined}
                         className="inline-flex items-center gap-2 text-sm font-bold text-flame hover:text-flame-light transition-colors"
                       >
-                        Open Package
+                        {record.jobRef && reportIdByJobRef[record.jobRef] ? 'Download Schedule C-B' : 'Open Package'}
                         <ArrowRight className="w-4 h-4" />
                       </Link>
                     </div>
