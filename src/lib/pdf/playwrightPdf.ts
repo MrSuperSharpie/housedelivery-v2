@@ -1,6 +1,12 @@
 import { chromium } from 'playwright'
 
 export async function renderHtmlToPdf(html: string): Promise<Uint8Array> {
+  // PLAYWRIGHT_BROWSERS_PATH=0 tells Playwright to look for the browser binary
+  // inside the playwright package directory (node_modules/playwright/.local-browsers)
+  // rather than the user home cache (~/.cache/ms-playwright), which does not exist
+  // in Vercel's serverless execution environment.
+  process.env.PLAYWRIGHT_BROWSERS_PATH ??= '0'
+
   let browser
 
   try {

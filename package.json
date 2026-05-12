@@ -9,6 +9,7 @@
     "lint": "eslint",
     "test": "tsx --test src/lib/*.test.ts src/lib/claim/*.test.ts src/lib/governance/*.test.ts src/lib/holds/*.test.ts src/lib/inspections/*.test.ts src/lib/pdf/tests/*.test.ts",
     "check:imports": "rg -n \"from ['\\\"][^'\\\"]+\\.(ts|tsx)['\\\"]|import\\(['\\\"][^'\\\"]+\\.(ts|tsx)['\\\"]\\)|export .* from ['\\\"][^'\\\"]+\\.(ts|tsx)['\\\"]\" src",
+    "postinstall": "PLAYWRIGHT_BROWSERS_PATH=0 playwright install chromium",
     "pdf:install-browser": "playwright install chromium",
     "types:supabase": "npx supabase gen types typescript --project-id llbcoqdtuvbwamptzipo > src/types/supabase.ts"
   },
@@ -19,6 +20,7 @@
     "lucide-react": "^0.575.0",
     "next": "16.1.6",
     "pdf-lib": "^1.17.1",
+    "playwright": "^1.59.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "recharts": "^3.7.0",
@@ -32,7 +34,6 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
-    "playwright": "^1.59.1",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "5.9.3"
