@@ -353,7 +353,23 @@ export async function GET(req: NextRequest) {
   }
 
   const reportRecord = reportRow as Record<string, unknown>
-  if (reportRecord.inspector_id !== user.id) {
+
+  // Fetch the job row upfront: needed for ownership check (builder_id) and
+  // permit number resolution. A single query replaces the later conditional fetch.
+  const { data: jobRow, error: jobError } = await supabase
+    .from(JOBS)
+    .select('builder_id, permit_number')
+    .eq('id', (reportRecord.job_id as string) ?? '')
+    .maybeSingle()
+
+  if (jobError) {
+    console.warn('[schedule-cb] Job lookup failed:', jobError)
+  }
+
+  const isInspector = reportRecord.inspector_id === user.id
+  const isBuilderOwner = Boolean(jobRow?.builder_id && jobRow.builder_id === user.id)
+
+  if (!isInspector && !isBuilderOwner) {
     return NextResponse.json(
       { error: 'Forbidden — you do not own this report' },
       { status: 403 },
@@ -410,20 +426,7 @@ export async function GET(req: NextRequest) {
   const inspectorAddress = pickMeta(meta, 'address', 'office_address')
   const inspectorAddressCont = pickMeta(meta, 'address_cont', 'office_address_cont', 'city_province_postal')
 
-  let buildingPermitNumber = permitNumberFromQuery
-  if (!buildingPermitNumber) {
-    const { data: jobRow, error: jobError } = await supabase
-      .from(JOBS)
-      .select('permit_number')
-      .eq('id', report.jobId)
-      .maybeSingle()
-
-    if (jobError) {
-      console.warn('[schedule-cb] Permit number lookup failed:', jobError)
-    } else {
-      buildingPermitNumber = (jobRow?.permit_number as string) ?? undefined
-    }
-  }
+  const buildingPermitNumber = permitNumberFromQuery ?? ((jobRow?.permit_number as string) ?? undefined)
 
   const officialFormOptions: ScheduleCBOptions = {
     inspectorName,
