@@ -3216,7 +3216,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                 {job.stage && (
                   <div className="flex items-start gap-2">
                     <FileCheck2 className="mt-0.5 h-4 w-4 text-cyan-300" />
-                    <span>Requested inspection stage: Stage {job.stage} — {job.stageName}</span>
+                    <span>Builder request: {job.stageName}</span>
                   </div>
                 )}
                 <div className="flex items-start gap-2">
@@ -3384,7 +3384,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                   <h2 className="mt-2 text-3xl font-black">S{String(currentStage).padStart(2, '0')} — {currentProgress?.stage.stage_name}</h2>
                   {job.stage && (
                     <p className="mt-1 text-xs font-semibold uppercase tracking-[0.14em] text-cyan-300/80">
-                      Requested inspection stage: Stage {job.stage} — {job.stageName}
+                      Builder request: {job.stageName}
                     </p>
                   )}
                   <p className="mt-2 max-w-3xl text-sm leading-relaxed text-zinc-400">{currentProgress?.stage.summary}</p>
