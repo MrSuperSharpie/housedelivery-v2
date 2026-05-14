@@ -3274,7 +3274,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                             ? null
                             : stage.stage_number > (assignmentScope?.internalStageNumber ?? 0)
                               ? getBuilderRequestMessageForCompletionStage(stage.stage_number)
-                              : 'Outside this builder request scope.'
+                              : 'Not active in this inspection request.'
                           const containerClass =
                             !isInAssignmentScope
                               ? 'border-white/8 bg-white/[0.03]'
