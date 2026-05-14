@@ -363,7 +363,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
         // ─── DATA BRIDGE FIX: SYNC ASSIGNMENTS FROM DB ───
         try {
-          const [{ data: dbProfiles }, { data: myJobs }] = await Promise.all([
+          const [{ data: dbProfiles }, { data: myJobs, error: jobsQueryError }] = await Promise.all([
             supabase.from('profiles').select('*'),
             supabase.from('job_opportunities').select('*'),
           ])
@@ -425,7 +425,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           setAssignments(reconstructedAssignments)
           writeLS(ASSIGNMENTS_KEY, reconstructedAssignments)
 
-          setJobs(prevJobs => {
+          if (!Array.isArray(myJobs) || jobsQueryError) {
+            console.warn('store: job_opportunities bridge query failed — preserving existing live jobs', jobsQueryError)
+          } else setJobs(prevJobs => {
             const newJobs: InspectionJob[] = []
             jobRows.forEach(mj => {
               const existing = prevJobs.find(j => j.id === mj.id)
