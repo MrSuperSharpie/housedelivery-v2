@@ -1134,13 +1134,6 @@ export function InspectorCompletionWorkspace() {
     })
   }, [items, stageSignOffs, stages])
 
-  const projectCompletionPercent = useMemo(() => {
-    const completedStages = projectOverviewStages.filter(stage => stage.status === 'passed').length
-    return projectOverviewStages.length > 0
-      ? Math.round((completedStages / projectOverviewStages.length) * 100)
-      : 0
-  }, [projectOverviewStages])
-
   const phasedProjectOverview = useMemo(() => {
     return COMPLETION_STAGE_PHASES.map(phase => ({
       ...phase,
@@ -3253,7 +3246,6 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
               >
                 <div>
                   <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Project Overview</div>
-                  <div className="mt-1 text-lg font-black text-white">Project {projectCompletionPercent}% Complete</div>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-[11px] font-black text-cyan-200">
@@ -3262,13 +3254,6 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                   <ChevronRight className={`h-5 w-5 text-zinc-400 transition-transform ${projectOverviewOpen ? 'rotate-90' : ''}`} />
                 </div>
               </button>
-
-              <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/8">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-emerald-400"
-                  style={{ width: `${projectCompletionPercent}%` }}
-                />
-              </div>
 
               {projectOverviewOpen && (
                 <div className="mt-4 space-y-4">
@@ -3280,7 +3265,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       </div>
 
                       <div className="space-y-2">
-                        {phase.stages.map(({ stage, total, resolved, status, unlocked, signOff }) => {
+                        {phase.stages.map(({ stage, status, unlocked, signOff }) => {
                           const stageCode = `S${String(stage.stage_number).padStart(2, '0')}`
                           const isCurrent = currentStage === stage.stage_number
                           const isInAssignmentScope = !assignmentScope || stage.stage_number === assignmentScope.internalStageNumber
@@ -3306,12 +3291,6 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                               : status === 'active'
                                 ? 'border-cyan-400/30 bg-cyan-400/15 text-cyan-200'
                                 : 'border-white/10 bg-white/5 text-zinc-400'
-                          const progressClass =
-                            status === 'passed'
-                              ? 'bg-emerald-400'
-                              : status === 'active'
-                                ? 'bg-cyan-400'
-                                : 'bg-zinc-700'
 
                           return (
                             <button
@@ -3358,13 +3337,6 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                 )}
                               </div>
 
-                              <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/8">
-                                <div
-                                  className={`h-full rounded-full ${progressClass}`}
-                                  style={{ width: `${total > 0 ? (resolved / total) * 100 : 0}%` }}
-                                />
-                              </div>
-                              <div className="mt-2 text-[11px] text-zinc-400">{resolved} of {total} containers resolved</div>
                             </button>
                           )
                         })}
