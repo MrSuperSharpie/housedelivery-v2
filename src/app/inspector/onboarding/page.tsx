@@ -59,7 +59,7 @@ function InspectorOnboardingEntryInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user } = useAuth()
-  const [status, setStatus] = useState<InspectorOnboardingStatus>('submitted')
+  const [status, setStatus] = useState<InspectorOnboardingStatus>('draft')
   const [hasEligibilityProfile, setHasEligibilityProfile] = useState<boolean | null>(null)
   const [reviewerNote, setReviewerNote] = useState<string | null>(null)
 
