@@ -199,14 +199,13 @@ export default function AdminInspectorsPage() {
     const profileHints: Record<string, ProfileHint> = {}
     const userIds = data.map(row => row.userId)
     if (userIds.length > 0) {
-      const { data: profileRows } = await supabase
-        .from('profiles')
-        .select('id, full_name, firm_name, email, name, first_name, last_name, company_name, business_name, contact_email, digital_seal_url')
-        .in('id', userIds)
-
-      for (const row of (profileRows ?? []) as ProfileHint[]) {
-        const id = typeof row.id === 'string' ? row.id : null
-        if (id) profileHints[id] = row
+      const res = await fetch(`/api/admin/inspectors/profiles?ids=${userIds.map(encodeURIComponent).join(',')}`)
+      if (res.ok) {
+        const body = await res.json() as { profiles?: unknown[] }
+        for (const row of (body.profiles ?? []) as ProfileHint[]) {
+          const id = typeof row.id === 'string' ? row.id : null
+          if (id) profileHints[id] = row
+        }
       }
     }
 
