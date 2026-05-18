@@ -2807,9 +2807,6 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
         setStageSignOffError(location.error)
       }
       setStageSigning(false)
-      if (!previewMode) {
-        router.push('/inspector')
-      }
       return
     }
 
