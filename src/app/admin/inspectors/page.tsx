@@ -200,7 +200,9 @@ export default function AdminInspectorsPage() {
     const userIds = data.map(row => row.userId)
     if (userIds.length > 0) {
       const res = await fetch(`/api/admin/inspectors/profiles?ids=${userIds.map(encodeURIComponent).join(',')}`)
-      if (res.ok) {
+      if (!res.ok) {
+        console.error('[admin/inspectors] profiles API failed', res.status, await res.text().catch(() => ''))
+      } else {
         const body = await res.json() as { profiles?: unknown[] }
         for (const row of (body.profiles ?? []) as ProfileHint[]) {
           const id = typeof row.id === 'string' ? row.id : null

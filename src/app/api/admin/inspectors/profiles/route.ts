@@ -43,7 +43,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Could not verify admin access' }, { status: 503 })
   }
 
-  if (!isAdminLikeRole((adminProfile as { role?: unknown } | null)?.role)) {
+  const profileRole = (adminProfile as { role?: unknown } | null)?.role
+  const metadataRole = authData.user.user_metadata?.role
+  if (!isAdminLikeRole(profileRole ?? metadataRole)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
