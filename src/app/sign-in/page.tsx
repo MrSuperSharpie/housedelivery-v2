@@ -133,8 +133,9 @@ function SignInInner() {
   const nextParam = searchParams.get('next')
   const initialRole: UserRole = (['builder','inspector','auditor','admin'] as UserRole[]).includes(roleParam) ? roleParam : 'builder'
   const [role, setRole] = useState<UserRole>(initialRole)
-  // Admin accounts are never self-created — default to sign-in mode for admin
-  const [isNew, setIsNew]   = useState(initialRole !== 'admin')
+  // Admin accounts are never self-created — default to sign-in mode for admin.
+  // Inspector accounts are created through /inspector/signup, not this form.
+  const [isNew, setIsNew]   = useState(initialRole !== 'admin' && initialRole !== 'inspector')
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState('')
@@ -423,7 +424,7 @@ function SignInInner() {
           {/* Role selector tabs */}
           <div className="flex bg-panel border border-white/8 rounded-xl p-1 mb-6">
             {(['builder', 'inspector', 'auditor', 'admin'] as UserRole[]).map(r => (
-              <button key={r} onClick={() => { setRole(r); if (r === 'admin') setIsNew(false) }}
+              <button key={r} onClick={() => { setRole(r); if (r === 'admin' || r === 'inspector') setIsNew(false) }}
                 className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all capitalize ${
                   role === r ? 'bg-flame text-white' : 'text-muted hover:text-ink'
                 }`}>{r === 'admin' ? '⚙ Admin' : r}</button>
@@ -448,10 +449,10 @@ function SignInInner() {
                 {role !== 'admin' && (
                   <button
                     type="button"
-                    onClick={() => setIsNew(n => !n)}
+                    onClick={() => role === 'inspector' ? router.push('/inspector/signup') : setIsNew(n => !n)}
                     className="mt-2 text-left text-sm font-semibold text-ink underline decoration-flame decoration-2 underline-offset-4 hover:text-flame transition-colors"
                   >
-                    {isNew ? 'Already have an account? Sign in' : "Don't have an account? Create one"}
+                    {role === 'inspector' ? 'New inspector? Apply to join' : isNew ? 'Already have an account? Sign in' : "Don't have an account? Create one"}
                   </button>
                 )}
               </div>
