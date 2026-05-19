@@ -3195,7 +3195,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                   <h1 className="mt-2 text-xl font-black">{job.projectName}</h1>
                 </div>
                 <div className="rounded-full bg-[#FF5F15]/15 px-3 py-1 text-[11px] font-black text-[#FFB089]">
-                  15 Stages
+                  {assignmentScope ? `Stage ${assignmentScope.builderStageNumber} of 5` : '15 Stages'}
                 </div>
               </div>
               <div className="mt-4 space-y-2 text-sm text-zinc-300">
@@ -3246,7 +3246,10 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-[11px] font-black text-cyan-200">
-                    {projectOverviewStages.filter(stage => stage.status === 'passed').length}/{projectOverviewStages.length} passed
+                    {assignmentScope
+                      ? `${projectOverviewStages.filter(s => s.stage.stage_number === assignmentScope.internalStageNumber && s.status === 'passed').length}/1 passed — ${assignmentScope.builderStageLabel}`
+                      : `${projectOverviewStages.filter(stage => stage.status === 'passed').length}/${projectOverviewStages.length} passed`
+                    }
                   </div>
                   <ChevronRight className={`h-5 w-5 text-zinc-400 transition-transform ${projectOverviewOpen ? 'rotate-90' : ''}`} />
                 </div>
