@@ -486,6 +486,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                   urgencyMultiplier: (mj.urgency_multiplier as number | undefined) ?? existing.urgencyMultiplier,
                   platformCommissionAmount: (mj.platform_commission_amount as number | undefined) ?? existing.platformCommissionAmount,
                   escrowAmount: (mj.escrow_estimate_total as number | undefined) ?? existing.escrowAmount,
+                  availableSlots: normalizeJobTimeSlots(mj.available_slots),
                 })
               }
             })
