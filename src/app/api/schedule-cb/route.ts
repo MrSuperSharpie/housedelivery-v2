@@ -601,19 +601,24 @@ export async function GET(req: NextRequest) {
             .eq('project_id', projectId)
             .eq('builder_id', String(jobRow?.builder_id ?? ''))
 
-          if (siblingJobs && siblingJobs.length > 0) {
-            const siblingJobIds = (siblingJobs as { id: string }[]).map(j => j.id)
-            const { data: siblingReports } = await svcClient
-              .from(REPORTS)
-              .select('id, current_stage')
-              .in('job_id', siblingJobIds)
-              .eq('status', 'sealed')
-              .order('current_stage', { ascending: true })
+          // The root/Stage-1 job has project_id = NULL so it is not returned by
+          // the query above. Seed the set with the primary job and projectId
+          // (which IS the root job id in this model) before appending query results.
+          const jobIdSet = new Set<string>([report.jobId, projectId])
+          for (const j of (siblingJobs as { id: string }[] | null) ?? []) {
+            jobIdSet.add(j.id)
+          }
 
-            if (siblingReports && siblingReports.length > 0) {
-              const siblingIds = (siblingReports as { id: string }[]).map(r => r.id)
-              allReportIds = [...new Set([...siblingIds, report.id])]
-            }
+          const { data: siblingReports } = await svcClient
+            .from(REPORTS)
+            .select('id, current_stage')
+            .in('job_id', [...jobIdSet])
+            .in('status', ['submitted', 'sealed'])
+            .order('current_stage', { ascending: true })
+
+          if (siblingReports && siblingReports.length > 0) {
+            const siblingIds = (siblingReports as { id: string }[]).map(r => r.id)
+            allReportIds = [...new Set([...siblingIds, report.id])]
           }
         } catch {
           console.warn('[schedule-cb] Sibling report aggregation failed — falling back to single report')
