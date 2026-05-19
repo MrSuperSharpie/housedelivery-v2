@@ -2105,14 +2105,14 @@ export default function BuilderDashboard() {
             })}
 
             {completedProgressProjects.length > 0 && (
-              <details className="mt-2 rounded-2xl border border-emerald-600/20 bg-emerald-500/5">
+              <details open className="mt-2 rounded-2xl border border-emerald-600/20 bg-emerald-500/5">
                 <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-black text-ink">
                   <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                   Completed / Certified — {completedProgressProjects.length} project{completedProgressProjects.length !== 1 ? 's' : ''}
                 </summary>
                 <div className="space-y-2 border-t border-emerald-600/15 p-3">
                   {completedProgressProjects.map(pp => {
-                    const completedJob = pp.jobs.find(j => j.status === 'completed')
+                    const completedJob = [...pp.jobs].reverse().find(j => j.status === 'completed')
                     const rec = completedJob ? completedRecords[completedJob.id] : undefined
                     return (
                       <div key={pp.key} className="flex items-center justify-between rounded-xl border border-rim bg-panel px-3 py-2.5">
