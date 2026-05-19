@@ -567,7 +567,7 @@ function SignInInner() {
               <div className="relative">
                 <input type={showPass ? 'text' : 'password'}
                   value={form.password} onChange={e => set('password', e.target.value)}
-                  placeholder="Create a password" required className={`${inputCls} pr-10`} />
+                  placeholder={isNew ? 'Create a password' : 'Enter password'} required className={`${inputCls} pr-10`} />
                 <button type="button" onClick={() => setShowPass(p => !p)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink transition-colors">
                   {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
