@@ -148,6 +148,16 @@ function toPacketDocument(row: Record<string, unknown>): ScheduleCBPacketDocumen
   }
 }
 
+const DISCIPLINE_DISPLAY: Record<string, string> = {
+  structural:      'Structural Engineering',
+  mechanical:      'Mechanical Engineering',
+  electrical:      'Electrical / Field Safety',
+  architectural:   'Architectural',
+  geotech:         'Geotechnical',
+  plumbing:        'Plumbing',
+  fire_protection: 'Fire Protection',
+}
+
 function buildFileName(projectName: string, variant: 'packet' | 'form-only'): string {
   const safeName = projectName
     .replace(/[^a-zA-Z0-9 _-]/g, '')
@@ -450,19 +460,34 @@ export async function GET(req: NextRequest) {
     inspectorAddressCont = pickMeta(meta, 'address_cont', 'office_address_cont', 'city_province_postal')
   } else {
     // Requesting user is the builder — use service role to read the inspector's
-    // profile by reportInspectorId. The session client cannot read another
-    // user's profiles row through RLS.
+    // profile and onboarding record. The session client cannot read another
+    // user's rows through RLS.
     let inspProfileRow: Record<string, unknown> | null = null
+    let onboardingRow: Record<string, unknown> | null = null
+
     if (svcClient) {
-      try {
-        const { data: inspProfileData } = await svcClient
+      const [profileResult, onboardingResult] = await Promise.allSettled([
+        svcClient
           .from('profiles')
-          .select('first_name, last_name, inspector_license_no, firm_name, email, contact_email')
+          .select('first_name, last_name, inspector_license_no, license_number, firm_name, email, phone')
           .eq('id', reportInspectorId)
-          .maybeSingle()
-        inspProfileRow = (inspProfileData as Record<string, unknown> | null) ?? null
-      } catch {
+          .maybeSingle(),
+        svcClient
+          .from('inspector_onboarding_status')
+          .select('license_number, disciplines, contact_email, contact_phone')
+          .eq('user_id', reportInspectorId)
+          .maybeSingle(),
+      ])
+
+      if (profileResult.status === 'fulfilled') {
+        inspProfileRow = (profileResult.value.data as Record<string, unknown> | null) ?? null
+      } else {
         console.warn('[schedule-cb] Inspector profile lookup (service role) failed')
+      }
+      if (onboardingResult.status === 'fulfilled') {
+        onboardingRow = (onboardingResult.value.data as Record<string, unknown> | null) ?? null
+      } else {
+        console.warn('[schedule-cb] Inspector onboarding lookup (service role) failed')
       }
     }
 
@@ -475,22 +500,49 @@ export async function GET(req: NextRequest) {
       : ''
 
     inspectorName = inspProfileFullName || sealedByName || undefined
+
+    // License: profiles.inspector_license_no → profiles.license_number → onboarding.license_number
     inspectorLicense =
-      typeof inspProfileRow?.inspector_license_no === 'string' && inspProfileRow.inspector_license_no.trim()
+      (typeof inspProfileRow?.inspector_license_no === 'string' && inspProfileRow.inspector_license_no.trim()
         ? inspProfileRow.inspector_license_no.trim()
-        : undefined
+        : undefined) ??
+      (typeof inspProfileRow?.license_number === 'string' && inspProfileRow.license_number.trim()
+        ? inspProfileRow.license_number.trim()
+        : undefined) ??
+      (typeof onboardingRow?.license_number === 'string' && onboardingRow.license_number.trim()
+        ? onboardingRow.license_number.trim()
+        : undefined)
+
+    // Discipline: map stored codes from onboarding.disciplines to readable labels.
+    const rawDisciplines = Array.isArray(onboardingRow?.disciplines)
+      ? (onboardingRow.disciplines as unknown[]).filter((d): d is string => typeof d === 'string')
+      : []
+    discipline = rawDisciplines.length > 0
+      ? rawDisciplines.map(d => DISCIPLINE_DISPLAY[d] ?? d).join(', ')
+      : undefined
+
+    // Firm: profiles.firm_name only — no other accessible source, not fabricated.
     firmName =
       typeof inspProfileRow?.firm_name === 'string' && inspProfileRow.firm_name.trim()
-        ? (inspProfileRow.firm_name as string).trim()
+        ? inspProfileRow.firm_name.trim()
         : undefined
-    inspectorContact =
-      (typeof inspProfileRow?.contact_email === 'string' && inspProfileRow.contact_email.trim()
-        ? (inspProfileRow.contact_email as string).trim()
-        : undefined) ??
-      (typeof inspProfileRow?.email === 'string' && inspProfileRow.email.trim()
-        ? (inspProfileRow.email as string).trim()
-        : undefined)
-    discipline = undefined
+
+    // Contact: onboarding contact fields → profiles email/phone
+    const onboardingPhone = typeof onboardingRow?.contact_phone === 'string' && onboardingRow.contact_phone.trim()
+      ? onboardingRow.contact_phone.trim() : undefined
+    const onboardingEmail = typeof onboardingRow?.contact_email === 'string' && onboardingRow.contact_email.trim()
+      ? onboardingRow.contact_email.trim() : undefined
+    const profilePhone = typeof inspProfileRow?.phone === 'string' && inspProfileRow.phone.trim()
+      ? inspProfileRow.phone.trim() : undefined
+    const profileEmail = typeof inspProfileRow?.email === 'string' && inspProfileRow.email.trim()
+      ? inspProfileRow.email.trim() : undefined
+
+    const resolvedPhone = onboardingPhone ?? profilePhone
+    const resolvedEmail = onboardingEmail ?? profileEmail
+    inspectorContact = resolvedPhone && resolvedEmail
+      ? `${resolvedPhone} · ${resolvedEmail}`
+      : resolvedPhone ?? resolvedEmail
+
     inspectorAddress = undefined
     inspectorAddressCont = undefined
   }
