@@ -378,7 +378,7 @@ export async function GET(req: NextRequest) {
   // permit number resolution. A single query replaces the later conditional fetch.
   const { data: jobRow, error: jobError } = await supabase
     .from(JOBS)
-    .select('builder_id, permit_number')
+    .select('builder_id, permit_number, project_id')
     .eq('id', (reportRecord.job_id as string) ?? '')
     .maybeSingle()
 
@@ -575,6 +575,10 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  // Derive project scope for binder aggregation.
+  // projectId is nullable — older or monolithic reports may not have it set.
+  const projectId = (jobRow?.project_id as string | null) ?? null
+
   try {
     let pdfBytes: Uint8Array
 
@@ -582,17 +586,53 @@ export async function GET(req: NextRequest) {
       pdfBytes = await generateScheduleCB(report, officialFormOptions)
     } else {
       const brandLogoSrc = await loadBrandLogoDataUri()
+
+      // ── Sibling report aggregation ────────────────────────────────────────
+      // For scoped multi-inspector projects each builder stage produces its
+      // own sealed report. Collect all sealed sibling report IDs so the packet
+      // covers the full evidence chain rather than only the final stage.
+      // Falls back to single-report behaviour if aggregation cannot run.
+      let allReportIds: string[] = [report.id]
+      if (projectId && svcClient) {
+        try {
+          const { data: siblingJobs } = await svcClient
+            .from(JOBS)
+            .select('id')
+            .eq('project_id', projectId)
+            .eq('builder_id', String(jobRow?.builder_id ?? ''))
+
+          if (siblingJobs && siblingJobs.length > 0) {
+            const siblingJobIds = (siblingJobs as { id: string }[]).map(j => j.id)
+            const { data: siblingReports } = await svcClient
+              .from(REPORTS)
+              .select('id, current_stage')
+              .in('job_id', siblingJobIds)
+              .eq('status', 'sealed')
+              .order('current_stage', { ascending: true })
+
+            if (siblingReports && siblingReports.length > 0) {
+              const siblingIds = (siblingReports as { id: string }[]).map(r => r.id)
+              allReportIds = [...new Set([...siblingIds, report.id])]
+            }
+          }
+        } catch {
+          console.warn('[schedule-cb] Sibling report aggregation failed — falling back to single report')
+          allReportIds = [report.id]
+        }
+      }
+
+      const dbClient = svcClient ?? supabase
       const [{ data: itemRows, error: itemsError }, { data: documentRows, error: documentsError }] = await Promise.all([
-        supabase
+        dbClient
           .from(ITEMS)
           .select('item_code, item_label, response_note, stage_number, stage_name, inspection_status')
-          .eq('report_id', report.id)
+          .in('report_id', allReportIds)
           .order('stage_number', { ascending: true })
           .order('sort_order', { ascending: true }),
-        supabase
+        dbClient
           .from(DOCUMENTS)
           .select('*')
-          .eq('report_id', report.id)
+          .in('report_id', allReportIds)
           .order('created_at', { ascending: true }),
       ])
 
