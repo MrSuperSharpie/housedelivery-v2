@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
 import { generateScheduleCB, type ScheduleCBOptions } from '@/lib/pdf/scheduleCBGenerator'
 import { generateScheduleCBPacket } from '@/lib/pdf/scheduleCBPacketGenerator'
@@ -119,6 +120,15 @@ function inferMimeType(storedMime: string | null | undefined, fileName: string):
   if (storedMime) return storedMime
   const ext = fileName.toLowerCase().split('.').pop()
   return ext ? MIME_BY_EXT[ext] : undefined
+}
+
+function getServiceClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) return null
+  return createServiceClient(url, key, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  })
 }
 
 function toPacketDocument(row: Record<string, unknown>): ScheduleCBPacketDocumentRecord {
@@ -378,53 +388,112 @@ export async function GET(req: NextRequest) {
 
   const report = rowToReport(reportRecord)
 
-  // ─── Identity: prefer profiles table over raw auth metadata ────────────────
-  // user_metadata is populated at sign-up and may be stale or absent for some
-  // accounts. The profiles table is the authoritative source for inspector
-  // identity fields needed by the Schedule C-B.
-  let profileRow: Record<string, unknown> | null = null
-  try {
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('first_name, last_name, inspector_license_no')
-      .eq('id', user.id)
-      .maybeSingle()
-    profileRow = (profileData as Record<string, unknown> | null) ?? null
-  } catch {
-    console.warn('[schedule-cb] profiles lookup failed — falling back to user_metadata')
+  // ─── Inspector identity ───────────────────────────────────────────────────
+  // The named inspector on a Schedule C-B is always the report's inspector,
+  // never the requesting user. When a builder downloads the packet, user.id is
+  // the builder — the session profile must not be used as the signatory.
+  const svcClient = getServiceClient()
+  const reportInspectorId = reportRecord.inspector_id as string
+
+  let inspectorName: string | undefined
+  let inspectorLicense: string | undefined
+  let discipline: string | undefined
+  let firmName: string | undefined
+  let inspectorContact: string | undefined
+  let inspectorAddress: string | undefined
+  let inspectorAddressCont: string | undefined
+
+  if (isInspector) {
+    // Requesting user is the inspector — read own profile + user_metadata.
+    let profileRow: Record<string, unknown> | null = null
+    try {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, inspector_license_no')
+        .eq('id', user.id)
+        .maybeSingle()
+      profileRow = (profileData as Record<string, unknown> | null) ?? null
+    } catch {
+      console.warn('[schedule-cb] profiles lookup failed — falling back to user_metadata')
+    }
+
+    const meta = (user.user_metadata ?? {}) as Record<string, unknown>
+
+    const profileFirstName = typeof profileRow?.first_name === 'string' ? profileRow.first_name.trim() : ''
+    const profileLastName = typeof profileRow?.last_name === 'string' ? profileRow.last_name.trim() : ''
+    const profileFullName = [profileFirstName, profileLastName].filter(Boolean).join(' ')
+
+    // Resolve inspector name: profiles > user_metadata > email local-part
+    inspectorName =
+      profileFullName ||
+      pickMeta(meta, 'name') ||
+      (() => {
+        // Never use a raw email address as a display name on legal documents
+        const localPart = user.email?.split('@')[0] ?? ''
+        return localPart.replace(/[+_.-]+/g, ' ').trim() || undefined
+      })()
+
+    // Resolve license: profiles.inspector_license_no > user_metadata
+    inspectorLicense =
+      (typeof profileRow?.inspector_license_no === 'string' && profileRow.inspector_license_no.trim()
+        ? profileRow.inspector_license_no.trim()
+        : undefined) ??
+      pickMeta(meta, 'licenseNumber', 'license_number')
+
+    discipline = pickMeta(meta, 'designation')
+      ?? (Array.isArray(meta.disciplines) && meta.disciplines.length > 0 ? String(meta.disciplines[0]) : undefined)
+    firmName = pickMeta(meta, 'company', 'firm', 'firm_name')
+    const phone = pickMeta(meta, 'phone')
+    const email = user.email ?? undefined
+    inspectorContact = phone && email ? `${phone} · ${email}` : phone ?? email
+    inspectorAddress = pickMeta(meta, 'address', 'office_address')
+    inspectorAddressCont = pickMeta(meta, 'address_cont', 'office_address_cont', 'city_province_postal')
+  } else {
+    // Requesting user is the builder — use service role to read the inspector's
+    // profile by reportInspectorId. The session client cannot read another
+    // user's profiles row through RLS.
+    let inspProfileRow: Record<string, unknown> | null = null
+    if (svcClient) {
+      try {
+        const { data: inspProfileData } = await svcClient
+          .from('profiles')
+          .select('first_name, last_name, inspector_license_no, firm_name, email, contact_email')
+          .eq('id', reportInspectorId)
+          .maybeSingle()
+        inspProfileRow = (inspProfileData as Record<string, unknown> | null) ?? null
+      } catch {
+        console.warn('[schedule-cb] Inspector profile lookup (service role) failed')
+      }
+    }
+
+    const inspFirstName = typeof inspProfileRow?.first_name === 'string' ? inspProfileRow.first_name.trim() : ''
+    const inspLastName = typeof inspProfileRow?.last_name === 'string' ? inspProfileRow.last_name.trim() : ''
+    const inspProfileFullName = [inspFirstName, inspLastName].filter(Boolean).join(' ')
+    // sealPayload.sealedBy is the inspector's display name recorded at seal time — reliable fallback.
+    const sealedByName = typeof report.sealPayload?.sealedBy === 'string'
+      ? (report.sealPayload.sealedBy as string).trim()
+      : ''
+
+    inspectorName = inspProfileFullName || sealedByName || undefined
+    inspectorLicense =
+      typeof inspProfileRow?.inspector_license_no === 'string' && inspProfileRow.inspector_license_no.trim()
+        ? inspProfileRow.inspector_license_no.trim()
+        : undefined
+    firmName =
+      typeof inspProfileRow?.firm_name === 'string' && inspProfileRow.firm_name.trim()
+        ? (inspProfileRow.firm_name as string).trim()
+        : undefined
+    inspectorContact =
+      (typeof inspProfileRow?.contact_email === 'string' && inspProfileRow.contact_email.trim()
+        ? (inspProfileRow.contact_email as string).trim()
+        : undefined) ??
+      (typeof inspProfileRow?.email === 'string' && inspProfileRow.email.trim()
+        ? (inspProfileRow.email as string).trim()
+        : undefined)
+    discipline = undefined
+    inspectorAddress = undefined
+    inspectorAddressCont = undefined
   }
-
-  const meta = (user.user_metadata ?? {}) as Record<string, unknown>
-
-  const profileFirstName = typeof profileRow?.first_name === 'string' ? profileRow.first_name.trim() : ''
-  const profileLastName = typeof profileRow?.last_name === 'string' ? profileRow.last_name.trim() : ''
-  const profileFullName = [profileFirstName, profileLastName].filter(Boolean).join(' ')
-
-  // Resolve inspector name: profiles > user_metadata > email local-part
-  const inspectorName =
-    profileFullName ||
-    pickMeta(meta, 'name') ||
-    (() => {
-      // Never use a raw email address as a display name on legal documents
-      const localPart = user.email?.split('@')[0] ?? ''
-      return localPart.replace(/[+_.-]+/g, ' ').trim() || undefined
-    })()
-
-  // Resolve license: profiles.inspector_license_no > user_metadata
-  const inspectorLicense =
-    (typeof profileRow?.inspector_license_no === 'string' && profileRow.inspector_license_no.trim()
-      ? profileRow.inspector_license_no.trim()
-      : undefined) ??
-    pickMeta(meta, 'licenseNumber', 'license_number')
-
-  const discipline = pickMeta(meta, 'designation')
-    ?? (Array.isArray(meta.disciplines) && meta.disciplines.length > 0 ? String(meta.disciplines[0]) : undefined)
-  const firmName = pickMeta(meta, 'company', 'firm', 'firm_name')
-  const phone = pickMeta(meta, 'phone')
-  const email = user.email ?? undefined
-  const inspectorContact = phone && email ? `${phone} · ${email}` : phone ?? email
-  const inspectorAddress = pickMeta(meta, 'address', 'office_address')
-  const inspectorAddressCont = pickMeta(meta, 'address_cont', 'office_address_cont', 'city_province_postal')
 
   const buildingPermitNumber = permitNumberFromQuery ?? ((jobRow?.permit_number as string) ?? undefined)
 
@@ -500,7 +569,7 @@ export async function GET(req: NextRequest) {
       const packetDocuments = await Promise.all(rawDocuments.map(async document => {
         if (!document.storagePath) return document
 
-        const { data, error } = await supabase.storage
+        const { data, error } = await (svcClient ?? supabase).storage
           .from(STORAGE_BUCKET)
           .createSignedUrl(document.storagePath, SIGNED_URL_TTL_SECONDS)
 
