@@ -2934,7 +2934,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
       projectState: 'COMPLETED',
       auditNote: 'Final occupancy issued and project certified',
       location,
-      successBehavior: isScopedFinalOccupancy ? 'return_to_dashboard' : 'stay',
+      successBehavior: 'stay',
     })
 
     if (!completed) {
