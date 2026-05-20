@@ -104,7 +104,7 @@ export default function LandingPage() {
           <nav className="hidden md:flex items-center gap-1">
             {[
               { href: '/sign-in?role=builder', label: 'For Builders' },
-              { href: '/inspector/signup',    label: 'For Inspectors' },
+              { href: '/sign-in?role=inspector', label: 'For Inspectors' },
               { href: '/sign-in?role=auditor', label: 'City Auditors' },
             ].map(l => (
               <Link key={l.href} href={l.href}
@@ -116,7 +116,7 @@ export default function LandingPage() {
 
           {/* CTAs */}
           <div className="flex items-center gap-2">
-            <Link href="/inspector/signup"
+            <Link href="/sign-in?role=inspector"
               className="hidden md:inline-flex text-sm font-semibold text-muted hover:text-ink px-3 py-2 rounded-xl hover:bg-raised transition-all">
               Join as Inspector
             </Link>
