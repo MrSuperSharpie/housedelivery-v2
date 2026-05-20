@@ -165,7 +165,7 @@ function buildInspectorIdentity(
     readStr(profileHint, 'email') ??
     readStr(profileHint, 'contact_email')
 
-  const displayName = fullName ?? email ?? (licenseNumber ? `Inspector ${licenseNumber}` : 'Inspector account')
+  const displayName = fullName ?? email ?? 'Unnamed inspector'
 
   return {
     displayName,

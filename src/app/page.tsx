@@ -103,7 +103,7 @@ export default function LandingPage() {
           {/* Nav links */}
           <nav className="hidden md:flex items-center gap-1">
             {[
-              { href: '/builder',             label: 'For Builders' },
+              { href: '/sign-in?role=builder', label: 'For Builders' },
               { href: '/inspector/signup',    label: 'For Inspectors' },
               { href: '/sign-in?role=auditor', label: 'City Auditors' },
             ].map(l => (
