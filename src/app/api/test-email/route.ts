@@ -15,7 +15,7 @@ export async function GET() {
 
   const { data, error } = await resend.emails.send({
     from: "Vero Permit <notifications@veropermit.com>",
-    to: "edavis@animalmarketing.com",
+    to: "admin@veropermit.com",
     subject: "Vero Permit Email Test",
     html: "<p>Vero Permit email infrastructure is working.</p>",
   });
