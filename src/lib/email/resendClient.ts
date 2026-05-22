@@ -2,6 +2,7 @@ import { Resend } from 'resend'
 
 export const VERO_EMAIL_FROM = 'Vero Permit <notifications@veropermit.com>'
 export const VERO_EMAIL_REPLY_TO = 'admin@veropermit.com'
+export const VERO_ADMIN_EMAIL = 'admin@veropermit.com'
 
 export type ResendClientResult =
   | {

@@ -3,11 +3,11 @@ import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
 import { isAdminLikeRole } from '@/lib/adminAccess'
 import { sendVeroEmail } from '@/lib/email/sendVeroEmail'
+import { VERO_ADMIN_EMAIL } from '@/lib/email/resendClient'
 import type { VeroEmailEventKey, VeroEmailSendResult } from '@/lib/email/types'
 
 export const runtime = 'nodejs'
 
-const ADMIN_EMAIL = 'admin@veropermit.com'
 const APP_URL = 'https://veropermit.com'
 
 const ACCOUNT_LIFECYCLE_EVENTS = new Set<VeroEmailEventKey>([
@@ -159,7 +159,7 @@ export async function POST(req: NextRequest) {
     const email = readStr(profileRow, 'email') ?? authData.user.email ?? undefined
     const result = await sendVeroEmail({
       eventKey,
-      to: ADMIN_EMAIL,
+      to: VERO_ADMIN_EMAIL,
       recipientName: 'Vero Permit admin',
       inspectorName: nameFromProfile(profileRow, email),
       ctaUrl: `${APP_URL}/admin/inspectors`,
@@ -199,7 +199,7 @@ export async function POST(req: NextRequest) {
     const firm = firmFromProfile(builder ?? profileRow)
     const result = await sendVeroEmail({
       eventKey,
-      to: ADMIN_EMAIL,
+      to: VERO_ADMIN_EMAIL,
       recipientName: 'Vero Permit admin',
       builderName,
       ctaUrl: `${APP_URL}/admin/builders`,

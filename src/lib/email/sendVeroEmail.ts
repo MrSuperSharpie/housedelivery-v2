@@ -1,9 +1,15 @@
-import { VERO_EMAIL_FROM, VERO_EMAIL_REPLY_TO, getResendClient } from './resendClient'
+import { VERO_ADMIN_EMAIL, VERO_EMAIL_FROM, VERO_EMAIL_REPLY_TO, getResendClient } from './resendClient'
 import { renderVeroEmail } from './templates'
 import type { SendVeroEmailOptions, VeroEmailSendResult } from './types'
 
+const ADMIN_LIFECYCLE_EVENTS = new Set<SendVeroEmailOptions['eventKey']>([
+  'admin.inspector_application_submitted',
+  'admin.builder_profile_submitted',
+])
+
 export async function sendVeroEmail(options: SendVeroEmailOptions): Promise<VeroEmailSendResult> {
   const renderedEmail = renderVeroEmail(options)
+  const to = ADMIN_LIFECYCLE_EVENTS.has(options.eventKey) ? VERO_ADMIN_EMAIL : options.to
   const resend = getResendClient()
 
   if (!resend.ok) {
@@ -24,7 +30,7 @@ export async function sendVeroEmail(options: SendVeroEmailOptions): Promise<Vero
   try {
     const { data, error } = await resend.client.emails.send({
       from: VERO_EMAIL_FROM,
-      to: options.to,
+      to,
       replyTo: VERO_EMAIL_REPLY_TO,
       subject: renderedEmail.subject,
       html: renderedEmail.html,
