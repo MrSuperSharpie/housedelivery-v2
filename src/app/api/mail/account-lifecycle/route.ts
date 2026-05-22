@@ -90,7 +90,9 @@ function forbidden(message = 'Event is not allowed for this user or lifecycle st
 }
 
 function logEmailResult(eventKey: VeroEmailEventKey, result: VeroEmailSendResult) {
-  if (!result.ok) {
+  if (result.ok) {
+    console.log(`[account-lifecycle-email] ${eventKey} sent ok id=${result.id}`)
+  } else {
     console.warn(`[account-lifecycle-email] ${eventKey} email was not sent: ${result.error}`)
   }
 }
@@ -124,14 +126,18 @@ export async function POST(req: NextRequest) {
   }
 
   const eventKey = body.eventKey
+  console.log(`[account-lifecycle-email] received eventKey=${eventKey}`)
   const sessionSupabase = await createClient()
   const { data: authData, error: authError } = await sessionSupabase.auth.getUser()
   if (authError || !authData.user) {
+    console.warn(`[account-lifecycle-email] ${eventKey} — auth failed: ${authError?.message ?? 'no user'}`)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
+  console.log(`[account-lifecycle-email] ${eventKey} — authenticated user=${authData.user.id}`)
 
   const serviceSupabase = getServiceClient()
   if (!serviceSupabase) {
+    console.error(`[account-lifecycle-email] ${eventKey} — service client not configured (missing env vars)`)
     return NextResponse.json({ error: 'Email profile lookup is not configured' }, { status: 503 })
   }
 
@@ -152,11 +158,14 @@ export async function POST(req: NextRequest) {
 
     const profileRow = (profile as ProfileRow | null) ?? null
     const inspector = (inspectorRow as InspectorOnboardingRow | null) ?? null
-    if (!hasRole(profileRow, 'inspector') || !hasStatus(profileRow, ['submitted', 'under_review']) || !hasStatus(inspector, ['submitted', 'under_review'])) {
-      return forbidden('Inspector submission email requires the authenticated inspector to have a submitted onboarding record.')
+    console.log(`[account-lifecycle-email] ${eventKey} — role=${readStr(profileRow, 'role') ?? 'none'} profile_status=${readStr(profileRow, 'onboarding_status') ?? 'none'} inspector_row=${inspector ? 'found' : 'not found'}`)
+    if (!hasRole(profileRow, 'inspector')) {
+      console.warn(`[account-lifecycle-email] ${eventKey} — forbidden: user ${userId} role=${readStr(profileRow, 'role') ?? 'none'}`)
+      return forbidden('Inspector submission email requires the authenticated user to have inspector role.')
     }
 
     const email = readStr(profileRow, 'email') ?? authData.user.email ?? undefined
+    console.log(`[account-lifecycle-email] ${eventKey} — sending to ${VERO_ADMIN_EMAIL}`)
     const result = await sendVeroEmail({
       eventKey,
       to: VERO_ADMIN_EMAIL,
@@ -190,13 +199,16 @@ export async function POST(req: NextRequest) {
 
     const profileRow = (profile as ProfileRow | null) ?? null
     const builder = (builderRow as BuilderOnboardingRow | null) ?? null
-    if (!hasRole(profileRow, 'builder') || !hasStatus(profileRow, ['submitted', 'under_review']) || !hasStatus(builder, ['submitted', 'under_review'])) {
-      return forbidden('Builder submission email requires the authenticated builder to have a submitted onboarding record.')
+    console.log(`[account-lifecycle-email] ${eventKey} — role=${readStr(profileRow, 'role') ?? 'none'} profile_status=${readStr(profileRow, 'onboarding_status') ?? 'none'} builder_row=${builder ? 'found' : 'not found'}`)
+    if (!hasRole(profileRow, 'builder')) {
+      console.warn(`[account-lifecycle-email] ${eventKey} — forbidden: user ${userId} role=${readStr(profileRow, 'role') ?? 'none'}`)
+      return forbidden('Builder submission email requires the authenticated user to have builder role.')
     }
 
     const email = readStr(builder, 'contact_email') ?? readStr(profileRow, 'email') ?? authData.user.email ?? undefined
     const builderName = readStr(builder, 'contact_name') ?? nameFromProfile(profileRow, email)
     const firm = firmFromProfile(builder ?? profileRow)
+    console.log(`[account-lifecycle-email] ${eventKey} — sending to ${VERO_ADMIN_EMAIL}`)
     const result = await sendVeroEmail({
       eventKey,
       to: VERO_ADMIN_EMAIL,
