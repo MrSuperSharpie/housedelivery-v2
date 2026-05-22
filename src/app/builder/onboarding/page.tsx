@@ -85,6 +85,18 @@ const BC_HOUSING_LICENCE_TYPES = [
   'Other / Not yet determined',
 ]
 
+function notifyAccountLifecycleEmail(eventKey: string) {
+  void fetch('/api/mail/account-lifecycle', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ eventKey }),
+  }).then(response => {
+    if (!response.ok) console.warn('[BuilderOnboarding] lifecycle email request failed:', response.status)
+  }).catch(error => {
+    console.warn('[BuilderOnboarding] lifecycle email request failed:', error)
+  })
+}
+
 // ─── Field components ─────────────────────────────────────────────────────────
 
 function Field({ label, children, hint, required, conditional }: {
@@ -601,6 +613,7 @@ export default function BuilderOnboardingPage() {
     // Update status in profiles table and localStorage
     await setBuilderOnboardingStatus('submitted', user.id, user.supabaseId)
     console.log('[BuilderOnboarding] setBuilderOnboardingStatus done')
+    notifyAccountLifecycleEmail('admin.builder_profile_submitted')
 
     await new Promise(r => setTimeout(r, 800))
     setIsSubmitting(false)

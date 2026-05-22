@@ -105,6 +105,18 @@ const PROFESSIONAL_TYPES = new Set([
 const GENERALIST_TYPES = new Set(['asct', 'ctech', 'qa_field_verifier'])
 const ACCOUNT_EXISTS_MESSAGE = 'This email already has an account. Please sign in to continue your inspector application.'
 
+function notifyAccountLifecycleEmail(eventKey: string) {
+  void fetch('/api/mail/account-lifecycle', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ eventKey }),
+  }).then(response => {
+    if (!response.ok) console.warn('[InspectorSignup] lifecycle email request failed:', response.status)
+  }).catch(error => {
+    console.warn('[InspectorSignup] lifecycle email request failed:', error)
+  })
+}
+
 function isAlreadyRegisteredError(message?: string) {
   return Boolean(message?.toLowerCase().includes('already registered'))
 }
@@ -808,15 +820,8 @@ export default function InspectorSignup() {
     await setInspectorOnboardingStatus('submitted', userId, userId)
     setIsSubmitting(false)
 
-    // Confirmation email — fire-and-forget, never blocks navigation
-    void fetch('/api/mail/application-received', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        to: form.email,
-        inspectorName: `${form.firstName} ${form.lastName}`.trim(),
-      }),
-    })
+    // Admin notification — fire-and-forget, never blocks navigation.
+    notifyAccountLifecycleEmail('admin.inspector_application_submitted')
 
     try { sessionStorage.setItem('vero_just_submitted', '1') } catch {}
     router.replace('/inspector/onboarding?submitted=1')

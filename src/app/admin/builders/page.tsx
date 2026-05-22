@@ -14,6 +14,22 @@ import { useAuth } from '@/lib/auth'
 const supabase = createClient()
 const BUILDER_DOCUMENT_BUCKET = 'inspection-evidence'
 
+function notifyAccountLifecycleEmail(input: {
+  eventKey: 'builder.approved' | 'builder.needs_info'
+  userId: string
+  reviewerNote?: string
+}) {
+  void fetch('/api/mail/account-lifecycle', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  }).then(response => {
+    if (!response.ok) console.warn('[admin/builders] lifecycle email request failed:', response.status)
+  }).catch(error => {
+    console.warn('[admin/builders] lifecycle email request failed:', error)
+  })
+}
+
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
 type BuilderStatus = 'submitted' | 'under_review' | 'needs_info' | 'approved' | 'rejected' | 'suspended'
@@ -143,6 +159,13 @@ function BuilderRow({ record: initial, isLive }: { record: BuilderRecord; isLive
         .eq('id', record.supabaseId)
       if (profileError) {
         console.error('Profile sync failed:', profileError)
+      }
+      if (status === 'approved' || status === 'needs_info') {
+        notifyAccountLifecycleEmail({
+          eventKey: status === 'approved' ? 'builder.approved' : 'builder.needs_info',
+          userId: record.supabaseId,
+          reviewerNote: note || undefined,
+        })
       }
     } else {
       await new Promise(r => setTimeout(r, 600))

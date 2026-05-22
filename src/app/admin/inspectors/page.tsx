@@ -58,6 +58,22 @@ function readStr(obj: ProfileHint | undefined, key: string): string | undefined 
   return typeof v === 'string' && v.trim() ? v.trim() : undefined
 }
 
+function notifyAccountLifecycleEmail(input: {
+  eventKey: 'inspector.approved' | 'inspector.needs_info'
+  userId: string
+  reviewerNote?: string
+}) {
+  void fetch('/api/mail/account-lifecycle', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  }).then(response => {
+    if (!response.ok) console.warn('[admin/inspectors] lifecycle email request failed:', response.status)
+  }).catch(error => {
+    console.warn('[admin/inspectors] lifecycle email request failed:', error)
+  })
+}
+
 function getRequirementAliases(lane: InspectorRoleLane, requirementType: InspectorCredentialType): InspectorCredentialType[] {
   return REQUIREMENT_TYPE_ALIASES[lane]?.[requirementType] ?? []
 }
@@ -318,22 +334,12 @@ export default function AdminInspectorsPage() {
         return
       }
 
-      if (previousStatus !== status && (status === 'approved' || status === 'needs_info' || status === 'rejected')) {
-        const profileHint = profileHintsByUser[rowUserId]
-        const email = readStr(profileHint, 'email') ?? readStr(profileHint, 'contact_email')
-        const inspectorName = buildInspectorIdentity(rowUserId, existing?.licenseNumber, credentialsByUser[rowUserId] ?? [], profileHint).displayName
-        if (email) {
-          void fetch('/api/mail/application-status', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              to: email,
-              inspectorName,
-              status,
-              reviewerNote,
-            }),
-          })
-        }
+      if (previousStatus !== status && (status === 'approved' || status === 'needs_info')) {
+        notifyAccountLifecycleEmail({
+          eventKey: status === 'approved' ? 'inspector.approved' : 'inspector.needs_info',
+          userId: rowUserId,
+          reviewerNote,
+        })
       }
       setNeedsInfoFeedback(prev => ({ ...prev, [rowUserId]: { tone: 'success', message: 'Review state saved, credential authority synced, and profile status synced.' } }))
       await reloadInspectorReview()
@@ -384,32 +390,17 @@ export default function AdminInspectorsPage() {
         return
       }
 
-      const profileHint = profileHintsByUser[rowUserId]
-      const email = readStr(profileHint, 'email') ?? readStr(profileHint, 'contact_email')
-      const inspectorName = buildInspectorIdentity(rowUserId, existing?.licenseNumber, credentialsByUser[rowUserId] ?? [], profileHint).displayName
-      let notificationSent = false
-
-      if (email) {
-        const response = await fetch('/api/mail/application-status', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            to: email,
-            inspectorName,
-            status: 'needs_info',
-            reviewerNote: note || undefined,
-          }),
-        })
-        notificationSent = response.ok
-      }
+      notifyAccountLifecycleEmail({
+        eventKey: 'inspector.needs_info',
+        userId: rowUserId,
+        reviewerNote: note || undefined,
+      })
 
       setNeedsInfoFeedback(prev => ({
         ...prev,
         [rowUserId]: {
-          tone: notificationSent ? 'success' : 'warning',
-          message: notificationSent
-            ? 'Needs info request saved and notification sent.'
-            : 'Needs info request saved. No notification was sent because no inspector email is available or the mail service did not confirm delivery.',
+          tone: 'success',
+          message: 'Needs info request saved. Notification delivery will be attempted in the background.',
         },
       }))
       await reloadInspectorReview()
