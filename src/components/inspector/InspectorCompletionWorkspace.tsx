@@ -100,6 +100,7 @@ interface JobContext {
   builderId?: string
   builderName?: string
   status?: string
+  discipline?: string
 }
 
 interface WorkspaceItem extends CompletionChecklistItemDefinition {
@@ -487,6 +488,10 @@ const BUILDER_STAGE_TO_COMPLETION_STAGE: Record<number, number> = {
   5: 15,
 }
 
+const DISCIPLINE_STAGE_OVERRIDE: Partial<Record<string, Partial<Record<number, number>>>> = {
+  plumbing: { 3: 9 },
+}
+
 const BUILDER_STAGE_LABELS: Record<number, string> = {
   1: 'Stage 1 — Site Survey & Excavation',
   2: 'Stage 2 — Foundation Pour',
@@ -498,10 +503,12 @@ const BUILDER_STAGE_LABELS: Record<number, string> = {
 function resolveRequestedChecklistStage(
   stages: CompletionChecklistStageDefinition[],
   requestedBuilderStage?: number,
+  discipline?: string,
 ): number {
   if (typeof requestedBuilderStage !== 'number' || !Number.isFinite(requestedBuilderStage)) return 1
   const builderStageNumber = Math.trunc(requestedBuilderStage)
-  const completionStageNumber = BUILDER_STAGE_TO_COMPLETION_STAGE[builderStageNumber]
+  const override = discipline ? DISCIPLINE_STAGE_OVERRIDE[discipline]?.[builderStageNumber] : undefined
+  const completionStageNumber = override ?? BUILDER_STAGE_TO_COMPLETION_STAGE[builderStageNumber]
   if (!completionStageNumber) return 1
   return getStageDefinitionByNumber(stages, completionStageNumber)?.stage_number ?? 1
 }
@@ -1533,6 +1540,7 @@ export function InspectorCompletionWorkspace() {
         builderId: (jobData.builder_id as string) ?? undefined,
         builderName: (jobData.builder_name as string) ?? undefined,
         status: (jobData.status as string) ?? undefined,
+        discipline: (jobData.required_discipline as string) ?? undefined,
       }
       setJob(jobRow)
       try {
@@ -1591,7 +1599,7 @@ export function InspectorCompletionWorkspace() {
         region: jobRow.region,
       })
       const builderStageNumber = resolveBuilderStageNumber(jobRow.stage)
-      const requestedChecklistStage = resolveRequestedChecklistStage(definitionSet.stages, jobRow.stage)
+      const requestedChecklistStage = resolveRequestedChecklistStage(definitionSet.stages, jobRow.stage, jobRow.discipline)
       setAssignmentScope({
         builderStageNumber,
         internalStageNumber: requestedChecklistStage,

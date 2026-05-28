@@ -583,7 +583,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   // ─── addJob ───────────────────────────────────────────────────────────────
   const addJob = useCallback(async (input: NewJobInput): Promise<StoreActionResult<string>> => {
-    const permitFamily = input.discipline === 'electrical' ? 'electrical' : 'building'
+    const permitFamily = input.discipline === 'electrical' ? 'electrical'
+      : input.discipline === 'plumbing' ? 'plumbing'
+      : 'building'
     const provisionalId = 'job-' + uid()
     const pricing = calculatePricingBreakdown({
       dispatchTier: input.tier,
@@ -810,7 +812,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       const governance = validateClaimGovernance({
         jobStatus: job.status,
         jobValidationStatus: job.status === 'live' ? 'validated' : 'blocked',
-        permitFamily: job.requiredDiscipline === 'electrical' ? 'electrical' : 'building',
+        permitFamily: job.requiredDiscipline === 'electrical' ? 'electrical'
+          : job.requiredDiscipline === 'plumbing' ? 'plumbing'
+          : 'building',
         requiredDiscipline: job.requiredDiscipline,
         region: job.region,
         inspectorDisciplines,
