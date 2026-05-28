@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { requireAdminApi } from '@/lib/adminApiGuard'
 
 interface AdminStandbyActivationRequestBody {
   assignmentId: string
@@ -7,6 +8,9 @@ interface AdminStandbyActivationRequestBody {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdminApi()
+  if (!auth.authorized) return auth.response
+
   let body: AdminStandbyActivationRequestBody
   try {
     body = await req.json() as AdminStandbyActivationRequestBody

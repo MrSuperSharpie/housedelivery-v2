@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { requireAdminApi } from '@/lib/adminApiGuard'
 
 interface CreateItemBody {
   templateId: string
@@ -25,10 +26,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: 'templateId, label, and requirementText are required.' }, { status: 400 })
   }
 
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ ok: false, error: 'Not authenticated.' }, { status: 401 })
+  const auth = await requireAdminApi()
+  if (!auth.authorized) return auth.response
 
+  const supabase = await createClient()
   const { data, error } = await supabase
     .from('stage_checklist_items')
     .insert({

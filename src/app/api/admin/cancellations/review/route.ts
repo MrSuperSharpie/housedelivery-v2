@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { requireAdminApi } from '@/lib/adminApiGuard'
 
 interface AdminCancellationReviewRequestBody {
   cancellationRequestId: string
@@ -11,6 +12,9 @@ interface AdminCancellationReviewRequestBody {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdminApi()
+  if (!auth.authorized) return auth.response
+
   let body: AdminCancellationReviewRequestBody
   try {
     body = await req.json() as AdminCancellationReviewRequestBody

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import type { ReliabilityEnforcementMode } from '@/lib/types'
+import { requireAdminApi } from '@/lib/adminApiGuard'
 
 interface AdminPolicyUpdateRequestBody {
   policyVersionId: string
@@ -10,6 +11,9 @@ interface AdminPolicyUpdateRequestBody {
 }
 
 export async function PUT(req: NextRequest) {
+  const auth = await requireAdminApi()
+  if (!auth.authorized) return auth.response
+
   let body: AdminPolicyUpdateRequestBody
   try {
     body = await req.json() as AdminPolicyUpdateRequestBody

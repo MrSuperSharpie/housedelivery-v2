@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { requireAdminApi } from '@/lib/adminApiGuard'
 
 interface AdminPayoutReviewRequestBody {
   assignmentId: string
@@ -13,6 +14,9 @@ interface AdminPayoutReviewRequestBody {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdminApi()
+  if (!auth.authorized) return auth.response
+
   let body: AdminPayoutReviewRequestBody
   try {
     body = await req.json() as AdminPayoutReviewRequestBody

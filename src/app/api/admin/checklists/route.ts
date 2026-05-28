@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { requireAdminApi } from '@/lib/adminApiGuard'
 
 export async function GET(req: NextRequest) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ ok: false, error: 'Not authenticated.' }, { status: 401 })
+  const auth = await requireAdminApi()
+  if (!auth.authorized) return auth.response
 
+  const supabase = await createClient()
   const { searchParams } = new URL(req.url)
   const jurisdictionId = searchParams.get('jurisdictionId')
   const stageId = searchParams.get('stageId')
