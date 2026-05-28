@@ -32,6 +32,7 @@ import {
   FieldMediaUploader,
   type FieldMediaCapturePayload,
 } from '@/components/inspector/FieldMediaUploader'
+import { StageCodeReferences } from '@/components/inspector/StageCodeReferences'
 import { Navbar } from '@/components/shared/Navbar'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/lib/auth'
@@ -918,6 +919,8 @@ export function InspectorCompletionWorkspace() {
   const { user } = useAuth()
   const store = useStore()
   const assignmentId = params.assignmentId as string
+
+  const PILOT_S9_CODE_REFS = true
 
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -4140,6 +4143,9 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                   </div>
                                 )}
                               </div>
+                              {PILOT_S9_CODE_REFS && (
+                                <StageCodeReferences refs={item.code_references} />
+                              )}
                             </div>
                           </div>
 
@@ -4526,6 +4532,9 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                 </div>
                               )}
                             </div>
+                            {PILOT_S9_CODE_REFS && (
+                              <StageCodeReferences refs={item.code_references} />
+                            )}
                           </div>
                         </div>
 

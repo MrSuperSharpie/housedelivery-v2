@@ -54,6 +54,13 @@ export interface CompletionChecklistItemDefinition {
   inspection_status: CompletionInspectionStatus
   ahj_notes: string
   dependencies: string[]
+  code_references?: Array<{
+    label: string
+    legalReference: string
+    sourceTitle?: string | null
+    sourceUrl?: string | null
+    isVbblOnly?: boolean
+  }>
 }
 
 export interface CompletionChecklistStageDefinition {
@@ -93,6 +100,13 @@ interface StructuredStageItemDefinition {
   documentUploadRequired?: boolean
   ahjNotes?: string
   dependencies?: string[]
+  codeReferences?: Array<{
+    label: string
+    legalReference: string
+    sourceTitle?: string | null
+    sourceUrl?: string | null
+    isVbblOnly?: boolean
+  }>
 }
 
 export const COMPLETION_STAGE_PHASES: CompletionStagePhaseDefinition[] = [
@@ -1426,6 +1440,26 @@ const STRUCTURAL_STAGE_9_CONTAINERS: StructuredStageItemDefinition[] = [
     documentUploadRequired: true,
     ahjNotes: 'Capture local plumbing rough-in, venting, or drainage-connection requirements that must be satisfied before enclosure.',
     dependencies: ['S08-03'],
+    codeReferences: [
+      {
+        label: 'Plumbing systems match approved permit scope',
+        legalReference: 'BC Plumbing Code 2024 / BCBC Schedule B, Plumbing 4.3',
+        sourceTitle: 'BC Plumbing Code 2024',
+        sourceUrl: 'https://www.bccodes.ca/bc-plumbing-code.html',
+      },
+      {
+        label: 'Roof drainage systems',
+        legalReference: 'BCBC 2024 Schedule B, Plumbing 4.1',
+        sourceTitle: 'BC Building Code 2024 — Schedule B Letters of Assurance',
+        sourceUrl: 'https://www.bccodes.ca/bc-building-code.html',
+      },
+      {
+        label: 'Site and foundation drainage systems',
+        legalReference: 'BCBC 2024 Schedule B, Plumbing 4.2',
+        sourceTitle: 'BC Building Code 2024 — Schedule B Letters of Assurance',
+        sourceUrl: 'https://www.bccodes.ca/bc-building-code.html',
+      },
+    ],
   },
   {
     code: 'S09-02',
@@ -1476,6 +1510,45 @@ const STRUCTURAL_STAGE_9_CONTAINERS: StructuredStageItemDefinition[] = [
     documentUploadRequired: true,
     ahjNotes: 'Capture local rough-plumbing inspection, testing, or penetration-protection requirements that govern whether the framing package may be enclosed.',
     dependencies: ['S09-01'],
+    codeReferences: [
+      {
+        label: 'Fire separation continuity at plumbing penetrations',
+        legalReference: 'BCBC 2024 Schedule B, Plumbing 4.4',
+        sourceTitle: 'BC Building Code 2024 — Schedule B Letters of Assurance',
+        sourceUrl: 'https://www.bccodes.ca/bc-building-code.html',
+      },
+      {
+        label: 'Functional testing of plumbing fire emergency systems',
+        legalReference: 'BCBC 2024 Schedule B, Plumbing 4.5',
+        sourceTitle: 'BC Building Code 2024 — Schedule B Letters of Assurance',
+        sourceUrl: 'https://www.bccodes.ca/bc-building-code.html',
+      },
+      {
+        label: 'Plumbing systems maintenance manuals',
+        legalReference: 'BCBC 2024 Schedule B, Plumbing 4.6',
+        sourceTitle: 'BC Building Code 2024 — Schedule B Letters of Assurance',
+        sourceUrl: 'https://www.bccodes.ca/bc-building-code.html',
+      },
+      {
+        label: 'Structural capacity and seismic restraint of plumbing components',
+        legalReference: 'BCBC 2024 Schedule B, Plumbing 4.7',
+        sourceTitle: 'BC Building Code 2024 — Schedule B Letters of Assurance',
+        sourceUrl: 'https://www.bccodes.ca/bc-building-code.html',
+      },
+      {
+        label: 'Plumbing shop drawings',
+        legalReference: 'BCBC 2024 Schedule B, Plumbing 4.8',
+        sourceTitle: 'BC Building Code 2024 — Schedule B Letters of Assurance',
+        sourceUrl: 'https://www.bccodes.ca/bc-building-code.html',
+      },
+      {
+        label: 'Sewer/storm connection placard data',
+        legalReference: 'City of Vancouver sewer connection placard inspection guidance',
+        sourceTitle: 'City of Vancouver — Plumbing and Drainage Permits',
+        sourceUrl: 'https://vancouver.ca/home-property-development/plumbing-drainage-permits.aspx',
+        isVbblOnly: true,
+      },
+    ],
   },
 ]
 
@@ -2759,6 +2832,9 @@ export function buildCompletionChecklist(context: CompletionProjectContext): {
         dependencies: isStructuredItemDefinition(itemDefinition) && itemDefinition.dependencies
           ? itemDefinition.dependencies
           : buildDependencies(stage, index),
+        code_references: isStructuredItemDefinition(itemDefinition)
+          ? itemDefinition.codeReferences
+          : undefined,
       } satisfies CompletionChecklistItemDefinition
     }),
   }))
