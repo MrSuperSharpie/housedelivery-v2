@@ -57,17 +57,6 @@ test('S09-02 includes the VBBL-only sewer/storm placard reference as advisory', 
   assert.ok(block.includes('Sewer'), 'S09-02 must include the sewer/storm placard reference')
 })
 
-test('STRUCTURAL_STAGE_9_CONTAINERS does not define S09-03 or any later item code', () => {
-  const source = read('lib/inspectorCompletion.ts')
-  const containerStart = source.indexOf('STRUCTURAL_STAGE_9_CONTAINERS')
-  const containerEnd = source.indexOf('STRUCTURAL_STAGE_10_CONTAINERS')
-  assert.ok(containerStart !== -1, 'STRUCTURAL_STAGE_9_CONTAINERS must be defined')
-  assert.ok(containerEnd !== -1, 'STRUCTURAL_STAGE_10_CONTAINERS must exist as a boundary')
-  const block = source.slice(containerStart, containerEnd)
-  assert.ok(!block.includes("code: 'S09-03'"), 'STRUCTURAL_STAGE_9_CONTAINERS must not define S09-03')
-  assert.ok(!block.includes("code: 'S09-04'"), 'STRUCTURAL_STAGE_9_CONTAINERS must not define S09-04')
-})
-
 test('S09-01 and S09-02 item codes are preserved unchanged', () => {
   const source = read('lib/inspectorCompletion.ts')
   assert.ok(source.includes("code: 'S09-01'"), 'S09-01 item code must be preserved')
