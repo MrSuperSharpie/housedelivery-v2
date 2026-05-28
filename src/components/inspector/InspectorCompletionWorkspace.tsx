@@ -965,6 +965,7 @@ export function InspectorCompletionWorkspace() {
   const [expandedChecklistNotes, setExpandedChecklistNotes] = useState<Record<string, boolean>>({})
   const [expandedGuidancePanels, setExpandedGuidancePanels] = useState<Record<string, boolean>>({})
   const [expandedStopConditions, setExpandedStopConditions] = useState<Record<string, boolean>>({})
+  const [expandedFailConditions, setExpandedFailConditions] = useState<Record<string, boolean>>({})
   const [expandedContainerNotes, setExpandedContainerNotes] = useState<Record<string, boolean>>({})
   const [expandedJurisdictionNotes, setExpandedJurisdictionNotes] = useState<Record<string, boolean>>({})
   const [stageSigning, setStageSigning] = useState(false)
@@ -3696,8 +3697,10 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                 const checklistItems = item.field_checklist.length > 0 ? item.field_checklist : item.what_to_check
                 const guidancePanelOpen = expandedGuidancePanels[item.item_code] ?? false
                 const stopConditionsOpen = expandedStopConditions[item.item_code] ?? false
+                const failConditionsOpen = expandedFailConditions[item.item_code] ?? false
                 const containerNotesOpen = expandedContainerNotes[item.item_code] ?? Boolean(item.response_note.trim())
                 const jurisdictionNotesOpen = expandedJurisdictionNotes[item.item_code] ?? false
+                const isS09Item = item.item_code.startsWith('S09-')
 
                 if (usesFieldView) {
                   return (
@@ -3728,6 +3731,16 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                           <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400">
                             {item.documents.length} file{item.documents.length === 1 ? '' : 's'}
                           </span>
+                          {isS09Item && item.responsible_party && (
+                            <span className="rounded-full border border-indigo-400/20 bg-indigo-400/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-indigo-300">
+                              {item.responsible_party}
+                            </span>
+                          )}
+                          {isS09Item && item.permit_type && (
+                            <span className="rounded-full border border-violet-400/20 bg-violet-400/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-violet-300">
+                              {item.permit_type}
+                            </span>
+                          )}
                         </div>
 
                         <div className="min-w-0">
@@ -3750,7 +3763,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                 )
                               )}
                             </div>
-                            <p className="mt-2 text-[17px] leading-7 text-zinc-300">{shortPurpose}</p>
+                            <p className="mt-2 text-[17px] leading-7 text-zinc-300">{isS09Item ? fieldViewDetails : shortPurpose}</p>
                           </div>
                         </div>
                       </div>
@@ -3758,6 +3771,20 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       {blockedBy.length > 0 && (
                         <div className="mt-3 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100/90">
                           Resolve {blockedBy.join(', ')} before this item can be passed.
+                        </div>
+                      )}
+
+                      {isS09Item && item.required_evidence.length > 0 && (
+                        <div className="mt-4 rounded-2xl border border-orange-500/20 bg-orange-500/5 px-4 py-3">
+                          <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300/80">Evidence Required</div>
+                          <ul className="mt-1.5 space-y-1">
+                            {item.required_evidence.map(ev => (
+                              <li key={ev} className="flex items-start gap-2 text-[11px] leading-5 text-zinc-400">
+                                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-orange-400/60" />
+                                {ev}
+                              </li>
+                            ))}
+                          </ul>
                         </div>
                       )}
 
@@ -3915,7 +3942,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         </div>
                       </div>
 
-                      {stopItems.length > 0 && (
+                      {(isS09Item ? (item.stop_if ?? []) : stopItems).length > 0 && (
                         <div className="mt-4 rounded-[1.5rem] border border-red-200 border-l-4 border-l-red-300 bg-red-50 p-4 text-red-700">
                           <button
                             type="button"
@@ -3932,9 +3959,35 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                           {stopConditionsOpen && (
                             <div className="mt-3">
                               <GuidanceList
-                                items={stopItems}
+                                items={isS09Item ? (item.stop_if ?? []) : stopItems}
                                 bulletClassName="bg-red-300"
                                 textClassName="text-sm text-red-950"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {isS09Item && item.fail_when.length > 0 && (
+                        <div className="mt-3 rounded-[1.5rem] border border-amber-800/20 border-l-4 border-l-amber-700/30 bg-amber-950/20 p-4">
+                          <button
+                            type="button"
+                            onClick={() => toggleExpandedRecord(setExpandedFailConditions, item.item_code)}
+                            className="flex w-full items-center justify-between gap-3 text-left"
+                          >
+                            <div className="flex items-center gap-3">
+                              <AlertTriangle className="h-5 w-5 shrink-0 text-amber-500" />
+                              <div className="text-sm font-black uppercase tracking-[0.14em] text-amber-400">Fail Conditions</div>
+                            </div>
+                            <ChevronRight className={`h-5 w-5 text-amber-500 transition-transform ${failConditionsOpen ? 'rotate-90' : ''}`} />
+                          </button>
+
+                          {failConditionsOpen && (
+                            <div className="mt-3">
+                              <GuidanceList
+                                items={item.fail_when}
+                                bulletClassName="bg-amber-500"
+                                textClassName="text-sm text-amber-200"
                               />
                             </div>
                           )}
@@ -4037,7 +4090,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                               </div>
 
                               <div className={`rounded-3xl border border-emerald-500/15 bg-emerald-500/5 p-4 ${FLOATING_PANEL_CLASS}`}>
-                                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-200/80">Pass / Pending</div>
+                                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-200/80">{isS09Item ? 'Pass / Fail / Pending' : 'Pass / Pending'}</div>
                                 <div className="mt-3">
                                   <div className="text-xs font-black uppercase tracking-[0.14em] text-emerald-300">Pass When</div>
                                   <div className="mt-2">
@@ -4048,6 +4101,18 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                     />
                                   </div>
                                 </div>
+                                {isS09Item && item.fail_when.length > 0 && (
+                                  <div className="mt-4">
+                                    <div className="text-xs font-black uppercase tracking-[0.14em] text-rose-300">Fail When</div>
+                                    <div className="mt-2">
+                                      <GuidanceList
+                                        items={item.fail_when}
+                                        bulletClassName="bg-rose-300"
+                                        textClassName={EMPHASIZED_BODY_TEXT_CLASS}
+                                      />
+                                    </div>
+                                  </div>
+                                )}
                                 <div className="mt-4">
                                   <div className="text-xs font-black uppercase tracking-[0.14em] text-amber-300">Pending When</div>
                                   <div className="mt-2">
@@ -4104,7 +4169,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                   className="flex w-full items-center justify-between gap-3 text-left"
                                 >
                                   <div>
-                                    <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Container Notes</div>
+                                    <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">{isS09Item ? 'Inspection Notes / Deficiencies' : 'Container Notes'}</div>
                                     <div className="mt-1 text-xs text-zinc-400">{item.response_note.trim() ? 'Saved note present.' : 'Collapsed until notes are needed.'}</div>
                                   </div>
                                   <ChevronRight className={`h-5 w-5 text-zinc-400 transition-transform ${containerNotesOpen ? 'rotate-90' : ''}`} />
@@ -4129,6 +4194,10 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                 )}
                               </div>
 
+                              {isS09Item && PILOT_S9_CODE_REFS && (
+                                <StageCodeReferences refs={item.code_references} />
+                              )}
+
                               <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                                 <button
                                   type="button"
@@ -4151,7 +4220,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                   </div>
                                 )}
                               </div>
-                              {PILOT_S9_CODE_REFS && (
+                              {!isS09Item && PILOT_S9_CODE_REFS && (
                                 <StageCodeReferences refs={item.code_references} />
                               )}
                             </div>
