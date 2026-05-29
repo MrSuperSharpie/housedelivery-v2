@@ -156,8 +156,8 @@ test('S06 includes stair rough opening and guard blocking language where applica
     'S06 must include guard language'
   )
   assert.ok(
-    block.includes('fall-protection') || block.includes('fall protection'),
-    'S06 must include fall protection language'
+    block.includes('guard, handrail, and opening-protection') || block.includes('guard, handrail'),
+    'S06 must include guard, handrail, and opening-protection language instead of fall-protection language'
   )
 })
 
@@ -197,6 +197,125 @@ test('S06 includes professional field review language where applicable', () => {
     block.includes('Part 4') || block.includes('engineering report'),
     'S06 must include Part 4 engineering or engineering report language'
   )
+})
+
+// ===========================================================================
+// S06 codeReferences — every item includes codeReferences with at least one legalReference
+// ===========================================================================
+
+test('every S06 item includes codeReferences with at least one legalReference', () => {
+  const source = read(COMPLETION)
+  const block = getS06Block(source)
+  const codes = ['S06-01', 'S06-02', 'S06-03']
+  for (let i = 0; i < codes.length; i++) {
+    const itemStart = block.indexOf(`code: '${codes[i]}'`)
+    const itemEnd = i + 1 < codes.length
+      ? block.indexOf(`code: '${codes[i + 1]}'`)
+      : block.length
+    const itemBlock = block.slice(itemStart, itemEnd)
+    assert.ok(itemBlock.includes('codeReferences'), `${codes[i]} must include codeReferences`)
+    assert.ok(itemBlock.includes('legalReference'), `${codes[i]} codeReferences must include at least one legalReference`)
+  }
+})
+
+test('S06-01 codeReferences includes structural framing, approved drawings, and Letters of Assurance language', () => {
+  const source = read(COMPLETION)
+  const s06_01Start = source.indexOf("code: 'S06-01'")
+  const s06_02Start = source.indexOf("code: 'S06-02'")
+  const block = source.slice(s06_01Start, s06_02Start)
+  assert.ok(
+    block.includes('structural framing') || block.includes('Approved structural drawings'),
+    'S06-01 codeReferences must include structural framing or approved drawings reference language'
+  )
+  assert.ok(
+    block.includes('engineered') || block.includes('truss'),
+    'S06-01 codeReferences must include engineered component or truss reference language'
+  )
+  assert.ok(
+    block.includes('Letters of Assurance') || block.includes('Schedule B'),
+    'S06-01 codeReferences must include Letters of Assurance or Schedule B reference language'
+  )
+})
+
+test('S06-02 codeReferences includes lateral, seismic, and structural schedule reference language', () => {
+  const source = read(COMPLETION)
+  const s06_02Start = source.indexOf("code: 'S06-02'")
+  const s06_03Start = source.indexOf("code: 'S06-03'")
+  const block = source.slice(s06_02Start, s06_03Start)
+  assert.ok(
+    block.includes('lateral') || block.includes('seismic'),
+    'S06-02 codeReferences must include lateral or seismic reference language'
+  )
+  assert.ok(
+    block.includes('shear wall schedule') || block.includes('braced wall panel') || block.includes('hold-down schedule') || block.includes('structural notes'),
+    'S06-02 codeReferences must include structural schedule or braced wall panel reference language'
+  )
+})
+
+test('S06-03 codeReferences includes stairs, guards, fire separation framing, and Letters of Assurance language', () => {
+  const source = read(COMPLETION)
+  const s06_03Start = source.indexOf("code: 'S06-03'")
+  const s07Start = source.indexOf('STRUCTURAL_STAGE_7_CONTAINERS')
+  const block = source.slice(s06_03Start, s07Start)
+  assert.ok(
+    block.includes('stairs') || block.includes('guards') || block.includes('handrails'),
+    'S06-03 codeReferences must include stairs, guards, or handrails reference language'
+  )
+  assert.ok(
+    block.includes('fire separation framing') || block.includes('rated assemblies') || block.includes('rated assembly'),
+    'S06-03 codeReferences must include fire separation framing or rated assemblies reference language'
+  )
+  assert.ok(
+    block.includes('Letters of Assurance') || block.includes('Schedule B'),
+    'S06-03 codeReferences must include Letters of Assurance or Schedule B reference language'
+  )
+})
+
+test('S06 does not contain fall-protection blocking or fall-protection backing language', () => {
+  const source = read(COMPLETION)
+  const block = getS06Block(source)
+  assert.ok(
+    !block.includes('fall-protection blocking'),
+    'S06 must not contain "fall-protection blocking" — use guard/handrail/opening-protection language'
+  )
+  assert.ok(
+    !block.includes('fall-protection backing'),
+    'S06 must not contain "fall-protection backing" — use guard/handrail/opening-protection language'
+  )
+})
+
+test('S06 contains guard, handrail, and opening-protection language', () => {
+  const source = read(COMPLETION)
+  const block = getS06Block(source)
+  assert.ok(
+    block.includes('guard, handrail, and opening-protection') || block.includes('guard, handrail'),
+    'S06 must contain guard, handrail, and opening-protection language'
+  )
+})
+
+test('S06 does not overstate Part 4 as the only trigger for engineering documentation', () => {
+  const source = read(COMPLETION)
+  const block = getS06Block(source)
+  assert.ok(
+    !block.includes('Part 4 engineering documentation is required when the project exceeds Part 9 limits'),
+    'S06 must not overstate Part 4 as the only engineering documentation trigger'
+  )
+  assert.ok(
+    !block.includes('If within Part 9 limits, mark as Pass or N/A'),
+    'S06 must not direct inspectors to make independent Part 9 vs Part 4 scope determinations'
+  )
+  assert.ok(
+    block.includes('AHJ conditions') && block.includes('approved drawings'),
+    'S06 must reference broader engineering documentation triggers including AHJ conditions and approved drawings'
+  )
+})
+
+test('S06 dependency chain is preserved S05-04 → S06-01 → S06-02 → S06-03', () => {
+  const source = read(COMPLETION)
+  const block = getS06Block(source)
+  assert.ok(block.includes("dependencies: ['S05-04']"), 'S06-01 must depend on S05-04')
+  assert.ok(block.includes("dependencies: ['S06-01']"), 'S06-02 must depend on S06-01')
+  assert.ok(block.includes("dependencies: ['S06-02']"), 'S06-03 must depend on S06-02')
 })
 
 // ===========================================================================
@@ -335,6 +454,153 @@ test('S07-04 includes envelope field review and assurance language', () => {
   assert.ok(
     block.includes('manufacturer') || block.includes('Manufacturer'),
     'S07-04 must include manufacturer observation language'
+  )
+})
+
+// ===========================================================================
+// S07 codeReferences — every item includes codeReferences with at least one legalReference
+// ===========================================================================
+
+test('every S07 item includes codeReferences with at least one legalReference', () => {
+  const source = read(COMPLETION)
+  const block = getS07Block(source)
+  const codes = ['S07-01', 'S07-02', 'S07-03', 'S07-04']
+  for (let i = 0; i < codes.length; i++) {
+    const itemStart = block.indexOf(`code: '${codes[i]}'`)
+    const itemEnd = i + 1 < codes.length
+      ? block.indexOf(`code: '${codes[i + 1]}'`)
+      : block.length
+    const itemBlock = block.slice(itemStart, itemEnd)
+    assert.ok(itemBlock.includes('codeReferences'), `${codes[i]} must include codeReferences`)
+    assert.ok(itemBlock.includes('legalReference'), `${codes[i]} codeReferences must include at least one legalReference`)
+  }
+})
+
+test('S07-01 codeReferences includes envelope, WRB, moisture control, and approved drawings language', () => {
+  const source = read(COMPLETION)
+  const s07_01Start = source.indexOf("code: 'S07-01'")
+  const s07_02Start = source.indexOf("code: 'S07-02'")
+  const block = source.slice(s07_01Start, s07_02Start)
+  assert.ok(
+    block.includes('building envelope') || block.includes('weather barrier') || block.includes('moisture control'),
+    'S07-01 codeReferences must include building envelope, weather barrier, or moisture control reference language'
+  )
+  assert.ok(
+    block.includes('WRB') || block.includes('weather-resistive barrier') || block.includes('rainscreen'),
+    'S07-01 codeReferences must include WRB, weather-resistive barrier, or rainscreen reference language'
+  )
+  assert.ok(
+    block.includes('Approved') || block.includes('approved permit drawings') || block.includes('manufacturer'),
+    'S07-01 codeReferences must include approved drawings or manufacturer reference language'
+  )
+})
+
+test('S07-02 codeReferences includes openings, flashings, penetrations, cladding, and approved details language', () => {
+  const source = read(COMPLETION)
+  const s07_02Start = source.indexOf("code: 'S07-02'")
+  const s07_03Start = source.indexOf("code: 'S07-03'")
+  const block = source.slice(s07_02Start, s07_03Start)
+  assert.ok(
+    block.includes('openings') || block.includes('flashings') || block.includes('penetrations'),
+    'S07-02 codeReferences must include openings, flashings, or penetrations reference language'
+  )
+  assert.ok(
+    block.includes('cladding') || block.includes('Cladding'),
+    'S07-02 codeReferences must include cladding reference language'
+  )
+  assert.ok(
+    block.includes('Approved') || block.includes('approved permit drawings') || block.includes('manufacturer installation'),
+    'S07-02 codeReferences must include approved details or manufacturer installation reference language'
+  )
+})
+
+test('S07-03 codeReferences includes roofing, roof drainage, ventilation, and manufacturer requirements language', () => {
+  const source = read(COMPLETION)
+  const s07_03Start = source.indexOf("code: 'S07-03'")
+  const s07_04Start = source.indexOf("code: 'S07-04'")
+  const block = source.slice(s07_03Start, s07_04Start)
+  assert.ok(
+    block.includes('roofing') || block.includes('roof membrane') || block.includes('roof drainage'),
+    'S07-03 codeReferences must include roofing, roof membrane, or roof drainage reference language'
+  )
+  assert.ok(
+    block.includes('ventilation') || block.includes('Ventilation'),
+    'S07-03 codeReferences must include ventilation reference language'
+  )
+  assert.ok(
+    block.includes('manufacturer') || block.includes('Manufacturer'),
+    'S07-03 codeReferences must include manufacturer requirements reference language'
+  )
+})
+
+test('S07-04 codeReferences includes Letters of Assurance, field review, and professional responsibility language', () => {
+  const source = read(COMPLETION)
+  const s07_04Start = source.indexOf("code: 'S07-04'")
+  const s08Start = source.indexOf('STRUCTURAL_STAGE_8_CONTAINERS')
+  const block = source.slice(s07_04Start, s08Start)
+  assert.ok(
+    block.includes('Letters of Assurance') || block.includes('Schedule B'),
+    'S07-04 codeReferences must include Letters of Assurance or Schedule B reference language'
+  )
+  assert.ok(
+    block.includes('field review') || block.includes('professional field review') || block.includes('professional responsibility'),
+    'S07-04 codeReferences must include field review or professional responsibility reference language'
+  )
+  assert.ok(
+    block.includes('Schedule C-B') || block.includes('Schedule B'),
+    'S07-04 codeReferences must include Schedule B or Schedule C-B reference language'
+  )
+})
+
+test('S07-04 uses conditional language for envelope field review and does not imply universal requirement', () => {
+  const source = read(COMPLETION)
+  const s07_04Start = source.indexOf("code: 'S07-04'")
+  const s08Start = source.indexOf('STRUCTURAL_STAGE_8_CONTAINERS')
+  const block = source.slice(s07_04Start, s08Start)
+  assert.ok(
+    block.includes('where triggered') || block.includes('where required') || block.includes('where applicable'),
+    'S07-04 must use conditional language — field review is not universally required'
+  )
+  assert.ok(
+    block.includes('confirmed not applicable') || block.includes('confirmed not required') || block.includes('not required'),
+    'S07-04 must include path for marking envelope field review as not applicable when not triggered'
+  )
+  assert.ok(
+    block.includes('Hold') || block.includes('qualified professional') || block.includes('AHJ') ,
+    'S07-04 must include Hold or AHJ confirmation path for unclear trigger cases'
+  )
+})
+
+test('S07 references Vancouver Building By-law and rain screen language as Vancouver-specific only', () => {
+  const source = read(COMPLETION)
+  const block = getS07Block(source)
+  if (block.includes('Vancouver Building By-law') || block.includes('rain screen cladding')) {
+    assert.ok(
+      block.includes('isVbblOnly: true') || block.includes('where Vancouver jurisdiction applies') || block.includes('where applicable'),
+      'S07 Vancouver Building By-law or rain screen cladding references must be Vancouver-specific or conditional'
+    )
+  }
+})
+
+test('S07 dependency chain is preserved S06-03 → S07-01 → S07-02 → S07-03 → S07-04', () => {
+  const source = read(COMPLETION)
+  const block = getS07Block(source)
+  assert.ok(block.includes("dependencies: ['S06-03']"), 'S07-01 must depend on S06-03')
+  assert.ok(block.includes("dependencies: ['S07-01']"), 'S07-02 must depend on S07-01')
+  assert.ok(block.includes("dependencies: ['S07-02']"), 'S07-03 must depend on S07-02')
+  assert.ok(block.includes("dependencies: ['S07-03']"), 'S07-04 must depend on S07-03')
+})
+
+test('S08-01 still depends on S07-04', () => {
+  const source = read(COMPLETION)
+  const s08_01Start = source.indexOf("code: 'S08-01'")
+  const s08_02Start = source.indexOf("code: 'S08-02'")
+  assert.ok(s08_01Start !== -1, 'S08-01 must be defined')
+  assert.ok(s08_02Start !== -1, 'S08-02 must be defined')
+  const block = source.slice(s08_01Start, s08_02Start)
+  assert.ok(
+    block.includes("dependencies: ['S07-04']"),
+    'S08-01 must depend on S07-04 after S07-04 was added as terminal S07 container'
   )
 })
 
@@ -568,6 +834,149 @@ test('S08-05 includes fire alarm devices, control panel, annunciator, and notifi
     block.includes('initiating device') || block.includes('initiating devices') || block.includes('Initiating device'),
     'S08-05 must include initiating device language'
   )
+})
+
+// ===========================================================================
+// S08 codeReferences — every item includes codeReferences with at least one legalReference
+// ===========================================================================
+
+test('every S08 item includes codeReferences with at least one legalReference', () => {
+  const source = read(COMPLETION)
+  const block = getS08Block(source)
+  const codes = ['S08-01', 'S08-02', 'S08-03', 'S08-04', 'S08-05']
+  for (let i = 0; i < codes.length; i++) {
+    const itemStart = block.indexOf(`code: '${codes[i]}'`)
+    const itemEnd = i + 1 < codes.length
+      ? block.indexOf(`code: '${codes[i + 1]}'`)
+      : block.length
+    const itemBlock = block.slice(itemStart, itemEnd)
+    assert.ok(itemBlock.includes('codeReferences'), `${codes[i]} must include codeReferences`)
+    assert.ok(itemBlock.includes('legalReference'), `${codes[i]} codeReferences must include at least one legalReference`)
+  }
+})
+
+test('S08-01 codeReferences includes broad fire separation, firestopping, and approved assembly language', () => {
+  const source = read(COMPLETION)
+  const s08_01Start = source.indexOf("code: 'S08-01'")
+  const s08_02Start = source.indexOf("code: 'S08-02'")
+  const block = source.slice(s08_01Start, s08_02Start)
+  assert.ok(
+    block.includes('fire separations') || block.includes('fire separation'),
+    'S08-01 codeReferences must include fire separation reference language'
+  )
+  assert.ok(
+    block.includes('firestopping') || block.includes('firestop'),
+    'S08-01 codeReferences must include firestopping reference language'
+  )
+  assert.ok(
+    block.includes('rated assembly') || block.includes('listed assemblies') || block.includes('approved drawings'),
+    'S08-01 codeReferences must include rated assembly, listed assemblies, or approved drawings reference language'
+  )
+})
+
+test('S08-02 label clearly distinguishes Smoke/CO alarms from the full fire alarm system in S08-05', () => {
+  const source = read(COMPLETION)
+  const s08_02Start = source.indexOf("code: 'S08-02'")
+  const s08_03Start = source.indexOf("code: 'S08-03'")
+  const block = source.slice(s08_02Start, s08_03Start)
+  assert.ok(
+    block.includes('Smoke/CO') || (block.includes('Smoke') && block.includes('/CO')),
+    'S08-02 label must clearly distinguish Smoke/CO alarms from the full fire alarm system in S08-05'
+  )
+})
+
+test('S08-02 codeReferences includes broad egress, smoke alarm, CO alarm, emergency lighting, and exit sign language', () => {
+  const source = read(COMPLETION)
+  const s08_02Start = source.indexOf("code: 'S08-02'")
+  const s08_03Start = source.indexOf("code: 'S08-03'")
+  const block = source.slice(s08_02Start, s08_03Start)
+  assert.ok(
+    block.includes('egress') || block.includes('Egress'),
+    'S08-02 codeReferences must include egress reference language'
+  )
+  assert.ok(
+    block.includes('smoke alarm') || block.includes('smoke alarms'),
+    'S08-02 codeReferences must include smoke alarm reference language'
+  )
+  assert.ok(
+    block.includes('carbon monoxide') || block.includes('CO alarm'),
+    'S08-02 codeReferences must include carbon monoxide alarm reference language'
+  )
+  assert.ok(
+    block.includes('emergency lighting') || block.includes('exit sign'),
+    'S08-02 codeReferences must include emergency lighting or exit sign reference language'
+  )
+})
+
+test('S08-03 codeReferences includes broad accessibility, adaptable, guards, handrails, and opening protection language', () => {
+  const source = read(COMPLETION)
+  const s08_03Start = source.indexOf("code: 'S08-03'")
+  const s08_04Start = source.indexOf("code: 'S08-04'")
+  const block = source.slice(s08_03Start, s08_04Start)
+  assert.ok(
+    block.includes('accessibility') || block.includes('adaptable'),
+    'S08-03 codeReferences must include accessibility or adaptable reference language'
+  )
+  assert.ok(
+    block.includes('guards') || block.includes('handrails'),
+    'S08-03 codeReferences must include guards or handrails reference language'
+  )
+  assert.ok(
+    block.includes('opening protection') || block.includes('opening-protection'),
+    'S08-03 codeReferences must include opening protection reference language'
+  )
+})
+
+test('S08-04 NFPA references use conditional where adopted or required language', () => {
+  const source = read(COMPLETION)
+  const s08_04Start = source.indexOf("code: 'S08-04'")
+  const s08_05Start = source.indexOf("code: 'S08-05'")
+  const block = source.slice(s08_04Start, s08_05Start)
+  assert.ok(
+    block.includes('where adopted') || block.includes('where adopted, referenced') || block.includes('or required by the AHJ'),
+    'S08-04 NFPA references must use conditional language — where adopted, referenced by approved drawings, or required by AHJ'
+  )
+})
+
+test('S08-05 ULC references use conditional where adopted or required language', () => {
+  const source = read(COMPLETION)
+  const s08_05Start = source.indexOf("code: 'S08-05'")
+  const s09Start = source.indexOf('STRUCTURAL_STAGE_9_CONTAINERS')
+  const block = source.slice(s08_05Start, s09Start)
+  assert.ok(
+    block.includes('where adopted') || block.includes('where adopted, referenced') || block.includes('or required by the AHJ'),
+    'S08-05 ULC references must use conditional language — where adopted, referenced by approved drawings, or required by AHJ'
+  )
+})
+
+test('S08 codeReferences use broad defensible language with AHJ qualification caveat where citing code', () => {
+  const source = read(COMPLETION)
+  const block = getS08Block(source)
+  assert.ok(
+    block.includes('exact clause to be verified by AHJ or qualified professional'),
+    'S08 codeReferences must include "exact clause to be verified by AHJ or qualified professional" caveat for code citations'
+  )
+})
+
+test('S08 Vancouver Building By-law references are Vancouver-specific with isVbblOnly', () => {
+  const source = read(COMPLETION)
+  const block = getS08Block(source)
+  if (block.includes('Vancouver Building By-law')) {
+    assert.ok(
+      block.includes('isVbblOnly: true') || block.includes('where Vancouver jurisdiction applies') || block.includes('where applicable'),
+      'S08 Vancouver Building By-law references must be Vancouver-specific or conditional'
+    )
+  }
+})
+
+test('S08 dependency chain is preserved S07-04 → S08-01 → S08-02 → S08-03 → S08-04 → S08-05', () => {
+  const source = read(COMPLETION)
+  const block = getS08Block(source)
+  assert.ok(block.includes("dependencies: ['S07-04']"), 'S08-01 must depend on S07-04')
+  assert.ok(block.includes("dependencies: ['S08-01']"), 'S08-02 must depend on S08-01')
+  assert.ok(block.includes("dependencies: ['S08-02']"), 'S08-03 must depend on S08-02')
+  assert.ok(block.includes("dependencies: ['S08-03']"), 'S08-04 must depend on S08-03')
+  assert.ok(block.includes("dependencies: ['S08-04']"), 'S08-05 must depend on S08-04')
 })
 
 // ===========================================================================
