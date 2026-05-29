@@ -136,7 +136,12 @@ const STRUCTURAL_STAGE_1_CONTAINERS: StructuredStageItemDefinition[] = [
   {
     code: 'S01-01',
     label: 'Project Address and Legal Description',
+    uiSchema: 'field_view',
     purpose: 'Confirm the inspection is tied to the correct property, permit file, and legal parcel before any downstream structural review proceeds.',
+    viewDetails: 'Confirm the inspection is matched to the correct civic address, legal parcel, and permit file. A civic address or legal description conflict must be resolved before any downstream structural review proceeds reliably.',
+    stopIf: [
+      'The civic address or legal description conflicts with the permit in a way that prevents reliable identification of the correct project file.',
+    ],
     fieldChecklist: [
       'Civic address matches the permit.',
       'Legal description matches the record set.',
@@ -175,12 +180,33 @@ const STRUCTURAL_STAGE_1_CONTAINERS: StructuredStageItemDefinition[] = [
       'Inspector-uploaded supplemental evidence only if a discrepancy must be documented.',
     ],
     evidenceMode: 'verify_existing',
+    permitType: 'building',
+    responsibleParty: 'Builder',
+    documentUploadRequired: false,
     ahjNotes: 'Capture any jurisdiction-specific naming differences, civic addressing conventions, legal parcel references, or authority-imposed project identifiers.',
+    codeReferences: [
+      {
+        label: 'BC Building Code 2024 — Administration and Permit Identification',
+        legalReference: 'BCBC 2024 Division C, Part 1',
+        sourceTitle: 'British Columbia Building Code 2024',
+      },
+      {
+        label: 'Municipal Civic Addressing Requirements',
+        legalReference: 'Local Government Act (BC), Part 14',
+        sourceTitle: 'Local Government Act (BC)',
+      },
+    ],
   },
   {
     code: 'S01-02',
     label: 'Governing Authority, Code Path, and Jurisdiction Overlay',
+    uiSchema: 'field_view',
     purpose: 'Confirm the governing authority, permit issuing body, code path, code edition, and jurisdiction overlay before field execution begins.',
+    viewDetails: 'Confirm the governing authority, permit issuing body, code edition, and jurisdiction overlay are correctly identified before field execution begins. An unresolved AHJ or code path mismatch must be corrected at this stage.',
+    stopIf: [
+      'Governing authority or applicable code edition cannot be confirmed from the project record.',
+      'Local amendments that materially affect the inspection are known but not reflected in the permit basis.',
+    ],
     fieldChecklist: [
       'AHJ is correctly identified.',
       'Permit routing matches the project authority.',
@@ -225,13 +251,35 @@ const STRUCTURAL_STAGE_1_CONTAINERS: StructuredStageItemDefinition[] = [
       'Inspector-uploaded supplemental evidence only if a code-path or jurisdiction discrepancy must be documented.',
     ],
     evidenceMode: 'verify_existing',
+    permitType: 'building',
+    responsibleParty: 'Builder',
+    documentUploadRequired: false,
     ahjNotes: 'Use this container to capture municipality-specific, regional district, or First Nation authority conditions that materially affect the structural inspection path.',
     dependencies: ['S01-01'],
+    codeReferences: [
+      {
+        label: 'BC Building Code 2024 — Scope and Application',
+        legalReference: 'BCBC 2024 Division A, Part 1',
+        sourceTitle: 'British Columbia Building Code 2024',
+      },
+      {
+        label: 'Vancouver Building By-law 2025 — Local Amendments and Jurisdiction',
+        legalReference: 'VBBL 2025, Division A',
+        sourceTitle: 'Vancouver Building By-law 2025',
+        isVbblOnly: true,
+      },
+    ],
   },
   {
     code: 'S01-03',
     label: 'Project Type, Building Type, and Structural Scope Classification',
+    uiSchema: 'field_view',
     purpose: 'Confirm the project type, building type, occupancy context, and structural review scope so the correct downstream checklist path is used.',
+    viewDetails: 'Confirm the project type, building type, occupancy classification, and structural review scope. Misclassification at this stage propagates through all downstream checklist paths and must be resolved before field work proceeds.',
+    stopIf: [
+      'Project type, building type, or occupancy classification is inconsistent and cannot be resolved from available records.',
+      'The selected structural checklist path does not match the actual scope of work.',
+    ],
     fieldChecklist: [
       'Project type is correctly identified.',
       'Building type and use context are consistent.',
@@ -274,13 +322,34 @@ const STRUCTURAL_STAGE_1_CONTAINERS: StructuredStageItemDefinition[] = [
       'Inspector-uploaded supplemental evidence only if a misclassification must be documented.',
     ],
     evidenceMode: 'verify_existing',
+    permitType: 'building',
+    responsibleParty: 'Builder',
+    documentUploadRequired: false,
     ahjNotes: 'Note any local trigger thresholds or permit-family distinctions that affect whether this project falls into structural review.',
     dependencies: ['S01-02'],
+    codeReferences: [
+      {
+        label: 'BC Building Code 2024 — Occupancy Classification',
+        legalReference: 'BCBC 2024 Division A, Section 3.1',
+        sourceTitle: 'British Columbia Building Code 2024',
+      },
+      {
+        label: 'BC Building Code 2024 — Building Classification and Construction Type',
+        legalReference: 'BCBC 2024 Division B, Part 3',
+        sourceTitle: 'British Columbia Building Code 2024',
+      },
+    ],
   },
   {
     code: 'S01-04',
     label: 'Site Record, Drawings, and Revision Package Readiness',
+    uiSchema: 'field_view',
     purpose: 'Confirm the base site record, structural drawing package, and revision context are current, identifiable, and sufficient for the first field inspection stage.',
+    viewDetails: 'Confirm the base site record, structural drawing package, and revision set are current and sufficient for the first field inspection stage. Unresolved drawing-set conflicts or missing base records prevent reliable review.',
+    stopIf: [
+      'Required site plan, survey, or structural drawing set is absent or so outdated that reliable inspection cannot proceed.',
+      'Multiple unreconciled drawing revisions create material uncertainty about the current construction set.',
+    ],
     fieldChecklist: [
       'Site record and siting documents are available.',
       'Structural drawing set is present.',
@@ -327,13 +396,34 @@ const STRUCTURAL_STAGE_1_CONTAINERS: StructuredStageItemDefinition[] = [
       'Inspector-uploaded supplemental evidence only if a document-set discrepancy must be documented.',
     ],
     evidenceMode: 'verify_existing',
+    permitType: 'building',
+    responsibleParty: 'Builder',
+    documentUploadRequired: false,
     ahjNotes: 'Capture any municipality-specific setback, frontage, lane, easement, siting, stamped-set, or revision-tracking requirement that affects structural readiness.',
     dependencies: ['S01-03'],
+    codeReferences: [
+      {
+        label: 'BC Building Code 2024 — Drawing and Document Submission Requirements',
+        legalReference: 'BCBC 2024 Division C, Part 2',
+        sourceTitle: 'British Columbia Building Code 2024',
+      },
+      {
+        label: 'Professional Stamp and Revision Identification',
+        legalReference: 'Architects Act (BC); Engineers and Geoscientists Act (BC)',
+        sourceTitle: 'BC Professional Practice Standards',
+      },
+    ],
   },
   {
     code: 'S01-05',
     label: 'Registered Professional and Permit Coordination Flags',
+    uiSchema: 'field_view',
     purpose: 'Determine whether registered professional involvement and related permit coordination are required so the structural pathway is not assessed in isolation where coordination is necessary.',
+    viewDetails: 'Determine whether registered professional involvement and permit coordination are required for the project scope. An unresolved professional or trade coordination gap must be identified before field inspection proceeds.',
+    stopIf: [
+      'Registered professional involvement appears required by the code or permit record but is absent or undocumented.',
+      'Missing trade permit coordination creates a material gap that blocks structural readiness.',
+    ],
     fieldChecklist: [
       'Professional involvement trigger has been checked.',
       'Consultant responsibility is documented if required.',
@@ -373,8 +463,28 @@ const STRUCTURAL_STAGE_1_CONTAINERS: StructuredStageItemDefinition[] = [
       'Inspector-uploaded supplemental evidence only if a coordination or assurance deficiency must be documented.',
     ],
     evidenceMode: 'verify_existing',
+    permitType: 'building',
+    responsibleParty: 'Builder',
+    documentUploadRequired: false,
     ahjNotes: 'Capture local triggers that elevate the project into registered professional, assurance-letter, or coordinated trade-permit territory.',
     dependencies: ['S01-04'],
+    codeReferences: [
+      {
+        label: 'BC Building Code 2024 — Letters of Assurance',
+        legalReference: 'BCBC 2024 Division C, Part 2, Section 2.2',
+        sourceTitle: 'British Columbia Building Code 2024',
+      },
+      {
+        label: 'Schedule B and Schedule C-B — Professional Design and Field Review Assurance',
+        legalReference: 'BCBC 2024 Schedule B; Schedule C-B',
+        sourceTitle: 'BC Building Code 2024 Assurance Schedules',
+      },
+      {
+        label: 'Engineers and Geoscientists BC — Professional Responsibility',
+        legalReference: 'Engineers and Geoscientists Act (BC)',
+        sourceTitle: 'EGBC Professional Practice Guidelines',
+      },
+    ],
   },
 ]
 
@@ -429,6 +539,24 @@ const STRUCTURAL_STAGE_2_CONTAINERS: StructuredStageItemDefinition[] = [
     documentUploadRequired: false,
     ahjNotes: 'Capture municipality-specific zoning schedules, development-permit triggers, civic addressing conventions, or planning comments that materially affect permit readiness.',
     dependencies: ['S01-05'],
+    codeReferences: [
+      {
+        label: 'Local Government Act — Zoning Authority',
+        legalReference: 'Local Government Act (BC), Part 14',
+        sourceTitle: 'Local Government Act (BC)',
+      },
+      {
+        label: 'Vancouver Zoning and Development By-law',
+        legalReference: 'City of Vancouver Zoning and Development By-law (No. 3575)',
+        sourceTitle: 'Vancouver Zoning and Development By-law',
+        isVbblOnly: true,
+      },
+      {
+        label: 'Development Permit Requirements',
+        legalReference: 'Local Government Act (BC), Section 489',
+        sourceTitle: 'Local Government Act (BC)',
+      },
+    ],
   },
   {
     code: 'S02-02',
@@ -478,6 +606,24 @@ const STRUCTURAL_STAGE_2_CONTAINERS: StructuredStageItemDefinition[] = [
     documentUploadRequired: false,
     ahjNotes: 'Capture local engineering, boulevard, driveway, frontage, or traffic-control conditions that must be satisfied before permit execution or site access proceeds.',
     dependencies: ['S02-01'],
+    codeReferences: [
+      {
+        label: 'Municipal Servicing Standards — Road Use and Frontage Works',
+        legalReference: 'Local Government Act (BC), Part 14, Division 1',
+        sourceTitle: 'Local Government Act (BC)',
+      },
+      {
+        label: 'Vancouver Street and Traffic By-law',
+        legalReference: 'City of Vancouver Street and Traffic By-law (No. 2849)',
+        sourceTitle: 'Vancouver Street and Traffic By-law',
+        isVbblOnly: true,
+      },
+      {
+        label: 'WorkSafeBC — Construction Site Access and Road Safety',
+        legalReference: 'OHS Regulation Part 20 (BC)',
+        sourceTitle: 'WorkSafeBC OHS Regulation',
+      },
+    ],
   },
   {
     code: 'S02-03',
@@ -526,6 +672,29 @@ const STRUCTURAL_STAGE_2_CONTAINERS: StructuredStageItemDefinition[] = [
     documentUploadRequired: false,
     ahjNotes: 'Capture tree-protection bylaws, arborist hold points, demolition sequencing conditions, or environmental restrictions imposed by the AHJ.',
     dependencies: ['S02-02'],
+    codeReferences: [
+      {
+        label: 'Local Government Act — Tree Protection Authority',
+        legalReference: 'Local Government Act (BC), Section 8(3)(b)',
+        sourceTitle: 'Local Government Act (BC)',
+      },
+      {
+        label: 'Vancouver Protection of Trees By-law',
+        legalReference: 'City of Vancouver Protection of Trees By-law (No. 9958)',
+        sourceTitle: 'Vancouver Tree Protection By-law',
+        isVbblOnly: true,
+      },
+      {
+        label: 'Demolition Permit Requirements',
+        legalReference: 'BCBC 2024 Division C, Part 1; applicable municipal by-law',
+        sourceTitle: 'British Columbia Building Code 2024',
+      },
+      {
+        label: 'WorkSafeBC — Demolition Safety',
+        legalReference: 'OHS Regulation Part 20, Subdivision B (BC)',
+        sourceTitle: 'WorkSafeBC OHS Regulation',
+      },
+    ],
   },
 ]
 
@@ -579,6 +748,24 @@ const STRUCTURAL_STAGE_3_CONTAINERS: StructuredStageItemDefinition[] = [
     documentUploadRequired: false,
     ahjNotes: 'Capture AHJ-specific intake requirements, occupancy classification interpretations, siting expectations, or accessibility conditions affecting permit review.',
     dependencies: ['S02-03'],
+    codeReferences: [
+      {
+        label: 'BC Building Code 2024 — Occupancy Classification and Building Metrics',
+        legalReference: 'BCBC 2024 Division B, Part 3, Section 3.1',
+        sourceTitle: 'British Columbia Building Code 2024',
+      },
+      {
+        label: 'BC Energy Step Code — Compliance Requirements',
+        legalReference: 'BCBC 2024 Division B, Part 10; BC Energy Step Code',
+        sourceTitle: 'BC Energy Step Code',
+      },
+      {
+        label: 'Vancouver Building By-law 2025 — Accessibility Requirements',
+        legalReference: 'VBBL 2025, Division B, Part 3',
+        sourceTitle: 'Vancouver Building By-law 2025',
+        isVbblOnly: true,
+      },
+    ],
   },
   {
     code: 'S03-02',
@@ -628,6 +815,23 @@ const STRUCTURAL_STAGE_3_CONTAINERS: StructuredStageItemDefinition[] = [
     documentUploadRequired: false,
     ahjNotes: 'Capture AHJ-specific firefighting access, opening calculation, or sprinkler expectations that affect acceptance of the submission package.',
     dependencies: ['S03-01'],
+    codeReferences: [
+      {
+        label: 'BC Building Code 2024 — Spatial Separation and Limiting Distance',
+        legalReference: 'BCBC 2024 Division B, Part 3, Section 3.2',
+        sourceTitle: 'British Columbia Building Code 2024',
+      },
+      {
+        label: 'BC Building Code 2024 — Fire Suppression Requirements',
+        legalReference: 'BCBC 2024 Division B, Part 3, Section 3.2.5',
+        sourceTitle: 'British Columbia Building Code 2024',
+      },
+      {
+        label: 'BC Building Code 2024 — Firefighting Access',
+        legalReference: 'BCBC 2024 Division B, Part 3, Section 3.2.2',
+        sourceTitle: 'British Columbia Building Code 2024',
+      },
+    ],
   },
   {
     code: 'S03-03',
@@ -680,6 +884,23 @@ const STRUCTURAL_STAGE_3_CONTAINERS: StructuredStageItemDefinition[] = [
     documentUploadRequired: false,
     ahjNotes: 'Capture local drawing-submission expectations, energy-compliance requirements, or professional assurance triggers that must be satisfied for acceptance.',
     dependencies: ['S03-02'],
+    codeReferences: [
+      {
+        label: 'BC Building Code 2024 — Letters of Assurance (Schedule B)',
+        legalReference: 'BCBC 2024 Division C, Part 2, Section 2.2; Schedule B',
+        sourceTitle: 'British Columbia Building Code 2024',
+      },
+      {
+        label: 'BC Energy Step Code — Energy Compliance Documentation',
+        legalReference: 'BCBC 2024 Division B, Part 10',
+        sourceTitle: 'BC Energy Step Code',
+      },
+      {
+        label: 'Engineers and Geoscientists BC — Design Submission Requirements',
+        legalReference: 'Engineers and Geoscientists Act (BC)',
+        sourceTitle: 'EGBC Professional Practice Guidelines',
+      },
+    ],
   },
 ]
 
