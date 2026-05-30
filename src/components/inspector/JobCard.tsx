@@ -18,12 +18,21 @@ interface JobCardProps {
 }
 
 const DISC_COLOR: Record<string, string> = {
-  structural:    'border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-500/30 dark:bg-orange-500/15 dark:text-orange-300',
-  geotech:       'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300',
-  electrical:    'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/15 dark:text-blue-300',
-  mechanical:    'border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-500/30 dark:bg-violet-500/15 dark:text-violet-300',
-  architectural: 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-300',
-  plumbing:      'border-cyan-200 bg-cyan-50 text-cyan-700 dark:border-cyan-500/30 dark:bg-cyan-500/15 dark:text-cyan-300',
+  structural:     'border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-500/30 dark:bg-orange-500/15 dark:text-orange-300',
+  geotech:        'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300',
+  electrical:     'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/15 dark:text-blue-300',
+  mechanical:     'border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-500/30 dark:bg-violet-500/15 dark:text-violet-300',
+  architectural:  'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-300',
+  plumbing:       'border-cyan-200 bg-cyan-50 text-cyan-700 dark:border-cyan-500/30 dark:bg-cyan-500/15 dark:text-cyan-300',
+  fire_protection:'border-red-200 bg-red-50 text-red-700 dark:border-red-500/30 dark:bg-red-500/15 dark:text-red-300',
+}
+
+function formatDisciplineLabel(discipline: string): string {
+  return discipline
+    .split('_')
+    .filter(Boolean)
+    .map(part => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+    .join(' ')
 }
 
 export function JobCard({ job, eligibility, primaryEligibilityReason, onClaim }: JobCardProps) {
@@ -64,8 +73,8 @@ export function JobCard({ job, eligibility, primaryEligibilityReason, onClaim }:
                 </span>
               )}
               <TierBadge tier={job.dispatchTier} />
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border capitalize ${discColor}`}>
-                {job.requiredDiscipline}
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${discColor}`}>
+                {formatDisciplineLabel(job.requiredDiscipline)}
               </span>
               {!eligibility.eligible && (
                 <span className={`flex items-center gap-1 rounded-md border px-2 py-0.5 text-[10px] font-bold ${

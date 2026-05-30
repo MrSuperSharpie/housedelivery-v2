@@ -36,14 +36,25 @@ const REGIONS: { value: Region | 'all'; label: string }[] = [
 ]
 
 const DISCS: { value: InspectorDiscipline | 'all'; label: string }[] = [
-  { value: 'all',           label: 'All Disciplines' },
-  { value: 'structural',    label: 'Structural' },
-  { value: 'geotech',       label: 'Geotech' },
-  { value: 'mechanical',    label: 'Mechanical' },
-  { value: 'electrical',    label: 'Electrical' },
-  { value: 'plumbing',      label: 'Plumbing' },
-  { value: 'architectural', label: 'Architectural' },
+  { value: 'all',             label: 'All Disciplines' },
+  { value: 'structural',      label: 'Structural' },
+  { value: 'geotech',         label: 'Geotech' },
+  { value: 'mechanical',      label: 'Mechanical' },
+  { value: 'electrical',      label: 'Electrical' },
+  { value: 'plumbing',        label: 'Plumbing' },
+  { value: 'architectural',   label: 'Architectural' },
+  { value: 'fire_protection', label: 'Fire Protection' },
 ]
+
+const DISC_BADGE: Record<string, string> = {
+  structural:     'border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-500/30 dark:bg-orange-500/15 dark:text-orange-300',
+  geotech:        'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300',
+  electrical:     'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/15 dark:text-blue-300',
+  mechanical:     'border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-500/30 dark:bg-violet-500/15 dark:text-violet-300',
+  architectural:  'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-300',
+  plumbing:       'border-cyan-200 bg-cyan-50 text-cyan-700 dark:border-cyan-500/30 dark:bg-cyan-500/15 dark:text-cyan-300',
+  fire_protection:'border-red-200 bg-red-50 text-red-700 dark:border-red-500/30 dark:bg-red-500/15 dark:text-red-300',
+}
 
 interface ActiveWorklistItem {
   id: string
@@ -58,6 +69,7 @@ interface ActiveWorklistItem {
   openHold?: HoldRecord
   stage?: number
   stageName?: string
+  discipline?: string
   jobStatus?: string
   reportStatus?: string
   assignmentIdSuffix: string
@@ -243,6 +255,7 @@ export default function InspectorDashboard() {
           jobStatus: job?.status,
           stage: job?.stage,
           stageName: job?.stageName,
+          discipline: job?.requiredDiscipline,
         }
       })
       .filter(item => isActiveWorklistStatus(item.status, item.jobStatus))
@@ -258,6 +271,7 @@ export default function InspectorDashboard() {
         assignedAt: item.assignedAt,
         stage: item.stage,
         stageName: item.stageName,
+        discipline: item.discipline,
         jobStatus: item.jobStatus,
         reportStatus: undefined,
         assignmentIdSuffix: item.id.slice(-6).toUpperCase(),
@@ -316,7 +330,7 @@ export default function InspectorDashboard() {
       ] = await Promise.all([
         supabase
           .from('job_opportunities')
-          .select('id, project_name, address, city, status, stage, stage_name')
+          .select('id, project_name, address, city, status, stage, stage_name, required_discipline')
           .in('id', jobIds),
         supabase
           .from('inspector_completion_reports')
@@ -351,6 +365,7 @@ export default function InspectorDashboard() {
             status: typeof row.status === 'string' ? row.status : undefined,
             stage: typeof row.stage === 'number' ? row.stage : undefined,
             stageName: typeof row.stage_name === 'string' ? row.stage_name : undefined,
+            discipline: typeof row.required_discipline === 'string' ? row.required_discipline : undefined,
           },
         ])
       )
@@ -396,6 +411,7 @@ export default function InspectorDashboard() {
             jobStatus: job?.status,
             stage: job?.stage,
             stageName: job?.stageName,
+            discipline: job?.discipline,
             reportStatus,
             openHold,
           }
@@ -414,6 +430,7 @@ export default function InspectorDashboard() {
           openHold: item.openHold,
           stage: item.stage,
           stageName: item.stageName,
+          discipline: item.discipline,
           jobStatus: item.jobStatus,
           reportStatus: item.reportStatus,
           assignmentIdSuffix: item.id.slice(-6).toUpperCase(),
@@ -695,9 +712,18 @@ export default function InspectorDashboard() {
                           </span>
                         )}
                       </div>
-                      {assignment.stage != null && (
-                        <div className={`text-xs font-semibold mb-1 ${isDark ? 'text-electric' : 'text-blue-700'}`}>
-                          Stage {assignment.stage}{assignment.stageName ? ` — ${assignment.stageName}` : ''}
+                      {(assignment.stage != null || assignment.discipline) && (
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          {assignment.stage != null && (
+                            <span className={`text-xs font-semibold ${isDark ? 'text-electric' : 'text-blue-700'}`}>
+                              Stage {assignment.stage}{assignment.stageName ? ` — ${assignment.stageName}` : ''}
+                            </span>
+                          )}
+                          {assignment.discipline && (
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${DISC_BADGE[assignment.discipline] ?? (isDark ? 'border-slate-600 bg-slate-700/50 text-slate-300' : 'border-slate-300 bg-slate-200 text-slate-700')}`}>
+                              {formatStoredStatus(assignment.discipline)}
+                            </span>
+                          )}
                         </div>
                       )}
                       <div className="text-xs text-muted truncate">
