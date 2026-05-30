@@ -17,6 +17,7 @@ import { INSPECTION_STAGES } from '@/lib/mockData'
 import { formatCurrency } from '@/lib/utils'
 import { useAuth } from '@/lib/auth'
 import { useStore } from '@/lib/store'
+import { validateSiteAddressFormat } from '@/lib/siteAddressValidation'
 import type {
   Project,
   DispatchTier,
@@ -471,7 +472,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
       {step === 'address' && (
         <div>
           <h2 className="text-xl font-black text-gray-900 mb-1">Where&apos;s the site?</h2>
-          <p className="text-sm text-gray-500 mb-5">Enter the project site address in British Columbia.</p>
+          <p className="text-sm text-gray-500 mb-5">Enter the full project site address, including city and province.</p>
 
           <div className="relative z-10 mb-3">
             <button
@@ -557,6 +558,8 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
 
           <Button variant="primary" size="lg" fullWidth disabled={!address.trim() || permitNumberIsMissing} onClick={() => {
             setPostError(null)
+            const addrErr = validateSiteAddressFormat(address)
+            if (addrErr) { setPostError(addrErr); return }
             if (validatePermitReferenceBeforeContinuing()) return
             setStep('schedule')
           }}>
