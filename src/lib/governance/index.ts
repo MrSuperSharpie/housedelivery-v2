@@ -171,12 +171,12 @@ export interface PackageIntegritySnapshot {
 }
 
 const PERMIT_DISCIPLINE_MATRIX: Record<string, InspectorDiscipline[]> = {
-  building: ['structural', 'geotech', 'mechanical', 'architectural'],
+  building: ['structural', 'geotech', 'mechanical', 'architectural', 'fire_protection'],
   electrical: ['electrical'],
   plumbing: ['plumbing'],
   mechanical: ['mechanical'],
   demolition: ['structural', 'architectural'],
-  other: ['structural', 'geotech', 'electrical', 'mechanical', 'plumbing', 'architectural'],
+  other: ['structural', 'geotech', 'electrical', 'mechanical', 'plumbing', 'architectural', 'fire_protection'],
 }
 
 function blocker(
