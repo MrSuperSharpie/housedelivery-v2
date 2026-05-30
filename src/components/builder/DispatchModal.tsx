@@ -66,12 +66,13 @@ interface DispatchModalProps {
 type Step = 'address' | 'schedule' | 'stage' | 'discipline' | 'safety' | 'tier' | 'vault' | 'confirm' | 'broadcasting' | 'live'
 
 const DISCIPLINES = [
-  { id: 'structural',    label: 'Structural',     icon: HardHat,  description: 'Load paths, framing, foundations' },
-  { id: 'geotech',      label: 'Geotechnical',   icon: Layers,   description: 'Soil, excavation, ground conditions' },
-  { id: 'mechanical',   label: 'Mechanical',     icon: Hammer,   description: 'HVAC, ventilation, HRV/ERV' },
-  { id: 'electrical',   label: 'Electrical',     icon: Zap,      description: 'Electrical rough-in & grounding' },
-  { id: 'plumbing',     label: 'Plumbing',       icon: Droplets, description: 'Drainage, supply, fixtures' },
-  { id: 'architectural',label: 'Architectural',  icon: Home,     description: 'Code compliance & life safety' },
+  { id: 'structural',       label: 'Structural',        icon: HardHat,  description: 'Load paths, framing, foundations' },
+  { id: 'geotech',          label: 'Geotechnical',      icon: Layers,   description: 'Soil, excavation, ground conditions' },
+  { id: 'mechanical',       label: 'Mechanical',        icon: Hammer,   description: 'HVAC, ventilation, HRV/ERV' },
+  { id: 'electrical',       label: 'Electrical',        icon: Zap,      description: 'Electrical rough-in & grounding' },
+  { id: 'plumbing',         label: 'Plumbing',          icon: Droplets, description: 'Drainage, supply, fixtures' },
+  { id: 'architectural',    label: 'Architectural',     icon: Home,     description: 'Building envelope & code compliance' },
+  { id: 'fire_protection',  label: 'Fire Protection',   icon: Shield,   description: 'Fire suppression, alarms & life safety' },
 ]
 
 // Default discipline for each inspection stage.

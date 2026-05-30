@@ -175,7 +175,7 @@ test('InspectorCompletionWorkspace declares DISCIPLINE_STAGE_OVERRIDE', () => {
 test('DISCIPLINE_STAGE_OVERRIDE maps plumbing builder stage 3 to completion stage 9', () => {
   const source = read('components/inspector/InspectorCompletionWorkspace.tsx')
   const overrideStart = source.indexOf('DISCIPLINE_STAGE_OVERRIDE')
-  const overrideEnd = source.indexOf('}', source.indexOf('}', overrideStart) + 1) + 1
+  const overrideEnd = source.indexOf('const BUILDER_STAGE_LABELS', overrideStart)
   const overrideBlock = source.slice(overrideStart, overrideEnd)
   assert.ok(overrideBlock.includes('plumbing'), 'Override must include plumbing key')
   assert.ok(overrideBlock.includes('3: 9'), 'Override must map builder stage 3 to completion stage 9 for plumbing')
