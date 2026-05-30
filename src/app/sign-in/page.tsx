@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
   HardHat, ArrowRight, ChevronLeft, Eye, EyeOff,
-  Building2, CheckCircle2, Zap, Shield,
+  Building2, CheckCircle2, Shield,
 } from 'lucide-react'
 import { BrandWordmark } from '@/components/shared/Navbar'
 import { useAuth, DEMO_USERS, type UserRole, type AuthUser } from '@/lib/auth'
@@ -158,22 +158,6 @@ function SignInInner() {
   const safeNextPath = nextParam && nextParam.startsWith('/') && !nextParam.startsWith('//')
     ? nextParam
     : null
-
-  const fill = (u: AuthUser) => {
-    setForm({
-      name:         u.name,
-      email:        u.email,
-      phone:        u.phone,
-      password:     'demo1234',
-      company:      u.company      ?? '',
-      position:     u.position     ?? '',
-      license:      u.licenseNumber?? '',
-      designation:  u.designation  ?? '',
-      title:        u.title        ?? '',
-      jurisdiction: u.jurisdiction ?? '',
-    })
-    setRole(u.role)
-  }
 
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }))
 
@@ -459,29 +443,6 @@ function SignInInner() {
             </div>
           </div>
 
-          {/* Demo quick-fills */}
-          {role !== 'admin' && (
-            <div className="mb-5">
-              <div className="label-mono mb-2">Demo accounts</div>
-              <div className="flex gap-2 flex-wrap">
-                {DEMO_USERS.filter(u => u.role === role).map(u => (
-                  <button key={u.id} onClick={() => fill(u)}
-                    className="flex items-center gap-2 bg-panel border border-white/10 hover:border-flame/30 rounded-xl px-3 py-2 text-left transition-all group">
-                    <div className="w-7 h-7 bg-flame/15 rounded-lg flex items-center justify-center text-xs font-black text-flame">
-                      {u.avatar}
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-ink group-hover:text-flame transition-colors">{u.name}</div>
-                      <div className="text-[10px] text-muted">{u.company ?? u.designation ?? u.jurisdiction}</div>
-                    </div>
-                    <Zap className="w-3 h-3 text-warning-amber ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </button>
-                ))}
-              </div>
-              <p className="text-[10px] text-subtle mt-1.5">Click a demo account to pre-fill the form</p>
-            </div>
-          )}
-
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-3">
 
@@ -491,7 +452,7 @@ function SignInInner() {
                 <div>
                   <label className="label-mono mb-1.5 block">Full Name</label>
                   <input value={form.name} onChange={e => set('name', e.target.value)}
-                    placeholder="e.g. Wyatt Davis" required className={inputCls} />
+                    placeholder="e.g. Jordan Smith" required className={inputCls} />
                 </div>
 
                 {role === 'builder' && (
@@ -499,7 +460,7 @@ function SignInInner() {
                     <div>
                       <label className="label-mono mb-1.5 block">Company Name</label>
                       <input value={form.company} onChange={e => set('company', e.target.value)}
-                        placeholder="e.g. Coastal Developments Inc." className={inputCls} />
+                        placeholder="e.g. Pacific Construction Ltd." className={inputCls} />
                     </div>
                     <div>
                       <label className="label-mono mb-1.5 block">Your Role</label>
@@ -516,7 +477,7 @@ function SignInInner() {
                     <div>
                       <label className="label-mono mb-1.5 block">EGBC / AIBC License #</label>
                       <input value={form.license} onChange={e => set('license', e.target.value)}
-                        placeholder="e.g. BC-ENG-29847" className={inputCls} />
+                        placeholder="e.g. BC-ENG-12345" className={inputCls} />
                     </div>
                     <div>
                       <label className="label-mono mb-1.5 block">Designation</label>
