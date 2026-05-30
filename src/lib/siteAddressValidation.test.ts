@@ -7,10 +7,10 @@ import { resolve } from 'node:path'
 import { validateSiteAddressFormat } from './siteAddressValidation'
 
 // ===========================================================================
-// 1. Valid addresses — must return null (no error)
+// 1. Valid — comma-separated format (primary path)
 // ===========================================================================
 
-test('full address with city and BC passes', () => {
+test('standard comma-separated address with BC passes', () => {
   assert.equal(validateSiteAddressFormat('123 Main St, Vancouver, BC'), null)
 })
 
@@ -39,7 +39,41 @@ test('lowercase bc passes (case insensitive)', () => {
 })
 
 // ===========================================================================
-// 2. Street-only and incomplete — must be rejected
+// 2. Valid — period-normalized format (comma path after normalization)
+// ===========================================================================
+
+test('Langley Bypass comma format passes', () => {
+  assert.equal(validateSiteAddressFormat('20015 Langley Bypass, Langley, BC'), null)
+})
+
+test('Langley Bypass with period-space separator passes', () => {
+  // User-reported failing input: period between street and city, trailing period on BC
+  assert.equal(validateSiteAddressFormat('20015 Langley Bypass. Langley, BC.'), null)
+})
+
+test('period-space separator normalised to comma before city passes', () => {
+  assert.equal(validateSiteAddressFormat('123 Main St. Vancouver, BC'), null)
+})
+
+test('trailing period on BC without leading period-space passes', () => {
+  // Already had comma — province token is "BC."
+  assert.equal(validateSiteAddressFormat('99 Oak St, Victoria, BC.'), null)
+})
+
+// ===========================================================================
+// 3. Valid — space-only format (fallback path, no commas)
+// ===========================================================================
+
+test('Langley Bypass space-only format passes', () => {
+  assert.equal(validateSiteAddressFormat('20015 Langley Bypass Langley BC'), null)
+})
+
+test('space-only address with British Columbia passes', () => {
+  assert.equal(validateSiteAddressFormat('123 Oak St Burnaby British Columbia'), null)
+})
+
+// ===========================================================================
+// 4. Invalid — street-only and missing components
 // ===========================================================================
 
 test('street-only address is rejected', () => {
@@ -73,19 +107,27 @@ test('empty string is rejected', () => {
 })
 
 // ===========================================================================
-// 3. Two-part city+province without street — must be rejected
+// 5. Invalid — city+province without street (fake inputs must stay rejected)
 // ===========================================================================
 
 test('Vancouver, BC is rejected (no street)', () => {
-  assert.ok(validateSiteAddressFormat('Vancouver, BC') !== null, 'Vancouver, BC must be rejected — no street')
+  assert.ok(validateSiteAddressFormat('Vancouver, BC') !== null, 'Vancouver, BC must be rejected')
 })
 
 test('Burnaby, British Columbia is rejected (no street)', () => {
   assert.ok(validateSiteAddressFormat('Burnaby, British Columbia') !== null, 'city + province only must be rejected')
 })
 
+test('Poop, BC is rejected', () => {
+  assert.ok(validateSiteAddressFormat('Poop, BC') !== null, 'Poop, BC must be rejected')
+})
+
+test('Town, BC is rejected', () => {
+  assert.ok(validateSiteAddressFormat('Town, BC') !== null, 'Town, BC must be rejected')
+})
+
 // ===========================================================================
-// 4. Street + province without city — must be rejected
+// 6. Invalid — street+province without city
 // ===========================================================================
 
 test('123 Main St, BC is rejected (no city)', () => {
@@ -93,25 +135,23 @@ test('123 Main St, BC is rejected (no city)', () => {
 })
 
 // ===========================================================================
-// 5. Malformed three-part entries — must be rejected
+// 7. Invalid — malformed three-part entries
 // ===========================================================================
 
-test('123 Main St, [blank city], BC is rejected', () => {
-  assert.ok(validateSiteAddressFormat('123 Main St, , BC') !== null, 'Empty city part must be rejected')
+test('empty city part is rejected', () => {
+  assert.ok(validateSiteAddressFormat('123 Main St, , BC') !== null, 'Empty city must be rejected')
 })
 
-test('[blank street], Vancouver, BC is rejected', () => {
-  assert.ok(validateSiteAddressFormat(', Vancouver, BC') !== null, 'Empty street part must be rejected')
+test('empty street part is rejected', () => {
+  assert.ok(validateSiteAddressFormat(', Vancouver, BC') !== null, 'Empty street must be rejected')
 })
 
-test('street-only with no digit is rejected', () => {
-  // "Main Street, Vancouver, BC" — no digit in street
+test('street without digit is rejected', () => {
   assert.ok(validateSiteAddressFormat('Main Street, Vancouver, BC') !== null, 'Street without digit must be rejected')
 })
 
-test('street-only with no alpha is rejected', () => {
-  // Pathological: digit-only street
-  assert.ok(validateSiteAddressFormat('123, Vancouver, BC') !== null, 'Street without alpha chars must be rejected')
+test('street without alpha chars is rejected', () => {
+  assert.ok(validateSiteAddressFormat('123, Vancouver, BC') !== null, 'Street without alpha must be rejected')
 })
 
 test('unknown province is rejected', () => {
@@ -119,7 +159,7 @@ test('unknown province is rejected', () => {
 })
 
 // ===========================================================================
-// 6. Static analysis — DispatchModal wired correctly, prohibited files clean
+// 8. Static analysis — DispatchModal wired correctly, prohibited files clean
 // ===========================================================================
 
 const SRC = fileURLToPath(new URL('..', import.meta.url))
