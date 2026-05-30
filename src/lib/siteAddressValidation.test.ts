@@ -210,3 +210,57 @@ test('Schedule C-B route is not modified by address validation change', () => {
   const source = read('app/api/schedule-cb/route.ts')
   assert.ok(!source.includes('validateSiteAddressFormat'), 'Schedule C-B must not reference address validation')
 })
+
+// ===========================================================================
+// 9. Builder permit UI — static analysis for kept UI changes
+// ===========================================================================
+
+test('DispatchModal Stage 1 permit helper text mentions later stages', () => {
+  const source = read('components/builder/DispatchModal.tsx')
+  assert.ok(
+    source.includes('later stages will require a permit number'),
+    'Stage 1 permit helper text must tell builders that later stages require a permit number'
+  )
+  assert.ok(
+    !source.includes('leave blank for pre-permit review'),
+    'Old Stage 1 helper text must be replaced'
+  )
+})
+
+test('DispatchModal Stage 3 card includes pre-closure discipline explainer', () => {
+  const source = read('components/builder/DispatchModal.tsx')
+  assert.ok(
+    source.includes('Covers pre-closure inspections'),
+    'Stage 3 card must include pre-closure discipline explainer'
+  )
+  assert.ok(
+    source.includes('Building Envelope, Fire Protection, or Plumbing'),
+    'Stage 3 explainer must list the available pre-closure disciplines'
+  )
+})
+
+test('DispatchModal confirm step includes Stage 1 pre-permit amber warning', () => {
+  const source = read('components/builder/DispatchModal.tsx')
+  assert.ok(
+    source.includes('Pre-permit review.'),
+    'Confirm step must include Stage 1 pre-permit warning text'
+  )
+  assert.ok(
+    source.includes("selectedStage === 1 && !permitNumber.trim()"),
+    'Stage 1 amber warning must be gated on stage 1 with no permit number'
+  )
+})
+
+test('DispatchModal does not hard-block on unsupported city in this pass', () => {
+  const source = read('components/builder/DispatchModal.tsx')
+  assert.ok(!source.includes('SUPPORTED_BC_CITIES'), 'Narrow city list must not be present')
+  assert.ok(!source.includes('isSupportedBCCity'), 'Hard city block must not be present')
+})
+
+test('store.tsx is not modified by builder permit UI pass', () => {
+  const source = read('lib/store.tsx')
+  assert.ok(
+    !source.includes('export function normalizeRegionFromCity'),
+    'normalizeRegionFromCity must not be exported — store.tsx must be unmodified in this pass'
+  )
+})

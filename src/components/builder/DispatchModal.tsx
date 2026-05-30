@@ -552,7 +552,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             <p className="text-xs text-gray-400 mb-5 px-1">
               {requiresPermitNumber(selectedStage)
                 ? 'Required for Stage 2 and later. Enter the issued building permit number or formal municipal permit file reference. Vero records this reference but does not independently verify it with the municipality.'
-                : 'Stage 1 may be posted before the permit is issued. Add a permit number if available, or leave blank for pre-permit review.'}
+                : 'Stage 1 may be posted before the permit is issued. Add a permit number if available — later stages will require a permit number or municipal file reference.'}
             </p>
           )}
 
@@ -646,6 +646,11 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                       <div className="font-bold text-gray-900 text-sm">{stage.name}</div>
                       <div className="text-xs text-gray-400 mt-0.5">{workflowDescription}</div>
                       <div className="text-xs text-gray-300 mt-0.5">{stage.items.length} required inspection items</div>
+                      {stage.id === 3 && (
+                        <div className="text-xs text-gray-400 mt-1 leading-snug">
+                          Covers pre-closure inspections. Choose the required discipline on the next step: Structural, Building Envelope, Fire Protection, or Plumbing.
+                        </div>
+                      )}
                     </div>
                     {isSelected && <CheckCircle2 className="w-5 h-5 text-flame shrink-0" />}
                   </div>
@@ -1203,6 +1208,18 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
               ))}
             </div>
           </div>
+
+          {selectedStage === 1 && !permitNumber.trim() && (
+            <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+                <p className="text-xs text-amber-700">
+                  <span className="font-bold">Pre-permit review.</span>{' '}
+                  This Stage 1 request can proceed without a permit number. Later inspection stages will require a permit number or municipal file reference.
+                </p>
+              </div>
+            </div>
+          )}
 
           <div className="mb-4">
             <ReliabilityGuarantee compact />
