@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/Button'
 import { createClient } from '@/lib/supabase/client'
 import { insertInspectorCredential, upsertInspectorEligibility } from '@/lib/supabase/compliance'
 import { setInspectorOnboardingStatus } from '@/lib/persistence/inspectorOnboarding'
+import { normalizeRegionFromCity } from '@/lib/cityRegionMapping'
 import type { InspectorCredentialType, InspectorDiscipline, InspectorRoleLane, Region } from '@/lib/types'
 
 const supabase = createClient()
@@ -43,7 +44,25 @@ const DISCIPLINES = [
   { id: 'fire_protection', label: 'Fire Protection', icon: Flame },
 ]
 
-const REGIONS = ['vancouver', 'burnaby', 'surrey', 'richmond', 'coquitlam']
+const REGIONS = [
+  'Vancouver', 'Surrey', 'Burnaby', 'Richmond', 'Coquitlam',
+  'Delta', 'Langley City', 'Langley Township', 'Maple Ridge', 'New Westminster',
+  'North Vancouver City', 'North Vancouver District', 'West Vancouver',
+  'Port Coquitlam', 'Port Moody', 'White Rock',
+]
+
+function municipalitiesToRegions(municipalities: string[]): Region[] {
+  const seen = new Set<string>()
+  const result: Region[] = []
+  for (const m of municipalities) {
+    const r = normalizeRegionFromCity(m)
+    if (r !== null && !seen.has(r)) {
+      seen.add(r)
+      result.push(r)
+    }
+  }
+  return result
+}
 
 // ─── Canonical BC credential types (mirrors credential_types seed data) ──────
 
@@ -604,7 +623,7 @@ export default function InspectorSignup() {
             requested_role_lanes: derivedRoleLanes,
             disciplines:      derivedDisciplines,
             credential_types: form.credentialTypes,
-            regions:          form.regions,
+            regions:          municipalitiesToRegions(form.regions),
             license_number:   form.licenseNumber,
             firm_name:        form.firmName || null,
             business_address: form.businessAddress || null,
@@ -791,7 +810,7 @@ export default function InspectorSignup() {
       userId,
       status: 'submitted',
       disciplines: derivedDisciplines as InspectorDiscipline[],
-      regions: form.regions as Region[],
+      regions: municipalitiesToRegions(form.regions),
       requestedRoleLanes: derivedRoleLanes,
       approvedRoleLanes: [],
       licenseNumber: form.licenseNumber,
@@ -1018,7 +1037,7 @@ export default function InspectorSignup() {
               <div className="grid grid-cols-2 gap-2">
                 {REGIONS.map(r => (
                   <button key={r} type="button" onClick={() => toggleArr('regions', r)}
-                    className={`p-4 rounded-xl border-2 text-sm font-bold capitalize transition-all ${
+                    className={`p-4 rounded-xl border-2 text-sm font-bold transition-all ${
                       form.regions.includes(r)
                         ? 'border-[#FF5F15] bg-orange-50 text-[#FF5F15]'
                         : 'border-gray-100 text-gray-600'

@@ -52,9 +52,10 @@ type WorksafeMode = 'clearance' | 'exemption' | ''
 // ─── Options ──────────────────────────────────────────────────────────────────
 
 const REGIONS = [
-  'Vancouver', 'Burnaby', 'Surrey', 'Richmond', 'Coquitlam',
-  'North Vancouver', 'West Vancouver', 'Delta', 'Langley', 'Abbotsford',
-  'Maple Ridge', 'New Westminster', 'Port Moody', 'Chilliwack', 'Kelowna',
+  'Vancouver', 'Surrey', 'Burnaby', 'Richmond', 'Coquitlam',
+  'Delta', 'Langley City', 'Langley Township', 'Maple Ridge', 'New Westminster',
+  'North Vancouver City', 'North Vancouver District', 'West Vancouver',
+  'Port Coquitlam', 'Port Moody', 'White Rock',
 ]
 
 const PERMIT_FAMILY_LABELS: Record<string, string> = {
