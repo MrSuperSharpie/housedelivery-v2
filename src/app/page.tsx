@@ -141,7 +141,7 @@ export default function LandingPage() {
           <div className="max-w-4xl">
             {/* Eyebrow */}
             <div className="flex items-center gap-3 mb-8">
-              <Chip><Zap className="w-3 h-3" /> BC&apos;s First On-Demand Inspection Platform</Chip>
+              <Chip><Zap className="w-3 h-3" /> On-demand permit inspections for Metro Vancouver</Chip>
               <div className="hidden md:flex items-center gap-2 text-xs text-muted">
                 <div className="w-1.5 h-1.5 bg-success-green rounded-full animate-pulse" />
                 Live in Metro Vancouver
@@ -158,7 +158,7 @@ export default function LandingPage() {
 
             <p className="text-lg sm:text-xl text-muted max-w-2xl leading-relaxed mb-10">
               Vero connects builders with licensed engineers and architects for rapid private building inspections.
-              Legally binding BC Schedule&nbsp;C-B delivered the same day.
+              Qualified professionals can review, sign, and deliver Schedule C-B packages through Vero.
             </p>
 
             {/* CTA row */}
@@ -190,9 +190,9 @@ export default function LandingPage() {
         <div className="relative border-t border-b border-white/5 bg-panel/60 backdrop-blur-sm">
           <div className="max-w-3xl mx-auto grid grid-cols-2 md:grid-cols-4">
             <StatPill value="24 hrs"  label="Emergency dispatch" />
-            <StatPill value="4.9★"    label="Average inspector rating" />
+            <StatPill value="Vetted"  label="Credential-verified inspectors" />
             <StatPill value="24 hr"   label="Guaranteed payout" />
-            <StatPill value="100%"    label="Schedule C-B success rate" />
+            <StatPill value="Audit-ready" label="Schedule C-B workflow" />
           </div>
         </div>
         </section>
@@ -219,7 +219,7 @@ export default function LandingPage() {
           <AudienceCard
             icon={HardHat}
             eyebrow="Certified Professionals"
-            title="Turn your licence into instant revenue."
+            title="Accept verified inspection work on your terms."
             body="Claim jobs on your commute. Zero paperwork — the app generates the Schedule C-B automatically. Payment hits your bank account the moment the builder releases funds."
             href="/inspector"
             cta="View live board"
