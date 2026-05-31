@@ -179,6 +179,17 @@ export async function POST(req: NextRequest) {
       ],
     })
     logEmailResult(eventKey, result)
+
+    if (email) {
+      const userResult = await sendVeroEmail({
+        eventKey: 'inspector.application_submitted',
+        to: email,
+        recipientName: nameFromProfile(profileRow, email),
+        ctaUrl: `${APP_URL}/inspector/onboarding`,
+      })
+      logEmailResult('inspector.application_submitted', userResult)
+    }
+
     return NextResponse.json({ ok: true, email: result })
   }
 
@@ -223,6 +234,17 @@ export async function POST(req: NextRequest) {
       ],
     })
     logEmailResult(eventKey, result)
+
+    if (email) {
+      const userResult = await sendVeroEmail({
+        eventKey: 'builder.profile_submitted',
+        to: email,
+        recipientName: builderName,
+        ctaUrl: `${APP_URL}/builder/onboarding`,
+      })
+      logEmailResult('builder.profile_submitted', userResult)
+    }
+
     return NextResponse.json({ ok: true, email: result })
   }
 
