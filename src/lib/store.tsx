@@ -56,6 +56,7 @@ import {
   upsertPaymentDecision,
 } from '@/lib/supabase/governance'
 import { listProjectsByBuilder, upsertProject as upsertProjectRecord } from '@/lib/supabase/projects'
+import { normalizeRegionFromCity } from '@/lib/cityRegionMapping'
 import { normalizeAssignmentUiSnapshot } from '@/lib/governance/assignments'
 import {
   validateClaimGovernance,
@@ -269,18 +270,6 @@ function normalizeJobTimeSlots(value: unknown): JobTimeSlot[] {
     .filter((slot): slot is JobTimeSlot => Boolean(slot))
 }
 
-const SUPPORTED_CITY_REGIONS: Array<{ city: string; region: Region }> = [
-  { city: 'Vancouver', region: 'vancouver' },
-  { city: 'Burnaby', region: 'burnaby' },
-  { city: 'Surrey', region: 'surrey' },
-  { city: 'Coquitlam', region: 'coquitlam' },
-  { city: 'Richmond', region: 'richmond' },
-]
-
-function normalizeRegionFromCity(city?: string): Region | null {
-  const value = city?.trim().toLowerCase().replace(/\s+/g, ' ') ?? ''
-  return SUPPORTED_CITY_REGIONS.find(({ city: supportedCity }) => value.includes(supportedCity.toLowerCase()))?.region ?? null
-}
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [projects,     setProjects]     = useState<Project[]>(() => readLS<Project[]>(PROJECTS_KEY, []))
