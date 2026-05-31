@@ -536,6 +536,14 @@ function SignInInner() {
               </div>
             </div>
 
+            {!isNew && (
+              <div className="text-right">
+                <Link href="/forgot-password" className="text-xs text-muted hover:text-ink transition-colors">
+                  Forgot password?
+                </Link>
+              </div>
+            )}
+
             {error && (
               <div className="bg-fail-red/10 border border-fail-red/20 text-fail-red text-xs rounded-xl px-3 py-2">
                 {error}
