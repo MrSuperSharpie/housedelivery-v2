@@ -229,7 +229,7 @@ export default function LandingPage() {
             icon={Eye}
             eyebrow="City Auditors"
             title="Compliance-ready. Zero new software."
-            body="Vero can deliver pre-filled PDF reports to your permit desk when configured — Vancouver first."
+            body="Vero prepares standardized PDF report packages for participating permit desks when municipal workflows are configured."
             href="/auditor"
             cta="Open vault"
             accent="bg-gradient-to-r from-plasma to-transparent"
