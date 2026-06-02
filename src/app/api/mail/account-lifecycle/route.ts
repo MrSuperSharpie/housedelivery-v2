@@ -146,7 +146,7 @@ export async function POST(req: NextRequest) {
     const [{ data: profile }, { data: inspectorRow }] = await Promise.all([
       serviceSupabase
         .from('profiles')
-        .select('id, role, email, full_name, name, first_name, last_name, firm_name, company_name, business_name, onboarding_status')
+        .select('id, role, email, full_name, first_name, last_name, firm_name, onboarding_status')
         .eq('id', userId)
         .maybeSingle(),
       serviceSupabase
@@ -198,7 +198,7 @@ export async function POST(req: NextRequest) {
     const [{ data: profile }, { data: builderRow }] = await Promise.all([
       serviceSupabase
         .from('profiles')
-        .select('id, role, email, full_name, name, first_name, last_name, firm_name, company_name, business_name, onboarding_status')
+        .select('id, role, email, full_name, first_name, last_name, firm_name, onboarding_status')
         .eq('id', userId)
         .maybeSingle(),
       serviceSupabase
@@ -262,7 +262,7 @@ export async function POST(req: NextRequest) {
     const [{ data: profile }, { data: inspectorRow }] = await Promise.all([
       serviceSupabase
         .from('profiles')
-        .select('id, role, email, full_name, name, first_name, last_name, firm_name, company_name, business_name, onboarding_status, verified')
+        .select('id, role, email, full_name, first_name, last_name, firm_name, onboarding_status, verified')
         .eq('id', userId)
         .maybeSingle(),
       serviceSupabase
@@ -307,7 +307,7 @@ export async function POST(req: NextRequest) {
   const [{ data: profile }, { data: builderRow }] = await Promise.all([
     serviceSupabase
       .from('profiles')
-      .select('id, role, email, full_name, name, first_name, last_name, firm_name, company_name, business_name, onboarding_status')
+      .select('id, role, email, full_name, first_name, last_name, firm_name, onboarding_status')
       .eq('id', userId)
       .maybeSingle(),
     serviceSupabase
