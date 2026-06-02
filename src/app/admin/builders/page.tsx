@@ -142,23 +142,17 @@ function BuilderRow({ record: initial, isLive }: { record: BuilderRecord; isLive
   const applyStatus = async (status: BuilderStatus) => {
     setSaving(true)
     if (isLive && record.supabaseId) {
-      // Persist to builder_onboarding_status — the authoritative table
-      const { error } = await supabase
-        .from('builder_onboarding_status')
-        .update({ status, reviewer_note: note, updated_at: new Date().toISOString() })
-        .eq('user_id', record.supabaseId)
-      if (error) {
-        console.error('Builder status update failed:', error)
-        alert('Failed to update status: ' + error.message)
+      const response = await fetch('/api/admin/builders/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: record.supabaseId, status, reviewerNote: note || undefined }),
+      })
+      if (!response.ok) {
+        const data = await response.json().catch(() => null) as { error?: string } | null
+        console.error('[admin/builders] status update failed:', response.status, data?.error)
+        alert('Failed to update status: ' + (data?.error ?? String(response.status)))
         setSaving(false)
         return
-      }
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ onboarding_status: status })
-        .eq('id', record.supabaseId)
-      if (profileError) {
-        console.error('Profile sync failed:', profileError)
       }
       if (status === 'approved' || status === 'needs_info') {
         notifyAccountLifecycleEmail({
