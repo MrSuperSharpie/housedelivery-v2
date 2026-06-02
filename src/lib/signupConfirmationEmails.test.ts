@@ -16,15 +16,15 @@ function read(relPath: string): string {
 test('inspector.application_submitted body includes updated first sentence', () => {
   const source = read('lib/email/templates.ts')
   assert.ok(
-    source.includes('Thank you for submitting your Vero Permit inspector application.'),
+    source.includes('Your Vero Permit inspector application has been received and is now under review.'),
     'inspector template must use updated first sentence'
   )
 })
 
-test('inspector.application_submitted body mentions credentials, trade discipline, service region', () => {
+test('inspector.application_submitted body mentions credentials, service regions, trade discipline', () => {
   const source = read('lib/email/templates.ts')
   assert.ok(
-    source.includes('credentials, trade discipline, service region, and supporting details'),
+    source.includes('credentials, service regions, trade discipline, and requested work areas'),
     'inspector template must name the reviewed items'
   )
 })
@@ -37,18 +37,18 @@ test('inspector.application_submitted body mentions activating profile', () => {
   )
 })
 
-test('inspector.application_submitted body mentions eligible inspection opportunities', () => {
+test('inspector.application_submitted body states no further action required', () => {
   const source = read('lib/email/templates.ts')
   assert.ok(
-    source.includes('eligible inspection opportunities through Vero'),
+    source.includes('No further action is required at this time.'),
     'inspector template must state the post-approval outcome'
   )
 })
 
-test('inspector.application_submitted body includes closing thank-you paragraph', () => {
+test('inspector.application_submitted body mentions additional credentials expand eligibility', () => {
   const source = read('lib/email/templates.ts')
   assert.ok(
-    source.includes('Thank you for helping build a faster, more accountable inspection pathway'),
+    source.includes('Additional credentials may expand the types of inspections you are eligible to claim'),
     'inspector template must include closing thank-you paragraph'
   )
 })
@@ -125,11 +125,11 @@ test('account-lifecycle route still references admin.builder_profile_submitted',
   )
 })
 
-test('account-lifecycle route inspector confirmation uses /inspector/onboarding ctaUrl', () => {
+test('account-lifecycle route inspector confirmation uses /inspector/onboarding-status ctaUrl', () => {
   const source = read('app/api/mail/account-lifecycle/route.ts')
   assert.ok(
-    source.includes('/inspector/onboarding'),
-    'inspector confirmation must link to /inspector/onboarding'
+    source.includes('/inspector/onboarding-status'),
+    'inspector confirmation must link to /inspector/onboarding-status'
   )
 })
 

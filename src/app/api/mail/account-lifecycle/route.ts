@@ -185,7 +185,7 @@ export async function POST(req: NextRequest) {
         eventKey: 'inspector.application_submitted',
         to: email,
         recipientName: nameFromProfile(profileRow, email),
-        ctaUrl: `${APP_URL}/inspector/onboarding`,
+        ctaUrl: `${APP_URL}/inspector/onboarding-status`,
       })
       logEmailResult('inspector.application_submitted', userResult)
     }

@@ -12,15 +12,15 @@ const footerText =
 const templates: Record<VeroEmailEventKey, (context: VeroEmailTemplateContext) => VeroEmailTemplateContent> = {
   'inspector.application_submitted': context => ({
     subject: 'Your Vero Permit inspector application was received',
-    preview: 'Your inspector application is queued for review.',
+    preview: 'Your inspector application is under review.',
     heading: 'Inspector application received',
     body: [
-      greeting(context, 'Thank you for submitting your Vero Permit inspector application.'),
-      'We\'ve received your information and our team will review your credentials, trade discipline, service region, and supporting details before activating your profile.',
-      'If anything is missing or needs clarification, we\'ll contact you with the next steps. Once approved, you\'ll be able to receive eligible inspection opportunities through Vero.',
-      'Thank you for helping build a faster, more accountable inspection pathway for builders, professionals, and communities.',
+      greeting(context, 'Your Vero Permit inspector application has been received and is now under review.'),
+      'Our team will review your credentials, service regions, trade discipline, and requested work areas before activating your profile. No further action is required at this time.',
+      'If we need additional information before your application can move forward, we will contact you directly with the next steps.',
+      'You may add credentials to your profile while your application is under review. Additional credentials may expand the types of inspections you are eligible to claim once approved.',
     ],
-    ctaLabel: 'View your application',
+    ctaLabel: 'View application status',
   }),
   'inspector.approved': context => ({
     subject: 'Your Vero Permit platform access is approved',
