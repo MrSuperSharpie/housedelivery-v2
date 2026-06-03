@@ -131,11 +131,13 @@ function SignInInner() {
 
   const roleParam = (searchParams.get('role') as UserRole) ?? 'builder'
   const nextParam = searchParams.get('next')
+  const modeParam = searchParams.get('mode')
   const initialRole: UserRole = (['builder','inspector','auditor','admin'] as UserRole[]).includes(roleParam) ? roleParam : 'builder'
   const [role, setRole] = useState<UserRole>(initialRole)
   // Admin accounts are never self-created — default to sign-in mode for admin.
   // Inspector accounts are created through /inspector/signup, not this form.
-  const [isNew, setIsNew]   = useState(initialRole !== 'admin' && initialRole !== 'inspector')
+  // mode=signin forces sign-in mode (e.g. when redirected from a protected route).
+  const [isNew, setIsNew]   = useState(modeParam === 'signin' ? false : (initialRole !== 'admin' && initialRole !== 'inspector'))
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState('')
