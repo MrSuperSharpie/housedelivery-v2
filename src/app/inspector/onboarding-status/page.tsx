@@ -63,8 +63,14 @@ export default function InspectorOnboardingStatusPage() {
           <Icon className={`w-8 h-8 ${cfg.className}`} />
         </div>
         <h1 className="text-2xl font-black text-white text-center mb-2">Inspector application status</h1>
-        <p className={`text-sm font-semibold ${cfg.className} text-center mb-6`}>{cfg.label}</p>
-        <p className="text-sm text-blue-400 text-center mb-8">{cfg.desc}</p>
+        {user ? (
+          <>
+            <p className={`text-sm font-semibold ${cfg.className} text-center mb-6`}>{cfg.label}</p>
+            <p className="text-sm text-blue-400 text-center mb-8">{cfg.desc}</p>
+          </>
+        ) : (
+          <p className="text-sm text-blue-400 text-center mb-8">Sign in to view your application status.</p>
+        )}
 
         <div className="bg-[#0d2137] border border-blue-900 rounded-2xl p-5 w-full text-left mb-8">
           <div className="text-xs font-bold text-blue-500 uppercase tracking-widest mb-3">How it works</div>
