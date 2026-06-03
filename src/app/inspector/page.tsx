@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useMemo, useEffect } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Search, ChevronRight, PlayCircle, Clock, Activity, Filter, Briefcase } from 'lucide-react'
 import { Navbar } from '@/components/shared/Navbar'
@@ -642,9 +643,12 @@ export default function InspectorDashboard() {
                   )}
                 </div>
               </div>
-              <div className={`rounded-lg px-2 py-1 shrink-0 ${isDark ? 'bg-amber-500/15 border border-amber-500/30' : 'bg-amber-100 border border-amber-300'}`}>
+              <Link
+                href={`/inspector/completion/${hold.relatedInspectionId}#hold`}
+                className={`rounded-lg px-2 py-1 shrink-0 ${isDark ? 'bg-amber-500/15 border border-amber-500/30' : 'bg-amber-100 border border-amber-300'}`}
+              >
                 <div className="text-[10px] text-amber-500 font-bold">Re-verify Now</div>
-              </div>
+              </Link>
             </div>
           </div>
         ))}

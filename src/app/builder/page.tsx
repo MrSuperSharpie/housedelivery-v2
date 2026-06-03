@@ -1530,9 +1530,6 @@ export default function BuilderDashboard() {
             : hold.builderDeclinedAt
               ? 'Declined — rebook required'
               : 'Builder response pending'
-          const deficiencySummary = hold
-            ? hold.deficiencyReason || hold.reason
-            : 'The project is marked on hold, but no open job_holds record was returned for this job.'
           const affectedItemsSummary = hold
             ? hold.affectedItemSummaries.length > 0
               ? `Affected items: ${hold.affectedItemSummaries.join(' · ')}`
@@ -1566,14 +1563,14 @@ export default function BuilderDashboard() {
               </div>
 
               <div className="px-5 py-3 border-b border-rim">
-                <div className="text-[10px] font-semibold text-muted uppercase tracking-widest mb-1">Deficiency Summary</div>
-                <div className="text-sm font-bold text-ink">{deficiencySummary}</div>
                 {hold?.deficiencyReason && (
                   <>
-                    <div className="mt-3 text-[10px] font-semibold text-muted uppercase tracking-widest mb-1">Required Correction</div>
-                    <div className="text-sm font-semibold text-ink">{hold.reason}</div>
+                    <div className="text-[10px] font-semibold text-muted uppercase tracking-widest mb-1">Deficiency Detail</div>
+                    <div className="text-sm font-bold text-ink mb-3">{hold.deficiencyReason}</div>
                   </>
                 )}
+                <div className="text-[10px] font-semibold text-muted uppercase tracking-widest mb-1">Required Correction</div>
+                <div className="text-sm font-bold text-ink">{hold?.reason ?? 'The project is marked on hold, but no open job_holds record was returned for this job.'}</div>
                 <div className="mt-2 text-xs text-muted">
                   {affectedItemsSummary}
                 </div>
@@ -1767,6 +1764,9 @@ export default function BuilderDashboard() {
                   <div className="mt-2 text-[11px] text-muted">
                     Inspector is returning to verify the correction. Your site is reserved.{' '}
                     Fee locked: <span className="font-bold text-amber-400">${feeAmount.toFixed(2)}</span>
+                  </div>
+                  <div className="mt-1.5 text-[11px] text-muted">
+                    Complete the required correction before the inspector returns. If the correction is not ready, the hold may be extended and additional fees may apply.
                   </div>
                   <div className="mt-1 text-[10px] text-subtle">
                     Accepted {new Date(acceptedAt).toLocaleTimeString('en-CA', { timeZone: 'America/Vancouver', hour: '2-digit', minute: '2-digit' })}
