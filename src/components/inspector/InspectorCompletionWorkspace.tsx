@@ -3693,8 +3693,8 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                   : 'At least one evidence file is required before this container can be passed.'
                 const shortPurpose = summarizePurpose(item.item_purpose)
                 const usesFieldView = item.ui_schema === 'field_view'
-                const stopItems = item.stop_if && item.stop_if.length > 0 ? item.stop_if : item.fail_when
                 const fieldViewDetails = item.view_details?.trim() || item.field_view_details?.trim() || item.item_purpose
+                const stopItems = item.stop_if && item.stop_if.length > 0 ? item.stop_if : item.fail_when
 
                 const checklistItems = item.field_checklist.length > 0 ? item.field_checklist : item.what_to_check
                 const guidancePanelOpen = expandedGuidancePanels[item.item_code] ?? false
@@ -3702,7 +3702,6 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                 const failConditionsOpen = expandedFailConditions[item.item_code] ?? false
                 const containerNotesOpen = expandedContainerNotes[item.item_code] ?? Boolean(item.response_note.trim())
                 const jurisdictionNotesOpen = expandedJurisdictionNotes[item.item_code] ?? false
-                const isS09Item = item.item_code.startsWith('S09-')
 
                 if (usesFieldView) {
                   return (
@@ -3733,12 +3732,12 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                           <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400">
                             {item.documents.length} file{item.documents.length === 1 ? '' : 's'}
                           </span>
-                          {isS09Item && item.responsible_party && (
+                          {usesFieldView && item.responsible_party && (
                             <span className="rounded-full border border-indigo-400/20 bg-indigo-400/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-indigo-300">
                               {item.responsible_party}
                             </span>
                           )}
-                          {isS09Item && item.permit_type && (
+                          {usesFieldView && item.permit_type && (
                             <span className="rounded-full border border-violet-400/20 bg-violet-400/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-violet-300">
                               {item.permit_type}
                             </span>
@@ -3765,7 +3764,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                 )
                               )}
                             </div>
-                            <p className="mt-2 text-[17px] leading-7 text-zinc-300">{isS09Item ? fieldViewDetails : shortPurpose}</p>
+                            <p className="mt-2 text-[17px] leading-7 text-zinc-300">{usesFieldView ? fieldViewDetails : shortPurpose}</p>
                           </div>
                         </div>
                       </div>
@@ -3776,7 +3775,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         </div>
                       )}
 
-                      {isS09Item && item.required_evidence.length > 0 && (
+                      {item.required_evidence.length > 0 && (
                         <div className="mt-4 rounded-2xl border border-orange-500/20 bg-orange-500/5 px-4 py-3">
                           <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300/80">Evidence Required</div>
                           <ul className="mt-1.5 space-y-1">
@@ -3944,7 +3943,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         </div>
                       </div>
 
-                      {(isS09Item ? (item.stop_if ?? []) : stopItems).length > 0 && (
+                      {(item.stop_if ?? []).length > 0 && (
                         <div className="mt-4 rounded-[1.5rem] border border-red-200 border-l-4 border-l-red-300 bg-red-50 p-4 text-red-700">
                           <button
                             type="button"
@@ -3961,7 +3960,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                           {stopConditionsOpen && (
                             <div className="mt-3">
                               <GuidanceList
-                                items={isS09Item ? (item.stop_if ?? []) : stopItems}
+                                items={item.stop_if ?? []}
                                 bulletClassName="bg-red-300"
                                 textClassName="text-sm text-red-950"
                               />
@@ -3970,7 +3969,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         </div>
                       )}
 
-                      {isS09Item && item.fail_when.length > 0 && (
+                      {item.fail_when.length > 0 && (
                         <div className="mt-3 rounded-[1.5rem] border border-amber-800/20 border-l-4 border-l-amber-700/30 bg-amber-950/20 p-4">
                           <button
                             type="button"
@@ -4092,7 +4091,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                               </div>
 
                               <div className={`rounded-3xl border border-emerald-500/15 bg-emerald-500/5 p-4 ${FLOATING_PANEL_CLASS}`}>
-                                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-200/80">{isS09Item ? 'Pass / Fail / Pending' : 'Pass / Pending'}</div>
+                                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-200/80">Pass / Fail / Pending</div>
                                 <div className="mt-3">
                                   <div className="text-xs font-black uppercase tracking-[0.14em] text-emerald-300">Pass When</div>
                                   <div className="mt-2">
@@ -4103,7 +4102,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                     />
                                   </div>
                                 </div>
-                                {isS09Item && item.fail_when.length > 0 && (
+                                {item.fail_when.length > 0 && (
                                   <div className="mt-4">
                                     <div className="text-xs font-black uppercase tracking-[0.14em] text-rose-300">Fail When</div>
                                     <div className="mt-2">
@@ -4171,7 +4170,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                   className="flex w-full items-center justify-between gap-3 text-left"
                                 >
                                   <div>
-                                    <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">{isS09Item ? 'Inspection Notes / Deficiencies' : 'Container Notes'}</div>
+                                    <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Inspection Notes / Deficiencies</div>
                                     <div className="mt-1 text-xs text-zinc-400">{item.response_note.trim() ? 'Saved note present.' : 'Collapsed until notes are needed.'}</div>
                                   </div>
                                   <ChevronRight className={`h-5 w-5 text-zinc-400 transition-transform ${containerNotesOpen ? 'rotate-90' : ''}`} />
@@ -4196,7 +4195,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                 )}
                               </div>
 
-                              {isS09Item && PILOT_S9_CODE_REFS && (
+                              {PILOT_S9_CODE_REFS && (
                                 <StageCodeReferences refs={item.code_references} />
                               )}
 
@@ -4222,9 +4221,6 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                   </div>
                                 )}
                               </div>
-                              {!isS09Item && PILOT_S9_CODE_REFS && (
-                                <StageCodeReferences refs={item.code_references} />
-                              )}
                             </div>
                           </div>
 

@@ -335,6 +335,6 @@ test('InspectorCompletionWorkspace is not changed by S09 content-completion pass
   const source = read(WORKSPACE)
   // The workspace must still have the existing S09 routing logic unchanged
   assert.ok(source.includes('DISCIPLINE_STAGE_OVERRIDE'), 'Workspace routing logic must be preserved')
-  assert.ok(source.includes('isS09Item'), 'isS09Item guard must be preserved in workspace')
+  assert.ok(source.includes('usesFieldView && item.responsible_party'), 'usesFieldView must gate responsible_party for all field_view items')
   assert.ok(source.includes('PILOT_S9_CODE_REFS'), 'PILOT_S9_CODE_REFS must be preserved in workspace')
 })

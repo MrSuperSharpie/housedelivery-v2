@@ -476,7 +476,7 @@ test('final-occupancy route does not reference S04 or S05 items added in Batch 2
 test('InspectorCompletionWorkspace routing logic is preserved', () => {
   const source = read(WORKSPACE)
   assert.ok(source.includes('DISCIPLINE_STAGE_OVERRIDE'), 'DISCIPLINE_STAGE_OVERRIDE must be preserved')
-  assert.ok(source.includes('isS09Item'), 'isS09Item guard must be preserved')
+  assert.ok(source.includes('usesFieldView && item.responsible_party'), 'usesFieldView must gate responsible_party for all field_view items')
   assert.ok(source.includes('PILOT_S9_CODE_REFS'), 'PILOT_S9_CODE_REFS must be preserved')
 })
 

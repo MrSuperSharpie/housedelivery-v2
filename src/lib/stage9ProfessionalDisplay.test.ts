@@ -14,27 +14,27 @@ const SCHEDULE_CB = 'app/api/schedule-cb/route.ts'
 const FINAL_OCC = 'app/api/inspections/final-occupancy/route.ts'
 
 // ===========================================================================
-// 1. S09 guard — changes are gated to S09 items only
+// 1. usesFieldView guard — rich display applies to all field_view items
 // ===========================================================================
 
-test('isS09Item guard is declared in the field_view render path', () => {
+test('usesFieldView is declared in the field_view render path', () => {
   const source = read(WORKSPACE)
   assert.ok(
-    source.includes("isS09Item = item.item_code.startsWith('S09-')"),
-    'isS09Item guard must be declared inside the render loop'
+    source.includes("usesFieldView = item.ui_schema === 'field_view'"),
+    'usesFieldView must be declared inside the render loop'
   )
 })
 
-test('responsible_party badge is conditionally gated on isS09Item', () => {
+test('responsible_party badge is conditionally gated on usesFieldView', () => {
   const source = read(WORKSPACE)
-  const guardIdx = source.indexOf('isS09Item && item.responsible_party')
-  assert.ok(guardIdx !== -1, 'responsible_party must be gated on isS09Item')
+  const guardIdx = source.indexOf('usesFieldView && item.responsible_party')
+  assert.ok(guardIdx !== -1, 'responsible_party must be gated on usesFieldView')
 })
 
-test('permit_type badge is conditionally gated on isS09Item', () => {
+test('permit_type badge is conditionally gated on usesFieldView', () => {
   const source = read(WORKSPACE)
-  const guardIdx = source.indexOf('isS09Item && item.permit_type')
-  assert.ok(guardIdx !== -1, 'permit_type must be gated on isS09Item')
+  const guardIdx = source.indexOf('usesFieldView && item.permit_type')
+  assert.ok(guardIdx !== -1, 'permit_type must be gated on usesFieldView')
 })
 
 // ===========================================================================
@@ -43,16 +43,16 @@ test('permit_type badge is conditionally gated on isS09Item', () => {
 
 test('responsible_party badge uses indigo styling', () => {
   const source = read(WORKSPACE)
-  const guardIdx = source.indexOf('isS09Item && item.responsible_party')
-  assert.ok(guardIdx !== -1, 'isS09Item-gated responsible_party block must exist')
+  const guardIdx = source.indexOf('usesFieldView && item.responsible_party')
+  assert.ok(guardIdx !== -1, 'usesFieldView-gated responsible_party block must exist')
   const block = source.slice(guardIdx, guardIdx + 400)
   assert.ok(block.includes('indigo'), 'responsible_party badge must use indigo colour')
 })
 
 test('permit_type badge uses violet styling', () => {
   const source = read(WORKSPACE)
-  const guardIdx = source.indexOf('isS09Item && item.permit_type')
-  assert.ok(guardIdx !== -1, 'isS09Item-gated permit_type block must exist')
+  const guardIdx = source.indexOf('usesFieldView && item.permit_type')
+  assert.ok(guardIdx !== -1, 'usesFieldView-gated permit_type block must exist')
   const block = source.slice(guardIdx, guardIdx + 400)
   assert.ok(block.includes('violet'), 'permit_type badge must use violet colour')
 })
@@ -61,11 +61,11 @@ test('permit_type badge uses violet styling', () => {
 // 3. Full purpose — fieldViewDetails used for S09
 // ===========================================================================
 
-test('S09 items use fieldViewDetails instead of shortPurpose in the purpose slot', () => {
+test('field_view items use fieldViewDetails instead of shortPurpose in the purpose slot', () => {
   const source = read(WORKSPACE)
   assert.ok(
-    source.includes('isS09Item ? fieldViewDetails : shortPurpose'),
-    'S09 items must render fieldViewDetails; non-S09 items must render shortPurpose'
+    source.includes('usesFieldView ? fieldViewDetails : shortPurpose'),
+    'field_view items must render fieldViewDetails; standard items must render shortPurpose'
   )
 })
 
@@ -73,11 +73,11 @@ test('S09 items use fieldViewDetails instead of shortPurpose in the purpose slot
 // 4. Required evidence strip — above Field Checklist for S09
 // ===========================================================================
 
-test('required evidence strip is gated on isS09Item', () => {
+test('required evidence strip is shown for all field_view items with evidence', () => {
   const source = read(WORKSPACE)
   assert.ok(
-    source.includes('isS09Item && item.required_evidence.length > 0'),
-    'required evidence strip must be gated on isS09Item'
+    source.includes('item.required_evidence.length > 0 && ('),
+    'required evidence strip must be shown whenever required_evidence is non-empty'
   )
 })
 
@@ -97,12 +97,12 @@ test('required evidence strip appears before Field Checklist in source order', (
 // 5. Separate fail conditions — stop_if and fail_when rendered independently
 // ===========================================================================
 
-test('stop_if and fail_when are rendered in separate panels for S09', () => {
+test('stop_if and fail_when are rendered in separate panels for all field_view items', () => {
   const source = read(WORKSPACE)
-  // S09 stop conditions use item.stop_if directly (not the merged stopItems)
+  // Critical Stop Conditions uses stop_if only — fail_when has its own dedicated panel
   assert.ok(
-    source.includes('isS09Item ? (item.stop_if ?? []) : stopItems'),
-    'Critical Stop Conditions must use item.stop_if for S09, stopItems fallback for others'
+    source.includes('(item.stop_if ?? []).length > 0 && ('),
+    'Critical Stop Conditions must use item.stop_if only, not the merged stopItems fallback'
   )
 })
 
@@ -114,11 +114,16 @@ test('Fail Conditions panel exists with amber styling for S09', () => {
   assert.ok(block.includes('amber'), 'Fail Conditions panel must use amber styling')
 })
 
-test('Fail Conditions panel is gated on isS09Item', () => {
+test('Fail Conditions panel is shown for all field_view items with fail_when', () => {
   const source = read(WORKSPACE)
+  assert.ok(source.includes('Fail Conditions'), 'Fail Conditions panel must exist')
   assert.ok(
-    source.includes('isS09Item && item.fail_when.length > 0'),
-    'Fail Conditions panel must be gated on isS09Item'
+    source.includes('item.fail_when.length > 0 && ('),
+    'Fail Conditions panel must be gated on item.fail_when.length > 0'
+  )
+  assert.ok(
+    !source.includes('isS09Item && item.fail_when.length > 0'),
+    'Fail Conditions must not be restricted to S09 items'
   )
 })
 
@@ -154,13 +159,16 @@ test('fail_when is referenced inside the guidance accordion block', () => {
   )
 })
 
-test('Fail When section in guidance is gated on isS09Item', () => {
+test('Fail When section in guidance is shown for all field_view items with fail_when', () => {
   const source = read(WORKSPACE)
   assert.ok(source.includes('Fail When'), 'Fail When label must appear in guidance accordion')
-  // The guard wraps the entire Fail When block; search for the guard expression directly
+  // Guard is now item.fail_when.length > 0 only — not restricted to S09
+  const guidanceOpen = source.indexOf('guidancePanelOpen && (')
+  assert.ok(guidanceOpen !== -1, 'guidancePanelOpen block must exist')
+  const failWhenInGuidance = source.indexOf('item.fail_when.length > 0 && (', guidanceOpen)
   assert.ok(
-    source.includes("isS09Item && item.fail_when.length > 0 && ("),
-    'Fail When rendering in guidance accordion must be gated on isS09Item && item.fail_when.length > 0'
+    failWhenInGuidance !== -1,
+    'Fail When in guidance accordion must be gated on item.fail_when.length > 0'
   )
 })
 
@@ -176,19 +184,15 @@ test('Inspection Notes / Deficiencies label appears in workspace', () => {
   )
 })
 
-test('Container Notes label is retained for non-S09 items', () => {
+test('Inspection Notes / Deficiencies label is used for all field_view items', () => {
   const source = read(WORKSPACE)
   assert.ok(
-    source.includes('Container Notes'),
-    '"Container Notes" label must still appear for non-S09 items'
+    source.includes('Inspection Notes / Deficiencies'),
+    '"Inspection Notes / Deficiencies" label must appear in InspectorCompletionWorkspace'
   )
-})
-
-test('Notes label is conditionally toggled on isS09Item', () => {
-  const source = read(WORKSPACE)
   assert.ok(
-    source.includes("isS09Item ? 'Inspection Notes / Deficiencies' : 'Container Notes'"),
-    'Notes label must toggle based on isS09Item'
+    !source.includes("isS09Item ? 'Inspection Notes / Deficiencies'"),
+    'Notes label must not be conditionally toggled on isS09Item'
   )
 })
 
@@ -196,26 +200,15 @@ test('Notes label is conditionally toggled on isS09Item', () => {
 // 8. Code References placement — above Jurisdiction Notes for S09
 // ===========================================================================
 
-test('StageCodeReferences is rendered above Jurisdiction Notes for S09', () => {
+test('StageCodeReferences is rendered above Jurisdiction Notes for all field_view items', () => {
   const source = read(WORKSPACE)
-  const s09CodeRefsIdx = source.indexOf('isS09Item && PILOT_S9_CODE_REFS')
+  const codeRefsIdx = source.indexOf('PILOT_S9_CODE_REFS && (')
   const jurisdictionNotesIdx = source.indexOf('Jurisdiction Notes')
-  assert.ok(s09CodeRefsIdx !== -1, 'S09-gated StageCodeReferences must exist')
+  assert.ok(codeRefsIdx !== -1, 'PILOT_S9_CODE_REFS-gated StageCodeReferences must exist')
   assert.ok(jurisdictionNotesIdx !== -1, 'Jurisdiction Notes label must exist')
   assert.ok(
-    s09CodeRefsIdx < jurisdictionNotesIdx,
-    'S09 StageCodeReferences must appear before Jurisdiction Notes in source order'
-  )
-})
-
-test('non-S09 StageCodeReferences remains after Jurisdiction Notes', () => {
-  const source = read(WORKSPACE)
-  const jurisdictionNotesIdx = source.indexOf('Jurisdiction Notes')
-  const nonS09CodeRefsIdx = source.indexOf('!isS09Item && PILOT_S9_CODE_REFS')
-  assert.ok(nonS09CodeRefsIdx !== -1, 'Non-S09 StageCodeReferences fallback must exist')
-  assert.ok(
-    nonS09CodeRefsIdx > jurisdictionNotesIdx,
-    'Non-S09 StageCodeReferences must appear after Jurisdiction Notes'
+    codeRefsIdx < jurisdictionNotesIdx,
+    'StageCodeReferences must appear before Jurisdiction Notes in source order'
   )
 })
 
