@@ -6,6 +6,7 @@ export interface ScheduleCBPacketItemRecord {
   itemCode: string
   itemLabel: string
   responseNote?: string
+  ahjNotes?: string
   stageNumber: number
   stageName: string
   inspectionStatus?: 'Pending' | 'Passed' | 'Failed' | 'N/A'
@@ -155,6 +156,7 @@ export interface ScheduleCBPacketData {
   }
   auditTrail: ScheduleCBPacketAuditTrail
   appendixEntries: ScheduleCBPacketAppendixEntry[]
+  items: ScheduleCBPacketItemRecord[]
   holdHistory: HoldHistoryEntry[]
   legal: {
     statutoryTemplateVersion: string

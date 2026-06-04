@@ -255,8 +255,11 @@ export function buildScheduleCBPacketData(source: ScheduleCBPacketSource): Sched
   const reviewedCount = checklistSummary.passCount + checklistSummary.failCount + checklistSummary.naCount
   const overallResult: string = (() => {
     if (rawResult !== 'pass') return rawResult
-    // Cannot be PASS if no items were reviewed, or if any item failed
-    if (reviewedCount === 0 || checklistSummary.failCount > 0) return 'fail'
+    // Only downgrade a 'pass' claim when explicit failures exist.
+    // reviewedCount === 0 alone does not justify a 'fail' — a sealed inspection
+    // with all-Pending items (e.g. status not persisted before sealing) should not
+    // produce a misleading 'fail' outcome on a legitimate sealed record.
+    if (checklistSummary.failCount > 0) return 'fail'
     return 'pass'
   })()
 
@@ -296,7 +299,11 @@ export function buildScheduleCBPacketData(source: ScheduleCBPacketSource): Sched
     doc => typeof doc.storagePath === 'string' && doc.storagePath.trim() !== '',
   )
 
-  const appendixEntries: ScheduleCBPacketAppendixEntry[] = [...persistedDocuments]
+  // Track which item codes have at least one attached document so note-only
+  // items can be identified and included as text-only appendix entries.
+  const itemCodesWithDocuments = new Set(persistedDocuments.map(doc => doc.itemCode))
+
+  const documentAppendixEntries: ScheduleCBPacketAppendixEntry[] = [...persistedDocuments]
     .sort((left, right) => {
       const leftItem = itemMap.get(left.itemCode)
       const rightItem = itemMap.get(right.itemCode)
@@ -327,6 +334,26 @@ export function buildScheduleCBPacketData(source: ScheduleCBPacketSource): Sched
         signedUrl: document.signedUrl,
       }
     })
+
+  // Note-only entries: items that have an inspector note or AHJ note but no
+  // attached document. These would otherwise be invisible in the final PDF.
+  const noteOnlyEntries: ScheduleCBPacketAppendixEntry[] = source.items
+    .filter(item =>
+      !itemCodesWithDocuments.has(item.itemCode) &&
+      Boolean(item.responseNote?.trim() || item.ahjNotes?.trim()),
+    )
+    .map(item => ({
+      id: `note-${item.itemCode}`,
+      fileName: `Field observation · ${item.itemCode}`,
+      fileKindLabel: 'Field Observation',
+      caption: item.responseNote?.trim() ?? item.ahjNotes?.trim() ?? '',
+      requirementReference: buildRequirementReference(item),
+      capturedAtIso: certificationTimestamp,
+      capturedAtDisplay: formatDisplayTimestamp(certificationTimestamp),
+      coordinatesText: 'Not captured',
+    }))
+
+  const appendixEntries = [...documentAppendixEntries, ...noteOnlyEntries]
 
   return {
     templateVersion: SCHEDULE_CB_PACKET_TEMPLATE_MANIFEST.packetTemplateVersion,
@@ -395,6 +422,7 @@ export function buildScheduleCBPacketData(source: ScheduleCBPacketSource): Sched
       },
     },
     appendixEntries,
+    items: source.items,
     holdHistory,
     legal: {
       statutoryTemplateVersion: SCHEDULE_CB_PACKET_TEMPLATE_MANIFEST.statutoryTemplateVersion,

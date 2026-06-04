@@ -2460,7 +2460,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
       certRef: sealReference,
       jobRef: job.id,
       permitNumber: job.permitNumber,
-      discipline: undefined,
+      discipline: activeUser.designation ?? activeUser.disciplines?.[0] ?? undefined,
       region: job.region,
       jurisdictionId: overlay.jurisdictionName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
       jurisdictionName: overlay.jurisdictionName,

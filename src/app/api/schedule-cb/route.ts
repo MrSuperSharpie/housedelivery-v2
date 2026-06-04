@@ -74,6 +74,7 @@ function toPacketItem(row: Record<string, unknown>): ScheduleCBPacketItemRecord 
     itemCode: row.item_code as string,
     itemLabel: row.item_label as string,
     responseNote: (row.response_note as string) ?? undefined,
+    ahjNotes: (row.ahj_notes as string) ?? undefined,
     stageNumber: (row.stage_number as number) ?? 0,
     stageName: (row.stage_name as string) ?? '',
     inspectionStatus: (row.inspection_status as 'Pending' | 'Passed' | 'Failed' | 'N/A') ?? undefined,
@@ -259,7 +260,7 @@ const DEV_PREVIEW_REPORT: InspectorCompletionReportRow = (() => {
 const DEV_PREVIEW_ITEMS: ScheduleCBPacketItemRecord[] = [
   { itemCode: 'S01-01', itemLabel: 'Site Preparation & Layout',  stageNumber: 1,  stageName: 'Site Preparation',  responseNote: 'Verified on site — compliant.' },
   { itemCode: 'S02-01', itemLabel: 'Foundation Formwork',        stageNumber: 2,  stageName: 'Foundation',         responseNote: 'Formwork dimensions confirmed.' },
-  { itemCode: 'S15-01', itemLabel: 'Final Occupancy Inspection', stageNumber: 15, stageName: 'Final Occupancy',    responseNote: 'All items resolved.' },
+  { itemCode: 'S15-01', itemLabel: 'Life-Safety Systems Final Verification', stageNumber: 15, stageName: 'Inspections, Final Approval, and Occupancy', responseNote: 'Life-safety systems confirmed operable at reviewed locations.' },
 ]
 
 const DEV_PREVIEW_OPTIONS: ScheduleCBOptions = {
@@ -630,7 +631,7 @@ export async function GET(req: NextRequest) {
       const [{ data: itemRows, error: itemsError }, { data: documentRows, error: documentsError }] = await Promise.all([
         dbClient
           .from(ITEMS)
-          .select('item_code, item_label, response_note, stage_number, stage_name, inspection_status')
+          .select('item_code, item_label, response_note, ahj_notes, stage_number, stage_name, inspection_status')
           .in('report_id', allReportIds)
           .order('stage_number', { ascending: true })
           .order('sort_order', { ascending: true }),

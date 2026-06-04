@@ -690,6 +690,13 @@ function CoverPage({ data }: { data: ScheduleCBPacketData }) {
   )
 }
 
+function itemStatusColor(status?: string): string {
+  if (status === 'Passed') return '#166534'
+  if (status === 'Failed') return '#991b1b'
+  if (status === 'N/A') return '#6b7280'
+  return '#374151'
+}
+
 function AuditTrailPage({ data }: { data: ScheduleCBPacketData }) {
   return (
     <section className="packet-page">
@@ -830,6 +837,44 @@ function AuditTrailPage({ data }: { data: ScheduleCBPacketData }) {
             </div>
           </article>
         </div>
+
+        {data.items.length > 0 ? (
+          <article className="audit-card" style={{ marginTop: '0' }}>
+            <h3 className="audit-card-title">Checklist Results</h3>
+            <table className="ledger-table" aria-label="Per-item checklist inspection results">
+              <thead>
+                <tr>
+                  <td style={{ fontWeight: 700, color: '#111827', whiteSpace: 'nowrap' }}>Stage · Code</td>
+                  <td style={{ fontWeight: 700, color: '#111827' }}>Item</td>
+                  <td style={{ fontWeight: 700, color: '#111827', whiteSpace: 'nowrap' }}>Status</td>
+                  <td style={{ fontWeight: 700, color: '#111827' }}>Inspector Note / AHJ Note</td>
+                </tr>
+              </thead>
+              <tbody>
+                {data.items.map(item => (
+                  <tr key={item.itemCode}>
+                    <td className="mono" style={{ fontSize: '11px', whiteSpace: 'nowrap', verticalAlign: 'top' }}>
+                      {item.stageNumber} · {item.itemCode}
+                    </td>
+                    <td style={{ verticalAlign: 'top' }}>{item.itemLabel}</td>
+                    <td style={{ whiteSpace: 'nowrap', fontWeight: 600, color: itemStatusColor(item.inspectionStatus), verticalAlign: 'top' }}>
+                      {item.inspectionStatus ?? '—'}
+                    </td>
+                    <td style={{ fontSize: '12px', verticalAlign: 'top' }}>
+                      {item.responseNote ? <div>{item.responseNote}</div> : null}
+                      {item.ahjNotes ? (
+                        <div style={{ color: '#6b7280', fontStyle: 'italic', marginTop: item.responseNote ? '3px' : '0' }}>
+                          AHJ: {item.ahjNotes}
+                        </div>
+                      ) : null}
+                      {!item.responseNote && !item.ahjNotes ? <span style={{ color: '#9ca3af' }}>—</span> : null}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </article>
+        ) : null}
 
         <PageFooter data={data} label={data.trailEyebrow} />
       </div>
