@@ -483,9 +483,15 @@ export default function InspectorDashboard() {
 
   const inspectorEligibility = useMemo(() => {
     if (user?.supabaseId) {
+      const approvedLanes = eligibilityProfile?.approvedRoleLanes ?? []
+      const baseDisciplines = eligibilityProfile?.disciplines ?? []
+      const derived = [...baseDisciplines]
+      if (approvedLanes.includes('electrical_fsr') && !derived.includes('electrical')) {
+        derived.push('electrical')
+      }
       const result = {
         status: eligibilityProfile?.status ?? onboardingStatus,
-        disciplines: eligibilityProfile?.disciplines ?? [],
+        disciplines: derived,
         regions: eligibilityProfile?.regions ?? [],
         credentialExpiryDate: eligibilityProfile?.credentialExpiresAt,
       }
