@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
 
   const { data: profileRows, error: profilesError } = await serviceSupabase
     .from('profiles')
-    .select('id, full_name, firm_name, email, name, first_name, last_name, company_name, business_name, contact_email, digital_seal_url')
+    .select('id, full_name, firm_name, email, first_name, last_name, digital_seal_url')
     .in('id', userIds)
 
   if (profilesError) {
