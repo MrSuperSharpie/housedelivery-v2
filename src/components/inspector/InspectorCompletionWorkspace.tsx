@@ -492,6 +492,8 @@ const DISCIPLINE_STAGE_OVERRIDE: Partial<Record<string, Partial<Record<number, n
   architectural:    { 3: 7 },
   fire_protection:  { 3: 8 },
   plumbing:         { 3: 9 },
+  electrical:       { 3: 10 },
+  mechanical:       { 3: 11 },
 }
 
 const BUILDER_STAGE_LABELS: Record<number, string> = {

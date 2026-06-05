@@ -251,6 +251,24 @@ test('DISCIPLINE_STAGE_OVERRIDE still maps plumbing builder stage 3 to completio
   assert.ok(overrideBlock.includes('3: 9'), 'Override must still map builder stage 3 to completion stage 9 for plumbing')
 })
 
+test('DISCIPLINE_STAGE_OVERRIDE maps electrical builder stage 3 to completion stage 10', () => {
+  const source = read('components/inspector/InspectorCompletionWorkspace.tsx')
+  const overrideStart = source.indexOf('DISCIPLINE_STAGE_OVERRIDE')
+  const overrideEnd = source.indexOf('const BUILDER_STAGE_LABELS', overrideStart)
+  const overrideBlock = source.slice(overrideStart, overrideEnd)
+  assert.ok(overrideBlock.includes('electrical'), 'Override must include electrical key')
+  assert.ok(overrideBlock.includes('3: 10'), 'Override must map builder stage 3 to completion stage 10 for electrical')
+})
+
+test('DISCIPLINE_STAGE_OVERRIDE maps mechanical builder stage 3 to completion stage 11', () => {
+  const source = read('components/inspector/InspectorCompletionWorkspace.tsx')
+  const overrideStart = source.indexOf('DISCIPLINE_STAGE_OVERRIDE')
+  const overrideEnd = source.indexOf('const BUILDER_STAGE_LABELS', overrideStart)
+  const overrideBlock = source.slice(overrideStart, overrideEnd)
+  assert.ok(overrideBlock.includes('mechanical'), 'Override must include mechanical key')
+  assert.ok(overrideBlock.includes('3: 11'), 'Override must map builder stage 3 to completion stage 11 for mechanical')
+})
+
 test('BUILDER_STAGE_TO_COMPLETION_STAGE still maps stage 3 to 6 as structural default', () => {
   const source = read('components/inspector/InspectorCompletionWorkspace.tsx')
   const overrideEnd = source.indexOf('DISCIPLINE_STAGE_OVERRIDE')
