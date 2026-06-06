@@ -480,17 +480,26 @@ export default function InspectorSignup() {
   //   - submitted / under_review → redirect to onboarding status page (they wait)
   //   - needs_info / draft       → resume credential step (they need to continue)
   const [existingUserId, setExistingUserId] = useState<string | null>(null)
+  const [blockedRole, setBlockedRole] = useState<'admin' | 'builder' | null>(null)
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session?.user) return
       const u = session.user
 
       // Use profiles.onboarding_status as the single source of truth.
+      // Also fetch role to block admin/builder sessions before any form state is set.
       const { data: profileRow } = await supabase
         .from('profiles')
-        .select('onboarding_status, verified')
+        .select('onboarding_status, verified, role')
         .eq('id', u.id)
         .maybeSingle()
+
+      const profileRole = typeof profileRow?.role === 'string' ? profileRow.role : null
+      if (profileRole === 'admin' || profileRole === 'builder') {
+        setBlockedRole(profileRole as 'admin' | 'builder')
+        return
+      }
+
       const onboardingStatus = typeof profileRow?.onboarding_status === 'string'
         ? profileRow.onboarding_status
         : 'draft'
@@ -844,6 +853,31 @@ export default function InspectorSignup() {
 
     try { sessionStorage.setItem('vero_just_submitted', '1') } catch {}
     router.replace('/inspector/onboarding?submitted=1')
+  }
+
+  // ── Blocked screen — signed-in admin or builder ───────────────────────────
+
+  if (blockedRole !== null) {
+    const dashboardPath  = blockedRole === 'admin' ? '/admin' : '/builder'
+    const dashboardLabel = blockedRole === 'admin' ? 'Admin Dashboard' : 'Builder Dashboard'
+    return (
+      <div className="min-h-screen bg-[#0A192F] flex flex-col items-center justify-center p-6 text-center">
+        <Shield className="w-16 h-16 text-[#FF5F15] mb-4" />
+        <h1 className="text-3xl font-black text-white mb-2">Access Restricted</h1>
+        <p className="text-blue-300 mb-2 max-w-sm">
+          You are signed in as a{blockedRole === 'admin' ? 'n' : ''} <span className="text-white font-bold">{blockedRole}</span> account.
+        </p>
+        <p className="text-blue-500 text-sm mb-8 max-w-sm">
+          Inspector signup is not available for this account type. Sign out first if you need to create a separate inspector account.
+        </p>
+        <Link
+          href={dashboardPath}
+          className="inline-flex items-center gap-2 bg-[#FF5F15] text-white font-bold px-6 py-3 rounded-xl hover:bg-orange-600 transition-colors"
+        >
+          Go to {dashboardLabel}
+        </Link>
+      </div>
+    )
   }
 
   // ── Submitted screen ──────────────────────────────────────────────────────

@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
   if (email) {
     const { data, error } = await supabase
       .from('profiles')
-      .select('id')
+      .select('id, role')
       .eq('email', email)
       .limit(1)
 
@@ -62,6 +62,14 @@ export async function POST(req: NextRequest) {
     }
 
     if ((data ?? []).length > 0) {
+      const existingRole = (data![0] as { id: string; role?: string | null }).role
+      if (existingRole === 'admin' || existingRole === 'builder') {
+        return NextResponse.json({
+          conflict: 'email',
+          blocked_role: existingRole,
+          message: 'This email belongs to an admin or builder account. Inspector signup is not available for this account type.',
+        }, { status: 409 })
+      }
       return NextResponse.json({
         conflict: 'email',
         message: 'This email is already registered. Please Sign In to continue.',
@@ -72,7 +80,7 @@ export async function POST(req: NextRequest) {
   if (phone) {
     const { data, error } = await supabase
       .from('profiles')
-      .select('id')
+      .select('id, role')
       .eq('phone', phone)
       .limit(1)
 
@@ -82,6 +90,14 @@ export async function POST(req: NextRequest) {
     }
 
     if ((data ?? []).length > 0) {
+      const existingRole = (data![0] as { id: string; role?: string | null }).role
+      if (existingRole === 'admin' || existingRole === 'builder') {
+        return NextResponse.json({
+          conflict: 'phone',
+          blocked_role: existingRole,
+          message: 'This phone belongs to an admin or builder account. Inspector signup is not available for this account type.',
+        }, { status: 409 })
+      }
       return NextResponse.json({
         conflict: 'phone',
         message: 'This phone is already registered. Please Sign In to continue.',
