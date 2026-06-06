@@ -115,29 +115,32 @@ test('Stage 9 Plumbing references DB stage by slug, not by raw stage number', ()
   )
 })
 
-test('Stage 14 Final Site & Grading references DB stage by slug, not by raw stage number', () => {
+test('Stage 14 Exterior Works and Site Finalization references DB stage by slug, not by raw stage number', () => {
   const source = read('lib/checklistMappingAudit.ts')
   const block = mappingBlock(source, 'final-site')
   assert.ok(block.includes('tsStageNumber: 14'), 'final-site domain must declare tsStageNumber 14')
-  assert.ok(block.includes("'final_site_grading'"), 'final-site domain must reference DB stage by slug final_site_grading')
+  assert.ok(block.includes("'exterior_works_site_finalization'"), 'final-site domain must reference DB stage by slug exterior_works_site_finalization')
 })
 
-test('Stage 15 Final Occupancy references DB stage by slug, not by raw stage number', () => {
+test('Stage 15 Inspections Final Approval and Occupancy references DB stage by slug, not by raw stage number', () => {
   const source = read('lib/checklistMappingAudit.ts')
   const block = mappingBlock(source, 'final-occupancy')
   assert.ok(block.includes('tsStageNumber: 15'), 'final-occupancy domain must declare tsStageNumber 15')
-  assert.ok(block.includes("'final_occupancy_permit'"), 'final-occupancy must reference DB stage by slug final_occupancy_permit')
+  assert.ok(block.includes("'final_approval_and_occupancy'"), 'final-occupancy must reference DB stage by slug final_approval_and_occupancy')
 })
 
-test('stage-number mismatch is documented in at least four mapping entries', () => {
+test('stage-number mismatch is documented in at least two mapping entries', () => {
   const source = read('lib/checklistMappingAudit.ts')
   // Notes of the form "TS SXX maps to DB SYY" confirm semantic mapping was used
   // rather than assuming TS stage number == DB stage number.
+  // Threshold is 2 (not 4) because the S10-S15 DB correction aligns S10, S11, S12
+  // with their TS counterparts — those three mismatch notes were removed as obsolete.
+  // Remaining genuine mismatches: S04->S01 (site-prep) and S06->S04 (structural-frame).
   const pattern = /TS S\d+ maps to DB S\d+|avoid stage.number/gi
   const matches = source.match(pattern) ?? []
   assert.ok(
-    matches.length >= 4,
-    `expected at least 4 stage-number-mismatch notes in SEMANTIC_MAPPINGS, found ${matches.length}`
+    matches.length >= 2,
+    `expected at least 2 stage-number-mismatch notes in SEMANTIC_MAPPINGS, found ${matches.length}`
   )
 })
 
