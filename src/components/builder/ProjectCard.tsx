@@ -78,7 +78,7 @@ export function ProjectCard({ project, onRequestInspection, onDelete }: ProjectC
         {/* Stage track */}
         <div className="mb-3">
           <div className="mb-1.5 text-[10px] font-semibold text-muted">
-            Stage {project.currentStage} / 5 · {project.stages[project.currentStage - 1]?.stageName}
+            Stage {project.currentStage} / 7 · {project.stages[project.currentStage - 1]?.stageName}
           </div>
           <div className="flex gap-0.5">
             {project.stages.map((s, i) => (

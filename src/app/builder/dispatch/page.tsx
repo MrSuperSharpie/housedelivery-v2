@@ -102,7 +102,7 @@ export default function DispatchPage() {
   const pricing = DISPATCH_PRICING.find(p => p.tier === selectedTier)!
   // Stage 5 (Final Occupancy Permit) requires specialist sign-off and must
   // flow into both the Estimated Total and the per-tier card prices.
-  const isFinalOccupancyStage = selectedProject?.currentStage === 5
+  const isFinalOccupancyStage = selectedProject?.currentStage === 7
   const resolvedSpecialistRole: SpecialistRoleId | null = selectedSpecialistRole
     ?? (isFinalOccupancyStage
       ? getDefaultSpecialistRole({

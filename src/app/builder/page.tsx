@@ -50,11 +50,13 @@ const supabase = createClient()
 // ─── Assignment panel helpers ──────────────────────────────────────────────────
 
 const BUILDER_STAGE_DEFINITIONS = [
-  { number: 1, internalStage: 1, label: 'Stage 1 — Site Survey & Excavation' },
-  { number: 2, internalStage: 5, label: 'Stage 2 — Foundation Pour' },
-  { number: 3, internalStage: 6, label: 'Stage 3 — Framing & Lock-up' },
-  { number: 4, internalStage: 12, label: 'Stage 4 — Insulation & Vapor Barrier' },
-  { number: 5, internalStage: 15, label: 'Stage 5 — Final Occupancy Permit' },
+  { number: 1, internalStage: 1,  label: 'Stage 1 — Site Survey & Excavation' },
+  { number: 2, internalStage: 5,  label: 'Stage 2 — Foundation Pour' },
+  { number: 3, internalStage: 6,  label: 'Stage 3 — Framing & Lock-up' },
+  { number: 4, internalStage: 12, label: 'Stage 4 — Insulation & Energy Compliance' },
+  { number: 5, internalStage: 13, label: 'Stage 5 — Interior Completion' },
+  { number: 6, internalStage: 14, label: 'Stage 6 — Exterior Works and Site Finalization' },
+  { number: 7, internalStage: 15, label: 'Stage 7 — Final Approval and Occupancy' },
 ] as const
 
 type BuilderStageDefinition = typeof BUILDER_STAGE_DEFINITIONS[number]

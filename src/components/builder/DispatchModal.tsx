@@ -82,8 +82,10 @@ const STAGE_TO_DISCIPLINE: Record<number, string> = {
   1: 'geotech',        // Site Survey & Excavation
   2: 'structural',     // Foundation Pour
   3: 'structural',     // Framing & Lock-up
-  4: 'architectural',  // Insulation & Vapor Barrier
-  5: 'architectural',  // Final Occupancy Permit
+  4: 'architectural',  // Insulation & Energy Compliance
+  5: 'architectural',  // Interior Completion
+  6: 'geotechnical',   // Exterior Works and Site Finalization
+  7: 'architectural',  // Final Approval and Occupancy
 }
 
 const STEP_NUM: Record<Step, number> = {
@@ -95,7 +97,9 @@ const STAGE_WORKFLOW_DESCRIPTIONS: Record<number, string> = {
   2: 'Pre-pour inspection to verify formwork, reinforcement, and required conditions before concrete placement.',
   3: 'Structural stage inspection to verify framing, envelope readiness, and pre-closure conditions.',
   4: 'Envelope inspection to verify thermal, moisture, and pre-drywall compliance requirements.',
-  5: 'Final-stage inspection to verify completion, outstanding deficiencies, and occupancy readiness.',
+  5: 'Interior completion inspection to verify finishing, fixtures, and pre-exterior readiness.',
+  6: 'Exterior and site inspection to verify cladding, grading, drainage, and site works completion.',
+  7: 'Final life safety and occupancy inspection to verify all systems, deficiencies, and permit conditions.',
 }
 
 const STAGE_PERMIT_REQUIRED_MESSAGE = 'Permit number is required for Stage 2 and later inspections.'
@@ -387,7 +391,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
   // Stage 5 (Final Occupancy Permit) always requires specialist sign-off, even
   // when no discipline has been selected yet. Flag it so the cards and total
   // display the specialist-hourly rate the builder will actually be charged.
-  const isFinalOccupancyStage = selectedStage === 5
+  const isFinalOccupancyStage = selectedStage === 7
   const specialistModeForced = isFinalOccupancyStage || resolvePricingMode({
     discipline: selectedDisc ?? undefined,
     credentialClass,

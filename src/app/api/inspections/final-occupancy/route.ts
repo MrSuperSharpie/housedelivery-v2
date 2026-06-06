@@ -316,7 +316,7 @@ export async function POST(req: NextRequest) {
   if (!jobData) return fail('job_not_found', 'Job not found.', 404)
 
   const job = jobData as JobRow
-  if (job.stage !== 5) return fail('not_scoped_stage_five', 'This route only finalizes scoped Builder Stage 5 requests.', 409)
+  if (job.stage !== 7) return fail('not_scoped_stage_seven', 'This route only finalizes scoped Builder Stage 7 requests.', 409)
 
   const { data: openHoldRows, error: holdError } = await serviceSupabase
     .from('job_holds')
@@ -356,7 +356,7 @@ export async function POST(req: NextRequest) {
   }
 
   const reportsByJob = new Map(((relatedReportsData ?? []) as ReportRow[]).map(report => [report.job_id, report]))
-  const missingStages = [1, 2, 3, 4].filter(builderStage => {
+  const missingStages = [1, 2, 3, 4, 5, 6].filter(builderStage => {
     const internalStage = BUILDER_STAGE_TO_COMPLETION_STAGE[builderStage]
     const stageJob = relatedJobs.find(row => row.stage === builderStage)
     if (!stageJob) return true

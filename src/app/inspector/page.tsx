@@ -62,7 +62,9 @@ const BUILDER_STAGE_TO_INSPECTION_STAGE: Record<number, number> = {
   2: 5,
   3: 6,
   4: 12,
-  5: 15,
+  5: 13,
+  6: 14,
+  7: 15,
 }
 
 const DISCIPLINE_INSPECTION_STAGE_OVERRIDE: Partial<Record<string, Partial<Record<number, number>>>> = {

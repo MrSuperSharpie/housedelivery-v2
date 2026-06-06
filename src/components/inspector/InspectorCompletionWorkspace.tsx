@@ -485,7 +485,9 @@ const BUILDER_STAGE_TO_COMPLETION_STAGE: Record<number, number> = {
   2: 5,
   3: 6,
   4: 12,
-  5: 15,
+  5: 13,
+  6: 14,
+  7: 15,
 }
 
 const DISCIPLINE_STAGE_OVERRIDE: Partial<Record<string, Partial<Record<number, number>>>> = {
@@ -500,8 +502,10 @@ const BUILDER_STAGE_LABELS: Record<number, string> = {
   1: 'Stage 1 — Site Survey & Excavation',
   2: 'Stage 2 — Foundation Pour',
   3: 'Stage 3 — Framing & Lock-up',
-  4: 'Stage 4 — Insulation & Vapor Barrier',
-  5: 'Stage 5 — Final Occupancy Permit',
+  4: 'Stage 4 — Insulation & Energy Compliance',
+  5: 'Stage 5 — Interior Completion',
+  6: 'Stage 6 — Exterior Works and Site Finalization',
+  7: 'Stage 7 — Final Approval and Occupancy',
 }
 
 function resolveRequestedChecklistStage(
@@ -1611,7 +1615,7 @@ export function InspectorCompletionWorkspace() {
         builderStageLabel: getBuilderStageLabel(builderStageNumber),
       })
 
-      if (builderStageNumber === 5 && jobRow.projectId) {
+      if (builderStageNumber === 7 && jobRow.projectId) {
         const { data: siblingJobRows } = await supabase
           .from('job_opportunities')
           .select('id, stage, status, project_id')
@@ -1620,7 +1624,7 @@ export function InspectorCompletionWorkspace() {
         const completedStages = new Set<number>()
         for (const sib of (siblingJobRows ?? [])) {
           const sibStage = typeof sib.stage === 'number' ? sib.stage : null
-          if (sibStage && sibStage >= 1 && sibStage <= 4 && sib.status === 'completed') {
+          if (sibStage && sibStage >= 1 && sibStage <= 6 && sib.status === 'completed') {
             completedStages.add(sibStage)
           }
         }
