@@ -181,7 +181,7 @@ function ProvisionalAssignmentPanel({
   assignment: Assignment
   jobName: string
   jobAddress?: string
-  onObject: (reason: ObjectionReason, note: string) => void
+  onObject: (reason: ObjectionReason, note: string) => Promise<boolean>
 }) {
   const { h, m, s, expired } = useCountdown(assignment.objectionWindowClosesAt)
   const [showForm, setShowForm] = React.useState(false)
@@ -190,6 +190,7 @@ function ProvisionalAssignmentPanel({
   const [note, setNote] = React.useState('')
   const [submitting, setSubmitting] = React.useState(false)
   const [objected, setObjected] = React.useState(false)
+  const [objectionError, setObjectionError] = React.useState<string | null>(null)
   const isConfirmed = assignment.status === 'confirmed' || expired
   const reliabilityStatus = buildAssignmentReliabilityStatus(assignment, expired)
   const statusLabel = assignment.objectionState === 'pending_review' || objected
@@ -209,9 +210,13 @@ function ProvisionalAssignmentPanel({
   const handleObject = async () => {
     if (!reason || !note.trim()) return
     setSubmitting(true)
-    await new Promise(r => setTimeout(r, 700))
-    setObjected(true)
-    onObject(reason as ObjectionReason, note)
+    setObjectionError(null)
+    const ok = await onObject(reason as ObjectionReason, note)
+    if (ok) {
+      setObjected(true)
+    } else {
+      setObjectionError('Could not file your objection. Please try again.')
+    }
     setSubmitting(false)
   }
 
@@ -311,12 +316,17 @@ function ProvisionalAssignmentPanel({
                   {submitting ? 'Filing...' : 'File Objection'}
                 </button>
                 <button
-                  onClick={() => { setShowForm(false); setReason(''); setNote('') }}
+                  onClick={() => { setShowForm(false); setReason(''); setNote(''); setObjectionError(null) }}
                   className="rounded-xl border border-rim px-4 py-2 text-xs font-bold text-muted"
                 >
                   Cancel
                 </button>
               </div>
+              {objectionError && (
+                <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-400">
+                  {objectionError}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -716,6 +726,7 @@ export default function BuilderDashboard() {
   const [manageRequestMessage, setManageRequestMessage] = useState<string | null>(null)
   const [manageRequestSaving, setManageRequestSaving] = useState(false)
   const [manageRequestCancelling, setManageRequestCancelling] = useState(false)
+  const [cancelConfirming, setCancelConfirming] = useState(false)
 
   // ─── DATA BRIDGE: MATCH LOCAL AUTH ID OR SUPABASE ID ─────────────────────────
   const builderLocalId    = user?.id ?? ''
@@ -1181,6 +1192,7 @@ export default function BuilderDashboard() {
     setManagedSlots([])
     setManageRequestError(null)
     setManageRequestMessage(null)
+    setCancelConfirming(false)
   }
 
   const formatManageRequestFailure = (fallback: string, payload: unknown) => {
@@ -1270,6 +1282,7 @@ export default function BuilderDashboard() {
       setManageRequestError('Could not cancel this request. Please try again.')
     } finally {
       setManageRequestCancelling(false)
+      setCancelConfirming(false)
     }
   }
 
@@ -2228,22 +2241,51 @@ export default function BuilderDashboard() {
               </div>
             )}
 
-            <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm">
-              <div className="font-black text-amber-400">Cancel Request</div>
-              <div className="mt-1 text-xs font-medium text-slate-300">
-                Cancelling removes this unclaimed request from the Live Job Board. The same stage can be requested again from this existing project.
+            {cancelConfirming ? (
+              <div className="rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm">
+                <div className="font-black text-red-400">Confirm Cancellation</div>
+                <div className="mt-1 text-xs font-medium text-slate-300">
+                  This cannot be undone. The request will be removed from the Live Job Board. You will need to submit a new request from this project when ready.
+                </div>
+                <div className="mt-3 flex gap-2">
+                  <button
+                    type="button"
+                    disabled={manageRequestCancelling}
+                    onClick={() => void handleCancelManagedRequest()}
+                    className="rounded-xl border border-red-500/40 bg-red-500/20 px-4 py-2 text-xs font-black text-red-400 transition-colors hover:bg-red-500/30 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {manageRequestCancelling ? 'Cancelling...' : 'Yes, Cancel Request'}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={manageRequestCancelling}
+                    onClick={() => setCancelConfirming(false)}
+                    className="rounded-xl border border-slate-600 px-4 py-2 text-xs font-bold text-slate-300 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    Go Back
+                  </button>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm">
+                <div className="font-black text-amber-400">Cancel Request</div>
+                <div className="mt-1 text-xs font-medium text-slate-300">
+                  Cancelling removes this unclaimed request from the Live Job Board. The same stage can be requested again from this existing project.
+                </div>
+              </div>
+            )}
 
             <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
+              {!cancelConfirming && (
               <button
                 type="button"
                 disabled={manageRequestSaving || manageRequestCancelling}
-                onClick={() => void handleCancelManagedRequest()}
+                onClick={() => setCancelConfirming(true)}
                 className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-2.5 text-sm font-black text-red-400 transition-colors hover:bg-red-500/15 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {manageRequestCancelling ? 'Cancelling...' : 'Cancel Request'}
+                Cancel Request
               </button>
+              )}
               <div className="flex flex-col gap-2 sm:flex-row">
                 <button
                   type="button"

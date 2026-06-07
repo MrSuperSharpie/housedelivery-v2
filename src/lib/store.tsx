@@ -176,7 +176,7 @@ interface StoreValue {
   getBuilderApplicants: (builderId: string) => Application[]
   getOpenJobs:          () => InspectionJob[]
   claimJob:             (input: NewClaimInput) => Promise<StoreActionResult<Assignment>>
-  objectAssignment:     (assignmentId: string, reason: ObjectionReason, note: string) => void
+  objectAssignment:     (assignmentId: string, reason: ObjectionReason, note: string) => Promise<boolean>
   confirmAssignment:    (assignmentId: string) => void
   invalidateAssignment: (assignmentId: string, adminNote: string) => void
   getJobAssignment:     (jobId: string) => Assignment | undefined
@@ -1224,25 +1224,25 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       .filter(j => j.status === 'live')
       .sort((a, b) => new Date(b.requestedAt).getTime() - new Date(a.requestedAt).getTime()),
     claimJob,
-    objectAssignment:     (assignmentId, reason, note) => {
-      void objectJobAssignment(assignmentId, actorId, reason, note).then(async ok => {
-        if (!ok) return
-        const assignment = assignments.find(existing => existing.id === assignmentId)
-        if (!assignment) return
-        const refreshed = await getDbAssignmentForJob(assignment.jobId)
-        if (!refreshed) return
-        setAssignments(current => current.map(existing =>
-          existing.id === assignmentId
-            ? {
-                ...existing,
-                status: refreshed.status as Assignment['status'],
-                objectionState: refreshed.objectionState ?? 'pending_review',
-                objectionReason: refreshed.objectionReason as Assignment['objectionReason'],
-                objectionNote: refreshed.objectionNote,
-              }
-            : existing,
-        ))
-      })
+    objectAssignment:     async (assignmentId, reason, note) => {
+      const ok = await objectJobAssignment(assignmentId, actorId, reason, note)
+      if (!ok) return false
+      const assignment = assignments.find(existing => existing.id === assignmentId)
+      if (!assignment) return false
+      const refreshed = await getDbAssignmentForJob(assignment.jobId)
+      if (!refreshed) return false
+      setAssignments(current => current.map(existing =>
+        existing.id === assignmentId
+          ? {
+              ...existing,
+              status: refreshed.status as Assignment['status'],
+              objectionState: refreshed.objectionState ?? 'pending_review',
+              objectionReason: refreshed.objectionReason as Assignment['objectionReason'],
+              objectionNote: refreshed.objectionNote,
+            }
+          : existing,
+      ))
+      return true
     },
     confirmAssignment:    (assignmentId) => {
       void confirmJobAssignment(assignmentId, actorId).then(async ok => {
