@@ -84,7 +84,7 @@ const STAGE_TO_DISCIPLINE: Record<number, string> = {
   3: 'structural',     // Framing & Lock-up
   4: 'architectural',  // Insulation & Energy Compliance
   5: 'architectural',  // Interior Completion
-  6: 'geotechnical',   // Exterior Works and Site Finalization
+  6: 'geotech',         // Exterior Works and Site Finalization
   7: 'architectural',  // Final Approval and Occupancy
 }
 
@@ -388,9 +388,9 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
     selectedDisc === 'architectural'
       ? 'AIBC'
       : undefined
-  // Stage 5 (Final Occupancy Permit) always requires specialist sign-off, even
-  // when no discipline has been selected yet. Flag it so the cards and total
-  // display the specialist-hourly rate the builder will actually be charged.
+  // Stage 7 (Final Approval and Occupancy) always requires specialist sign-off,
+  // even when no discipline has been selected yet. Flag it so the cards and
+  // total display the specialist-hourly rate the builder will actually be charged.
   const isFinalOccupancyStage = selectedStage === 7
   const specialistModeForced = isFinalOccupancyStage || resolvePricingMode({
     discipline: selectedDisc ?? undefined,

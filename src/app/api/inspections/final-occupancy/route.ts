@@ -71,7 +71,9 @@ const BUILDER_STAGE_TO_COMPLETION_STAGE: Record<number, number> = {
   2: 5,
   3: 6,
   4: 12,
-  5: 15,
+  5: 13,
+  6: 14,
+  7: 15,
 }
 
 function getServiceClient() {

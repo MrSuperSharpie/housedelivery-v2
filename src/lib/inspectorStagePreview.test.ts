@@ -173,3 +173,20 @@ test('DispatchModal isFinalOccupancyStage checks selectedStage === 7', () => {
   assert.ok(source.includes('selectedStage === 7'), 'DispatchModal must check selectedStage === 7 for Final Approval stage')
   assert.ok(!source.includes('selectedStage === 5'), 'DispatchModal must not check selectedStage === 5')
 })
+
+test('DispatchModal STAGE_TO_DISCIPLINE maps stage 6 to geotech, not geotechnical', () => {
+  const source = read('components/builder/DispatchModal.tsx')
+  assert.ok(source.includes("6: 'geotech'"), "Stage 6 must use discipline ID 'geotech' to match DISCIPLINES array")
+  assert.ok(!source.includes("6: 'geotechnical'"), "Stage 6 must not use 'geotechnical' — invalid discipline ID")
+})
+
+test('final-occupancy route BUILDER_STAGE_TO_COMPLETION_STAGE uses 7-stage model', () => {
+  const source = read('app/api/inspections/final-occupancy/route.ts')
+  const mapStart = source.indexOf('BUILDER_STAGE_TO_COMPLETION_STAGE')
+  const mapEnd   = source.indexOf('}', mapStart)
+  const mapBlock = source.slice(mapStart, mapEnd)
+  assert.ok(mapBlock.includes('5: 13'), 'Route map must include 5: 13 (Interior Completion)')
+  assert.ok(mapBlock.includes('6: 14'), 'Route map must include 6: 14 (Exterior Works)')
+  assert.ok(mapBlock.includes('7: 15'), 'Route map must include 7: 15 (Final Approval)')
+  assert.ok(!mapBlock.includes('5: 15'), 'Route map must not contain stale 5: 15 entry')
+})
