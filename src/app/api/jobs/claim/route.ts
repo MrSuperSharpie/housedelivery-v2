@@ -1,7 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
 import type { ClaimCommitment, JobTimeSlot } from '@/lib/types'
 import { validateClaimEligibility } from '@/lib/claim/validation'
+import { sendVeroEmail } from '@/lib/email/sendVeroEmail'
+
+export const runtime = 'nodejs'
+
+const APP_URL = 'https://veropermit.com'
+
+function getServiceClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) return null
+  return createServiceClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } })
+}
 
 interface ClaimRequestBody {
   jobId: string
@@ -127,6 +140,62 @@ export async function POST(req: NextRequest) {
     assignmentId: (payload.assignment as Record<string, unknown>)?.id,
     ts: new Date().toISOString(),
   })
+
+  // Fire-and-forget builder notice — email failure must not block the inspector's claim response.
+  void (async () => {
+    try {
+      const svc = getServiceClient()
+      if (!svc) return
+
+      const [{ data: jobRow }, { data: inspectorProfileRow }] = await Promise.all([
+        svc.from('job_opportunities').select('builder_id, project_name, address, city').eq('id', jobId).maybeSingle(),
+        svc.from('profiles').select('full_name').eq('id', user.id).maybeSingle(),
+      ])
+
+      type JobEmailRow = { builder_id?: string | null; project_name?: string | null; address?: string | null; city?: string | null }
+      type InspectorProfileRow = { full_name?: string | null }
+
+      const jobEmailRow = jobRow as JobEmailRow | null
+      const builderId = jobEmailRow?.builder_id
+      if (!builderId) {
+        console.warn('[jobs/claim] builder notice skipped: no builder_id on job', { jobId })
+        return
+      }
+
+      const [{ data: builderOnboarding }, { data: builderProfile }] = await Promise.all([
+        svc.from('builder_onboarding_status').select('contact_email, contact_name').eq('user_id', builderId).maybeSingle(),
+        svc.from('profiles').select('email, full_name').eq('id', builderId).maybeSingle(),
+      ])
+
+      type BuilderOnboardingRow = { contact_email?: string | null; contact_name?: string | null }
+      type BuilderProfileRow = { email?: string | null; full_name?: string | null }
+
+      const onboarding = builderOnboarding as BuilderOnboardingRow | null
+      const bProfile = builderProfile as BuilderProfileRow | null
+      const iProfile = inspectorProfileRow as InspectorProfileRow | null
+
+      const builderEmail = onboarding?.contact_email?.trim() || bProfile?.email?.trim()
+      if (!builderEmail) {
+        console.warn('[jobs/claim] builder notice skipped: no email found for builder', { jobId, builderId })
+        return
+      }
+
+      const result = await sendVeroEmail({
+        eventKey: 'inspection.claimed_builder_notice',
+        to: builderEmail,
+        recipientName: onboarding?.contact_name?.trim() || bProfile?.full_name?.trim() || undefined,
+        inspectorName: iProfile?.full_name?.trim() || undefined,
+        projectName: jobEmailRow?.project_name?.trim() || undefined,
+        ctaUrl: `${APP_URL}/builder`,
+      })
+
+      if (!result.ok) {
+        console.warn('[jobs/claim] builder notice email failed', { jobId, builderId, error: result.error })
+      }
+    } catch (err) {
+      console.warn('[jobs/claim] builder notice unexpected error', { jobId, error: String(err) })
+    }
+  })()
 
   return NextResponse.json(payload)
 }

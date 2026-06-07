@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
+import { sendVeroEmail } from '@/lib/email/sendVeroEmail'
+
+const APP_URL = 'https://veropermit.com'
 
 export const runtime = 'nodejs'
 
@@ -22,6 +25,8 @@ type AssignmentRow = {
 
 type JobRow = {
   id: string
+  builder_id?: string | null
+  project_name?: string | null
   status?: string | null
 }
 
@@ -149,7 +154,7 @@ export async function POST(req: NextRequest) {
 
   const { data: jobData, error: jobError } = await serviceSupabase
     .from('job_opportunities')
-    .select('id, status')
+    .select('id, builder_id, project_name, status')
     .eq('id', jobId)
     .maybeSingle()
 
@@ -326,6 +331,49 @@ export async function POST(req: NextRequest) {
       error: auditError.message,
     })
   }
+
+  // Fire-and-forget builder notice — email failure must not block the inspector's completion response.
+  void (async () => {
+    try {
+      const job = jobData as JobRow
+      const builderId = job.builder_id
+      if (!builderId) {
+        console.warn('[inspections/complete-scoped-assignment] builder notice skipped: no builder_id', { jobId })
+        return
+      }
+
+      const [{ data: builderOnboarding }, { data: builderProfile }] = await Promise.all([
+        serviceSupabase.from('builder_onboarding_status').select('contact_email, contact_name').eq('user_id', builderId).maybeSingle(),
+        serviceSupabase.from('profiles').select('email, full_name').eq('id', builderId).maybeSingle(),
+      ])
+
+      type BuilderOnboardingRow = { contact_email?: string | null; contact_name?: string | null }
+      type BuilderProfileRow = { email?: string | null; full_name?: string | null }
+
+      const onboarding = builderOnboarding as BuilderOnboardingRow | null
+      const bProfile = builderProfile as BuilderProfileRow | null
+
+      const builderEmail = onboarding?.contact_email?.trim() || bProfile?.email?.trim()
+      if (!builderEmail) {
+        console.warn('[inspections/complete-scoped-assignment] builder notice skipped: no email found', { jobId, builderId })
+        return
+      }
+
+      const result = await sendVeroEmail({
+        eventKey: 'inspection.passed_builder_notice',
+        to: builderEmail,
+        recipientName: onboarding?.contact_name?.trim() || bProfile?.full_name?.trim() || undefined,
+        projectName: job.project_name?.trim() || undefined,
+        ctaUrl: `${APP_URL}/builder`,
+      })
+
+      if (!result.ok) {
+        console.warn('[inspections/complete-scoped-assignment] builder notice email failed', { jobId, builderId, error: result.error })
+      }
+    } catch (err) {
+      console.warn('[inspections/complete-scoped-assignment] builder notice unexpected error', { jobId, error: String(err) })
+    }
+  })()
 
   return NextResponse.json({
     ok: true,

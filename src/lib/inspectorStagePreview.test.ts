@@ -271,3 +271,47 @@ test('builder page exposes pendingValidationJobs for Awaiting Validation section
     'builder page must reference pending_validation status for conditional rendering'
   )
 })
+
+// ── job lifecycle email notifications ─────────────────────────────────────────
+
+test('claim route imports sendVeroEmail', () => {
+  const source = read('app/api/jobs/claim/route.ts')
+  assert.ok(source.includes('sendVeroEmail'), 'claim route must import and call sendVeroEmail')
+})
+
+test('claim route sends inspection.claimed_builder_notice', () => {
+  const source = read('app/api/jobs/claim/route.ts')
+  assert.ok(
+    source.includes("'inspection.claimed_builder_notice'"),
+    "claim route must use eventKey 'inspection.claimed_builder_notice'"
+  )
+})
+
+test('claim route uses fire-and-forget pattern (void) for builder notice', () => {
+  const source = read('app/api/jobs/claim/route.ts')
+  assert.ok(source.includes('void (async'), 'claim route must use void IIFE for fire-and-forget email')
+  assert.ok(
+    !source.includes('throwOnError: true'),
+    'claim route must not set throwOnError: true on job lifecycle email'
+  )
+})
+
+test('complete-scoped-assignment route sends inspection.passed_builder_notice', () => {
+  const source = read('app/api/inspections/complete-scoped-assignment/route.ts')
+  assert.ok(
+    source.includes("'inspection.passed_builder_notice'"),
+    "complete-scoped-assignment must use eventKey 'inspection.passed_builder_notice'"
+  )
+  assert.ok(
+    !source.includes('throwOnError: true'),
+    'complete-scoped-assignment must not set throwOnError: true on job lifecycle email'
+  )
+})
+
+test('complete-scoped-assignment job SELECT includes builder_id for email lookup', () => {
+  const source = read('app/api/inspections/complete-scoped-assignment/route.ts')
+  assert.ok(
+    source.includes("'id, builder_id, project_name, status'"),
+    "job_opportunities SELECT must include builder_id and project_name for email lookup"
+  )
+})
