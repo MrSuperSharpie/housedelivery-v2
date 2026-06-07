@@ -378,7 +378,7 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Current Stage</span>
-                  <span className="font-semibold text-gray-700">Stage {project.currentStage} / 5</span>
+                  <span className="font-semibold text-gray-700">Stage {project.currentStage} / 7</span>
                 </div>
               </div>
             </div>
