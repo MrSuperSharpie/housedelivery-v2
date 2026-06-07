@@ -190,3 +190,40 @@ test('final-occupancy route BUILDER_STAGE_TO_COMPLETION_STAGE uses 7-stage model
   assert.ok(mapBlock.includes('7: 15'), 'Route map must include 7: 15 (Final Approval)')
   assert.ok(!mapBlock.includes('5: 15'), 'Route map must not contain stale 5: 15 entry')
 })
+
+// ── orphan-state fixes ────────────────────────────────────────────────────────
+
+test('invalidateJobAssignment calls updateJobStatus to reopen job as live', () => {
+  const source   = read('lib/supabase/jobs.ts')
+  const fnStart  = source.indexOf('export async function invalidateJobAssignment')
+  const fnEnd    = source.indexOf('\nexport', fnStart + 1)
+  const fnBlock  = source.slice(fnStart, fnEnd)
+  assert.ok(fnBlock.includes('updateJobStatus'), 'invalidateJobAssignment must call updateJobStatus to reopen the job')
+  assert.ok(fnBlock.includes("'live'"), "invalidateJobAssignment must reopen the job to status 'live'")
+})
+
+test('completeJobAssignment calls updateJobStatus to mark job as completed', () => {
+  const source   = read('lib/supabase/jobs.ts')
+  const fnStart  = source.indexOf('export async function completeJobAssignment')
+  const fnEnd    = source.indexOf('\nexport', fnStart + 1)
+  const fnBlock  = source.slice(fnStart, fnEnd)
+  assert.ok(fnBlock.includes('updateJobStatus'), 'completeJobAssignment must call updateJobStatus to mark the job completed')
+  assert.ok(fnBlock.includes("'completed'"), "completeJobAssignment must transition job to status 'completed'")
+})
+
+// ── 7-stage builder grid ──────────────────────────────────────────────────────
+
+test('StageProgressRail uses grid-cols-7 for 7-stage scorecard', () => {
+  const source = read('app/builder/page.tsx')
+  const railStart = source.indexOf('function StageProgressRail')
+  const railEnd   = source.indexOf('\nfunction', railStart + 1)
+  const railBlock = source.slice(railStart, railEnd)
+  assert.ok(railBlock.includes('grid-cols-7'), 'StageProgressRail must use grid-cols-7 for 7 stages')
+  assert.ok(!railBlock.includes('grid-cols-5'), 'StageProgressRail must not contain stale grid-cols-5')
+})
+
+test('View Progress expanded detail grid uses md:grid-cols-7', () => {
+  const source = read('app/builder/page.tsx')
+  assert.ok(source.includes('md:grid-cols-7'), 'View Progress detail grid must use md:grid-cols-7')
+  assert.ok(!source.includes('md:grid-cols-5'), 'View Progress detail grid must not contain stale md:grid-cols-5')
+})

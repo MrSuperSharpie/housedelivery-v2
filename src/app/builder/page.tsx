@@ -507,7 +507,7 @@ function StageStatusIcon({ status }: { status: BuilderStageStatus }) {
 
 function StageProgressRail({ scorecard }: { scorecard: StageScorecardEntry[] }) {
   return (
-    <div className="grid grid-cols-5 gap-1.5">
+    <div className="grid grid-cols-7 gap-1.5">
       {scorecard.map(({ stage, status }) => (
         <div key={stage.number} className="min-w-0">
           <div className={`mx-auto flex h-8 w-8 items-center justify-center rounded-full border text-[10px] font-black ${STAGE_DOT_CLASS[status]}`}>
@@ -2044,7 +2044,7 @@ export default function BuilderDashboard() {
 
                   <details className="mt-3 rounded-xl border border-rim bg-surface">
                     <summary className="cursor-pointer px-3 py-2 text-xs font-black text-ink">View Progress</summary>
-                    <div className="grid gap-2 border-t border-rim p-3 md:grid-cols-5">
+                    <div className="grid gap-2 border-t border-rim p-3 md:grid-cols-7">
                       {stageScorecard.map(({ stage, stageJob, report, status }) => {
                         const copy = BUILDER_STAGE_STATUS_COPY[status]
                         return (

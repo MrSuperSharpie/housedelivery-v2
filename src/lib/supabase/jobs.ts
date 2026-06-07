@@ -1272,7 +1272,7 @@ export async function invalidateJobAssignment(
   const assignment = await getAssignmentById(assignmentId)
   if (!assignment) return false
 
-  return updateAssignmentStatus(
+  const ok = await updateAssignmentStatus(
     assignmentId,
     assignment.jobId,
     'invalidated',
@@ -1283,6 +1283,19 @@ export async function invalidateJobAssignment(
       previousStatus: assignment.status,
     },
   )
+
+  if (ok) {
+    await updateJobStatus(
+      assignment.jobId,
+      'live',
+      actorId,
+      'admin',
+      adminNote ?? 'Assignment invalidated and job reopened.',
+      assignment.status,
+    )
+  }
+
+  return ok
 }
 
 export async function completeJobAssignment(
@@ -1292,7 +1305,7 @@ export async function completeJobAssignment(
   const assignment = await getAssignmentById(assignmentId)
   if (!assignment) return false
 
-  return updateAssignmentStatus(
+  const ok = await updateAssignmentStatus(
     assignmentId,
     assignment.jobId,
     'completed',
@@ -1302,6 +1315,19 @@ export async function completeJobAssignment(
       previousStatus: assignment.status,
     },
   )
+
+  if (ok) {
+    await updateJobStatus(
+      assignment.jobId,
+      'completed',
+      actorId,
+      'admin',
+      'Assignment completed.',
+      assignment.status,
+    )
+  }
+
+  return ok
 }
 
 export async function updateEscrowStatus(
