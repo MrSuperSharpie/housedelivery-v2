@@ -69,7 +69,7 @@ function normalizeSlots(value: unknown): JobTimeSlot[] | null {
   return slots as JobTimeSlot[]
 }
 
-async function getAuthorizedLiveJob(body: LiveRequestBody) {
+async function getAuthorizedLiveJob(body: LiveRequestBody, mode: 'edit' | 'cancel' = 'edit') {
   const jobId = getString(body.jobId)
   if (!jobId) {
     return {
@@ -145,7 +145,11 @@ async function getAuthorizedLiveJob(body: LiveRequestBody) {
     }
   }
 
-  if (job.status !== 'live' || job.validation_status !== 'validated') {
+  const statusBlocked = mode === 'edit'
+    ? (job.status !== 'live' || job.validation_status !== 'validated')
+    : (job.status !== 'live' && job.status !== 'pending_validation')
+
+  if (statusBlocked) {
     return {
       response: fail('request_not_manageable', 'This request can no longer be managed because it is not live and awaiting inspector claim.', 409),
       serviceSupabase,
@@ -256,7 +260,7 @@ export async function DELETE(req: NextRequest) {
     return fail('invalid_request', 'Invalid request body.', 400)
   }
 
-  const authorized = await getAuthorizedLiveJob(body)
+  const authorized = await getAuthorizedLiveJob(body, 'cancel')
   if (authorized.response) return authorized.response
 
   const { serviceSupabase, userId, job } = authorized
@@ -277,18 +281,46 @@ export async function DELETE(req: NextRequest) {
     return fail('cancel_failed', 'Could not cancel this request. Please try again.', 500)
   }
 
+  const cancelReason = job.status === 'pending_validation'
+    ? 'Builder cancelled unclaimed request before validation.'
+    : 'Builder cancelled live unclaimed request.'
+
   const { error: eventError } = await serviceSupabase.from('job_status_events').insert({
     job_id: job.id,
     actor_id: userId,
     actor_role: 'builder',
-    from_status: 'live',
+    from_status: job.status,
     to_status: 'cancelled',
-    reason: 'Builder cancelled live unclaimed request.',
+    reason: cancelReason,
     created_at: now,
   })
 
   if (eventError) {
     console.error('[jobs/live-request] status event insert failed', { jobId: job.id, builderId: userId, error: eventError.message })
+  }
+
+  const { error: auditError } = await serviceSupabase.from('governance_audit_events').insert({
+    entity_type: 'job',
+    entity_id: job.id,
+    action: 'job.builder_cancelled',
+    actor_id: userId,
+    actor_role: 'builder',
+    rule_ids: ['R-010'],
+    blocker_type: 'technical',
+    reason: cancelReason,
+    before_state: {
+      status: job.status,
+      validationStatus: job.validation_status ?? null,
+    },
+    after_state: {
+      status: 'cancelled',
+    },
+    metadata: {},
+    created_at: now,
+  })
+
+  if (auditError) {
+    console.error('[jobs/live-request] audit insert failed', { jobId: job.id, builderId: userId, error: auditError.message })
   }
 
   return NextResponse.json({ ok: true })

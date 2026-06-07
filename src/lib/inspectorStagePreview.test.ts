@@ -227,3 +227,47 @@ test('View Progress expanded detail grid uses md:grid-cols-7', () => {
   assert.ok(source.includes('md:grid-cols-7'), 'View Progress detail grid must use md:grid-cols-7')
   assert.ok(!source.includes('md:grid-cols-5'), 'View Progress detail grid must not contain stale md:grid-cols-5')
 })
+
+// ── pending-validation cancellation ──────────────────────────────────────────
+
+test('live-request DELETE uses cancel mode allowing pending_validation', () => {
+  const source = read('app/api/jobs/live-request/route.ts')
+  assert.ok(
+    source.includes("getAuthorizedLiveJob(body, 'cancel')"),
+    "DELETE handler must call getAuthorizedLiveJob with 'cancel' mode"
+  )
+})
+
+test('live-request PATCH guard still requires validation_status validated', () => {
+  const source = read('app/api/jobs/live-request/route.ts')
+  assert.ok(
+    source.includes("validation_status !== 'validated'"),
+    "edit mode guard must still require validation_status === 'validated' for PATCH"
+  )
+})
+
+test('live-request DELETE job_status_events uses job.status not hardcoded live', () => {
+  const source   = read('app/api/jobs/live-request/route.ts')
+  const delStart = source.indexOf('export async function DELETE')
+  const delEnd   = source.length
+  const delBlock = source.slice(delStart, delEnd)
+  assert.ok(delBlock.includes('from_status: job.status'), 'DELETE must write from_status: job.status not hardcoded string')
+  assert.ok(!delBlock.includes("from_status: 'live'"), "DELETE must not hardcode from_status as 'live'")
+})
+
+test('live-request DELETE writes governance_audit_events for cancellation', () => {
+  const source   = read('app/api/jobs/live-request/route.ts')
+  const delStart = source.indexOf('export async function DELETE')
+  const delBlock = source.slice(delStart)
+  assert.ok(delBlock.includes('governance_audit_events'), 'DELETE handler must write a governance_audit_events row')
+  assert.ok(delBlock.includes("action: 'job.builder_cancelled'"), "DELETE governance audit must use action 'job.builder_cancelled'")
+})
+
+test('builder page exposes pendingValidationJobs for Awaiting Validation section', () => {
+  const source = read('app/builder/page.tsx')
+  assert.ok(source.includes('pendingValidationJobs'), 'builder page must derive pendingValidationJobs list')
+  assert.ok(
+    source.includes("status === 'pending_validation'") || source.includes("status !== 'pending_validation'"),
+    'builder page must reference pending_validation status for conditional rendering'
+  )
+})

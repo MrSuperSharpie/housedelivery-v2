@@ -1273,7 +1273,11 @@ export default function BuilderDashboard() {
       await reloadBuilderJobs()
       setManagedLiveJob(null)
       setManagedSlots([])
-      setRequestGuardMessage('Live request cancelled. You can request this stage again from the existing project when ready.')
+      setRequestGuardMessage(
+        managedLiveJob.status === 'pending_validation'
+          ? 'Blocked request removed. You can resubmit for this stage when ready.'
+          : 'Live request cancelled. You can request this stage again from the existing project when ready.',
+      )
       if (typeof window !== 'undefined') {
         window.scrollTo({ top: 0, behavior: 'smooth' })
       }
@@ -1447,6 +1451,9 @@ export default function BuilderDashboard() {
       const tb = b.publishedAt ?? b.requestedAt ?? b.createdAt
       return tb.localeCompare(ta)
     })
+  const pendingValidationJobs = (dbJobs ?? [])
+    .filter(job => job.status === 'pending_validation')
+    .sort((a, b) => b.requestedAt.localeCompare(a.requestedAt))
 
   const { activeProgressProjects, completedProgressProjects } = (() => {
     const active: PermitProgressProject[] = []
@@ -1858,6 +1865,61 @@ export default function BuilderDashboard() {
           </section>
         )}
 
+        {/* ── Requests Awaiting Validation ── */}
+        {pendingValidationJobs.length > 0 && (
+          <section className="mb-6">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-amber-400">Requests Awaiting Validation</div>
+                <div className="mt-1 text-xs font-medium text-muted">These requests did not pass validation and are not visible on the Live Job Board.</div>
+              </div>
+              <div className="rounded-full border border-amber-500/25 bg-amber-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-amber-400">
+                {pendingValidationJobs.length} pending
+              </div>
+            </div>
+            <div className="grid gap-3 lg:grid-cols-2">
+              {pendingValidationJobs.map(job => {
+                const stageLabel = BUILDER_STAGE_DEFINITIONS.find(s => s.number === job.stage)?.label ?? `Stage ${job.stage} — ${job.stageName}`
+                return (
+                  <div key={job.id} className="rounded-2xl border border-amber-500/25 bg-panel p-4 shadow-card">
+                    <div className="flex items-start gap-3">
+                      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-amber-500/25 bg-amber-500/10">
+                        <AlertTriangle className="h-4 w-4 text-amber-400" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-sm font-extrabold text-ink">{job.projectName}</div>
+                        {job.address && (
+                          <div className="mt-0.5 truncate text-xs font-medium text-muted">{job.address}{job.city ? `, ${job.city}` : ''}</div>
+                        )}
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-black text-amber-400">
+                            Not Posted — Awaiting Validation
+                          </span>
+                        </div>
+                        <div className="mt-2 text-xs font-semibold text-ink">{stageLabel}</div>
+                        {job.requestedAt && (
+                          <div className="mt-1 text-[11px] text-muted">
+                            Submitted {new Date(job.requestedAt).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' })} at {new Date(job.requestedAt).toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => openManageRequest(job)}
+                        className="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-[11px] font-black text-red-400 transition-colors hover:bg-red-500/15"
+                      >
+                        Cancel Request
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </section>
+        )}
+
         {/* ── Active Inspection Appointments ── */}
         {activeInspectionAppointments.length > 0 && (
           <section className="mb-6">
@@ -2203,8 +2265,10 @@ export default function BuilderDashboard() {
       >
         {managedLiveJob && (
           <div className="space-y-5">
-            <div className="rounded-2xl border border-flame/40 bg-flame/15 px-4 py-3">
-              <div className="text-[11px] font-black uppercase tracking-[0.18em] text-flame">Live request awaiting inspector claim</div>
+            <div className={`rounded-2xl px-4 py-3 ${managedLiveJob.status === 'pending_validation' ? 'border border-amber-500/40 bg-amber-500/15' : 'border border-flame/40 bg-flame/15'}`}>
+              <div className={`text-[11px] font-black uppercase tracking-[0.18em] ${managedLiveJob.status === 'pending_validation' ? 'text-amber-400' : 'text-flame'}`}>
+                {managedLiveJob.status === 'pending_validation' ? 'Awaiting validation — not posted to Live Board' : 'Live request awaiting inspector claim'}
+              </div>
               <div className="mt-2 text-lg font-black text-white">{managedLiveJob.projectName}</div>
               <div className="mt-1 text-sm font-medium text-slate-300">
                 {managedLiveJob.address}{managedLiveJob.city ? `, ${managedLiveJob.city}` : ''}
@@ -2214,6 +2278,7 @@ export default function BuilderDashboard() {
               </div>
             </div>
 
+            {managedLiveJob.status !== 'pending_validation' && (
             <div>
               <div className="mb-2 text-sm font-black text-white">Available time windows</div>
               <div className="[&_.bg-white]:!bg-raised [&_.bg-gray-50]:!bg-panel [&_.bg-gray-100]:!bg-surface [&_.border-gray-200]:!border-rim [&_.border-gray-300]:!border-rim [&_.text-gray-900]:!text-white [&_.text-gray-600]:!text-slate-300 [&_.text-gray-500]:!text-slate-400 [&_.text-gray-400]:!text-slate-500 [&_.text-gray-300]:!text-slate-500 [&_.bg-orange-50]:!bg-flame/10 [&_.border-orange-100]:!border-flame/30">
@@ -2228,6 +2293,7 @@ export default function BuilderDashboard() {
                 Updating these windows keeps the same Live Job Board request. It does not create a new project or duplicate stage request.
               </p>
             </div>
+            )}
 
             {manageRequestMessage && (
               <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-white">
@@ -2245,7 +2311,9 @@ export default function BuilderDashboard() {
               <div className="rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm">
                 <div className="font-black text-red-400">Confirm Cancellation</div>
                 <div className="mt-1 text-xs font-medium text-slate-300">
-                  This cannot be undone. The request will be removed from the Live Job Board. You will need to submit a new request from this project when ready.
+                  {managedLiveJob.status === 'pending_validation'
+                    ? 'This cannot be undone. The blocked request will be removed. You can submit a new request for this stage when ready.'
+                    : 'This cannot be undone. The request will be removed from the Live Job Board. You will need to submit a new request from this project when ready.'}
                 </div>
                 <div className="mt-3 flex gap-2">
                   <button
@@ -2270,7 +2338,9 @@ export default function BuilderDashboard() {
               <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm">
                 <div className="font-black text-amber-400">Cancel Request</div>
                 <div className="mt-1 text-xs font-medium text-slate-300">
-                  Cancelling removes this unclaimed request from the Live Job Board. The same stage can be requested again from this existing project.
+                  {managedLiveJob.status === 'pending_validation'
+                    ? 'This request has not been validated and is not visible on the Live Job Board. Cancelling it removes the block and allows you to resubmit for this stage.'
+                    : 'Cancelling removes this unclaimed request from the Live Job Board. The same stage can be requested again from this existing project.'}
                 </div>
               </div>
             )}
@@ -2295,6 +2365,7 @@ export default function BuilderDashboard() {
                 >
                   Close
                 </button>
+                {managedLiveJob.status !== 'pending_validation' && (
                 <button
                   type="button"
                   disabled={manageRequestSaving || manageRequestCancelling || managedSlots.length === 0}
@@ -2303,6 +2374,7 @@ export default function BuilderDashboard() {
                 >
                   {manageRequestSaving ? 'Saving...' : 'Save Time Windows'}
                 </button>
+                )}
               </div>
             </div>
           </div>
