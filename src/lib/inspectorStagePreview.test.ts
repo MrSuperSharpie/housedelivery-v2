@@ -338,3 +338,63 @@ test('complete-scoped-assignment job SELECT includes builder_id for email lookup
     "job_opportunities SELECT must include builder_id and project_name for email lookup"
   )
 })
+
+// ── evidence requirement display — InspectorCompletionWorkspace ───────────────
+
+test('required-evidence containers show Evidence Required Before Pass chip in field checklist header', () => {
+  const source = read('components/inspector/InspectorCompletionWorkspace.tsx')
+  assert.ok(
+    source.includes('Evidence Required Before Pass'),
+    'field checklist header must show Evidence Required Before Pass chip when evidence is missing'
+  )
+  assert.ok(
+    source.includes('passRequiresEvidence'),
+    'chip visibility must be gated on shared passRequiresEvidence logic, not hardcoded to a specific stage'
+  )
+})
+
+test('required-evidence containers show persistent notice inside field checklist panel when evidence is missing', () => {
+  const source = read('components/inspector/InspectorCompletionWorkspace.tsx')
+  assert.ok(
+    source.includes('Evidence required before this container can be marked Passed.'),
+    'field checklist panel must show a persistent evidence-required notice when passBlockedForEvidence'
+  )
+  assert.ok(
+    source.includes('passBlockedForEvidence'),
+    'persistent notice must be gated on shared passBlockedForEvidence, not hardcoded to a specific stage'
+  )
+})
+
+test('passed is locked message is specific about evidence requirement', () => {
+  const source = read('components/inspector/InspectorCompletionWorkspace.tsx')
+  assert.ok(
+    source.includes('Passed is locked until at least one evidence file is attached to this container.'),
+    'passBlockedMessage for evidence must say Passed is locked until evidence is attached'
+  )
+  assert.ok(
+    !source.includes('Upload at least one evidence file before marking this container as Passed.'),
+    'stale generic evidence blocked message must be replaced with specific locked message'
+  )
+})
+
+test('standard container amber box uses shared passBlockedMessage instead of hardcoded string', () => {
+  const source = read('components/inspector/InspectorCompletionWorkspace.tsx')
+  assert.ok(
+    !source.includes('Action Required: This container requires at least one piece of evidence (photo or note) before it can be marked as Passed.'),
+    'standard container must not use a hardcoded amber message diverging from passBlockedMessage'
+  )
+})
+
+test('evidence requirement display is based on shared passRequiresEvidence logic, not stage-number hardcode', () => {
+  const source = read('components/inspector/InspectorCompletionWorkspace.tsx')
+  const evidenceChipIdx = source.indexOf('Evidence Required Before Pass')
+  const noticeIdx = source.indexOf('Evidence required before this container can be marked Passed.')
+  assert.ok(
+    evidenceChipIdx !== -1 && noticeIdx !== -1,
+    'both evidence guidance elements must be present'
+  )
+  assert.ok(
+    !source.includes("stageNumber === 13") && !source.includes("stageNumber === 14") && !source.includes("stageNumber === 15"),
+    'evidence requirement display must not be hardcoded to specific stage numbers'
+  )
+})

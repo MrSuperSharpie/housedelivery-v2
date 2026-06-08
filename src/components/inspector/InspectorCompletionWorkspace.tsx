@@ -3692,7 +3692,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                 const passBlocked = passBlockedForEvidence || passBlockedForDependency
                 const passBlockedMessage = passBlockedForDependency
                   ? `Resolve ${blockedBy.join(', ')} before this item can be passed.`
-                  : 'Upload at least one evidence file before marking this container as Passed.'
+                  : 'Passed is locked until at least one evidence file is attached to this container.'
                 const showRequirementIndicator = passRequiresEvidence
                 const evidenceSummary = item.evidence_mode === 'verify_existing'
                   ? 'Verify project documents already on file. Upload remains optional unless you need to document a discrepancy.'
@@ -3801,10 +3801,27 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                             <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Field Checklist</div>
                             <div className="mt-1 text-xs text-zinc-400">Tap each item as you verify it. Capture evidence inline as you go.</div>
                           </div>
-                          <div className="rounded-full bg-white/5 px-3 py-1 text-[11px] font-black text-zinc-300">
-                            {checklistItems.filter(detail => getChecklistEntryState(item, detail).checked).length}/{checklistItems.length}
+                          <div className="flex items-center gap-2">
+                            {passRequiresEvidence && (
+                              <span className={`rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] ${
+                                passBlockedForEvidence
+                                  ? 'border-amber-500/30 bg-amber-500/10 text-amber-300'
+                                  : 'border-emerald-400/20 bg-emerald-500/10 text-emerald-300'
+                              }`}>
+                                {passBlockedForEvidence ? 'Evidence Required Before Pass' : 'Evidence Attached'}
+                              </span>
+                            )}
+                            <div className="rounded-full bg-white/5 px-3 py-1 text-[11px] font-black text-zinc-300">
+                              {checklistItems.filter(detail => getChecklistEntryState(item, detail).checked).length}/{checklistItems.length}
+                            </div>
                           </div>
                         </div>
+
+                        {passBlockedForEvidence && (
+                          <div className="mt-3 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100/90">
+                            Evidence required before this container can be marked Passed. Attach at least one photo, video, file, or note in the Attached Evidence section below.
+                          </div>
+                        )}
 
                         <div className="mt-3 space-y-3">
                           {checklistItems.map((detail, index) => {
@@ -4427,9 +4444,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
 
                     {passBlocked && (
                       <div className="mt-3 rounded-2xl border border-amber-300 bg-amber-100 px-3 py-3 text-xs font-medium text-amber-900">
-                        {passBlockedForDependency
-                          ? passBlockedMessage
-                          : 'Action Required: This container requires at least one piece of evidence (photo or note) before it can be marked as Passed.'}
+                        {passBlockedMessage}
                       </div>
                     )}
 
@@ -4660,7 +4675,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
 
                           {passBlockedForEvidence && (
                             <div className="mt-4 rounded-2xl border border-amber-300 bg-amber-100 px-3 py-3 text-xs font-medium text-amber-900">
-                              Action Required: This container requires at least one piece of evidence (photo or note) before it can be marked as Passed.
+                              {passBlockedMessage}
                             </div>
                           )}
 
