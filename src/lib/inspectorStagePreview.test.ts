@@ -287,9 +287,20 @@ test('claim route sends inspection.claimed_builder_notice', () => {
   )
 })
 
-test('claim route uses fire-and-forget pattern (void) for builder notice', () => {
+test('claim route uses awaited soft-fail pattern for builder notice', () => {
   const source = read('app/api/jobs/claim/route.ts')
-  assert.ok(source.includes('void (async'), 'claim route must use void IIFE for fire-and-forget email')
+  assert.ok(
+    !source.includes('void (async'),
+    'claim route must not use fire-and-forget void IIFE — email must be awaited to ensure Resend is called'
+  )
+  assert.ok(
+    source.includes('builder notice attempted'),
+    'claim route must log builder notice attempted'
+  )
+  assert.ok(
+    source.includes('builder notice skipped: no builder email'),
+    'claim route must log skip when builder email is missing'
+  )
   assert.ok(
     !source.includes('throwOnError: true'),
     'claim route must not set throwOnError: true on job lifecycle email'
@@ -301,6 +312,18 @@ test('complete-scoped-assignment route sends inspection.passed_builder_notice', 
   assert.ok(
     source.includes("'inspection.passed_builder_notice'"),
     "complete-scoped-assignment must use eventKey 'inspection.passed_builder_notice'"
+  )
+  assert.ok(
+    !source.includes('void (async'),
+    'complete-scoped-assignment must not use fire-and-forget void IIFE — email must be awaited'
+  )
+  assert.ok(
+    source.includes('builder notice attempted'),
+    'complete-scoped-assignment must log builder notice attempted'
+  )
+  assert.ok(
+    source.includes('builder notice skipped: no builder email'),
+    'complete-scoped-assignment must log skip when builder email is missing'
   )
   assert.ok(
     !source.includes('throwOnError: true'),

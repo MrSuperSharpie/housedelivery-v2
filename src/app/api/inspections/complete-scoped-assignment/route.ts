@@ -332,48 +332,48 @@ export async function POST(req: NextRequest) {
     })
   }
 
-  // Fire-and-forget builder notice — email failure must not block the inspector's completion response.
-  void (async () => {
-    try {
-      const job = jobData as JobRow
-      const builderId = job.builder_id
-      if (!builderId) {
-        console.warn('[inspections/complete-scoped-assignment] builder notice skipped: no builder_id', { jobId })
-        return
-      }
+  // Awaited soft-fail builder notice — completes before response is sent; errors are logged, never thrown.
+  try {
+    console.log('[inspections/complete-scoped-assignment] builder notice attempted', { jobId, assignmentId })
 
+    type BuilderOnboardingRow = { contact_email?: string | null; contact_name?: string | null }
+    type BuilderProfileRow = { email?: string | null; full_name?: string | null }
+
+    const job = jobData as JobRow
+    const builderId = job.builder_id
+    if (!builderId) {
+      console.warn('[inspections/complete-scoped-assignment] builder notice skipped: no builder_id', { jobId })
+    } else {
       const [{ data: builderOnboarding }, { data: builderProfile }] = await Promise.all([
         serviceSupabase.from('builder_onboarding_status').select('contact_email, contact_name').eq('user_id', builderId).maybeSingle(),
         serviceSupabase.from('profiles').select('email, full_name').eq('id', builderId).maybeSingle(),
       ])
-
-      type BuilderOnboardingRow = { contact_email?: string | null; contact_name?: string | null }
-      type BuilderProfileRow = { email?: string | null; full_name?: string | null }
 
       const onboarding = builderOnboarding as BuilderOnboardingRow | null
       const bProfile = builderProfile as BuilderProfileRow | null
 
       const builderEmail = onboarding?.contact_email?.trim() || bProfile?.email?.trim()
       if (!builderEmail) {
-        console.warn('[inspections/complete-scoped-assignment] builder notice skipped: no email found', { jobId, builderId })
-        return
-      }
+        console.warn('[inspections/complete-scoped-assignment] builder notice skipped: no builder email', { jobId, builderId })
+      } else {
+        const result = await sendVeroEmail({
+          eventKey: 'inspection.passed_builder_notice',
+          to: builderEmail,
+          recipientName: onboarding?.contact_name?.trim() || bProfile?.full_name?.trim() || undefined,
+          projectName: job.project_name?.trim() || undefined,
+          ctaUrl: `${APP_URL}/builder`,
+        })
 
-      const result = await sendVeroEmail({
-        eventKey: 'inspection.passed_builder_notice',
-        to: builderEmail,
-        recipientName: onboarding?.contact_name?.trim() || bProfile?.full_name?.trim() || undefined,
-        projectName: job.project_name?.trim() || undefined,
-        ctaUrl: `${APP_URL}/builder`,
-      })
-
-      if (!result.ok) {
-        console.warn('[inspections/complete-scoped-assignment] builder notice email failed', { jobId, builderId, error: result.error })
+        if (result.ok) {
+          console.log('[inspections/complete-scoped-assignment] builder notice sent', { jobId, builderId })
+        } else {
+          console.warn('[inspections/complete-scoped-assignment] builder notice failed', { jobId, builderId, error: result.error })
+        }
       }
-    } catch (err) {
-      console.warn('[inspections/complete-scoped-assignment] builder notice unexpected error', { jobId, error: String(err) })
     }
-  })()
+  } catch (err) {
+    console.warn('[inspections/complete-scoped-assignment] builder notice unexpected error', { jobId, error: String(err) })
+  }
 
   return NextResponse.json({
     ok: true,
