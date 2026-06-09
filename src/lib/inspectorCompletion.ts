@@ -3822,7 +3822,7 @@ const STRUCTURAL_STAGE_13_CONTAINERS: StructuredStageItemDefinition[] = [
       'Fire separation assembly type confirmed against approved drawings where required by permit scope.',
       'Type X gypsum board or equivalent installed on required rated walls where applicable.',
       'Shaft walls and service chases complete and continuous through floor-ceiling assemblies where required.',
-      'Firestopping applied at penetrations through rated assemblies before concealment where required.',
+      'Firestopping applied at penetrations through rated assemblies before concealment where required. (Camera or Video Evidence Required)',
       'Sound separation wall and floor-ceiling assembly type confirmed for suite-to-suite or dwelling-unit interfaces where required.',
       'Suite or dwelling-unit separation wall continuity verified with no observed breaks or gaps where applicable.',
       'Rated assembly documentation or ULC-listed system reference available where required by AHJ.',
@@ -3893,7 +3893,7 @@ const STRUCTURAL_STAGE_13_CONTAINERS: StructuredStageItemDefinition[] = [
       'Drywall board type confirmed appropriate for each application area where required.',
       'Moisture-resistant board installed where required by approved drawings or permit scope.',
       'Tile backer or waterproof board installed at tub and shower surrounds before tile application where applicable.',
-      'Waterproofing membrane or wet-area preparation applied where required by approved drawings.',
+      'Waterproofing membrane or wet-area preparation applied where required by approved drawings. (Camera or Video Evidence Required)',
       'Grab bar blocking installed where adaptable housing or accessibility path requires it.',
       'Cabinet and countertop backing confirmed where applicable.',
       'No observed substrate gap, board-type mismatch, or missing wet-area preparation remains before finish materials are applied.',
@@ -4101,7 +4101,7 @@ const STRUCTURAL_STAGE_13_CONTAINERS: StructuredStageItemDefinition[] = [
       'Interior documentation from S13-01 through S13-04 is incomplete and required before progressing to S14.',
     ],
     fieldChecklist: [
-      'Accessible or adaptable suite door clear-opening widths confirmed where required by permit path.',
+      'Accessible or adaptable suite door clear-opening widths confirmed where required by permit path. (Camera or Video Evidence Required)',
       'Turning clearance at accessible bathroom or kitchen confirmed where required.',
       'Zero-step or low-threshold principal entry confirmed where required by applicable code or permit path.',
       'Lowered light switches, outlets, or controls installed at required heights where adaptable housing path applies.',
@@ -4178,7 +4178,7 @@ const STRUCTURAL_STAGE_14_CONTAINERS: StructuredStageItemDefinition[] = [
     dependencies: ['S13-05'],
     fieldChecklist: [
       'Cladding type and installation confirmed against approved drawings where required by permit scope.',
-      'Weather-resistive barrier or drainage plane installed and continuous at reviewed wall areas where applicable.',
+      'Weather-resistive barrier or drainage plane installed and continuous at reviewed wall areas where applicable. (Camera or Video Evidence Required)',
       'Flashings installed at window heads, door heads, penetrations, and wall transitions where required.',
       'Sill pans or equivalent drainage detail installed at window and door sills where applicable.',
       'Sealant applied at penetrations, trim joints, and transitions where required.',
@@ -4254,7 +4254,7 @@ const STRUCTURAL_STAGE_14_CONTAINERS: StructuredStageItemDefinition[] = [
     ],
     fieldChecklist: [
       'Exterior stair rise and run consistent and within reviewed tolerance where required by approved drawings.',
-      'Exterior handrails installed at required height and continuous for the full flight where applicable.',
+      'Exterior handrails installed at required height and continuous for the full flight where applicable. (Camera or Video Evidence Required)',
       'Deck ledger connection and visible hardware confirmed where applicable.',
       'Guard height at elevated decks, balconies, stairs, or landings confirmed where required.',
       'Guard infill spacing confirmed where required by approved drawings or AHJ.',
@@ -4328,7 +4328,7 @@ const STRUCTURAL_STAGE_14_CONTAINERS: StructuredStageItemDefinition[] = [
       'Required storm drainage connection or discharge point is absent or blocked where required by civil servicing approval.',
     ],
     fieldChecklist: [
-      'Final grade slopes away from the building at reviewed locations where required by approved drawings or AHJ.',
+      'Final grade slopes away from the building at reviewed locations where required by approved drawings or AHJ. (Camera or Video Evidence Required)',
       'Swales and drainage paths complete and unobstructed where applicable.',
       'Downspout discharge directed to approved location, splash pad, splash block, storm connection, or accepted outlet where required.',
       'Perimeter foundation drainage outlet location confirmed and accessible where applicable.',
@@ -4484,7 +4484,7 @@ const STRUCTURAL_STAGE_14_CONTAINERS: StructuredStageItemDefinition[] = [
     fieldChecklist: [
       'Disturbed soil surfaces covered with sod, seed, gravel, mulch, or approved surface treatment where required.',
       'Landscaping and softscape restoration complete for the reviewed scope.',
-      'Erosion control blanket, mulch, or slope stabilization installed at disturbed areas where required.',
+      'Erosion control blanket, mulch, or slope stabilization installed at disturbed areas where required. (Camera or Video Evidence Required)',
       'Tree protection, retention, replacement, or arborist compliance records confirmed where required by AHJ or Vancouver-specific bylaw path.',
       'Site cleanup complete and construction debris removed from exterior areas.',
       'All exterior deficiencies from S14-01 through S14-04 resolved or formally documented.',

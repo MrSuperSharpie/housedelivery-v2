@@ -10,6 +10,13 @@ function read(relPath: string): string {
   return readFileSync(resolve(SRC, relPath), 'utf8')
 }
 
+function getCodeBlock(source: string, code: string): string {
+  const start = source.indexOf(`code: '${code}'`)
+  assert.notStrictEqual(start, -1, `${code} must be defined`)
+  const next = source.indexOf("\n  {\n    code: '", start + 1)
+  return source.slice(start, next === -1 ? source.length : next)
+}
+
 // ── routing maps ──────────────────────────────────────────────────────────────
 
 test('worklist page defines BUILDER_STAGE_TO_INSPECTION_STAGE with correct structural default', () => {
@@ -397,4 +404,53 @@ test('evidence requirement display is based on shared passRequiresEvidence logic
     !source.includes("stageNumber === 13") && !source.includes("stageNumber === 14") && !source.includes("stageNumber === 15"),
     'evidence requirement display must not be hardcoded to specific stage numbers'
   )
+})
+
+// ── conservative item-level evidence tags — S13/S14 ──────────────────────────
+
+test('approved S13 and S14 checklist items include low-risk camera/video evidence tags', () => {
+  const source = read('lib/inspectorCompletion.ts')
+  const expectedTaggedItems = [
+    ['S13-01', 'Firestopping applied at penetrations through rated assemblies before concealment where required. (Camera or Video Evidence Required)'],
+    ['S13-02', 'Waterproofing membrane or wet-area preparation applied where required by approved drawings. (Camera or Video Evidence Required)'],
+    ['S13-05', 'Accessible or adaptable suite door clear-opening widths confirmed where required by permit path. (Camera or Video Evidence Required)'],
+    ['S14-01', 'Weather-resistive barrier or drainage plane installed and continuous at reviewed wall areas where applicable. (Camera or Video Evidence Required)'],
+    ['S14-02', 'Exterior handrails installed at required height and continuous for the full flight where applicable. (Camera or Video Evidence Required)'],
+    ['S14-03', 'Final grade slopes away from the building at reviewed locations where required by approved drawings or AHJ. (Camera or Video Evidence Required)'],
+    ['S14-05', 'Erosion control blanket, mulch, or slope stabilization installed at disturbed areas where required. (Camera or Video Evidence Required)'],
+  ] as const
+
+  for (const [code, checklistItem] of expectedTaggedItems) {
+    assert.ok(
+      getCodeBlock(source, code).includes(checklistItem),
+      `${code} must include approved low-risk evidence tag: ${checklistItem}`
+    )
+  }
+})
+
+test('deferred S13, S14, and S15 evidence-tag items remain untouched', () => {
+  const source = read('lib/inspectorCompletion.ts')
+  assert.ok(
+    getCodeBlock(source, 'S13-03').includes("'Interior guards installed at open sides of stairs, landings, balconies, and mezzanines where required.'"),
+    'S13-03 interior guards item must remain untagged in this pass'
+  )
+  assert.ok(
+    !getCodeBlock(source, 'S13-03').includes('Interior guards installed at open sides of stairs, landings, balconies, and mezzanines where required. (Camera or Video Evidence Required)'),
+    'S13-03 interior guards item must not receive the deferred evidence tag'
+  )
+  assert.ok(
+    getCodeBlock(source, 'S14-05').includes("'Tree protection, retention, replacement, or arborist compliance records confirmed where required by AHJ or Vancouver-specific bylaw path.'"),
+    'S14-05 tree/arborist item must remain untagged in this pass'
+  )
+  assert.ok(
+    !getCodeBlock(source, 'S14-05').includes('Tree protection, retention, replacement, or arborist compliance records confirmed where required by AHJ or Vancouver-specific bylaw path. (Camera or Note Evidence Required)'),
+    'S14-05 tree/arborist item must not receive the deferred evidence tag'
+  )
+
+  for (const code of ['S15-01', 'S15-02', 'S15-03', 'S15-04']) {
+    const block = getCodeBlock(source, code)
+    assert.ok(!block.includes('(Camera or Video Evidence Required)'), `${code} must not receive camera/video item tags in this pass`)
+    assert.ok(!block.includes('(Camera Evidence Required)'), `${code} must not receive camera item tags in this pass`)
+    assert.ok(!block.includes('(Camera or Note Evidence Required)'), `${code} must not receive camera/note item tags in this pass`)
+  }
 })
