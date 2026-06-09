@@ -257,6 +257,62 @@ function inspectionStatusRank(status: ScheduleCBPacketItemRecord['inspectionStat
   return 0
 }
 
+function builderStageForInternalChecklistStage(internalStage: number): number {
+  if (internalStage === 1) return 1
+  if (internalStage === 5) return 2
+  if (internalStage >= 6 && internalStage <= 11) return 3
+  if (internalStage === 12) return 4
+  if (internalStage === 13) return 5
+  if (internalStage === 14) return 6
+  if (internalStage === 15) return 7
+  return internalStage
+}
+
+function defaultBuilderStageLabel(stageNumber: number): string {
+  switch (stageNumber) {
+    case 1: return 'Site Survey & Excavation'
+    case 2: return 'Foundation Pour'
+    case 3: return 'Framing & Lock-up'
+    case 4: return 'Insulation & Energy Compliance'
+    case 5: return 'Interior Completion'
+    case 6: return 'Exterior Works and Site Finalization'
+    case 7: return 'Final Approval and Occupancy'
+    default: return `Stage ${stageNumber}`
+  }
+}
+
+function formatChecklistStageCode(stageNumber: number): string {
+  return `S${String(stageNumber).padStart(2, '0')}`
+}
+
+function buildStageDisplayLabels(source: ScheduleCBPacketSource, scopedItems: ScheduleCBPacketItemRecord[]): {
+  stageStatusLabel: string
+  checklistScopeLabel: string
+} {
+  const scopedStageNumbers = [...new Set(scopedItems.map(item => item.stageNumber))]
+    .sort((left, right) => left - right)
+  const primaryChecklistStage = scopedStageNumbers[scopedStageNumbers.length - 1] ?? source.report.currentStage
+  const builderStageNumber = source.builderStage?.number ?? builderStageForInternalChecklistStage(primaryChecklistStage)
+  const builderStageTotal = source.builderStage?.total ?? 7
+  const builderStageLabel = source.builderStage?.label?.trim() || defaultBuilderStageLabel(builderStageNumber)
+  const stageStatusLabel = `Builder Stage ${builderStageNumber} of ${builderStageTotal} — ${builderStageLabel}`
+
+  if ((source.packetScope?.mode ?? 'stage_level') === 'full_project' && scopedStageNumbers.length > 1) {
+    return {
+      stageStatusLabel,
+      checklistScopeLabel: `Checklist Scope: Signed stages ${scopedStageNumbers.map(formatChecklistStageCode).join(', ')}`,
+    }
+  }
+
+  const checklistStageName = scopedItems.find(item => item.stageNumber === primaryChecklistStage)?.stageName
+    || `Stage ${primaryChecklistStage}`
+
+  return {
+    stageStatusLabel,
+    checklistScopeLabel: `Checklist Scope: ${formatChecklistStageCode(primaryChecklistStage)} — ${checklistStageName}`,
+  }
+}
+
 function getScopedItems(source: ScheduleCBPacketSource): ScheduleCBPacketItemRecord[] {
   const includedStages = resolvePacketStageNumbers(source)
   const scoped = source.items.filter(item => includedStages.has(item.stageNumber))
@@ -292,6 +348,7 @@ export function buildScheduleCBPacketData(source: ScheduleCBPacketSource): Sched
   const scopedItemCodes = new Set(scopedItems.map(item => item.itemCode))
   const scopedDocuments = source.documents.filter(document => scopedItemCodes.has(document.itemCode))
   const itemMap = new Map(scopedItems.map(item => [item.itemCode, item]))
+  const stageDisplayLabels = buildStageDisplayLabels(source, scopedItems)
 
   // ─── Checklist summary (computed before overallResult so we can gate it) ────
   const itemsWithStatus = scopedItems.filter(item => item.inspectionStatus != null)
@@ -451,7 +508,8 @@ export function buildScheduleCBPacketData(source: ScheduleCBPacketSource): Sched
       overallResult,
       currentStage: report.currentStage,
       stageCount: report.stageCount,
-      stageStatusLabel: `Stage ${report.currentStage} of ${report.stageCount}`,
+      stageStatusLabel: stageDisplayLabels.stageStatusLabel,
+      checklistScopeLabel: stageDisplayLabels.checklistScopeLabel,
       sealReference: report.sealReference,
       verificationId: source.verificationId ?? report.sealReference ?? report.id,
     },

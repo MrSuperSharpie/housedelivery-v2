@@ -376,6 +376,11 @@ async function handleDevPreview(
           mode: 'full_project',
           stageNumbers: [1, 2, 15],
         },
+        builderStage: {
+          number: 7,
+          label: 'Final Approval and Occupancy',
+          total: 7,
+        },
       })
     }
 
@@ -457,7 +462,7 @@ export async function GET(req: NextRequest) {
   // permit number resolution. A single query replaces the later conditional fetch.
   const { data: jobRow, error: jobError } = await supabase
     .from(JOBS)
-    .select('builder_id, permit_number, project_id')
+    .select('builder_id, permit_number, project_id, stage, stage_name')
     .eq('id', (reportRecord.job_id as string) ?? '')
     .maybeSingle()
 
@@ -627,6 +632,8 @@ export async function GET(req: NextRequest) {
   }
 
   const buildingPermitNumber = permitNumberFromQuery ?? ((jobRow?.permit_number as string) ?? undefined)
+  const builderStageNumber = typeof jobRow?.stage === 'number' ? jobRow.stage : undefined
+  const builderStageLabel = typeof jobRow?.stage_name === 'string' ? jobRow.stage_name : undefined
 
   const officialFormOptions: ScheduleCBOptions = {
     inspectorName,
@@ -808,6 +815,13 @@ export async function GET(req: NextRequest) {
         verificationId: report.sealReference ?? report.id,
         exportMode,
         packetScope,
+        builderStage: builderStageNumber
+          ? {
+              number: builderStageNumber,
+              label: builderStageLabel,
+              total: 7,
+            }
+          : undefined,
       })
     }
 

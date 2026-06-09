@@ -584,6 +584,9 @@ function CoverPage({ data }: { data: ScheduleCBPacketData }) {
               <div className="summary-band-cell">
                 <div className="summary-band-label">Stage Status</div>
                 <div className="summary-band-value">{data.summary.stageStatusLabel}</div>
+                <div className="secondary" style={{ marginTop: '3px', fontSize: '11px', fontWeight: 700 }}>
+                  {data.summary.checklistScopeLabel}
+                </div>
               </div>
               <div className="summary-band-cell">
                 <div className="summary-band-label">Jurisdiction</div>

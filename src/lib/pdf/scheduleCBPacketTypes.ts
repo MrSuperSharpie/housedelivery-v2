@@ -49,6 +49,11 @@ export interface ScheduleCBPacketSource {
     mode: 'stage_level' | 'full_project'
     stageNumbers: number[]
   }
+  builderStage?: {
+    number: number
+    label?: string
+    total?: number
+  }
 }
 
 export interface ScheduleCBPacketAppendixEntry {
@@ -155,6 +160,7 @@ export interface ScheduleCBPacketData {
     currentStage: number
     stageCount: number
     stageStatusLabel: string
+    checklistScopeLabel: string
     sealReference?: string
     verificationId?: string
   }

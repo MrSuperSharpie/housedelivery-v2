@@ -89,13 +89,58 @@ test('buildScheduleCBPacketData assembles compliant cover and appendix data', ()
 
   assert.equal(packet.complianceBlockLabel, 'SEALED & COMPLIANT')
   assert.equal(packet.project.name, 'Vero Mixed-Use Demonstration')
-  assert.equal(packet.summary.stageStatusLabel, 'Stage 15 of 15')
+  assert.equal(packet.summary.stageStatusLabel, 'Builder Stage 7 of 7 — Final Approval and Occupancy')
+  assert.equal(packet.summary.checklistScopeLabel, 'Checklist Scope: S15 — Inspections, Final Approval, and Occupancy')
   assert.equal(packet.summary.verificationId, 'VERO-PACKET-2026-0001')
   assert.equal(packet.appendixEntries.length, 2)
   assert.equal(packet.appendixEntries[0]?.requirementReference, 'Stage 15 · S15-01 — Life-Safety Systems Final Verification')
   assert.equal(packet.appendixEntries[0]?.capturedAtDisplay, 'Apr 11, 2026 16:02:00 UTC')
   assert.equal(packet.auditTrail.exactTimestampDisplay, 'Apr 11, 2026 16:21:00 UTC')
   assert.match(packet.legal.complianceTodos[0] ?? '', /Compliance TODO:/)
+})
+
+test('Stage 1/S01 packet displays builder Stage 1 and checklist S01', () => {
+  const source = {
+    ...SAMPLE_SCHEDULE_CB_PACKET_SOURCE,
+    report: {
+      ...SAMPLE_SCHEDULE_CB_PACKET_SOURCE.report,
+      currentStage: 1,
+      status: 'submitted' as const,
+      sealPayload: {
+        ...SAMPLE_SCHEDULE_CB_PACKET_SOURCE.report.sealPayload,
+        stageSignOffs: {
+          '1': {
+            stageNumber: 1,
+            signedAt: '2026-04-11T16:21:00.000Z',
+          },
+        },
+      },
+    },
+    packetScope: {
+      mode: 'stage_level' as const,
+      stageNumbers: [1],
+    },
+    builderStage: {
+      number: 1,
+      label: 'Site Survey & Excavation',
+      total: 7,
+    },
+    items: [
+      {
+        itemCode: 'S01-01',
+        itemLabel: 'Project Address and Legal Description',
+        stageNumber: 1,
+        stageName: 'Project Intake, Site Readiness, and Permit Basis',
+        inspectionStatus: 'Passed' as const,
+      },
+    ],
+    documents: [],
+  }
+
+  const packet = buildScheduleCBPacketData(source)
+
+  assert.equal(packet.summary.stageStatusLabel, 'Builder Stage 1 of 7 — Site Survey & Excavation')
+  assert.equal(packet.summary.checklistScopeLabel, 'Checklist Scope: S01 — Project Intake, Site Readiness, and Permit Basis')
 })
 
 test('stage-level packet scope limits Stage 1 report to S01 items even when future stages are persisted', () => {
@@ -227,6 +272,105 @@ test('full project packet scope can include multiple signed stages without dupli
   assert.equal(packet.items.find(item => item.itemCode === 'S01-01')?.inspectionStatus, 'Passed')
   assert.equal(packet.checklistSummary.passCount, 3)
   assert.equal(packet.checklistSummary.totalCount, 3)
+  assert.equal(packet.summary.stageStatusLabel, 'Builder Stage 7 of 7 — Final Approval and Occupancy')
+  assert.equal(packet.summary.checklistScopeLabel, 'Checklist Scope: Signed stages S01, S05, S15')
+})
+
+test('Stage 2/S05 packet displays builder Stage 2 and checklist S05 while keeping S05 item scope', () => {
+  const source = {
+    ...SAMPLE_SCHEDULE_CB_PACKET_SOURCE,
+    report: {
+      ...SAMPLE_SCHEDULE_CB_PACKET_SOURCE.report,
+      currentStage: 5,
+      status: 'submitted' as const,
+      sealPayload: {
+        ...SAMPLE_SCHEDULE_CB_PACKET_SOURCE.report.sealPayload,
+        stageSignOffs: {
+          '5': {
+            stageNumber: 5,
+            signedAt: '2026-04-11T16:21:00.000Z',
+          },
+        },
+      },
+    },
+    packetScope: {
+      mode: 'stage_level' as const,
+      stageNumbers: [5],
+    },
+    builderStage: {
+      number: 2,
+      label: 'Foundation Pour',
+      total: 7,
+    },
+    items: [
+      ...Array.from({ length: 4 }, (_, index) => ({
+        itemCode: `S05-0${index + 1}`,
+        itemLabel: `Foundation checklist item ${index + 1}`,
+        stageNumber: 5,
+        stageName: 'Foundation Pour',
+        inspectionStatus: 'Passed' as const,
+      })),
+      {
+        itemCode: 'S06-01',
+        itemLabel: 'Future framing item',
+        stageNumber: 6,
+        stageName: 'Framing and Lock-Up',
+        inspectionStatus: 'Pending' as const,
+      },
+    ],
+    documents: [],
+  }
+
+  const packet = buildScheduleCBPacketData(source)
+
+  assert.equal(packet.summary.stageStatusLabel, 'Builder Stage 2 of 7 — Foundation Pour')
+  assert.equal(packet.summary.checklistScopeLabel, 'Checklist Scope: S05 — Foundation Pour')
+  assert.equal(packet.items.length, 4)
+  assert.ok(packet.items.every(item => item.itemCode.startsWith('S05-')))
+})
+
+test('Stage 3 discipline override packet preserves internal checklist code while showing builder Stage 3', () => {
+  const source = {
+    ...SAMPLE_SCHEDULE_CB_PACKET_SOURCE,
+    report: {
+      ...SAMPLE_SCHEDULE_CB_PACKET_SOURCE.report,
+      currentStage: 10,
+      status: 'submitted' as const,
+      sealPayload: {
+        ...SAMPLE_SCHEDULE_CB_PACKET_SOURCE.report.sealPayload,
+        stageSignOffs: {
+          '10': {
+            stageNumber: 10,
+            signedAt: '2026-04-11T16:21:00.000Z',
+          },
+        },
+      },
+    },
+    packetScope: {
+      mode: 'stage_level' as const,
+      stageNumbers: [10],
+    },
+    builderStage: {
+      number: 3,
+      label: 'Framing & Lock-up',
+      total: 7,
+    },
+    items: [
+      {
+        itemCode: 'S10-01',
+        itemLabel: 'Electrical Permit and Service Readiness',
+        stageNumber: 10,
+        stageName: 'Electrical Permit and Scope',
+        inspectionStatus: 'Passed' as const,
+      },
+    ],
+    documents: [],
+  }
+
+  const packet = buildScheduleCBPacketData(source)
+
+  assert.equal(packet.summary.stageStatusLabel, 'Builder Stage 3 of 7 — Framing & Lock-up')
+  assert.equal(packet.summary.checklistScopeLabel, 'Checklist Scope: S10 — Electrical Permit and Scope')
 })
 
 // ─── Hold history: coerceHoldHistoryEntry ─────────────────────────────────────
