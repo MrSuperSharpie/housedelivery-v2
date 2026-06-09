@@ -79,7 +79,7 @@ test('chunkAppendixEntries preserves order and page size', () => {
 
 test('extractAuditCoordinates prefers latest recorded sign-off location', () => {
   const coordinates = extractAuditCoordinates(SAMPLE_SCHEDULE_CB_PACKET_SOURCE.report)
-  assert.equal(coordinates.source, 'Stage 15 sign-off')
+  assert.equal(coordinates.source, 'Checklist S15 sign-off')
   assert.equal(coordinates.latitude, 49.282732)
   assert.equal(coordinates.longitude, -123.110471)
 })
@@ -93,7 +93,7 @@ test('buildScheduleCBPacketData assembles compliant cover and appendix data', ()
   assert.equal(packet.summary.checklistScopeLabel, 'Checklist Scope: S15 — Inspections, Final Approval, and Occupancy')
   assert.equal(packet.summary.verificationId, 'VERO-PACKET-2026-0001')
   assert.equal(packet.appendixEntries.length, 2)
-  assert.equal(packet.appendixEntries[0]?.requirementReference, 'Stage 15 · S15-01 — Life-Safety Systems Final Verification')
+  assert.equal(packet.appendixEntries[0]?.requirementReference, 'Checklist S15 · S15-01 — Life-Safety Systems Final Verification')
   assert.equal(packet.appendixEntries[0]?.capturedAtDisplay, 'Apr 11, 2026 16:02:00 UTC')
   assert.equal(packet.auditTrail.exactTimestampDisplay, 'Apr 11, 2026 16:21:00 UTC')
   assert.match(packet.legal.complianceTodos[0] ?? '', /Compliance TODO:/)
@@ -289,6 +289,8 @@ test('Stage 2/S05 packet displays builder Stage 2 and checklist S05 while keepin
           '5': {
             stageNumber: 5,
             signedAt: '2026-04-11T16:21:00.000Z',
+            latitude: 49.282732,
+            longitude: -123.110471,
           },
         },
       },
@@ -303,13 +305,34 @@ test('Stage 2/S05 packet displays builder Stage 2 and checklist S05 while keepin
       total: 7,
     },
     items: [
-      ...Array.from({ length: 4 }, (_, index) => ({
-        itemCode: `S05-0${index + 1}`,
-        itemLabel: `Foundation checklist item ${index + 1}`,
+      {
+        itemCode: 'S05-01',
+        itemLabel: 'Footings, Foundation Walls, Rebar, and Embedded Items',
         stageNumber: 5,
-        stageName: 'Foundation Pour',
+        stageName: 'Footings, Foundation, and Slab',
         inspectionStatus: 'Passed' as const,
-      })),
+      },
+      {
+        itemCode: 'S05-02',
+        itemLabel: 'Drainage, Dampproofing, and Foundation Protection',
+        stageNumber: 5,
+        stageName: 'Footings, Foundation, and Slab',
+        inspectionStatus: 'Passed' as const,
+      },
+      {
+        itemCode: 'S05-03',
+        itemLabel: 'Slab Preparation, Radon, Soil Gas, and Under-Slab Conditions',
+        stageNumber: 5,
+        stageName: 'Footings, Foundation, and Slab',
+        inspectionStatus: 'Passed' as const,
+      },
+      {
+        itemCode: 'S05-04',
+        itemLabel: 'Concrete Pour, Placement, Curing, and Post-Pour Review',
+        stageNumber: 5,
+        stageName: 'Footings, Foundation, and Slab',
+        inspectionStatus: 'Passed' as const,
+      },
       {
         itemCode: 'S06-01',
         itemLabel: 'Future framing item',
@@ -318,15 +341,36 @@ test('Stage 2/S05 packet displays builder Stage 2 and checklist S05 while keepin
         inspectionStatus: 'Pending' as const,
       },
     ],
-    documents: [],
+    documents: [
+      {
+        id: 'doc-s05-01',
+        itemCode: 'S05-01',
+        fileName: 'foundation-rebar.jpg',
+        storagePath: 'fixture://foundation-rebar.jpg',
+        mimeType: 'image/jpeg',
+        createdAt: '2026-04-11T16:02:00.000Z',
+      },
+    ],
   }
 
   const packet = buildScheduleCBPacketData(source)
 
   assert.equal(packet.summary.stageStatusLabel, 'Builder Stage 2 of 7 — Foundation Pour')
-  assert.equal(packet.summary.checklistScopeLabel, 'Checklist Scope: S05 — Foundation Pour')
+  assert.equal(packet.summary.checklistScopeLabel, 'Checklist Scope: S05 — Footings, Foundation, and Slab')
+  assert.equal(packet.auditTrail.coordinatesSource, 'Checklist S05 sign-off')
+  assert.equal(packet.checklistSummary.passCount, 4)
+  assert.equal(packet.checklistSummary.failCount, 0)
+  assert.equal(packet.checklistSummary.totalCount, 4)
   assert.equal(packet.items.length, 4)
   assert.ok(packet.items.every(item => item.itemCode.startsWith('S05-')))
+  assert.equal(
+    packet.appendixEntries[0]?.requirementReference,
+    'Checklist S05 · S05-01 — Footings, Foundation Walls, Rebar, and Embedded Items',
+  )
+  assert.ok(
+    !packet.appendixEntries[0]?.requirementReference.includes('Stage 5'),
+    'S05 evidence appendix requirement labels must not use ambiguous Stage 5 wording',
+  )
 })
 
 test('Stage 3 discipline override packet preserves internal checklist code while showing builder Stage 3', () => {

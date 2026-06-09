@@ -191,7 +191,7 @@ export function extractAuditCoordinates(report: InspectorCompletionReportRow): {
     return {
       latitude: asNumber(latestSignOff.latitude),
       longitude: asNumber(latestSignOff.longitude),
-      source: `Stage ${latestSignOff.stageNumber ?? report.currentStage} sign-off`,
+      source: `Checklist ${formatChecklistStageCode(latestSignOff.stageNumber ?? report.currentStage)} sign-off`,
     }
   }
 
@@ -204,7 +204,7 @@ export function extractAuditCoordinates(report: InspectorCompletionReportRow): {
 
 function buildRequirementReference(item?: ScheduleCBPacketItemRecord): string {
   if (!item) return 'Unmapped requirement reference'
-  return `Stage ${item.stageNumber} · ${item.itemCode} — ${item.itemLabel}`
+  return `Checklist ${formatChecklistStageCode(item.stageNumber)} · ${item.itemCode} — ${item.itemLabel}`
 }
 
 function buildAppendixCaption(
