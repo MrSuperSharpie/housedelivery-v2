@@ -10,6 +10,7 @@ import type { AhjOverlayContext } from '@/lib/inspectorCompletion'
 import type {
   ScheduleCBPacketDocumentRecord,
   ScheduleCBPacketItemRecord,
+  ScheduleCBPacketSource,
 } from '@/lib/pdf/scheduleCBPacketTypes'
 
 const REPORTS = 'inspector_completion_reports'
@@ -147,6 +148,79 @@ function toPacketDocument(row: Record<string, unknown>): ScheduleCBPacketDocumen
     latitude: typeof captureGeo?.latitude === 'number' ? captureGeo.latitude : null,
     longitude: typeof captureGeo?.longitude === 'number' ? captureGeo.longitude : null,
   }
+}
+
+function numberFrom(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null
+}
+
+function getReportSignedStageNumbers(row: Record<string, unknown>): number[] {
+  const currentStage = numberFrom(row.current_stage) ?? 1
+  const payload = row.seal_payload && typeof row.seal_payload === 'object' && !Array.isArray(row.seal_payload)
+    ? row.seal_payload as Record<string, unknown>
+    : {}
+  const stageSignOffs = payload.stageSignOffs
+
+  if (!stageSignOffs || typeof stageSignOffs !== 'object' || Array.isArray(stageSignOffs)) {
+    return [currentStage]
+  }
+
+  const signedStages = Object.entries(stageSignOffs as Record<string, unknown>)
+    .map(([stageKey, rawSignOff]) => {
+      const fromPayload = rawSignOff && typeof rawSignOff === 'object' && !Array.isArray(rawSignOff)
+        ? numberFrom((rawSignOff as Record<string, unknown>).stageNumber)
+        : null
+      return fromPayload ?? numberFrom(Number(stageKey))
+    })
+    .filter((stageNumber): stageNumber is number => stageNumber !== null)
+
+  return signedStages.length > 0
+    ? [...new Set(signedStages)].sort((left, right) => left - right)
+    : [currentStage]
+}
+
+function shouldBuildFullProjectPacket(report: InspectorCompletionReportRow, reportRecord: Record<string, unknown>): boolean {
+  const signedStages = getReportSignedStageNumbers(reportRecord)
+  return report.currentStage >= report.stageCount || signedStages.includes(report.stageCount)
+}
+
+function itemStatusRank(status: unknown): number {
+  if (status === 'Passed' || status === 'Failed' || status === 'N/A') return 3
+  if (status === 'Pending') return 1
+  return 0
+}
+
+function filterScopedPacketItemRows(
+  rows: Record<string, unknown>[],
+  reportStageScopeById: Map<string, Set<number>>,
+): Record<string, unknown>[] {
+  const deduped = new Map<string, Record<string, unknown>>()
+
+  for (const row of rows) {
+    const reportId = typeof row.report_id === 'string' ? row.report_id : null
+    const stageNumber = numberFrom(row.stage_number)
+    if (!reportId || stageNumber === null) continue
+    if (!reportStageScopeById.get(reportId)?.has(stageNumber)) continue
+
+    const itemCode = typeof row.item_code === 'string' ? row.item_code : ''
+    const key = `${stageNumber}:${itemCode}`
+    const existing = deduped.get(key)
+    if (!existing || itemStatusRank(row.inspection_status) > itemStatusRank(existing.inspection_status)) {
+      deduped.set(key, row)
+    }
+  }
+
+  return [...deduped.values()].sort((left, right) => {
+    const leftStage = numberFrom(left.stage_number) ?? Number.MAX_SAFE_INTEGER
+    const rightStage = numberFrom(right.stage_number) ?? Number.MAX_SAFE_INTEGER
+    if (leftStage !== rightStage) return leftStage - rightStage
+
+    const leftSort = numberFrom(left.sort_order) ?? Number.MAX_SAFE_INTEGER
+    const rightSort = numberFrom(right.sort_order) ?? Number.MAX_SAFE_INTEGER
+    if (leftSort !== rightSort) return leftSort - rightSort
+
+    return String(left.item_code ?? '').localeCompare(String(right.item_code ?? ''))
+  })
 }
 
 const DISCIPLINE_DISPLAY: Record<string, string> = {
@@ -298,6 +372,10 @@ async function handleDevPreview(
         generatedAtIso: new Date().toISOString(),
         verificationId: 'VERO-IC-2026-A3F9B1',
         exportMode,
+        packetScope: {
+          mode: 'full_project',
+          stageNumbers: [1, 2, 15],
+        },
       })
     }
 
@@ -588,13 +666,22 @@ export async function GET(req: NextRequest) {
     } else {
       const brandLogoSrc = await loadBrandLogoDataUri()
 
-      // ── Sibling report aggregation ────────────────────────────────────────
-      // For scoped multi-inspector projects each builder stage produces its
-      // own sealed report. Collect all sealed sibling report IDs so the packet
-      // covers the full evidence chain rather than only the final stage.
-      // Falls back to single-report behaviour if aggregation cannot run.
+      const fullProjectPacket = shouldBuildFullProjectPacket(report, reportRecord)
+      const primarySignedStages = getReportSignedStageNumbers(reportRecord)
       let allReportIds: string[] = [report.id]
-      if (projectId && svcClient) {
+      const reportStageScopeById = new Map<string, Set<number>>([
+        [report.id, new Set(primarySignedStages)],
+      ])
+      let packetScope: ScheduleCBPacketSource['packetScope'] = {
+        mode: fullProjectPacket ? 'full_project' : 'stage_level',
+        stageNumbers: primarySignedStages,
+      }
+
+      // ── Final/full sibling report aggregation ─────────────────────────────
+      // For final scoped projects each builder stage can produce its own
+      // submitted report. A full packet includes only each report's signed stage
+      // slice, avoiding future Pending rows from each report's full checklist.
+      if (fullProjectPacket && projectId && svcClient) {
         try {
           const { data: siblingJobs } = await svcClient
             .from(JOBS)
@@ -612,18 +699,38 @@ export async function GET(req: NextRequest) {
 
           const { data: siblingReports } = await svcClient
             .from(REPORTS)
-            .select('id, current_stage')
+            .select('id, current_stage, seal_payload')
             .in('job_id', [...jobIdSet])
             .in('status', ['submitted', 'sealed'])
             .order('current_stage', { ascending: true })
 
           if (siblingReports && siblingReports.length > 0) {
-            const siblingIds = (siblingReports as { id: string }[]).map(r => r.id)
+            const siblingIds = (siblingReports as Array<Record<string, unknown>>)
+              .map(r => typeof r.id === 'string' ? r.id : null)
+              .filter((id): id is string => id !== null)
             allReportIds = [...new Set([...siblingIds, report.id])]
+            for (const siblingReport of siblingReports as Array<Record<string, unknown>>) {
+              const siblingReportId = typeof siblingReport.id === 'string' ? siblingReport.id : null
+              if (!siblingReportId) continue
+              reportStageScopeById.set(siblingReportId, new Set(getReportSignedStageNumbers(siblingReport)))
+            }
+            reportStageScopeById.set(report.id, new Set(primarySignedStages))
+            packetScope = {
+              mode: 'full_project',
+              stageNumbers: [...new Set(
+                [...reportStageScopeById.values()].flatMap(stageSet => [...stageSet])
+              )].sort((left, right) => left - right),
+            }
           }
         } catch {
           console.warn('[schedule-cb] Sibling report aggregation failed — falling back to single report')
           allReportIds = [report.id]
+          reportStageScopeById.clear()
+          reportStageScopeById.set(report.id, new Set(primarySignedStages))
+          packetScope = {
+            mode: fullProjectPacket ? 'full_project' : 'stage_level',
+            stageNumbers: primarySignedStages,
+          }
         }
       }
 
@@ -631,7 +738,7 @@ export async function GET(req: NextRequest) {
       const [{ data: itemRows, error: itemsError }, { data: documentRows, error: documentsError }] = await Promise.all([
         dbClient
           .from(ITEMS)
-          .select('item_code, item_label, response_note, ahj_notes, stage_number, stage_name, inspection_status')
+          .select('report_id, item_code, item_label, response_note, ahj_notes, stage_number, stage_name, inspection_status, sort_order')
           .in('report_id', allReportIds)
           .order('stage_number', { ascending: true })
           .order('sort_order', { ascending: true }),
@@ -658,8 +765,14 @@ export async function GET(req: NextRequest) {
         )
       }
 
-      const packetItems = ((itemRows as Record<string, unknown>[] | null) ?? []).map(toPacketItem)
-      const rawDocuments = ((documentRows as Record<string, unknown>[] | null) ?? []).map(toPacketDocument)
+      const packetItems = filterScopedPacketItemRows(
+        (itemRows as Record<string, unknown>[] | null) ?? [],
+        reportStageScopeById,
+      ).map(toPacketItem)
+      const packetItemCodes = new Set(packetItems.map(item => item.itemCode))
+      const rawDocuments = ((documentRows as Record<string, unknown>[] | null) ?? [])
+        .map(toPacketDocument)
+        .filter(document => packetItemCodes.has(document.itemCode))
 
       // 7-day signed URLs for every evidence document — powers the clickable
       // hyperlinks in the appendix (and the inline <img> preview for images).
@@ -694,6 +807,7 @@ export async function GET(req: NextRequest) {
         generatedAtIso: new Date().toISOString(),
         verificationId: report.sealReference ?? report.id,
         exportMode,
+        packetScope,
       })
     }
 

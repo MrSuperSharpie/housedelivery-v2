@@ -98,6 +98,137 @@ test('buildScheduleCBPacketData assembles compliant cover and appendix data', ()
   assert.match(packet.legal.complianceTodos[0] ?? '', /Compliance TODO:/)
 })
 
+test('stage-level packet scope limits Stage 1 report to S01 items even when future stages are persisted', () => {
+  const source = {
+    ...SAMPLE_SCHEDULE_CB_PACKET_SOURCE,
+    report: {
+      ...SAMPLE_SCHEDULE_CB_PACKET_SOURCE.report,
+      currentStage: 1,
+      status: 'submitted' as const,
+      sealPayload: {
+        ...SAMPLE_SCHEDULE_CB_PACKET_SOURCE.report.sealPayload,
+        stageSignOffs: {
+          '1': {
+            stageNumber: 1,
+            signedAt: '2026-04-11T16:21:00.000Z',
+            latitude: 49.282732,
+            longitude: -123.110471,
+          },
+        },
+      },
+    },
+    packetScope: {
+      mode: 'stage_level' as const,
+      stageNumbers: [1],
+    },
+    items: [
+      ...Array.from({ length: 5 }, (_, index) => ({
+        itemCode: `S01-0${index + 1}`,
+        itemLabel: `Stage 1 checklist item ${index + 1}`,
+        stageNumber: 1,
+        stageName: 'Project Intake, Site Readiness, and Permit Basis',
+        inspectionStatus: 'Passed' as const,
+        ...(index === 4 ? { responseNote: 'Stage 1 closeout note captured by the inspector.' } : {}),
+      })),
+      ...Array.from({ length: 14 }, (_, index) => {
+        const stageNumber = index + 2
+        return {
+          itemCode: `S${String(stageNumber).padStart(2, '0')}-01`,
+          itemLabel: `Future stage ${stageNumber} placeholder`,
+          stageNumber,
+          stageName: `Future stage ${stageNumber}`,
+          inspectionStatus: 'Pending' as const,
+          ahjNotes: `Default AHJ guidance for future stage ${stageNumber}.`,
+        }
+      }),
+    ],
+    documents: [
+      {
+        id: 'doc-stage-1',
+        itemCode: 'S01-01',
+        fileName: 'stage-1-photo.jpg',
+        storagePath: 'fixture://stage-1-photo.jpg',
+        mimeType: 'image/jpeg',
+        createdAt: '2026-04-11T16:02:00.000Z',
+      },
+      {
+        id: 'doc-future-stage',
+        itemCode: 'S02-01',
+        fileName: 'future-stage-photo.jpg',
+        storagePath: 'fixture://future-stage-photo.jpg',
+        mimeType: 'image/jpeg',
+        createdAt: '2026-04-11T16:03:00.000Z',
+      },
+    ],
+  }
+
+  const packet = buildScheduleCBPacketData(source)
+
+  assert.equal(packet.items.length, 5)
+  assert.equal(packet.checklistSummary.passCount, 5)
+  assert.equal(packet.checklistSummary.failCount, 0)
+  assert.equal(packet.checklistSummary.pendingCount, 0)
+  assert.equal(packet.checklistSummary.totalCount, 5)
+  assert.ok(packet.items.every(item => item.stageNumber === 1), 'Stage 1 packet must only include S01 items')
+  assert.ok(packet.items.every(item => item.itemCode.startsWith('S01-')), 'Stage 1 packet must exclude S02-S15 rows')
+  assert.ok(
+    packet.appendixEntries.every(entry => !entry.requirementReference.includes('S02-')),
+    'Stage 1 packet must not create appendix entries for future-stage documents or AHJ guidance',
+  )
+  assert.ok(
+    packet.appendixEntries.some(entry => entry.caption === 'Stage 1 closeout note captured by the inspector.'),
+    'Scoped signed-stage response notes must still appear as Field Observation appendix entries',
+  )
+})
+
+test('full project packet scope can include multiple signed stages without duplicate item rows', () => {
+  const source = {
+    ...SAMPLE_SCHEDULE_CB_PACKET_SOURCE,
+    packetScope: {
+      mode: 'full_project' as const,
+      stageNumbers: [1, 5, 15],
+    },
+    items: [
+      {
+        itemCode: 'S01-01',
+        itemLabel: 'Project Address and Legal Description',
+        stageNumber: 1,
+        stageName: 'Project Intake, Site Readiness, and Permit Basis',
+        inspectionStatus: 'Pending' as const,
+      },
+      {
+        itemCode: 'S01-01',
+        itemLabel: 'Project Address and Legal Description',
+        stageNumber: 1,
+        stageName: 'Project Intake, Site Readiness, and Permit Basis',
+        inspectionStatus: 'Passed' as const,
+      },
+      {
+        itemCode: 'S05-01',
+        itemLabel: 'Footings, Foundation Walls, Rebar, and Embedded Items',
+        stageNumber: 5,
+        stageName: 'Foundation Pour',
+        inspectionStatus: 'Passed' as const,
+      },
+      {
+        itemCode: 'S15-01',
+        itemLabel: 'Life-Safety Systems Final Verification',
+        stageNumber: 15,
+        stageName: 'Inspections, Final Approval, and Occupancy',
+        inspectionStatus: 'Passed' as const,
+      },
+    ],
+    documents: [],
+  }
+
+  const packet = buildScheduleCBPacketData(source)
+
+  assert.deepEqual(packet.items.map(item => item.itemCode), ['S01-01', 'S05-01', 'S15-01'])
+  assert.equal(packet.items.find(item => item.itemCode === 'S01-01')?.inspectionStatus, 'Passed')
+  assert.equal(packet.checklistSummary.passCount, 3)
+  assert.equal(packet.checklistSummary.totalCount, 3)
+})
+
 // ─── Hold history: coerceHoldHistoryEntry ─────────────────────────────────────
 
 test('coerceHoldHistoryEntry maps a fully-populated hold payload', () => {
@@ -299,7 +430,7 @@ test('items with attached documents do not also produce a note-only appendix ent
   assert.equal(noteOnlyEntries.length, 0, 'items with documents must not also produce Field Observation entries')
 })
 
-test('items with ahjNotes but no responseNote and no document produce a Field Observation entry', () => {
+test('items with ahjNotes but no responseNote and no document do not produce a Field Observation entry', () => {
   const source = {
     ...SAMPLE_SCHEDULE_CB_PACKET_SOURCE,
     items: [
@@ -315,9 +446,8 @@ test('items with ahjNotes but no responseNote and no document produce a Field Ob
     documents: [],
   }
   const data = buildScheduleCBPacketData(source)
-  assert.equal(data.appendixEntries.length, 1)
-  assert.equal(data.appendixEntries[0]?.fileKindLabel, 'Field Observation')
-  assert.ok(data.appendixEntries[0]?.caption.length ?? 0 > 0, 'caption must be non-empty')
+  assert.equal(data.items[0]?.ahjNotes, 'Confirm occupancy permit reference with AHJ before project close.')
+  assert.equal(data.appendixEntries.length, 0)
 })
 
 // ─── E. items array is present in packet data ─────────────────────────────────

@@ -45,6 +45,10 @@ export interface ScheduleCBPacketSource {
   generatedAtIso?: string
   verificationId?: string
   exportMode?: 'platform_preview' | 'authority_facing'
+  packetScope?: {
+    mode: 'stage_level' | 'full_project'
+    stageNumbers: number[]
+  }
 }
 
 export interface ScheduleCBPacketAppendixEntry {

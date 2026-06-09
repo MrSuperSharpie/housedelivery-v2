@@ -221,6 +221,60 @@ function normalizeIso(value: string | undefined, fallback: string): string {
   return Number.isNaN(date.getTime()) ? fallback : date.toISOString()
 }
 
+function getSignedStageNumbers(report: InspectorCompletionReportRow): number[] {
+  const candidate = report.sealPayload.stageSignOffs
+  if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) {
+    return [report.currentStage]
+  }
+
+  const signedStages = Object.entries(candidate as Record<string, unknown>)
+    .map(([stageKey, rawSignOff]) => {
+      const fromPayload = rawSignOff && typeof rawSignOff === 'object' && !Array.isArray(rawSignOff)
+        ? asNumber((rawSignOff as Record<string, unknown>).stageNumber)
+        : null
+      return fromPayload ?? asNumber(Number(stageKey))
+    })
+    .filter((stageNumber): stageNumber is number => stageNumber !== null)
+
+  return signedStages.length > 0
+    ? [...new Set(signedStages)].sort((left, right) => left - right)
+    : [report.currentStage]
+}
+
+function resolvePacketStageNumbers(source: ScheduleCBPacketSource): Set<number> {
+  const explicitStageNumbers = source.packetScope?.stageNumbers
+    .filter(stageNumber => Number.isFinite(stageNumber) && stageNumber > 0)
+  const stageNumbers = explicitStageNumbers && explicitStageNumbers.length > 0
+    ? explicitStageNumbers
+    : getSignedStageNumbers(source.report)
+
+  return new Set(stageNumbers)
+}
+
+function inspectionStatusRank(status: ScheduleCBPacketItemRecord['inspectionStatus']): number {
+  if (status === 'Passed' || status === 'Failed' || status === 'N/A') return 3
+  if (status === 'Pending') return 1
+  return 0
+}
+
+function getScopedItems(source: ScheduleCBPacketSource): ScheduleCBPacketItemRecord[] {
+  const includedStages = resolvePacketStageNumbers(source)
+  const scoped = source.items.filter(item => includedStages.has(item.stageNumber))
+  const deduped = new Map<string, ScheduleCBPacketItemRecord>()
+
+  for (const item of scoped) {
+    const existing = deduped.get(item.itemCode)
+    if (!existing || inspectionStatusRank(item.inspectionStatus) > inspectionStatusRank(existing.inspectionStatus)) {
+      deduped.set(item.itemCode, item)
+    }
+  }
+
+  return [...deduped.values()].sort((left, right) => {
+    if (left.stageNumber !== right.stageNumber) return left.stageNumber - right.stageNumber
+    return left.itemCode.localeCompare(right.itemCode)
+  })
+}
+
 export function buildScheduleCBPacketData(source: ScheduleCBPacketSource): ScheduleCBPacketData {
   const generatedAtIso = normalizeIso(source.generatedAtIso, new Date().toISOString())
   const report = source.report
@@ -234,17 +288,20 @@ export function buildScheduleCBPacketData(source: ScheduleCBPacketSource): Sched
     .map(coerceHoldHistoryEntry)
     .filter((entry): entry is HoldHistoryEntry => entry !== null)
   const certificationTimestamp = report.sealedAt ?? report.submittedAt ?? generatedAtIso
-  const itemMap = new Map(source.items.map(item => [item.itemCode, item]))
+  const scopedItems = getScopedItems(source)
+  const scopedItemCodes = new Set(scopedItems.map(item => item.itemCode))
+  const scopedDocuments = source.documents.filter(document => scopedItemCodes.has(document.itemCode))
+  const itemMap = new Map(scopedItems.map(item => [item.itemCode, item]))
 
   // ─── Checklist summary (computed before overallResult so we can gate it) ────
-  const itemsWithStatus = source.items.filter(item => item.inspectionStatus != null)
+  const itemsWithStatus = scopedItems.filter(item => item.inspectionStatus != null)
   const checklistSummary: ChecklistSummary = {
     hasData: itemsWithStatus.length > 0,
     passCount: itemsWithStatus.filter(i => i.inspectionStatus === 'Passed').length,
     failCount: itemsWithStatus.filter(i => i.inspectionStatus === 'Failed').length,
     naCount: itemsWithStatus.filter(i => i.inspectionStatus === 'N/A').length,
     pendingCount: itemsWithStatus.filter(i => i.inspectionStatus === 'Pending').length,
-    totalCount: source.items.length,
+    totalCount: scopedItems.length,
   }
 
   // ─── Overall result — guard against legal contradiction ─────────────────────
@@ -295,7 +352,7 @@ export function buildScheduleCBPacketData(source: ScheduleCBPacketSource): Sched
   // ─── Evidence filtering: only include real persisted documents ──────────────
   // Documents without a non-empty storagePath are template prompts or capture
   // stubs that were never uploaded — exclude them from the evidence appendix.
-  const persistedDocuments = source.documents.filter(
+  const persistedDocuments = scopedDocuments.filter(
     doc => typeof doc.storagePath === 'string' && doc.storagePath.trim() !== '',
   )
 
@@ -335,18 +392,18 @@ export function buildScheduleCBPacketData(source: ScheduleCBPacketSource): Sched
       }
     })
 
-  // Note-only entries: items that have an inspector note or AHJ note but no
+  // Note-only entries: scoped items that have an inspector field note but no
   // attached document. These would otherwise be invisible in the final PDF.
-  const noteOnlyEntries: ScheduleCBPacketAppendixEntry[] = source.items
+  const noteOnlyEntries: ScheduleCBPacketAppendixEntry[] = scopedItems
     .filter(item =>
       !itemCodesWithDocuments.has(item.itemCode) &&
-      Boolean(item.responseNote?.trim() || item.ahjNotes?.trim()),
+      Boolean(item.responseNote?.trim()),
     )
     .map(item => ({
       id: `note-${item.itemCode}`,
       fileName: `Field observation · ${item.itemCode}`,
       fileKindLabel: 'Field Observation',
-      caption: item.responseNote?.trim() ?? item.ahjNotes?.trim() ?? '',
+      caption: item.responseNote?.trim() ?? '',
       requirementReference: buildRequirementReference(item),
       capturedAtIso: certificationTimestamp,
       capturedAtDisplay: formatDisplayTimestamp(certificationTimestamp),
@@ -362,7 +419,7 @@ export function buildScheduleCBPacketData(source: ScheduleCBPacketSource): Sched
     complianceBlockLabel,
     complianceTone,
     exportMode,
-    documentCount: source.documents.length,
+    documentCount: scopedDocuments.length,
     checklistSummary,
     coverEyebrow,
     coverSubtitle,
@@ -422,7 +479,7 @@ export function buildScheduleCBPacketData(source: ScheduleCBPacketSource): Sched
       },
     },
     appendixEntries,
-    items: source.items,
+    items: scopedItems,
     holdHistory,
     legal: {
       statutoryTemplateVersion: SCHEDULE_CB_PACKET_TEMPLATE_MANIFEST.statutoryTemplateVersion,
