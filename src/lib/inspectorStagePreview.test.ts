@@ -363,8 +363,16 @@ test('required-evidence containers show Evidence Required Before Pass chip in fi
 test('required-evidence containers show persistent notice inside field checklist panel when evidence is missing', () => {
   const source = read('components/inspector/InspectorCompletionWorkspace.tsx')
   assert.ok(
-    source.includes('Evidence required before this container can be marked Passed.'),
-    'field checklist panel must show a persistent evidence-required notice when passBlockedForEvidence'
+    source.includes('Evidence required before Pass.'),
+    'field checklist panel must show a clear evidence-required notice when passBlockedForEvidence'
+  )
+  assert.ok(
+    source.includes('Attach at least one evidence item in the Attached Evidence section below.'),
+    'evidence-required notice must tell inspectors where to attach evidence'
+  )
+  assert.ok(
+    source.includes('A regular note/comment does not satisfy this requirement unless it is captured as evidence.'),
+    'evidence-required notice must clarify regular notes/comments do not satisfy the evidence gate'
   )
   assert.ok(
     source.includes('passBlockedForEvidence'),
@@ -375,8 +383,12 @@ test('required-evidence containers show persistent notice inside field checklist
 test('passed is locked message is specific about evidence requirement', () => {
   const source = read('components/inspector/InspectorCompletionWorkspace.tsx')
   assert.ok(
-    source.includes('Passed is locked until at least one evidence file is attached to this container.'),
-    'passBlockedMessage for evidence must say Passed is locked until evidence is attached'
+    source.includes('REQUIRED_EVIDENCE_LOCK_MESSAGE'),
+    'passBlockedMessage for evidence must use the shared readable evidence lock message'
+  )
+  assert.ok(
+    !source.includes('Passed is locked until at least one evidence file is attached to this container.'),
+    'stale evidence file blocker copy must be replaced with evidence item copy'
   )
   assert.ok(
     !source.includes('Upload at least one evidence file before marking this container as Passed.'),
@@ -395,7 +407,7 @@ test('standard container amber box uses shared passBlockedMessage instead of har
 test('evidence requirement display is based on shared passRequiresEvidence logic, not stage-number hardcode', () => {
   const source = read('components/inspector/InspectorCompletionWorkspace.tsx')
   const evidenceChipIdx = source.indexOf('Evidence Required Before Pass')
-  const noticeIdx = source.indexOf('Evidence required before this container can be marked Passed.')
+  const noticeIdx = source.indexOf('Evidence required before Pass.')
   assert.ok(
     evidenceChipIdx !== -1 && noticeIdx !== -1,
     'both evidence guidance elements must be present'
@@ -403,6 +415,57 @@ test('evidence requirement display is based on shared passRequiresEvidence logic
   assert.ok(
     !source.includes("stageNumber === 13") && !source.includes("stageNumber === 14") && !source.includes("stageNumber === 15"),
     'evidence requirement display must not be hardcoded to specific stage numbers'
+  )
+})
+
+test('required evidence blocker remains document-based and clears once evidence is attached', () => {
+  const source = read('components/inspector/InspectorCompletionWorkspace.tsx')
+  assert.ok(
+    source.includes('const passRequiresEvidence = item.evidence_mode === \'required_upload\' && item.document_upload_required'),
+    'required evidence gate must be driven by required_upload plus document_upload_required'
+  )
+  assert.ok(
+    source.includes('const passBlockedForEvidence = passRequiresEvidence && item.documents.length === 0'),
+    'required evidence gate must block only while no evidence item is attached'
+  )
+  assert.ok(
+    source.includes('const passBlocked = passBlockedForEvidence || passBlockedForDependency'),
+    'Passed must remain locked for evidence or dependency blockers'
+  )
+  assert.ok(
+    source.includes('disabled={passBlocked}'),
+    'Passed button must remain disabled while passBlocked is true'
+  )
+})
+
+test('required evidence containers without item-level tags still get an obvious evidence instruction', () => {
+  const workspace = read('components/inspector/InspectorCompletionWorkspace.tsx')
+  const checklist = read('lib/inspectorCompletion.ts')
+  const s1404 = getCodeBlock(checklist, 'S14-04')
+  assert.ok(
+    s1404.includes("evidenceMode: 'required_upload'") && s1404.includes('documentUploadRequired: true'),
+    'S14-04 must remain a container-level required evidence container'
+  )
+  assert.ok(
+    !s1404.includes('(Camera or Video Evidence Required)') && !s1404.includes('(Camera Evidence Required)') && !s1404.includes('(Camera or Note Evidence Required)'),
+    'S14-04 must not receive item-level evidence tags in this pass'
+  )
+  assert.ok(
+    workspace.includes('{passBlockedForEvidence && (') && workspace.includes('{REQUIRED_EVIDENCE_LOCK_MESSAGE}'),
+    'container-level required evidence must show the shared actionable evidence instruction even without item-level tags'
+  )
+})
+
+test('S14-05 dependency blocker points inspectors back to S14-04', () => {
+  const workspace = read('components/inspector/InspectorCompletionWorkspace.tsx')
+  const checklist = read('lib/inspectorCompletion.ts')
+  assert.ok(
+    getCodeBlock(checklist, 'S14-05').includes("dependencies: ['S14-04']"),
+    'S14-05 must still depend on S14-04'
+  )
+  assert.ok(
+    workspace.includes('is locked because ${dependencyCode} must be passed first. Complete ${dependencyCode}, attach required evidence, and mark ${dependencyCode} Passed before returning here.'),
+    'single-dependency message must clearly tell inspectors to complete and pass the prerequisite container'
   )
 })
 
@@ -448,6 +511,16 @@ test('deferred S13, S14, and S15 evidence-tag items remain untouched', () => {
   )
 
   for (const code of ['S15-01', 'S15-02', 'S15-03', 'S15-04']) {
+    const block = getCodeBlock(source, code)
+    assert.ok(!block.includes('(Camera or Video Evidence Required)'), `${code} must not receive camera/video item tags in this pass`)
+    assert.ok(!block.includes('(Camera Evidence Required)'), `${code} must not receive camera item tags in this pass`)
+    assert.ok(!block.includes('(Camera or Note Evidence Required)'), `${code} must not receive camera/note item tags in this pass`)
+  }
+})
+
+test('S09 evidence definitions remain untouched by S14 blocker UX pass', () => {
+  const source = read('lib/inspectorCompletion.ts')
+  for (const code of ['S09-01', 'S09-02', 'S09-03', 'S09-04', 'S09-05']) {
     const block = getCodeBlock(source, code)
     assert.ok(!block.includes('(Camera or Video Evidence Required)'), `${code} must not receive camera/video item tags in this pass`)
     assert.ok(!block.includes('(Camera Evidence Required)'), `${code} must not receive camera item tags in this pass`)

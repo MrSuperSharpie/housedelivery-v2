@@ -829,6 +829,9 @@ const FLOATING_PANEL_CLASS = 'shadow-[0_18px_34px_rgba(15,23,42,0.18)]'
 const TACTILE_MEDIA_BUTTON_CLASS = 'inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full border border-slate-300/80 bg-[#e5e7eb] px-0 text-slate-700 shadow-[0_6px_14px_rgba(15,23,42,0.18)] transition-colors hover:bg-[#f3f4f6] disabled:cursor-not-allowed disabled:opacity-50'
 const EMPHASIZED_BODY_TEXT_CLASS = 'text-[17px] leading-7 text-zinc-300'
 const HOLD_ACTION_BUTTON_CLASS = 'min-h-12 rounded-2xl border border-amber-300 bg-amber-100 px-4 py-3 text-sm font-black text-amber-900 shadow-sm transition-colors hover:bg-amber-200 disabled:cursor-not-allowed disabled:border-amber-200 disabled:bg-amber-50 disabled:text-amber-400 disabled:opacity-60'
+const REQUIRED_EVIDENCE_LOCK_MESSAGE = 'Evidence required before Pass. Attach at least one evidence item in the Attached Evidence section below. A regular note/comment does not satisfy this requirement unless it is captured as evidence.'
+const REQUIRED_EVIDENCE_NOTICE_CLASS = 'rounded-2xl border-2 border-rose-500 bg-white px-4 py-3 text-sm font-semibold leading-6 text-slate-950 shadow-[0_14px_28px_rgba(15,23,42,0.18)]'
+const DEPENDENCY_BLOCKER_NOTICE_CLASS = 'rounded-2xl border-2 border-amber-500 bg-white px-4 py-3 text-sm font-semibold leading-6 text-slate-950 shadow-[0_14px_28px_rgba(15,23,42,0.18)]'
 
 type ActiveJobHoldSummary = Pick<HoldRecord, 'id' | 'status' | 'reason'> & Partial<Pick<
   HoldRecord,
@@ -845,6 +848,15 @@ function getWorkspaceHoldResponseLabel(hold: ActiveJobHoldSummary): string {
   if (hold.builderDeclinedAt || hold.status === 'hold_declined') return 'Builder declined — rebook required'
   if (hold.status === 'hold_pending_builder_ack' || hold.status === 'hold_offered') return 'Builder action pending'
   return hold.status.split('_').filter(Boolean).map(part => `${part.charAt(0).toUpperCase()}${part.slice(1)}`).join(' ')
+}
+
+function getDependencyBlockerMessage(itemCode: string, blockedBy: string[]): string {
+  if (blockedBy.length === 1) {
+    const dependencyCode = blockedBy[0]
+    return `${itemCode} is locked because ${dependencyCode} must be passed first. Complete ${dependencyCode}, attach required evidence, and mark ${dependencyCode} Passed before returning here.`
+  }
+
+  return `${itemCode} is locked because ${blockedBy.join(', ')} must be passed first. Complete those prerequisite containers, attach required evidence where needed, and mark them Passed before returning here.`
 }
 
 async function closeScopedAssignmentOnServer(input: {
@@ -3691,12 +3703,12 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                 const passBlockedForDependency = blockedBy.length > 0
                 const passBlocked = passBlockedForEvidence || passBlockedForDependency
                 const passBlockedMessage = passBlockedForDependency
-                  ? `Resolve ${blockedBy.join(', ')} before this item can be passed.`
-                  : 'Passed is locked until at least one evidence file is attached to this container.'
+                  ? getDependencyBlockerMessage(item.item_code, blockedBy)
+                  : REQUIRED_EVIDENCE_LOCK_MESSAGE
                 const showRequirementIndicator = passRequiresEvidence
                 const evidenceSummary = item.evidence_mode === 'verify_existing'
                   ? 'Verify project documents already on file. Upload remains optional unless you need to document a discrepancy.'
-                  : 'At least one evidence file is required before this container can be passed.'
+                  : 'At least one captured evidence item is required before this container can be passed.'
                 const shortPurpose = summarizePurpose(item.item_purpose)
                 const usesFieldView = item.ui_schema === 'field_view'
                 const fieldViewDetails = item.view_details?.trim() || item.field_view_details?.trim() || item.item_purpose
@@ -3776,8 +3788,8 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       </div>
 
                       {blockedBy.length > 0 && (
-                        <div className="mt-3 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100/90">
-                          Resolve {blockedBy.join(', ')} before this item can be passed.
+                        <div className={`mt-3 ${DEPENDENCY_BLOCKER_NOTICE_CLASS}`}>
+                          {getDependencyBlockerMessage(item.item_code, blockedBy)}
                         </div>
                       )}
 
@@ -3818,8 +3830,8 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         </div>
 
                         {passBlockedForEvidence && (
-                          <div className="mt-3 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100/90">
-                            Evidence required before this container can be marked Passed. Attach at least one photo, video, file, or note in the Attached Evidence section below.
+                          <div className={`mt-3 ${REQUIRED_EVIDENCE_NOTICE_CLASS}`}>
+                            {REQUIRED_EVIDENCE_LOCK_MESSAGE}
                           </div>
                         )}
 
@@ -4388,8 +4400,8 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                     </div>
 
                     {blockedBy.length > 0 && (
-                      <div className="mt-3 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-3 py-3 text-xs text-amber-100/90">
-                        Resolve {blockedBy.join(', ')} before this item can be passed.
+                      <div className={`mt-3 ${DEPENDENCY_BLOCKER_NOTICE_CLASS}`}>
+                        {getDependencyBlockerMessage(item.item_code, blockedBy)}
                       </div>
                     )}
 
@@ -4443,7 +4455,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                     </div>
 
                     {passBlocked && (
-                      <div className="mt-3 rounded-2xl border border-amber-300 bg-amber-100 px-3 py-3 text-xs font-medium text-amber-900">
+                      <div className={`mt-3 ${passBlockedForDependency ? DEPENDENCY_BLOCKER_NOTICE_CLASS : REQUIRED_EVIDENCE_NOTICE_CLASS}`}>
                         {passBlockedMessage}
                       </div>
                     )}
@@ -4674,8 +4686,8 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                           </div>
 
                           {passBlockedForEvidence && (
-                            <div className="mt-4 rounded-2xl border border-amber-300 bg-amber-100 px-3 py-3 text-xs font-medium text-amber-900">
-                              {passBlockedMessage}
+                            <div className={`mt-4 ${REQUIRED_EVIDENCE_NOTICE_CLASS}`}>
+                              {REQUIRED_EVIDENCE_LOCK_MESSAGE}
                             </div>
                           )}
 
