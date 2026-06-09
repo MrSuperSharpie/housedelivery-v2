@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { resolve } from 'node:path'
+import { buildCompletionChecklist } from './inspectorCompletion'
 
 const SRC = fileURLToPath(new URL('..', import.meta.url))
 
@@ -16,6 +17,20 @@ function getCodeBlock(source: string, code: string): string {
   const next = source.indexOf("\n  {\n    code: '", start + 1)
   return source.slice(start, next === -1 ? source.length : next)
 }
+
+const ITEM_LEVEL_EVIDENCE_TAG_PATTERN = /\((?:Camera or Video Evidence Required|Camera Evidence Required|Camera or Note Evidence Required|Evidence: Text)\)\s*$/i
+const REQUIRED_PHOTO_OR_VISIBLE_CONDITION_PATTERN = /\b(?:field photos|photos showing|photo documentation|inspector-captured field photos|visible|observable|field conditions|site conditions|photos or field notes|field notes or photos)\b/i
+
+const APPROVED_ZERO_TAG_PHOTO_EVIDENCE_EXCEPTIONS = new Map<string, string>([
+  ['S09-01', 'S09 requires plumbing/trade review before label changes.'],
+  ['S09-02', 'S09 requires plumbing/trade review before label changes.'],
+  ['S09-03', 'S09 requires plumbing/trade review before label changes.'],
+  ['S09-04', 'S09 requires plumbing/trade review before label changes.'],
+  ['S09-05', 'S09 requires plumbing/trade review before label changes.'],
+  ['S13-03', 'Broad interior life-safety scope; needs Edgar/AHJ mapping before tags.'],
+  ['S13-04', 'Broad field notes or photos where needed; no single obvious row from repo text alone.'],
+  ['S15-01', 'Final life-safety/final occupancy sensitive; needs Edgar/AHJ approval before tags.'],
+])
 
 // ── routing maps ──────────────────────────────────────────────────────────────
 
@@ -450,6 +465,50 @@ test('required evidence containers with or without item-level tags get an obviou
     workspace.includes('{passBlockedForEvidence && (') && workspace.includes('{REQUIRED_EVIDENCE_LOCK_MESSAGE}'),
     'container-level required evidence must show the shared actionable evidence instruction'
   )
+})
+
+test('field_view required photo evidence containers have item-level prompts or approved exceptions', () => {
+  const checklist = buildCompletionChecklist({})
+  const containers = checklist.stages
+    .flatMap(stage => stage.items)
+    .filter(item => /^S(0[1-9]|1[0-5])-/.test(item.item_code))
+  const containersByCode = new Map(containers.map(item => [item.item_code, item]))
+
+  const failures = containers
+    .filter(item => item.ui_schema === 'field_view')
+    .filter(item => item.evidence_mode === 'required_upload')
+    .filter(item => item.document_upload_required === true)
+    .filter(item => REQUIRED_PHOTO_OR_VISIBLE_CONDITION_PATTERN.test(item.required_evidence.join(' ')))
+    .filter(item => {
+      const itemLevelEvidenceTagCount = item.field_checklist.filter(checklistItem =>
+        ITEM_LEVEL_EVIDENCE_TAG_PATTERN.test(checklistItem)
+      ).length
+      return itemLevelEvidenceTagCount === 0 && !APPROVED_ZERO_TAG_PHOTO_EVIDENCE_EXCEPTIONS.has(item.item_code)
+    })
+
+  assert.deepStrictEqual(
+    failures.map(item => ({
+      containerId: item.item_code,
+      containerTitle: item.item_label,
+      requiredEvidenceText: item.required_evidence.join(' '),
+    })),
+    [],
+    'field_view required-photo evidence containers must have item-level evidence prompts or an approved exception'
+  )
+
+  for (const [code, reason] of APPROVED_ZERO_TAG_PHOTO_EVIDENCE_EXCEPTIONS) {
+    const item = containersByCode.get(code)
+    assert.ok(item, `${code} approved evidence guardrail exception must still exist: ${reason}`)
+
+    const itemLevelEvidenceTagCount = item.field_checklist.filter(checklistItem =>
+      ITEM_LEVEL_EVIDENCE_TAG_PATTERN.test(checklistItem)
+    ).length
+    assert.strictEqual(
+      itemLevelEvidenceTagCount,
+      0,
+      `${code} approved evidence guardrail exception now has item-level evidence tags; remove the stale exception: ${reason}`
+    )
+  }
 })
 
 test('S14-04 has approved inline camera/video evidence prompts for visible access and fire-access conditions', () => {
