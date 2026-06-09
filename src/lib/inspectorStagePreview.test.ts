@@ -438,7 +438,7 @@ test('required evidence blocker remains document-based and clears once evidence 
   )
 })
 
-test('required evidence containers without item-level tags still get an obvious evidence instruction', () => {
+test('required evidence containers with or without item-level tags get an obvious evidence instruction', () => {
   const workspace = read('components/inspector/InspectorCompletionWorkspace.tsx')
   const checklist = read('lib/inspectorCompletion.ts')
   const s1404 = getCodeBlock(checklist, 'S14-04')
@@ -447,12 +447,59 @@ test('required evidence containers without item-level tags still get an obvious 
     'S14-04 must remain a container-level required evidence container'
   )
   assert.ok(
-    !s1404.includes('(Camera or Video Evidence Required)') && !s1404.includes('(Camera Evidence Required)') && !s1404.includes('(Camera or Note Evidence Required)'),
-    'S14-04 must not receive item-level evidence tags in this pass'
+    workspace.includes('{passBlockedForEvidence && (') && workspace.includes('{REQUIRED_EVIDENCE_LOCK_MESSAGE}'),
+    'container-level required evidence must show the shared actionable evidence instruction'
+  )
+})
+
+test('S14-04 has approved inline camera/video evidence prompts for visible access and fire-access conditions', () => {
+  const source = read('lib/inspectorCompletion.ts')
+  const s1404 = getCodeBlock(source, 'S14-04')
+  const expectedTaggedItems = [
+    'Pedestrian walkway to primary entry complete and usable where required. (Camera or Video Evidence Required)',
+    'Accessible exterior route complete where triggered by permit path or occupancy type. (Camera or Video Evidence Required)',
+    'Driveway, parking, or vehicle access complete where required by approved drawings. (Camera or Video Evidence Required)',
+    'Address numbers installed and visible from the street or fire access route. (Camera or Video Evidence Required)',
+    'Fire department access clearance confirmed where required by AHJ or fire authority. (Camera or Video Evidence Required)',
+  ]
+
+  for (const checklistItem of expectedTaggedItems) {
+    assert.ok(
+      s1404.includes(checklistItem),
+      `S14-04 must include approved item-level evidence tag: ${checklistItem}`
+    )
+  }
+
+  const cameraVideoPromptCount = s1404.match(/\(Camera or Video Evidence Required\)/g)?.length ?? 0
+  assert.strictEqual(cameraVideoPromptCount, 5, 'S14-04 must have exactly five approved camera/video item-level prompts')
+})
+
+test('S14-04 deferred rows remain untagged in this pass', () => {
+  const source = read('lib/inspectorCompletion.ts')
+  const s1404 = getCodeBlock(source, 'S14-04')
+  assert.ok(
+    s1404.includes("'Hydrant clearance or fire route signage confirmed where required.'"),
+    'S14-04 hydrant/fire-route signage row must remain untagged'
   )
   assert.ok(
-    workspace.includes('{passBlockedForEvidence && (') && workspace.includes('{REQUIRED_EVIDENCE_LOCK_MESSAGE}'),
-    'container-level required evidence must show the shared actionable evidence instruction even without item-level tags'
+    s1404.includes("'Exterior electrical service, meter, disconnect, or utility equipment complete where applicable.'"),
+    'S14-04 exterior electrical row must remain untagged'
+  )
+  assert.ok(
+    s1404.includes("'Gas meter, regulator, exterior shutoff, vents, exhausts, condensers, hose bibs, or exterior mechanical and plumbing components complete and accessible where applicable.'"),
+    'S14-04 gas/mechanical/plumbing row must remain untagged'
+  )
+  assert.ok(
+    !s1404.includes('Hydrant clearance or fire route signage confirmed where required. (Camera or Video Evidence Required)'),
+    'S14-04 hydrant/fire-route signage row must not be tagged without approval'
+  )
+  assert.ok(
+    !s1404.includes('Exterior electrical service, meter, disconnect, or utility equipment complete where applicable. (Camera or Video Evidence Required)'),
+    'S14-04 exterior electrical row must not be tagged without approval'
+  )
+  assert.ok(
+    !s1404.includes('Gas meter, regulator, exterior shutoff, vents, exhausts, condensers, hose bibs, or exterior mechanical and plumbing components complete and accessible where applicable. (Camera or Video Evidence Required)'),
+    'S14-04 gas/mechanical/plumbing row must not be tagged without approval'
   )
 })
 
