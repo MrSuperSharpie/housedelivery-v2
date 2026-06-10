@@ -2185,7 +2185,7 @@ export default function BuilderDashboard() {
               <details open className="mt-2 rounded-2xl border border-emerald-600/20 bg-emerald-500/5">
                 <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-black text-ink">
                   <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                  Completed / Certified — {completedProgressProjects.length} project{completedProgressProjects.length !== 1 ? 's' : ''}
+                  Completed Records — {completedProgressProjects.length} project{completedProgressProjects.length !== 1 ? 's' : ''}
                 </summary>
                 <div className="space-y-2 border-t border-emerald-600/15 p-3">
                   {completedProgressProjects.map(pp => {

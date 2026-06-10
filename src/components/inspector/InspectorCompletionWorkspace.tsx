@@ -2696,8 +2696,8 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
       if (!scopedFinalResult.ok) {
         const detail = [scopedFinalResult.phase, scopedFinalResult.error].filter(Boolean).join(': ')
         const message = detail
-          ? `Final certification could not be written to Supabase. ${detail}`
-          : 'Final certification could not be written to Supabase. Please try again.'
+          ? `Final Vero record could not be written to Supabase. ${detail}`
+          : 'Final Vero record could not be written to Supabase. Please try again.'
         reportPersistenceFailure(
           message,
           {
@@ -2731,7 +2731,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
       setSealing(false)
 
       if (successBehavior === 'return_to_dashboard') {
-        setSealSuccessMessage('Final Occupancy Issued Successfully!')
+        setSealSuccessMessage('Final Vero Record Issued Successfully!')
         if (typeof window !== 'undefined') {
           window.scrollTo({ top: 0, behavior: 'smooth' })
         }
@@ -2754,8 +2754,8 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
 
     if (!recordInsert.ok) {
       const message = recordInsert.error
-        ? `Final certification could not be written to Supabase. ${recordInsert.error}`
-        : 'Final certification could not be written to Supabase. Please try again.'
+        ? `Final Vero record could not be written to Supabase. ${recordInsert.error}`
+        : 'Final Vero record could not be written to Supabase. Please try again.'
       reportPersistenceFailure(
         message,
         {
@@ -2782,7 +2782,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
 
     if (!saved) {
       reportPersistenceFailure(
-        'Vero could not save the certified completion report to Supabase. Please try again.',
+        'Vero could not save the final completion record to Supabase. Please try again.',
         { assignmentId, reportId: report.id },
         { alert: true }
       )
@@ -3146,7 +3146,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
       sealedAt,
       certificationType: 'final_occupancy',
       projectState: 'COMPLETED',
-      auditNote: 'Final occupancy issued and project certified',
+      auditNote: 'Final Vero inspection record issued and project file completed',
       location,
       successBehavior: 'stay',
     })
@@ -3219,12 +3219,12 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
             <div className="mx-auto mb-5 flex items-center justify-center">
               <VeroSealIcon certified={isProjectCertified} className="h-20 w-20" />
             </div>
-            <h1 className="text-3xl font-black text-white">{isProjectCertified ? 'Project Certified' : 'Digital Seal Applied'}</h1>
+            <h1 className="text-3xl font-black text-white">{isProjectCertified ? 'Project Record Complete' : 'Digital Seal Applied'}</h1>
             <p className={`mx-auto mt-3 max-w-xl text-sm ${
               isProjectCertified ? 'text-slate-300' : 'text-emerald-100/80'
             }`}>
               {isProjectCertified
-                ? 'Final occupancy has been issued. The project is certified, completed, and sealed with its full 15-stage compliance record.'
+                ? 'The final Vero inspection record has been issued. The project file is complete and sealed with its full 15-stage platform record.'
                 : 'The 15-stage inspector completion package is sealed and stored with its AHJ overlay snapshot.'}
             </p>
 
@@ -3234,7 +3234,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                 <div className="mt-1 font-mono text-lg text-slate-900">{report.sealReference}</div>
               </div>
               <div>
-                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">{isProjectCertified ? 'Certification' : 'Outcome'}</div>
+                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">{isProjectCertified ? 'Record Status' : 'Outcome'}</div>
                 <div className={`mt-1 inline-flex rounded-full px-3 py-1 text-sm font-black ${
                   isProjectCertified
                     ? 'bg-amber-300/15 text-amber-200'
@@ -3243,7 +3243,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       : 'bg-emerald-500/15 text-emerald-300'
                 }`}>
                   {isProjectCertified
-                    ? 'Final Occupancy Issued'
+                    ? 'Final Vero Record Issued'
                     : result === 'fail'
                       ? 'Sealed with Failures'
                       : 'Sealed Pass'}
@@ -3256,7 +3256,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
               <div>
                 <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">{isProjectCertified ? 'Project State' : 'AHJ Overlay'}</div>
                 <div className="mt-1 text-sm font-semibold text-zinc-100">
-                  {isProjectCertified ? 'COMPLETED' : overlay.label}
+                  {isProjectCertified ? 'Completed' : overlay.label}
                 </div>
               </div>
             </div>
@@ -5116,7 +5116,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                     </div>
                     <div className="flex items-center gap-2">
                       <Stamp className="h-4 w-4 text-amber-300" />
-                      Project state will transition to COMPLETED and display as Project Certified.
+                      Project state will transition to Completed and display as Project Record Complete.
                     </div>
                   </div>
 
