@@ -347,6 +347,57 @@ test('inspector active worklist hides superseded lower-stage cards without colla
   )
 })
 
+test('inspector active worklist hide action is an auditable view disposition only', () => {
+  const source = read('app/inspector/page.tsx')
+  const handlerStart = source.indexOf('async function handleWorklistDisposition')
+  const handlerEnd = source.indexOf('\n  useEffect(() => {\n    if (!user?.supabaseId) {\n      setDbOpenJobs', handlerStart)
+  const handlerBlock = source.slice(handlerStart, handlerEnd)
+
+  assert.ok(handlerStart >= 0, 'inspector page must define a worklist disposition handler')
+  assert.ok(
+    source.includes('Hide this assignment from your Active Worklist? This does not cancel the assignment, release the job, notify the builder, or delete any draft report or evidence. It only removes this item from your active worklist view.'),
+    'hide action must use the approved non-destructive confirmation copy',
+  )
+  assert.ok(
+    source.includes("const WORKLIST_HIDE_ACTION = 'assignment.worklist_hidden'")
+      && source.includes("const WORKLIST_RESTORE_ACTION = 'assignment.worklist_restored'"),
+    'worklist hide/restore must be represented as explicit audit actions',
+  )
+  assert.ok(
+    source.includes(".from('governance_audit_events')")
+      && source.includes(".eq('actor_id', inspectorId)")
+      && source.includes(".in('action', WORKLIST_DISPOSITION_ACTIONS)"),
+    'active worklist visibility must be driven by inspector-scoped governance audit events',
+  )
+  assert.ok(
+    handlerBlock.includes("entity_type: 'assignment'")
+      && handlerBlock.includes('action,')
+      && handlerBlock.includes("actor_role: 'inspector'"),
+    'hide/restore must insert an auditable assignment event for the inspector',
+  )
+  assert.ok(
+    handlerBlock.includes('lifecycleMutation: false')
+      && handlerBlock.includes('builderNotified: false')
+      && handlerBlock.includes('reportsOrEvidenceDeleted: false'),
+    'hide/restore metadata must document that no lifecycle, builder notification, report, or evidence mutation occurred',
+  )
+  assert.ok(
+    !handlerBlock.includes("from('job_assignments')")
+      && !handlerBlock.includes("from('job_opportunities')")
+      && !handlerBlock.includes('updateJobStatus')
+      && !handlerBlock.includes('cancelJobAssignment')
+      && !handlerBlock.includes('invalidateJobAssignment')
+      && !handlerBlock.includes('request_inspection_cancellation'),
+    'hide/restore must not update assignments, jobs, cancellation, release, or invalidation lifecycle paths',
+  )
+  assert.ok(
+    source.includes('Hide from Worklist')
+      && source.includes('Show Hidden')
+      && source.includes('Restore to Worklist'),
+    'worklist UI must expose hide, show hidden, and restore affordances',
+  )
+})
+
 test('builder page exposes pendingValidationJobs for Awaiting Validation section', () => {
   const source = read('app/builder/page.tsx')
   assert.ok(source.includes('pendingValidationJobs'), 'builder page must derive pendingValidationJobs list')

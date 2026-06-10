@@ -131,11 +131,16 @@ interface ActiveWorklistItem {
   jobStatus?: string
   reportStatus?: string
   assignmentIdSuffix: string
+  hiddenFromWorklist?: boolean
 }
 
 const TERMINAL_ASSIGNMENT_STATUSES = new Set(['cancelled', 'invalidated', 'completed'])
 const TERMINAL_JOB_STATUSES = new Set(['completed', 'cancelled', 'stopped'])
 const CURRENT_PROJECT_STAGE_STATUSES = new Set(['live', 'provisionally_assigned', 'confirmed', 'in_progress', 'on_hold', 'completed'])
+const WORKLIST_HIDE_ACTION = 'assignment.worklist_hidden'
+const WORKLIST_RESTORE_ACTION = 'assignment.worklist_restored'
+const WORKLIST_DISPOSITION_ACTIONS = [WORKLIST_HIDE_ACTION, WORKLIST_RESTORE_ACTION] as const
+const WORKLIST_HIDE_CONFIRMATION_COPY = 'Hide this assignment from your Active Worklist? This does not cancel the assignment, release the job, notify the builder, or delete any draft report or evidence. It only removes this item from your active worklist view.'
 
 type ProjectStageIdentity = {
   id: string
@@ -257,6 +262,23 @@ function filterCurrentActiveWorklistItems(
   })
 }
 
+function getHiddenWorklistAssignmentIds(rows: Array<Record<string, unknown>>): Set<string> {
+  const latestDispositionByAssignment = new Map<string, string>()
+
+  for (const row of rows) {
+    const assignmentId = typeof row.entity_id === 'string' ? row.entity_id : ''
+    const action = typeof row.action === 'string' ? row.action : ''
+    if (!assignmentId || !WORKLIST_DISPOSITION_ACTIONS.includes(action as typeof WORKLIST_DISPOSITION_ACTIONS[number])) continue
+    latestDispositionByAssignment.set(assignmentId, action)
+  }
+
+  const hiddenAssignmentIds = new Set<string>()
+  for (const [assignmentId, action] of latestDispositionByAssignment) {
+    if (action === WORKLIST_HIDE_ACTION) hiddenAssignmentIds.add(assignmentId)
+  }
+  return hiddenAssignmentIds
+}
+
 function formatStoredStatus(value: string): string {
   return value
     .split('_')
@@ -333,6 +355,11 @@ export default function InspectorDashboard() {
   const [reliabilityData, setReliabilityData] = useState<InspectorReliabilityDashboardData | null>(null)
   const [reliabilityPolicyConfig, setReliabilityPolicyConfig] = useState<Record<string, unknown> | null>(null)
   const [dbActiveWorklist, setDbActiveWorklist] = useState<ActiveWorklistItem[] | null>(null)
+  const [dbHiddenWorklist, setDbHiddenWorklist] = useState<ActiveWorklistItem[]>([])
+  const [showHiddenWorklist, setShowHiddenWorklist] = useState(false)
+  const [worklistRefreshToken, setWorklistRefreshToken] = useState(0)
+  const [worklistActionId, setWorklistActionId] = useState<string | null>(null)
+  const [worklistDispositionMessage, setWorklistDispositionMessage] = useState<string | null>(null)
   const [dbOpenJobs, setDbOpenJobs] = useState<InspectionJob[] | null>(null)
   const [dbBoardLifecycleJobs, setDbBoardLifecycleJobs] = useState<JobOpportunityRow[]>([])
 
@@ -464,10 +491,15 @@ export default function InspectorDashboard() {
   }, [myAssignments, store.jobs])
 
   const activeWorklist = user?.supabaseId ? (dbActiveWorklist ?? []) : storedActiveWorklist
+  const hiddenActiveWorklist = user?.supabaseId ? dbHiddenWorklist : []
+  const renderedActiveWorklist = showHiddenWorklist
+    ? [...activeWorklist, ...hiddenActiveWorklist]
+    : activeWorklist
 
   useEffect(() => {
     if (!user?.supabaseId) {
       setDbActiveWorklist(null)
+      setDbHiddenWorklist([])
       return
     }
 
@@ -486,6 +518,7 @@ export default function InspectorDashboard() {
       if (!active) return
       if (assignmentError || !assignmentRows) {
         setDbActiveWorklist([])
+        setDbHiddenWorklist([])
         return
       }
 
@@ -501,6 +534,7 @@ export default function InspectorDashboard() {
 
       if (assignmentRecords.length === 0) {
         setDbActiveWorklist([])
+        setDbHiddenWorklist([])
         return
       }
 
@@ -511,6 +545,7 @@ export default function InspectorDashboard() {
         { data: jobRows },
         { data: reportRows },
         { data: confirmationRows },
+        { data: worklistDispositionRows, error: worklistDispositionError },
         lifecycleRows,
         holdResults,
       ] = await Promise.all([
@@ -528,6 +563,14 @@ export default function InspectorDashboard() {
           .in('assignment_id', assignmentIds)
           .in('checkpoint', ['t_24h', 't_4h', 't_90m'])
           .eq('status', 'pending'),
+        supabase
+          .from('governance_audit_events')
+          .select('entity_id, action, created_at')
+          .eq('entity_type', 'assignment')
+          .eq('actor_id', inspectorId)
+          .in('entity_id', assignmentIds)
+          .in('action', WORKLIST_DISPOSITION_ACTIONS)
+          .order('created_at', { ascending: true }),
         listAllJobOpportunities(),
         Promise.all(jobIds.map(async jobId => {
           try {
@@ -541,6 +584,12 @@ export default function InspectorDashboard() {
       ])
 
       if (!active) return
+      if (worklistDispositionError) {
+        console.warn('Inspector active worklist: disposition lookup failed', worklistDispositionError)
+      }
+      const hiddenAssignmentIds = worklistDispositionError
+        ? new Set<string>()
+        : getHiddenWorklistAssignmentIds((worklistDispositionRows ?? []) as Array<Record<string, unknown>>)
 
       const jobsById = new Map(
         ((jobRows ?? []) as Array<Record<string, unknown>>).map(row => [
@@ -629,8 +678,13 @@ export default function InspectorDashboard() {
           assignmentIdSuffix: item.id.slice(-6).toUpperCase(),
         }))
       const currentWorklist = filterCurrentActiveWorklistItems(worklist, lifecycleRows)
+      const visibleWorklist = currentWorklist.filter(item => !hiddenAssignmentIds.has(item.id))
+      const hiddenWorklist = currentWorklist
+        .filter(item => hiddenAssignmentIds.has(item.id))
+        .map(item => ({ ...item, hiddenFromWorklist: true }))
 
-      setDbActiveWorklist(currentWorklist)
+      setDbActiveWorklist(visibleWorklist)
+      setDbHiddenWorklist(hiddenWorklist)
     }
 
     void loadActiveWorklist()
@@ -650,7 +704,74 @@ export default function InspectorDashboard() {
       window.removeEventListener('focus', refreshActiveWorklistOnFocus)
       document.removeEventListener('visibilitychange', refreshActiveWorklistOnVisibility)
     }
-  }, [user?.supabaseId])
+  }, [user?.supabaseId, worklistRefreshToken])
+
+  async function handleWorklistDisposition(assignment: ActiveWorklistItem, action: typeof WORKLIST_DISPOSITION_ACTIONS[number]) {
+    if (!user?.supabaseId) return
+
+    const hiding = action === WORKLIST_HIDE_ACTION
+    if (hiding && typeof window !== 'undefined' && !window.confirm(WORKLIST_HIDE_CONFIRMATION_COPY)) {
+      return
+    }
+
+    const actionId = `${action}:${assignment.id}`
+    setWorklistActionId(actionId)
+    setWorklistDispositionMessage(null)
+
+    const { error } = await supabase.from('governance_audit_events').insert({
+      entity_type: 'assignment',
+      entity_id: assignment.id,
+      action,
+      actor_id: user.supabaseId,
+      actor_role: 'inspector',
+      rule_ids: ['R-021', 'R-022'],
+      blocker_type: 'technical',
+      reason: hiding
+        ? 'Inspector hid assignment from Active Worklist view.'
+        : 'Inspector restored assignment to Active Worklist view.',
+      before_state: {
+        worklistVisible: hiding,
+      },
+      after_state: {
+        worklistVisible: !hiding,
+      },
+      metadata: {
+        jobId: assignment.jobId,
+        projectId: assignment.projectId ?? null,
+        builderId: assignment.builderId ?? null,
+        reportStatus: assignment.reportStatus ?? null,
+        jobStatus: assignment.jobStatus ?? null,
+        source: 'inspector_active_worklist',
+        lifecycleMutation: false,
+        builderNotified: false,
+        reportsOrEvidenceDeleted: false,
+      },
+    })
+
+    if (error) {
+      console.error('Inspector active worklist disposition failed', { assignmentId: assignment.id, action, error })
+      setWorklistDispositionMessage('Worklist update failed. The assignment was not changed.')
+      setWorklistActionId(null)
+      return
+    }
+
+    if (hiding) {
+      const hiddenItem = { ...assignment, hiddenFromWorklist: true }
+      setDbActiveWorklist(prev => prev ? prev.filter(item => item.id !== assignment.id) : prev)
+      setDbHiddenWorklist(prev => [hiddenItem, ...prev.filter(item => item.id !== assignment.id)])
+      setWorklistDispositionMessage('Assignment hidden from your Active Worklist view.')
+    } else {
+      const restoredItem = { ...assignment, hiddenFromWorklist: false }
+      setDbHiddenWorklist(prev => prev.filter(item => item.id !== assignment.id))
+      setDbActiveWorklist(prev => prev && !prev.some(item => item.id === assignment.id)
+        ? [restoredItem, ...prev]
+        : prev)
+      setWorklistDispositionMessage('Assignment restored to your Active Worklist.')
+    }
+
+    setWorklistActionId(null)
+    setWorklistRefreshToken(value => value + 1)
+  }
 
   useEffect(() => {
     if (!user?.supabaseId) {
@@ -909,14 +1030,48 @@ export default function InspectorDashboard() {
         ))}
 
         {/* Active Worklist */}
-        {activeWorklist.length > 0 && (
+        {(activeWorklist.length > 0 || hiddenActiveWorklist.length > 0) && (
           <div className="mb-10">
-            <div className="flex items-center gap-2 mb-4">
-              <PlayCircle className="w-4 h-4 text-flame" />
-              <h2 className="text-xs font-bold text-electric tracking-widest uppercase">Your Active Worklist</h2>
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2">
+                <PlayCircle className="w-4 h-4 text-flame" />
+                <h2 className="text-xs font-bold text-electric tracking-widest uppercase">Your Active Worklist</h2>
+              </div>
+              {hiddenActiveWorklist.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setShowHiddenWorklist(value => !value)}
+                  className={`self-start rounded-xl border px-3 py-2 text-xs font-black transition-all sm:self-auto ${
+                    isDark
+                      ? 'border-slate-600 bg-slate-800 text-slate-200 hover:bg-slate-700'
+                      : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  {showHiddenWorklist ? 'Hide Hidden' : `Show Hidden (${hiddenActiveWorklist.length})`}
+                </button>
+              )}
             </div>
+            {worklistDispositionMessage && (
+              <div className={`mb-3 rounded-xl border px-3 py-2 text-xs font-semibold ${
+                isDark
+                  ? 'border-blue-500/30 bg-blue-500/10 text-blue-100'
+                  : 'border-blue-200 bg-blue-50 text-blue-900'
+              }`}>
+                {worklistDispositionMessage}
+              </div>
+            )}
+            {renderedActiveWorklist.length === 0 && (
+              <div className={`rounded-2xl border px-4 py-3 text-sm ${
+                isDark
+                  ? 'border-slate-700 bg-slate-800 text-slate-300'
+                  : 'border-slate-200 bg-white text-slate-600'
+              }`}>
+                No visible active assignments. Hidden assignments are not shown unless you choose Show Hidden.
+              </div>
+            )}
             <div className="space-y-3">
-              {activeWorklist.map(assignment => {
+              {renderedActiveWorklist.map(assignment => {
+                const hiddenFromWorklist = assignment.hiddenFromWorklist === true
                 const holdDetailsHref = assignment.openHold
                   ? `/inspector/completion/${assignment.id}?hold=${assignment.openHold.id}#hold`
                   : `/inspector/completion/${assignment.id}#hold`
@@ -931,9 +1086,13 @@ export default function InspectorDashboard() {
                   <div
                     key={assignment.id}
                     className={`flex flex-col gap-4 rounded-2xl border p-4 shadow-sm transition-all hover:border-electric/30 md:flex-row md:items-center ${
-                      isDark
-                        ? 'border-slate-700 bg-slate-800 hover:bg-slate-800/90'
-                        : 'border-slate-200 bg-white hover:bg-slate-50'
+                      hiddenFromWorklist
+                        ? isDark
+                          ? 'border-slate-700 bg-slate-900/70 opacity-90'
+                          : 'border-slate-200 bg-slate-50 opacity-95'
+                        : isDark
+                          ? 'border-slate-700 bg-slate-800 hover:bg-slate-800/90'
+                          : 'border-slate-200 bg-white hover:bg-slate-50'
                     }`}
                   >
                     <div className="w-12 h-12 bg-flame rounded-xl flex items-center justify-center shrink-0">
@@ -969,6 +1128,15 @@ export default function InspectorDashboard() {
                                 : 'border-amber-200 bg-amber-50 text-amber-700'
                           }`}>
                             Report: {formatStoredStatus(assignment.reportStatus)}
+                          </span>
+                        )}
+                        {hiddenFromWorklist && (
+                          <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase ${
+                            isDark
+                              ? 'border-slate-600 bg-slate-700/50 text-slate-300'
+                              : 'border-slate-300 bg-slate-100 text-slate-600'
+                          }`}>
+                            Hidden from Worklist
                           </span>
                         )}
                       </div>
@@ -1044,7 +1212,7 @@ export default function InspectorDashboard() {
                       )}
                     </div>
                     <div className="flex w-full flex-col gap-2 md:w-auto md:shrink-0">
-                      {assignment.openHold && (
+                      {assignment.openHold && !hiddenFromWorklist && (
                         <button
                           onClick={() => router.push(holdDetailsHref)}
                           className={`px-4 py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all ${
@@ -1056,12 +1224,41 @@ export default function InspectorDashboard() {
                           View Hold Details <ChevronRight className="w-4 h-4" />
                         </button>
                       )}
-                      <button
-                        onClick={() => router.push(`/inspector/completion/${assignment.id}`)}
-                        className="bg-flame text-white px-4 py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 hover:bg-flame-light transition-all glow-flame-sm"
-                      >
-                        Open Assignment <ChevronRight className="w-4 h-4" />
-                      </button>
+                      {hiddenFromWorklist ? (
+                        <button
+                          type="button"
+                          disabled={worklistActionId === `${WORKLIST_RESTORE_ACTION}:${assignment.id}`}
+                          onClick={() => void handleWorklistDisposition(assignment, WORKLIST_RESTORE_ACTION)}
+                          className={`px-4 py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all disabled:cursor-wait disabled:opacity-60 ${
+                            isDark
+                              ? 'border border-blue-500/40 bg-blue-500/10 text-blue-100 hover:bg-blue-500/20'
+                              : 'border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100'
+                          }`}
+                        >
+                          Restore to Worklist
+                        </button>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => router.push(`/inspector/completion/${assignment.id}`)}
+                            className="bg-flame text-white px-4 py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 hover:bg-flame-light transition-all glow-flame-sm"
+                          >
+                            Open Assignment <ChevronRight className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            disabled={worklistActionId === `${WORKLIST_HIDE_ACTION}:${assignment.id}`}
+                            onClick={() => void handleWorklistDisposition(assignment, WORKLIST_HIDE_ACTION)}
+                            className={`px-4 py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all disabled:cursor-wait disabled:opacity-60 ${
+                              isDark
+                                ? 'border border-slate-600 bg-slate-800 text-slate-300 hover:bg-slate-700'
+                                : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                            }`}
+                          >
+                            Hide from Worklist
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 )
