@@ -10,6 +10,7 @@ export type VeroEmailEventKey =
   | 'inspection.claimed_inspector_notice'
   | 'inspection.passed_builder_notice'
   | 'inspection.modification_required'
+  | 'inspection.availability_confirmed_builder_notice'
   | 'hold.issued_builder_notice'
   | 'hold.issued_inspector_confirmation'
   | 'hold.response_submitted_inspector_notice'

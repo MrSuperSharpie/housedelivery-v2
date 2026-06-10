@@ -122,6 +122,25 @@ const templates: Record<VeroEmailEventKey, (context: VeroEmailTemplateContext) =
     ],
     ctaLabel: 'View project record',
   }),
+  'inspection.availability_confirmed_builder_notice': context => {
+    const who = context.inspectorName ?? 'The assigned inspector'
+    const projectPart = context.projectName ? ` for ${context.projectName}` : ''
+    const firstLine = context.recipientName
+      ? `Hi ${context.recipientName}, ${who} has confirmed they are still available for the scheduled inspection${projectPart}.`
+      : `${who} has confirmed they are still available for the scheduled inspection${projectPart}.`
+    return {
+      subject: context.projectName
+        ? `Inspector availability confirmed for ${context.projectName}`
+        : 'Inspector availability confirmed',
+      preview: 'The inspector has confirmed availability for the upcoming inspection.',
+      heading: 'Inspector availability confirmed',
+      body: [
+        firstLine,
+        'This confirmation helps keep the inspection on track.',
+      ],
+      ctaLabel: 'View project record',
+    }
+  },
   'inspection.modification_required': context => ({
     subject: 'Modification required for inspection record',
     preview: 'The inspection record includes items that need action.',

@@ -360,6 +360,9 @@ export default function InspectorDashboard() {
   const [worklistRefreshToken, setWorklistRefreshToken] = useState(0)
   const [worklistActionId, setWorklistActionId] = useState<string | null>(null)
   const [worklistDispositionMessage, setWorklistDispositionMessage] = useState<string | null>(null)
+  const [confirmingAvailabilityIds, setConfirmingAvailabilityIds] = useState<Set<string>>(new Set())
+  const [confirmedAvailabilityResults, setConfirmedAvailabilityResults] = useState<Map<string, { emailSent: boolean }>>(new Map())
+  const [confirmAvailabilityErrors, setConfirmAvailabilityErrors] = useState<Map<string, string>>(new Map())
   const [dbOpenJobs, setDbOpenJobs] = useState<InspectionJob[] | null>(null)
   const [dbBoardLifecycleJobs, setDbBoardLifecycleJobs] = useState<JobOpportunityRow[]>([])
 
@@ -771,6 +774,28 @@ export default function InspectorDashboard() {
 
     setWorklistActionId(null)
     setWorklistRefreshToken(value => value + 1)
+  }
+
+  async function handleConfirmAvailability(assignmentId: string, jobId: string) {
+    setConfirmingAvailabilityIds(prev => new Set(prev).add(assignmentId))
+    setConfirmAvailabilityErrors(prev => { const m = new Map(prev); m.delete(assignmentId); return m })
+    try {
+      const res = await fetch('/api/inspections/confirm-availability', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assignmentId, jobId }),
+      })
+      const data = await res.json() as { ok: boolean; emailSent?: boolean; error?: string }
+      if (data.ok) {
+        setConfirmedAvailabilityResults(prev => new Map(prev).set(assignmentId, { emailSent: data.emailSent ?? false }))
+      } else {
+        setConfirmAvailabilityErrors(prev => new Map(prev).set(assignmentId, data.error ?? 'Could not confirm availability. Please try again.'))
+      }
+    } catch {
+      setConfirmAvailabilityErrors(prev => new Map(prev).set(assignmentId, 'Connection error. Please try again.'))
+    } finally {
+      setConfirmingAvailabilityIds(prev => { const s = new Set(prev); s.delete(assignmentId); return s })
+    }
   }
 
   useEffect(() => {
@@ -1188,19 +1213,50 @@ export default function InspectorDashboard() {
                           #{assignment.assignmentIdSuffix}
                         </div>
                       </div>
-                      {assignment.statusLabel === 'Availability Confirmation Needed' && (
+                      {(assignment.statusLabel === 'Availability Confirmation Needed' || confirmedAvailabilityResults.has(assignment.id)) && (
                         <div className={`mt-3 rounded-xl border px-3 py-3 ${
                           isDark
                             ? 'border-blue-500/40 bg-blue-500/10 text-blue-100'
                             : 'border-blue-300 bg-blue-50 text-blue-950'
                         }`}>
-                          <div className="text-sm font-black">Availability Confirmation Needed</div>
-                          <div className="mt-1 text-xs">
-                            {user?.firstName
-                              ? `${user.firstName}, please confirm you are still available for this inspection.`
-                              : 'Please confirm you are still available for this inspection.'
-                            }{' '}This helps keep the builder informed and gives Vero time to reassign the work if needed.
-                          </div>
+                          {confirmedAvailabilityResults.has(assignment.id) ? (
+                            <>
+                              <div className="text-sm font-black">Availability Confirmed</div>
+                              <div className="mt-1 text-xs">
+                                {confirmedAvailabilityResults.get(assignment.id)?.emailSent
+                                  ? 'You confirmed availability for this inspection. The builder has been notified that the visit remains on track.'
+                                  : 'You confirmed availability for this inspection.'
+                                }
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="text-sm font-black">Availability Confirmation Needed</div>
+                              <div className="mt-1 text-xs">
+                                {user?.firstName
+                                  ? `${user.firstName}, please confirm you are still available for this inspection.`
+                                  : 'Please confirm you are still available for this inspection.'
+                                }{' '}This helps keep the builder informed and gives Vero time to reassign the work if needed.
+                              </div>
+                              {confirmAvailabilityErrors.has(assignment.id) && (
+                                <div className={`mt-2 text-xs font-semibold ${isDark ? 'text-red-300' : 'text-red-700'}`}>
+                                  {confirmAvailabilityErrors.get(assignment.id)}
+                                </div>
+                              )}
+                              <button
+                                type="button"
+                                disabled={confirmingAvailabilityIds.has(assignment.id)}
+                                onClick={() => void handleConfirmAvailability(assignment.id, assignment.jobId)}
+                                className={`mt-2 w-full px-3 py-2 rounded-lg text-xs font-black transition-all disabled:cursor-wait disabled:opacity-60 ${
+                                  isDark
+                                    ? 'bg-blue-600 text-white hover:bg-blue-500'
+                                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                                }`}
+                              >
+                                {confirmingAvailabilityIds.has(assignment.id) ? 'Confirming...' : 'Confirm Availability'}
+                              </button>
+                            </>
+                          )}
                         </div>
                       )}
                       {assignment.openHold && (
