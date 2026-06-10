@@ -285,6 +285,38 @@ test('live-request DELETE writes governance_audit_events for cancellation', () =
   assert.ok(delBlock.includes("action: 'job.builder_cancelled'"), "DELETE governance audit must use action 'job.builder_cancelled'")
 })
 
+test('inspector job board uses fresh open-job reads and suppresses superseded prior-stage cards', () => {
+  const source = read('app/inspector/page.tsx')
+  const filterStart = source.indexOf('function filterCurrentInspectorBoardJobs')
+  const filterEnd = source.indexOf('\nfunction formatStoredStatus', filterStart)
+  const filterBlock = source.slice(filterStart, filterEnd)
+
+  assert.ok(
+    source.includes('listOpenJobOpportunities') && source.includes('listAllJobOpportunities'),
+    'inspector job board must use a fresh read-only Supabase source for open jobs and lifecycle context',
+  )
+  assert.ok(
+    source.includes('const [dbOpenJobs, setDbOpenJobs]') && source.includes('const [dbBoardLifecycleJobs, setDbBoardLifecycleJobs]'),
+    'inspector job board must keep fresh DB board state separate from cached store jobs',
+  )
+  assert.ok(
+    source.includes('filterCurrentInspectorBoardJobs(boardSourceJobs, dbBoardLifecycleJobs)'),
+    'inspector job board must run board jobs through the stale/superseded stage filter',
+  )
+  assert.ok(
+    filterBlock.includes('CURRENT_PROJECT_STAGE_STATUSES.has(row.status)'),
+    'stale-card filter must base project advancement on active/completed lifecycle statuses',
+  )
+  assert.ok(
+    filterBlock.includes('return job.stage >= latestStage'),
+    'stale-card filter must hide lower-stage jobs when a later project stage is active or completed',
+  )
+  assert.ok(
+    !filterBlock.includes('requiredDiscipline'),
+    'stale-card filter must not collapse same-stage discipline-specific jobs',
+  )
+})
+
 test('builder page exposes pendingValidationJobs for Awaiting Validation section', () => {
   const source = read('app/builder/page.tsx')
   assert.ok(source.includes('pendingValidationJobs'), 'builder page must derive pendingValidationJobs list')

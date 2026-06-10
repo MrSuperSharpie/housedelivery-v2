@@ -15,10 +15,15 @@ import { useStore } from '@/lib/store'
 import { createClient } from '@/lib/supabase/client'
 import { getInspectorOnboardingStatusAsync } from '@/lib/persistence/inspectorOnboarding'
 import { selectInspectorEligibility } from '@/lib/supabase/compliance'
-import { listEligibleJobsForInspector } from '@/lib/supabase/jobs'
+import {
+  listAllJobOpportunities,
+  listEligibleJobsForInspector,
+  listOpenJobOpportunities,
+  type JobOpportunityRow,
+} from '@/lib/supabase/jobs'
 import { useTheme } from '@/lib/theme'
 import { isInspectorTestModeEnabled } from '@/lib/inspectorTestMode'
-import type { ClaimCommitment, JobTimeSlot, Region, InspectorDiscipline, InspectorEligibilityProfile, HoldRecord } from '@/lib/types'
+import type { ClaimCommitment, JobTimeSlot, Region, InspectorDiscipline, InspectorEligibilityProfile, HoldRecord, InspectionJob } from '@/lib/types'
 import { listHoldsForJob } from '@/lib/supabase/holds'
 import { isHoldOpenStatus } from '@/lib/holds/workflow'
 import { getActiveReliabilityPolicyConfig, getInspectorReliabilityDashboardData, type InspectorReliabilityDashboardData } from '@/lib/supabase/reliability'
@@ -128,6 +133,99 @@ interface ActiveWorklistItem {
 
 const TERMINAL_ASSIGNMENT_STATUSES = new Set(['cancelled', 'invalidated', 'completed'])
 const TERMINAL_JOB_STATUSES = new Set(['completed', 'cancelled', 'stopped'])
+const CURRENT_PROJECT_STAGE_STATUSES = new Set(['live', 'provisionally_assigned', 'confirmed', 'in_progress', 'on_hold', 'completed'])
+
+function getBoardProjectKey(input: Pick<InspectionJob, 'id' | 'projectId' | 'projectName' | 'address' | 'city' | 'builderId'>): string {
+  const projectId = input.projectId?.trim()
+  if (projectId) return `project:${projectId}`
+
+  const builderId = input.builderId?.trim() || 'unknown-builder'
+  return [
+    builderId,
+    input.projectName,
+    input.address,
+    input.city,
+  ]
+    .map(value => value.trim().toLowerCase())
+    .filter(Boolean)
+    .join('|') || `job:${input.id}`
+}
+
+function jobOpportunityToInspectionJob(row: JobOpportunityRow): InspectionJob {
+  return {
+    id: row.id,
+    projectId: row.projectId ?? '',
+    projectName: row.projectName,
+    address: row.address,
+    city: row.city,
+    permitNumber: row.permitNumber,
+    projectType: row.projectType ?? 'Residential',
+    stage: row.stage,
+    stageName: row.stageName,
+    dispatchTier: row.dispatchTier,
+    offeredRate: row.offeredRate,
+    estimatedDuration: row.estimatedDurationMinutes,
+    distance: 0,
+    region: row.region,
+    requiredDiscipline: row.requiredDiscipline,
+    status: row.status,
+    requestedAt: row.requestedAt,
+    scheduledFor: row.scheduledFor,
+    escrowAmount: row.escrowEstimateTotal ?? row.offeredRate,
+    pricingMode: row.pricingMode,
+    specialistRole: row.specialistRole,
+    baseHourlyRate: row.baseHourlyRate,
+    effectiveHourlyRate: row.effectiveHourlyRate,
+    billableHours: row.billableHours,
+    holdHours: row.holdHours,
+    holdCost: row.holdCost,
+    urgencyMultiplier: row.urgencyMultiplier,
+    platformCommissionAmount: row.platformCommissionAmount,
+    requiresProfessionalSeal: row.requiresProfessionalSeal,
+    requiresCP: row.requiresCP,
+    inspectionType: row.inspectionType,
+    credentialClass: row.credentialClass,
+    availableSlots: row.availableSlots ?? [],
+    builderId: row.builderId,
+    builderName: row.builderName,
+    builderRating: 0,
+    builderCompletedJobs: 0,
+    builderNotes: row.notes,
+    isReinspection: false,
+  }
+}
+
+function filterCurrentInspectorBoardJobs(
+  openJobs: InspectionJob[],
+  lifecycleRows: JobOpportunityRow[],
+): InspectionJob[] {
+  const latestProjectStage = new Map<string, number>()
+
+  for (const row of lifecycleRows) {
+    if (!CURRENT_PROJECT_STAGE_STATUSES.has(row.status)) continue
+    const key = getBoardProjectKey({
+      id: row.id,
+      projectId: row.projectId ?? '',
+      builderId: row.builderId,
+      projectName: row.projectName,
+      address: row.address,
+      city: row.city,
+    })
+    const currentLatest = latestProjectStage.get(key) ?? 0
+    if (row.stage > currentLatest) latestProjectStage.set(key, row.stage)
+  }
+
+  for (const job of openJobs) {
+    const key = getBoardProjectKey(job)
+    const currentLatest = latestProjectStage.get(key) ?? 0
+    if (job.stage > currentLatest) latestProjectStage.set(key, job.stage)
+  }
+
+  return openJobs.filter(job => {
+    const latestStage = latestProjectStage.get(getBoardProjectKey(job)) ?? job.stage
+    return job.stage >= latestStage
+  })
+}
 
 function formatStoredStatus(value: string): string {
   return value
@@ -205,6 +303,8 @@ export default function InspectorDashboard() {
   const [reliabilityData, setReliabilityData] = useState<InspectorReliabilityDashboardData | null>(null)
   const [reliabilityPolicyConfig, setReliabilityPolicyConfig] = useState<Record<string, unknown> | null>(null)
   const [dbActiveWorklist, setDbActiveWorklist] = useState<ActiveWorklistItem[] | null>(null)
+  const [dbOpenJobs, setDbOpenJobs] = useState<InspectionJob[] | null>(null)
+  const [dbBoardLifecycleJobs, setDbBoardLifecycleJobs] = useState<JobOpportunityRow[]>([])
 
   useEffect(() => {
     if (!user) { router.replace('/sign-in?role=inspector'); return }
@@ -497,6 +597,45 @@ export default function InspectorDashboard() {
     }
   }, [user?.supabaseId])
 
+  useEffect(() => {
+    if (!user?.supabaseId) {
+      setDbOpenJobs(null)
+      setDbBoardLifecycleJobs([])
+      return
+    }
+
+    let active = true
+
+    async function loadBoardJobs() {
+      const [openRows, lifecycleRows] = await Promise.all([
+        listOpenJobOpportunities(),
+        listAllJobOpportunities(),
+      ])
+
+      if (!active) return
+      setDbOpenJobs(openRows.map(jobOpportunityToInspectionJob))
+      setDbBoardLifecycleJobs(lifecycleRows)
+    }
+
+    void loadBoardJobs()
+
+    const refreshOnFocus = () => {
+      void loadBoardJobs()
+    }
+    const refreshOnVisibility = () => {
+      if (document.visibilityState === 'visible') void loadBoardJobs()
+    }
+
+    window.addEventListener('focus', refreshOnFocus)
+    document.addEventListener('visibilitychange', refreshOnVisibility)
+
+    return () => {
+      active = false
+      window.removeEventListener('focus', refreshOnFocus)
+      document.removeEventListener('visibilitychange', refreshOnVisibility)
+    }
+  }, [user?.supabaseId])
+
   // Poll for holds that builders have accepted — these need a re-verification action.
   useEffect(() => {
     const jobIds = store.assignments
@@ -516,7 +655,12 @@ export default function InspectorDashboard() {
     return () => { active = false }
   }, [store.assignments, user?.id, user?.supabaseId])
 
-  const openJobs = store.getOpenJobs()
+  const storeOpenJobs = store.getOpenJobs()
+  const boardSourceJobs = user?.supabaseId && dbOpenJobs !== null ? dbOpenJobs : storeOpenJobs
+  const openJobs = useMemo(
+    () => filterCurrentInspectorBoardJobs(boardSourceJobs, dbBoardLifecycleJobs),
+    [boardSourceJobs, dbBoardLifecycleJobs]
+  )
 
   const filteredJobs = useMemo(() => {
     return openJobs.filter(job => {
