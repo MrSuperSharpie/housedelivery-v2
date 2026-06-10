@@ -310,7 +310,7 @@ function getWorklistStatusLabel(input: {
   reportStatus?: string
   awaitingReconfirmation?: boolean
 }): string {
-  if (input.awaitingReconfirmation) return 'Awaiting Reconfirmation'
+  if (input.awaitingReconfirmation) return 'Availability Confirmation Needed'
   if (input.jobStatus === 'on_hold') return 'Hold'
   if (input.reportStatus === 'draft' || input.jobStatus === 'in_progress') return 'Draft Record In Progress'
   if (input.assignmentStatus === 'provisional') return 'Provisional'
@@ -1188,6 +1188,21 @@ export default function InspectorDashboard() {
                           #{assignment.assignmentIdSuffix}
                         </div>
                       </div>
+                      {assignment.statusLabel === 'Availability Confirmation Needed' && (
+                        <div className={`mt-3 rounded-xl border px-3 py-3 ${
+                          isDark
+                            ? 'border-blue-500/40 bg-blue-500/10 text-blue-100'
+                            : 'border-blue-300 bg-blue-50 text-blue-950'
+                        }`}>
+                          <div className="text-sm font-black">Availability Confirmation Needed</div>
+                          <div className="mt-1 text-xs">
+                            {user?.firstName
+                              ? `${user.firstName}, please confirm you are still available for this inspection.`
+                              : 'Please confirm you are still available for this inspection.'
+                            }{' '}This helps keep the builder informed and gives Vero time to reassign the work if needed.
+                          </div>
+                        </div>
+                      )}
                       {assignment.openHold && (
                         <div className={`mt-3 rounded-xl border px-3 py-3 ${
                           isDark
