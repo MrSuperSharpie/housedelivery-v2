@@ -63,6 +63,7 @@ import {
   type InspectorCompletionDocumentRow,
   type InspectorCompletionReportRow,
   uploadInspectorCompletionDocument,
+  updateInspectorCompletionDocumentManualLocationNote,
   upsertInspectorCompletionItems,
   upsertInspectorCompletionReport,
 } from '@/lib/supabase/inspectorCompletion'
@@ -123,6 +124,13 @@ interface PendingHoldEvidenceItem {
   offlineCapture: boolean
 }
 
+interface PreSealEvidenceLocationIssue {
+  itemCode: string
+  itemLabel: string
+  doc: InspectorCompletionDocumentRow
+  reason: string
+}
+
 function createRuntimeId(prefix: string): string {
   return `${prefix}-${crypto.randomUUID()}`
 }
@@ -146,6 +154,27 @@ function needsDocument(item: WorkspaceItem): boolean {
 
 function itemHasRequiredDocument(item: WorkspaceItem): boolean {
   return !needsDocument(item) || item.documents.length > 0
+}
+
+function documentHasGpsCoordinates(doc: InspectorCompletionDocumentRow): boolean {
+  return typeof doc.captureGeo?.latitude === 'number' && typeof doc.captureGeo?.longitude === 'number'
+}
+
+function documentHasManualLocationNote(doc: InspectorCompletionDocumentRow): boolean {
+  return typeof doc.manualLocationNote === 'string' && doc.manualLocationNote.trim().length > 0
+}
+
+function getPreSealEvidenceLocationIssues(items: WorkspaceItem[]): PreSealEvidenceLocationIssue[] {
+  return items.flatMap(item =>
+    item.documents
+      .filter(doc => !documentHasGpsCoordinates(doc) && !documentHasManualLocationNote(doc))
+      .map(doc => ({
+        itemCode: item.item_code,
+        itemLabel: item.item_label,
+        doc,
+        reason: 'Missing GPS coordinates and no manual location note recorded.',
+      }))
+  )
 }
 
 function summarizePurpose(text: string): string {
@@ -1063,6 +1092,8 @@ export function InspectorCompletionWorkspace() {
   const [showStageSuccessBanner, setShowStageSuccessBanner] = useState(false)
   const [sealSuccessMessage, setSealSuccessMessage] = useState<string | null>(null)
   const [highlightedEvidenceItemCode, setHighlightedEvidenceItemCode] = useState<string | null>(null)
+  const [manualLocationDrafts, setManualLocationDrafts] = useState<Record<string, string>>({})
+  const [manualLocationSavingDocId, setManualLocationSavingDocId] = useState<string | null>(null)
 
   const hydratedRef = useRef(false)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -1328,6 +1359,12 @@ export function InspectorCompletionWorkspace() {
     && sealDocumentGapCount === 0
     && sealDependencyBlockerCount === 0
     && !hasOpenHold
+  const preSealEvidenceLocationIssues = useMemo(
+    () => getPreSealEvidenceLocationIssues(items),
+    [items]
+  )
+  const finalSealLocationIntegrityReady = preSealEvidenceLocationIssues.length === 0
+  const finalOccupancyActionReady = finalOccupancyReady && finalSealLocationIntegrityReady
   const workspaceJob = useMemo(
     () => (job ? store.jobs.find(candidate => candidate.id === job.id) : undefined),
     [job, store.jobs]
@@ -2014,6 +2051,61 @@ export function InspectorCompletionWorkspace() {
     }))
   }
 
+  async function handleManualLocationNoteSave(
+    itemCode: string,
+    doc: InspectorCompletionDocumentRow,
+    note: string,
+  ) {
+    const trimmedNote = note.trim()
+    if (!trimmedNote) {
+      setStageSignOffError('Add a manual location note before saving the evidence integrity resolution.')
+      return
+    }
+
+    setManualLocationSavingDocId(doc.id)
+    setStageSignOffError(null)
+
+    const applyUpdatedDocument = (updatedDoc: InspectorCompletionDocumentRow) => {
+      updateItem(itemCode, item => ({
+        ...item,
+        documents: item.documents.map(currentDoc =>
+          currentDoc.id === updatedDoc.id ? updatedDoc : currentDoc
+        ),
+      }))
+      setManualLocationDrafts(current => ({
+        ...current,
+        [updatedDoc.id]: updatedDoc.manualLocationNote ?? trimmedNote,
+      }))
+    }
+
+    try {
+      if (previewMode || doc.storagePath.startsWith('local://') || doc.storagePath.startsWith('preview://')) {
+        applyUpdatedDocument({
+          ...doc,
+          manualLocationNote: trimmedNote,
+        })
+        setLastSavedLabel('Manual location note added')
+        return
+      }
+
+      const updatedDoc = await updateInspectorCompletionDocumentManualLocationNote(doc.id, trimmedNote)
+      if (!updatedDoc) {
+        setStageSignOffError('Manual location note could not be saved. Try again before issuing final occupancy.')
+        setLastSavedLabel('Save failed')
+        return
+      }
+
+      applyUpdatedDocument(updatedDoc)
+      setLastSavedLabel('Manual location note saved')
+    } catch (error) {
+      console.error('handleManualLocationNoteSave:', error)
+      setStageSignOffError('Manual location note could not be saved. Try again before issuing final occupancy.')
+      setLastSavedLabel('Save failed')
+    } finally {
+      setManualLocationSavingDocId(null)
+    }
+  }
+
   async function handleDeleteDocument(itemCode: string, doc: InspectorCompletionDocumentRow) {
     if (previewMode || doc.storagePath.startsWith('local://') || doc.storagePath.startsWith('preview://')) {
       removeDocumentReferences(itemCode, doc.id, doc.storagePath)
@@ -2517,12 +2609,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
       const hasGeo = !!ev.geo && typeof ev.geo.lat === 'number' && typeof ev.geo.lng === 'number'
       const hasManualLocationNote =
         typeof ev.manualLocationNote === 'string' && ev.manualLocationNote.trim().length > 0
-      // Fail-closed GPS gate stays strict in production. In local dev, bypass to
-      // keep iteration fast when running without geolocation (e.g. desktop browsers
-      // with permissions denied). Tamper-evidence + storage-path gates remain strict
-      // in every environment.
-      const gpsBypassInDev = process.env.NODE_ENV === 'development'
-      if (!hasGeo && !hasManualLocationNote && !gpsBypassInDev) {
+      if (!hasGeo && !hasManualLocationNote) {
         gateViolations.push({
           id: ev.id,
           ref,
@@ -2986,7 +3073,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
 
   async function applySeal() {
     if (!report || !job || !assignment || !activeUser || !overlay) return
-    if (!sealReady) return
+    if (!sealReady || !finalSealLocationIntegrityReady) return
     const sealedAt = new Date().toISOString()
     const existingStageSignOffs = getStageSignOffs(report.sealPayload)
     await finalizeProjectCompletion({
@@ -3002,7 +3089,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
 
   async function handleFinalOccupancyIssue() {
     if (!report || !job || !assignment || !activeUser || !overlay) return
-    if (!isFinalOccupancyStage || !finalOccupancyReady) return
+    if (!isFinalOccupancyStage || !finalOccupancyActionReady) return
 
     setStageSignOffError(null)
 
@@ -4932,6 +5019,89 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                   </div>
                 )}
 
+                {finalOccupancyReady && !finalSealLocationIntegrityReady && (
+                  <div className="mt-5 rounded-2xl border border-amber-300/40 bg-amber-100 px-4 py-4 text-sm text-amber-950 shadow-sm">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 font-black text-amber-950">
+                          <AlertTriangle className="h-5 w-5 text-amber-700" />
+                          Pre-seal evidence location review required
+                        </div>
+                        <p className="mt-2 max-w-3xl leading-relaxed text-amber-950">
+                          Final occupancy is blocked until each evidence item has GPS coordinates or a manual location note.
+                          This supports the Vero platform record only and does not represent AHJ approval.
+                        </p>
+                      </div>
+                      <div className="rounded-xl border border-amber-300 bg-white px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-amber-900">
+                        {preSealEvidenceLocationIssues.length} item{preSealEvidenceLocationIssues.length === 1 ? '' : 's'} to resolve
+                      </div>
+                    </div>
+
+                    <div className="mt-4 space-y-3">
+                      {preSealEvidenceLocationIssues.map(({ itemCode, itemLabel, doc, reason }) => {
+                        const draft = manualLocationDrafts[doc.id] ?? doc.manualLocationNote ?? ''
+                        const saving = manualLocationSavingDocId === doc.id
+                        return (
+                          <div key={doc.id} className="rounded-2xl border border-amber-300 bg-white p-4 text-amber-950 shadow-sm">
+                            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                              <div className="min-w-0">
+                                <div className="text-xs font-black uppercase tracking-[0.14em] text-amber-700">Evidence item</div>
+                                <div className="mt-1 truncate text-base font-black text-zinc-950">{doc.fileName}</div>
+                                <div className="mt-1 text-sm text-zinc-700">
+                                  Related checklist item: <span className="font-bold">{itemCode}</span> — {itemLabel}
+                                </div>
+                                <div className="mt-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-900">
+                                  {reason}
+                                </div>
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={() => void openDocument(doc)}
+                                className="inline-flex min-h-[42px] items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-bold text-zinc-800 transition-colors hover:bg-zinc-100"
+                              >
+                                <File className="h-4 w-4" />
+                                View Evidence
+                              </button>
+                            </div>
+
+                            <label className="mt-4 block text-xs font-black uppercase tracking-[0.14em] text-zinc-700" htmlFor={`manual-location-${doc.id}`}>
+                              Add Manual Location Note
+                            </label>
+                            <textarea
+                              id={`manual-location-${doc.id}`}
+                              value={draft}
+                              onChange={(event) => {
+                                const value = event.target.value
+                                setManualLocationDrafts(current => ({
+                                  ...current,
+                                  [doc.id]: value,
+                                }))
+                              }}
+                              placeholder="Evidence reviewed/captured at 4521 Kingsway, Burnaby, BC. GPS metadata unavailable; location manually confirmed by inspector during the final inspection."
+                              className="mt-2 min-h-[94px] w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none transition focus:border-amber-600 focus:ring-2 focus:ring-amber-200"
+                            />
+                            <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                              <p className="text-xs leading-relaxed text-zinc-600">
+                                Save a specific field location note for this evidence item. A regular checklist comment does not satisfy the final seal location integrity gate.
+                              </p>
+                              <button
+                                type="button"
+                                disabled={saving || draft.trim().length === 0}
+                                onClick={() => void handleManualLocationNoteSave(itemCode, doc, draft)}
+                                className="inline-flex min-h-[42px] items-center justify-center gap-2 rounded-xl bg-amber-600 px-4 py-2 text-sm font-black text-white transition-colors hover:bg-amber-700 disabled:cursor-not-allowed disabled:bg-zinc-300 disabled:text-zinc-600"
+                              >
+                                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
+                                {saving ? 'Saving...' : 'Save Manual Location Note'}
+                              </button>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 {stageSignOffError && (
                   <div className="mt-5 rounded-2xl border border-cyan-500/20 bg-cyan-500/10 px-4 py-3 text-sm text-cyan-100/90">
                     {stageSignOffError}
@@ -4952,10 +5122,10 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
 
                   <button
                     type="button"
-                    disabled={!finalOccupancyReady || sealing}
+                    disabled={!finalOccupancyActionReady || sealing}
                     onClick={() => void handleFinalOccupancyIssue()}
                     className={`inline-flex min-h-[54px] items-center justify-center gap-2 rounded-2xl px-6 py-3 text-sm font-black uppercase tracking-[0.12em] transition-colors ${
-                      finalOccupancyReady
+                      finalOccupancyActionReady
                         ? 'bg-emerald-600 text-white shadow-[0_18px_34px_rgba(5,150,105,0.28)] hover:bg-emerald-700'
                         : 'cursor-not-allowed bg-zinc-800 text-zinc-500'
                     }`}
@@ -5104,22 +5274,24 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                     </p>
                   </div>
 
-                  <div className={`rounded-3xl border px-4 py-3 ${sealReady ? 'border-emerald-500/30 bg-emerald-500/10' : 'border-amber-500/20 bg-amber-500/10'}`}>
+                  <div className={`rounded-3xl border px-4 py-3 ${sealReady && finalSealLocationIntegrityReady ? 'border-emerald-500/30 bg-emerald-500/10' : 'border-amber-500/20 bg-amber-500/10'}`}>
                     <div className="flex items-start gap-3">
-                      {sealReady ? (
+                      {sealReady && finalSealLocationIntegrityReady ? (
                         <ShieldCheck className="mt-0.5 h-5 w-5 text-emerald-300" />
                       ) : (
                         <Lock className="mt-0.5 h-5 w-5 text-amber-300" />
                       )}
                       <div className="text-sm">
-                        <div className={`font-black ${sealReady ? 'text-emerald-200' : 'text-amber-200'}`}>
-                          {sealReady ? 'Seal Ready' : 'Seal Locked'}
+                        <div className={`font-black ${sealReady && finalSealLocationIntegrityReady ? 'text-emerald-200' : 'text-amber-200'}`}>
+                          {sealReady && finalSealLocationIntegrityReady ? 'Seal Ready' : 'Seal Locked'}
                         </div>
                         <div className="mt-1 text-xs text-zinc-300">
-                          {sealReady
+                          {sealReady && finalSealLocationIntegrityReady
                             ? 'All checklist items are resolved and evidence requirements are satisfied.'
                             : hasOpenHold
                               ? `Seal blocked by an open Hold / Site Retainer: ${activeJobHold?.reason ?? 'Resolve the hold before finalizing.'}`
+                              : !finalSealLocationIntegrityReady
+                                ? `${preSealEvidenceLocationIssues.length} evidence item(s) need GPS coordinates or a manual location note before sealing.`
                               : sealDependencyBlockerCount > 0
                                 ? `${sealDependencyBlockerCount} dependency blocker(s) remain.`
                                 : `${sealPendingCount} pending item(s) and ${sealDocumentGapCount} document gap(s) remain.`}
@@ -5147,10 +5319,10 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                     )}
                     <button
                       type="button"
-                      disabled={!sealReady || sealing}
+                      disabled={!sealReady || !finalSealLocationIntegrityReady || sealing}
                       onClick={() => void applySeal()}
                       className={`inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-black ${
-                        sealReady
+                        sealReady && finalSealLocationIntegrityReady
                           ? 'bg-[#FF5F15] text-white hover:bg-[#e25412]'
                           : 'cursor-not-allowed bg-zinc-800 text-zinc-100'
                       }`}

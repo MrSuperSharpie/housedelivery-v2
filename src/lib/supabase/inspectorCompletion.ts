@@ -705,6 +705,26 @@ export async function createFieldGeoAnomaly(input: {
   return rowToGeoAnomaly(data as Record<string, unknown>)
 }
 
+export async function updateInspectorCompletionDocumentManualLocationNote(
+  documentId: string,
+  manualLocationNote: string | null,
+): Promise<InspectorCompletionDocumentRow | null> {
+  const normalizedNote = manualLocationNote?.trim() || null
+  const { data, error } = await supabase
+    .from(DOCUMENTS)
+    .update({ manual_location_note: normalizedNote })
+    .eq('id', documentId)
+    .select('*')
+    .single()
+
+  if (error || !data) {
+    console.error('updateInspectorCompletionDocumentManualLocationNote:', error)
+    return null
+  }
+
+  return rowToDocument(data as Record<string, unknown>)
+}
+
 export async function deleteInspectorCompletionDocument(
   documentId: string,
   storagePath?: string,

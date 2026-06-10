@@ -690,6 +690,75 @@ test('inspector completion payment copy does not claim payout completion', () =>
   }
 })
 
+test('final seal location integrity gate requires GPS or a manual location note', () => {
+  const workspace = read('components/inspector/InspectorCompletionWorkspace.tsx')
+
+  assert.ok(
+    workspace.includes('const hasGeo = !!ev.geo && typeof ev.geo.lat === \'number\' && typeof ev.geo.lng === \'number\''),
+    'pre-seal gate must inspect evidence GPS coordinates',
+  )
+  assert.ok(
+    workspace.includes('typeof ev.manualLocationNote === \'string\' && ev.manualLocationNote.trim().length > 0'),
+    'pre-seal gate must accept a non-empty manual location note',
+  )
+  assert.ok(
+    workspace.includes('if (!hasGeo && !hasManualLocationNote)'),
+    'pre-seal gate must block evidence missing both GPS and manual location note',
+  )
+  assert.ok(
+    !workspace.includes('gpsBypassInDev'),
+    'pre-seal location integrity gate must not bypass missing GPS/manual notes in development',
+  )
+  assert.ok(
+    workspace.includes('missing GPS coordinates and no manual location note recorded'),
+    'pre-seal gate must preserve the explicit missing-location violation reason',
+  )
+})
+
+test('final occupancy UI shows a pre-seal evidence location resolution panel', () => {
+  const workspace = read('components/inspector/InspectorCompletionWorkspace.tsx')
+  const supabaseHelper = read('lib/supabase/inspectorCompletion.ts')
+
+  assert.ok(
+    workspace.includes('Pre-seal evidence location review required'),
+    'final occupancy area must show an inline pre-seal evidence location panel',
+  )
+  assert.ok(
+    workspace.includes('Final occupancy is blocked until each evidence item has GPS coordinates or a manual location note.'),
+    'panel must explain why final occupancy is blocked',
+  )
+  assert.ok(
+    workspace.includes('Related checklist item:'),
+    'panel must identify the checklist item connected to each blocked evidence item',
+  )
+  assert.ok(workspace.includes('View Evidence'), 'panel must provide a safe evidence view action')
+  assert.ok(workspace.includes('Add Manual Location Note'), 'panel must provide a manual location note action')
+  assert.ok(
+    workspace.includes('A regular checklist comment does not satisfy the final seal location integrity gate.'),
+    'panel must distinguish manual location evidence notes from normal checklist comments',
+  )
+  assert.ok(
+    workspace.includes('disabled={!finalOccupancyActionReady || sealing}'),
+    'Issue Final Occupancy button must remain disabled until location integrity issues are resolved',
+  )
+  assert.ok(
+    workspace.includes('handleManualLocationNoteSave(itemCode, doc, draft)'),
+    'manual location note action must save against the affected evidence item',
+  )
+  assert.ok(
+    supabaseHelper.includes('export async function updateInspectorCompletionDocumentManualLocationNote'),
+    'manual location note save must use an explicit Supabase helper',
+  )
+  assert.ok(
+    supabaseHelper.includes('manual_location_note: normalizedNote'),
+    'manual location note helper must update the existing manual_location_note column',
+  )
+  assert.ok(
+    !workspace.includes('Vero verified the evidence') && !workspace.includes('Vero approved occupancy') && !workspace.includes('Vero grants final approval'),
+    'panel must avoid overstating Vero verification or approval authority',
+  )
+})
+
 // ── conservative item-level evidence tags — S13/S14 ──────────────────────────
 
 test('approved S13 and S14 checklist items include low-risk camera/video evidence tags', () => {
