@@ -1007,6 +1007,7 @@ export function InspectorCompletionWorkspace() {
   const holdPhotoInputRef = useRef<HTMLInputElement>(null)
   const holdVideoInputRef = useRef<HTMLInputElement>(null)
   const holdAttachmentInputRef = useRef<HTMLInputElement>(null)
+  const scopedCompletionPanelRef = useRef<HTMLDivElement | null>(null)
   const previewMode = isInspectorDevPreviewAssignment(assignmentId)
   const activeUser = user
 
@@ -1454,6 +1455,16 @@ export function InspectorCompletionWorkspace() {
       if (sealRedirectTimerRef.current) clearTimeout(sealRedirectTimerRef.current)
     }
   }, [])
+
+  useEffect(() => {
+    if (!assignmentScopeComplete || isFinalOccupancyStage) return
+
+    const panel = scopedCompletionPanelRef.current
+    if (!panel) return
+
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    panel.focus({ preventScroll: true })
+  }, [assignmentScopeComplete, isFinalOccupancyStage])
 
   useEffect(() => {
     async function loadWorkspace() {
@@ -3180,27 +3191,60 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
           </div>
         )}
         {assignmentScope && assignmentScopeComplete && !isFinalOccupancyStage && (
-          <div className={`mb-6 rounded-[1.75rem] border border-emerald-400/40 bg-emerald-100 px-5 py-4 text-emerald-950 ${FLOATING_PANEL_CLASS}`}>
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" />
-                <div>
-                  <div className="text-[11px] font-black uppercase tracking-[0.18em] text-emerald-800/80">Assignment Scope Complete</div>
-                  <div className="mt-1 text-lg font-black text-emerald-950">
-                    {assignmentScope.builderStageLabel} inspection complete.
+          <div
+            ref={scopedCompletionPanelRef}
+            tabIndex={-1}
+            className={`mb-6 rounded-[2rem] border border-emerald-400/50 bg-emerald-100 px-5 py-5 text-emerald-950 outline-none ring-0 ${FLOATING_PANEL_CLASS}`}
+          >
+            <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+              <div className="flex min-w-0 flex-1 items-start gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-700 text-white shadow-sm">
+                  <CheckCircle2 className="h-6 w-6" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-[11px] font-black uppercase tracking-[0.18em] text-emerald-800/80">Stage Complete</div>
+                  <h2 className="mt-1 text-2xl font-black text-emerald-950">Stage complete</h2>
+                  <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-emerald-900">
+                    Thank you. The inspection has been submitted successfully. The builder has been notified, and the official field record is now available.
+                  </p>
+
+                  <div className="mt-5 grid gap-3 md:grid-cols-3">
+                    <div className="rounded-2xl border border-emerald-300 bg-white/80 px-4 py-3">
+                      <div className="text-[11px] font-black uppercase tracking-[0.16em] text-emerald-800/70">Outcome</div>
+                      <div className="mt-1 text-sm font-black text-emerald-950">Inspection passed</div>
+                    </div>
+                    <div className="rounded-2xl border border-emerald-300 bg-white/80 px-4 py-3">
+                      <div className="text-[11px] font-black uppercase tracking-[0.16em] text-emerald-800/70">Builder notification</div>
+                      <div className="mt-1 text-sm font-black text-emerald-950">Sent</div>
+                    </div>
+                    <div className="rounded-2xl border border-emerald-300 bg-white/80 px-4 py-3">
+                      <div className="text-[11px] font-black uppercase tracking-[0.16em] text-emerald-800/70">Payment status</div>
+                      <div className="mt-1 text-sm font-black text-emerald-950">Pending processing</div>
+                    </div>
                   </div>
-                  <div className="mt-1 text-sm text-emerald-900">
-                    The builder can request the next inspection stage when ready.
-                  </div>
+
+                  <p className="mt-3 max-w-3xl text-sm leading-6 text-emerald-900">
+                    Payment release is pending processing and will be processed according to the project terms.
+                  </p>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => router.push('/inspector')}
-                className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-2xl bg-emerald-800 px-4 py-2.5 text-xs font-black text-white transition-colors hover:bg-emerald-900"
-              >
-                Return to Inspector Board <ChevronRight className="h-4 w-4" />
-              </button>
+
+              <div className="flex shrink-0 flex-col gap-3 sm:flex-row xl:flex-col">
+                <button
+                  type="button"
+                  onClick={() => router.push('/inspector')}
+                  className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-2xl bg-emerald-800 px-4 py-2.5 text-xs font-black text-white transition-colors hover:bg-emerald-900"
+                >
+                  Return to Job Board <ChevronRight className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => router.push(`/inspector/report/${assignmentId}`)}
+                  className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-2xl border border-emerald-700/30 bg-white px-4 py-2.5 text-xs font-black text-emerald-950 transition-colors hover:bg-emerald-50"
+                >
+                  View Completed Record <FileCheck2 className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           </div>
         )}

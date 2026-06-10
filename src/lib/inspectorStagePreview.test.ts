@@ -575,6 +575,65 @@ test('S14-05 dependency blocker points inspectors back to S14-04', () => {
   )
 })
 
+test('inspector scoped completion panel confirms submission, notification, record, and safe payment status', () => {
+  const workspace = read('components/inspector/InspectorCompletionWorkspace.tsx')
+
+  assert.ok(workspace.includes('Stage complete'), 'post-submit completion panel must have a clear Stage complete title')
+  assert.ok(
+    workspace.includes('The inspection has been submitted successfully. The builder has been notified, and the official field record is now available.'),
+    'completion panel must confirm submission, builder notification, and record availability',
+  )
+  assert.ok(workspace.includes('Inspection passed'), 'completion panel must show the passed outcome')
+  assert.ok(workspace.includes('Builder notification'), 'completion panel must show builder notification status')
+  assert.ok(workspace.includes('Payment status'), 'completion panel must show payment status')
+  assert.ok(
+    workspace.includes('Payment release is pending processing and will be processed according to the project terms.'),
+    'payment copy must avoid overpromising payout completion',
+  )
+  assert.ok(workspace.includes('Return to Job Board'), 'completion panel must retain return navigation')
+  assert.ok(workspace.includes('View Completed Record'), 'completion panel must expose the existing completed-record route')
+  assert.ok(
+    workspace.includes("router.push(`/inspector/report/${assignmentId}`)"),
+    'completed-record button must use the existing inspector report route',
+  )
+})
+
+test('inspector scoped completion panel scrolls into view after successful stage sign-off', () => {
+  const workspace = read('components/inspector/InspectorCompletionWorkspace.tsx')
+
+  assert.ok(
+    workspace.includes('const scopedCompletionPanelRef = useRef<HTMLDivElement | null>(null)'),
+    'completion panel must have a ref for post-submit focus/scroll',
+  )
+  assert.ok(
+    workspace.includes('panel.scrollIntoView({ behavior: \'smooth\', block: \'start\' })'),
+    'successful scoped sign-off must scroll to the completion panel',
+  )
+  assert.ok(
+    workspace.includes('panel.focus({ preventScroll: true })'),
+    'completion panel must be focused after scrolling so keyboard and screen-reader users land on the success state',
+  )
+  assert.ok(
+    workspace.includes('ref={scopedCompletionPanelRef}') && workspace.includes('tabIndex={-1}'),
+    'completion panel must attach the scroll/focus ref and be programmatically focusable',
+  )
+})
+
+test('inspector completion payment copy does not claim payout completion', () => {
+  const workspace = read('components/inspector/InspectorCompletionWorkspace.tsx')
+  const forbidden = [
+    'Your payment is on its way',
+    'Payment has been sent',
+    'Funds released',
+    'Payout complete',
+    'Guaranteed payment date',
+  ]
+
+  for (const phrase of forbidden) {
+    assert.ok(!workspace.includes(phrase), `completion panel must not use unsafe payment phrase: ${phrase}`)
+  }
+})
+
 // ── conservative item-level evidence tags — S13/S14 ──────────────────────────
 
 test('approved S13 and S14 checklist items include low-risk camera/video evidence tags', () => {
