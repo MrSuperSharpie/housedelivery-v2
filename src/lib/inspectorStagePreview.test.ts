@@ -378,19 +378,27 @@ test('required-evidence containers show Evidence Required Before Pass chip in fi
 test('required-evidence containers show persistent notice inside field checklist panel when evidence is missing', () => {
   const source = read('components/inspector/InspectorCompletionWorkspace.tsx')
   assert.ok(
-    source.includes('Evidence required before Pass.'),
-    'field checklist panel must show a clear evidence-required notice when passBlockedForEvidence'
+    source.includes('Required evidence missing'),
+    'field checklist panel must show a clear required-evidence-missing panel when passBlockedForEvidence'
   )
   assert.ok(
-    source.includes('Attach at least one evidence item in the Attached Evidence section below.'),
-    'evidence-required notice must tell inspectors where to attach evidence'
+    source.includes('Attach at least one evidence item before passing this container.'),
+    'evidence-required panel must tell inspectors what action is required before Pass'
   )
   assert.ok(
-    source.includes('A regular note/comment does not satisfy this requirement unless it is captured as evidence.'),
-    'evidence-required notice must clarify regular notes/comments do not satisfy the evidence gate'
+    source.includes('Pass is disabled until evidence is captured or uploaded in this container&apos;s evidence area.'),
+    'evidence-required panel must explain why Pass is disabled and where evidence must be attached'
   )
   assert.ok(
-    source.includes('passBlockedForEvidence'),
+    source.includes('Attach Required Evidence'),
+    'evidence-required panel must provide a clear upload/focus action'
+  )
+  assert.ok(
+    source.includes('Required evidence attached') && source.includes('Evidence requirement satisfied. This container can now be passed if all checklist conditions are complete.'),
+    'evidence-required panel must render a satisfied state after evidence is attached'
+  )
+  assert.ok(
+    source.includes('blocked={passBlockedForEvidence}'),
     'persistent notice must be gated on shared passBlockedForEvidence, not hardcoded to a specific stage'
   )
 })
@@ -462,8 +470,40 @@ test('required evidence containers with or without item-level tags get an obviou
     'S14-04 must remain a container-level required evidence container'
   )
   assert.ok(
-    workspace.includes('{passBlockedForEvidence && (') && workspace.includes('{REQUIRED_EVIDENCE_LOCK_MESSAGE}'),
-    'container-level required evidence must show the shared actionable evidence instruction'
+    workspace.includes('<RequiredEvidenceActionPanel') && workspace.includes('onAttachRequiredEvidence={() => focusRequiredEvidenceUpload(item.item_code)}'),
+    'container-level required evidence must show the shared actionable evidence instruction and attach action'
+  )
+})
+
+test('S12-03 required evidence blocker uses shared upload action path', () => {
+  const workspace = read('components/inspector/InspectorCompletionWorkspace.tsx')
+  const checklist = read('lib/inspectorCompletion.ts')
+  const s1203 = getCodeBlock(checklist, 'S12-03')
+
+  assert.ok(
+    s1203.includes("evidenceMode: 'required_upload'") && s1203.includes('documentUploadRequired: true'),
+    'S12-03 must remain a required-upload evidence container'
+  )
+  assert.ok(
+    s1203.includes('Energy Documentation and Compliance Path'),
+    'S12-03 must be the energy documentation container under test'
+  )
+  assert.ok(
+    workspace.includes('function focusRequiredEvidenceUpload(itemCode: string)'),
+    'Attach Required Evidence must reuse a shared focus handler'
+  )
+  assert.ok(
+    workspace.includes('target.scrollIntoView({ behavior: \'smooth\', block: \'center\' })') &&
+    workspace.includes('target.focus({ preventScroll: true })'),
+    'Attach Required Evidence must scroll/focus the existing evidence upload target'
+  )
+  assert.ok(
+    workspace.includes('highlightedEvidenceItemCode === item.item_code'),
+    'Attach Required Evidence must visibly highlight the upload target'
+  )
+  assert.ok(
+    workspace.includes('const evidenceUploadRefs = useRef<Record<string, HTMLDivElement | null>>({})'),
+    'evidence upload targets must be registered through shared refs'
   )
 })
 

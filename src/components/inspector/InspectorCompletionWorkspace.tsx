@@ -833,6 +833,72 @@ const REQUIRED_EVIDENCE_LOCK_MESSAGE = 'Evidence required before Pass. Attach at
 const REQUIRED_EVIDENCE_NOTICE_CLASS = 'rounded-2xl border-2 border-rose-500 bg-white px-4 py-3 text-sm font-semibold leading-6 text-slate-950 shadow-[0_14px_28px_rgba(15,23,42,0.18)]'
 const DEPENDENCY_BLOCKER_NOTICE_CLASS = 'rounded-2xl border-2 border-amber-500 bg-white px-4 py-3 text-sm font-semibold leading-6 text-slate-950 shadow-[0_14px_28px_rgba(15,23,42,0.18)]'
 
+function RequiredEvidenceActionPanel({
+  item,
+  blocked,
+  onAttachRequiredEvidence,
+}: {
+  item: WorkspaceItem
+  blocked: boolean
+  onAttachRequiredEvidence: () => void
+}) {
+  const guidanceItems = item.required_evidence.length > 0
+    ? item.required_evidence
+    : ['At least one photo, video, file, or captured field note attached through this container evidence area.']
+
+  if (!blocked) {
+    return (
+      <div className="mt-3 rounded-2xl border-2 border-emerald-500 bg-white px-4 py-3 text-sm font-semibold leading-6 text-slate-950 shadow-[0_14px_28px_rgba(15,23,42,0.18)]">
+        <div className="flex items-start gap-3">
+          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" />
+          <div>
+            <div className="text-sm font-black text-emerald-950">Required evidence attached</div>
+            <div className="mt-1 text-sm text-slate-800">
+              Evidence requirement satisfied. This container can now be passed if all checklist conditions are complete.
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="mt-3 rounded-2xl border-2 border-rose-500 bg-white px-4 py-4 text-slate-950 shadow-[0_14px_28px_rgba(15,23,42,0.18)]">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex min-w-0 flex-1 items-start gap-3">
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-rose-700" />
+          <div className="min-w-0">
+            <div className="text-base font-black text-rose-950">Required evidence missing</div>
+            <div className="mt-1 text-sm font-semibold leading-6 text-slate-900">
+              Attach at least one evidence item before passing this container.
+            </div>
+            <div className="mt-3 text-[11px] font-black uppercase tracking-[0.16em] text-slate-600">Acceptable evidence</div>
+            <ul className="mt-2 space-y-1.5 text-sm leading-5 text-slate-800">
+              {guidanceItems.map(guidance => (
+                <li key={guidance} className="flex gap-2">
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-rose-600" />
+                  <span>{guidance}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-3 text-xs font-semibold leading-5 text-slate-700">
+              Pass is disabled until evidence is captured or uploaded in this container&apos;s evidence area.
+            </div>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={onAttachRequiredEvidence}
+          className="inline-flex min-h-[44px] shrink-0 items-center justify-center gap-2 rounded-2xl bg-rose-700 px-4 py-3 text-xs font-black text-white transition-colors hover:bg-rose-800"
+        >
+          <Upload className="h-4 w-4" />
+          Attach Required Evidence
+        </button>
+      </div>
+    </div>
+  )
+}
+
 type ActiveJobHoldSummary = Pick<HoldRecord, 'id' | 'status' | 'reason'> & Partial<Pick<
   HoldRecord,
   | 'deficiencyReason'
@@ -996,6 +1062,7 @@ export function InspectorCompletionWorkspace() {
   const [pendingStageTransitionHandshake, setPendingStageTransitionHandshake] = useState<StageTransitionHandshake | null>(null)
   const [showStageSuccessBanner, setShowStageSuccessBanner] = useState(false)
   const [sealSuccessMessage, setSealSuccessMessage] = useState<string | null>(null)
+  const [highlightedEvidenceItemCode, setHighlightedEvidenceItemCode] = useState<string | null>(null)
 
   const hydratedRef = useRef(false)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -1003,7 +1070,9 @@ export function InspectorCompletionWorkspace() {
   const stageTransitionStartRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const sealSuccessTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const sealRedirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const evidenceHighlightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const stageItemRefs = useRef<Record<string, HTMLElement | null>>({})
+  const evidenceUploadRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const holdPhotoInputRef = useRef<HTMLInputElement>(null)
   const holdVideoInputRef = useRef<HTMLInputElement>(null)
   const holdAttachmentInputRef = useRef<HTMLInputElement>(null)
@@ -1453,6 +1522,7 @@ export function InspectorCompletionWorkspace() {
       if (stageTransitionStartRef.current) clearTimeout(stageTransitionStartRef.current)
       if (sealSuccessTimerRef.current) clearTimeout(sealSuccessTimerRef.current)
       if (sealRedirectTimerRef.current) clearTimeout(sealRedirectTimerRef.current)
+      if (evidenceHighlightTimerRef.current) clearTimeout(evidenceHighlightTimerRef.current)
     }
   }, [])
 
@@ -1978,6 +2048,20 @@ export function InspectorCompletionWorkspace() {
 
   function queueStageSuccessHandshake(handshake: StageTransitionHandshake) {
     setPendingStageTransitionHandshake(handshake)
+  }
+
+  function focusRequiredEvidenceUpload(itemCode: string) {
+    const target = evidenceUploadRefs.current[itemCode]
+    if (!target) return
+
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    target.focus({ preventScroll: true })
+    setHighlightedEvidenceItemCode(itemCode)
+
+    if (evidenceHighlightTimerRef.current) clearTimeout(evidenceHighlightTimerRef.current)
+    evidenceHighlightTimerRef.current = setTimeout(() => {
+      setHighlightedEvidenceItemCode(current => current === itemCode ? null : current)
+    }, 4500)
   }
 
   function handleStatusSelection(itemCode: string, value: CompletionInspectionStatus) {
@@ -3873,10 +3957,12 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                           </div>
                         </div>
 
-                        {passBlockedForEvidence && (
-                          <div className={`mt-3 ${REQUIRED_EVIDENCE_NOTICE_CLASS}`}>
-                            {REQUIRED_EVIDENCE_LOCK_MESSAGE}
-                          </div>
+                        {passRequiresEvidence && (
+                          <RequiredEvidenceActionPanel
+                            item={item}
+                            blocked={passBlockedForEvidence}
+                            onAttachRequiredEvidence={() => focusRequiredEvidenceUpload(item.item_code)}
+                          />
                         )}
 
                         <div className="mt-3 space-y-3">
@@ -4123,7 +4209,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         </button>
                       </div>
 
-                      {passBlocked && (
+                      {passBlocked && !passBlockedForEvidence && (
                         <div className="mt-3 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100/90">
                           {passBlockedMessage}
                         </div>
@@ -4303,7 +4389,17 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                             </div>
                           </div>
 
-                          <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
+                          <div
+                            ref={node => {
+                              evidenceUploadRefs.current[item.item_code] = node
+                            }}
+                            tabIndex={-1}
+                            className={`rounded-3xl border border-white/10 bg-white/5 p-4 outline-none transition-shadow ${
+                              highlightedEvidenceItemCode === item.item_code
+                                ? 'ring-2 ring-rose-400 ring-offset-2 ring-offset-[#050816]'
+                                : ''
+                            }`}
+                          >
                             <div className="flex flex-wrap items-center justify-between gap-3">
                               <div>
                                 <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Attached Evidence</div>
@@ -4498,7 +4594,15 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       </button>
                     </div>
 
-                    {passBlocked && (
+                    {passRequiresEvidence && (
+                      <RequiredEvidenceActionPanel
+                        item={item}
+                        blocked={passBlockedForEvidence}
+                        onAttachRequiredEvidence={() => focusRequiredEvidenceUpload(item.item_code)}
+                      />
+                    )}
+
+                    {passBlocked && !passBlockedForEvidence && (
                       <div className={`mt-3 ${passBlockedForDependency ? DEPENDENCY_BLOCKER_NOTICE_CLASS : REQUIRED_EVIDENCE_NOTICE_CLASS}`}>
                         {passBlockedMessage}
                       </div>
@@ -4690,7 +4794,17 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                           </div>
                         </div>
 
-                        <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
+                        <div
+                          ref={node => {
+                            evidenceUploadRefs.current[item.item_code] = node
+                          }}
+                          tabIndex={-1}
+                          className={`rounded-3xl border border-white/10 bg-white/5 p-4 outline-none transition-shadow ${
+                            highlightedEvidenceItemCode === item.item_code
+                              ? 'ring-2 ring-rose-400 ring-offset-2 ring-offset-[#050816]'
+                              : ''
+                          }`}
+                        >
                           <div className="flex flex-wrap items-center justify-between gap-3">
                             <div>
                               <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Evidence</div>
@@ -4728,12 +4842,6 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                               </label>
                             </div>
                           </div>
-
-                          {passBlockedForEvidence && (
-                            <div className={`mt-4 ${REQUIRED_EVIDENCE_NOTICE_CLASS}`}>
-                              {REQUIRED_EVIDENCE_LOCK_MESSAGE}
-                            </div>
-                          )}
 
                           <div className="mt-4 space-y-2">
                             {item.documents.length === 0 ? (
