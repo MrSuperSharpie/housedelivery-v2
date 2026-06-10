@@ -1,5 +1,9 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import React from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
+import { ScheduleCBPacketDocument } from '../ScheduleCBPacketDocument'
 import {
   APPENDIX_PAGE_SIZE,
   buildScheduleCBPacketData,
@@ -14,6 +18,13 @@ import {
 import { SAMPLE_SCHEDULE_CB_PACKET_SOURCE } from '../scheduleCBPacketFixtures'
 
 // ─── Hold history test fixtures ───────────────────────────────────────────────
+
+function renderPacketSection(
+  data: ReturnType<typeof buildScheduleCBPacketData>,
+  section: 'cover' | 'trail',
+): string {
+  return renderToStaticMarkup(React.createElement(ScheduleCBPacketDocument, { data, section }))
+}
 
 const SAMPLE_HOLD_PAYLOAD = {
   holdId: 'hold-test-1',
@@ -363,6 +374,13 @@ test('Stage 2/S05 packet displays builder Stage 2 and checklist S05 while keepin
   assert.equal(packet.checklistSummary.totalCount, 4)
   assert.equal(packet.items.length, 4)
   assert.ok(packet.items.every(item => item.itemCode.startsWith('S05-')))
+  const coverHtml = renderPacketSection(packet, 'cover')
+  assert.match(coverHtml, /Builder Stage 2 of 7 — Foundation Pour/)
+  assert.match(coverHtml, /Checklist Scope: S05 — Footings, Foundation, and Slab/)
+  assert.match(coverHtml, /4 passed · 0 failed \(4 items\)/)
+  assert.match(coverHtml, /STAGE COMPLETE/)
+  assert.match(coverHtml, /INSPECTION PASSED/)
+  assert.match(coverHtml, /4 OF 4 ITEMS PASSED/)
   assert.equal(
     packet.appendixEntries[0]?.requirementReference,
     'Checklist S05 · S05-01 — Footings, Foundation Walls, Rebar, and Embedded Items',
@@ -371,6 +389,70 @@ test('Stage 2/S05 packet displays builder Stage 2 and checklist S05 while keepin
     !packet.appendixEntries[0]?.requirementReference.includes('Stage 5'),
     'S05 evidence appendix requirement labels must not use ambiguous Stage 5 wording',
   )
+})
+
+test('cover status badge does not claim Inspection Passed for failed or mixed results', () => {
+  const source = {
+    ...SAMPLE_SCHEDULE_CB_PACKET_SOURCE,
+    items: [
+      {
+        itemCode: 'S05-01',
+        itemLabel: 'Footings, Foundation Walls, Rebar, and Embedded Items',
+        stageNumber: 5,
+        stageName: 'Footings, Foundation, and Slab',
+        inspectionStatus: 'Passed' as const,
+      },
+      {
+        itemCode: 'S05-02',
+        itemLabel: 'Drainage, Dampproofing, and Foundation Protection',
+        stageNumber: 5,
+        stageName: 'Footings, Foundation, and Slab',
+        inspectionStatus: 'Failed' as const,
+      },
+    ],
+    report: {
+      ...SAMPLE_SCHEDULE_CB_PACKET_SOURCE.report,
+      currentStage: 5,
+      sealPayload: {
+        ...SAMPLE_SCHEDULE_CB_PACKET_SOURCE.report.sealPayload,
+        overallResult: 'pass',
+        stageSignOffs: {
+          '5': {
+            stageNumber: 5,
+            signedAt: '2026-04-11T16:21:00.000Z',
+          },
+        },
+      },
+    },
+    packetScope: {
+      mode: 'stage_level' as const,
+      stageNumbers: [5],
+    },
+    builderStage: {
+      number: 2,
+      label: 'Foundation Pour',
+      total: 7,
+    },
+  }
+
+  const packet = buildScheduleCBPacketData(source)
+  const coverHtml = renderPacketSection(packet, 'cover')
+
+  assert.equal(packet.summary.overallResult, 'fail')
+  assert.doesNotMatch(coverHtml, /INSPECTION PASSED/)
+  assert.match(coverHtml, /INSPECTION REVIEW REQUIRED/)
+  assert.match(coverHtml, /1 PASSED · 1 FAILED \(2 ITEMS\)/)
+})
+
+test('platform status badge is confined to the cover wrapper, not the audit trail or statutory form generator', () => {
+  const packet = buildScheduleCBPacketData(SAMPLE_SCHEDULE_CB_PACKET_SOURCE)
+  const trailHtml = renderPacketSection(packet, 'trail')
+  const statutoryGeneratorSource = readFileSync('src/lib/pdf/scheduleCBGenerator.ts', 'utf8')
+
+  assert.doesNotMatch(trailHtml, /INSPECTION PASSED/)
+  assert.doesNotMatch(trailHtml, /Platform inspection outcome/)
+  assert.doesNotMatch(trailHtml, /STAGE COMPLETE/)
+  assert.doesNotMatch(statutoryGeneratorSource, /INSPECTION PASSED|STAGE COMPLETE|status-badge/)
 })
 
 test('Stage 3 discipline override packet preserves internal checklist code while showing builder Stage 3', () => {

@@ -304,6 +304,83 @@ const PRINT_CSS = `
     overflow-wrap: anywhere;
   }
 
+  .status-badge {
+    margin-top: 14px;
+    padding: 12px 10px;
+    border: 2px solid #166534;
+    background: #f0fdf4;
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: center;
+  }
+
+  .status-badge.review-required {
+    border-color: #991b1b;
+    background: #fef2f2;
+  }
+
+  .status-badge.incomplete {
+    border-color: #854d0e;
+    background: #fffbeb;
+  }
+
+  .status-badge.neutral {
+    border-color: #6b7280;
+    background: #f9fafb;
+  }
+
+  .status-badge-kicker {
+    font-size: 9px;
+    line-height: 1.2;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #14532d;
+  }
+
+  .status-badge.review-required .status-badge-kicker {
+    color: #7f1d1d;
+  }
+
+  .status-badge.incomplete .status-badge-kicker {
+    color: #713f12;
+  }
+
+  .status-badge.neutral .status-badge-kicker {
+    color: #374151;
+  }
+
+  .status-badge-outcome {
+    margin-top: 5px;
+    font-size: 17px;
+    line-height: 1.12;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 800;
+    color: #14532d;
+  }
+
+  .status-badge.review-required .status-badge-outcome {
+    color: #7f1d1d;
+  }
+
+  .status-badge.incomplete .status-badge-outcome {
+    color: #713f12;
+  }
+
+  .status-badge.neutral .status-badge-outcome {
+    color: #374151;
+  }
+
+  .status-badge-detail {
+    margin-top: 7px;
+    font-size: 10px;
+    line-height: 1.35;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #1f2937;
+  }
+
   .official-note {
     margin-top: 14px;
     padding: 12px 14px;
@@ -544,7 +621,74 @@ function PageFooter({ data, label }: { data: ScheduleCBPacketData; label: string
   )
 }
 
+function formatItemCountLabel(count: number): string {
+  return `${count} item${count === 1 ? '' : 's'}`
+}
+
+function buildCoverStatusBadge(data: ScheduleCBPacketData): {
+  tone: 'passed' | 'review-required' | 'incomplete' | 'neutral'
+  kicker: string
+  outcome: string
+  detail: string
+} {
+  const summary = data.checklistSummary
+
+  if (!summary.hasData || summary.totalCount === 0) {
+    return {
+      tone: 'neutral',
+      kicker: 'RECORD STATUS',
+      outcome: 'CHECKLIST DATA NOT RECORDED',
+      detail: 'NO CHECKLIST ITEMS RECORDED',
+    }
+  }
+
+  if (
+    data.summary.overallResult === 'pass' &&
+    summary.passCount === summary.totalCount &&
+    summary.failCount === 0 &&
+    summary.pendingCount === 0 &&
+    summary.naCount === 0
+  ) {
+    return {
+      tone: 'passed',
+      kicker: 'STAGE COMPLETE',
+      outcome: 'INSPECTION PASSED',
+      detail: `${summary.passCount} OF ${summary.totalCount} ITEMS PASSED`,
+    }
+  }
+
+  if (summary.failCount > 0 || data.summary.overallResult === 'fail') {
+    return {
+      tone: 'review-required',
+      kicker: 'STAGE COMPLETE',
+      outcome: 'INSPECTION REVIEW REQUIRED',
+      detail: `${summary.passCount} PASSED · ${summary.failCount} FAILED (${formatItemCountLabel(summary.totalCount).toUpperCase()})`,
+    }
+  }
+
+  if (summary.pendingCount > 0) {
+    return {
+      tone: 'incomplete',
+      kicker: 'RECORD INCOMPLETE',
+      outcome: 'ITEMS PENDING',
+      detail: `${summary.pendingCount} PENDING (${formatItemCountLabel(summary.totalCount).toUpperCase()})`,
+    }
+  }
+
+  return {
+    tone: 'neutral',
+    kicker: 'STAGE COMPLETE',
+    outcome: 'INSPECTION RECORDED',
+    detail: `${summary.passCount} PASSED · ${summary.naCount} N/A (${formatItemCountLabel(summary.totalCount).toUpperCase()})`,
+  }
+}
+
 function CoverPage({ data }: { data: ScheduleCBPacketData }) {
+  const statusBadge = buildCoverStatusBadge(data)
+  const statusBadgeClassName = statusBadge.tone === 'passed'
+    ? 'status-badge'
+    : `status-badge ${statusBadge.tone}`
+
   return (
     <section className="packet-page">
       <div className="packet-shell">
@@ -668,6 +812,11 @@ function CoverPage({ data }: { data: ScheduleCBPacketData }) {
                       <div className="formal-panel-meta-row-value mono">{data.summary.verificationId}</div>
                     </div>
                   ) : null}
+                </div>
+                <div className={statusBadgeClassName} aria-label="Platform inspection outcome">
+                  <div className="status-badge-kicker">{statusBadge.kicker}</div>
+                  <div className="status-badge-outcome">{statusBadge.outcome}</div>
+                  <div className="status-badge-detail">{statusBadge.detail}</div>
                 </div>
               </div>
             </div>
