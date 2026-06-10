@@ -312,7 +312,7 @@ function getWorklistStatusLabel(input: {
 }): string {
   if (input.awaitingReconfirmation) return 'Awaiting Reconfirmation'
   if (input.jobStatus === 'on_hold') return 'Hold'
-  if (input.reportStatus === 'draft' || input.jobStatus === 'in_progress') return 'Draft / In Progress'
+  if (input.reportStatus === 'draft' || input.jobStatus === 'in_progress') return 'Draft Record In Progress'
   if (input.assignmentStatus === 'provisional') return 'Provisional'
   if (input.assignmentStatus === 'confirmed') return 'Confirmed'
   if (input.assignmentStatus === 'active') return 'Active'
@@ -1033,9 +1033,17 @@ export default function InspectorDashboard() {
         {(activeWorklist.length > 0 || hiddenActiveWorklist.length > 0) && (
           <div className="mb-10">
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-2">
-                <PlayCircle className="w-4 h-4 text-flame" />
-                <h2 className="text-xs font-bold text-electric tracking-widest uppercase">Your Active Worklist</h2>
+              <div>
+                <div className="flex items-center gap-2">
+                  <PlayCircle className="w-4 h-4 text-flame" />
+                  <h2 className="text-xs font-bold text-electric tracking-widest uppercase">Your Active Worklist</h2>
+                </div>
+                <p className={`mt-1 text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                  These are assignments still open or in progress. Completed submitted records move to Vault.{' '}
+                  <Link href="/vault" className={`underline underline-offset-2 ${isDark ? 'text-slate-300 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}>
+                    View Submitted Records in Vault
+                  </Link>
+                </p>
               </div>
               {hiddenActiveWorklist.length > 0 && (
                 <button
@@ -1127,7 +1135,7 @@ export default function InspectorDashboard() {
                                 ? 'border-amber-700/50 bg-amber-900/30 text-amber-300'
                                 : 'border-amber-200 bg-amber-50 text-amber-700'
                           }`}>
-                            Report: {formatStoredStatus(assignment.reportStatus)}
+                            Field Record: {formatStoredStatus(assignment.reportStatus)}
                           </span>
                         )}
                         {hiddenFromWorklist && (
@@ -1243,7 +1251,7 @@ export default function InspectorDashboard() {
                             onClick={() => router.push(`/inspector/completion/${assignment.id}`)}
                             className="bg-flame text-white px-4 py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 hover:bg-flame-light transition-all glow-flame-sm"
                           >
-                            Open Assignment <ChevronRight className="w-4 h-4" />
+                            Continue Assignment <ChevronRight className="w-4 h-4" />
                           </button>
                           <button
                             type="button"
@@ -1333,8 +1341,11 @@ export default function InspectorDashboard() {
             isDark ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'
           }`}>
             <div className="text-right">
-              <div className="text-[10px] font-bold text-subtle uppercase tracking-widest">Available Earnings</div>
+              <div className="text-[10px] font-bold text-subtle uppercase tracking-widest">Potential Open Earnings</div>
               <div className={`text-xl font-black ${isDark ? 'text-emerald-300' : 'text-emerald-800'}`}>{formatCurrency(1329)}</div>
+              <div className={`mt-1 text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                Estimated value of visible open opportunities. Actual payout status appears after admin review and release.
+              </div>
             </div>
           </div>
         </div>
