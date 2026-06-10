@@ -304,7 +304,7 @@ test('inspector job board uses fresh open-job reads and suppresses superseded pr
     'inspector job board must run board jobs through the stale/superseded stage filter',
   )
   assert.ok(
-    filterBlock.includes('CURRENT_PROJECT_STAGE_STATUSES.has(row.status)'),
+    source.includes('function buildLatestProjectStageContext') && source.includes('CURRENT_PROJECT_STAGE_STATUSES.has(row.status)'),
     'stale-card filter must base project advancement on active/completed lifecycle statuses',
   )
   assert.ok(
@@ -314,6 +314,36 @@ test('inspector job board uses fresh open-job reads and suppresses superseded pr
   assert.ok(
     !filterBlock.includes('requiredDiscipline'),
     'stale-card filter must not collapse same-stage discipline-specific jobs',
+  )
+})
+
+test('inspector active worklist hides superseded lower-stage cards without collapsing same-stage disciplines', () => {
+  const source = read('app/inspector/page.tsx')
+  const filterStart = source.indexOf('function filterCurrentActiveWorklistItems')
+  const filterEnd = source.indexOf('\nfunction formatStoredStatus', filterStart)
+  const filterBlock = source.slice(filterStart, filterEnd)
+
+  assert.ok(filterStart >= 0, 'inspector page must define an active worklist stale-stage filter')
+  assert.ok(
+    source.includes(".select('id, project_id, builder_id, project_name, address, city, status, stage, stage_name, required_discipline')"),
+    'active worklist job read must include project identity fields for superseded-stage filtering',
+  )
+  assert.ok(
+    source.includes('const currentWorklist = filterCurrentActiveWorklistItems(worklist, lifecycleRows)'),
+    'active worklist must filter against latest project-stage lifecycle context before rendering',
+  )
+  assert.ok(
+    filterBlock.includes('return item.stage >= latestStage'),
+    'active worklist must hide lower-stage assignments when a later project stage exists',
+  )
+  assert.ok(
+    !filterBlock.includes('discipline'),
+    'active worklist stale-stage filter must preserve same-stage discipline-specific assignments',
+  )
+  assert.ok(
+    source.includes("window.addEventListener('focus', refreshActiveWorklistOnFocus)")
+      && source.includes("document.addEventListener('visibilitychange', refreshActiveWorklistOnVisibility)"),
+    'active worklist must refresh when the inspector returns to the dashboard',
   )
 })
 

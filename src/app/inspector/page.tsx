@@ -115,6 +115,8 @@ function resolveInspectionStagePreview(
 interface ActiveWorklistItem {
   id: string
   jobId: string
+  projectId?: string
+  builderId?: string
   projectName: string
   address: string
   city?: string
@@ -135,7 +137,16 @@ const TERMINAL_ASSIGNMENT_STATUSES = new Set(['cancelled', 'invalidated', 'compl
 const TERMINAL_JOB_STATUSES = new Set(['completed', 'cancelled', 'stopped'])
 const CURRENT_PROJECT_STAGE_STATUSES = new Set(['live', 'provisionally_assigned', 'confirmed', 'in_progress', 'on_hold', 'completed'])
 
-function getBoardProjectKey(input: Pick<InspectionJob, 'id' | 'projectId' | 'projectName' | 'address' | 'city' | 'builderId'>): string {
+type ProjectStageIdentity = {
+  id: string
+  projectId?: string
+  builderId?: string
+  projectName: string
+  address: string
+  city?: string
+}
+
+function getBoardProjectKey(input: ProjectStageIdentity): string {
   const projectId = input.projectId?.trim()
   if (projectId) return `project:${projectId}`
 
@@ -146,9 +157,29 @@ function getBoardProjectKey(input: Pick<InspectionJob, 'id' | 'projectId' | 'pro
     input.address,
     input.city,
   ]
-    .map(value => value.trim().toLowerCase())
+    .map(value => (value ?? '').trim().toLowerCase())
     .filter(Boolean)
     .join('|') || `job:${input.id}`
+}
+
+function buildLatestProjectStageContext(lifecycleRows: JobOpportunityRow[]): Map<string, number> {
+  const latestProjectStage = new Map<string, number>()
+
+  for (const row of lifecycleRows) {
+    if (!CURRENT_PROJECT_STAGE_STATUSES.has(row.status)) continue
+    const key = getBoardProjectKey({
+      id: row.id,
+      projectId: row.projectId ?? '',
+      builderId: row.builderId,
+      projectName: row.projectName,
+      address: row.address,
+      city: row.city,
+    })
+    const currentLatest = latestProjectStage.get(key) ?? 0
+    if (row.stage > currentLatest) latestProjectStage.set(key, row.stage)
+  }
+
+  return latestProjectStage
 }
 
 function jobOpportunityToInspectionJob(row: JobOpportunityRow): InspectionJob {
@@ -199,21 +230,7 @@ function filterCurrentInspectorBoardJobs(
   openJobs: InspectionJob[],
   lifecycleRows: JobOpportunityRow[],
 ): InspectionJob[] {
-  const latestProjectStage = new Map<string, number>()
-
-  for (const row of lifecycleRows) {
-    if (!CURRENT_PROJECT_STAGE_STATUSES.has(row.status)) continue
-    const key = getBoardProjectKey({
-      id: row.id,
-      projectId: row.projectId ?? '',
-      builderId: row.builderId,
-      projectName: row.projectName,
-      address: row.address,
-      city: row.city,
-    })
-    const currentLatest = latestProjectStage.get(key) ?? 0
-    if (row.stage > currentLatest) latestProjectStage.set(key, row.stage)
-  }
+  const latestProjectStage = buildLatestProjectStageContext(lifecycleRows)
 
   for (const job of openJobs) {
     const key = getBoardProjectKey(job)
@@ -224,6 +241,19 @@ function filterCurrentInspectorBoardJobs(
   return openJobs.filter(job => {
     const latestStage = latestProjectStage.get(getBoardProjectKey(job)) ?? job.stage
     return job.stage >= latestStage
+  })
+}
+
+function filterCurrentActiveWorklistItems(
+  worklist: ActiveWorklistItem[],
+  lifecycleRows: JobOpportunityRow[],
+): ActiveWorklistItem[] {
+  const latestProjectStage = buildLatestProjectStageContext(lifecycleRows)
+
+  return worklist.filter(item => {
+    if (typeof item.stage !== 'number') return true
+    const latestStage = latestProjectStage.get(getBoardProjectKey(item)) ?? item.stage
+    return item.stage >= latestStage
   })
 }
 
@@ -393,6 +423,8 @@ export default function InspectorDashboard() {
         return {
           id: assignment.id,
           jobId: assignment.jobId,
+          projectId: job?.projectId,
+          builderId: assignment.builderId || job?.builderId,
           projectName: assignment.projectName || job?.projectName || 'Assigned Project',
           address: job?.address ?? '',
           city: job?.city,
@@ -413,6 +445,8 @@ export default function InspectorDashboard() {
       .map(item => ({
         id: item.id,
         jobId: item.jobId,
+        projectId: item.projectId,
+        builderId: item.builderId,
         projectName: item.projectName,
         address: item.address,
         city: item.city,
@@ -477,11 +511,12 @@ export default function InspectorDashboard() {
         { data: jobRows },
         { data: reportRows },
         { data: confirmationRows },
+        lifecycleRows,
         holdResults,
       ] = await Promise.all([
         supabase
           .from('job_opportunities')
-          .select('id, project_name, address, city, status, stage, stage_name, required_discipline')
+          .select('id, project_id, builder_id, project_name, address, city, status, stage, stage_name, required_discipline')
           .in('id', jobIds),
         supabase
           .from('inspector_completion_reports')
@@ -493,6 +528,7 @@ export default function InspectorDashboard() {
           .in('assignment_id', assignmentIds)
           .in('checkpoint', ['t_24h', 't_4h', 't_90m'])
           .eq('status', 'pending'),
+        listAllJobOpportunities(),
         Promise.all(jobIds.map(async jobId => {
           try {
             const holds = await listHoldsForJob(jobId)
@@ -510,6 +546,8 @@ export default function InspectorDashboard() {
         ((jobRows ?? []) as Array<Record<string, unknown>>).map(row => [
           String(row.id ?? ''),
           {
+            projectId: typeof row.project_id === 'string' ? row.project_id : undefined,
+            builderId: typeof row.builder_id === 'string' ? row.builder_id : undefined,
             projectName: typeof row.project_name === 'string' ? row.project_name : 'Assigned Project',
             address: typeof row.address === 'string' ? row.address : '',
             city: typeof row.city === 'string' ? row.city : undefined,
@@ -547,6 +585,8 @@ export default function InspectorDashboard() {
           return {
             id: assignment.id,
             jobId: assignment.jobId,
+            projectId: job?.projectId,
+            builderId: job?.builderId,
             projectName: job?.projectName ?? 'Assigned Project',
             address: job?.address ?? '',
             city: job?.city,
@@ -571,6 +611,8 @@ export default function InspectorDashboard() {
         .map(item => ({
           id: item.id,
           jobId: item.jobId,
+          projectId: item.projectId,
+          builderId: item.builderId,
           projectName: item.projectName,
           address: item.address,
           city: item.city,
@@ -586,14 +628,27 @@ export default function InspectorDashboard() {
           reportStatus: item.reportStatus,
           assignmentIdSuffix: item.id.slice(-6).toUpperCase(),
         }))
+      const currentWorklist = filterCurrentActiveWorklistItems(worklist, lifecycleRows)
 
-      setDbActiveWorklist(worklist)
+      setDbActiveWorklist(currentWorklist)
     }
 
     void loadActiveWorklist()
 
+    const refreshActiveWorklistOnFocus = () => {
+      void loadActiveWorklist()
+    }
+    const refreshActiveWorklistOnVisibility = () => {
+      if (document.visibilityState === 'visible') void loadActiveWorklist()
+    }
+
+    window.addEventListener('focus', refreshActiveWorklistOnFocus)
+    document.addEventListener('visibilitychange', refreshActiveWorklistOnVisibility)
+
     return () => {
       active = false
+      window.removeEventListener('focus', refreshActiveWorklistOnFocus)
+      document.removeEventListener('visibilitychange', refreshActiveWorklistOnVisibility)
     }
   }, [user?.supabaseId])
 
