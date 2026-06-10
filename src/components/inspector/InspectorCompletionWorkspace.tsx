@@ -3321,13 +3321,16 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                 >
                   Return to Job Board <ChevronRight className="h-4 w-4" />
                 </button>
-                <button
-                  type="button"
-                  onClick={() => router.push(`/inspector/report/${assignmentId}`)}
-                  className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-2xl border border-emerald-700/30 bg-white px-4 py-2.5 text-xs font-black text-emerald-950 transition-colors hover:bg-emerald-50"
-                >
-                  View Completed Record <FileCheck2 className="h-4 w-4" />
-                </button>
+                {!previewMode && report.id ? (
+                  <a
+                    href={`/api/schedule-cb?reportId=${report.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-2xl border border-emerald-700/30 bg-white px-4 py-2.5 text-xs font-black text-emerald-950 transition-colors hover:bg-emerald-50"
+                  >
+                    View Completed Record <FileCheck2 className="h-4 w-4" />
+                  </a>
+                ) : null}
               </div>
             </div>
           </div>

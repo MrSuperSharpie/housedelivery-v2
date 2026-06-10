@@ -631,10 +631,26 @@ test('inspector scoped completion panel confirms submission, notification, recor
     'payment copy must avoid overpromising payout completion',
   )
   assert.ok(workspace.includes('Return to Job Board'), 'completion panel must retain return navigation')
-  assert.ok(workspace.includes('View Completed Record'), 'completion panel must expose the existing completed-record route')
+  assert.ok(workspace.includes('View Completed Record'), 'completion panel must expose the existing completed-record packet')
   assert.ok(
-    workspace.includes("router.push(`/inspector/report/${assignmentId}`)"),
-    'completed-record button must use the existing inspector report route',
+    workspace.includes('href={`/api/schedule-cb?reportId=${report.id}`}'),
+    'completed-record link must use the existing authenticated Schedule C-B packet endpoint with the persisted report id',
+  )
+  assert.ok(
+    workspace.includes('target="_blank"') && workspace.includes('rel="noopener noreferrer"'),
+    'completed-record link must open the PDF packet safely in a new tab',
+  )
+  assert.ok(
+    workspace.includes('{!previewMode && report.id ? ('),
+    'completed-record link must be hidden when no real report-backed URL exists',
+  )
+})
+
+test('inspector completion panel does not use the inert report route for completed records', () => {
+  const workspace = read('components/inspector/InspectorCompletionWorkspace.tsx')
+  assert.ok(
+    !workspace.includes("router.push(`/inspector/report/${assignmentId}`)"),
+    'completed-record action must not route to the same workspace report shell'
   )
 })
 
