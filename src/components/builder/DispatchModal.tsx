@@ -1366,7 +1366,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
         </div>
       )}
 
-      {/* ─── LIVE STATE ──────────────────────────── */}
+      {/* ─── SUBMITTED STATE ──────────────────────────── */}
       {step === 'live' && (
         <div className="text-center py-6">
           <div className="relative mx-auto w-20 h-20 mb-5">
@@ -1376,13 +1376,13 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             </div>
           </div>
 
-          <h3 className="text-2xl font-black text-gray-900 mb-1">Listing is Live</h3>
-          <p className="text-sm text-gray-500 mb-5">Your request is on the Vero Live Board. The first eligible inspector to claim the slot is automatically assigned — you&apos;ll be notified when confirmed.</p>
+          <h3 className="text-2xl font-black text-gray-900 mb-1">Request Submitted</h3>
+          <p className="text-sm text-gray-500 mb-5">Vero is confirming payment and preparing your request for qualified inspectors.</p>
 
           <div className="bg-slate-900 rounded-2xl p-4 text-left mb-4">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-2 h-2 bg-flame rounded-full animate-pulse" />
-              <span className="text-xs font-bold text-blue-300 tracking-widest uppercase">Live on Board</span>
+              <span className="text-xs font-bold text-blue-300 tracking-widest uppercase">Payment Pending</span>
               <span className="ml-auto text-xs font-mono text-blue-500">{jobRef}</span>
             </div>
             <div className="text-sm font-bold text-white mb-1">{address}</div>
@@ -1392,14 +1392,10 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                 <div className="text-sm font-bold text-white">{stageData?.shortName}</div>
               </div>
               <div>
-                <div className="text-xs text-blue-500">Payment</div>
+                <div className="text-xs text-blue-500">Est. Payment</div>
                 <div className="text-sm font-black text-flame">{formatCurrency(totalEscrow)}</div>
               </div>
             </div>
-          </div>
-
-          <div className="text-xs text-gray-400">
-            {broadcastCount} professionals notified · First claim typically arrives in <span className="font-semibold text-gray-600">under 5 min</span>
           </div>
 
           <Button variant="secondary" size="md" fullWidth className="mt-4" onClick={handleClose}>

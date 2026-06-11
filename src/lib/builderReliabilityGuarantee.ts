@@ -1,19 +1,19 @@
 export const BUILDER_RELIABILITY_GUARANTEE_TITLE = 'Vero Reliability Guarantee'
 
 export const BUILDER_RELIABILITY_GUARANTEE_BODY =
-  'When an inspection is confirmed through Vero Permit, we stand behind the appointment. If an assigned inspector becomes unavailable or fails to attend without a valid reason, Vero will protect your escrow, begin reassignment support, preserve the audit trail, and take action under our reliability rules.'
+  'When an inspection is confirmed through Vero Permit, we stand behind the appointment. If an assigned inspector becomes unavailable or fails to attend without a valid reason, Vero will protect your payment, begin reassignment support, preserve the audit trail, and take action under our reliability rules.'
 
 export const BUILDER_RELIABILITY_GUARANTEE_BULLETS = [
   'Confirmed inspector commitment',
   'Pre-site attendance checks',
-  'Escrow protection',
+  'Payment protection',
   'Reassignment support',
   'Admin-reviewed dispute and payout controls',
   'Defensible inspection record',
 ] as const
 
 export const BUILDER_APPOINTMENT_AT_RISK_COPY =
-  'Vero is monitoring your inspection appointment. If the assigned inspector becomes unavailable, we will begin reassignment support and keep your escrow protected.'
+  'Vero is monitoring your inspection appointment. If the assigned inspector becomes unavailable, we will begin reassignment support and keep your payment protected.'
 
 export const BUILDER_REASSIGNMENT_STARTED_COPY =
   'Vero has begun reassignment support for your inspection. We are prioritizing qualified inspectors who match the required credential, region, and inspection stage.'
@@ -119,7 +119,7 @@ export function buildBuilderReliabilityStatus(
     label: STATUS_LABELS[status],
     copy: STATUS_COPY[status],
     veroAction: STATUS_ACTIONS[status],
-    escrowProtection: 'Escrow remains protected while Vero monitors, completes, or recovers the appointment.',
+    escrowProtection: 'Payment remains protected while Vero monitors, completes, or recovers the appointment.',
     supportEscalationPath: 'Builder support and Admin review are available from the job record if the appointment changes.',
     nextConfirmationCheckpoint: formatNextCheckpoint(input),
   }

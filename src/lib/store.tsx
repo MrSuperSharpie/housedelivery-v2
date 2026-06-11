@@ -666,10 +666,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const insertedId = insertedJob.id
     const persistedStatus = insertedJob.status
     if (persistedStatus !== 'live') {
-      return {
-        ok: false,
-        error: insertedJob.blockers.map(issue => issue.message).join(' ') || 'This inspection request could not be posted to the Live Job Board yet.',
+      const nonPaymentBlockers = insertedJob.blockers.filter(b => b.code !== 'escrow_not_authorized')
+      const paymentPendingOnly = nonPaymentBlockers.length === 0 && insertedJob.blockers.some(b => b.code === 'escrow_not_authorized')
+      if (!paymentPendingOnly) {
+        return {
+          ok: false,
+          error: nonPaymentBlockers.map(b => b.message).join(' ') ||
+                 insertedJob.blockers.map(b => b.message).join(' ') ||
+                 'This inspection request could not be posted to the Live Job Board yet.',
+        }
       }
+      // Payment is the only blocker — job is created as pending_validation awaiting
+      // admin payment confirmation. Fall through and return ok: true.
     }
 
     const newJob: InspectionJob = {

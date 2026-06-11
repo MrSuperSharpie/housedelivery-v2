@@ -62,7 +62,7 @@ test('reassignment copy appears during standby activation', () => {
   assert.equal(status.copy, BUILDER_REASSIGNMENT_STARTED_COPY)
 })
 
-test('escrow protection status displays correctly for at-risk appointments', () => {
+test('payment protection status displays correctly for at-risk appointments', () => {
   const status = buildBuilderReliabilityStatus({ missedCriticalConfirmation: true })
   const html = renderToStaticMarkup(React.createElement(ReliabilityGuarantee, {
     compact: true,
@@ -72,7 +72,7 @@ test('escrow protection status displays correctly for at-risk appointments', () 
   }))
 
   assert.equal(status.copy, BUILDER_APPOINTMENT_AT_RISK_COPY)
-  assert.match(html, /Escrow protection/)
-  assert.match(html, /escrow remains protected/i)
+  assert.match(html, /Payment protection/)
+  assert.match(html, /payment remains protected/i)
   assert.match(html, /Avery Chen/)
 })
