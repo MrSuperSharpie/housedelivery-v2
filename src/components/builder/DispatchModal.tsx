@@ -143,9 +143,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
   const [siteAgreementExpanded, setSiteAgreementExpanded] = useState(false)
   const [broadcastCount, setBroadcastCount] = useState(0)
   const [broadcastDone, setBroadcastDone]   = useState(false)
-  const [paymentStatus, setPaymentStatus]   = useState<'idle' | 'processing' | 'escrowed'>('idle')
   const [vaultTier, setVaultTier]           = useState<VaultRetentionTier>('standard')
-  const [paymentLoading, setPaymentLoading] = useState(false)
   const [postError, setPostError]           = useState<string | null>(null)
   const [permitError, setPermitError]       = useState<string | null>(null)
   const [txnId] = useState(() => `TXN-${Date.now()}`)
@@ -221,7 +219,6 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
     setSafetyNotes('')
     setSiteAgreed(false)
     setSiteAgreementExpanded(false)
-    setPaymentStatus('idle')
     setPostError(null)
     setPermitError(null)
     setIsLocating(false)
@@ -1145,9 +1142,9 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             </div>
           </div>
 
-          {/* Escrow cost breakdown */}
+          {/* Payment breakdown */}
           <div className="bg-gray-50 rounded-xl border border-gray-200 p-4 mb-4">
-            <div className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Escrow Breakdown</div>
+            <div className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Payment Breakdown</div>
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-600">Base booking</span>
@@ -1164,12 +1161,12 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                 <span className="font-bold text-gray-900">{formatCurrency(pricing.platformCommission)}</span>
               </div>
               <div className="border-t border-gray-200 pt-2 mt-2 flex items-center justify-between">
-                <span className="text-sm font-bold text-gray-900">Total Pre-Funded to Escrow</span>
+                <span className="text-sm font-bold text-gray-900">Total Payment Required</span>
                 <span className="text-lg font-black text-slate-900">{formatCurrency(totalEscrow)}</span>
               </div>
             </div>
             <p className="text-[10px] text-gray-400 mt-2 leading-relaxed">
-              Funds held securely via Stripe. Vero releases payment only after the inspection workflow is completed and approved.
+              Vero confirms payment before inspectors can claim this request. Inspector payout is released after completion and review.
             </p>
           </div>
 
@@ -1202,7 +1199,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                 { icon: Radio,       text: 'Listing broadcast to all qualified local CPs via app + email' },
                 { icon: Eye,         text: 'First eligible inspector to claim the slot is automatically assigned — no manual selection' },
                 { icon: Shield,      text: 'Vero Reliability Guarantee starts backup dispatch and admin review if a confirmed inspector cannot attend' },
-                { icon: Lock,        text: `${formatCurrency(totalEscrow)} held in secure escrow until you approve the inspection results` },
+                { icon: Lock,        text: `Payment confirmation required — Vero verifies payment before this request goes live for inspector claim` },
                 { icon: FileText,    text: 'Inspector auto-generates a signed Schedule C-B on completion' },
               ].map(({ icon: Icon, text }, i) => (
                 <div key={i} className="flex items-start gap-2">
@@ -1320,49 +1317,24 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             </button>
           </div>
 
-          {/* Sticky footer: primary CTA stays visible on every device while the review content scrolls */}
+          {/* Sticky footer */}
           <div className="sticky bottom-0 -mx-5 -mb-5 px-5 pt-3 pb-5 bg-white/95 backdrop-blur border-t border-gray-100 z-10">
-            {paymentStatus === 'idle' && (
-              <Button
-                variant="primary"
-                size="lg"
-                fullWidth
-                loading={paymentLoading}
-                disabled={!siteAgreed}
-                onClick={async () => {
-                  if (validateProjectIdentityBeforeContinuing()) return
-                  if (validatePermitReferenceBeforeContinuing()) return
-                  setPaymentLoading(true)
-                  await new Promise(r => setTimeout(r, 1400))
-                  setPaymentLoading(false)
-                  setPaymentStatus('escrowed')
-                }}
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                Hold {formatCurrency(totalEscrow)} in Escrow
-              </Button>
-            )}
-
-            {paymentStatus === 'escrowed' && (
-              <div>
-                <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center mb-3">
-                  <div className="text-3xl mb-2">🔒</div>
-                  <h3 className="text-base font-bold text-green-800">Provisional Hold</h3>
-                  <p className="text-green-600 mt-1 text-xs">This is a 30-minute provisional hold to secure the inspector&apos;s arrival; funds are released only upon successful completion.</p>
-                  <p className="font-mono text-xs text-gray-500 mt-2">{txnId}</p>
-                </div>
-                {postError && (
-                  <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-3 flex items-start gap-2">
-                    <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
-                    <p className="text-xs text-red-600 font-medium">{postError}</p>
-                  </div>
-                )}
-                <Button variant="primary" size="lg" fullWidth onClick={handlePost}>
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" /></svg>
-                  Post to Live Job Board
-                </Button>
+            {postError && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-3 flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                <p className="text-xs text-red-600 font-medium">{postError}</p>
               </div>
             )}
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              disabled={!siteAgreed}
+              onClick={handlePost}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+              Submit Request &amp; Secure Payment
+            </Button>
           </div>
         </div>
       )}
@@ -1420,7 +1392,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                 <div className="text-sm font-bold text-white">{stageData?.shortName}</div>
               </div>
               <div>
-                <div className="text-xs text-blue-500">Escrow</div>
+                <div className="text-xs text-blue-500">Payment</div>
                 <div className="text-sm font-black text-flame">{formatCurrency(totalEscrow)}</div>
               </div>
             </div>

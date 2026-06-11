@@ -9,7 +9,7 @@ import {
 import { AdminShell } from '@/components/admin/AdminShell'
 import { useAuth } from '@/lib/auth'
 import { useStore } from '@/lib/store'
-import { listOpenJobOpportunities } from '@/lib/supabase/jobs'
+import { listAllJobOpportunities } from '@/lib/supabase/jobs'
 import type { JobOpportunityRow } from '@/lib/supabase/jobs'
 
 // ─── Status badge ─────────────────────────────────────────────────────────────
@@ -17,6 +17,7 @@ import type { JobOpportunityRow } from '@/lib/supabase/jobs'
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string }> = {
     live:                   { label: 'Live',                cls: 'bg-success-green/20 text-success-green border-success-green/30' },
+    pending_validation:     { label: 'Payment Pending',     cls: 'bg-amber-500/20 text-amber-400 border-amber-500/30' },
     provisionally_assigned: { label: 'Provisionally Assigned', cls: 'bg-amber-500/20 text-amber-400 border-amber-500/30' },
     confirmed:              { label: 'Confirmed',           cls: 'bg-electric/20 text-electric border-electric/30' },
     on_hold:                { label: 'On Hold',             cls: 'bg-fail-red/20 text-fail-red border-fail-red/30' },
@@ -110,6 +111,8 @@ export default function AdminJobsPage() {
   const [loading, setLoading] = useState(true)
   const [expandedJobId, setExpandedJobId] = useState<string | null>(null)
   const [actionFeedback, setActionFeedback] = useState<Record<string, string>>({})
+  const [paymentConfirmingIds, setPaymentConfirmingIds] = useState<Set<string>>(new Set())
+  const [paymentFeedback, setPaymentFeedback] = useState<Record<string, { ok: boolean; message: string }>>({})
 
   // Auth guard
   useEffect(() => {
@@ -119,9 +122,9 @@ export default function AdminJobsPage() {
 
   // Load jobs from Supabase
   useEffect(() => {
-    listOpenJobOpportunities()
+    listAllJobOpportunities()
       .then(rows => setJobs(rows))
-      .catch(err => console.error('[AdminJobsPage] listOpenJobOpportunities failed:', err))
+      .catch(err => console.error('[AdminJobsPage] listAllJobOpportunities failed:', err))
       .finally(() => setLoading(false))
   }, [])
 
@@ -149,6 +152,34 @@ export default function AdminJobsPage() {
     }
     declineApplication(applicationId, user.supabaseId)
     setActionFeedback(prev => ({ ...prev, [applicationId]: 'Declined' }))
+  }
+
+  const handleConfirmPayment = async (jobId: string) => {
+    setPaymentConfirmingIds(prev => new Set(prev).add(jobId))
+    setPaymentFeedback(prev => { const m = { ...prev }; delete m[jobId]; return m })
+    try {
+      const res = await fetch('/api/admin/jobs/confirm-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobId }),
+      })
+      const data = await res.json() as { ok: boolean; live?: boolean; newStatus?: string; remainingBlockers?: { message: string }[]; error?: string }
+      if (data.ok) {
+        const msg = data.live
+          ? 'Payment confirmed — job is now live.'
+          : `Payment confirmed — job remains pending (${(data.remainingBlockers ?? []).map(b => b.message).join('; ')})`
+        setPaymentFeedback(prev => ({ ...prev, [jobId]: { ok: true, message: msg } }))
+        setJobs(prev => prev.map(j =>
+          j.id === jobId ? { ...j, status: (data.newStatus ?? j.status) as typeof j.status } : j,
+        ))
+      } else {
+        setPaymentFeedback(prev => ({ ...prev, [jobId]: { ok: false, message: data.error ?? 'Could not confirm payment.' } }))
+      }
+    } catch {
+      setPaymentFeedback(prev => ({ ...prev, [jobId]: { ok: false, message: 'Connection error. Please try again.' } }))
+    } finally {
+      setPaymentConfirmingIds(prev => { const s = new Set(prev); s.delete(jobId); return s })
+    }
   }
 
   if (loading) {
@@ -280,6 +311,35 @@ export default function AdminJobsPage() {
                             )}
                           </div>
                         ))
+                      )}
+
+                      {/* Payment confirmation — only shown when job is blocked by payment/escrow rule */}
+                      {job.status === 'pending_validation' &&
+                        (job.validationBlockers ?? []).some(b => b.code === 'escrow_not_authorized') && (
+                        <div className="border-t border-white/5 pt-3">
+                          {paymentFeedback[job.id] ? (
+                            <div className={`text-xs font-medium px-3 py-2 rounded-lg ${
+                              paymentFeedback[job.id].ok
+                                ? 'bg-success-green/10 text-success-green border border-success-green/20'
+                                : 'bg-fail-red/10 text-fail-red border border-fail-red/20'
+                            }`}>
+                              {paymentFeedback[job.id].message}
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => handleConfirmPayment(job.id)}
+                              disabled={paymentConfirmingIds.has(job.id)}
+                              className="flex items-center gap-1.5 px-3 py-2 bg-electric/20 border border-electric/30 text-electric text-xs font-bold rounded-lg hover:bg-electric/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {paymentConfirmingIds.has(job.id) ? (
+                                <div className="w-3 h-3 border border-electric/40 border-t-electric rounded-full animate-spin" />
+                              ) : (
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                              )}
+                              Confirm Payment Received
+                            </button>
+                          )}
+                        </div>
                       )}
 
                       {/* Job detail footer */}

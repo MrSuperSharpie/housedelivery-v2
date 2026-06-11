@@ -399,7 +399,7 @@ export function validateJobPostingGovernance(input: JobPostingGovernanceInput): 
       blocker(
         'R-016',
         'escrow_not_authorized',
-        'Escrow authorization must be green before the job can go live.',
+        'Payment confirmation is required before the job can go live.',
         'commercial',
         { jobId: input.jobId, projectId: input.projectId },
       ),

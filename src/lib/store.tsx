@@ -612,7 +612,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       stageName: input.stageName,
       projectComplete: projectIdentityComplete,
       dependencySealed: true,
-      escrowAuthorized: true,
+      escrowAuthorized: false,
     })
     const nextStatus = governance.status
 
@@ -649,7 +649,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       notes:                    input.safetyNotes,
       availableSlots:           input.slots,
       builderOnboardingStatus:  input.builderApprovalStatus,
-      escrowAuthorized:         true,
+      escrowAuthorized:         false,
       estimatedDurationMinutes,
     }).catch(err => {
       console.error('[addJob] insertJobOpportunity failed:', err)

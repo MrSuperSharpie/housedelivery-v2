@@ -2,10 +2,9 @@
 
 import React, { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, CheckCircle2, XCircle, Clock, DollarSign, FileText, MapPin, ChevronDown, ChevronUp, Shield, Building2, Scale, ListChecks } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, XCircle, DollarSign, FileText, MapPin, ChevronDown, ChevronUp, Shield, Building2, Scale, ListChecks } from 'lucide-react'
 import { Navbar } from '@/components/shared/Navbar'
 import { StatusBadge } from '@/components/ui/Badge'
-import { Button } from '@/components/ui/Button'
 import { WaitTimer } from '@/components/builder/WaitTimer'
 import { TrackingMap } from '@/components/builder/TrackingMap'
 import { INSPECTION_STAGES, MOCK_INSPECTOR } from '@/lib/mockData'
@@ -19,7 +18,6 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
   const storeProjects = useStore().projects
   const storeJobs = useStore().jobs
   const project = storeProjects.find(p => p.id === params.id)
-  const [paymentReleased, setPaymentReleased] = useState(false)
   const [activePhoto, setActivePhoto] = useState<string | null>(null)
   const safeProject = useMemo(() => (
     project ?? {
@@ -320,46 +318,29 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
               </>
             )}
 
-            {/* Payment Escrow */}
+            {/* Payment Status */}
             <div className="bg-white rounded-2xl border border-gray-100 p-5">
-              <h3 className="font-bold text-gray-900 mb-4">Payment Escrow</h3>
+              <h3 className="font-bold text-gray-900 mb-4">Payment Status</h3>
               <div className="space-y-3">
                 <div className="flex items-center justify-between py-2 border-b border-gray-50">
                   <div className="flex items-center gap-2 text-sm text-gray-500">
                     <DollarSign className="w-4 h-4" />
-                    Funds Held
+                    Estimated Amount
                   </div>
                   <span className="font-bold text-blueprint-blue">{formatCurrency(escrowDisplayAmount)}</span>
                 </div>
-                <div className="flex items-center justify-between py-2 border-b border-gray-50">
-                  <span className="text-sm text-gray-500">Status</span>
-                  <span className="text-sm font-semibold text-warning-amber">Held in Escrow</span>
-                </div>
                 <div className="flex items-center justify-between py-2">
-                  <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                    <Clock className="w-3.5 h-3.5" />
-                    Payout in 24hrs
-                  </div>
-                  <span className="text-xs text-gray-400">to inspector</span>
+                  <span className="text-sm text-gray-500">Status</span>
+                  {project.status === 'pass' || project.status === 'fail' ? (
+                    <span className="text-sm font-semibold text-warning-amber">Payout Pending Review</span>
+                  ) : (
+                    <span className="text-sm font-semibold text-gray-500">Payment Pending</span>
+                  )}
                 </div>
               </div>
-              {paymentReleased ? (
-                <div className="mt-4 flex items-center justify-center gap-2 py-3 bg-emerald-50 rounded-xl border border-emerald-100">
-                  <CheckCircle2 className="w-5 h-5 text-success-green" />
-                  <span className="text-sm font-bold text-success-green">Payment Released</span>
-                </div>
-              ) : (
-                <Button
-                  variant="success"
-                  size="md"
-                  fullWidth
-                  className="mt-4"
-                  onClick={() => setPaymentReleased(true)}
-                  disabled={project.status !== 'pass' && project.status !== 'fail'}
-                >
-                  Release Payment
-                </Button>
-              )}
+              <p className="text-[10px] text-gray-400 mt-3 leading-relaxed">
+                Inspector payout is released by Vero after the inspection is completed and reviewed.
+              </p>
             </div>
 
             {/* Project info */}
