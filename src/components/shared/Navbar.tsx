@@ -26,7 +26,7 @@ interface BrandWordmarkProps {
 const NAV_LINKS = {
   builder:  [
     { href: '/builder',          label: 'Dashboard' },
-    { href: '/builder/dispatch', label: 'New Request' },
+    { href: '/builder',          label: 'New Request' },
     { href: '/vault',            label: 'Vault' },
   ],
   inspector: [
