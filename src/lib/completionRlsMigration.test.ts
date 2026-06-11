@@ -121,6 +121,16 @@ test('the only delete policy is the inspector document delete', () => {
   )
 })
 
+test('admin policies use the enum-safe admin-only role check', () => {
+  const sql = readMigration()
+  assert.ok(
+    !sql.includes('super_admin'),
+    "must not reference super_admin (not a valid user_role enum value)",
+  )
+  const adminChecks = sql.match(/p\.role\s*=\s*'admin'/gi) ?? []
+  assert.equal(adminChecks.length, 3, 'each table needs one admin select policy role check')
+})
+
 test('no policy targets the anon role', () => {
   const sql = readMigration()
   assert.ok(!sql.match(/\bto\s+anon\b/i), 'policies must not grant access to anon')

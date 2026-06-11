@@ -142,7 +142,7 @@ using (
     select 1
     from public.profiles p
     where p.id = (select auth.uid())::text
-      and p.role in ('admin', 'super_admin')
+      and p.role = 'admin'
   )
 );
 
@@ -217,7 +217,7 @@ using (
     select 1
     from public.profiles p
     where p.id = (select auth.uid())::text
-      and p.role in ('admin', 'super_admin')
+      and p.role = 'admin'
   )
 );
 
@@ -302,7 +302,7 @@ using (
     select 1
     from public.profiles p
     where p.id = (select auth.uid())::text
-      and p.role in ('admin', 'super_admin')
+      and p.role = 'admin'
   )
 );
 
