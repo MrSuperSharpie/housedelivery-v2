@@ -111,6 +111,10 @@ export default function InspectorProfilePage() {
   const [resubmitError, setResubmitError] = useState<string | null>(null)
   const [resubmitSuccess, setResubmitSuccess] = useState<string | null>(null)
   const [selectedType, setSelectedType] = useState<InspectorCredentialType>('primary_license')
+  // Stripe Connect payout account (read-own status; writes happen server-side)
+  const [payoutAccount, setPayoutAccount] = useState<{ stripeAccountId: string | null; payoutsEnabled: boolean; detailsSubmitted: boolean } | null>(null)
+  const [connectingPayouts, setConnectingPayouts] = useState(false)
+  const [payoutError, setPayoutError] = useState<string | null>(null)
   // Lane-specific upload state — used by the Manage Role Lanes section
   const laneUploadRef = useRef<HTMLInputElement>(null)
   const [pendingLaneType, setPendingLaneType] = useState<InspectorCredentialType | null>(null)
@@ -176,6 +180,50 @@ export default function InspectorProfilePage() {
       cancelled = true
     }
   }, [user?.id, user?.supabaseId])
+
+  // Load the inspector's own payout-account status (RLS allows select-own).
+  useEffect(() => {
+    if (!credentialOwnerId) return
+    let cancelled = false
+    supabase
+      .from('inspector_payment_accounts')
+      .select('stripe_account_id, payouts_enabled, details_submitted')
+      .eq('inspector_id', credentialOwnerId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled) return
+        setPayoutAccount(
+          data
+            ? {
+                stripeAccountId: (data as { stripe_account_id?: string | null }).stripe_account_id ?? null,
+                payoutsEnabled: (data as { payouts_enabled?: boolean }).payouts_enabled ?? false,
+                detailsSubmitted: (data as { details_submitted?: boolean }).details_submitted ?? false,
+              }
+            : null,
+        )
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [credentialOwnerId])
+
+  const handleConnectPayouts = async () => {
+    setConnectingPayouts(true)
+    setPayoutError(null)
+    try {
+      const res = await fetch('/api/inspector/payouts/connect', { method: 'POST' })
+      const data = (await res.json()) as { ok: boolean; url?: string; error?: string }
+      if (data.ok && data.url) {
+        window.location.href = data.url
+        return
+      }
+      setPayoutError(data.error ?? 'Could not start payout setup.')
+    } catch {
+      setPayoutError('Connection error. Please try again.')
+    } finally {
+      setConnectingPayouts(false)
+    }
+  }
 
   const isApprovedInspector = onboardingStatus === 'approved'
   const isNeedsInfo = onboardingStatus === 'needs_info'
@@ -777,6 +825,48 @@ export default function InspectorProfilePage() {
               </div>
             ))}
           </div>
+        </div>
+        )}
+
+        {/* Payout account */}
+        {isApprovedInspector && (
+        <div className="card-dark rounded-2xl p-6 mt-5 inset-top">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <div className="label-mono mb-1">Payout account</div>
+              <p className="text-xs text-muted">
+                {payoutAccount?.payoutsEnabled
+                  ? 'Your Stripe payout account is active. Earnings from completed inspections are paid out to this account.'
+                  : payoutAccount?.detailsSubmitted
+                    ? 'Your details are submitted and pending Stripe verification. You can resume onboarding if anything further is required.'
+                    : 'Connect a Stripe payout account so Vero can pay you for completed and submitted inspection reports. Onboarding is hosted securely by Stripe.'}
+              </p>
+              {payoutError && (
+                <p className="mt-2 text-xs text-fail-red flex items-center gap-1.5">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {payoutError}
+                </p>
+              )}
+            </div>
+            {payoutAccount?.payoutsEnabled && (
+              <span className="shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-success-green/25 bg-success-green/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-success-green">
+                <CheckCircle2 className="w-3 h-3" /> Active
+              </span>
+            )}
+          </div>
+          {!payoutAccount?.payoutsEnabled && (
+            <button
+              type="button"
+              onClick={handleConnectPayouts}
+              disabled={connectingPayouts}
+              className="mt-4 inline-flex items-center gap-2 rounded-xl bg-flame px-4 py-2.5 text-sm font-bold text-white transition hover:bg-flame/90 disabled:opacity-60"
+            >
+              {connectingPayouts ? (
+                <><span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Opening Stripe…</>
+              ) : (
+                <><DollarSign className="w-4 h-4" /> {payoutAccount ? 'Resume payout setup' : 'Set up payouts'}</>
+              )}
+            </button>
+          )}
         </div>
         )}
 
