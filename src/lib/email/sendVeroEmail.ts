@@ -29,9 +29,9 @@ export async function sendVeroEmail(options: SendVeroEmailOptions): Promise<Vero
 
   try {
     const { data, error } = await resend.client.emails.send({
-      from: VERO_EMAIL_FROM,
+      from: options.from ?? VERO_EMAIL_FROM,
       to,
-      replyTo: VERO_EMAIL_REPLY_TO,
+      replyTo: options.replyTo ?? VERO_EMAIL_REPLY_TO,
       subject: renderedEmail.subject,
       html: renderedEmail.html,
       text: renderedEmail.text,

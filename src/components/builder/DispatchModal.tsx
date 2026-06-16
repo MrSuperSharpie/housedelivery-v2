@@ -150,7 +150,10 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
   const [postError, setPostError]           = useState<string | null>(null)
   const [permitError, setPermitError]       = useState<string | null>(null)
   const [txnId] = useState(() => `TXN-${Date.now()}`)
-  const [jobRef] = useState(() => `VERO-${Date.now().toString(36).toUpperCase().slice(-6)}`)
+  // Persisted job-based reference. Null until the request is saved; then set to
+  // the real job id so the on-screen reference and the payment email match what
+  // admin can look up. (Pre-submit the listing header shows "Draft".)
+  const [jobRef, setJobRef] = useState<string | null>(null)
   const [isLocating, setIsLocating] = useState(false)
   const [locationError, setLocationError] = useState<string | null>(null)
   const [locationHint, setLocationHint] = useState<string | null>(null)
@@ -376,6 +379,11 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
       return
     }
 
+    // The request is saved. Adopt the persisted job id as the canonical
+    // reference shown on screen and used in the payment email.
+    const newJobId = result.value
+    setJobRef(newJobId)
+
     // Card path: the job is created as pending_validation (payment not yet
     // authorized). Hand off to Stripe Checkout — the job is released only by the
     // verified Stripe webhook, never by the browser returning from Stripe.
@@ -400,6 +408,15 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
       }
       return
     }
+
+    // Interac path: email the builder the payment instructions (best-effort).
+    // A failure here must never block the submitted flow — the job already
+    // exists and the on-screen instructions still show the same details.
+    void fetch('/api/builder/payments/interac-instructions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jobId: newJobId }),
+    }).catch(() => {})
 
     setBroadcastCount(0)
     setBroadcastDone(false)
@@ -1058,7 +1075,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                 <div className="w-2 h-2 bg-flame rounded-full animate-pulse" />
                 <span className="text-xs font-bold text-blue-300 tracking-widest uppercase">Draft Listing</span>
               </div>
-              <span className="text-xs font-mono text-blue-500">{jobRef}</span>
+              <span className="text-xs font-mono text-blue-500">{jobRef ?? 'Draft'}</span>
             </div>
 
             {/* Body */}

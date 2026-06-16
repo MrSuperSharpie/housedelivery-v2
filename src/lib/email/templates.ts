@@ -89,6 +89,20 @@ const templates: Record<VeroEmailEventKey, (context: VeroEmailTemplateContext) =
     ],
     ctaLabel: 'View inspection request',
   }),
+  'inspection.payment_required_interac': context => ({
+    subject: context.paymentReference
+      ? `Payment required for Vero inspection request ${context.paymentReference}`
+      : 'Payment required for your Vero inspection request',
+    preview: 'Interac e-Transfer payment instructions for your inspection request.',
+    heading: 'Payment required to activate your request',
+    body: [
+      greeting(context, 'Your inspection request has been saved. To activate it for inspector claim, send your Interac e-Transfer payment using the details below.'),
+      'Send payment to payments@veropermit.com. Use your request reference in the e-Transfer message field so Vero can match your payment to this request.',
+      'No Vero processing fee applies to Interac e-Transfer payments. Your bank may apply its own transfer limits or fees.',
+      'Your request is saved but not live for inspector claim until payment is confirmed by Vero.',
+    ],
+    ctaLabel: 'View request status',
+  }),
   'inspection.claimed_builder_notice': context => ({
     subject: 'Your inspection request has been claimed',
     preview: 'An inspector has accepted the inspection request.',

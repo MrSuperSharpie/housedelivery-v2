@@ -6,6 +6,7 @@ export type VeroEmailEventKey =
   | 'builder.approved'
   | 'builder.needs_info'
   | 'inspection.request_submitted'
+  | 'inspection.payment_required_interac'
   | 'inspection.claimed_builder_notice'
   | 'inspection.claimed_inspector_notice'
   | 'inspection.passed_builder_notice'
@@ -34,6 +35,9 @@ export type VeroEmailTemplateContext = {
   ctaUrl?: string
   ctaLabel?: string
   details?: string[]
+  // Payment reference (the persisted job id) used by payment-instruction emails
+  // so the subject line and the on-screen reference match what admin looks up.
+  paymentReference?: string
 }
 
 export type VeroEmailTemplateInput = VeroEmailTemplateContext & {
@@ -58,6 +62,10 @@ export type RenderedVeroEmail = {
 export type SendVeroEmailOptions = VeroEmailTemplateInput & {
   to: string | string[]
   throwOnError?: boolean
+  // Optional sender overrides. When omitted, the default Vero Permit
+  // notifications sender / reply-to are used (backward compatible).
+  from?: string
+  replyTo?: string
 }
 
 export type VeroEmailSendResult =
