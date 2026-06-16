@@ -6,7 +6,11 @@ import { formatCurrency } from '@/lib/utils'
 
 export const runtime = 'nodejs'
 
-const VERO_PAYMENTS_SENDER = 'Vero Payments <payments@veropermit.com>'
+// Safer MVP sender: use the known-working Vero notifications sender so delivery
+// is not blocked if payments@veropermit.com is not yet accepted as a Resend
+// sender in this environment. Reply-To and the in-body instructions still point
+// the builder at payments@veropermit.com.
+const VERO_PAYMENTS_SENDER = 'Vero Permit <notifications@veropermit.com>'
 const VERO_PAYMENTS_REPLY_TO = 'payments@veropermit.com'
 
 // Service-role client: reads the authoritative job record (amount, address,
@@ -133,8 +137,18 @@ export async function POST(req: NextRequest) {
   if (!result.ok) {
     // Best-effort: surface a soft signal, but the job already exists and is
     // unaffected. The client ignores this and the builder still sees on-screen
-    // instructions.
-    console.warn('[builder/payments/interac-instructions] email send failed', { jobId, code: result.code })
+    // instructions. Log both the code and the provider error message (never a
+    // secret/API key) so the actual Resend failure reason is diagnosable.
+    console.warn('[builder/payments/interac-instructions] email send failed', {
+      jobId,
+      code: result.code,
+      error: result.error,
+    })
+    // Non-production only: include a safe diagnostic code so the failure is
+    // actionable in dev/preview. Production stays minimal.
+    if (process.env.NODE_ENV !== 'production') {
+      return NextResponse.json({ ok: true, emailed: false, emailCode: result.code })
+    }
     return NextResponse.json({ ok: true, emailed: false })
   }
 
