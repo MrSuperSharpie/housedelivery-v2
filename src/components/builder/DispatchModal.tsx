@@ -129,6 +129,11 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
   // Phase A: builder picks how they will pay. Interac is active; card is a
   // visible-but-pending placeholder (no Stripe call, no Checkout, no charge).
   const [paymentMethod, setPaymentMethod]   = useState<'interac' | 'card'>('interac')
+  // Best-effort status of the Interac payment-instruction email. This is purely
+  // informational UI state — it never affects payment release, escrow_authorized,
+  // or whether the job goes live.
+  const [interacEmailStatus, setInteracEmailStatus] = useState<'idle' | 'sending' | 'sent' | 'failed'>('idle')
+  const [copiedField, setCopiedField] = useState<'email' | 'ref' | null>(null)
   const [address, setAddress]               = useState(formatProjectAddress(project))
   const [permitNumber, setPermitNumber]     = useState(project?.permitNumber ?? '')
   const [projectName, setProjectName]       = useState(project?.name ?? '')
@@ -411,17 +416,39 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
 
     // Interac path: email the builder the payment instructions (best-effort).
     // A failure here must never block the submitted flow — the job already
-    // exists and the on-screen instructions still show the same details.
-    void fetch('/api/builder/payments/interac-instructions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ jobId: newJobId }),
-    }).catch(() => {})
+    // exists and the on-screen instructions still show the same details. The
+    // result only drives an informational message; it cannot release the job.
+    setInteracEmailStatus('sending')
+    void (async () => {
+      try {
+        const res = await fetch('/api/builder/payments/interac-instructions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jobId: newJobId }),
+        })
+        const data = await res.json().catch(() => null)
+        setInteracEmailStatus(res.ok && data?.ok && data?.emailed === true ? 'sent' : 'failed')
+      } catch {
+        setInteracEmailStatus('failed')
+      }
+    })()
 
     setBroadcastCount(0)
     setBroadcastDone(false)
     setStep('broadcasting')
     onDispatch(selectedTier)
+  }
+
+  // Client-only clipboard helper for the Interac details (no backend involved).
+  const handleCopy = async (field: 'email' | 'ref', value: string) => {
+    try {
+      await navigator.clipboard.writeText(value)
+      setCopiedField(field)
+      setTimeout(() => setCopiedField(curr => (curr === field ? null : curr)), 1800)
+    } catch {
+      // Clipboard may be unavailable (permissions/insecure context); silently
+      // ignore — the value is already visible on screen.
+    }
   }
 
   const stageData = selectedStage ? INSPECTION_STAGES[selectedStage - 1] : null
@@ -1518,7 +1545,8 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
           </div>
 
           {/* Interac instructions — the live step is reached via the Interac
-              path (card redirects to Stripe before this screen). */}
+              path (card redirects to Stripe before this screen). The payment
+              details stay visible regardless of the email outcome. */}
           {paymentMethod === 'interac' && (
             <div className="bg-white border-2 border-flame/30 rounded-2xl p-4 text-left mb-4">
               <div className="flex items-center gap-2 mb-2">
@@ -1527,12 +1555,59 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                   No Vero processing fee
                 </span>
               </div>
+
+              {/* Email-attempt status — informational only; never affects release. */}
+              {interacEmailStatus === 'sending' && (
+                <div className="flex items-start gap-2 mb-2 rounded-lg bg-gray-50 border border-gray-200 px-2.5 py-2">
+                  <Clock className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
+                  <p className="text-[11px] text-gray-500 leading-relaxed">Emailing your payment instructions…</p>
+                </div>
+              )}
+              {interacEmailStatus === 'sent' && (
+                <div className="flex items-start gap-2 mb-2 rounded-lg bg-emerald-50 border border-emerald-200 px-2.5 py-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 mt-0.5 shrink-0" />
+                  <p className="text-[11px] text-emerald-700 leading-relaxed">
+                    {user?.email
+                      ? `A copy of these payment instructions has been emailed to ${user.email}.`
+                      : 'A copy of these payment instructions has been emailed to your builder account email.'}
+                  </p>
+                </div>
+              )}
+              {interacEmailStatus === 'failed' && (
+                <div className="flex items-start gap-2 mb-2 rounded-lg bg-amber-50 border border-amber-200 px-2.5 py-2">
+                  <AlertTriangle className="w-3.5 h-3.5 text-amber-600 mt-0.5 shrink-0" />
+                  <p className="text-[11px] text-amber-700 leading-relaxed">
+                    We could not confirm the email was sent. The payment details are shown below so you can complete the e-Transfer manually.
+                  </p>
+                </div>
+              )}
+
               <p className="text-xs text-gray-600 leading-relaxed">
                 Send payment to <span className="font-bold text-gray-900">payments@veropermit.com</span>. Use your project, permit, or job reference <span className="font-mono font-bold text-gray-900">{jobRef}</span> in the message field. Your request will be released to inspectors once payment is confirmed by Vero.
               </p>
               <p className="text-[11px] text-gray-400 leading-relaxed mt-2">
                 Your bank may apply its own transfer limits or fees.
               </p>
+
+              {/* Client-only copy helpers. */}
+              <div className="flex flex-wrap gap-2 mt-3">
+                <button
+                  type="button"
+                  onClick={() => handleCopy('email', 'payments@veropermit.com')}
+                  className="text-[11px] font-bold text-gray-700 bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 hover:bg-gray-100 transition-colors"
+                >
+                  {copiedField === 'email' ? 'Copied ✓' : 'Copy payment email'}
+                </button>
+                {jobRef && (
+                  <button
+                    type="button"
+                    onClick={() => handleCopy('ref', jobRef)}
+                    className="text-[11px] font-bold text-gray-700 bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 hover:bg-gray-100 transition-colors"
+                  >
+                    {copiedField === 'ref' ? 'Copied ✓' : 'Copy request reference'}
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
