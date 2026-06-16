@@ -6,7 +6,7 @@ import {
   MapPin, ChevronRight, ChevronLeft, ChevronDown,
   HardHat, Layers, Hammer, Droplets, Home,
   Radio, Shield, FileText,
-  Eye, Archive
+  Eye, Archive, CreditCard
 } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
@@ -126,6 +126,9 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
   const { user }    = useAuth()
   const { addJob }  = useStore()
   const [step, setStep]                     = useState<Step>('address')
+  // Phase A: builder picks how they will pay. Interac is active; card is a
+  // visible-but-pending placeholder (no Stripe call, no Checkout, no charge).
+  const [paymentMethod, setPaymentMethod]   = useState<'interac' | 'card'>('interac')
   const [address, setAddress]               = useState(formatProjectAddress(project))
   const [permitNumber, setPermitNumber]     = useState(project?.permitNumber ?? '')
   const [projectName, setProjectName]       = useState(project?.name ?? '')
@@ -1170,6 +1173,67 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             </p>
           </div>
 
+          {/* Payment method — Phase A: Interac active, card pending activation */}
+          <div className="mb-4">
+            <div className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Payment Method</div>
+
+            {/* Interac e-Transfer — active */}
+            <button
+              type="button"
+              onClick={() => setPaymentMethod('interac')}
+              aria-pressed={paymentMethod === 'interac'}
+              className={`w-full text-left rounded-xl border-2 p-4 transition-all ${
+                paymentMethod === 'interac'
+                  ? 'border-flame bg-flame/5'
+                  : 'border-gray-200 bg-white hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                  paymentMethod === 'interac' ? 'border-flame' : 'border-gray-300'
+                }`}>
+                  {paymentMethod === 'interac' && <div className="w-2 h-2 rounded-full bg-flame" />}
+                </div>
+                <span className="font-bold text-sm text-gray-900">Interac e-Transfer</span>
+                <span className="ml-auto text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-1.5 py-0.5">
+                  No Vero processing fee
+                </span>
+              </div>
+              {paymentMethod === 'interac' && (
+                <div className="mt-3 pl-6 space-y-2">
+                  <p className="text-xs text-gray-600 leading-relaxed">
+                    Send payment to <span className="font-bold text-gray-900">payments@veropermit.com</span>. Use your project, permit, or job reference in the message field. Your request will be released to inspectors once payment is confirmed by Vero.
+                  </p>
+                  <p className="text-[11px] text-gray-400 leading-relaxed">
+                    Your bank may apply its own transfer limits or fees.
+                  </p>
+                </div>
+              )}
+            </button>
+
+            {/* Credit card via Stripe — visible but pending activation */}
+            <div
+              aria-disabled="true"
+              className="w-full text-left rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 p-4 mt-3 opacity-80"
+            >
+              <div className="flex items-center gap-2">
+                <CreditCard className="w-4 h-4 text-gray-400 shrink-0" />
+                <span className="font-bold text-sm text-gray-500">Credit card</span>
+                <span className="ml-auto text-[10px] font-bold text-gray-500 bg-white border border-gray-200 rounded px-1.5 py-0.5">
+                  Processed by Stripe
+                </span>
+              </div>
+              <div className="mt-2 pl-6 space-y-1.5">
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">
+                  <Clock className="w-2.5 h-2.5" /> Card checkout pending activation
+                </span>
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  Card payments will be processed securely by Stripe. Processor fees, if applicable, will be shown before payment.
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Vault retention tier */}
           <div className="bg-blue-50 border border-blue-100 rounded-xl p-3.5 mb-4">
             <div className="flex items-center justify-between">
@@ -1333,7 +1397,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
               onClick={handlePost}
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-              Submit Request &amp; Secure Payment
+              Submit Request for Payment Verification
             </Button>
           </div>
         </div>
