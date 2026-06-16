@@ -1244,7 +1244,10 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
               {paymentMethod === 'interac' && (
                 <div className="mt-3 pl-6 space-y-2">
                   <p className="text-xs text-gray-600 leading-relaxed">
-                    Send payment to <span className="font-bold text-gray-900">payments@veropermit.com</span>. Use your project, permit, or job reference in the message field. Your request will be released to inspectors once payment is confirmed by Vero.
+                    Manual bank transfer. We will email you the payment details, including the amount and request reference. Your request is saved but not live for inspector claim until Vero confirms payment.
+                  </p>
+                  <p className="text-xs text-gray-600 leading-relaxed">
+                    Send payment to <span className="font-bold text-gray-900">payments@veropermit.com</span> using your request reference in the message field.
                   </p>
                   <p className="text-[11px] text-gray-400 leading-relaxed">
                     Your bank may apply its own transfer limits or fees.
@@ -1279,7 +1282,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
               {paymentMethod === 'card' && (
                 <div className="mt-3 pl-6 space-y-2">
                   <p className="text-xs text-gray-600 leading-relaxed">
-                    Card processing costs are charged by Stripe and shown before payment. Vero does not add a separate processing fee to card payments. Your request is released for payment-verified dispatch once Stripe confirms the payment.
+                    Fastest payment option. Card processing costs are charged by Stripe and shown before payment. Vero does not add a separate processing fee to card payments. Your request is released for payment-verified dispatch once Stripe confirms payment.
                   </p>
                 </div>
               )}
@@ -1492,8 +1495,8 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             </div>
           </div>
 
-          <h3 className="text-2xl font-black text-gray-900 mb-1">Request Submitted</h3>
-          <p className="text-sm text-gray-500 mb-5">Vero is confirming payment and preparing your request for qualified inspectors.</p>
+          <h3 className="text-2xl font-black text-gray-900 mb-1">Request Saved — Payment Pending</h3>
+          <p className="text-sm text-gray-500 mb-5">Your request is saved but not live for inspector claim yet. Send your Interac e-Transfer and Vero will release the request once payment is confirmed.</p>
 
           <div className="bg-slate-900 rounded-2xl p-4 text-left mb-4">
             <div className="flex items-center gap-2 mb-3">
