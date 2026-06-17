@@ -34,8 +34,8 @@ const APPROVED_ZERO_TAG_PHOTO_EVIDENCE_EXCEPTIONS = new Map<string, string>([
 
 // ── routing maps ──────────────────────────────────────────────────────────────
 
-test('worklist page defines BUILDER_STAGE_TO_INSPECTION_STAGE with correct structural default', () => {
-  const source = read('app/inspector/page.tsx')
+test('shared builder-stage mapping defines BUILDER_STAGE_TO_INSPECTION_STAGE with correct structural default', () => {
+  const source = read('lib/inspections/builderStageMapping.ts')
   const mapStart = source.indexOf('BUILDER_STAGE_TO_INSPECTION_STAGE')
   const mapEnd   = source.indexOf('}', mapStart)
   const mapBlock = source.slice(mapStart, mapEnd)
@@ -47,8 +47,8 @@ test('worklist page defines BUILDER_STAGE_TO_INSPECTION_STAGE with correct struc
   assert.ok(mapBlock.includes('7: 15'), 'Default map must route builder stage 7 to completion stage 15 (Final Approval)')
 })
 
-test('worklist page defines DISCIPLINE_INSPECTION_STAGE_OVERRIDE with mechanical → S11', () => {
-  const source    = read('app/inspector/page.tsx')
+test('shared builder-stage mapping defines DISCIPLINE_INSPECTION_STAGE_OVERRIDE with mechanical → S11', () => {
+  const source    = read('lib/inspections/builderStageMapping.ts')
   const overStart = source.indexOf('DISCIPLINE_INSPECTION_STAGE_OVERRIDE')
   const overEnd   = source.indexOf('}', overStart + 40)
   const overBlock = source.slice(overStart, overEnd + 200) // grab enough for all discipline entries
@@ -57,16 +57,16 @@ test('worklist page defines DISCIPLINE_INSPECTION_STAGE_OVERRIDE with mechanical
   assert.ok(overBlock.includes('3: 11'), 'Override must map mechanical builder stage 3 to completion stage 11')
 })
 
-test('worklist page DISCIPLINE_INSPECTION_STAGE_OVERRIDE maps electrical stage 3 to S10', () => {
-  const source    = read('app/inspector/page.tsx')
+test('shared builder-stage mapping DISCIPLINE_INSPECTION_STAGE_OVERRIDE maps electrical stage 3 to S10', () => {
+  const source    = read('lib/inspections/builderStageMapping.ts')
   const overStart = source.indexOf('DISCIPLINE_INSPECTION_STAGE_OVERRIDE')
   const overBlock = source.slice(overStart, overStart + 400)
   assert.ok(overBlock.includes('electrical'), 'Override must include electrical key')
   assert.ok(overBlock.includes('3: 10'), 'Override must map electrical builder stage 3 to completion stage 10')
 })
 
-test('worklist page DISCIPLINE_INSPECTION_STAGE_OVERRIDE maps plumbing stage 3 to S09', () => {
-  const source    = read('app/inspector/page.tsx')
+test('shared builder-stage mapping DISCIPLINE_INSPECTION_STAGE_OVERRIDE maps plumbing stage 3 to S09', () => {
+  const source    = read('lib/inspections/builderStageMapping.ts')
   const overStart = source.indexOf('DISCIPLINE_INSPECTION_STAGE_OVERRIDE')
   const overBlock = source.slice(overStart, overStart + 400)
   assert.ok(overBlock.includes('plumbing'), 'Override must include plumbing key')
@@ -118,8 +118,8 @@ test('resolveInspectionStagePreview is called with assignment.stage and assignme
 
 // ── 7-stage model routing assertions ─────────────────────────────────────────
 
-test('builder stage 5 does not route to S15 in inspector worklist', () => {
-  const source = read('app/inspector/page.tsx')
+test('builder stage 5 does not route to S15 in shared builder-stage mapping', () => {
+  const source = read('lib/inspections/builderStageMapping.ts')
   const mapStart = source.indexOf('BUILDER_STAGE_TO_INSPECTION_STAGE')
   const mapEnd   = source.indexOf('}', mapStart)
   const mapBlock = source.slice(mapStart, mapEnd)

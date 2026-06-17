@@ -28,6 +28,7 @@ import { listHoldsForJob } from '@/lib/supabase/holds'
 import { isHoldOpenStatus } from '@/lib/holds/workflow'
 import { getActiveReliabilityPolicyConfig, getInspectorReliabilityDashboardData, type InspectorReliabilityDashboardData } from '@/lib/supabase/reliability'
 import { buildInspectorReliabilityDashboardModel } from '@/lib/reliabilityDashboard'
+import { resolveInspectionStageNumber } from '@/lib/inspections/builderStageMapping'
 import { evaluateReliabilityRollout } from '@/lib/reliabilityRollout'
 
 const supabase = createClient()
@@ -62,24 +63,6 @@ const DISC_BADGE: Record<string, string> = {
   fire_protection:'border-red-200 bg-red-50 text-red-700 dark:border-red-500/30 dark:bg-red-500/15 dark:text-red-300',
 }
 
-const BUILDER_STAGE_TO_INSPECTION_STAGE: Record<number, number> = {
-  1: 1,
-  2: 5,
-  3: 6,
-  4: 12,
-  5: 13,
-  6: 14,
-  7: 15,
-}
-
-const DISCIPLINE_INSPECTION_STAGE_OVERRIDE: Partial<Record<string, Partial<Record<number, number>>>> = {
-  architectural:   { 3: 7 },
-  fire_protection: { 3: 8 },
-  plumbing:        { 3: 9 },
-  electrical:      { 3: 10 },
-  mechanical:      { 3: 11 },
-}
-
 const INSPECTION_STAGE_LABELS: Record<number, string> = {
   1:  'Project Setup and Jurisdiction Check',
   2:  'Planning and Site Approvals',
@@ -102,10 +85,7 @@ function resolveInspectionStagePreview(
   builderStage: number | undefined,
   discipline: string | undefined,
 ): { code: string; name: string } | null {
-  if (typeof builderStage !== 'number' || !Number.isFinite(builderStage)) return null
-  const stage = Math.trunc(builderStage)
-  const override = discipline ? DISCIPLINE_INSPECTION_STAGE_OVERRIDE[discipline]?.[stage] : undefined
-  const stageNum = override ?? BUILDER_STAGE_TO_INSPECTION_STAGE[stage]
+  const stageNum = resolveInspectionStageNumber(builderStage, discipline)
   if (!stageNum) return null
   const name = INSPECTION_STAGE_LABELS[stageNum]
   if (!name) return null

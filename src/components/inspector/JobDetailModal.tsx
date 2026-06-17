@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   X, MapPin, Clock, DollarSign, CheckCircle2, Star,
   HardHat, AlertTriangle, Calendar, ChevronRight,
@@ -8,6 +8,7 @@ import {
   MessageSquare, RotateCcw, Zap, Lock, Share2
 } from 'lucide-react'
 import { INSPECTION_STAGES } from '@/lib/mockData'
+import type { ResolvedTemplate } from '@/lib/inspections/resolveActiveTemplate'
 import type { EligibilityResult } from '@/lib/eligibility'
 import { formatCurrency, formatRelativeTime } from '@/lib/utils'
 import type { ClaimCommitment, InspectionJob, JobTimeSlot, NextAttendanceCheckIn } from '@/lib/types'
@@ -141,6 +142,27 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim, onConfirmAt
   const [isConfirmingAttendance, setIsConfirmingAttendance] = useState(false)
   const [pendingSlot, setPendingSlot] = useState<JobTimeSlot | null>(null)
   const [checks, setChecks]           = useState<boolean[]>(Array(5).fill(false))
+
+  // Phase 0: read-only "Vero-resolved inspection scope" reference. Fetches the
+  // active DB checklist template for this job's stage/jurisdiction on open. It
+  // never writes and does not gate the claim/sign-off flow.
+  const [scope, setScope]             = useState<ResolvedTemplate | null>(null)
+  const [scopeLoading, setScopeLoading] = useState(true)
+  const [scopeExpanded, setScopeExpanded] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    setScopeLoading(true)
+    fetch(`/api/inspections/resolve-template?jobId=${encodeURIComponent(job.id)}`)
+      .then(async res => {
+        const data = await res.json().catch(() => null)
+        if (cancelled) return
+        setScope(res.ok && data?.ok && data.scope ? (data.scope as ResolvedTemplate) : null)
+      })
+      .catch(() => { if (!cancelled) setScope(null) })
+      .finally(() => { if (!cancelled) setScopeLoading(false) })
+    return () => { cancelled = true }
+  }, [job.id])
 
   const stage = INSPECTION_STAGES.find(s => s.id === job.stage)
   const tierMeta = TIER_META[job.dispatchTier]
@@ -560,6 +582,65 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim, onConfirmAt
             ))}
           </Section>
         )}
+
+        {/* Vero-resolved inspection scope (read-only DB template reference, Phase 0) */}
+        <Section title="Vero-Resolved Inspection Scope" icon={Layers}>
+          <p className="text-[11px] text-subtle leading-relaxed mb-2.5">
+            This is the Vero-resolved inspection scope reference for this job&apos;s stage and
+            jurisdiction. The active sign-off checklist below is unchanged.
+          </p>
+          {scopeLoading ? (
+            <div className="text-xs text-muted">Resolving inspection scope…</div>
+          ) : scope?.resolved ? (
+            <div className="space-y-2.5">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="text-xs font-bold text-ink">{scope.title}</div>
+                  <div className="text-[11px] text-muted mt-0.5">{scope.stageLabel}</div>
+                  {scope.jurisdictionName && (
+                    <div className="text-[11px] text-muted">{scope.jurisdictionName}</div>
+                  )}
+                </div>
+                <span className="shrink-0 text-[10px] font-bold px-2 py-1 rounded-lg border text-muted bg-white/5 border-white/10">
+                  v{scope.version} · live
+                </span>
+              </div>
+              <p className="text-[10px] text-subtle">
+                Live template — not yet the audit-frozen final version.
+              </p>
+              {scope.items.length > 0 && (
+                <div>
+                  <button
+                    onClick={() => setScopeExpanded(v => !v)}
+                    className="flex items-center gap-1 text-[11px] font-semibold text-muted transition-colors hover:text-ink focus:outline-none focus:ring-2 focus:ring-flame/20 rounded-lg px-1 py-0.5">
+                    <ChevronRight className={`w-3.5 h-3.5 transition-transform ${scopeExpanded ? 'rotate-90' : ''}`} />
+                    {scopeExpanded ? 'Hide' : 'Show'} {scope.items.length} checklist item{scope.items.length === 1 ? '' : 's'}
+                  </button>
+                  {scopeExpanded && (
+                    <div className="mt-2 space-y-2">
+                      {scope.items.map(item => (
+                        <div key={item.id} className="border-l-2 border-white/10 pl-2.5">
+                          <div className="text-xs text-ink">{item.label}</div>
+                          {item.requirementText && (
+                            <div className="text-[11px] text-muted mt-0.5 leading-relaxed">{item.requirementText}</div>
+                          )}
+                          {item.legalReference && (
+                            <div className="text-[10px] text-subtle mt-0.5">{item.legalReference}</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-xs text-muted leading-relaxed">
+              No jurisdiction-specific checklist is currently available for this stage. Vero will
+              fall back to the default scope until a template is assigned.
+            </div>
+          )}
+        </Section>
 
         {/* Checklist preview */}
         <Section title={`Stage ${job.stage} Checklist Preview`} icon={CheckCircle2}>
