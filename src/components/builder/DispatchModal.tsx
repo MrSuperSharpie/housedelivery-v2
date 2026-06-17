@@ -14,6 +14,11 @@ import { Badge } from '@/components/ui/Badge'
 import { SchedulingPicker, isSlotValidForTier, type TimeSlot } from '@/components/builder/SchedulingPicker'
 import { ReliabilityGuarantee } from '@/components/builder/ReliabilityGuarantee'
 import { INSPECTION_STAGES } from '@/lib/mockData'
+import {
+  INSPECTION_INTENT_OPTIONS,
+  resolveIntentToStageDiscipline,
+  getInspectionIntentOption,
+} from '@/lib/inspections/inspectionIntent'
 import { formatCurrency } from '@/lib/utils'
 import { useAuth } from '@/lib/auth'
 import { useStore } from '@/lib/store'
@@ -64,7 +69,7 @@ interface DispatchModalProps {
   onDispatch: (tier: DispatchTier) => void
 }
 
-type Step = 'address' | 'schedule' | 'stage' | 'discipline' | 'safety' | 'tier' | 'vault' | 'confirm' | 'broadcasting' | 'live'
+type Step = 'address' | 'schedule' | 'intent' | 'stage' | 'discipline' | 'safety' | 'tier' | 'vault' | 'confirm' | 'broadcasting' | 'live'
 
 const DISCIPLINES = [
   { id: 'structural',       label: 'Structural',        icon: HardHat,  description: 'Load paths, framing, foundations' },
@@ -89,7 +94,9 @@ const STAGE_TO_DISCIPLINE: Record<number, string> = {
 }
 
 const STEP_NUM: Record<Step, number> = {
-  address: 1, schedule: 2, stage: 3, discipline: 4, safety: 5, tier: 6, vault: 7, confirm: 8, broadcasting: 8, live: 8,
+  // 'intent' is the plain-language default for step 3; 'stage'/'discipline' are
+  // the advanced "Change inspection details" path and share the same counter.
+  address: 1, schedule: 2, intent: 3, stage: 3, discipline: 4, safety: 5, tier: 6, vault: 7, confirm: 8, broadcasting: 8, live: 8,
 }
 
 const STAGE_WORKFLOW_DESCRIPTIONS: Record<number, string> = {
@@ -139,6 +146,9 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
   const [projectName, setProjectName]       = useState(project?.name ?? '')
   const [selectedStage, setSelectedStage]   = useState<number | null>(project?.currentStage ?? null)
   const [selectedDisc, setSelectedDisc]     = useState<string | null>(null)
+  // Plain-language inspection need. Pre-fills selectedStage/selectedDisc; the
+  // builder never has to understand stage numbers or templates.
+  const [selectedIntent, setSelectedIntent] = useState<string | null>(null)
   const [selectedTier, setSelectedTier]     = useState<DispatchTier>('priority')
   const [selectedSpecialistRole, setSelectedSpecialistRole] = useState<SpecialistRoleId | null>(null)
   const [billableHours, setBillableHours]   = useState(1.5)
@@ -220,6 +230,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
     setProjectName(project?.name ?? '')
     setSelectedStage(project?.currentStage ?? null)
     setSelectedDisc(null)
+    setSelectedIntent(null)
     setSelectedTier('priority')
     setSelectedSpecialistRole(null)
     setBillableHours(1.5)
@@ -672,7 +683,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
           <SchedulingPicker slots={slots} onChange={setSlots} max={3} tier={selectedTier} />
           <Button variant="primary" size="lg" fullWidth
             disabled={!hasValidSchedulingWindow}
-            onClick={() => setStep('stage')}>
+            onClick={() => setStep('intent')}>
             Continue <ChevronRight className="w-4 h-4" />
           </Button>
           {!hasValidSchedulingWindow && (
@@ -683,10 +694,88 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
         </div>
       )}
 
-      {/* ─── STEP 3: STAGE ───────────────────────── */}
-      {step === 'stage' && (
+      {/* ─── STEP 3: INSPECTION NEED (plain language) ─────────────────────── */}
+      {step === 'intent' && (
         <div>
           <button onClick={() => setStep('schedule')} className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 mb-4">
+            <ChevronLeft className="w-3.5 h-3.5" /> Back
+          </button>
+          <h2 className="text-xl font-black text-gray-900 mb-1">What do you need inspected?</h2>
+          <p className="text-sm text-gray-500 mb-4">
+            Choose what the inspection is for. Vero recommends the right inspection type and loads the correct checklist automatically — no stage numbers or codes needed.
+          </p>
+
+          <div className="space-y-2 mb-5">
+            {INSPECTION_INTENT_OPTIONS.map(option => {
+              const isSelected = selectedIntent === option.id
+              return (
+                <button key={option.id} onClick={() => {
+                  const resolved = resolveIntentToStageDiscipline(option.id)
+                  manuallyEditedRef.current.selectedStage = true
+                  setSelectedIntent(option.id)
+                  setSelectedStage(resolved.builderStage)
+                  setSelectedDisc(resolved.discipline)
+                  if (resolved.builderStage < 2 || permitNumber.trim()) setPermitError(null)
+                }}
+                  className={`w-full text-left rounded-xl border-2 p-4 transition-all ${
+                    isSelected ? 'border-flame bg-orange-50' : 'border-gray-200 hover:border-gray-300 bg-white'
+                  }`}>
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-gray-900 text-sm">{option.label}</div>
+                      <div className="text-xs text-gray-400 mt-0.5">{option.helperText}</div>
+                    </div>
+                    {isSelected && <CheckCircle2 className="w-5 h-5 text-flame shrink-0" />}
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Recommendation summary — plain language, no codes */}
+          {selectedIntent && (() => {
+            const opt = getInspectionIntentOption(selectedIntent)
+            const stageInfo = INSPECTION_STAGES.find(s => s.id === selectedStage)
+            const discData = DISCIPLINES.find(d => d.id === selectedDisc)
+            if (!opt) return null
+            return (
+              <div className="mb-5 rounded-xl border border-flame/30 bg-orange-50 px-4 py-3">
+                <div className="text-xs font-black uppercase tracking-widest text-flame mb-1">Vero recommends</div>
+                <div className="text-sm font-bold text-gray-900">
+                  {discData?.label ?? 'Inspection'} — {stageInfo?.name ?? 'inspection'}
+                </div>
+                <p className="text-xs text-gray-500 mt-1 leading-snug">
+                  {opt.confidence === 'high' &&
+                    'Vero will arrange a qualified inspector and load the correct checklist automatically.'}
+                  {opt.confidence === 'medium' &&
+                    'Vero will arrange a qualified inspector. Your inspector will confirm the exact scope before work begins.'}
+                  {opt.confidence === 'low' &&
+                    'Vero will confirm the right inspection with you and your inspector. You can also refine the details below.'}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setStep('stage')}
+                  className="mt-2 text-xs font-semibold text-flame underline-offset-2 hover:underline">
+                  Change inspection details
+                </button>
+              </div>
+            )
+          })()}
+
+          <Button variant="primary" size="lg" fullWidth disabled={!selectedStage || !selectedDisc} onClick={() => {
+            setPostError(null)
+            if (validatePermitReferenceBeforeContinuing()) return
+            setStep('safety')
+          }}>
+            Continue <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
+      )}
+
+      {/* ─── STEP 3 (advanced): STAGE ────────────── */}
+      {step === 'stage' && (
+        <div>
+          <button onClick={() => setStep('intent')} className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 mb-4">
             <ChevronLeft className="w-3.5 h-3.5" /> Back
           </button>
           <h2 className="text-xl font-black text-gray-900 mb-1">Select inspection stage</h2>
