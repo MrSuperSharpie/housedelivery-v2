@@ -131,6 +131,66 @@ export const INSPECTION_INTENT_OPTIONS: InspectionIntentOption[] = [
   },
 ]
 
+/**
+ * Plain-language follow-up shown when the builder picks "Not Sure". These are
+ * broad, approximate buckets — never stage numbers or disciplines. Each maps to
+ * a concrete, valid stage + discipline (low confidence) so the request is
+ * always submittable; the inspector confirms exact scope downstream. Copy must
+ * avoid implying Vero knows the precise scope.
+ */
+export interface NotSureBucketOption {
+  id: string
+  label: string
+  builderStage: number
+  discipline: string
+  confidence: IntentConfidence
+}
+
+export const NOT_SURE_DISAMBIGUATION: NotSureBucketOption[] = [
+  {
+    id: 'unsure_structure_site',
+    label: 'Site, excavation, foundation, or framing',
+    builderStage: 3,
+    discipline: 'structural',
+    confidence: 'low',
+  },
+  {
+    id: 'unsure_plumbing',
+    label: 'Plumbing',
+    builderStage: 3,
+    discipline: 'plumbing',
+    confidence: 'low',
+  },
+  {
+    id: 'unsure_electrical',
+    label: 'Electrical',
+    builderStage: 3,
+    discipline: 'electrical',
+    confidence: 'low',
+  },
+  {
+    id: 'unsure_mechanical_hvac',
+    label: 'Mechanical / HVAC',
+    builderStage: 3,
+    discipline: 'mechanical',
+    confidence: 'low',
+  },
+  {
+    id: 'unsure_fire_life_safety',
+    label: 'Fire / life safety',
+    builderStage: 3,
+    discipline: 'fire_protection',
+    confidence: 'low',
+  },
+  {
+    id: 'unsure_final_occupancy',
+    label: 'Final inspection or occupancy readiness',
+    builderStage: 7,
+    discipline: 'architectural',
+    confidence: 'low',
+  },
+]
+
 export interface ResolvedIntent {
   builderStage: number
   discipline: string
@@ -151,6 +211,7 @@ const FALLBACK_INTENT: ResolvedIntent = {
  */
 export function resolveIntentToStageDiscipline(intentId: string | null | undefined): ResolvedIntent {
   const option = INSPECTION_INTENT_OPTIONS.find(o => o.id === intentId)
+    ?? NOT_SURE_DISAMBIGUATION.find(o => o.id === intentId)
   if (!option) return { ...FALLBACK_INTENT }
   return {
     builderStage: option.builderStage,
@@ -162,4 +223,9 @@ export function resolveIntentToStageDiscipline(intentId: string | null | undefin
 /** Looks up the full option (for label/helper/confidence copy). */
 export function getInspectionIntentOption(intentId: string | null | undefined): InspectionIntentOption | undefined {
   return INSPECTION_INTENT_OPTIONS.find(o => o.id === intentId)
+}
+
+/** Looks up a "Not Sure" follow-up bucket by id. */
+export function getNotSureBucketOption(intentId: string | null | undefined): NotSureBucketOption | undefined {
+  return NOT_SURE_DISAMBIGUATION.find(o => o.id === intentId)
 }

@@ -16,8 +16,10 @@ import { ReliabilityGuarantee } from '@/components/builder/ReliabilityGuarantee'
 import { INSPECTION_STAGES } from '@/lib/mockData'
 import {
   INSPECTION_INTENT_OPTIONS,
+  NOT_SURE_DISAMBIGUATION,
   resolveIntentToStageDiscipline,
   getInspectionIntentOption,
+  getNotSureBucketOption,
 } from '@/lib/inspections/inspectionIntent'
 import { formatCurrency } from '@/lib/utils'
 import { useAuth } from '@/lib/auth'
@@ -149,6 +151,9 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
   // Plain-language inspection need. Pre-fills selectedStage/selectedDisc; the
   // builder never has to understand stage numbers or templates.
   const [selectedIntent, setSelectedIntent] = useState<string | null>(null)
+  // When the builder picks "Not Sure", show a plain-language follow-up card
+  // instead of the technical stage/discipline flow.
+  const [notSureMode, setNotSureMode] = useState(false)
   const [selectedTier, setSelectedTier]     = useState<DispatchTier>('priority')
   const [selectedSpecialistRole, setSelectedSpecialistRole] = useState<SpecialistRoleId | null>(null)
   const [billableHours, setBillableHours]   = useState(1.5)
@@ -231,6 +236,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
     setSelectedStage(project?.currentStage ?? null)
     setSelectedDisc(null)
     setSelectedIntent(null)
+    setNotSureMode(false)
     setSelectedTier('priority')
     setSelectedSpecialistRole(null)
     setBillableHours(1.5)
@@ -697,60 +703,114 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
       {/* ─── STEP 3: INSPECTION NEED (plain language) ─────────────────────── */}
       {step === 'intent' && (
         <div>
-          <button onClick={() => setStep('schedule')} className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 mb-4">
+          <button
+            onClick={() => (notSureMode ? setNotSureMode(false) : setStep('schedule'))}
+            className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 mb-4">
             <ChevronLeft className="w-3.5 h-3.5" /> Back
           </button>
-          <h2 className="text-xl font-black text-gray-900 mb-1">What do you need inspected?</h2>
-          <p className="text-sm text-gray-500 mb-4">
-            Choose what the inspection is for. Vero recommends the right inspection type and loads the correct checklist automatically — no stage numbers or codes needed.
-          </p>
 
-          <div className="space-y-2 mb-5">
-            {INSPECTION_INTENT_OPTIONS.map(option => {
-              const isSelected = selectedIntent === option.id
-              return (
-                <button key={option.id} onClick={() => {
-                  const resolved = resolveIntentToStageDiscipline(option.id)
-                  manuallyEditedRef.current.selectedStage = true
-                  setSelectedIntent(option.id)
-                  setSelectedStage(resolved.builderStage)
-                  setSelectedDisc(resolved.discipline)
-                  if (resolved.builderStage < 2 || permitNumber.trim()) setPermitError(null)
-                }}
-                  className={`w-full text-left rounded-xl border-2 p-4 transition-all ${
-                    isSelected ? 'border-flame bg-orange-50' : 'border-gray-200 hover:border-gray-300 bg-white'
-                  }`}>
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="font-bold text-gray-900 text-sm">{option.label}</div>
-                      <div className="text-xs text-gray-400 mt-0.5">{option.helperText}</div>
-                    </div>
-                    {isSelected && <CheckCircle2 className="w-5 h-5 text-flame shrink-0" />}
-                  </div>
-                </button>
-              )
-            })}
-          </div>
+          {!notSureMode ? (
+            <>
+              <h2 className="text-xl font-black text-gray-900 mb-1">What is ready to be inspected?</h2>
+              <p className="text-sm text-gray-500 mb-4">
+                Tell us what&apos;s ready on site. Vero handles the rest — matching the right inspector and checklist behind the scenes, with no stage numbers or codes needed.
+              </p>
 
-          {/* Recommendation summary — plain language, no codes */}
+              <div className="space-y-2 mb-5">
+                {INSPECTION_INTENT_OPTIONS.map(option => {
+                  const isSelected = selectedIntent === option.id
+                  return (
+                    <button key={option.id} onClick={() => {
+                      // "Not Sure" opens a plain-language follow-up instead of
+                      // sending the builder into stage/discipline.
+                      if (option.id === 'not_sure') {
+                        setSelectedIntent(null)
+                        setSelectedStage(null)
+                        setSelectedDisc(null)
+                        setNotSureMode(true)
+                        return
+                      }
+                      const resolved = resolveIntentToStageDiscipline(option.id)
+                      manuallyEditedRef.current.selectedStage = true
+                      setSelectedIntent(option.id)
+                      setSelectedStage(resolved.builderStage)
+                      setSelectedDisc(resolved.discipline)
+                      if (resolved.builderStage < 2 || permitNumber.trim()) setPermitError(null)
+                    }}
+                      className={`w-full text-left rounded-xl border-2 p-4 transition-all ${
+                        isSelected ? 'border-flame bg-orange-50' : 'border-gray-200 hover:border-gray-300 bg-white'
+                      }`}>
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-bold text-gray-900 text-sm">{option.label}</div>
+                          <div className="text-xs text-gray-400 mt-0.5">{option.helperText}</div>
+                        </div>
+                        {isSelected && <CheckCircle2 className="w-5 h-5 text-flame shrink-0" />}
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            </>
+          ) : (
+            <>
+              <h2 className="text-xl font-black text-gray-900 mb-1">No problem. What is this closest to?</h2>
+              <p className="text-sm text-gray-500 mb-4">
+                Pick the closest match. Your inspector will confirm the exact inspection before any work begins — you don&apos;t need to get this exactly right.
+              </p>
+
+              <div className="space-y-2 mb-5">
+                {NOT_SURE_DISAMBIGUATION.map(bucket => {
+                  const isSelected = selectedIntent === bucket.id
+                  return (
+                    <button key={bucket.id} onClick={() => {
+                      const resolved = resolveIntentToStageDiscipline(bucket.id)
+                      manuallyEditedRef.current.selectedStage = true
+                      setSelectedIntent(bucket.id)
+                      setSelectedStage(resolved.builderStage)
+                      setSelectedDisc(resolved.discipline)
+                      if (resolved.builderStage < 2 || permitNumber.trim()) setPermitError(null)
+                    }}
+                      className={`w-full text-left rounded-xl border-2 p-4 transition-all ${
+                        isSelected ? 'border-flame bg-orange-50' : 'border-gray-200 hover:border-gray-300 bg-white'
+                      }`}>
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-bold text-gray-900 text-sm">{bucket.label}</div>
+                        </div>
+                        {isSelected && <CheckCircle2 className="w-5 h-5 text-flame shrink-0" />}
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            </>
+          )}
+
+          {/* Recommendation summary — plain language, no codes. Low-confidence
+              (Not Sure) picks stay deliberately generic and never name a stage
+              or discipline the builder didn't choose. */}
           {selectedIntent && (() => {
-            const opt = getInspectionIntentOption(selectedIntent)
-            const stageInfo = INSPECTION_STAGES.find(s => s.id === selectedStage)
-            const discData = DISCIPLINES.find(d => d.id === selectedDisc)
-            if (!opt) return null
+            const activeOpt = getInspectionIntentOption(selectedIntent) ?? getNotSureBucketOption(selectedIntent)
+            if (!activeOpt) return null
+            const isLow = activeOpt.confidence === 'low'
             return (
               <div className="mb-5 rounded-xl border border-flame/30 bg-orange-50 px-4 py-3">
-                <div className="text-xs font-black uppercase tracking-widest text-flame mb-1">Vero recommends</div>
+                <div className="text-xs font-black uppercase tracking-widest text-flame mb-1">
+                  {isLow ? "We'll get you started" : 'This looks like'}
+                </div>
                 <div className="text-sm font-bold text-gray-900">
-                  {discData?.label ?? 'Inspection'} — {stageInfo?.name ?? 'inspection'}
+                  {isLow
+                    ? 'Vero will match you with the right inspector'
+                    : `${activeOpt.label} inspection`}
                 </div>
                 <p className="text-xs text-gray-500 mt-1 leading-snug">
-                  {opt.confidence === 'high' &&
+                  {activeOpt.confidence === 'high' &&
                     'Vero will arrange a qualified inspector and load the correct checklist automatically.'}
-                  {opt.confidence === 'medium' &&
+                  {activeOpt.confidence === 'medium' &&
                     'Vero will arrange a qualified inspector. Your inspector will confirm the exact scope before work begins.'}
-                  {opt.confidence === 'low' &&
-                    'Vero will confirm the right inspection with you and your inspector. You can also refine the details below.'}
+                  {activeOpt.confidence === 'low' &&
+                    "We'll line up a qualified inspector and confirm the exact inspection scope with you before any work begins."}
                 </p>
                 <button
                   type="button"

@@ -2,8 +2,10 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import {
   INSPECTION_INTENT_OPTIONS,
+  NOT_SURE_DISAMBIGUATION,
   resolveIntentToStageDiscipline,
   getInspectionIntentOption,
+  getNotSureBucketOption,
 } from './inspections/inspectionIntent'
 
 // Existing DispatchModal DISCIPLINES ids — every intent discipline must be one
@@ -72,6 +74,61 @@ test('unknown / null intent ids fall back to a safe non-null default', () => {
       'fallback stage must be valid',
     )
     assert.ok(VALID_DISCIPLINES.has(resolved.discipline), 'fallback discipline must be known')
+  }
+})
+
+test('Not Sure follow-up offers the six plain-language buckets with separate trades', () => {
+  const ids = NOT_SURE_DISAMBIGUATION.map(o => o.id)
+  assert.equal(ids.length, 6, 'must offer exactly six Not Sure buckets')
+  assert.deepEqual(ids, [
+    'unsure_structure_site',
+    'unsure_plumbing',
+    'unsure_electrical',
+    'unsure_mechanical_hvac',
+    'unsure_fire_life_safety',
+    'unsure_final_occupancy',
+  ])
+})
+
+test('Not Sure trade buckets each map to their own discipline (no broad plumbing default)', () => {
+  const expected: Record<string, { stage: number; discipline: string }> = {
+    unsure_structure_site:   { stage: 3, discipline: 'structural' },
+    unsure_plumbing:         { stage: 3, discipline: 'plumbing' },
+    unsure_electrical:       { stage: 3, discipline: 'electrical' },
+    unsure_mechanical_hvac:  { stage: 3, discipline: 'mechanical' },
+    unsure_fire_life_safety: { stage: 3, discipline: 'fire_protection' },
+    unsure_final_occupancy:  { stage: 7, discipline: 'architectural' },
+  }
+  for (const [id, exp] of Object.entries(expected)) {
+    const resolved = resolveIntentToStageDiscipline(id)
+    assert.equal(resolved.builderStage, exp.stage, `${id} stage`)
+    assert.equal(resolved.discipline, exp.discipline, `${id} discipline`)
+    assert.equal(resolved.confidence, 'low', `${id} confidence`)
+  }
+})
+
+test('every Not Sure bucket maps to a valid non-null stage + discipline at low confidence', () => {
+  for (const bucket of NOT_SURE_DISAMBIGUATION) {
+    assert.ok(
+      Number.isInteger(bucket.builderStage) && bucket.builderStage >= 1 && bucket.builderStage <= 7,
+      `${bucket.id} must map to a builder stage in 1-7`,
+    )
+    assert.ok(VALID_DISCIPLINES.has(bucket.discipline), `${bucket.id} discipline must be a known DISCIPLINES id`)
+    assert.equal(bucket.confidence, 'low', `${bucket.id} must stay low confidence`)
+    assert.ok(bucket.label.trim().length > 0, `${bucket.id} must have a plain-language label`)
+
+    // Resolvable through the shared resolver with non-null values.
+    const resolved = resolveIntentToStageDiscipline(bucket.id)
+    assert.equal(resolved.builderStage, bucket.builderStage)
+    assert.equal(resolved.discipline, bucket.discipline)
+    assert.equal(resolved.confidence, 'low')
+    assert.ok(getNotSureBucketOption(bucket.id), `${bucket.id} must be retrievable`)
+  }
+})
+
+test('Not Sure buckets never expose stage numbers or disciplines in their labels', () => {
+  for (const bucket of NOT_SURE_DISAMBIGUATION) {
+    assert.ok(!/stage\s*\d/i.test(bucket.label), `${bucket.id} label must not contain a stage number`)
   }
 })
 
