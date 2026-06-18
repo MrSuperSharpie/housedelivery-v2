@@ -812,16 +812,14 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                   {activeOpt.confidence === 'low' &&
                     "We'll line up a qualified inspector and confirm the exact inspection scope with you before any work begins."}
                 </p>
-                <button
-                  type="button"
-                  onClick={() => setStep('stage')}
-                  className="mt-2 text-xs font-semibold text-flame underline-offset-2 hover:underline">
-                  Change inspection details
-                </button>
               </div>
             )
           })()}
 
+          {/* Primary action: the plain-language path always moves straight to
+              Safety. The technical stage / discipline screens are NOT in this
+              flow — they are reachable only via the clearly-secondary "Change
+              inspection details" link below. */}
           <Button variant="primary" size="lg" fullWidth disabled={!selectedStage || !selectedDisc} onClick={() => {
             setPostError(null)
             if (validatePermitReferenceBeforeContinuing()) return
@@ -829,6 +827,17 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
           }}>
             Continue <ChevronRight className="w-4 h-4" />
           </Button>
+
+          {/* Advanced, opt-in only. Kept deliberately secondary and below the
+              primary action so it is never mistaken for advancing the flow. */}
+          {selectedIntent && (
+            <button
+              type="button"
+              onClick={() => setStep('stage')}
+              className="mt-3 block w-full text-center text-xs text-gray-400 underline-offset-2 hover:text-gray-600 hover:underline">
+              Change inspection details
+            </button>
+          )}
         </div>
       )}
 
