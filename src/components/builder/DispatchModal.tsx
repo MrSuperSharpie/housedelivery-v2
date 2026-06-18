@@ -809,7 +809,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                 </div>
                 <p className="text-xs text-gray-500 mt-1 leading-snug">
                   {activeOpt.confidence === 'high' &&
-                    'Vero will arrange a qualified inspector and load the correct checklist automatically.'}
+                    'Vero will arrange a qualified inspector and prepare the appropriate checklist for them to use on your inspection.'}
                   {activeOpt.confidence === 'medium' &&
                     'Vero will arrange a qualified inspector. Your inspector will confirm the exact scope before work begins.'}
                   {activeOpt.confidence === 'low' &&
