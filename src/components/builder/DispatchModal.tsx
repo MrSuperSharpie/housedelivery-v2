@@ -283,14 +283,17 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
       setStep('address')
       return true
     }
+    // Defensive only: intent selection normally pre-fills both. If either is
+    // missing, return the builder to the readiness step rather than exposing the
+    // technical stage/discipline screens.
     if (!selectedStage) {
-      setPostError('Inspection stage is required.')
-      setStep('stage')
+      setPostError('Please tell us what is ready to be inspected.')
+      setStep('intent')
       return true
     }
     if (!selectedDisc) {
-      setPostError('Discipline is required.')
-      setStep('discipline')
+      setPostError('Please tell us what is ready to be inspected.')
+      setStep('intent')
       return true
     }
     return false
@@ -828,16 +831,11 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             Continue <ChevronRight className="w-4 h-4" />
           </Button>
 
-          {/* Advanced, opt-in only. Kept deliberately secondary and below the
-              primary action so it is never mistaken for advancing the flow. */}
-          {selectedIntent && (
-            <button
-              type="button"
-              onClick={() => setStep('stage')}
-              className="mt-3 block w-full text-center text-xs text-gray-400 underline-offset-2 hover:text-gray-600 hover:underline">
-              Change inspection details
-            </button>
-          )}
+          {/* The technical stage / discipline screens are intentionally NOT
+              reachable from the normal builder flow. Builders report readiness;
+              Vero resolves stage + discipline behind the scenes. The 'stage' and
+              'discipline' steps below are retained dormant for future
+              admin/internal use only. */}
         </div>
       )}
 
@@ -944,7 +942,9 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
       {/* ─── STEP 5: SAFETY REQUIREMENTS ─────────── */}
       {step === 'safety' && (
         <div>
-          <button onClick={() => setStep('discipline')} className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 mb-4">
+          {/* Back returns to the readiness step. The technical stage/discipline
+              screens are not part of the normal builder flow. */}
+          <button onClick={() => setStep('intent')} className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 mb-4">
             <ChevronLeft className="w-3.5 h-3.5" /> Back
           </button>
           <div className="flex items-center gap-2.5 mb-1">
