@@ -147,7 +147,7 @@ export async function POST(req: NextRequest) {
           },
         },
       ],
-      success_url: `${appUrl}/builder?payment=success&job=${encodeURIComponent(jobId)}`,
+      success_url: `${appUrl}/builder/payment-success?job=${encodeURIComponent(jobId)}`,
       cancel_url: `${appUrl}/builder?payment=cancelled&job=${encodeURIComponent(jobId)}`,
     })
 
