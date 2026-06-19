@@ -680,7 +680,7 @@ function ModificationRequiredCard({
 }
 
 export default function BuilderDashboard() {
-  const { user }  = useAuth()
+  const { user, isLoading: authLoading } = useAuth()
   const store     = useStore()
   const router    = useRouter()
 
@@ -688,10 +688,11 @@ export default function BuilderDashboard() {
   const [onboardingStatus, setOnboardingStatus] = useState<BuilderOnboardingStatus | null>(null)
 
   useEffect(() => {
+    if (authLoading) return
     if (!user) { router.replace('/sign-in?role=builder'); return }
     if (user.role !== 'builder') { router.replace('/'); return }
     getBuilderOnboardingStatusAsync(user.id, user.supabaseId).then(setOnboardingStatus)
-  }, [router, user])
+  }, [router, user, authLoading])
 
   useEffect(() => {
     if (!user || user.role !== 'builder' || onboardingStatus === null) return
