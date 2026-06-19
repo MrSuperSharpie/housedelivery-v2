@@ -1,5 +1,5 @@
-import Link from 'next/link'
 import { CheckCircle2 } from 'lucide-react'
+import { PaymentSuccessCta } from './PaymentSuccessCta'
 
 // Public confirmation page shown after a successful Stripe Checkout.
 //
@@ -40,16 +40,7 @@ export default async function PaymentSuccessPage({
           </p>
         ) : null}
 
-        <Link
-          href="/builder"
-          className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-flame px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-flame-light"
-        >
-          Go to dashboard
-        </Link>
-
-        <p className="mt-4 text-[11px] text-subtle">
-          If you’re signed out, you’ll be asked to sign in first.
-        </p>
+        <PaymentSuccessCta />
       </div>
     </div>
   )
