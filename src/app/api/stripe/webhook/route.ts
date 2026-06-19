@@ -14,6 +14,74 @@ function getServiceClient() {
   return createServiceClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } })
 }
 
+// Syncs inspector Connect account capability flags after Stripe onboarding.
+// Idempotent: re-delivering the same event overwrites with identical values.
+// If no matching row exists the event is acknowledged without error so Stripe
+// does not retry for accounts that belong to other platforms.
+async function handleAccountUpdated(account: Stripe.Account): Promise<NextResponse> {
+  const stripeAccountId = account.id
+  const service = getServiceClient()
+  if (!service) {
+    console.error('[stripe/webhook] account.updated: service role client unavailable', { stripeAccountId })
+    return NextResponse.json({ ok: false, error: 'Service client unavailable.' }, { status: 503 })
+  }
+
+  const { data: existingRow, error: lookupError } = await service
+    .from('inspector_payment_accounts')
+    .select('inspector_id, onboarding_completed_at')
+    .eq('stripe_account_id', stripeAccountId)
+    .maybeSingle()
+
+  if (lookupError) {
+    console.error('[stripe/webhook] account.updated: lookup failed', { stripeAccountId, error: lookupError.message })
+    return NextResponse.json({ ok: false, error: 'Lookup failed.' }, { status: 500 })
+  }
+
+  if (!existingRow) {
+    console.warn('[stripe/webhook] account.updated: no matching inspector_payment_accounts row', { stripeAccountId })
+    return NextResponse.json({ ok: true, received: true, ignored: 'no_matching_account' })
+  }
+
+  const row = existingRow as { inspector_id: string; onboarding_completed_at: string | null }
+  const now = new Date().toISOString()
+  const currentlyDue: string[] = Array.isArray(account.requirements?.currently_due)
+    ? (account.requirements.currently_due as string[])
+    : []
+
+  const updates: Record<string, unknown> = {
+    charges_enabled: account.charges_enabled ?? false,
+    payouts_enabled: account.payouts_enabled ?? false,
+    details_submitted: account.details_submitted ?? false,
+    requirements_currently_due: currentlyDue,
+    updated_at: now,
+  }
+
+  // Stamp onboarding completion once, the first time details_submitted becomes true.
+  if (account.details_submitted && !row.onboarding_completed_at) {
+    updates.onboarding_completed_at = now
+  }
+
+  const { error: updateError } = await service
+    .from('inspector_payment_accounts')
+    .update(updates)
+    .eq('stripe_account_id', stripeAccountId)
+
+  if (updateError) {
+    console.error('[stripe/webhook] account.updated: update failed', { stripeAccountId, error: updateError.message })
+    return NextResponse.json({ ok: false, error: 'Update failed.' }, { status: 500 })
+  }
+
+  console.log('[stripe/webhook] account.updated: synced', {
+    stripeAccountId,
+    inspectorId: row.inspector_id,
+    chargesEnabled: account.charges_enabled,
+    payoutsEnabled: account.payouts_enabled,
+    detailsSubmitted: account.details_submitted,
+  })
+
+  return NextResponse.json({ ok: true, received: true, synced: true })
+}
+
 // POST /api/stripe/webhook
 // The ONLY trusted source for releasing a card-paid job. The browser success
 // redirect never releases a job. We verify the Stripe signature, then on
@@ -50,7 +118,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: 'Invalid signature.' }, { status: 400 })
   }
 
-  // Only checkout completion releases a job in this patch.
+  if (event.type === 'account.updated') {
+    return handleAccountUpdated(event.data.object as Stripe.Account)
+  }
+
   if (event.type !== 'checkout.session.completed') {
     return NextResponse.json({ ok: true, received: true, ignored: event.type })
   }
