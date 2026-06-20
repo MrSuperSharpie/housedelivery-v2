@@ -1347,6 +1347,28 @@ export async function updateEscrowStatus(
   return !error
 }
 
+/**
+ * Assignment-scoped escrow update. Targets a single job_assignments row by its
+ * primary key so a stale/cancelled assignment for the same job is never touched.
+ * Use this when only the specific completed assignment should become eligible.
+ */
+export async function updateAssignmentEscrowStatus(
+  assignmentId: string,
+  escrowStatus: EscrowStatus,
+  payoutReleasedAt?: string
+): Promise<boolean> {
+  const update: Record<string, unknown> = { escrow_status: escrowStatus }
+  if (payoutReleasedAt) update.payout_released_at = payoutReleasedAt
+
+  const { error } = await supabase
+    .from('job_assignments')
+    .update(update)
+    .eq('id', assignmentId)
+
+  if (error) console.error('updateAssignmentEscrowStatus:', error)
+  return !error
+}
+
 // ─── Job status events ────────────────────────────────────────────────────────
 
 export async function listStatusEventsForJob(jobId: string): Promise<JobStatusEvent[]> {

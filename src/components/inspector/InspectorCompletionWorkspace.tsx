@@ -45,7 +45,7 @@ import {
   isInspectorDevPreviewAssignment,
 } from '@/lib/inspectorDevPreview'
 import { insertCompletedRecordStrict } from '@/lib/supabase/compliance'
-import { completeJobAssignment, updateJobStatus } from '@/lib/supabase/jobs'
+import { completeJobAssignment, updateAssignmentEscrowStatus, updateJobStatus } from '@/lib/supabase/jobs'
 import { addHoldEvidence, getLatestOpenHoldForJob, listHoldDetailsForJob } from '@/lib/supabase/holds'
 import {
   buildCompletionChecklist,
@@ -2811,6 +2811,16 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
 
     await completeJobAssignment(assignment.id, sessionInspector.id)
 
+    // Move escrow to earned_pending_review regardless of pass/fail. A validly
+    // completed governed inspection earns the base fee; the construction result
+    // does not gate inspector payment eligibility. Scope to the specific
+    // completed assignment so a stale/cancelled assignment for the same job is
+    // never flipped to payment-eligible.
+    const escrowOk = await updateAssignmentEscrowStatus(assignment.id, 'earned_pending_review')
+    if (!escrowOk) {
+      console.warn('[inspector/workspace] escrow status update failed after seal', { jobId: job.id, assignmentId: assignment.id })
+    }
+
     setReport(current => current ? {
       ...current,
       inspectorId: sessionInspector.id,
@@ -3382,7 +3392,11 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                   <div className="mt-5 grid gap-3 md:grid-cols-3">
                     <div className="rounded-2xl border border-emerald-300 bg-white/80 px-4 py-3">
                       <div className="text-[11px] font-black uppercase tracking-[0.16em] text-emerald-800/70">Outcome</div>
-                      <div className="mt-1 text-sm font-black text-emerald-950">Inspection passed</div>
+                      <div className="mt-1 text-sm font-black text-emerald-950">
+                        {((report?.sealPayload?.overallResult as string | undefined) ?? 'pass') === 'fail'
+                          ? 'Corrections required — reinspection needed'
+                          : 'Inspection passed'}
+                      </div>
                     </div>
                     <div className="rounded-2xl border border-emerald-300 bg-white/80 px-4 py-3">
                       <div className="text-[11px] font-black uppercase tracking-[0.16em] text-emerald-800/70">Builder notification</div>

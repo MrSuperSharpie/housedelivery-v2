@@ -136,6 +136,17 @@ const templates: Record<VeroEmailEventKey, (context: VeroEmailTemplateContext) =
     ],
     ctaLabel: 'View project record',
   }),
+  'inspection.failed_builder_notice': context => ({
+    subject: 'Inspection complete — corrections required',
+    preview: 'The inspection is complete. Corrections are required before this stage can advance.',
+    heading: 'Inspection complete — corrections required',
+    body: [
+      greeting(context, 'The inspection for this stage has been completed and the record has been filed.'),
+      projectSentence(context, 'The documented result for this stage is Corrections Required. The stage cannot advance until the identified items are corrected and a reinspection is completed.'),
+      'Please review the filed inspection record, address the documented corrections, and arrange a reinspection through Vero Permit before this stage can proceed.',
+    ],
+    ctaLabel: 'View inspection record',
+  }),
   'inspection.availability_confirmed_builder_notice': context => {
     const who = context.inspectorName ?? 'The assigned inspector'
     const projectPart = context.projectName ? ` for ${context.projectName}` : ''

@@ -226,6 +226,16 @@ export async function POST(req: NextRequest) {
     return fail('stage_signoff_missing', 'Stage sign-off was not found on the saved report.', 409)
   }
 
+  // Derive inspection outcome from the seal payload. For scoped stage sign-offs
+  // overallResult is not set (required-item failures block sign-off upstream),
+  // so undefined is treated as pass. For full-seal reports it is set explicitly.
+  const sealPayloadObj = report.seal_payload && typeof report.seal_payload === 'object'
+    ? (report.seal_payload as Record<string, unknown>)
+    : null
+  const reportOverallResult = typeof sealPayloadObj?.overallResult === 'string'
+    ? sealPayloadObj.overallResult
+    : 'pass'
+
   const now = new Date().toISOString()
   const previousAssignmentStatus = assignment.status ?? null
   const previousJobStatus = (jobData as JobRow).status ?? null
@@ -268,6 +278,26 @@ export async function POST(req: NextRequest) {
       error: jobUpdateError?.message,
     })
     return fail('job_close_failed', CLOSE_ERROR, 500)
+  }
+
+  // Move escrow to earned_pending_review regardless of pass/fail outcome.
+  // A validly completed and submitted inspection earns the base fee; the
+  // construction result (pass/fail) does not gate inspector payment eligibility.
+  // Scope to the specific completed assignment (already ownership- and job-
+  // verified above) so a stale/cancelled assignment for the same job is never
+  // flipped to payment-eligible.
+  const { error: escrowError } = await serviceSupabase
+    .from('job_assignments')
+    .update({ escrow_status: 'earned_pending_review', updated_at: now })
+    .eq('id', assignmentId)
+
+  if (escrowError) {
+    console.error('[inspections/complete-scoped-assignment] escrow status update failed', {
+      assignmentId,
+      jobId,
+      inspectorId: user.id,
+      error: escrowError.message,
+    })
   }
 
   const { error: eventError } = await serviceSupabase.from('job_status_events').insert([
@@ -356,8 +386,12 @@ export async function POST(req: NextRequest) {
       if (!builderEmail) {
         console.warn('[inspections/complete-scoped-assignment] builder notice skipped: no builder email', { jobId, builderId })
       } else {
+        const noticeKey = reportOverallResult === 'fail'
+          ? 'inspection.failed_builder_notice'
+          : 'inspection.passed_builder_notice'
+
         const result = await sendVeroEmail({
-          eventKey: 'inspection.passed_builder_notice',
+          eventKey: noticeKey,
           to: builderEmail,
           recipientName: onboarding?.contact_name?.trim() || bProfile?.full_name?.trim() || undefined,
           projectName: job.project_name?.trim() || undefined,
@@ -365,9 +399,9 @@ export async function POST(req: NextRequest) {
         })
 
         if (result.ok) {
-          console.log('[inspections/complete-scoped-assignment] builder notice sent', { jobId, builderId })
+          console.log('[inspections/complete-scoped-assignment] builder notice sent', { jobId, builderId, noticeKey })
         } else {
-          console.warn('[inspections/complete-scoped-assignment] builder notice failed', { jobId, builderId, error: result.error })
+          console.warn('[inspections/complete-scoped-assignment] builder notice failed', { jobId, builderId, noticeKey, error: result.error })
         }
       }
     }
