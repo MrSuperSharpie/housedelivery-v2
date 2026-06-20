@@ -226,9 +226,10 @@ export async function POST(req: NextRequest) {
     return fail('stage_signoff_missing', 'Stage sign-off was not found on the saved report.', 409)
   }
 
-  // Derive inspection outcome from the seal payload. For scoped stage sign-offs
-  // overallResult is not set (required-item failures block sign-off upstream),
-  // so undefined is treated as pass. For full-seal reports it is set explicitly.
+  // Derive inspection outcome from the seal payload. Scoped stage sign-offs now
+  // stamp overallResult ('fail' when the scoped stage includes a documented Fail,
+  // otherwise 'pass'); full-seal reports set it explicitly. A missing value is a
+  // genuinely all-pass report, so undefined is treated as pass.
   const sealPayloadObj = report.seal_payload && typeof report.seal_payload === 'object'
     ? (report.seal_payload as Record<string, unknown>)
     : null

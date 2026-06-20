@@ -481,6 +481,19 @@ function isStageItemReadyForSignOff(item: WorkspaceItem, items: WorkspaceItem[],
   return checklistReady && itemHasRequiredDocument(item)
 }
 
+/**
+ * A Failed container counts as "documented" — and therefore submittable on the
+ * scoped path — only when it carries a deficiency note AND at least one attached
+ * evidence item. An undocumented Fail must keep blocking sign-off. ("Evidence
+ * unavailable" is intentionally not supported yet; it remains a later controlled
+ * feature with a structured reason and QA/audit handling.)
+ */
+function isDocumentedFail(item: WorkspaceItem): boolean {
+  return item.inspection_status === 'Failed'
+    && item.response_note.trim().length > 0
+    && item.documents.length > 0
+}
+
 function getFirstIncompleteStageItem(items: WorkspaceItem[], stageNumber: number, scopedToStageNumber?: number): WorkspaceItem | null {
   const stageRows = items.filter(item => item.stage_number === stageNumber)
   const firstDependencyBlocker = stageRows.find(item =>
@@ -862,6 +875,11 @@ const REQUIRED_EVIDENCE_LOCK_MESSAGE = 'Evidence required before Pass. Attach at
 const REQUIRED_EVIDENCE_NOTICE_CLASS = 'rounded-2xl border-2 border-rose-500 bg-white px-4 py-3 text-sm font-semibold leading-6 text-slate-950 shadow-[0_14px_28px_rgba(15,23,42,0.18)]'
 const DEPENDENCY_BLOCKER_NOTICE_CLASS = 'rounded-2xl border-2 border-amber-500 bg-white px-4 py-3 text-sm font-semibold leading-6 text-slate-950 shadow-[0_14px_28px_rgba(15,23,42,0.18)]'
 
+// A Fail is not a stop. Tell the inspector to keep working the safe, accessible items.
+const FAIL_CONTINUE_GUIDANCE = 'A Fail does not end the inspection — document the deficiency and continue inspecting all safe, accessible items.'
+// Shown when a Failed required item is not yet documented enough to submit on the scoped path.
+const FAIL_DOCUMENTATION_REQUIRED_MESSAGE = 'Add a deficiency note and evidence before submitting a failed item.'
+
 function RequiredEvidenceActionPanel({
   item,
   blocked,
@@ -1183,24 +1201,49 @@ export function InspectorCompletionWorkspace() {
     return items.filter(item => !itemHasRequiredDocument(item))
   }, [items])
 
+  // Mirrors handleStageSignOff's isScopedAssignmentCompletion: a single-stage
+  // scoped assignment that is not the final-occupancy gate (stage 15). Only on
+  // this path may a *documented* Fail be submitted without blocking sign-off.
+  const isScopedStageCompletion = Boolean(
+    assignmentScope
+    && currentStage === assignmentScope.internalStageNumber
+    && assignmentScope.internalStageNumber !== 15
+  )
+
   const stageRequiredItems = useMemo(
     () => stageItems.filter(isRequiredStageItem),
     [stageItems]
   )
 
   const requiredStageItemsComplete = useMemo(
-    () => stageRequiredItems.filter(item => isStageItemReadyForSignOff(item, items, assignmentScope?.internalStageNumber)).length,
-    [assignmentScope, items, stageRequiredItems]
+    () => stageRequiredItems.filter(item =>
+      isStageItemReadyForSignOff(item, items, assignmentScope?.internalStageNumber)
+      || (isScopedStageCompletion && isDocumentedFail(item))
+    ).length,
+    [assignmentScope, isScopedStageCompletion, items, stageRequiredItems]
   )
 
   const incompleteStageItems = useMemo(
-    () => stageRequiredItems.filter(item => !isStageItemReadyForSignOff(item, items, assignmentScope?.internalStageNumber)),
-    [assignmentScope, items, stageRequiredItems]
+    () => stageRequiredItems.filter(item =>
+      !isStageItemReadyForSignOff(item, items, assignmentScope?.internalStageNumber)
+      && !(isScopedStageCompletion && isDocumentedFail(item))
+    ),
+    [assignmentScope, isScopedStageCompletion, items, stageRequiredItems]
   )
 
   const failedStageItems = useMemo(
     () => stageRequiredItems.filter(item => item.inspection_status === 'Failed'),
     [stageRequiredItems]
+  )
+
+  // The gate-blocking subset of failed items. On the scoped path a documented
+  // Fail (note + evidence) is allowed through; an undocumented Fail still blocks.
+  // On every other path, any failed required item blocks (unchanged behaviour).
+  const blockingFailedStageItems = useMemo(
+    () => isScopedStageCompletion
+      ? stageRequiredItems.filter(item => item.inspection_status === 'Failed' && !isDocumentedFail(item))
+      : failedStageItems,
+    [failedStageItems, isScopedStageCompletion, stageRequiredItems]
   )
 
   const blockedStageItems = useMemo(
@@ -1284,10 +1327,10 @@ export function InspectorCompletionWorkspace() {
       return stageItems.length > 0 && stageItems.every(item => isStageItemReadyForSignOff(item, items, assignmentScope?.internalStageNumber))
     }
 
-    return failedStageItems.length === 0
+    return blockingFailedStageItems.length === 0
       && blockedStageItems.length === 0
       && requiredStageItemsComplete === stageRequiredItems.length
-  }, [assignmentScope, blockedStageItems.length, currentStageInAssignmentScope, failedStageItems.length, items, requiredStageItemsComplete, stageItems, stageRequiredItems.length])
+  }, [assignmentScope, blockedStageItems.length, blockingFailedStageItems.length, currentStageInAssignmentScope, items, requiredStageItemsComplete, stageItems, stageRequiredItems.length])
 
   const scopedBuilderStagePassedCount = useMemo(() => {
     if (!isScopedFinalOccupancy) return 0
@@ -2918,7 +2961,11 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
       item.stage_number === currentStage
         ? {
             ...item,
-            inspection_status: item.inspection_status === 'N/A' ? 'N/A' as const : 'Passed' as const,
+            // Preserve final outcomes: a documented Fail (and N/A) must survive
+            // sign-off. Only non-final statuses (Pending) collapse to Passed.
+            inspection_status: (item.inspection_status === 'N/A' || item.inspection_status === 'Failed')
+              ? item.inspection_status
+              : 'Passed' as const,
             metadata: {
               ...item.metadata,
               stageSignOff: {
@@ -2958,12 +3005,23 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
       },
     }
 
+    // On scoped completion, stamp the construction outcome into the seal payload
+    // so the scoped close route can route the correct builder notice and the
+    // Vault record reflects Fail / Corrections Required. A preserved Failed item
+    // in the scoped stage makes the report outcome 'fail'.
+    const scopedStageHasFailure = nextItems.some(item =>
+      item.stage_number === currentStage && item.inspection_status === 'Failed'
+    )
+
     const saved = await persistDraft(nextItems, nextStage, {
       status: isScopedAssignmentCompletion ? 'submitted' : report.status,
       submittedAt: isScopedAssignmentCompletion ? signedAt : report.submittedAt,
       sealPayload: {
         ...report.sealPayload,
         stageSignOffs: nextStageSignOffs,
+        ...(isScopedAssignmentCompletion
+          ? { overallResult: scopedStageHasFailure ? 'fail' : 'pass' }
+          : {}),
       },
     })
 
@@ -4319,6 +4377,12 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         </div>
                       )}
 
+                      {item.inspection_status === 'Failed' && (
+                        <div className="mt-3 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100/90">
+                          {FAIL_CONTINUE_GUIDANCE}
+                        </div>
+                      )}
+
                       <div className="mt-4 space-y-4">
                         <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
                           <button
@@ -4709,6 +4773,12 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                     {passBlocked && !passBlockedForEvidence && (
                       <div className={`mt-3 ${passBlockedForDependency ? DEPENDENCY_BLOCKER_NOTICE_CLASS : REQUIRED_EVIDENCE_NOTICE_CLASS}`}>
                         {passBlockedMessage}
+                      </div>
+                    )}
+
+                    {item.inspection_status === 'Failed' && (
+                      <div className="mt-3 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100/90">
+                        {FAIL_CONTINUE_GUIDANCE}
                       </div>
                     )}
 
@@ -5204,19 +5274,25 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                   </div>
                 </div>
 
-                {failedStageItems.length > 0 && (
+                {blockingFailedStageItems.length > 0 && (
                   <div className="mt-4 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-100/90">
-                    Resolve failed containers before signing off: {failedStageItems.map(item => item.item_code).join(', ')}.
+                    {FAIL_DOCUMENTATION_REQUIRED_MESSAGE} {blockingFailedStageItems.map(item => item.item_code).join(', ')}.
                   </div>
                 )}
 
-                {!currentStageSignOff && failedStageItems.length === 0 && blockedStageItems.length > 0 && (
+                {!currentStageSignOff && blockingFailedStageItems.length === 0 && failedStageItems.length > 0 && (
+                  <div className="mt-4 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100/90">
+                    Documented deficiencies will be filed: {failedStageItems.map(item => item.item_code).join(', ')}. This stage will not advance and the builder will receive a Corrections Required notice.
+                  </div>
+                )}
+
+                {!currentStageSignOff && blockingFailedStageItems.length === 0 && blockedStageItems.length > 0 && (
                   <div className="mt-4 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100/90">
                     Resolve dependency blockers before signing off: {blockedStageItems.map(({ item, blockedBy }) => `${item.item_code} needs ${blockedBy.join(', ')}`).join('; ')}.
                   </div>
                 )}
 
-                {!currentStageSignOff && failedStageItems.length === 0 && blockedStageItems.length === 0 && incompleteStageItems.length > 0 && (
+                {!currentStageSignOff && blockingFailedStageItems.length === 0 && blockedStageItems.length === 0 && incompleteStageItems.length > 0 && (
                   <div className="mt-4 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100/90">
                     Finish these containers first: {incompleteStageItems.map(item => item.item_code).join(', ')}.
                   </div>
