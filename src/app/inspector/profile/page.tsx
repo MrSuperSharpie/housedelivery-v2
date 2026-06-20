@@ -3,11 +3,11 @@
 import React, { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import {
   ArrowLeft, Mail, Phone, MapPin, BadgeCheck,
   Star, Shield, Clock, DollarSign, CheckCircle2,
-  Edit3, Save, X, Award, UploadCloud, AlertCircle, Layers
+  Edit3, Save, X, Award, UploadCloud, AlertCircle, Layers, Info
 } from 'lucide-react'
 import { BrandWordmark, Navbar } from '@/components/shared/Navbar'
 import { useAuth } from '@/lib/auth'
@@ -94,6 +94,7 @@ const COMPLETED_JOBS = [
 
 export default function InspectorProfilePage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user, login, logout } = useAuth()
   const [onboardingStatus, setOnboardingStatus] = useState<string | null>(null)
   const [credentialOwnerId, setCredentialOwnerId] = useState<string | null>(null)
@@ -112,9 +113,17 @@ export default function InspectorProfilePage() {
   const [resubmitSuccess, setResubmitSuccess] = useState<string | null>(null)
   const [selectedType, setSelectedType] = useState<InspectorCredentialType>('primary_license')
   // Stripe Connect payout account (read-own status; writes happen server-side)
-  const [payoutAccount, setPayoutAccount] = useState<{ stripeAccountId: string | null; payoutsEnabled: boolean; detailsSubmitted: boolean } | null>(null)
+  const [payoutAccount, setPayoutAccount] = useState<{
+    stripeAccountId: string | null
+    payoutsEnabled: boolean
+    detailsSubmitted: boolean
+    requirementsCurrentlyDue: string[]
+  } | null>(null)
   const [connectingPayouts, setConnectingPayouts] = useState(false)
   const [payoutError, setPayoutError] = useState<string | null>(null)
+  // Incremented to trigger a re-fetch of payout account status (e.g. on ?payouts=return).
+  const [payoutFetchTick, setPayoutFetchTick] = useState(0)
+  const [payoutReturnBanner, setPayoutReturnBanner] = useState(false)
   // Lane-specific upload state — used by the Manage Role Lanes section
   const laneUploadRef = useRef<HTMLInputElement>(null)
   const [pendingLaneType, setPendingLaneType] = useState<InspectorCredentialType | null>(null)
@@ -182,22 +191,34 @@ export default function InspectorProfilePage() {
   }, [user?.id, user?.supabaseId])
 
   // Load the inspector's own payout-account status (RLS allows select-own).
+  // Re-runs when credentialOwnerId is set and whenever payoutFetchTick is incremented
+  // (e.g. immediately after returning from Stripe and again after a short delay so
+  // the account.updated webhook has time to write updated flags to Supabase).
   useEffect(() => {
     if (!credentialOwnerId) return
     let cancelled = false
     supabase
       .from('inspector_payment_accounts')
-      .select('stripe_account_id, payouts_enabled, details_submitted')
+      .select('stripe_account_id, payouts_enabled, details_submitted, requirements_currently_due')
       .eq('inspector_id', credentialOwnerId)
       .maybeSingle()
       .then(({ data }) => {
         if (cancelled) return
+        const raw = data as {
+          stripe_account_id?: string | null
+          payouts_enabled?: boolean
+          details_submitted?: boolean
+          requirements_currently_due?: unknown
+        } | null
         setPayoutAccount(
-          data
+          raw
             ? {
-                stripeAccountId: (data as { stripe_account_id?: string | null }).stripe_account_id ?? null,
-                payoutsEnabled: (data as { payouts_enabled?: boolean }).payouts_enabled ?? false,
-                detailsSubmitted: (data as { details_submitted?: boolean }).details_submitted ?? false,
+                stripeAccountId: raw.stripe_account_id ?? null,
+                payoutsEnabled: raw.payouts_enabled ?? false,
+                detailsSubmitted: raw.details_submitted ?? false,
+                requirementsCurrentlyDue: Array.isArray(raw.requirements_currently_due)
+                  ? (raw.requirements_currently_due as string[])
+                  : [],
               }
             : null,
         )
@@ -205,7 +226,18 @@ export default function InspectorProfilePage() {
     return () => {
       cancelled = true
     }
-  }, [credentialOwnerId])
+  }, [credentialOwnerId, payoutFetchTick])
+
+  // When Stripe returns the inspector to ?payouts=return, show the return banner
+  // and trigger two re-fetches: one immediately and one after a delay to catch
+  // account.updated webhook writes that may not have landed yet.
+  useEffect(() => {
+    if (searchParams?.get('payouts') !== 'return') return
+    setPayoutReturnBanner(true)
+    setPayoutFetchTick(t => t + 1)
+    const timer = setTimeout(() => setPayoutFetchTick(t => t + 1), 4000)
+    return () => clearTimeout(timer)
+  }, [searchParams])
 
   const handleConnectPayouts = async () => {
     setConnectingPayouts(true)
@@ -831,28 +863,68 @@ export default function InspectorProfilePage() {
         {/* Payout account */}
         {isApprovedInspector && (
         <div className="card-dark rounded-2xl p-6 mt-5 inset-top">
+
+          {/* Return-from-Stripe banner */}
+          {payoutReturnBanner && (
+            <div className="mb-4 flex items-start gap-2.5 rounded-xl border border-electric/25 bg-electric/10 px-4 py-3 text-xs leading-relaxed text-electric">
+              <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              <span>
+                You have returned from Stripe. If Stripe still needs verification,
+                resume the secure Stripe verification flow below.
+              </span>
+            </div>
+          )}
+
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <div className="label-mono mb-1">Payout account</div>
-              <p className="text-xs text-muted">
-                {payoutAccount?.payoutsEnabled
-                  ? 'Your Stripe payout account is active. Earnings from completed inspections are paid out to this account.'
-                  : payoutAccount?.detailsSubmitted
-                    ? 'Your details are submitted and pending Stripe verification. You can resume onboarding if anything further is required.'
-                    : 'Connect a Stripe payout account so Vero can pay you for completed and submitted inspection reports. Onboarding is hosted securely by Stripe.'}
-              </p>
+
+              {payoutAccount?.payoutsEnabled ? (
+                <p className="text-xs text-muted">
+                  Your Stripe payout account is active. Earnings from completed
+                  inspections are paid out to this account.
+                </p>
+              ) : payoutAccount ? (
+                <>
+                  <p className="text-xs text-muted">
+                    Your payout account has been created, but Stripe still needs
+                    identity verification before payouts can be enabled. Please
+                    resume Stripe verification and follow the steps shown by Stripe.
+                  </p>
+                  {payoutAccount.requirementsCurrentlyDue.length > 0 && (
+                    <p className="mt-2 text-xs text-warning-amber flex items-start gap-1.5">
+                      <AlertCircle className="mt-0.5 w-3.5 h-3.5 shrink-0" />
+                      Stripe requires additional verification information before
+                      payouts can be activated.
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p className="text-xs text-muted">
+                  Connect a Stripe payout account so Vero can pay you for completed
+                  and submitted inspection reports. Onboarding is hosted securely
+                  by Stripe.
+                </p>
+              )}
+
               {payoutError && (
                 <p className="mt-2 text-xs text-fail-red flex items-center gap-1.5">
                   <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {payoutError}
                 </p>
               )}
             </div>
-            {payoutAccount?.payoutsEnabled && (
+
+            {payoutAccount?.payoutsEnabled ? (
               <span className="shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-success-green/25 bg-success-green/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-success-green">
                 <CheckCircle2 className="w-3 h-3" /> Active
               </span>
-            )}
+            ) : payoutAccount ? (
+              <span className="shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-warning-amber/25 bg-warning-amber/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-warning-amber">
+                <AlertCircle className="w-3 h-3" /> Action required by Stripe
+              </span>
+            ) : null}
           </div>
+
           {!payoutAccount?.payoutsEnabled && (
             <button
               type="button"
@@ -862,8 +934,10 @@ export default function InspectorProfilePage() {
             >
               {connectingPayouts ? (
                 <><span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Opening Stripe…</>
+              ) : payoutAccount ? (
+                <><Shield className="w-4 h-4" /> Resume Stripe verification</>
               ) : (
-                <><DollarSign className="w-4 h-4" /> {payoutAccount ? 'Resume payout setup' : 'Set up payouts'}</>
+                <><DollarSign className="w-4 h-4" /> Set up payouts</>
               )}
             </button>
           )}
