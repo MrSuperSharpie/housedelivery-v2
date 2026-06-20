@@ -17,6 +17,14 @@ function getServiceClient() {
 }
 
 function getAppUrl(): string {
+  // On Vercel Preview, prefer the deployment-specific hostname so Stripe returns
+  // to the same Preview URL, not the production domain stored in NEXT_PUBLIC_APP_URL.
+  const vercelEnv = process.env.VERCEL_ENV
+  if (vercelEnv === 'preview') {
+    const deploymentHost =
+      process.env.NEXT_PUBLIC_VERCEL_URL ?? process.env.VERCEL_URL
+    if (deploymentHost) return `https://${deploymentHost}`
+  }
   return (process.env.NEXT_PUBLIC_APP_URL ?? '').replace(/\/+$/, '') || 'http://localhost:3000'
 }
 
