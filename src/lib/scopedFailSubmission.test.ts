@@ -76,7 +76,7 @@ test('scoped sign-off stamps overallResult into the seal payload', () => {
 test('inspector copy: failed section keeps the inspector working safe items', () => {
   const source = read(WORKSPACE)
   assert.ok(
-    source.includes('This section will not pass. Document the deficiency, attach evidence, and continue inspecting all safe and accessible items.'),
+    source.includes('Use Corrections Required when the section cannot be cleared because the inspector observed a deficiency. Document the issue, attach evidence, and continue inspecting safe and accessible items.'),
     'failed-section continue-where-safe panel copy must be present'
   )
 })
@@ -111,22 +111,30 @@ test('footer outcome area is titled Section Outcome with helper copy', () => {
   const source = read(WORKSPACE)
   assert.ok(source.includes("const SECTION_OUTCOME_HEADING = 'Section Outcome'"), 'Section Outcome heading must exist')
   assert.ok(
-    source.includes('These actions apply to this full inspection section. Use Corrections Required when you observed non-compliance.'),
+    source.includes('These actions apply to this full inspection section. Use Corrections Required when you observed a deficiency.'),
     'Section Outcome helper copy must exist'
   )
 })
 
-test('footer buttons use the clarified, action-oriented labels', () => {
+test('main outcome buttons use the two-line product labels', () => {
   const source = read(WORKSPACE)
-  for (const label of [
-    'Keep Section Pending',
-    'Confirm Section Passed',
-    'Confirm Corrections Required',
-    'Unable to Verify / Hold',
-    'Mark Section N/A',
+  for (const [label, sublabel] of [
+    ['Passed', 'Verified Clear'],
+    ['Corrections Required', 'Deficiency Observed'],
+    ['Hold', 'Same-Day Correction'],
+    ['N/A', 'Not Applicable'],
   ]) {
-    assert.ok(source.includes(label), `footer label "${label}" must be present`)
+    assert.ok(source.includes(`label="${label}"`) || source.includes(`>${label}<`), `outcome label "${label}" must be present`)
+    assert.ok(source.includes(sublabel), `outcome sublabel "${sublabel}" must be present`)
   }
+})
+
+test('Pending is a secondary reset action, not a main outcome button', () => {
+  const source = read(WORKSPACE)
+  assert.ok(source.includes('label="Reset to Pending"'), 'Pending must be relabelled as a reset action')
+  assert.ok(!source.includes('Keep Section Pending'), 'old "Keep Section Pending" outcome wording must be gone')
+  assert.ok(!source.includes('Confirm Section Passed'), 'old "Confirm Section Passed" wording must be gone')
+  assert.ok(!source.includes('Confirm Corrections Required'), 'old "Confirm Corrections Required" wording must be gone')
 })
 
 test('failed section shows Corrections Required badge and doc-state messages', () => {
@@ -158,10 +166,14 @@ test('Critical Stop wording is replaced by Stage Blocker Conditions', () => {
   )
 })
 
-test('Hold modal explains Unable to Verify usage', () => {
+test('Hold modal explains the same-day correction meaning, not unable-to-verify', () => {
   const source = read(WORKSPACE)
   assert.ok(
-    source.includes('Use this when you cannot confirm Pass or Fail because access, visibility, readiness, documentation, or evidence is missing.'),
-    'Unable to Verify / Hold helper copy must exist'
+    source.includes('Use Hold when a minor correction can likely be completed while you are still on site. Add what needs to be corrected. If it is not corrected before you leave the site, mark Corrections Required.'),
+    'Hold same-day-correction helper copy must exist'
+  )
+  assert.ok(
+    !source.includes('Unable to Verify / Hold'),
+    'unable-to-verify Hold wording must be removed'
   )
 })

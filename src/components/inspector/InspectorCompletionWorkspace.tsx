@@ -810,6 +810,7 @@ function mergeItems(
 
 function StatusPill({
   label,
+  sublabel,
   value,
   active,
   disabled,
@@ -817,6 +818,7 @@ function StatusPill({
   onDisabledClick,
 }: {
   label: string
+  sublabel?: string
   value: CompletionInspectionStatus
   active: boolean
   disabled?: boolean
@@ -860,9 +862,12 @@ function StatusPill({
       }}
       className={`min-h-12 rounded-2xl border px-4 py-3 text-sm font-black transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${disabled ? disabledClass : ''} ${active ? activeClass : idleClass}`}
     >
-      <span className="inline-flex items-center justify-center">
-        {icon ? <span className="mr-2">{icon}</span> : null}
-        <span>{label}</span>
+      <span className="inline-flex items-center justify-center gap-2">
+        {icon ? <span>{icon}</span> : null}
+        <span className="flex flex-col items-center leading-tight">
+          <span>{label}</span>
+          {sublabel ? <span className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.12em] opacity-75">{sublabel}</span> : null}
+        </span>
       </span>
     </button>
   )
@@ -906,13 +911,14 @@ const FAIL_DOCUMENTATION_REQUIRED_MESSAGE = 'Add a deficiency note and evidence 
 
 // ── Section Outcome clarity copy (inspector field UI) ──────────────────────
 const SECTION_OUTCOME_HEADING = 'Section Outcome'
-const SECTION_OUTCOME_HELPER = 'These actions apply to this full inspection section. Use Corrections Required when you observed non-compliance. Use Unable to Verify when you cannot confirm Pass or Fail because access, evidence, readiness, or documentation is missing.'
+const SECTION_OUTCOME_HELPER = 'These actions apply to this full inspection section. Use Corrections Required when you observed a deficiency. Use Hold for a minor correction that can be completed while you are still on site. Pending is the default draft state until you select an outcome.'
 // Failed-section panel copy.
-const FAIL_SECTION_PANEL_MESSAGE = 'This section will not pass. Document the deficiency, attach evidence, and continue inspecting all safe and accessible items.'
+const FAIL_SECTION_PANEL_MESSAGE = 'Use Corrections Required when the section cannot be cleared because the inspector observed a deficiency. Document the issue, attach evidence, and continue inspecting safe and accessible items.'
 const FAIL_SECTION_DOC_REQUIRED_MESSAGE = 'Add a deficiency note and evidence before submitting this failed section.'
 const FAIL_SECTION_READY_MESSAGE = 'Ready to submit as Corrections Required.'
-// Hold / Unable to Verify clarity copy.
-const HOLD_UNABLE_TO_VERIFY_HELPER = 'Use this when you cannot confirm Pass or Fail because access, visibility, readiness, documentation, or evidence is missing. Add the reason and the next step required to clear this section.'
+// Hold clarity copy. Hold is a minor same-day correction opportunity, not an
+// unable-to-verify condition. Wording only — no timers or workflow changes.
+const HOLD_SAME_DAY_HELPER = 'Use Hold when a minor correction can likely be completed while you are still on site. Add what needs to be corrected. If it is not corrected before you leave the site, mark Corrections Required.'
 // Stage Blocker (formerly "Critical Stop") clarity copy. Wording only — this is
 // not a municipal stop-work order; it means Vero cannot clear/advance the stage.
 const STAGE_BLOCKER_CONDITIONS_HEADING = 'Stage Blocker Conditions'
@@ -3767,8 +3773,8 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                     </div>
 
                     <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-                      <div className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-800">Unable to Verify / Hold</div>
-                      <p className="mt-1 text-xs leading-relaxed text-amber-900/90">{HOLD_UNABLE_TO_VERIFY_HELPER}</p>
+                      <div className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-800">Hold · Same-Day Correction</div>
+                      <p className="mt-1 text-xs leading-relaxed text-amber-900/90">{HOLD_SAME_DAY_HELPER}</p>
                     </div>
 
                     <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
@@ -4371,15 +4377,10 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         <p className="mt-1 text-xs leading-relaxed text-zinc-400">{SECTION_OUTCOME_HELPER}</p>
                       </div>
 
-                      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-6">
+                      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
                         <StatusPill
-                          label="Keep Section Pending"
-                          value="Pending"
-                          active={item.inspection_status === 'Pending'}
-                          onClick={value => handleStatusSelection(item.item_code, value)}
-                        />
-                        <StatusPill
-                          label="Confirm Section Passed"
+                          label="Passed"
+                          sublabel="Verified Clear"
                           value="Passed"
                           active={item.inspection_status === 'Passed'}
                           disabled={passBlocked}
@@ -4387,7 +4388,8 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                           onClick={value => handleStatusSelection(item.item_code, value)}
                         />
                         <StatusPill
-                          label="Confirm Corrections Required"
+                          label="Corrections Required"
+                          sublabel="Deficiency Observed"
                           value="Failed"
                           active={item.inspection_status === 'Failed'}
                           onClick={value => handleStatusSelection(item.item_code, value)}
@@ -4399,15 +4401,28 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                           onClick={() => openHoldForm(item)}
                           className={HOLD_ACTION_BUTTON_CLASS}
                         >
-                          <span className="inline-flex items-center justify-center">
-                            <PauseCircle className="mr-2 h-4 w-4" />
-                            <span>Unable to Verify / Hold</span>
+                          <span className="inline-flex items-center justify-center gap-2">
+                            <PauseCircle className="h-4 w-4" />
+                            <span className="flex flex-col items-center leading-tight">
+                              <span>Hold</span>
+                              <span className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.12em] opacity-75">Same-Day Correction</span>
+                            </span>
                           </span>
                         </button>
                         <StatusPill
-                          label="Mark Section N/A"
+                          label="N/A"
+                          sublabel="Not Applicable"
                           value="N/A"
                           active={item.inspection_status === 'N/A'}
+                          onClick={value => handleStatusSelection(item.item_code, value)}
+                        />
+                      </div>
+
+                      <div className="mt-2 grid grid-cols-2 gap-2 sm:max-w-md">
+                        <StatusPill
+                          label="Reset to Pending"
+                          value="Pending"
+                          active={item.inspection_status === 'Pending'}
                           onClick={value => handleStatusSelection(item.item_code, value)}
                         />
                         <button
@@ -4765,15 +4780,10 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       <p className="mt-1 text-xs leading-relaxed text-zinc-400">{SECTION_OUTCOME_HELPER}</p>
                     </div>
 
-                    <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-6">
+                    <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
                       <StatusPill
-                        label="Keep Section Pending"
-                        value="Pending"
-                        active={item.inspection_status === 'Pending'}
-                        onClick={value => handleStatusSelection(item.item_code, value)}
-                      />
-                      <StatusPill
-                        label="Confirm Section Passed"
+                        label="Passed"
+                        sublabel="Verified Clear"
                         value="Passed"
                         active={item.inspection_status === 'Passed'}
                         disabled={passBlocked}
@@ -4781,7 +4791,8 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         onClick={value => handleStatusSelection(item.item_code, value)}
                       />
                       <StatusPill
-                        label="Confirm Corrections Required"
+                        label="Corrections Required"
+                        sublabel="Deficiency Observed"
                         value="Failed"
                         active={item.inspection_status === 'Failed'}
                         onClick={value => handleStatusSelection(item.item_code, value)}
@@ -4793,15 +4804,28 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         onClick={() => openHoldForm(item)}
                         className={HOLD_ACTION_BUTTON_CLASS}
                       >
-                        <span className="inline-flex items-center justify-center">
-                          <PauseCircle className="mr-2 h-4 w-4" />
-                          <span>Unable to Verify / Hold</span>
+                        <span className="inline-flex items-center justify-center gap-2">
+                          <PauseCircle className="h-4 w-4" />
+                          <span className="flex flex-col items-center leading-tight">
+                            <span>Hold</span>
+                            <span className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.12em] opacity-75">Same-Day Correction</span>
+                          </span>
                         </span>
                       </button>
                       <StatusPill
-                        label="Mark Section N/A"
+                        label="N/A"
+                        sublabel="Not Applicable"
                         value="N/A"
                         active={item.inspection_status === 'N/A'}
+                        onClick={value => handleStatusSelection(item.item_code, value)}
+                      />
+                    </div>
+
+                    <div className="mt-2 grid grid-cols-2 gap-2 sm:max-w-md">
+                      <StatusPill
+                        label="Reset to Pending"
+                        value="Pending"
+                        active={item.inspection_status === 'Pending'}
                         onClick={value => handleStatusSelection(item.item_code, value)}
                       />
                       <button
