@@ -116,6 +116,15 @@ test('footer outcome area is titled Section Outcome with helper copy', () => {
   )
 })
 
+test('Section Outcome helper frames Hold as a same-day correction, never Unable to Verify', () => {
+  const source = read(WORKSPACE)
+  const idx = source.indexOf('const SECTION_OUTCOME_HELPER =')
+  assert.ok(idx !== -1, 'SECTION_OUTCOME_HELPER must exist')
+  const line = source.slice(idx, source.indexOf('\n', idx))
+  assert.ok(line.includes('Use Hold for a minor correction'), 'Hold must be framed as a minor (same-day) correction')
+  assert.ok(!source.includes('Unable to Verify'), 'no Unable to Verify outcome wording may appear')
+})
+
 test('main outcome buttons use the two-line product labels', () => {
   const source = read(WORKSPACE)
   for (const [label, sublabel] of [
@@ -165,7 +174,7 @@ test('Critical Stop / Stage Blocker panel is presented as calm Important Clearan
     'panel heading must read "Important Clearance Notes"'
   )
   assert.ok(
-    source.includes('Review these conditions before clearing this section. If any apply, document the issue and use Corrections Required, Hold, or the appropriate report notes.'),
+    source.includes('Review these conditions before marking this section Passed. If any condition affects clearance, document the issue and select Corrections Required, or Hold if it can be corrected while you are still on site. Use report notes only for context, not to bypass the section outcome.'),
     'calm clearance-notes helper copy must exist'
   )
 })

@@ -923,7 +923,7 @@ const HOLD_SAME_DAY_HELPER = 'Use Hold when a minor correction can likely be com
 // Blocker workflow is not built yet, so this is presented as calm reference notes
 // — not a major active outcome. Wording/visual only — no logic or automation.
 const STAGE_BLOCKER_CONDITIONS_HEADING = 'Important Clearance Notes'
-const STAGE_BLOCKER_HELPER = 'Review these conditions before clearing this section. If any apply, document the issue and use Corrections Required, Hold, or the appropriate report notes.'
+const STAGE_BLOCKER_HELPER = 'Review these conditions before marking this section Passed. If any condition affects clearance, document the issue and select Corrections Required, or Hold if it can be corrected while you are still on site. Use report notes only for context, not to bypass the section outcome.'
 
 function RequiredEvidenceActionPanel({
   item,
