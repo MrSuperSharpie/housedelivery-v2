@@ -3,6 +3,7 @@
 import React, { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import {
+  AlertCircle,
   AlertTriangle,
   ArrowLeft,
   Building2,
@@ -867,6 +868,31 @@ function StatusPill({
   )
 }
 
+/**
+ * Visual emphasis for a section the inspector has marked Failed. Wording/clarity
+ * only — it does not change submission, payment, or stage-advancement logic.
+ * `documented` reflects isDocumentedFail (deficiency note + evidence present).
+ */
+function FailedSectionPanel({ documented }: { documented: boolean }) {
+  return (
+    <div className="mt-3 rounded-2xl border-2 border-rose-500/60 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
+      <div className="flex items-center gap-2">
+        <AlertTriangle className="h-4 w-4 shrink-0 text-rose-300" />
+        <span className="rounded-full border border-rose-400/50 bg-rose-500/20 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-[0.14em] text-rose-100">
+          Corrections Required
+        </span>
+      </div>
+      <p className="mt-2 leading-relaxed text-rose-100/90">{FAIL_SECTION_PANEL_MESSAGE}</p>
+      <div className={`mt-2 flex items-center gap-2 font-semibold ${documented ? 'text-emerald-200' : 'text-amber-200'}`}>
+        {documented
+          ? <CheckCircle2 className="h-4 w-4 shrink-0" />
+          : <AlertCircle className="h-4 w-4 shrink-0" />}
+        <span>{documented ? FAIL_SECTION_READY_MESSAGE : FAIL_SECTION_DOC_REQUIRED_MESSAGE}</span>
+      </div>
+    </div>
+  )
+}
+
 const FLOATING_PANEL_CLASS = 'shadow-[0_18px_34px_rgba(15,23,42,0.18)]'
 const TACTILE_MEDIA_BUTTON_CLASS = 'inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full border border-slate-300/80 bg-[#e5e7eb] px-0 text-slate-700 shadow-[0_6px_14px_rgba(15,23,42,0.18)] transition-colors hover:bg-[#f3f4f6] disabled:cursor-not-allowed disabled:opacity-50'
 const EMPHASIZED_BODY_TEXT_CLASS = 'text-[17px] leading-7 text-zinc-300'
@@ -875,10 +901,22 @@ const REQUIRED_EVIDENCE_LOCK_MESSAGE = 'Evidence required before Pass. Attach at
 const REQUIRED_EVIDENCE_NOTICE_CLASS = 'rounded-2xl border-2 border-rose-500 bg-white px-4 py-3 text-sm font-semibold leading-6 text-slate-950 shadow-[0_14px_28px_rgba(15,23,42,0.18)]'
 const DEPENDENCY_BLOCKER_NOTICE_CLASS = 'rounded-2xl border-2 border-amber-500 bg-white px-4 py-3 text-sm font-semibold leading-6 text-slate-950 shadow-[0_14px_28px_rgba(15,23,42,0.18)]'
 
-// A Fail is not a stop. Tell the inspector to keep working the safe, accessible items.
-const FAIL_CONTINUE_GUIDANCE = 'A Fail does not end the inspection — document the deficiency and continue inspecting all safe, accessible items.'
 // Shown when a Failed required item is not yet documented enough to submit on the scoped path.
 const FAIL_DOCUMENTATION_REQUIRED_MESSAGE = 'Add a deficiency note and evidence before submitting a failed item.'
+
+// ── Section Outcome clarity copy (inspector field UI) ──────────────────────
+const SECTION_OUTCOME_HEADING = 'Section Outcome'
+const SECTION_OUTCOME_HELPER = 'These actions apply to this full inspection section. Use Corrections Required when you observed non-compliance. Use Unable to Verify when you cannot confirm Pass or Fail because access, evidence, readiness, or documentation is missing.'
+// Failed-section panel copy.
+const FAIL_SECTION_PANEL_MESSAGE = 'This section will not pass. Document the deficiency, attach evidence, and continue inspecting all safe and accessible items.'
+const FAIL_SECTION_DOC_REQUIRED_MESSAGE = 'Add a deficiency note and evidence before submitting this failed section.'
+const FAIL_SECTION_READY_MESSAGE = 'Ready to submit as Corrections Required.'
+// Hold / Unable to Verify clarity copy.
+const HOLD_UNABLE_TO_VERIFY_HELPER = 'Use this when you cannot confirm Pass or Fail because access, visibility, readiness, documentation, or evidence is missing. Add the reason and the next step required to clear this section.'
+// Stage Blocker (formerly "Critical Stop") clarity copy. Wording only — this is
+// not a municipal stop-work order; it means Vero cannot clear/advance the stage.
+const STAGE_BLOCKER_CONDITIONS_HEADING = 'Stage Blocker Conditions'
+const STAGE_BLOCKER_HELPER = 'Use this only when Vero cannot responsibly clear this stage because of a serious safety, access, concealment, scope, authority, or verification issue. This blocks stage advancement in Vero but does not replace the authority of the local building department or AHJ.'
 
 function RequiredEvidenceActionPanel({
   item,
@@ -3728,6 +3766,11 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       </button>
                     </div>
 
+                    <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                      <div className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-800">Unable to Verify / Hold</div>
+                      <p className="mt-1 text-xs leading-relaxed text-amber-900/90">{HOLD_UNABLE_TO_VERIFY_HELPER}</p>
+                    </div>
+
                     <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
                       <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-700">Affected Container</div>
                       <div className="mt-2 text-sm font-semibold text-slate-900">
@@ -4279,10 +4322,11 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                           >
                             <div className="flex items-center gap-3">
                               <AlertTriangle className="h-5 w-5 shrink-0 text-red-500" />
-                              <div className="text-sm font-black uppercase tracking-[0.14em] text-red-700">Critical Stop Conditions</div>
+                              <div className="text-sm font-black uppercase tracking-[0.14em] text-red-700">{STAGE_BLOCKER_CONDITIONS_HEADING}</div>
                             </div>
                             <ChevronRight className={`h-5 w-5 text-red-500 transition-transform ${stopConditionsOpen ? 'rotate-90' : ''}`} />
                           </button>
+                          <p className="mt-2 text-xs leading-relaxed text-red-700/90">{STAGE_BLOCKER_HELPER}</p>
 
                           {stopConditionsOpen && (
                             <div className="mt-3">
@@ -4322,15 +4366,20 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         </div>
                       )}
 
-                      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-6">
+                      <div className="mt-4">
+                        <div className="text-[11px] font-black uppercase tracking-[0.18em] text-zinc-400">{SECTION_OUTCOME_HEADING}</div>
+                        <p className="mt-1 text-xs leading-relaxed text-zinc-400">{SECTION_OUTCOME_HELPER}</p>
+                      </div>
+
+                      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-6">
                         <StatusPill
-                          label="Pending"
+                          label="Keep Section Pending"
                           value="Pending"
                           active={item.inspection_status === 'Pending'}
                           onClick={value => handleStatusSelection(item.item_code, value)}
                         />
                         <StatusPill
-                          label="Passed"
+                          label="Confirm Section Passed"
                           value="Passed"
                           active={item.inspection_status === 'Passed'}
                           disabled={passBlocked}
@@ -4338,7 +4387,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                           onClick={value => handleStatusSelection(item.item_code, value)}
                         />
                         <StatusPill
-                          label="Failed"
+                          label="Confirm Corrections Required"
                           value="Failed"
                           active={item.inspection_status === 'Failed'}
                           onClick={value => handleStatusSelection(item.item_code, value)}
@@ -4352,11 +4401,11 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         >
                           <span className="inline-flex items-center justify-center">
                             <PauseCircle className="mr-2 h-4 w-4" />
-                            <span>Hold</span>
+                            <span>Unable to Verify / Hold</span>
                           </span>
                         </button>
                         <StatusPill
-                          label="N/A"
+                          label="Mark Section N/A"
                           value="N/A"
                           active={item.inspection_status === 'N/A'}
                           onClick={value => handleStatusSelection(item.item_code, value)}
@@ -4378,9 +4427,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       )}
 
                       {item.inspection_status === 'Failed' && (
-                        <div className="mt-3 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100/90">
-                          {FAIL_CONTINUE_GUIDANCE}
-                        </div>
+                        <FailedSectionPanel documented={isDocumentedFail(item)} />
                       )}
 
                       <div className="mt-4 space-y-4">
@@ -4713,15 +4760,20 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       </div>
                     )}
 
-                    <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-6">
+                    <div className="mt-4">
+                      <div className="text-[11px] font-black uppercase tracking-[0.18em] text-zinc-400">{SECTION_OUTCOME_HEADING}</div>
+                      <p className="mt-1 text-xs leading-relaxed text-zinc-400">{SECTION_OUTCOME_HELPER}</p>
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-6">
                       <StatusPill
-                        label="Pending"
+                        label="Keep Section Pending"
                         value="Pending"
                         active={item.inspection_status === 'Pending'}
                         onClick={value => handleStatusSelection(item.item_code, value)}
                       />
                       <StatusPill
-                        label="Passed"
+                        label="Confirm Section Passed"
                         value="Passed"
                         active={item.inspection_status === 'Passed'}
                         disabled={passBlocked}
@@ -4729,7 +4781,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         onClick={value => handleStatusSelection(item.item_code, value)}
                       />
                       <StatusPill
-                        label="Failed"
+                        label="Confirm Corrections Required"
                         value="Failed"
                         active={item.inspection_status === 'Failed'}
                         onClick={value => handleStatusSelection(item.item_code, value)}
@@ -4743,11 +4795,11 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       >
                         <span className="inline-flex items-center justify-center">
                           <PauseCircle className="mr-2 h-4 w-4" />
-                          <span>Hold</span>
+                          <span>Unable to Verify / Hold</span>
                         </span>
                       </button>
                       <StatusPill
-                        label="N/A"
+                        label="Mark Section N/A"
                         value="N/A"
                         active={item.inspection_status === 'N/A'}
                         onClick={value => handleStatusSelection(item.item_code, value)}
@@ -4777,9 +4829,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                     )}
 
                     {item.inspection_status === 'Failed' && (
-                      <div className="mt-3 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100/90">
-                        {FAIL_CONTINUE_GUIDANCE}
-                      </div>
+                      <FailedSectionPanel documented={isDocumentedFail(item)} />
                     )}
 
                     <div className="mt-4 space-y-4">
@@ -4792,10 +4842,11 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                           >
                             <div className="flex items-center gap-3">
                               <AlertTriangle className="h-5 w-5 shrink-0 text-red-500" />
-                              <div className="text-sm font-black uppercase tracking-[0.14em] text-red-700">Critical Stop Conditions</div>
+                              <div className="text-sm font-black uppercase tracking-[0.14em] text-red-700">{STAGE_BLOCKER_CONDITIONS_HEADING}</div>
                             </div>
                             <ChevronRight className={`h-5 w-5 text-red-500 transition-transform ${stopConditionsOpen ? 'rotate-90' : ''}`} />
                           </button>
+                          <p className="mt-2 text-xs leading-relaxed text-red-700/90">{STAGE_BLOCKER_HELPER}</p>
 
                           {stopConditionsOpen && (
                             <div className="mt-3">

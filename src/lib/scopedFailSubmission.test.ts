@@ -73,11 +73,11 @@ test('scoped sign-off stamps overallResult into the seal payload', () => {
   )
 })
 
-test('inspector copy: a Fail does not end the inspection', () => {
+test('inspector copy: failed section keeps the inspector working safe items', () => {
   const source = read(WORKSPACE)
   assert.ok(
-    source.includes('A Fail does not end the inspection — document the deficiency and continue inspecting all safe, accessible items.'),
-    'continue-where-safe guidance copy must be present'
+    source.includes('This section will not pass. Document the deficiency, attach evidence, and continue inspecting all safe and accessible items.'),
+    'failed-section continue-where-safe panel copy must be present'
   )
 })
 
@@ -101,4 +101,67 @@ test('scoped route escrow write stays assignment-scoped, not job-scoped', () => 
   assert.ok(idx !== -1, 'escrow write must exist')
   const body = source.slice(idx, idx + 120)
   assert.ok(body.includes(".eq('id', assignmentId)"), 'escrow must be scoped to the assignment id')
+})
+
+// ===========================================================================
+// Section Outcome clarity patch (inspector field UI wording only)
+// ===========================================================================
+
+test('footer outcome area is titled Section Outcome with helper copy', () => {
+  const source = read(WORKSPACE)
+  assert.ok(source.includes("const SECTION_OUTCOME_HEADING = 'Section Outcome'"), 'Section Outcome heading must exist')
+  assert.ok(
+    source.includes('These actions apply to this full inspection section. Use Corrections Required when you observed non-compliance.'),
+    'Section Outcome helper copy must exist'
+  )
+})
+
+test('footer buttons use the clarified, action-oriented labels', () => {
+  const source = read(WORKSPACE)
+  for (const label of [
+    'Keep Section Pending',
+    'Confirm Section Passed',
+    'Confirm Corrections Required',
+    'Unable to Verify / Hold',
+    'Mark Section N/A',
+  ]) {
+    assert.ok(source.includes(label), `footer label "${label}" must be present`)
+  }
+})
+
+test('failed section shows Corrections Required badge and doc-state messages', () => {
+  const source = read(WORKSPACE)
+  assert.ok(source.includes('Corrections Required'), 'Corrections Required badge must exist')
+  assert.ok(
+    source.includes('Add a deficiency note and evidence before submitting this failed section.'),
+    'doc-required message must exist'
+  )
+  assert.ok(
+    source.includes('Ready to submit as Corrections Required.'),
+    'ready-to-submit message must exist'
+  )
+})
+
+test('Critical Stop wording is replaced by Stage Blocker Conditions', () => {
+  const source = read(WORKSPACE)
+  assert.ok(
+    !source.includes('Critical Stop Conditions'),
+    'inspector-facing "Critical Stop Conditions" wording must be removed'
+  )
+  assert.ok(
+    source.includes("const STAGE_BLOCKER_CONDITIONS_HEADING = 'Stage Blocker Conditions'"),
+    'Stage Blocker Conditions heading must exist'
+  )
+  assert.ok(
+    source.includes('does not replace the authority of the local building department or AHJ'),
+    'authority-boundary helper copy must exist'
+  )
+})
+
+test('Hold modal explains Unable to Verify usage', () => {
+  const source = read(WORKSPACE)
+  assert.ok(
+    source.includes('Use this when you cannot confirm Pass or Fail because access, visibility, readiness, documentation, or evidence is missing.'),
+    'Unable to Verify / Hold helper copy must exist'
+  )
 })
