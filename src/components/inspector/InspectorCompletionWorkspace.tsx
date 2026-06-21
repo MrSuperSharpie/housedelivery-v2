@@ -919,10 +919,11 @@ const FAIL_SECTION_READY_MESSAGE = 'Ready to submit as Corrections Required.'
 // Hold clarity copy. Hold is a minor same-day correction opportunity, not an
 // unable-to-verify condition. Wording only — no timers or workflow changes.
 const HOLD_SAME_DAY_HELPER = 'Use Hold when a minor correction can likely be completed while you are still on site. Add what needs to be corrected. If it is not corrected before you leave the site, mark Corrections Required.'
-// Stage Blocker (formerly "Critical Stop") clarity copy. Wording only — this is
-// not a municipal stop-work order; it means Vero cannot clear/advance the stage.
-const STAGE_BLOCKER_CONDITIONS_HEADING = 'Stage Blocker Conditions'
-const STAGE_BLOCKER_HELPER = 'Use this only when Vero cannot responsibly clear this stage because of a serious safety, access, concealment, scope, authority, or verification issue. This blocks stage advancement in Vero but does not replace the authority of the local building department or AHJ.'
+// Clearance-notes panel (formerly "Critical Stop" / "Stage Blocker"). The Stage
+// Blocker workflow is not built yet, so this is presented as calm reference notes
+// — not a major active outcome. Wording/visual only — no logic or automation.
+const STAGE_BLOCKER_CONDITIONS_HEADING = 'Important Clearance Notes'
+const STAGE_BLOCKER_HELPER = 'Review these conditions before clearing this section. If any apply, document the issue and use Corrections Required, Hold, or the appropriate report notes.'
 
 function RequiredEvidenceActionPanel({
   item,
@@ -4320,26 +4321,26 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       </div>
 
                       {(item.stop_if ?? []).length > 0 && (
-                        <div className="mt-4 rounded-[1.5rem] border border-red-200 border-l-4 border-l-red-300 bg-red-50 p-4 text-red-700">
+                        <div className="mt-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 text-slate-700">
                           <button
                             type="button"
                             onClick={() => toggleExpandedRecord(setExpandedStopConditions, item.item_code)}
                             className="flex w-full items-center justify-between gap-3 text-left"
                           >
                             <div className="flex items-center gap-3">
-                              <AlertTriangle className="h-5 w-5 shrink-0 text-red-500" />
-                              <div className="text-sm font-black uppercase tracking-[0.14em] text-red-700">{STAGE_BLOCKER_CONDITIONS_HEADING}</div>
+                              <FileText className="h-5 w-5 shrink-0 text-slate-400" />
+                              <div className="text-sm font-bold uppercase tracking-[0.14em] text-slate-600">{STAGE_BLOCKER_CONDITIONS_HEADING}</div>
                             </div>
-                            <ChevronRight className={`h-5 w-5 text-red-500 transition-transform ${stopConditionsOpen ? 'rotate-90' : ''}`} />
+                            <ChevronRight className={`h-5 w-5 text-slate-400 transition-transform ${stopConditionsOpen ? 'rotate-90' : ''}`} />
                           </button>
-                          <p className="mt-2 text-xs leading-relaxed text-red-700/90">{STAGE_BLOCKER_HELPER}</p>
+                          <p className="mt-2 text-xs leading-relaxed text-slate-600">{STAGE_BLOCKER_HELPER}</p>
 
                           {stopConditionsOpen && (
                             <div className="mt-3">
                               <GuidanceList
                                 items={item.stop_if ?? []}
-                                bulletClassName="bg-red-300"
-                                textClassName="text-sm text-red-950"
+                                bulletClassName="bg-slate-300"
+                                textClassName="text-sm text-slate-700"
                               />
                             </div>
                           )}
@@ -4858,26 +4859,26 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
 
                     <div className="mt-4 space-y-4">
                       {stopItems.length > 0 && (
-                        <div className="rounded-[1.5rem] border border-red-200 border-l-4 border-l-red-300 bg-red-50 p-4 text-red-700">
+                        <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 text-slate-700">
                           <button
                             type="button"
                             onClick={() => toggleExpandedRecord(setExpandedStopConditions, item.item_code)}
                             className="flex w-full items-center justify-between gap-3 text-left"
                           >
                             <div className="flex items-center gap-3">
-                              <AlertTriangle className="h-5 w-5 shrink-0 text-red-500" />
-                              <div className="text-sm font-black uppercase tracking-[0.14em] text-red-700">{STAGE_BLOCKER_CONDITIONS_HEADING}</div>
+                              <FileText className="h-5 w-5 shrink-0 text-slate-400" />
+                              <div className="text-sm font-bold uppercase tracking-[0.14em] text-slate-600">{STAGE_BLOCKER_CONDITIONS_HEADING}</div>
                             </div>
-                            <ChevronRight className={`h-5 w-5 text-red-500 transition-transform ${stopConditionsOpen ? 'rotate-90' : ''}`} />
+                            <ChevronRight className={`h-5 w-5 text-slate-400 transition-transform ${stopConditionsOpen ? 'rotate-90' : ''}`} />
                           </button>
-                          <p className="mt-2 text-xs leading-relaxed text-red-700/90">{STAGE_BLOCKER_HELPER}</p>
+                          <p className="mt-2 text-xs leading-relaxed text-slate-600">{STAGE_BLOCKER_HELPER}</p>
 
                           {stopConditionsOpen && (
                             <div className="mt-3">
                               <GuidanceList
                                 items={stopItems}
-                                bulletClassName="bg-red-300"
-                                textClassName="text-sm text-red-950"
+                                bulletClassName="bg-slate-300"
+                                textClassName="text-sm text-slate-700"
                               />
                             </div>
                           )}

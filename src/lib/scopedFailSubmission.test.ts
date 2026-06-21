@@ -150,19 +150,23 @@ test('failed section shows Corrections Required badge and doc-state messages', (
   )
 })
 
-test('Critical Stop wording is replaced by Stage Blocker Conditions', () => {
+test('Critical Stop / Stage Blocker panel is presented as calm Important Clearance Notes', () => {
   const source = read(WORKSPACE)
   assert.ok(
     !source.includes('Critical Stop Conditions'),
     'inspector-facing "Critical Stop Conditions" wording must be removed'
   )
   assert.ok(
-    source.includes("const STAGE_BLOCKER_CONDITIONS_HEADING = 'Stage Blocker Conditions'"),
-    'Stage Blocker Conditions heading must exist'
+    !source.includes("'Stage Blocker Conditions'"),
+    'major-action "Stage Blocker Conditions" wording must be removed while the workflow is unbuilt'
   )
   assert.ok(
-    source.includes('does not replace the authority of the local building department or AHJ'),
-    'authority-boundary helper copy must exist'
+    source.includes("const STAGE_BLOCKER_CONDITIONS_HEADING = 'Important Clearance Notes'"),
+    'panel heading must read "Important Clearance Notes"'
+  )
+  assert.ok(
+    source.includes('Review these conditions before clearing this section. If any apply, document the issue and use Corrections Required, Hold, or the appropriate report notes.'),
+    'calm clearance-notes helper copy must exist'
   )
 })
 
