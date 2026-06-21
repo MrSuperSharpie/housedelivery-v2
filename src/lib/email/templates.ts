@@ -178,15 +178,15 @@ const templates: Record<VeroEmailEventKey, (context: VeroEmailTemplateContext) =
     ctaLabel: 'Review required modifications',
   }),
   'hold.issued_builder_notice': context => ({
-    subject: 'HOLD issued to protect the project record',
-    preview: 'A HOLD has been added so the project record can be clarified.',
-    heading: 'HOLD issued',
+    subject: 'Same-Day Correction needed on your inspection',
+    preview: 'A same-day correction was flagged — it can be fixed while the inspector is still on site.',
+    heading: 'Same-Day Correction needed',
     body: withHoldReason(context, [
-      greeting(context, 'A HOLD has been issued to protect the project record while an item is clarified.'),
-      projectSentence(context, 'Please review the HOLD details and provide the requested response or evidence.'),
-      'This helps keep the record complete, traceable, and ready for review.',
+      greeting(context, 'A same-day correction was flagged on your inspection.'),
+      projectSentence(context, 'It can be corrected while the inspector is still on site. If it is fixed before the inspector leaves, the section can still pass; if not, it will be marked Corrections Required.'),
+      'Please act now and coordinate the correction through the Vero Permit app.',
     ]),
-    ctaLabel: 'Respond to HOLD',
+    ctaLabel: 'Open Vero Permit',
   }),
   'hold.issued_inspector_confirmation': context => ({
     subject: 'HOLD issuance confirmed',

@@ -1,8 +1,7 @@
-// Notification hook: fires when a builder acknowledges a Hold or marks the
-// same-day correction ready for re-check.
+// Notification hook: fires when an inspector places a Hold / Same-Day Correction.
 //
-// SMS is the mandatory primary channel for the inspector (they need to re-verify
-// before leaving site). Email is the supporting secondary channel.
+// SMS is the mandatory primary channel for the builder (they must act while the
+// inspector is still on site). Email is the supporting secondary channel.
 // Returns per-channel results — never an unconditional { sent: true }.
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -15,18 +14,12 @@ export const runtime = 'nodejs'
 
 const APP_URL = 'https://veropermit.com'
 
-// 'acknowledged'     — builder accepted/acknowledged the Hold terms.
-// 'correction_ready' — builder marked the same-day correction ready for re-check.
-export type HoldInspectorNotificationType = 'acknowledged' | 'correction_ready'
-
-export interface HoldAcceptedPayload {
-  notificationType?: HoldInspectorNotificationType
+export interface HoldIssuedPayload {
   holdId: string
   jobId: string
   inspectorId: string
   builderId: string
-  feeAmount?: number
-  correctionWindowMinutes?: number
+  reason?: string
 }
 
 function getServiceClient() {
@@ -37,26 +30,20 @@ function getServiceClient() {
 }
 
 export async function POST(req: NextRequest) {
-  let body: HoldAcceptedPayload
+  let body: HoldIssuedPayload
   try {
-    body = (await req.json()) as HoldAcceptedPayload
+    body = (await req.json()) as HoldIssuedPayload
   } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  const { holdId, jobId, inspectorId, builderId, feeAmount, correctionWindowMinutes } = body
-  const notificationType: HoldInspectorNotificationType =
-    body.notificationType === 'correction_ready' ? 'correction_ready' : 'acknowledged'
+  const { holdId, jobId, builderId, reason } = body
 
   // ── Audit log ──────────────────────────────────────────────────────────────
-  console.log('[hold-accepted] notification triggered', {
-    notificationType,
+  console.log('[hold-issued] notification triggered', {
     holdId,
     jobId,
-    inspectorId,
     builderId,
-    feeAmount,
-    correctionWindowMinutes,
     timestamp: new Date().toISOString(),
   })
 
@@ -68,38 +55,35 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // Inspector contact (profile first, onboarding fallback for phone) + job context.
-  const [{ data: profile }, { data: onboarding }, { data: job }] = await Promise.all([
-    service.from('profiles').select('email, full_name, phone').eq('id', inspectorId).maybeSingle(),
+  // Builder contact (onboarding first, profile fallback) + job context.
+  const [{ data: onboarding }, { data: profile }, { data: job }] = await Promise.all([
     service
-      .from('inspector_onboarding_status')
-      .select('contact_phone')
-      .eq('user_id', inspectorId)
+      .from('builder_onboarding_status')
+      .select('contact_email, contact_name, contact_phone')
+      .eq('user_id', builderId)
       .maybeSingle(),
-    service.from('job_opportunities').select('project_name, address').eq('id', jobId).maybeSingle(),
+    service.from('profiles').select('email, full_name, phone').eq('id', builderId).maybeSingle(),
+    service.from('job_opportunities').select('project_name, address, stage_name').eq('id', jobId).maybeSingle(),
   ])
 
-  const inspectorEmail = (profile?.email ?? '').trim()
-  const inspectorName = (profile?.full_name ?? '').trim() || undefined
-  const inspectorPhoneRaw = (profile?.phone ?? '').trim() || (onboarding?.contact_phone ?? '').trim()
+  const builderEmail = (onboarding?.contact_email ?? '').trim() || (profile?.email ?? '').trim()
+  const builderName = (onboarding?.contact_name ?? '').trim() || (profile?.full_name ?? '').trim() || undefined
+  const builderPhoneRaw = (onboarding?.contact_phone ?? '').trim() || (profile?.phone ?? '').trim()
   const projectName = (job?.project_name ?? '').trim() || undefined
   const address = (job?.address ?? '').trim()
+  const stageName = (job?.stage_name ?? '').trim()
   const locationLabel = address || projectName || 'your inspection'
+  const reasonText = (reason ?? '').trim()
 
   const skipped: Record<string, string> = {}
 
-  const smsBody =
-    notificationType === 'correction_ready'
-      ? `Vero Permit: The builder marked the same-day correction ready for re-check at ${locationLabel}. Please re-verify before you leave the site.`
-      : `Vero Permit: The builder acknowledged the same-day correction at ${locationLabel}. Open Vero Permit to review the Hold status before leaving the site.`
-
   // ── SMS first (mandatory when a usable phone exists) ───────────────────────
   let smsSent = false
-  const normalized = toE164(inspectorPhoneRaw)
+  const normalized = toE164(builderPhoneRaw)
   if (normalized.ok) {
     const result = await sendVeroSms({
       to: normalized.e164,
-      body: smsBody,
+      body: `Vero Permit: A same-day correction was flagged on your inspection at ${locationLabel}. It can be fixed while the inspector is still on site. Act now — open the Vero app.`,
     })
     smsSent = result.ok
     if (!result.ok) skipped.sms = result.code
@@ -109,16 +93,18 @@ export async function POST(req: NextRequest) {
 
   // ── Email (supporting) ─────────────────────────────────────────────────────
   let emailSent = false
-  if (inspectorEmail) {
+  if (builderEmail) {
     const details: string[] = []
     if (address) details.push(`Address: ${address}`)
+    if (stageName) details.push(`Inspection stage: ${stageName}`)
     const result = await sendVeroEmail({
-      eventKey: 'hold.response_submitted_inspector_notice',
-      to: inspectorEmail,
-      recipientName: inspectorName,
+      eventKey: 'hold.issued_builder_notice',
+      to: builderEmail,
+      recipientName: builderName,
       projectName,
+      holdReason: reasonText || undefined,
       details: details.length > 0 ? details : undefined,
-      ctaUrl: `${APP_URL}/inspector`,
+      ctaUrl: `${APP_URL}/builder`,
     })
     emailSent = result.ok
     if (!result.ok) skipped.email = result.code ?? 'send_failed'

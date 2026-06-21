@@ -429,6 +429,20 @@ async function notifyBuilderOfHold(hold: HoldRecord): Promise<HoldRecord | null>
     },
   })
 
+  // Builder notification — SMS-first (mandatory), email supporting. Fire-and-forget
+  // so notification delivery never blocks or fails Hold placement.
+  void fetch('/api/notifications/hold-issued', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      holdId: hold.id,
+      jobId: hold.jobId,
+      inspectorId: hold.createdByInspectorId,
+      builderId: hold.builderId,
+      reason: hold.reason,
+    }),
+  }).catch(err => console.warn('[hold-issued notification]', err))
+
   return rowToHold(data as Row)
 }
 
@@ -833,6 +847,7 @@ export async function builderApproveHold(
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
+      notificationType: 'acknowledged',
       holdId,
       jobId: acceptedHold.jobId,
       inspectorId: acceptedHold.inspectorId,
@@ -891,6 +906,20 @@ export async function requestOnSiteCorrectionReview(
     afterState: { status: hold.status },
     metadata: {},
   })
+
+  // Inspector notification — SMS-first (mandatory), email supporting. Fire-and-forget
+  // so notification delivery never blocks the review request.
+  void fetch('/api/notifications/hold-accepted', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      notificationType: 'correction_ready',
+      holdId,
+      jobId: hold.jobId,
+      inspectorId: hold.inspectorId,
+      builderId: hold.builderId,
+    }),
+  }).catch(err => console.warn('[hold correction-ready notification]', err))
 
   return true
 }
