@@ -10,6 +10,7 @@ import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { sendVeroEmail } from '@/lib/email/sendVeroEmail'
 import { sendVeroSms } from '@/lib/sms/sendVeroSms'
 import { toE164 } from '@/lib/sms/phone'
+import { smsWithLocation } from '@/lib/sms/smsBodyUtils'
 
 export const runtime = 'nodejs'
 
@@ -84,14 +85,22 @@ export async function POST(req: NextRequest) {
   const inspectorPhoneRaw = (profile?.phone ?? '').trim() || (onboarding?.contact_phone ?? '').trim()
   const projectName = (job?.project_name ?? '').trim() || undefined
   const address = (job?.address ?? '').trim()
-  const locationLabel = address || projectName || 'your inspection'
+  const locationForSms = address || projectName || ''
 
   const skipped: Record<string, string> = {}
 
   const smsBody =
     notificationType === 'correction_ready'
-      ? `Vero Permit: The builder marked the same-day correction ready for re-check at ${locationLabel}. Please re-verify before you leave the site.`
-      : `Vero Permit: The builder acknowledged the same-day correction at ${locationLabel}. Open Vero Permit to review the Hold status before leaving the site.`
+      ? smsWithLocation(
+          'Vero: Builder says correction is ready at {loc}. Re-check the Hold in Vero.',
+          locationForSms,
+          'Vero: Builder says correction is ready. Re-check the Hold in Vero.',
+        )
+      : smsWithLocation(
+          'Vero: Builder accepted the same-day correction at {loc}. Review the Hold in Vero.',
+          locationForSms,
+          'Vero: Builder accepted the same-day correction. Review the Hold in Vero.',
+        )
 
   // ── SMS first (mandatory when a usable phone exists) ───────────────────────
   let smsSent = false

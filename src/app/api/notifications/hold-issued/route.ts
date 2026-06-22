@@ -9,6 +9,7 @@ import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { sendVeroEmail } from '@/lib/email/sendVeroEmail'
 import { sendVeroSms } from '@/lib/sms/sendVeroSms'
 import { toE164 } from '@/lib/sms/phone'
+import { smsWithLocation } from '@/lib/sms/smsBodyUtils'
 
 export const runtime = 'nodejs'
 
@@ -72,7 +73,6 @@ export async function POST(req: NextRequest) {
   const projectName = (job?.project_name ?? '').trim() || undefined
   const address = (job?.address ?? '').trim()
   const stageName = (job?.stage_name ?? '').trim()
-  const locationLabel = address || projectName || 'your inspection'
   const reasonText = (reason ?? '').trim()
 
   const skipped: Record<string, string> = {}
@@ -81,9 +81,14 @@ export async function POST(req: NextRequest) {
   let smsSent = false
   const normalized = toE164(builderPhoneRaw)
   if (normalized.ok) {
+    const smsBody = smsWithLocation(
+      'Vero: Same-day correction needed at {loc}. Open Vero to review and respond.',
+      address || projectName || '',
+      'Vero: Same-day correction needed. Open Vero to review and respond.',
+    )
     const result = await sendVeroSms({
       to: normalized.e164,
-      body: `Vero Permit: A same-day correction was flagged on your inspection at ${locationLabel}. It can be fixed while the inspector is still on site. Act now — open the Vero app.`,
+      body: smsBody,
     })
     smsSent = result.ok
     if (!result.ok) skipped.sms = result.code
