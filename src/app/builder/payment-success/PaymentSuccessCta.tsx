@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/auth'
 const BUILDER_HREF = '/builder'
 const SIGNIN_BUILDER_HREF = '/sign-in?role=builder&next=%2Fbuilder'
 
-export function PaymentSuccessCta() {
+export function PaymentSuccessCta({ isHoldPayment = false }: { isHoldPayment?: boolean }) {
   const { user, isLoading: authLoading } = useAuth()
 
   if (authLoading) {
@@ -21,7 +21,7 @@ export function PaymentSuccessCta() {
         href={BUILDER_HREF}
         className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-flame px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-flame-light"
       >
-        Go to Builder&apos;s Command Center
+        {isHoldPayment ? 'Return' : 'Go'} to Builder&apos;s Command Center
       </Link>
     )
   }
@@ -43,14 +43,15 @@ export function PaymentSuccessCta() {
     )
   }
 
-  // Signed out
+  // Signed out — for Hold payments, use neutral "Return" wording so the builder
+  // doesn't think they were logged out by the payment flow.
   return (
     <div className="mt-8 space-y-3">
       <Link
         href={SIGNIN_BUILDER_HREF}
         className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-flame px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-flame-light"
       >
-        Sign in to Builder&apos;s Command Center
+        {isHoldPayment ? 'Return' : 'Sign in'} to Builder&apos;s Command Center
       </Link>
       <p className="text-[11px] text-subtle">
         You&apos;ll be taken to your builder dashboard after signing in.

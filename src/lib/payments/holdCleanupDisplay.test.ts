@@ -16,6 +16,7 @@ function read(relPath: string): string {
 
 const INSPECTOR_WS = 'components/inspector/InspectorCompletionWorkspace.tsx'
 const PAYMENT_SUCCESS = 'app/builder/payment-success/page.tsx'
+const PAYMENT_SUCCESS_CTA = 'app/builder/payment-success/PaymentSuccessCta.tsx'
 const BUILDER_PAGE = 'app/builder/page.tsx'
 const HOLD_CHECKOUT = 'app/api/builder/payments/hold-checkout/route.ts'
 
@@ -53,6 +54,39 @@ test('payment-success keeps the job/live-board copy for inspection-request payme
   assert.ok(
     source.includes('Your inspection request is being posted to the Vero live board.'),
     'job-dispatch payment copy must remain for non-hold payments',
+  )
+})
+
+// ===========================================================================
+// CTA wording — Hold payments must not imply re-authentication
+// ===========================================================================
+
+test('payment-success passes isHoldPayment to the CTA component', () => {
+  const source = read(PAYMENT_SUCCESS)
+  assert.ok(
+    source.includes('isHoldPayment={isHoldPayment}'),
+    'page must forward isHoldPayment to the CTA so it can choose the right wording',
+  )
+})
+
+test('CTA component accepts an isHoldPayment prop', () => {
+  const source = read(PAYMENT_SUCCESS_CTA)
+  assert.ok(source.includes('isHoldPayment'), 'CTA must accept the isHoldPayment prop')
+})
+
+test('CTA uses Return wording for Hold payments and does not show Sign-in wording for Hold', () => {
+  const source = read(PAYMENT_SUCCESS_CTA)
+  // The "Return" label must be present and gated on isHoldPayment.
+  assert.ok(
+    source.includes("isHoldPayment ? 'Return'"),
+    'must render Return label for Hold payments',
+  )
+  // The static "Sign in to Builder" copy must never appear unconditionally —
+  // it must only appear in the non-Hold branch of the ternary.
+  // We confirm the ternary is used (not a static string) for the signed-out path.
+  assert.ok(
+    !source.includes("'Sign in to Builder'"),
+    'Sign-in wording must not appear as a static string (must be inside ternary)',
   )
 })
 

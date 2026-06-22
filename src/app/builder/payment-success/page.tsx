@@ -60,7 +60,7 @@ export default async function PaymentSuccessPage({
           </p>
         ) : null}
 
-        <PaymentSuccessCta />
+        <PaymentSuccessCta isHoldPayment={isHoldPayment} />
       </div>
     </div>
   )
