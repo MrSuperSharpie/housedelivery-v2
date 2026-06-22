@@ -714,6 +714,8 @@ export default function BuilderDashboard() {
   const [acceptedHolds, setAcceptedHolds]       = useState<Array<{ hold: HoldRecord; projectName: string; feeAmount: number; acceptedAt: string }>>([])
   const [holdResponding, setHoldResponding]     = useState<string | null>(null)
   const [holdReviewRequesting, setHoldReviewRequesting] = useState<string | null>(null)
+  // Evidence row currently being opened (mints a short-lived signed URL server-side).
+  const [openingEvidenceId, setOpeningEvidenceId] = useState<string | null>(null)
   // FIX #7: per-hold decline notes instead of one shared string
   const [declineNotes, setDeclineNotes]         = useState<Record<string, string>>({})
   // Builder-selected correction window per hold (minutes). Defaults to 60.
@@ -1118,6 +1120,33 @@ export default function BuilderDashboard() {
     setRequestGuardMessage(null)
     setDispatchProject(null)
     setIsDispatchOpen(true)
+  }
+
+  // Opens one Hold evidence item via a short-lived, server-authorized signed URL.
+  // The browser sends only the evidenceId; the server verifies the builder owns
+  // the Hold before returning a link. No payment/Hold state is touched.
+  const handleOpenHoldEvidence = async (evidenceId: string) => {
+    if (!evidenceId) return
+    setOpeningEvidenceId(evidenceId)
+    try {
+      const res = await fetch('/api/builder/holds/evidence-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ evidenceId }),
+      })
+      const data = await res.json().catch(() => null)
+      if (data?.ok && data?.url) {
+        window.open(data.url as string, '_blank', 'noopener,noreferrer')
+      } else {
+        console.error('Hold evidence open failed', data)
+        window.alert('This evidence could not be opened right now. Please try again.')
+      }
+    } catch (err) {
+      console.error('Hold evidence open request failed', err)
+      window.alert('This evidence could not be opened right now. Please try again.')
+    } finally {
+      setOpeningEvidenceId(null)
+    }
   }
 
   const handleApproveHold = async (hold: HoldRecord) => {
@@ -1628,7 +1657,20 @@ export default function BuilderDashboard() {
                     {holdEvidence.slice(0, 3).map(evidence => (
                       <div key={evidence.id} className="flex items-center justify-between gap-3 rounded-xl border border-rim bg-surface px-3 py-2 text-xs">
                         <span className="font-semibold text-ink truncate">{evidence.fileName || evidence.noteText || 'Hold evidence'}</span>
-                        <span className="shrink-0 rounded-full bg-panel px-2 py-0.5 text-[10px] font-bold uppercase text-muted">{evidence.evidenceType}</span>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="rounded-full bg-panel px-2 py-0.5 text-[10px] font-bold uppercase text-muted">{evidence.evidenceType}</span>
+                          {evidence.storagePath && (
+                            <button
+                              type="button"
+                              onClick={() => handleOpenHoldEvidence(evidence.id)}
+                              disabled={openingEvidenceId === evidence.id}
+                              className="inline-flex items-center gap-1 rounded-lg border border-rim bg-panel px-2 py-1 text-[10px] font-bold text-flame transition-colors hover:bg-surface disabled:opacity-50"
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                              {openingEvidenceId === evidence.id ? 'Opening…' : 'Open photo'}
+                            </button>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
