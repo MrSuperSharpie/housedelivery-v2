@@ -5,17 +5,22 @@ import { PaymentSuccessCta } from './PaymentSuccessCta'
 //
 // This page intentionally requires no auth and fetches no job data: the
 // verified Stripe webhook remains the only source of truth for releasing the
-// job. The `job` query param is read solely for display as a reference, so the
-// post-payment landing never depends on the Supabase client session (which is
-// fragile on Vercel Preview). It is registered in the builder layout's
-// RoleGuard publicPaths so it renders without a sign-in bounce.
+// job / activating the Hold. The `job` and `hold` query params are read solely
+// for display as a reference and to pick the right copy, so the post-payment
+// landing never depends on the Supabase client session (which is fragile on
+// Vercel Preview). It is registered in the builder layout's RoleGuard
+// publicPaths so it renders without a sign-in bounce.
 export default async function PaymentSuccessPage({
   searchParams,
 }: {
-  searchParams: Promise<{ job?: string }>
+  searchParams: Promise<{ job?: string; hold?: string }>
 }) {
-  const { job } = await searchParams
-  const reference = typeof job === 'string' ? job.trim() : ''
+  const { job, hold } = await searchParams
+  const holdReference = typeof hold === 'string' ? hold.trim() : ''
+  const jobReference = typeof job === 'string' ? job.trim() : ''
+  // A `hold` param means this was a same-day correction re-verification payment.
+  const isHoldPayment = holdReference.length > 0
+  const reference = isHoldPayment ? holdReference : jobReference
 
   return (
     <div className="app-theme-scope min-h-screen bg-surface flex items-center justify-center px-4 py-16">
@@ -25,14 +30,29 @@ export default async function PaymentSuccessPage({
         </div>
 
         <h1 className="mt-6 text-2xl font-black text-ink">Payment received</h1>
-        <p className="mt-3 text-base font-bold text-ink">
-          Your inspection request is being posted to the Vero live board.
-        </p>
-        <p className="mt-3 text-sm leading-relaxed text-subtle">
-          Inspectors in your region will be able to claim this request once
-          processing is complete. You’ll be notified as it progresses. No
-          further action is needed.
-        </p>
+        {isHoldPayment ? (
+          <>
+            <p className="mt-3 text-base font-bold text-ink">
+              Your same-day correction window has been reserved.
+            </p>
+            <p className="mt-3 text-sm leading-relaxed text-subtle">
+              Re-verification is pending — the inspector has been authorized to
+              return and re-check the correction. You’ll be notified as it
+              progresses. No further action is needed.
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="mt-3 text-base font-bold text-ink">
+              Your inspection request is being posted to the Vero live board.
+            </p>
+            <p className="mt-3 text-sm leading-relaxed text-subtle">
+              Inspectors in your region will be able to claim this request once
+              processing is complete. You’ll be notified as it progresses. No
+              further action is needed.
+            </p>
+          </>
+        )}
 
         {reference ? (
           <p className="mt-4 text-xs font-semibold text-subtle">

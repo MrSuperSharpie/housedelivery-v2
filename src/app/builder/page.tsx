@@ -1657,26 +1657,27 @@ export default function BuilderDashboard() {
                   {hold && (
                     <>
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-muted">Recorded Hold Cap</span>
-                        <span className="font-bold text-ink">${hold.holdCapAmount.toFixed(2)}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-xs">
                         <span className="text-muted">Reserved Correction Window ({selectedWindow} min @ 1.5×)</span>
                         <span className="font-bold text-ink">${windowFee.toFixed(2)}</span>
                       </div>
                       <div className="border-t border-rim pt-1.5 flex items-center justify-between text-xs">
-                        <span className="font-bold text-ink">Total at Acceptance</span>
+                        <span className="font-bold text-ink">Total Due</span>
                         <span className="font-black text-ink">${totalAcceptanceFee.toFixed(2)}</span>
                       </div>
                     </>
                   )}
                 </div>
-                <div className="mt-2 text-[10px] text-subtle">Additional fees apply if correction exceeds the selected window or extends beyond inspector availability.</div>
+                <div className="mt-2 text-[10px] text-subtle">
+                  Reserved correction window: {selectedWindow} min. Additional fees apply if the correction exceeds this window or extends beyond inspector availability.
+                </div>
               </div>
 
               {isActionableHold && hold && (
                 <div className="px-5 py-3 border-b border-rim">
-                  <div className="text-[10px] font-bold text-muted uppercase tracking-widest mb-2">Select Correction Window</div>
+                  <div className="mb-2 flex items-center justify-between">
+                    <div className="text-[10px] font-bold text-muted uppercase tracking-widest">Select Correction Window</div>
+                    <div className="text-[10px] font-bold text-flame">{selectedWindow} min selected</div>
+                  </div>
                   <div className="grid grid-cols-5 gap-1.5">
                     {[30, 60, 90, 120, 150].map(minutes => (
                       <button

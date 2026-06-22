@@ -1622,7 +1622,7 @@ export function InspectorCompletionWorkspace() {
         holdCapAmount: baseHoldServiceFee,
         holdEligibleForOnSiteCorrection: holdSameDayEligible,
       })
-      window.alert('Hold Request Sent: The builder has been notified of the critical stop conditions.')
+      window.alert('Hold Request Sent: The builder has been notified of the same-day correction request.')
       resetHoldForm()
       return
     }
