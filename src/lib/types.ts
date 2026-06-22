@@ -491,6 +491,10 @@ export type HoldStatus =
   | 'hold_expired'              // expiry elapsed with no builder response
   | 'admin_resolved'            // admin manually closed the hold
 
+// Payment state for a Hold's re-verification fee. Tracked separately from the
+// workflow status: a Hold is only active/fee-locked once payment is 'paid'.
+export type HoldPaymentStatus = 'unpaid' | 'paid' | 'failed' | 'cancelled'
+
 export type HoldPremiumRateType = 'hourly' | 'flat'
 export type HoldCategory =
   | 'minor_deficiency'
@@ -529,6 +533,8 @@ export interface HoldRecord {
   /** [C2] Stored as a JSON array in Postgres and normalized to string[] in the app. */
   checklistItemIds: string[]
   status: HoldStatus
+  /** Re-verification payment state. Defaults to 'unpaid'; only the verified Stripe webhook sets 'paid'. */
+  holdPaymentStatus: HoldPaymentStatus
   reason: string
   deficiencyReason?: string
   holdCategory: HoldCategory

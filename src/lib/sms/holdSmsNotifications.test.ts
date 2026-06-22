@@ -162,14 +162,21 @@ test('hold-accepted route distinguishes acknowledged vs correction_ready SMS cop
   )
 })
 
-test('builderApproveHold sends acknowledged; requestOnSiteCorrectionReview sends correction_ready', () => {
+test('inspector acknowledged notification is payment-gated; review-ready stays correction_ready', () => {
   const source = read(HOLDS)
   const approveIdx = source.indexOf('export async function builderApproveHold')
   const reviewIdx = source.indexOf('export async function requestOnSiteCorrectionReview')
   assert.ok(approveIdx !== -1 && reviewIdx !== -1, 'both callers must exist')
   const approveBody = source.slice(approveIdx, reviewIdx)
   const reviewBody = source.slice(reviewIdx, reviewIdx + 1700)
-  assert.ok(approveBody.includes("notificationType: 'acknowledged'"), 'acceptance must send acknowledged')
+  // builderApproveHold must NOT notify the inspector — there is no payment yet.
+  assert.ok(!approveBody.includes('/api/notifications/hold-accepted'), 'builderApproveHold must not notify the inspector before payment')
+  assert.ok(!approveBody.includes('notificationType'), 'builderApproveHold must send no inspector notification')
+  // The acknowledged inspector notification now fires only after webhook-confirmed payment.
+  const confirm = read('lib/payments/confirmHoldPayment.ts')
+  assert.ok(confirm.includes("notificationType: 'acknowledged'"), 'confirmHoldPayment must send acknowledged after payment')
+  assert.ok(confirm.includes('/api/notifications/hold-accepted'), 'confirmHoldPayment must call the inspector notification route')
+  // The separate on-site review-ready flow is unchanged.
   assert.ok(reviewBody.includes("notificationType: 'correction_ready'"), 'review-ready must send correction_ready')
 })
 

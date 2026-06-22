@@ -216,6 +216,7 @@ export default function AdminHoldsPage() {
           expiresAt:        row.expires_at as string,
           checklistItemIds: (row.checklist_item_ids as string[]) ?? [],
           status:           normalizeHoldStatus(row.status as string),
+          holdPaymentStatus: (row.hold_payment_status as HoldRecord['holdPaymentStatus']) ?? 'unpaid',
           reason:           row.reason as string,
           deficiencyReason: (row.deficiency_reason as string) ?? (row.reason as string),
           holdCategory:     (row.hold_category as HoldRecord['holdCategory']) ?? 'minor_deficiency',

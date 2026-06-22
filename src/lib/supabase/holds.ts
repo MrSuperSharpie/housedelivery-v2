@@ -258,6 +258,7 @@ function rowToHold(row: Row): HoldRecord {
     expiresAt: row.expires_at as string,
     checklistItemIds: toStringArray(row.checklist_item_ids),
     status: normalizeHoldStatus(row.status as string),
+    holdPaymentStatus: (row.hold_payment_status as HoldRecord['holdPaymentStatus']) ?? 'unpaid',
     reason: row.reason as string,
     deficiencyReason: (row.deficiency_reason as string) ?? (row.reason as string),
     holdCategory: (row.hold_category as HoldCategory) ?? 'minor_deficiency',
@@ -704,24 +705,21 @@ export async function builderApproveHold(
 
   const now = new Date().toISOString()
   const safeWindowMinutes = Math.max(30, Number(correctionWindowMinutes) || 60)
-  // Base Hold Service Fee is already stored on the hold (hold.holdCapAmount).
-  // Add the Reserved Correction Window Fee based on the builder's selected window.
+  // Quote the total re-verification fee deterministically from the base rate so a
+  // repeated acknowledgement never compounds the window fee: Base Hold Service Fee
+  // + Reserved Correction Window Fee. This is a QUOTE only — no Hold is activated
+  // and no money moves here. Payment is taken via /api/builder/payments/hold-checkout
+  // and the Hold is activated ONLY by confirmHoldPayment from the Stripe webhook.
+  const baseHoldServiceFee = calculateBaseHoldServiceFee(hold.premiumRateAmount)
   const windowFee = calculateWindowFee(hold.premiumRateAmount, safeWindowMinutes)
-  const totalCapAmount = hold.holdCapAmount + windowFee
-  const sessionHours = safeWindowMinutes / 60
+  const totalCapAmount = baseHoldServiceFee + windowFee
 
-  const { data: jobData } = await supabase
-    .from('job_opportunities')
-    .select('dispatch_tier')
-    .eq('id', hold.jobId)
-    .maybeSingle()
-  const dispatchTier = ((jobData?.dispatch_tier as DispatchTier | undefined) ?? 'standard')
-
+  // Record the builder's acknowledgement + selected window + quoted cap. The
+  // workflow status is intentionally LEFT at hold_pending_builder_ack and the
+  // hold stays unpaid. Browser-reachable code must never set a Hold active.
   const baseUpdatePayload = {
-    status: 'hold_active',
     builder_note: builderNote ?? null,
     builder_accepted_at: now,
-    hold_started_at: now,
     last_builder_response_at: now,
     estimated_correction_minutes: safeWindowMinutes,
     hold_cap_amount: totalCapAmount,
@@ -749,18 +747,6 @@ export async function builderApproveHold(
       .single())
   }
 
-  // 'hold_active' may fail the CHECK constraint on older schemas (pre-20260412).
-  // Fall back to 'builder_approved' which is the legacy equivalent.
-  if (error && isCheckViolationError(error)) {
-    console.warn('builderApproveHold: status fallback — retrying with legacy builder_approved status')
-    ;({ data, error } = await supabase
-      .from('job_holds')
-      .update({ ...baseUpdatePayload, status: 'builder_approved' })
-      .eq('id', holdId)
-      .select('*')
-      .single())
-  }
-
   if (error || !data) {
     console.error('builderApproveHold: DB update failed', {
       code: (error as { code?: string } | null)?.code,
@@ -771,103 +757,32 @@ export async function builderApproveHold(
     return false
   }
 
-  const acceptedHold = rowToHold(data as Row)
-  const retentionSession: RetentionSession = {
-    id: createRuntimeId('ret'),
-    holdId: acceptedHold.id,
-    jobId: acceptedHold.jobId,
-    inspectorId: acceptedHold.inspectorId,
-    builderId: acceptedHold.builderId,
-    dispatchTier,
-    hourlyRate: acceptedHold.premiumRateAmount,
-    initialHours: sessionHours,
-    totalHoursBooked: sessionHours,
-    totalMinutesBooked: safeWindowMinutes,
-    elapsedSeconds: 0,
-    chargeCapAmount: totalCapAmount,
-    accruedChargeAmount: 0,
-    status: 'active',
-    resolvedDefectIds: [],
-    startedAt: now,
-    createdAt: now,
-    updatedAt: now,
-  }
-  await upsertRetentionSession(retentionSession)
+  const acknowledgedHold = rowToHold(data as Row)
 
-  for (const event of buildHoldLifecycleEvents({
-    previousStatus: hold.status,
-    nextStatus: acceptedHold.status,
-  })) {
-    await insertHoldEvent({
-      holdId: acceptedHold.id,
-      jobId: acceptedHold.jobId,
-      eventType: event.action,
-      actorId: acceptedHold.builderId,
-      actorRole: 'builder',
-      note: builderNote,
-      metadata: {
-        premiumRateAmount: acceptedHold.premiumRateAmount,
-        correctionWindowMinutes: safeWindowMinutes,
-        holdCapAmount: totalCapAmount,
-      },
-    })
-  }
-
+  // Audit the acknowledgement only. No activation/lifecycle event, no retention
+  // session, and no inspector re-check notification are produced here — those
+  // happen in confirmHoldPayment once Stripe confirms payment server-side.
   await appendGovernanceAuditEvent({
     entityType: 'hold',
     entityId: holdId,
-    action: 'hold.accepted',
-    actorId: acceptedHold.builderId,
+    action: 'hold.acknowledged',
+    actorId: acknowledgedHold.builderId,
     actorRole: 'builder',
     ruleIds: ['R-031'],
     blockerType: 'commercial',
-    reason: builderNote ?? 'Builder accepted Hold and reserved correction window.',
-    beforeState: { status: hold.status },
-    afterState: { status: acceptedHold.status, feeAmount: totalCapAmount },
+    reason: builderNote ?? 'Builder acknowledged Hold and selected correction window. Awaiting payment authorization.',
+    beforeState: { status: hold.status, holdPaymentStatus: 'unpaid' },
+    afterState: { status: acknowledgedHold.status, holdPaymentStatus: 'unpaid', quotedFeeAmount: totalCapAmount },
     metadata: {
-      premiumRateAmount: acceptedHold.premiumRateAmount,
+      premiumRateAmount: acknowledgedHold.premiumRateAmount,
       correctionWindowMinutes: safeWindowMinutes,
-      holdCapAmount: totalCapAmount,
-      acceptedByUserId: acceptedHold.builderId,
-      acceptedAt: new Date().toISOString(),
+      quotedFeeAmount: totalCapAmount,
+      acknowledgedByUserId: acknowledgedHold.builderId,
+      acknowledgedAt: now,
     },
   })
 
-  // ── Communication loop — fire-and-forget, does not block acceptance ─────────
-
-  // STUB: Builder alert — "Urgent: Your inspection is on hold. Review deficiencies in the Vero app."
-  // Wire to Resend/Twilio by reading the builder's email/phone from the profiles table.
-  // TODO: replace with live send when RESEND_API_KEY / TWILIO_* env vars are set.
-  void notifyBuilderHoldActive(acceptedHold.jobId, acceptedHold.builderId)
-
-  // STUB: Inspector alert — "Action Required: Builder has accepted hold terms for [Project Name].
-  //        Re-verification is now authorized."
-  // Route already exists at /api/notifications/hold-accepted for Resend/Twilio wiring.
-  void fetch('/api/notifications/hold-accepted', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      notificationType: 'acknowledged',
-      holdId,
-      jobId: acceptedHold.jobId,
-      inspectorId: acceptedHold.inspectorId,
-      builderId: acceptedHold.builderId,
-      feeAmount: totalCapAmount,
-      correctionWindowMinutes: safeWindowMinutes,
-    }),
-  }).catch(err => console.warn('[hold-accepted notification]', err))
-
   return true
-}
-
-/**
- * STUB: Notify the builder that their inspection is on hold and deficiencies need review.
- * Message: "Urgent: Your inspection is on hold. Review deficiencies in the Vero app."
- * Wire to Resend/Twilio by looking up the builder's email/phone from the profiles table.
- */
-function notifyBuilderHoldActive(jobId: string, builderId: string): void {
-  // TODO: send email/SMS to builder
-  console.info('[stub] builder hold-active alert', { jobId, builderId })
 }
 
 export async function requestOnSiteCorrectionReview(

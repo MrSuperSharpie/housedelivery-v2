@@ -3,6 +3,7 @@ import type Stripe from 'stripe'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { getStripeClient } from '@/lib/stripe'
 import { confirmJobPayment } from '@/lib/payments/confirmJobPayment'
+import { confirmHoldPayment } from '@/lib/payments/confirmHoldPayment'
 
 export const runtime = 'nodejs'
 
@@ -127,6 +128,53 @@ export async function POST(req: NextRequest) {
   }
 
   const session = event.data.object as Stripe.Checkout.Session
+
+  // ── Hold / Same-Day Correction re-verification payment ─────────────────────
+  // A Hold becomes active ONLY here, after Stripe confirms payment. This branch
+  // is separate from the job-dispatch flow below and leaves it unchanged.
+  const paymentKind = session.metadata?.payment_kind as string | undefined
+  const holdId = session.metadata?.vero_hold_id as string | undefined
+  if (paymentKind === 'hold_reverification' || holdId) {
+    if (!holdId) {
+      console.error('[stripe/webhook] hold payment without vero_hold_id', { sessionId: session.id })
+      return NextResponse.json({ ok: true, received: true, activated: false })
+    }
+    if (session.payment_status && session.payment_status !== 'paid') {
+      console.warn('[stripe/webhook] hold session not paid; not activating', { holdId, paymentStatus: session.payment_status })
+      return NextResponse.json({ ok: true, received: true, activated: false })
+    }
+
+    const service = getServiceClient()
+    if (!service) {
+      console.error('[stripe/webhook] service role client unavailable', { holdId })
+      return NextResponse.json({ ok: false, error: 'Service client unavailable.' }, { status: 503 })
+    }
+
+    const holdPaymentIntentId =
+      typeof session.payment_intent === 'string'
+        ? session.payment_intent
+        : session.payment_intent?.id ?? null
+
+    const holdResult = await confirmHoldPayment(service, {
+      holdId,
+      paymentIntentId: holdPaymentIntentId,
+      checkoutSessionId: session.id,
+      paymentConfirmationSource: 'stripe_webhook',
+    })
+
+    // Idempotent: 'already_paid' means a duplicate delivery — acknowledge.
+    if (holdResult.ok || holdResult.code === 'already_paid') {
+      return NextResponse.json({ ok: true, received: true, activated: holdResult.activated })
+    }
+    if (holdResult.code === 'hold_not_found') {
+      console.error('[stripe/webhook] cannot activate hold', { holdId, code: holdResult.code })
+      return NextResponse.json({ ok: true, received: true, activated: false, code: holdResult.code })
+    }
+    // fetch_error / write_error → transient; ask Stripe to retry.
+    console.error('[stripe/webhook] hold activation failed; requesting retry', { holdId, code: holdResult.code })
+    return NextResponse.json({ ok: false, error: 'Hold activation failed.', code: holdResult.code }, { status: 500 })
+  }
+
   const jobId =
     (session.metadata?.vero_job_id as string | undefined) ??
     (session.client_reference_id ?? undefined)

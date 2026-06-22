@@ -875,8 +875,10 @@ export default function BuilderDashboard() {
       setActiveHoldDetails(Object.fromEntries(allDetails.map(detail => [detail.hold.id, detail])))
       // Only show holds the builder can actually respond to — 'hold_active' means already accepted.
       setActiveHolds(allHolds.filter(h => HOLD_BUILDER_ACTIONABLE_STATUSES.includes(h.status)))
-      // Hydrate acceptedHolds for holds already in hold_active state (e.g. page refresh after acceptance)
-      const alreadyActive = allHolds.filter(h => h.status === 'hold_active')
+      // Hydrate acceptedHolds ONLY for holds that are both active AND payment-confirmed.
+      // hold_active alone is not enough: legacy/test holds may be hold_active but still
+      // hold_payment_status 'unpaid' — those must not appear as fee-locked / in progress.
+      const alreadyActive = allHolds.filter(h => h.status === 'hold_active' && h.holdPaymentStatus === 'paid')
       if (alreadyActive.length > 0) {
         setAcceptedHolds(prev => {
           const existingIds = new Set(prev.map(e => e.hold.id))
@@ -1121,18 +1123,30 @@ export default function BuilderDashboard() {
   const handleApproveHold = async (hold: HoldRecord) => {
     const windowMinutes = correctionWindowByHold[hold.id] ?? 60
     setHoldResponding(hold.id)
-    const ok = await builderApproveHold(hold.id, windowMinutes, 'Approved — correction window reserved.')
-    if (ok) {
-      setActiveHolds(prev => prev.filter(h => h.id !== hold.id))
-      const holdJob = (dbJobs ?? []).find(j => j.id === hold.jobId)
-      const baseHoldServiceFee = calculateBaseHoldServiceFee(hold.premiumRateAmount)
-      const windowFee = calculateWindowFee(hold.premiumRateAmount, windowMinutes)
-      setAcceptedHolds(prev => [...prev, {
-        hold,
-        projectName: holdJob?.projectName ?? 'Project',
-        feeAmount: baseHoldServiceFee + windowFee,
-        acceptedAt: new Date().toISOString(),
-      }])
+    // Record the acknowledgement + selected window + quoted cap. This does NOT
+    // activate the Hold: it stays unpaid and is not fee-locked or in progress.
+    const ok = await builderApproveHold(hold.id, windowMinutes, 'Acknowledged — correction window selected. Awaiting payment authorization.')
+    if (!ok) {
+      setHoldResponding(null)
+      return
+    }
+    // Open Stripe checkout for the re-verification fee. The Hold becomes active
+    // (fee-locked, inspector re-check authorized) ONLY after the verified Stripe
+    // webhook confirms payment server-side — never from this browser flow.
+    try {
+      const res = await fetch('/api/builder/payments/hold-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ holdId: hold.id }),
+      })
+      const data = await res.json().catch(() => null)
+      if (data?.ok && data?.url) {
+        window.location.href = data.url as string
+        return
+      }
+      console.error('Hold checkout could not start', data)
+    } catch (err) {
+      console.error('Hold checkout request failed', err)
     }
     setHoldResponding(null)
   }
@@ -1710,11 +1724,11 @@ export default function BuilderDashboard() {
                       {isResponding
                         ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                         : <CheckCircle2 className="w-4 h-4" />}
-                      Accept Correction Window — Reserve {selectedWindow} Min
+                      Payment Required — Authorize Re-verification
                     </button>
                   </div>
                   <p className="text-[11px] text-muted mt-2 text-center">
-                    Inspector will return to review the correction before leaving site. Time is reserved and fees apply.
+                    Reserves a {selectedWindow}-minute correction window. You will be taken to secure checkout. The inspector re-check is authorized only after payment is confirmed.
                   </p>
                 </div>
 

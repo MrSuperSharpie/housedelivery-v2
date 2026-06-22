@@ -3088,6 +3088,8 @@ export type Database = {
           hold_correction_tier: string | null
           hold_eligible_for_on_site_correction: boolean
           hold_ended_at: string | null
+          hold_paid_at: string | null
+          hold_payment_status: string
           hold_resolution: string | null
           hold_resolution_notes: string | null
           hold_resolved_by_user_id: string | null
@@ -3107,6 +3109,8 @@ export type Database = {
           resolution_summary: string | null
           resolved_at: string | null
           status: string
+          stripe_checkout_session_id: string | null
+          stripe_payment_intent_id: string | null
           updated_at: string
         }
         Insert: {
@@ -3132,6 +3136,8 @@ export type Database = {
           hold_correction_tier?: string | null
           hold_eligible_for_on_site_correction?: boolean
           hold_ended_at?: string | null
+          hold_paid_at?: string | null
+          hold_payment_status?: string
           hold_resolution?: string | null
           hold_resolution_notes?: string | null
           hold_resolved_by_user_id?: string | null
@@ -3151,6 +3157,8 @@ export type Database = {
           resolution_summary?: string | null
           resolved_at?: string | null
           status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -3176,6 +3184,8 @@ export type Database = {
           hold_correction_tier?: string | null
           hold_eligible_for_on_site_correction?: boolean
           hold_ended_at?: string | null
+          hold_paid_at?: string | null
+          hold_payment_status?: string
           hold_resolution?: string | null
           hold_resolution_notes?: string | null
           hold_resolved_by_user_id?: string | null
@@ -3195,6 +3205,8 @@ export type Database = {
           resolution_summary?: string | null
           resolved_at?: string | null
           status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
           updated_at?: string
         }
         Relationships: [
