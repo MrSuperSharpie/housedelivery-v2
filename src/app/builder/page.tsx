@@ -17,6 +17,7 @@ import { CommandHeader } from '@/components/builder/CommandHeader'
 import { SituationStrip, type SituationMetric } from '@/components/builder/SituationStrip'
 import { AwaitingValidationPanel, type ValidationItem } from '@/components/builder/AwaitingValidationPanel'
 import { RecordsReadyPanel, type RecordItem } from '@/components/builder/RecordsReadyPanel'
+import { StageProgressBar } from '@/components/builder/StageProgressBar'
 import { Modal } from '@/components/ui/Modal'
 import { MOCK_BUILDER } from '@/lib/mockData'
 import { useAuth } from '@/lib/auth'
@@ -499,40 +500,12 @@ const ACTIVE_STAGE_CARD_LABEL: Partial<Record<BuilderStageStatus, string>> = {
   failed:             'Failed — Action Required',
 }
 
-const STAGE_DOT_CLASS: Record<BuilderStageStatus, string> = {
-  not_requested: 'border-slate-400 bg-panel text-muted',
-  requested_live: 'border-flame bg-flame text-white',
-  inspector_assigned: 'border-flame bg-flame text-white',
-  in_progress: 'border-flame bg-flame text-white',
-  passed: 'border-emerald-600 bg-emerald-600 text-white',
-  hold: 'border-amber-600 bg-amber-500 text-white',
-  failed: 'border-red-600 bg-red-600 text-white',
-  available_next: 'border-flame bg-flame text-white',
-  locked: 'border-slate-500 bg-surface text-subtle',
-}
-
 function StageStatusIcon({ status }: { status: BuilderStageStatus }) {
   if (status === 'passed') return <CheckCircle2 className="h-3 w-3" />
   if (status === 'hold' || status === 'failed') return <AlertTriangle className="h-3 w-3" />
   if (status === 'locked') return <Lock className="h-3 w-3" />
   if (status === 'requested_live' || status === 'inspector_assigned' || status === 'in_progress') return <Clock className="h-3 w-3" />
   return <span className="h-1.5 w-1.5 rounded-full bg-current" />
-}
-
-function StageProgressRail({ scorecard }: { scorecard: StageScorecardEntry[] }) {
-  return (
-    <div className="grid grid-cols-7 gap-1.5">
-      {scorecard.map(({ stage, status }) => (
-        <div key={stage.number} className="min-w-0">
-          <div className={`mx-auto flex h-8 w-8 items-center justify-center rounded-full border text-[10px] font-black ${STAGE_DOT_CLASS[status]}`}>
-            <StageStatusIcon status={status} />
-          </div>
-          <div className="mt-1 truncate text-center text-[10px] font-bold text-ink">S{stage.number}</div>
-          <div className="truncate text-center text-[9px] font-semibold text-muted">{BUILDER_STAGE_STATUS_COPY[status].label}</div>
-        </div>
-      ))}
-    </div>
-  )
 }
 
 function getLatestStageEntry(scorecard: StageScorecardEntry[]): StageScorecardEntry | undefined {
@@ -1897,10 +1870,11 @@ export default function BuilderDashboard() {
           <section id="live-operations" className="mb-6">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
-                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-flame">Live Operations</div>
+                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-electric">Live Operations</div>
                 <div className="mt-1 text-xs font-medium text-muted">Posted requests are visible to qualified inspectors on the Live Job Board until claimed.</div>
               </div>
-              <div className="rounded-full border border-flame/25 bg-flame/10 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-flame">
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-electric/25 bg-electric/10 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-electric">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-electric" />
                 {liveUnclaimedJobs.length} live
               </div>
             </div>
@@ -1909,10 +1883,10 @@ export default function BuilderDashboard() {
                 const stageLabel = BUILDER_STAGE_DEFINITIONS.find(s => s.number === job.stage)?.label ?? `Stage ${job.stage} — ${job.stageName}`
                 const postedAt = job.publishedAt ?? job.requestedAt ?? job.createdAt
                 return (
-                  <div key={job.id} className="rounded-2xl border border-flame/25 bg-panel p-4 shadow-card">
+                  <div key={job.id} className="rounded-2xl border border-rim bg-panel p-4 shadow-card transition-colors hover:border-electric/30">
                     <div className="flex items-start gap-3">
-                      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-flame/25 bg-flame/10">
-                        <Navigation className="h-4 w-4 text-flame" />
+                      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-electric/25 bg-electric/10">
+                        <Navigation className="h-4 w-4 text-electric" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-sm font-extrabold text-ink">{job.projectName}</div>
@@ -1939,7 +1913,7 @@ export default function BuilderDashboard() {
                       <button
                         type="button"
                         onClick={() => openManageRequest(job)}
-                        className="rounded-xl bg-flame px-3 py-2 text-[11px] font-black text-white transition-colors hover:bg-flame-light"
+                        className="rounded-xl border border-electric/30 bg-electric/10 px-3 py-2 text-[11px] font-black text-electric transition-colors hover:bg-electric/15"
                       >
                         Manage Request
                       </button>
@@ -1985,7 +1959,7 @@ export default function BuilderDashboard() {
           <div className="mb-3 flex items-center justify-between gap-3">
             <div>
               <div className="text-[11px] font-black uppercase tracking-[0.18em] text-muted">Project Portfolio</div>
-              <div className="mt-1 text-sm font-extrabold text-ink">Compact permit-stage progress</div>
+              <div className="mt-1 text-sm font-extrabold text-ink">Permit-stage progress across your active sites</div>
             </div>
             <span className="label-mono">{permitProgressProjects.length || (dbJobs ?? projects).length} project{(permitProgressProjects.length || (dbJobs ?? projects).length) === 1 ? '' : 's'}</span>
           </div>
@@ -2002,7 +1976,7 @@ export default function BuilderDashboard() {
             <div className="mt-1 text-xs font-medium text-muted">Post your first inspection request to get started</div>
           </div>
         ) : dbJobs !== null ? (
-          <div className="space-y-3">
+          <div className="overflow-hidden rounded-2xl border border-rim bg-panel shadow-card divide-y divide-rim/50">
             {activeProgressProjects.map(progressProject => {
               const stageScorecard = buildStageScorecard(progressProject.jobs)
               const latestStage = getLatestStageEntry(stageScorecard)
@@ -2025,9 +1999,22 @@ export default function BuilderDashboard() {
               const latestStageCopy = latestStage
                 ? `${latestStage.stage.label.split(' — ')[0]} · ${latestStage.stage.label.split(' — ')[1]}`
                 : 'No inspection stage requested yet'
+              // Compact stage-progress treatment (full seven-stage detail stays in View Progress)
+              const passedStageCount = stageScorecard.filter(e => e.status === 'passed').length
+              const focusStage = activeStageEntry ?? availableStage ?? latestStage ?? stageScorecard[Math.max(0, passedStageCount - 1)]
+              const focusStatus = focusStage?.status
+              const progressStageNumber = focusStage?.stage.number ?? Math.min(passedStageCount + 1, stageScorecard.length)
+              const progressStageName = focusStage ? focusStage.stage.label.split(' — ')[0] : 'Not started'
+              const progressTone: 'flame' | 'amber' | 'electric' | 'emerald' | 'muted' =
+                actionableHoldForJob || focusStatus === 'hold' || focusStatus === 'failed' ? 'amber'
+                : focusStatus === 'in_progress' ? 'flame'
+                : focusStatus === 'requested_live' || focusStatus === 'inspector_assigned' ? 'electric'
+                : focusStatus === 'available_next' ? 'flame'
+                : completedJob || passedStageCount === stageScorecard.length ? 'emerald'
+                : 'muted'
               return (
-                <div id={getProgressDomId(progressProject.key)} key={progressProject.key} className="rounded-2xl border border-rim bg-panel p-4 shadow-card">
-                  <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.9fr)_auto] lg:items-center">
+                <div id={getProgressDomId(progressProject.key)} key={progressProject.key} className="p-4 transition-colors hover:bg-raised/40 sm:px-5">
+                  <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(260px,0.9fr)_auto] lg:items-center">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <div className="truncate text-sm font-extrabold text-ink">{progressProject.projectName}</div>
@@ -2045,7 +2032,13 @@ export default function BuilderDashboard() {
                         {latestPassedStage && <span>{latestPassedStage.stage.label.split(' — ')[0]} passed · Vero inspection record complete</span>}
                       </div>
                     </div>
-                    <StageProgressRail scorecard={stageScorecard} />
+                    <StageProgressBar
+                      current={progressStageNumber}
+                      total={stageScorecard.length}
+                      stageName={progressStageName}
+                      passedCount={passedStageCount}
+                      tone={progressTone}
+                    />
                     <div className="flex flex-wrap gap-2 lg:justify-end">
                       {actionableHoldForJob ? (
                         <button
@@ -2076,7 +2069,7 @@ export default function BuilderDashboard() {
                           <button
                             type="button"
                             onClick={() => router.push('/vault')}
-                            className="rounded-xl border border-emerald-600/30 bg-emerald-500/10 px-3 py-2 text-[11px] font-black text-ink transition-colors hover:bg-emerald-500/15"
+                            className="rounded-xl border border-rim bg-surface px-3 py-2 text-[11px] font-bold text-muted transition-colors hover:bg-raised"
                           >
                             Open Vault
                           </button>
@@ -2114,8 +2107,11 @@ export default function BuilderDashboard() {
                     </div>
                   )}
 
-                  <details className="mt-3 rounded-xl border border-rim bg-surface">
-                    <summary className="cursor-pointer px-3 py-2 text-xs font-black text-ink">View Progress</summary>
+                  <details className="group mt-3 rounded-xl border border-rim/70 bg-surface/60">
+                    <summary className="flex cursor-pointer list-none items-center justify-between px-3 py-2 text-[11px] font-black uppercase tracking-wide text-muted transition-colors hover:text-ink">
+                      <span>View Progress — full stage history</span>
+                      <ChevronRight className="h-3.5 w-3.5 shrink-0 transition-transform group-open:rotate-90" />
+                    </summary>
                     <div className="grid gap-2 border-t border-rim p-3 md:grid-cols-7">
                       {stageScorecard.map(({ stage, stageJob, report, status }) => {
                         const copy = BUILDER_STAGE_STATUS_COPY[status]
