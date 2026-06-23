@@ -418,10 +418,10 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-5 flex flex-col sm:flex-row items-center justify-between gap-4">
           <BrandWordmark className="max-w-[130px]" height={30} theme="dark" />
           <div className="flex items-center gap-5 text-xs text-subtle">
-            <span>© 2026 Vero Technologies Inc.</span>
+            <span>© 2026 Vero Permit</span>
             <span>Vancouver, BC</span>
-            <span className="cursor-default">Privacy</span>
-            <span className="cursor-default">Terms</span>
+            <Link href="/privacy" className="hover:text-muted transition-colors">Privacy</Link>
+            <Link href="/terms" className="hover:text-muted transition-colors">Terms</Link>
             <Link href="/sign-in?role=admin" className="hover:text-muted transition-colors">Admin</Link>
           </div>
         </div>
