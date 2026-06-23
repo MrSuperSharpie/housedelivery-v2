@@ -1,10 +1,8 @@
 'use client'
 
-import React from 'react'
 import Link from 'next/link'
 import { CheckCircle2, XCircle, Calendar } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
-import { Card } from '@/components/ui/Card'
 import type { Project } from '@/lib/types'
 import type { ReportDataMode } from '@/lib/dataSourceMode'
 
@@ -31,60 +29,67 @@ export function DailyFlash({ projects, dataMode, reportsByJobId }: DailyFlashPro
     { day: 'Sun', pass: 0, fail: 0 },
   ]
 
+  const records = [
+    ...passed.map(p => ({ ...p, flash: 'pass' as const })),
+    ...failed.map(p => ({ ...p, flash: 'fail' as const })),
+  ].slice(0, 4)
+
   return (
-    <Card className="col-span-full border border-rim" data-report-mode={dataMode}>
+    <section className="rounded-2xl border border-rim bg-panel p-4 shadow-card" data-report-mode={dataMode}>
       {/* Header */}
-      <div className="flex items-start justify-between mb-5">
+      <div className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <div className="mb-1 flex items-center gap-2 text-xs font-medium text-muted">
-            <Calendar className="w-3.5 h-3.5" />
+          <div className="text-[11px] font-black uppercase tracking-[0.18em] text-muted">Daily Flash</div>
+          <div className="mt-1 flex items-center gap-1.5 text-[11px] font-medium text-subtle">
+            <Calendar className="h-3 w-3" />
             <span>{today}</span>
           </div>
-          <h3 className="text-lg font-extrabold text-ink">Daily Flash Report</h3>
-          <p className="mt-0.5 text-sm font-medium text-muted">Summary of today&apos;s inspection activity</p>
         </div>
-        <div className="rounded-lg border border-rim bg-panel px-3 py-1.5 text-xs font-bold text-muted">
+        <span className="rounded-full border border-rim bg-surface px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-muted">
           Weekly
-        </div>
+        </span>
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-3 gap-3 mb-5">
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
-          <div className="flex items-center gap-2 mb-1">
-            <CheckCircle2 className="w-4 h-4 text-success-green" />
-            <span className="text-xs font-bold text-emerald-800">Passed</span>
+      <div className="mb-4 grid grid-cols-3 gap-2">
+        <div className="rounded-xl border border-emerald-600/25 bg-emerald-500/10 p-3">
+          <div className="mb-1 flex items-center gap-1.5">
+            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+            <span className="text-[11px] font-bold text-emerald-400">Passed</span>
           </div>
-          <div className="text-2xl font-extrabold text-success-green">{passed.length}</div>
-          <div className="mt-1 text-xs font-medium text-emerald-700">site{passed.length !== 1 ? 's' : ''}</div>
+          <div className="text-2xl font-black text-emerald-400">{passed.length}</div>
+          <div className="mt-0.5 text-[10px] font-medium text-muted">site{passed.length !== 1 ? 's' : ''}</div>
         </div>
-        <div className="rounded-xl border border-red-200 bg-red-50 p-3">
-          <div className="flex items-center gap-2 mb-1">
-            <XCircle className="w-4 h-4 text-fail-red" />
-            <span className="text-xs font-bold text-red-800">Failed</span>
+        <div className="rounded-xl border border-red-600/25 bg-red-500/10 p-3">
+          <div className="mb-1 flex items-center gap-1.5">
+            <XCircle className="h-3.5 w-3.5 text-red-400" />
+            <span className="text-[11px] font-bold text-red-400">Failed</span>
           </div>
-          <div className="text-2xl font-extrabold text-fail-red">{failed.length}</div>
-          <div className="mt-1 text-xs font-medium text-red-700">site{failed.length !== 1 ? 's' : ''}</div>
+          <div className="text-2xl font-black text-red-400">{failed.length}</div>
+          <div className="mt-0.5 text-[10px] font-medium text-muted">site{failed.length !== 1 ? 's' : ''}</div>
         </div>
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="w-4 h-4 rounded-full bg-warning-amber flex items-center justify-center text-white text-[10px] font-bold">!</span>
-            <span className="text-xs font-bold text-amber-800">Pending</span>
+        <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 p-3">
+          <div className="mb-1 flex items-center gap-1.5">
+            <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-amber-400 text-[9px] font-black text-surface">!</span>
+            <span className="text-[11px] font-bold text-amber-400">Pending</span>
           </div>
-          <div className="text-2xl font-extrabold text-warning-amber">{pending.length}</div>
-          <div className="mt-1 text-xs font-medium text-amber-700">action needed</div>
+          <div className="text-2xl font-black text-amber-400">{pending.length}</div>
+          <div className="mt-0.5 text-[10px] font-medium text-muted">action needed</div>
         </div>
       </div>
 
-      {/* Mini chart */}
-      <div className="h-24 mb-4">
+      {/* Weekly trend */}
+      <div className="mb-1 text-[10px] font-bold uppercase tracking-wide text-subtle">This week</div>
+      <div className="mb-4 h-20">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={weekData} barSize={14} barGap={2}>
-            <XAxis dataKey="day" tick={{ fontSize: 11, fill: '#4B5563', fontWeight: 600 }} axisLine={false} tickLine={false} />
+            <XAxis dataKey="day" tick={{ fontSize: 11, fill: '#94A3B8', fontWeight: 600 }} axisLine={false} tickLine={false} />
             <YAxis hide />
             <Tooltip
-              contentStyle={{ fontSize: 12, borderRadius: 8, border: 'none', boxShadow: '0 4px 16px rgba(0,0,0,0.1)' }}
-              itemStyle={{ color: '#374151' }}
+              cursor={{ fill: 'rgba(148,163,184,0.08)' }}
+              contentStyle={{ fontSize: 12, borderRadius: 10, border: '1px solid #475569', background: '#0E1727', boxShadow: '0 12px 28px rgba(0,0,0,0.42)' }}
+              itemStyle={{ color: '#E5E7EB' }}
+              labelStyle={{ color: '#94A3B8' }}
             />
             <Bar dataKey="pass" stackId="a" fill="#10B981" radius={[0, 0, 0, 0]}>
               {weekData.map((_, i) => <Cell key={i} fill="#10B981" />)}
@@ -96,50 +101,52 @@ export function DailyFlash({ projects, dataMode, reportsByJobId }: DailyFlashPro
         </ResponsiveContainer>
       </div>
 
-      {/* Site thumbnails */}
-      <div className="space-y-2">
-        {[...passed.map(p => ({ ...p, flash: 'pass' as const })), ...failed.map(p => ({ ...p, flash: 'fail' as const }))].slice(0, 4).map((project) => {
-          const reportId = project.flash === 'pass' ? (reportsByJobId?.[project.id]?.id ?? null) : null
-          return (
-            <div
-              key={project.id}
-              className={`flex items-center gap-3 p-3 rounded-xl border ${
-                project.flash === 'pass' ? 'border-emerald-200 bg-emerald-50' : 'border-red-200 bg-red-50'
-              }`}
-            >
-              {project.photos[0] && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={project.photos[0].thumbnailUrl}
-                  alt={project.name}
-                  className="w-12 h-12 rounded-lg object-cover shrink-0"
-                />
-              )}
-              <Link
-                href={`/builder/project/${project.id}`}
-                className="flex-1 min-w-0 hover:opacity-80 transition-opacity"
+      {/* Filed records */}
+      {records.length > 0 && (
+        <div className="space-y-1.5">
+          {records.map(project => {
+            const reportId = project.flash === 'pass' ? (reportsByJobId?.[project.id]?.id ?? null) : null
+            return (
+              <div
+                key={project.id}
+                className={`flex items-center gap-3 rounded-xl border p-2.5 ${
+                  project.flash === 'pass' ? 'border-emerald-600/25 bg-emerald-500/[0.08]' : 'border-red-600/25 bg-red-500/[0.08]'
+                }`}
               >
-                <div className="truncate text-sm font-bold text-ink">{project.name}</div>
-                <div className="truncate text-xs font-medium text-muted">{project.address}</div>
-              </Link>
-              {reportId ? (
-                <a
-                  href={`/api/schedule-cb?reportId=${encodeURIComponent(reportId)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="shrink-0 rounded-lg bg-emerald-700 px-2.5 py-1.5 text-[10px] font-black text-white transition-colors hover:bg-emerald-800"
+                {project.photos[0] && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={project.photos[0].thumbnailUrl}
+                    alt={project.name}
+                    className="h-10 w-10 shrink-0 rounded-lg object-cover"
+                  />
+                )}
+                <Link
+                  href={`/builder/project/${project.id}`}
+                  className="min-w-0 flex-1 transition-opacity hover:opacity-80"
                 >
-                  Download C-B
-                </a>
-              ) : project.flash === 'pass' ? (
-                <CheckCircle2 className="w-5 h-5 text-success-green shrink-0" />
-              ) : (
-                <XCircle className="w-5 h-5 text-fail-red shrink-0" />
-              )}
-            </div>
-          )
-        })}
-      </div>
-    </Card>
+                  <div className="truncate text-xs font-bold text-ink">{project.name}</div>
+                  <div className="truncate text-[11px] font-medium text-muted">{project.address}</div>
+                </Link>
+                {reportId ? (
+                  <a
+                    href={`/api/schedule-cb?reportId=${encodeURIComponent(reportId)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="shrink-0 rounded-lg bg-flame px-2.5 py-1.5 text-[10px] font-black text-white transition-colors hover:bg-flame-light"
+                  >
+                    Download C-B
+                  </a>
+                ) : project.flash === 'pass' ? (
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
+                ) : (
+                  <XCircle className="h-4 w-4 shrink-0 text-red-400" />
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </section>
   )
 }
