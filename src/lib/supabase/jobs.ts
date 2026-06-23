@@ -72,6 +72,7 @@ export interface JobOpportunityRow {
   permitFamily: PermitFamily
   permitNumber?: string
   projectType?: string
+  catalogueModelCode?: string
   stage: number
   stageName: string
   dispatchTier: DispatchTier
@@ -307,6 +308,7 @@ function rowToJob(row: Record<string, unknown>): JobOpportunityRow {
     permitFamily:             row.permit_family as PermitFamily,
     permitNumber:             (row.permit_number as string) ?? undefined,
     projectType:              (row.project_type as string) ?? undefined,
+    catalogueModelCode:       (row.catalogue_model_code as string) ?? undefined,
     stage:                    row.stage as number,
     stageName:                row.stage_name as string,
     dispatchTier:             (row.dispatch_tier as DispatchTier) ?? 'standard',
@@ -670,6 +672,7 @@ export async function insertJobOpportunity(
     permit_family:              job.permitFamily,
     permit_number:              job.permitNumber ?? null,
     project_type:               job.projectType ?? null,
+    catalogue_model_code:       job.catalogueModelCode ?? null,
     stage:                      job.stage,
     stage_name:                 job.stageName,
     dispatch_tier:              job.dispatchTier,

@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/Badge'
 import { SchedulingPicker, isSlotValidForTier, type TimeSlot } from '@/components/builder/SchedulingPicker'
 import { ReliabilityGuarantee } from '@/components/builder/ReliabilityGuarantee'
 import { INSPECTION_STAGES } from '@/lib/mockData'
+import { CATALOGUE_MODEL_OPTIONS } from '@/lib/catalogue'
 import {
   INSPECTION_INTENT_OPTIONS,
   NOT_SURE_DISAMBIGUATION,
@@ -146,6 +147,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
   const [address, setAddress]               = useState(formatProjectAddress(project))
   const [permitNumber, setPermitNumber]     = useState(project?.permitNumber ?? '')
   const [projectName, setProjectName]       = useState(project?.name ?? '')
+  const [selectedModelCode, setSelectedModelCode] = useState<string | null>(null)
   const [selectedStage, setSelectedStage]   = useState<number | null>(project?.currentStage ?? null)
   const [selectedDisc, setSelectedDisc]     = useState<string | null>(null)
   // Plain-language inspection need. Pre-fills selectedStage/selectedDisc; the
@@ -386,6 +388,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
       holdHours:            pricing.holdHours,
       inspectionType:       'dispatch',
       credentialClass,
+      catalogueModelCode:   selectedModelCode ?? undefined,
       slots,
       builderName:          user?.name    ?? 'Builder',
       builderId:            user?.supabaseId ?? user?.id ?? 'demo-builder',
@@ -619,6 +622,22 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
           }}
             placeholder="Project name (e.g. Kitsilano Infill Duplex)"
             className="relative z-10 mb-3 w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-3.5 text-sm font-medium text-gray-900 caret-gray-900 transition-colors placeholder:text-gray-400 focus:border-flame focus:ring-1 focus:ring-flame/30 focus:outline-none" />
+
+          <label htmlFor="housing-model" className="mb-1 block px-1 text-xs font-black uppercase tracking-wide text-gray-600">
+            Housing model <span className="font-semibold normal-case text-gray-400">(optional)</span>
+          </label>
+          <div className="relative z-10 mb-1">
+            <select id="housing-model" value={selectedModelCode ?? ''} onChange={e => setSelectedModelCode(e.target.value || null)}
+              className="w-full appearance-none rounded-xl border-2 border-gray-200 bg-white px-4 py-3.5 text-sm font-medium text-gray-900 transition-colors focus:border-flame focus:ring-1 focus:ring-flame/30 focus:outline-none">
+              <option value="">Not from catalogue / not specified</option>
+              {CATALOGUE_MODEL_OPTIONS.map(model => (
+                <option key={model.code} value={model.code}>{model.housingModel}</option>
+              ))}
+            </select>
+          </div>
+          <p className="text-xs text-gray-400 mb-5 px-1">
+            Optional. Tags this request with a Build Canada Homes / small-housing catalogue model. Recorded for tracking only — it does not change the inspection stages or checklist.
+          </p>
 
           <label htmlFor="permit-reference" className="mb-1 block px-1 text-xs font-black uppercase tracking-wide text-gray-600">
             Permit number or municipal file reference

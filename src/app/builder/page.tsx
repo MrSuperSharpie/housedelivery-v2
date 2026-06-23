@@ -18,6 +18,7 @@ import { SituationStrip, type SituationMetric } from '@/components/builder/Situa
 import { AwaitingValidationPanel, type ValidationItem } from '@/components/builder/AwaitingValidationPanel'
 import { RecordsReadyPanel, type RecordItem } from '@/components/builder/RecordsReadyPanel'
 import { StageProgressBar } from '@/components/builder/StageProgressBar'
+import { getCatalogueModelLabel } from '@/lib/catalogue'
 import { Modal } from '@/components/ui/Modal'
 import { MOCK_BUILDER } from '@/lib/mockData'
 import { useAuth } from '@/lib/auth'
@@ -2019,6 +2020,11 @@ export default function BuilderDashboard() {
                       <div className="flex flex-wrap items-center gap-2">
                         <div className="truncate text-sm font-extrabold text-ink">{progressProject.projectName}</div>
                         {latestJob && <StatusBadge job={latestJob} />}
+                        {getCatalogueModelLabel(progressProject.representativeJob?.catalogueModelCode) && (
+                          <span className="rounded-full border border-rim bg-surface px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-muted">
+                            {getCatalogueModelLabel(progressProject.representativeJob?.catalogueModelCode)}
+                          </span>
+                        )}
                       </div>
                       {progressProject.address && (
                         <div className="mt-1 flex items-center gap-1 text-xs font-medium text-muted">

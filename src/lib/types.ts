@@ -263,6 +263,7 @@ export interface InspectionJob {
   city: string
   permitNumber?: string
   projectType?: string   // e.g. "Single Family Duplex", "Commercial Podium"
+  catalogueModelCode?: string  // Small-housing catalogue model (display/metadata only)
   stage: number
   stageName: string
   dispatchTier: DispatchTier

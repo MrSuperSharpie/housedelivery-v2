@@ -126,6 +126,7 @@ export interface NewJobInput {
   requiresCP?:          boolean
   inspectionType?:      PricingInspectionType
   credentialClass?:     SpecialistCredentialClass
+  catalogueModelCode?:  string
 }
 
 export interface NewClaimInput {
@@ -641,6 +642,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       requiresCP:               input.requiresCP === true,
       inspectionType:           input.inspectionType ?? 'dispatch',
       credentialClass:          input.credentialClass ?? undefined,
+      catalogueModelCode:       input.catalogueModelCode ?? undefined,
       builderId:                input.builderId,
       builderName:              input.builderName,
       region:                   dispatchRegion,
@@ -688,6 +690,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       city:                 input.city,
       permitNumber:         input.permitNumber,
       projectType:          'Residential',
+      catalogueModelCode:   input.catalogueModelCode,
       stage:                input.stage,
       stageName:            input.stageName,
       dispatchTier:         input.tier,

@@ -3228,6 +3228,7 @@ export type Database = {
           builder_id: string | null
           builder_name: string
           builder_onboarding_status: string | null
+          catalogue_model_code: string | null
           city: string | null
           created_at: string | null
           credential_class: string | null
@@ -3275,6 +3276,7 @@ export type Database = {
           builder_id?: string | null
           builder_name?: string
           builder_onboarding_status?: string | null
+          catalogue_model_code?: string | null
           city?: string | null
           created_at?: string | null
           credential_class?: string | null
@@ -3322,6 +3324,7 @@ export type Database = {
           builder_id?: string | null
           builder_name?: string
           builder_onboarding_status?: string | null
+          catalogue_model_code?: string | null
           city?: string | null
           created_at?: string | null
           credential_class?: string | null

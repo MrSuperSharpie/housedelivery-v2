@@ -8,6 +8,7 @@ import {
   MessageSquare, RotateCcw, Zap, Lock, Share2
 } from 'lucide-react'
 import { INSPECTION_STAGES } from '@/lib/mockData'
+import { getCatalogueModelLabel } from '@/lib/catalogue'
 import type { ResolvedTemplate } from '@/lib/inspections/resolveActiveTemplate'
 import type { EligibilityResult } from '@/lib/eligibility'
 import { formatCurrency, formatRelativeTime } from '@/lib/utils'
@@ -535,6 +536,9 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim, onConfirmAt
 
         {/* Site details */}
         <Section title="Site Details" icon={Building2}>
+          {getCatalogueModelLabel(job.catalogueModelCode) && (
+            <Row label="Housing Model" val={getCatalogueModelLabel(job.catalogueModelCode) as string} />
+          )}
           <Row label="Project Type"  val={job.projectType ?? '—'} />
           <Row label="Permit #"      val={job.permitNumber ?? '—'} mono />
           <Row label="Stage"         val={`Stage ${job.stage} — ${job.stageName}`} />
