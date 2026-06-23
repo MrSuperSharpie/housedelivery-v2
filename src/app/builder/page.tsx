@@ -13,6 +13,10 @@ import { DispatchModal } from '@/components/builder/DispatchModal'
 import { SchedulingPicker, type TimeSlot } from '@/components/builder/SchedulingPicker'
 import { EnRouteTracker } from '@/components/builder/EnRouteTracker'
 import { DailyFlash } from '@/components/builder/DailyFlash'
+import { CommandHeader } from '@/components/builder/CommandHeader'
+import { SituationStrip, type SituationMetric } from '@/components/builder/SituationStrip'
+import { AwaitingValidationPanel, type ValidationItem } from '@/components/builder/AwaitingValidationPanel'
+import { RecordsReadyPanel, type RecordItem } from '@/components/builder/RecordsReadyPanel'
 import { Modal } from '@/components/ui/Modal'
 import { MOCK_BUILDER } from '@/lib/mockData'
 import { useAuth } from '@/lib/auth'
@@ -1516,35 +1520,49 @@ export default function BuilderDashboard() {
   // FIX #4: show spinner while either projects OR jobs are loading
   const isLoading = isLoadingProjects || isLoadingJobs
 
+  // ─── Command Center layout helpers (presentation only) ───────────────────────
+  const scrollToSection = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  const needsActionCount = actionRequiredHoldJobs.length + activeModHolds.length + acceptedHolds.length
+
+  const situationMetrics: SituationMetric[] = [
+    { key: 'needs-action', label: 'Needs Action', count: needsActionCount, helper: 'Holds & decisions', tone: 'flame', targetId: 'needs-action' },
+    { key: 'live-board', label: 'Live Board', count: liveUnclaimedJobs.length, helper: 'Awaiting claim', tone: 'electric', targetId: 'live-operations' },
+    { key: 'awaiting-validation', label: 'Awaiting Validation', count: pendingValidationJobs.length, helper: 'In intake queue', tone: 'amber', targetId: 'awaiting-validation' },
+    { key: 'on-hold', label: 'On Hold', count: actionRequiredHoldJobs.length, helper: 'Require correction', tone: 'amber', targetId: 'needs-action' },
+    { key: 'records-ready', label: 'Records Ready', count: completedProgressProjects.length, helper: 'Filed & downloadable', tone: 'emerald', targetId: 'records-ready' },
+  ]
+
+  const validationPanelItems: ValidationItem[] = pendingValidationJobs.map(job => ({
+    id: job.id,
+    projectName: job.projectName,
+    address: job.address ? `${job.address}${job.city ? `, ${job.city}` : ''}` : undefined,
+    stageLabel: BUILDER_STAGE_DEFINITIONS.find(s => s.number === job.stage)?.label ?? `Stage ${job.stage} — ${job.stageName}`,
+  }))
+
+  const recordsReadyItems: RecordItem[] = completedProgressProjects.map(pp => {
+    const completedJob = [...pp.jobs].reverse().find(j => j.status === 'completed')
+    return {
+      key: pp.key,
+      projectName: pp.projectName,
+      address: pp.address ? `${pp.address}${pp.city ? `, ${pp.city}` : ''}` : undefined,
+      certRef: completedJob ? completedRecords[completedJob.id]?.certRef : undefined,
+      reportId: completedJob ? completionReportsByJobId[completedJob.id]?.id : undefined,
+    }
+  })
+
   return (
     <div className="app-theme-scope min-h-screen bg-surface">
       <Navbar role="builder" dark />
 
-      {/* ── Hero dispatch bar ── */}
-      <div className="bg-dot bg-dot-sm border-b border-rim px-4 sm:px-6 pt-8 pb-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="label-mono mb-2 font-bold">{user?.company ?? MOCK_BUILDER.companyName}</div>
-          <h1 className="mb-5 text-2xl font-extrabold text-ink">
-            {user ? `${user.firstName}'s Command Center` : 'Project Command Center'}
-          </h1>
-
-          <button
-            onClick={handleNewRequest}
-            className="group flex w-full items-center gap-4 rounded-2xl border border-rim bg-panel p-5 shadow-card transition-all hover:border-flame/40 hover:glow-flame-sm"
-          >
-            <div className="w-12 h-12 rounded-2xl bg-flame flex items-center justify-center shrink-0 shadow-[0_12px_24px_rgba(245,124,0,0.22)]">
-              <MapPin className="w-5 h-5 text-white" />
-            </div>
-            <div className="flex-1 text-left">
-              <div className="text-sm font-extrabold text-ink">Post an Inspection Request</div>
-              <div className="mt-1 text-xs font-medium text-muted">Start a new request with site details, inspection stage, discipline, and builder availability. Dispatch speed is selected inside the request flow.</div>
-            </div>
-            <div className="w-9 h-9 bg-flame/10 border border-flame/20 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-flame group-hover:border-flame transition-all">
-              <ChevronRight className="w-4 h-4 text-flame group-hover:text-white transition-colors" />
-            </div>
-          </button>
-        </div>
-      </div>
+      {/* ── Command Header ── */}
+      <CommandHeader
+        company={user?.company ?? MOCK_BUILDER.companyName}
+        onPostRequest={handleNewRequest}
+        onOpenVault={() => router.push('/vault')}
+      />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         {requestGuardMessage && (
@@ -1553,12 +1571,22 @@ export default function BuilderDashboard() {
           </div>
         )}
 
-        {/* ── Action Required (always first) ── */}
+        {/* ── Situation Strip ── */}
+        <div className="mb-6">
+          <SituationStrip metrics={situationMetrics} onSelect={scrollToSection} />
+        </div>
+
+        {/* ── Two-column command layout ── */}
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
+          {/* MAIN COLUMN */}
+          <div className="space-y-6 lg:col-span-8">
+
+        {/* ── Needs Action (always first) ── */}
         {hasBuilderActions && (
-          <section className="mb-6">
+          <section id="needs-action" className="mb-6">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
-                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-flame">Action Required</div>
+                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-flame">Needs Action</div>
                 <div className="mt-1 text-sm font-extrabold text-ink">Review holds and builder decisions</div>
               </div>
               <div className="rounded-full border border-flame/25 bg-flame/10 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-flame">
@@ -1864,12 +1892,12 @@ export default function BuilderDashboard() {
           </section>
         )}
 
-        {/* ── Live Requests Awaiting Inspector Claim ── */}
+        {/* ── Live Operations ── */}
         {liveUnclaimedJobs.length > 0 && (
-          <section className="mb-6">
+          <section id="live-operations" className="mb-6">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
-                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-flame">Live Requests Awaiting Inspector Claim</div>
+                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-flame">Live Operations</div>
                 <div className="mt-1 text-xs font-medium text-muted">Posted requests are visible to qualified inspectors on the Live Job Board until claimed.</div>
               </div>
               <div className="rounded-full border border-flame/25 bg-flame/10 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-flame">
@@ -1923,61 +1951,6 @@ export default function BuilderDashboard() {
           </section>
         )}
 
-        {/* ── Requests Awaiting Validation ── */}
-        {pendingValidationJobs.length > 0 && (
-          <section className="mb-6">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div>
-                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-amber-400">Requests Awaiting Validation</div>
-                <div className="mt-1 text-xs font-medium text-muted">These requests did not pass validation and are not visible on the Live Job Board.</div>
-              </div>
-              <div className="rounded-full border border-amber-500/25 bg-amber-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-amber-400">
-                {pendingValidationJobs.length} pending
-              </div>
-            </div>
-            <div className="grid gap-3 lg:grid-cols-2">
-              {pendingValidationJobs.map(job => {
-                const stageLabel = BUILDER_STAGE_DEFINITIONS.find(s => s.number === job.stage)?.label ?? `Stage ${job.stage} — ${job.stageName}`
-                return (
-                  <div key={job.id} className="rounded-2xl border border-amber-500/25 bg-panel p-4 shadow-card">
-                    <div className="flex items-start gap-3">
-                      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-amber-500/25 bg-amber-500/10">
-                        <AlertTriangle className="h-4 w-4 text-amber-400" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-extrabold text-ink">{job.projectName}</div>
-                        {job.address && (
-                          <div className="mt-0.5 truncate text-xs font-medium text-muted">{job.address}{job.city ? `, ${job.city}` : ''}</div>
-                        )}
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-black text-amber-400">
-                            Not Posted — Awaiting Validation
-                          </span>
-                        </div>
-                        <div className="mt-2 text-xs font-semibold text-ink">{stageLabel}</div>
-                        {job.requestedAt && (
-                          <div className="mt-1 text-[11px] text-muted">
-                            Submitted {new Date(job.requestedAt).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' })} at {new Date(job.requestedAt).toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit' })}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={() => openManageRequest(job)}
-                        className="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-[11px] font-black text-red-400 transition-colors hover:bg-red-500/15"
-                      >
-                        Cancel Request
-                      </button>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </section>
-        )}
-
         {/* ── Active Inspection Appointments ── */}
         {activeInspectionAppointments.length > 0 && (
           <section className="mb-6">
@@ -2007,42 +1980,8 @@ export default function BuilderDashboard() {
           </section>
         )}
 
-        {/* En route — live tracker card */}
-        {projects.some(p => p.status === 'in_progress') && (
-          <button
-            onClick={() => setIsTrackerOpen(true)}
-            className="w-full bg-electric/5 border border-electric/25 hover:border-electric/50 hover:bg-electric/8 rounded-2xl p-4 mb-5 flex items-center gap-4 transition-all group text-left"
-          >
-            <div className="relative w-11 h-11 shrink-0">
-              <div className="absolute inset-0 bg-electric/20 rounded-full animate-ping" style={{ animationDuration: '1.8s' }} />
-              <div className="relative w-11 h-11 bg-electric/15 border border-electric/30 rounded-full flex items-center justify-center">
-                <Navigation className="w-5 h-5 text-electric" style={{ transform: 'rotate(45deg)' }} />
-              </div>
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-0.5">
-                <span className="font-bold text-ink text-sm">Inspector En Route</span>
-                <div className="flex items-center gap-1 bg-electric/10 border border-electric/20 rounded-md px-1.5 py-0.5">
-                  <div className="w-1.5 h-1.5 bg-electric rounded-full animate-pulse" />
-                  <span className="text-[9px] font-bold text-electric uppercase tracking-wide">Live</span>
-                </div>
-              </div>
-              <div className="text-xs text-muted">
-                {trackerInspectorName}{trackerInspectorLicense ? ` · ${trackerInspectorLicense}` : ''} · {trackerProjectName}
-              </div>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <div className="text-right">
-                <div className="text-xs text-muted">ETA</div>
-                <div className="text-lg font-black text-electric font-mono">8 min</div>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted group-hover:text-electric transition-colors" />
-            </div>
-          </button>
-        )}
-
-        {/* ── Project Portfolio ── */}
-        <section className="mb-6">
+        {/* ── Projects & Stage Progress ── */}
+        <section id="projects" className="mb-6">
           <div className="mb-3 flex items-center justify-between gap-3">
             <div>
               <div className="text-[11px] font-black uppercase tracking-[0.18em] text-muted">Project Portfolio</div>
@@ -2239,47 +2178,6 @@ export default function BuilderDashboard() {
               )
             })}
 
-            {completedProgressProjects.length > 0 && (
-              <details open className="mt-2 rounded-2xl border border-emerald-600/20 bg-emerald-500/5">
-                <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-black text-ink">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                  Completed Records — {completedProgressProjects.length} project{completedProgressProjects.length !== 1 ? 's' : ''}
-                </summary>
-                <div className="space-y-2 border-t border-emerald-600/15 p-3">
-                  {completedProgressProjects.map(pp => {
-                    const completedJob = [...pp.jobs].reverse().find(j => j.status === 'completed')
-                    const rec = completedJob ? completedRecords[completedJob.id] : undefined
-                    return (
-                      <div key={pp.key} className="flex items-center justify-between rounded-xl border border-rim bg-panel px-3 py-2.5">
-                        <div className="min-w-0">
-                          <div className="truncate text-sm font-extrabold text-ink">{pp.projectName}</div>
-                          {pp.address && (
-                            <div className="mt-0.5 truncate text-xs text-muted">{pp.address}{pp.city ? `, ${pp.city}` : ''}</div>
-                          )}
-                          {rec?.certRef && (
-                            <div className="mt-0.5 font-mono text-xs font-bold text-ink">{rec.certRef}</div>
-                          )}
-                        </div>
-                        {completedJob && completionReportsByJobId[completedJob.id]?.id ? (
-                          <a
-                            href={`/api/schedule-cb?reportId=${encodeURIComponent(completionReportsByJobId[completedJob.id]!.id!)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="ml-3 shrink-0 rounded-xl bg-flame px-3 py-2 text-[11px] font-black text-white transition-colors hover:bg-flame-light"
-                          >
-                            Download Schedule C-B
-                          </a>
-                        ) : (
-                          <span className="ml-3 shrink-0 rounded-xl border border-rim bg-surface px-3 py-2 text-[11px] font-semibold text-muted">
-                            Report filed
-                          </span>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-              </details>
-            )}
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-3 gap-y-5 mb-6">
@@ -2289,6 +2187,55 @@ export default function BuilderDashboard() {
           </div>
         )}
         </section>
+          </div>
+          {/* ── RIGHT RAIL ── */}
+          <aside className="lg:col-span-4">
+            <div className="space-y-4 lg:sticky lg:top-6">
+
+              {/* Inspector En Route */}
+              {projects.some(p => p.status === 'in_progress') && (
+                <button
+                  onClick={() => setIsTrackerOpen(true)}
+                  className="group flex w-full items-center gap-4 rounded-2xl border border-electric/25 bg-electric/5 p-4 text-left transition-all hover:border-electric/50 hover:bg-electric/8"
+                >
+                  <div className="relative h-11 w-11 shrink-0">
+                    <div className="absolute inset-0 animate-ping rounded-full bg-electric/20" style={{ animationDuration: '1.8s' }} />
+                    <div className="relative flex h-11 w-11 items-center justify-center rounded-full border border-electric/30 bg-electric/15">
+                      <Navigation className="h-5 w-5 text-electric" style={{ transform: 'rotate(45deg)' }} />
+                    </div>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-0.5 flex items-center gap-2">
+                      <span className="text-sm font-bold text-ink">Inspector En Route</span>
+                      <div className="flex items-center gap-1 rounded-md border border-electric/20 bg-electric/10 px-1.5 py-0.5">
+                        <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-electric" />
+                        <span className="text-[9px] font-bold uppercase tracking-wide text-electric">Live</span>
+                      </div>
+                    </div>
+                    <div className="truncate text-xs text-muted">
+                      {trackerInspectorName}{trackerInspectorLicense ? ` · ${trackerInspectorLicense}` : ''} · {trackerProjectName}
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <div className="text-right">
+                      <div className="text-xs text-muted">ETA</div>
+                      <div className="font-mono text-lg font-black text-electric">8 min</div>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted transition-colors group-hover:text-electric" />
+                  </div>
+                </button>
+              )}
+
+              <AwaitingValidationPanel
+                items={validationPanelItems}
+                total={pendingValidationJobs.length}
+                onSelect={id => {
+                  const job = pendingValidationJobs.find(j => j.id === id)
+                  if (job) openManageRequest(job)
+                }}
+              />
+
+              <RecordsReadyPanel records={recordsReadyItems} onOpenVault={() => router.push('/vault')} />
 
         {/* ── Weekly Activity ── */}
         <section className="mb-6">
@@ -2312,6 +2259,10 @@ export default function BuilderDashboard() {
         </section>
 
         <DailyFlash projects={dailyFlashProjects} dataMode={dailyFlashMode} reportsByJobId={completionReportsByJobId} />
+
+            </div>
+          </aside>
+        </div>
       </main>
 
       <Modal
