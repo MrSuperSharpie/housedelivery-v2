@@ -991,6 +991,52 @@ function RequiredEvidenceActionPanel({
   )
 }
 
+interface ContainerRequirement {
+  label: string
+  done: boolean
+}
+
+/**
+ * Read-only "Requirements to complete" summary rendered near the top of each
+ * checklist container. Display only: every value is computed by the caller from
+ * existing state and helpers (isStageItemReadyForSignOff, isChecklistEntryComplete,
+ * the per-container passBlockedForEvidence flag, and unresolved dependency codes).
+ * It introduces no new gating logic and does not affect Pass / Sign-Off behaviour.
+ */
+function ContainerRequirementsSummary({
+  requirements,
+  ready,
+}: {
+  requirements: ContainerRequirement[]
+  ready: boolean
+}) {
+  if (requirements.length === 0) return null
+  return (
+    <div className={`mt-3 rounded-2xl border px-4 py-3 ${ready ? 'border-emerald-500/30 bg-emerald-500/10' : 'border-amber-500/25 bg-amber-500/5'}`}>
+      <div className="flex items-center gap-2">
+        {ready
+          ? <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-300" />
+          : <AlertCircle className="h-4 w-4 shrink-0 text-amber-300" />}
+        <span className={`text-[11px] font-black uppercase tracking-[0.16em] ${ready ? 'text-emerald-200' : 'text-amber-200'}`}>
+          {ready ? 'Requirements complete' : 'Requirements to complete'}
+        </span>
+      </div>
+      <ul className="mt-2.5 space-y-1.5">
+        {requirements.map(requirement => (
+          <li key={requirement.label} className="flex items-start gap-2 text-sm leading-5">
+            {requirement.done
+              ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" />
+              : <CircleDashed className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500" />}
+            <span className={requirement.done ? 'text-zinc-400' : 'font-semibold text-zinc-100'}>
+              {requirement.label}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 type ActiveJobHoldSummary = Pick<HoldRecord, 'id' | 'status' | 'reason'> & Partial<Pick<
   HoldRecord,
   | 'deficiencyReason'
@@ -4061,6 +4107,27 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                 const containerNotesOpen = expandedContainerNotes[item.item_code] ?? Boolean(item.response_note.trim())
                 const jurisdictionNotesOpen = expandedJurisdictionNotes[item.item_code] ?? false
 
+                // "Requirements to complete" summary inputs — reuse existing helpers /
+                // computed flags only (no new completion logic). Shared by both render
+                // branches so field_view and standard stay in lockstep.
+                const runtimeChecklistEntries = getRuntimeChecklistItems(item)
+                const runtimeChecklistDone = runtimeChecklistEntries.filter(detail => isChecklistEntryComplete(item, detail)).length
+                const containerReady = isStageItemReadyForSignOff(item, items, assignmentScope?.internalStageNumber)
+                const containerRequirements: ContainerRequirement[] = item.inspection_status === 'N/A'
+                  ? [{ label: 'Marked Not Applicable', done: true }]
+                  : [
+                      ...(runtimeChecklistEntries.length > 0
+                        ? [{ label: `Complete checklist items (${runtimeChecklistDone}/${runtimeChecklistEntries.length})`, done: runtimeChecklistDone === runtimeChecklistEntries.length }]
+                        : []),
+                      ...(passRequiresEvidence
+                        ? [{ label: 'Capture required evidence', done: !passBlockedForEvidence }]
+                        : []),
+                      ...(blockedBy.length > 0
+                        ? [{ label: `Clear prerequisites: ${blockedBy.join(', ')}`, done: false }]
+                        : []),
+                      { label: 'Select a section outcome', done: item.inspection_status !== 'Pending' },
+                    ]
+
                 if (usesFieldView) {
                   return (
                     <article
@@ -4109,7 +4176,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                               {showRequirementIndicator && (
                                 passBlockedForEvidence ? (
                                   <span className="inline-flex items-center rounded-full border border-rose-300/70 bg-rose-200 px-2 py-1 text-xs font-bold text-rose-900">
-                                    Required Evidence
+                                    Required Evidence Missing
                                   </span>
                                 ) : (
                                   <span
@@ -4127,6 +4194,8 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         </div>
                       </div>
 
+                      <ContainerRequirementsSummary requirements={containerRequirements} ready={containerReady} />
+
                       {blockedBy.length > 0 && (
                         <div className={`mt-3 ${DEPENDENCY_BLOCKER_NOTICE_CLASS}`}>
                           {getDependencyBlockerMessage(item.item_code, blockedBy)}
@@ -4135,7 +4204,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
 
                       {item.required_evidence.length > 0 && (
                         <div className="mt-4 rounded-2xl border border-orange-500/20 bg-orange-500/5 px-4 py-3">
-                          <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300/80">Evidence Required</div>
+                          <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300/80">Required Evidence</div>
                           <ul className="mt-1.5 space-y-1">
                             {item.required_evidence.map(ev => (
                               <li key={ev} className="flex items-start gap-2 text-[11px] leading-5 text-zinc-400">
@@ -4160,7 +4229,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                   ? 'border-amber-500/30 bg-amber-500/10 text-amber-300'
                                   : 'border-emerald-400/20 bg-emerald-500/10 text-emerald-300'
                               }`}>
-                                {passBlockedForEvidence ? 'Evidence Required Before Pass' : 'Evidence Attached'}
+                                {passBlockedForEvidence ? 'Required Evidence Missing' : 'Required Evidence Captured'}
                               </span>
                             )}
                             <div className="rounded-full bg-white/5 px-3 py-1 text-[11px] font-black text-zinc-300">
@@ -4381,7 +4450,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
                         <StatusPill
                           label="Passed"
-                          sublabel="Verified Clear"
+                          sublabel={passBlocked ? (passBlockedForEvidence ? 'Needs required evidence' : 'Blocked by prerequisite') : 'Verified Clear'}
                           value="Passed"
                           active={item.inspection_status === 'Passed'}
                           disabled={passBlocked}
@@ -4540,7 +4609,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                   )}
                                   {item.optional_evidence.length > 0 && (
                                     <>
-                                      <div className={`${item.required_evidence.length > 0 ? 'mt-4 ' : ''}text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500`}>Optional Evidence</div>
+                                      <div className={`${item.required_evidence.length > 0 ? 'mt-4 ' : ''}text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500`}>Supporting Evidence</div>
                                       <div className="mt-2">
                                         <GuidanceList
                                           items={item.optional_evidence}
@@ -4727,7 +4796,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                             {showRequirementIndicator && (
                               passBlockedForEvidence ? (
                                   <span className="inline-flex items-center rounded-full border border-rose-300/70 bg-rose-200 px-2 py-1 text-xs font-bold text-rose-900">
-                                    Required Evidence
+                                    Required Evidence Missing
                                   </span>
                               ) : (
                                 <span
@@ -4770,6 +4839,8 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       </div>
                     </div>
 
+                    <ContainerRequirementsSummary requirements={containerRequirements} ready={containerReady} />
+
                     {blockedBy.length > 0 && (
                       <div className={`mt-3 ${DEPENDENCY_BLOCKER_NOTICE_CLASS}`}>
                         {getDependencyBlockerMessage(item.item_code, blockedBy)}
@@ -4784,7 +4855,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                     <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
                       <StatusPill
                         label="Passed"
-                        sublabel="Verified Clear"
+                        sublabel={passBlocked ? (passBlockedForEvidence ? 'Needs required evidence' : 'Blocked by prerequisite') : 'Verified Clear'}
                         value="Passed"
                         active={item.inspection_status === 'Passed'}
                         disabled={passBlocked}
@@ -4962,7 +5033,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                 )}
                                 {item.optional_evidence.length > 0 && (
                                   <>
-                                    <div className={`${item.required_evidence.length > 0 ? 'mt-4 ' : ''}text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500`}>Optional Evidence</div>
+                                    <div className={`${item.required_evidence.length > 0 ? 'mt-4 ' : ''}text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500`}>Supporting Evidence</div>
                                     <div className="mt-2">
                                       <GuidanceList
                                         items={item.optional_evidence}
@@ -5057,7 +5128,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         >
                           <div className="flex flex-wrap items-center justify-between gap-3">
                             <div>
-                              <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Evidence</div>
+                              <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Attached Evidence</div>
                               <div className="mt-1 text-xs text-zinc-400">
                                 {evidenceSummary}
                               </div>
@@ -5350,27 +5421,41 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                   </div>
                 </div>
 
-                {blockingFailedStageItems.length > 0 && (
-                  <div className="mt-4 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-100/90">
-                    {FAIL_DOCUMENTATION_REQUIRED_MESSAGE} {blockingFailedStageItems.map(item => item.item_code).join(', ')}.
-                  </div>
-                )}
+                {(blockingFailedStageItems.length > 0
+                  || (!currentStageSignOff && failedStageItems.length > 0)
+                  || (!currentStageSignOff && blockedStageItems.length > 0)
+                  || (!currentStageSignOff && incompleteStageItems.length > 0)) && (
+                  <div className="mt-4 rounded-2xl border border-amber-500/25 bg-amber-500/5 px-4 py-3">
+                    <div className="text-[11px] font-black uppercase tracking-[0.18em] text-amber-200/90">Remaining before sign-off</div>
+                    <div className="mt-3 space-y-2 text-sm">
+                      {blockingFailedStageItems.length > 0 && (
+                        <div className="flex items-start gap-2 text-red-100/90">
+                          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-300" />
+                          <span>{FAIL_DOCUMENTATION_REQUIRED_MESSAGE} {blockingFailedStageItems.map(item => item.item_code).join(', ')}.</span>
+                        </div>
+                      )}
 
-                {!currentStageSignOff && blockingFailedStageItems.length === 0 && failedStageItems.length > 0 && (
-                  <div className="mt-4 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100/90">
-                    Documented deficiencies will be filed: {failedStageItems.map(item => item.item_code).join(', ')}. This stage will not advance and the builder will receive a Corrections Required notice.
-                  </div>
-                )}
+                      {!currentStageSignOff && blockingFailedStageItems.length === 0 && failedStageItems.length > 0 && (
+                        <div className="flex items-start gap-2 text-amber-100/90">
+                          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
+                          <span>Documented deficiencies will be filed: {failedStageItems.map(item => item.item_code).join(', ')}. This stage will not advance and the builder will receive a Corrections Required notice.</span>
+                        </div>
+                      )}
 
-                {!currentStageSignOff && blockingFailedStageItems.length === 0 && blockedStageItems.length > 0 && (
-                  <div className="mt-4 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100/90">
-                    Resolve dependency blockers before signing off: {blockedStageItems.map(({ item, blockedBy }) => `${item.item_code} needs ${blockedBy.join(', ')}`).join('; ')}.
-                  </div>
-                )}
+                      {!currentStageSignOff && blockingFailedStageItems.length === 0 && blockedStageItems.length > 0 && (
+                        <div className="flex items-start gap-2 text-amber-100/90">
+                          <Lock className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
+                          <span>Resolve dependency blockers before signing off: {blockedStageItems.map(({ item, blockedBy }) => `${item.item_code} needs ${blockedBy.join(', ')}`).join('; ')}.</span>
+                        </div>
+                      )}
 
-                {!currentStageSignOff && blockingFailedStageItems.length === 0 && blockedStageItems.length === 0 && incompleteStageItems.length > 0 && (
-                  <div className="mt-4 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100/90">
-                    Finish these containers first: {incompleteStageItems.map(item => item.item_code).join(', ')}.
+                      {!currentStageSignOff && blockingFailedStageItems.length === 0 && blockedStageItems.length === 0 && incompleteStageItems.length > 0 && (
+                        <div className="flex items-start gap-2 text-amber-100/90">
+                          <CircleDashed className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
+                          <span>Finish these containers first: {incompleteStageItems.map(item => item.item_code).join(', ')}.</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
 
@@ -5421,8 +5506,8 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                           : 'bg-[#FF5F15] text-white shadow-[0_14px_30px_rgba(255,95,21,0.28)] hover:bg-[#e25412]'
                       }`}
                     >
-                      {stageSigning ? <Loader2 className="h-4 w-4 animate-spin" /> : currentStageSignOff ? <ShieldCheck className="h-4 w-4" /> : <Stamp className="h-4 w-4" />}
-                      {stageSigning ? 'Signing Stage...' : currentStageSignOff ? 'Stage Signed' : 'Sign & Submit'}
+                      {stageSigning ? <Loader2 className="h-4 w-4 animate-spin" /> : currentStageSignOff ? <ShieldCheck className="h-4 w-4" /> : stageReadyForSignOff ? <Stamp className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                      {stageSigning ? 'Signing Stage...' : currentStageSignOff ? 'Stage Signed' : stageReadyForSignOff ? 'Sign & Submit' : 'Sign-Off Locked'}
                     </button>
                   </div>
                 </div>
