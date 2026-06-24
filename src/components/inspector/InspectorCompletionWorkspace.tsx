@@ -204,7 +204,7 @@ function DocRow({
   const isVideo = doc.mediaType === 'video' || doc.mimeType?.startsWith('video/') === true
 
   return (
-    <div className="group flex w-full items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm transition-all hover:border-zinc-300">
+    <div className="group flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 shadow-sm transition-all hover:border-white/20 hover:bg-white/[0.07]">
       <button
         type="button"
         onClick={onClick}
@@ -238,14 +238,14 @@ function DocRow({
           </div>
         ) : (
           <div className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${
-            isPdf ? 'border-red-100 bg-red-50' :
-            isVideo ? 'border-sky-100 bg-sky-50' :
-            'border-zinc-100 bg-zinc-50'
+            isPdf ? 'border-rose-400/20 bg-rose-500/10' :
+            isVideo ? 'border-sky-400/20 bg-sky-500/10' :
+            'border-white/10 bg-white/5'
           }`}>
             {isPdf
-              ? <FileText className="h-4 w-4 text-red-500" />
+              ? <FileText className="h-4 w-4 text-rose-300" />
               : isVideo
-                ? <Video className="h-4 w-4 text-sky-600" />
+                ? <Video className="h-4 w-4 text-sky-300" />
               : <File className="h-4 w-4 text-zinc-400" />}
             {isVideo && (
               <div className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border border-white bg-slate-900 text-white shadow-sm">
@@ -255,9 +255,9 @@ function DocRow({
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-semibold text-zinc-900">{doc.fileName}</div>
-          <div className="mt-0.5 flex items-center gap-2 text-[11px] text-zinc-500 font-medium">
-            {isVideo && <span className="text-sky-700">Video</span>}
+          <div className="truncate text-sm font-semibold text-zinc-100">{doc.fileName}</div>
+          <div className="mt-0.5 flex items-center gap-2 text-[11px] text-zinc-400 font-medium">
+            {isVideo && <span className="text-sky-300">Video</span>}
             {isVideo && <span className="opacity-50">•</span>}
             {doc.fileSize != null && <span>{formatBytes(doc.fileSize)}</span>}
             {doc.fileSize != null && <span className="opacity-50">•</span>}
@@ -280,7 +280,7 @@ function DocRow({
           onDelete();
         }}
         aria-label={`Remove ${doc.fileName}`}
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-red-100 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all active:scale-90"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-rose-400/20 bg-rose-500/10 text-rose-300 hover:bg-rose-500 hover:text-white transition-all active:scale-90"
         title="Delete file"
       >
         <Trash2 className="h-4 w-4" />
@@ -836,16 +836,16 @@ function StatusPill({
     : null
 
   const activeClass =
-    value === 'Passed' ? 'border-emerald-500 bg-emerald-200 text-emerald-900 font-bold shadow-inner' :
-    value === 'Failed' ? 'border-rose-500 bg-rose-200 text-rose-900 font-bold shadow-inner' :
-    value === 'Pending' ? 'border-slate-600 bg-slate-300 text-slate-900 font-bold shadow-inner' :
-    'border-slate-400 bg-transparent text-slate-100 shadow-sm'
+    value === 'Passed' ? 'border-emerald-400 bg-emerald-500/90 text-white font-bold shadow-[0_8px_22px_rgba(16,185,129,0.28)]' :
+    value === 'Failed' ? 'border-rose-400 bg-rose-500/90 text-white font-bold shadow-[0_8px_22px_rgba(244,63,94,0.28)]' :
+    value === 'Pending' ? 'border-white/25 bg-white/15 text-white font-bold shadow-inner' :
+    'border-white/25 bg-white/12 text-white shadow-sm'
 
   const idleClass =
-    value === 'Passed' ? 'border-slate-300 bg-white text-slate-500 hover:bg-emerald-50' :
-    value === 'Failed' ? 'border-slate-300 bg-white text-slate-500 hover:bg-rose-50' :
-    value === 'Pending' ? 'border-slate-300 bg-white text-slate-500 hover:bg-slate-100' :
-    'border-slate-300 bg-transparent text-slate-200 hover:bg-white/10'
+    value === 'Passed' ? 'border-emerald-400/25 bg-emerald-500/[0.06] text-emerald-100/80 hover:bg-emerald-500/15 hover:border-emerald-400/45' :
+    value === 'Failed' ? 'border-rose-400/25 bg-rose-500/[0.06] text-rose-100/80 hover:bg-rose-500/15 hover:border-rose-400/45' :
+    value === 'Pending' ? 'border-white/12 bg-white/[0.04] text-zinc-300 hover:bg-white/10 hover:border-white/20' :
+    'border-white/12 bg-white/[0.04] text-zinc-300 hover:bg-white/10 hover:border-white/20'
   const disabledClass = 'cursor-not-allowed opacity-40'
 
   return (
@@ -901,10 +901,10 @@ function FailedSectionPanel({ documented }: { documented: boolean }) {
 const FLOATING_PANEL_CLASS = 'shadow-[0_18px_34px_rgba(15,23,42,0.18)]'
 const TACTILE_MEDIA_BUTTON_CLASS = 'inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full border border-slate-300/80 bg-[#e5e7eb] px-0 text-slate-700 shadow-[0_6px_14px_rgba(15,23,42,0.18)] transition-colors hover:bg-[#f3f4f6] disabled:cursor-not-allowed disabled:opacity-50'
 const EMPHASIZED_BODY_TEXT_CLASS = 'text-[17px] leading-7 text-zinc-300'
-const HOLD_ACTION_BUTTON_CLASS = 'min-h-12 rounded-2xl border border-amber-300 bg-amber-100 px-4 py-3 text-sm font-black text-amber-900 shadow-sm transition-colors hover:bg-amber-200 disabled:cursor-not-allowed disabled:border-amber-200 disabled:bg-amber-50 disabled:text-amber-400 disabled:opacity-60'
+const HOLD_ACTION_BUTTON_CLASS = 'min-h-12 rounded-2xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm font-black text-amber-200 shadow-sm transition-colors hover:bg-amber-500/20 hover:border-amber-400/50 disabled:cursor-not-allowed disabled:border-amber-300/15 disabled:bg-amber-500/5 disabled:text-amber-300/40 disabled:opacity-60'
 const REQUIRED_EVIDENCE_LOCK_MESSAGE = 'Evidence required before Pass. Attach at least one evidence item in the Attached Evidence section below. A regular note/comment does not satisfy this requirement unless it is captured as evidence.'
-const REQUIRED_EVIDENCE_NOTICE_CLASS = 'rounded-2xl border-2 border-rose-500 bg-white px-4 py-3 text-sm font-semibold leading-6 text-slate-950 shadow-[0_14px_28px_rgba(15,23,42,0.18)]'
-const DEPENDENCY_BLOCKER_NOTICE_CLASS = 'rounded-2xl border-2 border-amber-500 bg-white px-4 py-3 text-sm font-semibold leading-6 text-slate-950 shadow-[0_14px_28px_rgba(15,23,42,0.18)]'
+const REQUIRED_EVIDENCE_NOTICE_CLASS = 'rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm font-semibold leading-6 text-rose-100/90 shadow-[0_14px_28px_rgba(2,6,23,0.35)]'
+const DEPENDENCY_BLOCKER_NOTICE_CLASS = 'rounded-2xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm font-semibold leading-6 text-amber-100/90 shadow-[0_14px_28px_rgba(2,6,23,0.35)]'
 
 // Shown when a Failed required item is not yet documented enough to submit on the scoped path.
 const FAIL_DOCUMENTATION_REQUIRED_MESSAGE = 'Add a deficiency note and evidence before submitting a failed item.'
@@ -940,12 +940,12 @@ function RequiredEvidenceActionPanel({
 
   if (!blocked) {
     return (
-      <div className="mt-3 rounded-2xl border-2 border-emerald-500 bg-white px-4 py-3 text-sm font-semibold leading-6 text-slate-950 shadow-[0_14px_28px_rgba(15,23,42,0.18)]">
+      <div className="mt-3 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm font-semibold leading-6 text-emerald-50 shadow-[0_14px_28px_rgba(2,6,23,0.35)]">
         <div className="flex items-start gap-3">
-          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" />
+          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" />
           <div>
-            <div className="text-sm font-black text-emerald-950">Required evidence attached</div>
-            <div className="mt-1 text-sm text-slate-800">
+            <div className="text-sm font-black text-emerald-100">Required evidence captured</div>
+            <div className="mt-1 text-sm text-emerald-100/80">
               Evidence requirement satisfied. This container can now be passed if all checklist conditions are complete.
             </div>
           </div>
@@ -955,25 +955,25 @@ function RequiredEvidenceActionPanel({
   }
 
   return (
-    <div className="mt-3 rounded-2xl border-2 border-rose-500 bg-white px-4 py-4 text-slate-950 shadow-[0_14px_28px_rgba(15,23,42,0.18)]">
+    <div className="mt-3 rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-4 text-rose-50 shadow-[0_14px_28px_rgba(2,6,23,0.35)]">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex min-w-0 flex-1 items-start gap-3">
-          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-rose-700" />
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-rose-300" />
           <div className="min-w-0">
-            <div className="text-base font-black text-rose-950">Required evidence missing</div>
-            <div className="mt-1 text-sm font-semibold leading-6 text-slate-900">
+            <div className="text-base font-black text-rose-100">Required evidence missing</div>
+            <div className="mt-1 text-sm font-semibold leading-6 text-rose-100/85">
               Attach at least one evidence item before passing this container.
             </div>
-            <div className="mt-3 text-[11px] font-black uppercase tracking-[0.16em] text-slate-600">Acceptable evidence</div>
-            <ul className="mt-2 space-y-1.5 text-sm leading-5 text-slate-800">
+            <div className="mt-3 text-[11px] font-black uppercase tracking-[0.16em] text-rose-200/70">Acceptable evidence</div>
+            <ul className="mt-2 space-y-1.5 text-sm leading-5 text-rose-100/85">
               {guidanceItems.map(guidance => (
                 <li key={guidance} className="flex gap-2">
-                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-rose-600" />
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-rose-400/70" />
                   <span>{guidance}</span>
                 </li>
               ))}
             </ul>
-            <div className="mt-3 text-xs font-semibold leading-5 text-slate-700">
+            <div className="mt-3 text-xs font-semibold leading-5 text-rose-100/70">
               Pass is disabled until evidence is captured or uploaded in this container&apos;s evidence area.
             </div>
           </div>
@@ -981,7 +981,7 @@ function RequiredEvidenceActionPanel({
         <button
           type="button"
           onClick={onAttachRequiredEvidence}
-          className="inline-flex min-h-[44px] shrink-0 items-center justify-center gap-2 rounded-2xl bg-rose-700 px-4 py-3 text-xs font-black text-white transition-colors hover:bg-rose-800"
+          className="inline-flex min-h-[44px] shrink-0 items-center justify-center gap-2 rounded-2xl bg-rose-500 px-4 py-3 text-xs font-black text-white shadow-[0_8px_20px_rgba(244,63,94,0.28)] transition-colors hover:bg-rose-400"
         >
           <Upload className="h-4 w-4" />
           Attach Required Evidence
@@ -3338,7 +3338,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
 
   if (loading) {
     return (
-      <div className="completion-workspace min-h-screen bg-[#050816] bg-[#0f172a] text-white">
+      <div className="completion-workspace min-h-screen bg-[#080D18] text-white">
         <Navbar role="inspector" dark />
         <div className="flex min-h-[70vh] items-center justify-center">
           <Loader2 className="h-10 w-10 animate-spin text-[#FF5F15]" />
@@ -3349,7 +3349,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
 
   if (error || !job || !overlay || !report) {
     return (
-      <div className="completion-workspace min-h-screen bg-[#050816] bg-[#0f172a] text-white">
+      <div className="completion-workspace min-h-screen bg-[#080D18] text-white">
         <Navbar role="inspector" dark />
         <div className="mx-auto max-w-3xl px-4 py-16">
           <div className="rounded-3xl border border-red-500/30 bg-red-500/10 p-6">
@@ -3367,7 +3367,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
       || report.sealPayload.projectState === 'COMPLETED'
 
     return (
-      <div className="completion-workspace min-h-screen bg-[#050816] bg-[#0f172a] text-white">
+      <div className="completion-workspace min-h-screen bg-[#080D18] text-white">
         <Navbar role="inspector" dark />
         <main className="mx-auto max-w-3xl px-4 py-12">
           <div className={`rounded-[2rem] p-8 text-center ${
@@ -3455,7 +3455,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
   const currentProgress = stageProgress.find(stage => stage.stage.stage_number === currentStage)
 
   return (
-    <div className="completion-workspace min-h-screen bg-[#050816] bg-[#0f172a] text-white pb-40">
+    <div className="completion-workspace min-h-screen bg-[#080D18] text-white pb-40">
       <Navbar role="inspector" dark />
       <main className="mx-auto max-w-7xl px-4 py-6">
         {sealSuccessMessage && (
@@ -3586,7 +3586,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
           </div>
         )}
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-          <aside className={`completion-sidebar rounded-[2rem] border border-white/10 bg-[#0a1020] p-4 lg:w-[300px] lg:flex-none lg:h-auto lg:min-h-full lg:sticky lg:top-4 lg:self-start lg:max-h-none lg:overflow-visible ${FLOATING_PANEL_CLASS}`}>
+          <aside className={`completion-sidebar rounded-[2rem] border border-white/10 bg-[#0E1727] p-4 lg:w-[300px] lg:flex-none lg:h-auto lg:min-h-full lg:sticky lg:top-4 lg:self-start lg:max-h-none lg:overflow-visible ${FLOATING_PANEL_CLASS}`}>
             {previewMode && (
               <div className="mb-4 rounded-2xl border border-slate-500/40 bg-[repeating-linear-gradient(135deg,rgba(51,65,85,0.9)_0,rgba(51,65,85,0.9)_12px,rgba(71,85,105,0.88)_12px,rgba(71,85,105,0.88)_24px)] px-4 py-3 text-xs font-bold uppercase tracking-[0.18em] text-slate-100 shadow-[0_10px_20px_rgba(15,23,42,0.2)]">
                 Dev Preview Only
@@ -3648,7 +3648,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
               {saving && <Loader2 className="h-4 w-4 animate-spin text-[#FF5F15]" />}
             </div>
 
-            <div className={`mt-4 rounded-[1.75rem] border border-white/10 bg-[#0a1020] p-4 ${FLOATING_PANEL_CLASS}`}>
+            <div className={`mt-4 rounded-[1.75rem] border border-white/10 bg-[#0E1727] p-4 ${FLOATING_PANEL_CLASS}`}>
               <button
                 type="button"
                 onClick={() => setProjectOverviewOpen(open => !open)}
@@ -3762,7 +3762,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
           </aside>
 
           <section className="space-y-5 lg:min-w-0 lg:flex-1">
-            <div className={`rounded-[2rem] border border-white/10 bg-[#0a1020] p-5 ${FLOATING_PANEL_CLASS}`}>
+            <div className={`rounded-[2rem] border border-white/10 bg-[#0E1727] p-5 ${FLOATING_PANEL_CLASS}`}>
               <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                 <div>
                   <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Current Checklist</div>
@@ -4136,7 +4136,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         stageItemRefs.current[item.item_code] = node
                       }}
                       tabIndex={-1}
-                      className={`relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-[#0a1020] p-4 sm:p-5 outline-none ${FLOATING_PANEL_CLASS} ${
+                      className={`relative overflow-hidden rounded-[1.75rem] border border-white/[0.08] bg-[#0E1727] p-5 sm:p-6 outline-none ${FLOATING_PANEL_CLASS} ${
                         stageTransitionHandshake?.targetItemCode === item.item_code ? 'ring-2 ring-emerald-400/45 ring-offset-2 ring-offset-[#050816]' : ''
                       }`}
                     >
@@ -4158,12 +4158,12 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                             {item.documents.length} file{item.documents.length === 1 ? '' : 's'}
                           </span>
                           {usesFieldView && item.responsible_party && (
-                            <span className="rounded-full border border-indigo-400/20 bg-indigo-400/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-indigo-300">
+                            <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400">
                               {item.responsible_party}
                             </span>
                           )}
                           {usesFieldView && item.permit_type && (
-                            <span className="rounded-full border border-violet-400/20 bg-violet-400/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-violet-300">
+                            <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400">
                               {item.permit_type}
                             </span>
                           )}
@@ -4390,7 +4390,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       </div>
 
                       {(item.stop_if ?? []).length > 0 && (
-                        <div className="mt-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 text-slate-700">
+                        <div className="mt-4 rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-4 text-zinc-300">
                           <button
                             type="button"
                             onClick={() => toggleExpandedRecord(setExpandedStopConditions, item.item_code)}
@@ -4398,18 +4398,18 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                           >
                             <div className="flex items-center gap-3">
                               <FileText className="h-5 w-5 shrink-0 text-slate-400" />
-                              <div className="text-sm font-bold uppercase tracking-[0.14em] text-slate-600">{STAGE_BLOCKER_CONDITIONS_HEADING}</div>
+                              <div className="text-sm font-bold uppercase tracking-[0.14em] text-zinc-300">{STAGE_BLOCKER_CONDITIONS_HEADING}</div>
                             </div>
                             <ChevronRight className={`h-5 w-5 text-slate-400 transition-transform ${stopConditionsOpen ? 'rotate-90' : ''}`} />
                           </button>
-                          <p className="mt-2 text-xs leading-relaxed text-slate-600">{STAGE_BLOCKER_HELPER}</p>
+                          <p className="mt-2 text-xs leading-relaxed text-zinc-400">{STAGE_BLOCKER_HELPER}</p>
 
                           {stopConditionsOpen && (
                             <div className="mt-3">
                               <GuidanceList
                                 items={item.stop_if ?? []}
-                                bulletClassName="bg-slate-300"
-                                textClassName="text-sm text-slate-700"
+                                bulletClassName="bg-zinc-500"
+                                textClassName="text-sm text-zinc-300"
                               />
                             </div>
                           )}
@@ -4499,7 +4499,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                           type="button"
                           disabled={saving}
                           onClick={() => void persistDraft()}
-                          className="min-h-12 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-black text-slate-800 shadow-sm transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                          className="min-h-12 rounded-2xl border border-slate-600 bg-slate-900 px-4 py-3 text-sm font-black text-slate-100 shadow-[0_10px_20px_rgba(15,23,42,0.24)] transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
                         >
                           {saving ? 'Saving…' : 'Save Draft'}
                         </button>
@@ -4766,7 +4766,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       stageItemRefs.current[item.item_code] = node
                     }}
                     tabIndex={-1}
-                    className={`relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-[#0a1020] p-4 sm:p-5 outline-none ${FLOATING_PANEL_CLASS} ${
+                    className={`relative overflow-hidden rounded-[1.75rem] border border-white/[0.08] bg-[#0E1727] p-5 sm:p-6 outline-none ${FLOATING_PANEL_CLASS} ${
                       stageTransitionHandshake?.targetItemCode === item.item_code ? 'ring-2 ring-emerald-400/45 ring-offset-2 ring-offset-[#050816]' : ''
                     }`}
                   >
@@ -4930,7 +4930,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
 
                     <div className="mt-4 space-y-4">
                       {stopItems.length > 0 && (
-                        <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 text-slate-700">
+                        <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-4 text-zinc-300">
                           <button
                             type="button"
                             onClick={() => toggleExpandedRecord(setExpandedStopConditions, item.item_code)}
@@ -4938,18 +4938,18 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                           >
                             <div className="flex items-center gap-3">
                               <FileText className="h-5 w-5 shrink-0 text-slate-400" />
-                              <div className="text-sm font-bold uppercase tracking-[0.14em] text-slate-600">{STAGE_BLOCKER_CONDITIONS_HEADING}</div>
+                              <div className="text-sm font-bold uppercase tracking-[0.14em] text-zinc-300">{STAGE_BLOCKER_CONDITIONS_HEADING}</div>
                             </div>
                             <ChevronRight className={`h-5 w-5 text-slate-400 transition-transform ${stopConditionsOpen ? 'rotate-90' : ''}`} />
                           </button>
-                          <p className="mt-2 text-xs leading-relaxed text-slate-600">{STAGE_BLOCKER_HELPER}</p>
+                          <p className="mt-2 text-xs leading-relaxed text-zinc-400">{STAGE_BLOCKER_HELPER}</p>
 
                           {stopConditionsOpen && (
                             <div className="mt-3">
                               <GuidanceList
                                 items={stopItems}
-                                bulletClassName="bg-slate-300"
-                                textClassName="text-sm text-slate-700"
+                                bulletClassName="bg-zinc-500"
+                                textClassName="text-sm text-zinc-300"
                               />
                             </div>
                           )}
@@ -5193,7 +5193,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
             </div>
 
             {isFinalOccupancyStage ? (
-              <div className="rounded-[2rem] border border-white/10 bg-[#050816] bg-[#0f172a] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.4)]">
+              <div className="rounded-[2rem] border border-white/10 bg-[#0E1727] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.4)]">
                 <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
                   <div className="max-w-2xl">
                     <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-200/90">Final Occupancy Seal</div>
@@ -5515,7 +5515,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
             )}
 
             {!isFinalOccupancyStage && !assignmentScope && (
-              <div className={`rounded-[2rem] border border-white/10 bg-[#0a1020] p-5 ${FLOATING_PANEL_CLASS}`}>
+              <div className={`rounded-[2rem] border border-white/10 bg-[#0E1727] p-5 ${FLOATING_PANEL_CLASS}`}>
                 <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                   <div>
                     <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Completion Gate</div>
@@ -5589,7 +5589,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
         </div>
       </main>
 
-      <div className="fixed inset-x-0 bottom-0 border-t border-white/10 bg-[#050816]/95 bg-[#0f172a]/95 backdrop-blur">
+      <div className="fixed inset-x-0 bottom-0 border-t border-white/10 bg-[#080D18]/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4">
           <button
             type="button"
