@@ -2021,8 +2021,8 @@ export default function BuilderDashboard() {
                         <div className="truncate text-sm font-extrabold text-ink">{progressProject.projectName}</div>
                         {latestJob && <StatusBadge job={latestJob} />}
                         {getCatalogueModelLabel(progressProject.representativeJob?.catalogueModelCode) && (
-                          <span className="rounded-full border border-rim bg-surface px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-muted">
-                            {getCatalogueModelLabel(progressProject.representativeJob?.catalogueModelCode)}
+                          <span className="rounded-full border border-rim bg-surface px-2 py-0.5 text-[11px] font-semibold text-muted">
+                            Catalogue model: <span className="font-bold text-ink">{getCatalogueModelLabel(progressProject.representativeJob?.catalogueModelCode)}</span>
                           </span>
                         )}
                       </div>
