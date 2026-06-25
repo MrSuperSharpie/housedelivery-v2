@@ -2217,7 +2217,7 @@ export default function BuilderDashboard() {
           <aside className="lg:col-span-4">
             <div className="space-y-4 lg:sticky lg:top-6">
 
-              {/* Inspector En Route */}
+              {/* Inspector Arrival Status */}
               {projects.some(p => p.status === 'in_progress') && (
                 <button
                   onClick={() => setIsTrackerOpen(true)}
@@ -2231,7 +2231,7 @@ export default function BuilderDashboard() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="mb-0.5 flex items-center gap-2">
-                      <span className="text-sm font-bold text-ink">Inspector En Route</span>
+                      <span className="text-sm font-bold text-ink">Inspector Scheduled</span>
                       <div className="flex items-center gap-1 rounded-md border border-electric/20 bg-electric/10 px-1.5 py-0.5">
                         <span className="text-[9px] font-bold uppercase tracking-wide text-electric">Estimated</span>
                       </div>

@@ -4,6 +4,7 @@ import React from 'react'
 import {
   X, CheckCircle2, Navigation, MapPin,
   BadgeCheck, FileText, Home,
+  KeyRound, HardHat, ClipboardCheck, ShieldCheck,
 } from 'lucide-react'
 
 interface EnRouteTrackerProps {
@@ -74,77 +75,28 @@ const STAGES: TrackStage[] = [
 // The only status Vero can currently assert from assignment data is "confirmed".
 const CURRENT_STAGE_IDX = 0
 
-// ─── Static route preview ────────────────────────────────────────────────────
+// ─── Site readiness checklist ────────────────────────────────────────────────
 //
-// A stylised, non-live route illustration. No coordinates, no GPS, no movement.
+// Professional, generally-applicable coordination items. No location, no GPS,
+// no movement — these prepare the builder for the inspector's scheduled visit.
 
-function RoutePreviewMap() {
-  return (
-    <div className="relative w-full h-48 bg-[#060B14] rounded-2xl overflow-hidden border border-white/6">
-      {/* Grid lines */}
-      <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
-        {[0.18, 0.38, 0.58, 0.77].map((y, i) => (
-          <line key={`h${i}`}
-            x1="0" y1={`${y * 100}%`} x2="100%" y2={`${y * 100}%`}
-            stroke="#1a2744" strokeWidth="1.5" />
-        ))}
-        {[0.14, 0.34, 0.55, 0.72, 0.88].map((x, i) => (
-          <line key={`v${i}`}
-            x1={`${x * 100}%`} y1="0" x2={`${x * 100}%`} y2="100%"
-            stroke="#1a2744" strokeWidth="1.5" />
-        ))}
-        {[
-          [0.15, 0.19, 0.18, 0.18], [0.36, 0.19, 0.18, 0.18],
-          [0.56, 0.39, 0.15, 0.18], [0.15, 0.39, 0.18, 0.18],
-          [0.36, 0.59, 0.18, 0.17], [0.56, 0.19, 0.15, 0.18],
-          [0.74, 0.39, 0.13, 0.18], [0.74, 0.59, 0.13, 0.17],
-        ].map(([x, y, w, h], i) => (
-          <rect key={`b${i}`}
-            x={`${x * 100}%`} y={`${y * 100}%`}
-            width={`${w * 100}%`} height={`${h * 100}%`}
-            fill="#0C1525" rx="2" />
-        ))}
-
-        {/* Indicative route path (static, illustrative only) */}
-        <polyline
-          points={`15,${0.70 * 192} ${0.34 * 100 * 3.2},${0.70 * 192} ${0.34 * 100 * 3.2},${0.38 * 192} ${0.55 * 100 * 3.2},${0.38 * 192} ${0.55 * 100 * 3.2},${0.25 * 192} ${0.67 * 100 * 3.2},${0.25 * 192}`}
-          stroke="#FF5F15" strokeWidth="2.5" fill="none"
-          strokeDasharray="5,3" strokeLinecap="round"
-          opacity="0.45"
-        />
-      </svg>
-
-      {/* Destination pin — your site (real address shown below) */}
-      <div className="absolute top-[22%] right-[30%] flex flex-col items-center">
-        <div className="w-8 h-8 rounded-full border-2 border-flame bg-[#080D18] flex items-center justify-center">
-          <MapPin className="w-4 h-4 text-flame" />
-        </div>
-        <div className="mt-1 text-[9px] font-bold text-flame bg-[#080D18] px-1.5 py-0.5 rounded border border-flame/30 whitespace-nowrap">
-          Your Site
-        </div>
-      </div>
-
-      {/* Indicative start point — static, not a live position */}
-      <div className="absolute left-[18%] top-[66%]" style={{ transform: 'translate(-50%, -50%)' }}>
-        <div className="w-7 h-7 bg-flame/80 rounded-full border-2 border-white/80 flex items-center justify-center shadow-lg">
-          <Navigation className="w-3.5 h-3.5 text-white" style={{ transform: 'rotate(45deg)' }} />
-        </div>
-      </div>
-
-      {/* Honest label — preview only */}
-      <div className="absolute top-3 left-3 bg-[#080D18]/90 border border-white/10 rounded-xl px-2.5 py-1.5 backdrop-blur-sm">
-        <div className="text-[9px] text-muted uppercase tracking-widest">Site Route</div>
-        <div className="text-xs font-bold text-ink">Preview</div>
-      </div>
-
-      <div className="absolute bottom-3 left-3 right-3 text-center">
-        <span className="text-[10px] font-semibold text-muted bg-[#080D18]/80 border border-white/10 rounded-full px-2.5 py-1 backdrop-blur-sm">
-          Estimated route · not live tracking
-        </span>
-      </div>
-    </div>
-  )
-}
+const READINESS_ITEMS: { label: string; sub: string; icon: React.ElementType }[] = [
+  {
+    label: 'Site access available',
+    sub:   'Confirm gates, lockboxes, or escorts are arranged for the scheduled visit',
+    icon:  KeyRound,
+  },
+  {
+    label: 'PPE on site',
+    sub:   'Required personal protective equipment is available on arrival',
+    icon:  HardHat,
+  },
+  {
+    label: 'Work ready for review',
+    sub:   'The stage scope is complete and accessible for inspection',
+    icon:  ClipboardCheck,
+  },
+]
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
@@ -210,12 +162,64 @@ export function EnRouteTracker({
               </div>
             </div>
             <div className="text-[11px] text-muted leading-relaxed">
-              Estimated only — not live GPS. Arrival status updates as the assignment status changes.
+              This status is based on assignment updates, not live location tracking.
             </div>
           </div>
 
-          {/* ── Route preview ── */}
-          <RoutePreviewMap />
+          {/* ── Site readiness / arrival coordination ── */}
+          <div className="card-dark rounded-2xl p-4 inset-top">
+            <div className="flex items-center gap-2 mb-3">
+              <ShieldCheck className="w-4 h-4 text-flame" />
+              <div className="label-mono">Site Readiness</div>
+            </div>
+
+            {/* Assignment summary (real data) */}
+            <div className="rounded-xl border border-white/6 bg-panel/60 p-3 mb-3 space-y-2">
+              <div className="flex items-start gap-2">
+                <MapPin className="w-3.5 h-3.5 text-flame mt-0.5 shrink-0" />
+                <div className="min-w-0">
+                  <div className="text-[10px] font-bold uppercase tracking-wide text-subtle">Site</div>
+                  <div className="text-xs font-semibold text-ink leading-snug">{project.address}</div>
+                </div>
+              </div>
+              <div className="flex items-start gap-2">
+                <ClipboardCheck className="w-3.5 h-3.5 text-flame mt-0.5 shrink-0" />
+                <div className="min-w-0">
+                  <div className="text-[10px] font-bold uppercase tracking-wide text-subtle">Stage</div>
+                  <div className="text-xs font-semibold text-ink leading-snug">{project.stage}</div>
+                </div>
+              </div>
+              <div className="flex items-start gap-2">
+                <BadgeCheck className="w-3.5 h-3.5 text-electric mt-0.5 shrink-0" />
+                <div className="min-w-0">
+                  <div className="text-[10px] font-bold uppercase tracking-wide text-subtle">Inspector</div>
+                  <div className="text-xs font-semibold text-ink leading-snug">{inspector.name} · Confirmed</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Readiness reminders (generally applicable) */}
+            <div className="space-y-2.5">
+              {READINESS_ITEMS.map(item => {
+                const Icon = item.icon
+                return (
+                  <div key={item.label} className="flex items-start gap-3">
+                    <div className="w-7 h-7 rounded-lg border border-white/8 bg-surface flex items-center justify-center shrink-0">
+                      <Icon className="w-3.5 h-3.5 text-muted" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold text-ink">{item.label}</div>
+                      <div className="text-[11px] text-muted leading-relaxed">{item.sub}</div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            <div className="mt-3 pt-3 border-t border-white/5 text-[11px] text-muted leading-relaxed">
+              Next update will appear when the inspection status changes.
+            </div>
+          </div>
 
           {/* ── Status timeline (expected sequence) ── */}
           <div className="card-dark rounded-2xl p-4 inset-top">
@@ -274,15 +278,6 @@ export function EnRouteTracker({
                   </div>
                 )
               })}
-            </div>
-          </div>
-
-          {/* Site address reminder */}
-          <div className="bg-panel border border-white/5 rounded-2xl p-3 flex items-start gap-3">
-            <MapPin className="w-4 h-4 text-flame mt-0.5 shrink-0" />
-            <div>
-              <div className="text-xs font-bold text-ink">{project.address}</div>
-              <div className="text-xs text-muted mt-0.5">Ensure site access is available and all PPE is on-site before arrival</div>
             </div>
           </div>
 
