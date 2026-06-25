@@ -1,38 +1,136 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
-import { CheckCircle2, XCircle, Calendar } from 'lucide-react'
+import { CheckCircle2, AlertTriangle, Clock, Calendar } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import type { Project } from '@/lib/types'
 import type { ReportDataMode } from '@/lib/dataSourceMode'
 
+/**
+ * Subset of the inspector_completion_reports rows already fetched in
+ * builder/page.tsx (completionReportsByJobId). Only the fields Daily Flash
+ * needs are declared; the caller passes the full summary object.
+ */
+interface CompletionReportLike {
+  id?: string
+  status?: string
+  submittedAt?: string
+  sealedAt?: string
+  updatedAt?: string
+}
+
 interface DailyFlashProps {
   projects: Project[]
   dataMode: ReportDataMode
-  reportsByJobId?: Record<string, { id?: string }>
+  reportsByJobId?: Record<string, CompletionReportLike>
+}
+
+type FlashFilter = 'passed' | 'corrections' | 'pending'
+type FlashPeriod = 'today' | 'week'
+
+const WEEK_ORDER = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as const
+
+/** Vancouver-local calendar day key (YYYY-MM-DD) for a timestamp. */
+function vancouverDayKey(input: Date | string): string {
+  const d = typeof input === 'string' ? new Date(input) : input
+  if (Number.isNaN(d.getTime())) return ''
+  return d.toLocaleDateString('en-CA', { timeZone: 'America/Vancouver' })
+}
+
+/** The seven Mon→Sun day keys for the Vancouver-local week containing `now`. */
+function vancouverWeek(now: Date): { label: string; key: string }[] {
+  const weekday = now.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'America/Vancouver' })
+  const idx = Math.max(0, WEEK_ORDER.indexOf(weekday as (typeof WEEK_ORDER)[number]))
+  const todayKey = vancouverDayKey(now)
+  const [y, m, d] = todayKey.split('-').map(Number)
+  // Anchor at noon UTC of today's Vancouver date so ±day shifts stay DST-safe.
+  const baseNoonUtc = Date.UTC(y, m - 1, d, 12)
+  return WEEK_ORDER.map((label, i) => ({
+    label,
+    key: vancouverDayKey(new Date(baseNoonUtc + (i - idx) * 86_400_000)),
+  }))
 }
 
 export function DailyFlash({ projects, dataMode, reportsByJobId }: DailyFlashProps) {
-  const passed = projects.filter(p => p.status === 'pass')
-  const failed = projects.filter(p => p.status === 'fail')
-  const pending = projects.filter(p => p.status === 'pending' || p.status === 'awaiting_reinspection')
+  const [period, setPeriod] = useState<FlashPeriod>('today')
+  const [activeFilter, setActiveFilter] = useState<FlashFilter>('passed')
 
-  const today = new Date().toLocaleDateString('en-CA', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'America/Vancouver' })
+  const now = new Date()
+  const todayKey = vancouverDayKey(now)
+  const week = vancouverWeek(now)
+  const weekKeys = new Set(week.map(w => w.key))
+  const todayLabel = now.toLocaleDateString('en-CA', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'America/Vancouver',
+  })
 
-  const weekData = [
-    { day: 'Mon', pass: 0, fail: 0 },
-    { day: 'Tue', pass: 0, fail: 0 },
-    { day: 'Wed', pass: 0, fail: 0 },
-    { day: 'Thu', pass: 0, fail: 0 },
-    { day: 'Fri', pass: passed.length, fail: failed.length },
-    { day: 'Sat', pass: 0, fail: 0 },
-    { day: 'Sun', pass: 0, fail: 0 },
+  // ── Source of truth ──────────────────────────────────────────────────────
+  // Passed is derived from real inspector_completion_reports (sealed/submitted)
+  // — the same records that drive Schedule C-B — not from job lifecycle status.
+  const reportOf = (p: Project) => reportsByJobId?.[p.id]
+  const reportTimestamp = (r?: CompletionReportLike) => r?.submittedAt ?? r?.sealedAt ?? r?.updatedAt
+  const isPassingReport = (r?: CompletionReportLike) => Boolean(r) && (r!.status === 'sealed' || r!.status === 'submitted')
+
+  const inSelectedPeriod = (ts?: string) => {
+    if (!ts) return false
+    const key = vancouverDayKey(ts)
+    return period === 'today' ? key === todayKey : weekKeys.has(key)
+  }
+
+  // Live mode uses completion reports; mock/no-session falls back to project
+  // status so the demo preview still renders meaningful figures.
+  const hasLiveReports = dataMode === 'live' && projects.some(p => isPassingReport(reportOf(p)))
+
+  const passedProjects = hasLiveReports
+    ? projects.filter(p => {
+        const r = reportOf(p)
+        return isPassingReport(r) && inSelectedPeriod(reportTimestamp(r))
+      })
+    : projects.filter(p => p.status === 'pass')
+
+  // Corrections / Pending stay sourced from existing project & job state
+  // (completion reports carry no corrections outcome). These are current open
+  // items, independent of the Today/Weekly period.
+  const correctionProjects = projects.filter(
+    p => p.status === 'fail' || p.status === 'awaiting_reinspection',
+  )
+  const pendingProjects = projects.filter(p => p.status === 'pending' || p.status === 'in_progress')
+
+  // ── Weekly trend (real, from completion-report timestamps) ────────────────
+  const weekData = week.map(w => ({
+    day: w.label,
+    pass: hasLiveReports
+      ? projects.filter(p => {
+          const r = reportOf(p)
+          const ts = reportTimestamp(r)
+          return isPassingReport(r) && ts != null && vancouverDayKey(ts) === w.key
+        }).length
+      : 0,
+  }))
+
+  // ── Selectable record list (driven by the active card) ───────────────────
+  const filterProjects =
+    activeFilter === 'passed' ? passedProjects
+    : activeFilter === 'corrections' ? correctionProjects
+    : pendingProjects
+  const records = filterProjects.slice(0, 5)
+
+  const periodWord = period === 'today' ? 'today' : 'this week'
+
+  const cards: { key: FlashFilter; label: string; sub: string; count: number; tone: string }[] = [
+    { key: 'passed',      label: 'Passed',      sub: 'submitted',       count: passedProjects.length,     tone: 'emerald' },
+    { key: 'corrections', label: 'Corrections', sub: 'action required', count: correctionProjects.length, tone: 'amber' },
+    { key: 'pending',     label: 'Pending',     sub: 'action needed',   count: pendingProjects.length,    tone: 'sky' },
   ]
 
-  const records = [
-    ...passed.map(p => ({ ...p, flash: 'pass' as const })),
-    ...failed.map(p => ({ ...p, flash: 'fail' as const })),
-  ].slice(0, 4)
+  const toneClasses: Record<string, { border: string; bg: string; text: string; ring: string }> = {
+    emerald: { border: 'border-emerald-600/25', bg: 'bg-emerald-500/10', text: 'text-emerald-400', ring: 'ring-emerald-400/60' },
+    amber:   { border: 'border-amber-500/25',   bg: 'bg-amber-500/10',   text: 'text-amber-400',   ring: 'ring-amber-400/60' },
+    sky:     { border: 'border-sky-500/25',     bg: 'bg-sky-500/10',     text: 'text-sky-400',     ring: 'ring-sky-400/60' },
+  }
 
   return (
     <section className="rounded-2xl border border-rim bg-panel p-4 shadow-card" data-report-mode={dataMode}>
@@ -42,77 +140,95 @@ export function DailyFlash({ projects, dataMode, reportsByJobId }: DailyFlashPro
           <div className="text-[11px] font-black uppercase tracking-[0.18em] text-muted">Daily Flash</div>
           <div className="mt-1 flex items-center gap-1.5 text-[11px] font-medium text-subtle">
             <Calendar className="h-3 w-3" />
-            <span>{today}</span>
+            <span>{period === 'today' ? todayLabel : 'This week'}</span>
           </div>
         </div>
-        <span className="rounded-full border border-rim bg-surface px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-muted">
-          Weekly
-        </span>
-      </div>
-
-      {/* Stats row */}
-      <div className="mb-4 grid grid-cols-3 gap-2">
-        <div className="rounded-xl border border-emerald-600/25 bg-emerald-500/10 p-3">
-          <div className="mb-1 flex items-center gap-1.5">
-            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
-            <span className="text-[11px] font-bold text-emerald-400">Passed</span>
-          </div>
-          <div className="text-2xl font-black text-emerald-400">{passed.length}</div>
-          <div className="mt-0.5 text-[10px] font-medium text-muted">site{passed.length !== 1 ? 's' : ''}</div>
-        </div>
-        <div className="rounded-xl border border-red-600/25 bg-red-500/10 p-3">
-          <div className="mb-1 flex items-center gap-1.5">
-            <XCircle className="h-3.5 w-3.5 text-red-400" />
-            <span className="text-[11px] font-bold text-red-400">Failed</span>
-          </div>
-          <div className="text-2xl font-black text-red-400">{failed.length}</div>
-          <div className="mt-0.5 text-[10px] font-medium text-muted">site{failed.length !== 1 ? 's' : ''}</div>
-        </div>
-        <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 p-3">
-          <div className="mb-1 flex items-center gap-1.5">
-            <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-amber-400 text-[9px] font-black text-surface">!</span>
-            <span className="text-[11px] font-bold text-amber-400">Pending</span>
-          </div>
-          <div className="text-2xl font-black text-amber-400">{pending.length}</div>
-          <div className="mt-0.5 text-[10px] font-medium text-muted">action needed</div>
+        <div className="flex items-center gap-0.5 rounded-full border border-rim bg-surface p-0.5">
+          {(['today', 'week'] as FlashPeriod[]).map(p => (
+            <button
+              key={p}
+              type="button"
+              onClick={() => setPeriod(p)}
+              className={`rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide transition-colors ${
+                period === p ? 'bg-ink text-surface' : 'text-muted hover:text-ink'
+              }`}
+            >
+              {p === 'today' ? 'Today' : 'Weekly'}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Weekly trend */}
-      <div className="mb-1 text-[10px] font-bold uppercase tracking-wide text-subtle">This week</div>
-      <div className="mb-4 h-20">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={weekData} barSize={14} barGap={2}>
-            <XAxis dataKey="day" tick={{ fontSize: 11, fill: '#94A3B8', fontWeight: 600 }} axisLine={false} tickLine={false} />
-            <YAxis hide />
-            <Tooltip
-              cursor={{ fill: 'rgba(148,163,184,0.08)' }}
-              contentStyle={{ fontSize: 12, borderRadius: 10, border: '1px solid #475569', background: '#0E1727', boxShadow: '0 12px 28px rgba(0,0,0,0.42)' }}
-              itemStyle={{ color: '#E5E7EB' }}
-              labelStyle={{ color: '#94A3B8' }}
-            />
-            <Bar dataKey="pass" stackId="a" fill="#10B981" radius={[0, 0, 0, 0]}>
-              {weekData.map((_, i) => <Cell key={i} fill="#10B981" />)}
-            </Bar>
-            <Bar dataKey="fail" stackId="a" fill="#EF4444" radius={[4, 4, 0, 0]}>
-              {weekData.map((_, i) => <Cell key={i} fill="#EF4444" />)}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+      {/* Stats row — selectable filters */}
+      <div className="mb-2 grid grid-cols-3 gap-2">
+        {cards.map(card => {
+          const tone = toneClasses[card.tone]
+          const isActive = activeFilter === card.key
+          return (
+            <button
+              key={card.key}
+              type="button"
+              onClick={() => setActiveFilter(card.key)}
+              aria-pressed={isActive}
+              className={`rounded-xl border p-3 text-left transition-all ${tone.border} ${tone.bg} ${
+                isActive ? `ring-2 ${tone.ring}` : 'hover:brightness-110'
+              }`}
+            >
+              <div className="mb-1 flex items-center gap-1.5">
+                {card.key === 'passed' && <CheckCircle2 className={`h-3.5 w-3.5 ${tone.text}`} />}
+                {card.key === 'corrections' && <AlertTriangle className={`h-3.5 w-3.5 ${tone.text}`} />}
+                {card.key === 'pending' && <Clock className={`h-3.5 w-3.5 ${tone.text}`} />}
+                <span className={`text-[11px] font-bold ${tone.text}`}>{card.label}</span>
+              </div>
+              <div className={`text-2xl font-black ${tone.text}`}>{card.count}</div>
+              <div className="mt-0.5 text-[10px] font-medium text-muted">{card.sub}</div>
+            </button>
+          )
+        })}
       </div>
 
-      {/* Filed records */}
-      {records.length > 0 && (
+      {/* Scope caption */}
+      <div className="mb-4 text-[10px] font-medium text-subtle">
+        Passed reflects {periodWord} · Corrections &amp; Pending show current open items
+      </div>
+
+      {/* Weekly trend — real data in live mode, honest placeholder otherwise */}
+      <div className="mb-1 text-[10px] font-bold uppercase tracking-wide text-subtle">This week · passed</div>
+      {hasLiveReports ? (
+        <div className="mb-4 h-20">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={weekData} barSize={14} barGap={2}>
+              <XAxis dataKey="day" tick={{ fontSize: 11, fill: '#94A3B8', fontWeight: 600 }} axisLine={false} tickLine={false} />
+              <YAxis hide allowDecimals={false} />
+              <Tooltip
+                cursor={{ fill: 'rgba(148,163,184,0.08)' }}
+                contentStyle={{ fontSize: 12, borderRadius: 10, border: '1px solid #475569', background: '#0E1727', boxShadow: '0 12px 28px rgba(0,0,0,0.42)' }}
+                itemStyle={{ color: '#E5E7EB' }}
+                labelStyle={{ color: '#94A3B8' }}
+              />
+              <Bar dataKey="pass" radius={[4, 4, 0, 0]}>
+                {weekData.map((_, i) => <Cell key={i} fill="#10B981" />)}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      ) : (
+        <div className="mb-4 rounded-xl border border-dashed border-rim bg-surface px-3 py-4 text-center text-[11px] font-medium text-muted">
+          Weekly trend appears once live inspection records are available.
+        </div>
+      )}
+
+      {/* Filtered record list */}
+      {records.length > 0 ? (
         <div className="space-y-1.5">
           {records.map(project => {
-            const reportId = project.flash === 'pass' ? (reportsByJobId?.[project.id]?.id ?? null) : null
+            const reportId = activeFilter === 'passed' ? (reportsByJobId?.[project.id]?.id ?? null) : null
+            const rowTone =
+              activeFilter === 'passed' ? 'border-emerald-600/25 bg-emerald-500/[0.08]'
+              : activeFilter === 'corrections' ? 'border-amber-500/25 bg-amber-500/[0.08]'
+              : 'border-sky-500/25 bg-sky-500/[0.08]'
             return (
-              <div
-                key={project.id}
-                className={`flex items-center gap-3 rounded-xl border p-2.5 ${
-                  project.flash === 'pass' ? 'border-emerald-600/25 bg-emerald-500/[0.08]' : 'border-red-600/25 bg-red-500/[0.08]'
-                }`}
-              >
+              <div key={project.id} className={`flex items-center gap-3 rounded-xl border p-2.5 ${rowTone}`}>
                 {project.photos[0] && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -137,14 +253,20 @@ export function DailyFlash({ projects, dataMode, reportsByJobId }: DailyFlashPro
                   >
                     Download C-B
                   </a>
-                ) : project.flash === 'pass' ? (
+                ) : activeFilter === 'passed' ? (
                   <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
+                ) : activeFilter === 'corrections' ? (
+                  <AlertTriangle className="h-4 w-4 shrink-0 text-amber-400" />
                 ) : (
-                  <XCircle className="h-4 w-4 shrink-0 text-red-400" />
+                  <Clock className="h-4 w-4 shrink-0 text-sky-400" />
                 )}
               </div>
             )
           })}
+        </div>
+      ) : (
+        <div className="rounded-xl border border-dashed border-rim bg-surface px-3 py-4 text-center text-[11px] font-medium text-muted">
+          No {activeFilter === 'passed' ? `passed records ${periodWord}` : activeFilter === 'corrections' ? 'corrections outstanding' : 'pending items'}.
         </div>
       )}
     </section>
