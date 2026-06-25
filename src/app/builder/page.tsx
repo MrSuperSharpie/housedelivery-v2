@@ -1312,9 +1312,35 @@ export default function BuilderDashboard() {
     }
   }
 
-  // Active assignment — drives the en-route tracker
-  const activeAssignment = store.assignments.find(
-    a => isMatch(a.builderId) && (a.status === 'provisional' || a.status === 'confirmed')
+  // Active inspection appointments — confirmed/provisional assignments and
+  // objection-review items for this builder.
+  const activeInspectionAppointments = store.assignments.filter(
+    a => isMatch(a.builderId) && (a.status === 'provisional' || a.status === 'confirmed' || a.objectionState === 'pending_review')
+  )
+  // Operational urgency rank: confirmed first, objection review next, provisional last.
+  const appointmentUrgencyRank = (a: Assignment): number => {
+    if (a.status === 'confirmed') return 0
+    if (a.objectionState === 'pending_review') return 1
+    return 2
+  }
+  // Tie-break: most recently confirmed / claimed first.
+  const appointmentRecency = (a: Assignment): number => {
+    const ts = a.confirmedAt ?? a.claimedAt
+    const parsed = ts ? new Date(ts).getTime() : NaN
+    return Number.isNaN(parsed) ? 0 : parsed
+  }
+  // Copy before sorting — never mutate the store array in place.
+  const sortedActiveInspectionAppointments = [...activeInspectionAppointments].sort((a, b) => {
+    const rankDiff = appointmentUrgencyRank(a) - appointmentUrgencyRank(b)
+    if (rankDiff !== 0) return rankDiff
+    return appointmentRecency(b) - appointmentRecency(a)
+  })
+
+  // Active assignment — drives the en-route tracker. Aligns with the top-ranked
+  // active appointment so the Inspector Arrival Status card and the elevated
+  // appointment refer to the same inspection where possible.
+  const activeAssignment = sortedActiveInspectionAppointments.find(
+    a => a.status === 'provisional' || a.status === 'confirmed'
   )
   const assignedJob         = activeAssignment ? store.jobs.find(j => j.id === activeAssignment.jobId) : null
   const inProgressProject   = projects.find(p => p.status === 'in_progress')
@@ -1348,9 +1374,6 @@ export default function BuilderDashboard() {
   const actionRequiredHoldJobs = onHoldJobs.filter(job => actionableHoldJobIds.has(job.id))
   const getOpenHoldDetailForJob = (jobId: string) => openHoldDetails.find(detail => detail.hold.jobId === jobId)
   const hasBuilderActions = actionRequiredHoldJobs.length > 0 || activeModHolds.length > 0 || acceptedHolds.length > 0
-  const activeInspectionAppointments = store.assignments.filter(
-    a => isMatch(a.builderId) && (a.status === 'provisional' || a.status === 'confirmed' || a.objectionState === 'pending_review')
-  )
   const resolveAppointmentJobDisplay = (assignment: Assignment) => {
     const dbJob = dbJobsById.get(assignment.jobId)
     const storeJob = storeJobsById.get(assignment.jobId)
@@ -1866,6 +1889,35 @@ export default function BuilderDashboard() {
           </section>
         )}
 
+        {/* ── Active Inspection Appointments ── */}
+        {sortedActiveInspectionAppointments.length > 0 && (
+          <section className="mb-6">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-muted">Active Inspection Appointments</div>
+                <div className="mt-1 text-sm font-extrabold text-ink">Confirmed and provisional inspector assignments</div>
+              </div>
+              <div className="rounded-full border border-rim bg-panel px-3 py-1 text-[10px] font-black uppercase tracking-wide text-muted">
+                {sortedActiveInspectionAppointments.length} active
+              </div>
+            </div>
+            <div className="space-y-3">
+        {sortedActiveInspectionAppointments.map(assignment => {
+            const appointmentJob = resolveAppointmentJobDisplay(assignment)
+            return (
+              <ProvisionalAssignmentPanel
+                key={assignment.id}
+                assignment={assignment}
+                jobName={appointmentJob.projectName}
+                jobAddress={appointmentJob.address}
+                onObject={(reason, note) => store.objectAssignment(assignment.id, reason, note)}
+              />
+            )
+          })}
+            </div>
+          </section>
+        )}
+
         {/* ── Live Operations ── */}
         {liveUnclaimedJobs.length > 0 && (
           <section id="live-operations" className="mb-6">
@@ -1922,35 +1974,6 @@ export default function BuilderDashboard() {
                   </div>
                 )
               })}
-            </div>
-          </section>
-        )}
-
-        {/* ── Active Inspection Appointments ── */}
-        {activeInspectionAppointments.length > 0 && (
-          <section className="mb-6">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div>
-                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-muted">Active Inspection Appointments</div>
-                <div className="mt-1 text-sm font-extrabold text-ink">Confirmed and provisional inspector assignments</div>
-              </div>
-              <div className="rounded-full border border-rim bg-panel px-3 py-1 text-[10px] font-black uppercase tracking-wide text-muted">
-                {activeInspectionAppointments.length} active
-              </div>
-            </div>
-            <div className="space-y-3">
-        {activeInspectionAppointments.map(assignment => {
-            const appointmentJob = resolveAppointmentJobDisplay(assignment)
-            return (
-              <ProvisionalAssignmentPanel
-                key={assignment.id}
-                assignment={assignment}
-                jobName={appointmentJob.projectName}
-                jobAddress={appointmentJob.address}
-                onObject={(reason, note) => store.objectAssignment(assignment.id, reason, note)}
-              />
-            )
-          })}
             </div>
           </section>
         )}
