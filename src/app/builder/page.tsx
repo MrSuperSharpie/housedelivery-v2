@@ -1312,10 +1312,20 @@ export default function BuilderDashboard() {
     }
   }
 
+  // A freshly claimed / provisionally-assigned job is invisible to the builder
+  // job bridge, so its reconstructed assignment can carry an empty builderId.
+  // Match the builder's own assignments by jobId as well, so a claimed
+  // appointment still resolves for the dashboard and the appointment modal.
+  const builderJobIds = new Set<string>([
+    ...(dbJobs ?? []).map(j => j.id),
+    ...store.jobs.filter(j => isMatch(j.builderId)).map(j => j.id),
+  ])
+  const isBuildersAssignment = (a: Assignment) => isMatch(a.builderId) || builderJobIds.has(a.jobId)
+
   // Active inspection appointments — confirmed/provisional assignments and
   // objection-review items for this builder.
   const activeInspectionAppointments = store.assignments.filter(
-    a => isMatch(a.builderId) && (a.status === 'provisional' || a.status === 'confirmed' || a.objectionState === 'pending_review')
+    a => isBuildersAssignment(a) && (a.status === 'provisional' || a.status === 'confirmed' || a.objectionState === 'pending_review')
   )
   // Operational urgency rank: confirmed first, objection review next, provisional last.
   const appointmentUrgencyRank = (a: Assignment): number => {
@@ -1341,17 +1351,22 @@ export default function BuilderDashboard() {
   // appointment refer to the same inspection where possible.
   const activeAssignment = sortedActiveInspectionAppointments.find(
     a => a.status === 'provisional' || a.status === 'confirmed'
-  )
+  ) ?? sortedActiveInspectionAppointments[0]
   const assignedJob         = activeAssignment ? store.jobs.find(j => j.id === activeAssignment.jobId) : null
+  // Claimed jobs may be absent from store.jobs; the builder DB job set still has
+  // them, so prefer it for the appointment's project / stage / request details.
+  const assignedDbJob       = activeAssignment ? (dbJobs ?? []).find(j => j.id === activeAssignment.jobId) : null
   const inProgressProject   = projects.find(p => p.status === 'in_progress')
 
   const trackerInspectorName    = activeAssignment?.inspectorName    ?? 'Inspector'
   const trackerInspectorLicense = activeAssignment?.inspectorLicense ?? ''
-  const trackerProjectName      = assignedJob?.projectName ?? inProgressProject?.name    ?? 'Active Project'
-  const trackerProjectAddress   = assignedJob?.address     ?? inProgressProject?.address ?? ''
-  const trackerStageName        = assignedJob
-    ? `Stage ${assignedJob.stage} · ${assignedJob.stageName}`
-    : inProgressProject ? `Stage ${inProgressProject.currentStage}` : ''
+  const trackerProjectName      = assignedJob?.projectName ?? assignedDbJob?.projectName ?? inProgressProject?.name    ?? 'Active Project'
+  const trackerProjectAddress   = assignedJob?.address     ?? assignedDbJob?.address     ?? inProgressProject?.address ?? ''
+  const trackerStageName        = assignedDbJob
+    ? `Stage ${assignedDbJob.stage} · ${assignedDbJob.stageName}`
+    : assignedJob
+      ? `Stage ${assignedJob.stage} · ${assignedJob.stageName}`
+      : inProgressProject ? `Stage ${inProgressProject.currentStage}` : ''
   const trackerAvatar = activeAssignment
     ? activeAssignment.inspectorName.split(' ').filter(Boolean).map(w => w[0]).join('').slice(0, 2).toUpperCase()
     : 'IN'
@@ -1368,9 +1383,6 @@ export default function BuilderDashboard() {
   const dbJobsById = new Map((dbJobs ?? []).map(job => [job.id, job]))
   const storeJobsById = new Map(store.jobs.map(job => [job.id, job]))
   const projectsById = new Map(projects.map(project => [project.id, project]))
-  // Original request row backing the active appointment — surfaces real request
-  // details (requested window, discipline, tier, notes, permit) into the modal.
-  const trackerRequestRow = activeAssignment ? dbJobsById.get(activeAssignment.jobId) : undefined
   const openHoldDetails = Object.values(activeHoldDetails).filter(detail => isHoldOpenStatus(detail.hold.status))
   const onHoldJobs = (dbJobs ?? []).filter(job => job.status === 'on_hold')
   const actionableHoldJobIds = new Set(activeHolds.map(hold => hold.jobId))
@@ -2441,12 +2453,12 @@ export default function BuilderDashboard() {
         appointment={activeAssignment ? {
           status:         activeAssignment.status,
           objectionState: activeAssignment.objectionState,
-          discipline:     trackerRequestRow?.requiredDiscipline ?? assignedJob?.requiredDiscipline,
-          dispatchTier:   trackerRequestRow?.dispatchTier       ?? assignedJob?.dispatchTier,
-          requestedAt:    trackerRequestRow?.requestedAt        ?? assignedJob?.requestedAt,
-          permitNumber:   trackerRequestRow?.permitNumber       ?? assignedJob?.permitNumber,
-          notes:          trackerRequestRow?.notes,
-          availableSlots: trackerRequestRow?.availableSlots     ?? assignedJob?.availableSlots,
+          discipline:     assignedDbJob?.requiredDiscipline ?? assignedJob?.requiredDiscipline,
+          dispatchTier:   assignedDbJob?.dispatchTier       ?? assignedJob?.dispatchTier,
+          requestedAt:    assignedDbJob?.requestedAt        ?? assignedJob?.requestedAt,
+          permitNumber:   assignedDbJob?.permitNumber       ?? assignedJob?.permitNumber,
+          notes:          assignedDbJob?.notes,
+          availableSlots: assignedDbJob?.availableSlots     ?? assignedJob?.availableSlots,
           claimedSlot:    activeAssignment.claimedSlot,
           claimedAt:      activeAssignment.claimedAt,
           confirmedAt:    activeAssignment.confirmedAt,

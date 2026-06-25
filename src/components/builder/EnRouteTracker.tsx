@@ -90,14 +90,30 @@ function fmtDate(iso?: string): string | null {
   return d.toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
+/** Converts a "HH:MM" string to "1:00 PM". Returns null for empty/placeholder
+ *  values; passes through anything already in a non-HH:MM display form. */
+function to12h(value?: string): string | null {
+  if (!value || value === 'TBD') return null
+  const m = /^(\d{1,2}):(\d{2})$/.exec(value.trim())
+  if (!m) return value
+  let h = Number(m[1])
+  const minutes = m[2]
+  const ampm = h >= 12 ? 'PM' : 'AM'
+  h = h % 12
+  if (h === 0) h = 12
+  return `${h}:${minutes} ${ampm}`
+}
+
 function fmtSlot(slot?: AppointmentSlot): string | null {
   if (!slot) return null
   if (slot.flexible) return 'Flexible timing'
-  if (!slot.date || !slot.startTime) return null
+  const start = to12h(slot.startTime)
+  if (!slot.date || !start) return null
   const d = new Date(`${slot.date}T12:00:00`)
   if (Number.isNaN(d.getTime())) return null
   const day = d.toLocaleDateString('en-CA', { weekday: 'short', month: 'short', day: 'numeric' })
-  return slot.endTime ? `${day} · ${slot.startTime}–${slot.endTime}` : `${day} · ${slot.startTime}`
+  const end = to12h(slot.endTime)
+  return end ? `${day} · ${start}–${end}` : `${day} · ${start}`
 }
 
 function appointmentStatusLabel(a?: AppointmentInfo): string {
