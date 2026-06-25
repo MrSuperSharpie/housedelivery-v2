@@ -836,16 +836,12 @@ function StatusPill({
     : null
 
   const activeClass =
-    value === 'Passed' ? 'border-emerald-500 bg-emerald-200 text-emerald-900 font-bold shadow-inner' :
-    value === 'Failed' ? 'border-rose-500 bg-rose-200 text-rose-900 font-bold shadow-inner' :
-    value === 'Pending' ? 'border-slate-600 bg-slate-300 text-slate-900 font-bold shadow-inner' :
-    'border-slate-400 bg-transparent text-slate-100 shadow-sm'
+    value === 'Passed' ? 'border-emerald-500 bg-emerald-500 text-white shadow-[0_10px_22px_rgba(16,185,129,0.3)]' :
+    value === 'Failed' ? 'border-rose-500 bg-rose-500 text-white shadow-[0_10px_22px_rgba(244,63,94,0.28)]' :
+    value === 'Pending' ? 'border-white/25 bg-white/15 text-[color:var(--color-ink)]' :
+    'border-white/25 bg-white/15 text-[color:var(--color-ink)]'
 
-  const idleClass =
-    value === 'Passed' ? 'border-slate-300 bg-white text-slate-500 hover:bg-emerald-50' :
-    value === 'Failed' ? 'border-slate-300 bg-white text-slate-500 hover:bg-rose-50' :
-    value === 'Pending' ? 'border-slate-300 bg-white text-slate-500 hover:bg-slate-100' :
-    'border-slate-300 bg-transparent text-slate-200 hover:bg-white/10'
+  const idleClass = 'border-white/10 bg-transparent text-[color:var(--color-subtle)] hover:bg-white/10 hover:text-[color:var(--color-ink)]'
   const disabledClass = 'cursor-not-allowed opacity-40'
 
   return (
@@ -899,9 +895,9 @@ function FailedSectionPanel({ documented }: { documented: boolean }) {
 }
 
 const FLOATING_PANEL_CLASS = 'shadow-[0_18px_34px_rgba(15,23,42,0.18)]'
-const TACTILE_MEDIA_BUTTON_CLASS = 'inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full border border-slate-300/80 bg-[#e5e7eb] px-0 text-slate-700 shadow-[0_6px_14px_rgba(15,23,42,0.18)] transition-colors hover:bg-[#f3f4f6] disabled:cursor-not-allowed disabled:opacity-50'
+const TACTILE_MEDIA_BUTTON_CLASS = 'inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl border border-white/10 bg-white/8 px-0 text-[color:var(--color-muted)] transition-colors hover:bg-white/15 hover:text-[color:var(--color-ink)] disabled:cursor-not-allowed disabled:opacity-50'
 const EMPHASIZED_BODY_TEXT_CLASS = 'text-[17px] leading-7 text-zinc-300'
-const HOLD_ACTION_BUTTON_CLASS = 'min-h-12 rounded-2xl border border-amber-300 bg-amber-100 px-4 py-3 text-sm font-black text-amber-900 shadow-sm transition-colors hover:bg-amber-200 disabled:cursor-not-allowed disabled:border-amber-200 disabled:bg-amber-50 disabled:text-amber-400 disabled:opacity-60'
+const HOLD_ACTION_BUTTON_CLASS = 'min-h-12 rounded-2xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm font-black text-[color:var(--color-ink)] transition-colors hover:bg-amber-500/20 disabled:cursor-not-allowed disabled:opacity-50'
 const REQUIRED_EVIDENCE_LOCK_MESSAGE = 'Evidence required before Pass. Attach at least one evidence item in the Attached Evidence section below. A regular note/comment does not satisfy this requirement unless it is captured as evidence.'
 const REQUIRED_EVIDENCE_NOTICE_CLASS = 'rounded-2xl border-2 border-rose-500 bg-white px-4 py-3 text-sm font-semibold leading-6 text-slate-950 shadow-[0_14px_28px_rgba(15,23,42,0.18)]'
 const DEPENDENCY_BLOCKER_NOTICE_CLASS = 'rounded-2xl border-2 border-amber-500 bg-white px-4 py-3 text-sm font-semibold leading-6 text-slate-950 shadow-[0_14px_28px_rgba(15,23,42,0.18)]'
@@ -936,17 +932,20 @@ function RequiredEvidenceActionPanel({
 }) {
   const guidanceItems = item.required_evidence.length > 0
     ? item.required_evidence
-    : ['At least one photo, video, file, or captured field note attached through this container evidence area.']
+    : ['A photo, video, file, or captured field note that documents the inspected condition.']
+  const capturedCount = item.documents.length
 
   if (!blocked) {
     return (
-      <div className="mt-3 rounded-2xl border-2 border-emerald-500 bg-white px-4 py-3 text-sm font-semibold leading-6 text-slate-950 shadow-[0_14px_28px_rgba(15,23,42,0.18)]">
-        <div className="flex items-start gap-3">
-          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" />
-          <div>
-            <div className="text-sm font-black text-emerald-950">Required evidence attached</div>
-            <div className="mt-1 text-sm text-slate-800">
-              Evidence requirement satisfied. This container can now be passed if all checklist conditions are complete.
+      <div className="mt-4 overflow-hidden rounded-2xl border border-emerald-400/30 bg-emerald-500/10">
+        <div className="flex items-start gap-3 px-4 py-3.5">
+          <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-emerald-400/30 bg-emerald-500/15 text-emerald-300">
+            <ShieldCheck className="h-5 w-5" />
+          </span>
+          <div className="min-w-0">
+            <div className="text-sm font-black text-[color:var(--color-ink)]">Evidence captured</div>
+            <div className="mt-0.5 text-sm leading-6 text-[color:var(--color-muted)]">
+              Supporting field evidence is attached. This section can be passed once all checklist items are complete.
             </div>
           </div>
         </div>
@@ -955,36 +954,38 @@ function RequiredEvidenceActionPanel({
   }
 
   return (
-    <div className="mt-3 rounded-2xl border-2 border-rose-500 bg-white px-4 py-4 text-slate-950 shadow-[0_14px_28px_rgba(15,23,42,0.18)]">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div className="flex min-w-0 flex-1 items-start gap-3">
-          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-rose-700" />
-          <div className="min-w-0">
-            <div className="text-base font-black text-rose-950">Required evidence missing</div>
-            <div className="mt-1 text-sm font-semibold leading-6 text-slate-900">
-              Attach at least one evidence item before passing this container.
-            </div>
-            <div className="mt-3 text-[11px] font-black uppercase tracking-[0.16em] text-slate-600">Acceptable evidence</div>
-            <ul className="mt-2 space-y-1.5 text-sm leading-5 text-slate-800">
-              {guidanceItems.map(guidance => (
-                <li key={guidance} className="flex gap-2">
-                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-rose-600" />
-                  <span>{guidance}</span>
-                </li>
-              ))}
-            </ul>
-            <div className="mt-3 text-xs font-semibold leading-5 text-slate-700">
-              Pass is disabled until evidence is captured or uploaded in this container&apos;s evidence area.
-            </div>
+    <div className="mt-4 overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+      <div className="flex items-center gap-2 border-l-2 border-amber-400/70 bg-amber-500/5 px-4 py-2.5">
+        <Camera className="h-4 w-4 shrink-0 text-amber-300" />
+        <span className="text-[11px] font-black uppercase tracking-[0.16em] text-[color:var(--color-ink)]">Evidence required before Pass</span>
+      </div>
+      <div className="flex flex-col gap-4 px-4 py-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0 flex-1">
+          <div className="text-base font-black text-[color:var(--color-ink)]">Evidence needed to support this inspection decision</div>
+          <div className="mt-1 text-sm leading-6 text-[color:var(--color-muted)]">
+            Attach supporting field evidence to enable Pass. Required evidence must support the inspection decision — not just satisfy a file check.
           </div>
+          <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-bold text-[color:var(--color-muted)]">
+            <CircleDashed className="h-3.5 w-3.5 shrink-0 text-amber-300" />
+            {capturedCount} of 1 required evidence items captured
+          </div>
+          <div className="mt-3 text-[11px] font-black uppercase tracking-[0.16em] text-[color:var(--color-subtle)]">Acceptable evidence</div>
+          <ul className="mt-2 space-y-1.5 text-sm leading-5 text-[color:var(--color-muted)]">
+            {guidanceItems.map(guidance => (
+              <li key={guidance} className="flex gap-2">
+                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#FF5F15]" />
+                <span>{guidance}</span>
+              </li>
+            ))}
+          </ul>
         </div>
         <button
           type="button"
           onClick={onAttachRequiredEvidence}
-          className="inline-flex min-h-[44px] shrink-0 items-center justify-center gap-2 rounded-2xl bg-rose-700 px-4 py-3 text-xs font-black text-white transition-colors hover:bg-rose-800"
+          className="inline-flex min-h-[48px] w-full shrink-0 items-center justify-center gap-2 rounded-2xl bg-[#FF5F15] px-5 py-3 text-sm font-black text-white shadow-[0_10px_22px_rgba(255,95,21,0.3)] transition-colors hover:bg-[#e25412] lg:w-auto"
         >
           <Upload className="h-4 w-4" />
-          Attach Required Evidence
+          Attach evidence
         </button>
       </div>
     </div>
@@ -4175,8 +4176,9 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                               <h3 className="text-lg font-black leading-tight sm:text-xl">{item.item_label}</h3>
                               {showRequirementIndicator && (
                                 passBlockedForEvidence ? (
-                                  <span className="inline-flex items-center rounded-full border border-rose-300/70 bg-rose-200 px-2 py-1 text-xs font-bold text-rose-900">
-                                    Required Evidence Missing
+                                  <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-500/10 px-2.5 py-1 text-[11px] font-bold text-[color:var(--color-ink)]">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                                    Evidence required
                                   </span>
                                 ) : (
                                   <span
@@ -4202,20 +4204,6 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         </div>
                       )}
 
-                      {item.required_evidence.length > 0 && (
-                        <div className="mt-4 rounded-2xl border border-orange-500/20 bg-orange-500/5 px-4 py-3">
-                          <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300/80">Required Evidence</div>
-                          <ul className="mt-1.5 space-y-1">
-                            {item.required_evidence.map(ev => (
-                              <li key={ev} className="flex items-start gap-2 text-[11px] leading-5 text-zinc-400">
-                                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-orange-400/60" />
-                                {ev}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-
                       <div className="mt-5 rounded-2xl bg-white/5 p-4 sm:p-5">
                         <div className="flex items-center justify-between gap-3">
                           <div>
@@ -4223,16 +4211,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                             <div className="mt-1 text-xs text-zinc-400">Tap each item as you verify it. Capture evidence inline as you go.</div>
                           </div>
                           <div className="flex items-center gap-2">
-                            {passRequiresEvidence && (
-                              <span className={`rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] ${
-                                passBlockedForEvidence
-                                  ? 'border-amber-500/30 bg-amber-500/10 text-amber-300'
-                                  : 'border-emerald-400/20 bg-emerald-500/10 text-emerald-300'
-                              }`}>
-                                {passBlockedForEvidence ? 'Required Evidence Missing' : 'Required Evidence Captured'}
-                              </span>
-                            )}
-                            <div className="rounded-full bg-white/5 px-3 py-1 text-[11px] font-black text-zinc-300">
+                            <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-black text-[color:var(--color-muted)]">
                               {checklistItems.filter(detail => getChecklistEntryState(item, detail).checked).length}/{checklistItems.length}
                             </div>
                           </div>
@@ -4268,7 +4247,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                     className={`flex min-h-[52px] w-full items-start gap-3 rounded-2xl px-3 py-3 text-left transition-colors lg:flex-1 ${
                                       entryState.checked
                                         ? 'bg-emerald-500/10 text-[color:var(--color-ink)]'
-                                        : 'bg-[var(--color-raised)] text-zinc-100 hover:bg-[var(--color-hover)]'
+                                        : 'text-[color:var(--color-ink)] hover:bg-white/5'
                                     }`}
                                   >
                                     <span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border ${
@@ -4281,7 +4260,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                     <span className="pt-0.5 text-sm font-semibold leading-relaxed">{detail}</span>
                                   </button>
 
-                                  <div className="flex flex-wrap gap-2 lg:justify-end">
+                                  <div className="flex flex-wrap items-center gap-1.5 self-start rounded-xl bg-white/5 p-1">
                                     {showCamera && (
                                       <FieldMediaUploader
                                         expectedType="camera"
@@ -4314,10 +4293,10 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                         expectedType="text"
                                         variant="icon"
                                         label="Add text note"
-                                        buttonClassName={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full border px-0 transition-colors shadow-[0_6px_14px_rgba(15,23,42,0.18)] disabled:cursor-not-allowed disabled:opacity-50 ${
+                                        buttonClassName={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl border px-0 transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
                                           noteOpen
-                                            ? 'border-[#FF5F15]/50 bg-[#FFEDD5] text-[#C2410C]'
-                                            : 'border-slate-300/80 bg-[#e5e7eb] text-slate-700 hover:bg-[#f3f4f6]'
+                                            ? 'border-[#FF5F15]/40 bg-[#FF5F15]/15 text-[#FF5F15]'
+                                            : 'border-white/10 bg-white/8 text-[color:var(--color-muted)] hover:bg-white/15 hover:text-[color:var(--color-ink)]'
                                         }`}
                                         onCapture={payload => handleChecklistCapture(item.item_code, detail, payload)}
                                       />
@@ -4447,7 +4426,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         <p className="mt-1 text-xs leading-relaxed text-zinc-400">{SECTION_OUTCOME_HELPER}</p>
                       </div>
 
-                      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                      <div className="mt-3 grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-white/5 p-2 sm:grid-cols-4">
                         <StatusPill
                           label="Passed"
                           sublabel={passBlocked ? (passBlockedForEvidence ? 'Needs required evidence' : 'Blocked by prerequisite') : 'Verified Clear'}
@@ -4499,7 +4478,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                           type="button"
                           disabled={saving}
                           onClick={() => void persistDraft()}
-                          className="min-h-12 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-black text-slate-800 shadow-sm transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                          className="min-h-12 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-black text-[color:var(--color-ink)] transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
                         >
                           {saving ? 'Saving…' : 'Save Draft'}
                         </button>
@@ -4795,8 +4774,9 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                             <h3 className="text-lg font-black leading-tight sm:text-xl">{item.item_label}</h3>
                             {showRequirementIndicator && (
                               passBlockedForEvidence ? (
-                                  <span className="inline-flex items-center rounded-full border border-rose-300/70 bg-rose-200 px-2 py-1 text-xs font-bold text-rose-900">
-                                    Required Evidence Missing
+                                  <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-500/10 px-2.5 py-1 text-[11px] font-bold text-[color:var(--color-ink)]">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                                    Evidence required
                                   </span>
                               ) : (
                                 <span
@@ -4852,7 +4832,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       <p className="mt-1 text-xs leading-relaxed text-zinc-400">{SECTION_OUTCOME_HELPER}</p>
                     </div>
 
-                    <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    <div className="mt-3 grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-white/5 p-2 sm:grid-cols-4">
                       <StatusPill
                         label="Passed"
                         sublabel={passBlocked ? (passBlockedForEvidence ? 'Needs required evidence' : 'Blocked by prerequisite') : 'Verified Clear'}
@@ -4904,7 +4884,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         type="button"
                         disabled={saving}
                         onClick={() => void persistDraft()}
-                        className="min-h-12 rounded-2xl border border-slate-600 bg-slate-900 px-4 py-3 text-sm font-black text-slate-100 shadow-[0_10px_20px_rgba(15,23,42,0.24)] transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
+                        className="min-h-12 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-black text-[color:var(--color-ink)] transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         {saving ? 'Saving…' : 'Save Draft'}
                       </button>
