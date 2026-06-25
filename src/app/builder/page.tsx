@@ -2444,6 +2444,8 @@ export default function BuilderDashboard() {
           designation: activeAssignment?.inspectorDisciplines?.[0] ?? '',
           license:     trackerInspectorLicense,
           avatar:      trackerAvatar,
+          disciplines: activeAssignment?.inspectorDisciplines ?? [],
+          regions:     activeAssignment?.inspectorRegions ?? [],
         }}
         project={{
           name:    trackerProjectName,

@@ -4,7 +4,7 @@ import React from 'react'
 import {
   X, CheckCircle2, Clock, BadgeCheck, MapPin,
   CalendarClock, FileText, ShieldCheck, ArrowRight,
-  KeyRound, HardHat, ClipboardCheck,
+  KeyRound, HardHat, ClipboardCheck, MessageSquare,
 } from 'lucide-react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -38,6 +38,10 @@ interface EnRouteTrackerProps {
     designation: string
     license: string
     avatar: string
+    disciplines?: string[]
+    regions?: string[]
+    /** Real verification flag only — omit unless backed by a real field. */
+    verified?: boolean
   }
   project: {
     name: string
@@ -181,6 +185,13 @@ export function EnRouteTracker({
       ? `Claimed · ${fmtDate(appointment.claimedAt)}`
       : null
 
+  // A meaningful name is anything other than empty or the generic placeholder.
+  const hasRealName = Boolean(inspector.name) && inspector.name.trim() !== '' && inspector.name.trim() !== 'Inspector'
+  const inspectorDisplayName = hasRealName ? inspector.name : 'Assigned inspector profile details not yet available'
+  const disciplineText = (inspector.disciplines ?? []).filter(Boolean).map(titleCase).join(' · ')
+    || (inspector.designation ? titleCase(inspector.designation) : '')
+  const regionText = (inspector.regions ?? []).filter(Boolean).map(titleCase).join(' · ')
+
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
       {/* Backdrop */}
@@ -230,16 +241,33 @@ export function EnRouteTracker({
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="font-bold text-ink text-sm truncate">{inspector.name}</span>
-                  <BadgeCheck className="w-3.5 h-3.5 text-electric shrink-0" />
+                  <span className={`font-bold text-sm ${hasRealName ? 'text-ink truncate' : 'text-muted leading-snug'}`}>
+                    {inspectorDisplayName}
+                  </span>
+                  {/* Verified badge only when a real verification flag is passed. */}
+                  {inspector.verified && <BadgeCheck className="w-3.5 h-3.5 text-electric shrink-0" />}
                 </div>
-                <div className="text-xs font-mono text-muted mt-0.5 truncate">
-                  {inspector.license}{inspector.designation ? ` · ${titleCase(inspector.designation)}` : ''}
-                </div>
+                {inspector.license && (
+                  <div className="text-xs font-mono text-muted mt-0.5 truncate">{inspector.license}</div>
+                )}
                 {inspectorWhen && (
                   <div className="text-[11px] font-semibold text-muted mt-1">{inspectorWhen}</div>
                 )}
               </div>
+            </div>
+
+            {/* Professional details — render only what is real */}
+            {(disciplineText || regionText) && (
+              <div className="mt-3 pt-3 border-t border-white/5">
+                <Field label="Discipline" value={disciplineText} />
+                <Field label="Service region" value={regionText} />
+              </div>
+            )}
+
+            {/* Contact boundary — no off-platform contact wired yet */}
+            <div className="mt-3 pt-3 border-t border-white/5 flex items-center gap-2">
+              <MessageSquare className="w-3.5 h-3.5 text-subtle shrink-0" />
+              <span className="text-[11px] font-semibold text-subtle">Contact through Vero: Coming soon</span>
             </div>
           </div>
 
