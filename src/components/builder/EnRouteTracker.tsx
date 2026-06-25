@@ -187,7 +187,7 @@ export function EnRouteTracker({
 
   // A meaningful name is anything other than empty or the generic placeholder.
   const hasRealName = Boolean(inspector.name) && inspector.name.trim() !== '' && inspector.name.trim() !== 'Inspector'
-  const inspectorDisplayName = hasRealName ? inspector.name : 'Assigned inspector profile details not yet available'
+  const inspectorDisplayName = hasRealName ? inspector.name : 'Inspector assigned — professional summary not displayed in this view yet'
   const disciplineText = (inspector.disciplines ?? []).filter(Boolean).map(titleCase).join(' · ')
     || (inspector.designation ? titleCase(inspector.designation) : '')
   const regionText = (inspector.regions ?? []).filter(Boolean).map(titleCase).join(' · ')
