@@ -120,17 +120,22 @@ function fmtSlot(slot?: AppointmentSlot): string | null {
   return end ? `${day} · ${start}–${end}` : `${day} · ${start}`
 }
 
-function appointmentStatusLabel(a?: AppointmentInfo): string {
+// `hasSchedule` = a real appointment exists (assignment and/or a selected or
+// requested window). It keeps the badge and the next-step message consistent so
+// we never show "Scheduled" alongside "Awaiting inspector scheduling".
+function appointmentStatusLabel(a?: AppointmentInfo, hasSchedule = false): string {
   if (a?.objectionState === 'pending_review') return 'Awaiting review'
   if (a?.status === 'confirmed') return 'Confirmed'
   if (a?.status === 'provisional') return 'Provisional'
-  return 'Scheduled'
+  if (hasSchedule || a) return 'Scheduled'
+  return 'Pending'
 }
 
-function nextStepMessage(a?: AppointmentInfo): string {
+function nextStepMessage(a?: AppointmentInfo, hasSchedule = false): string {
   if (a?.objectionState === 'pending_review') return 'Builder review / objection window in progress.'
   if (a?.status === 'confirmed') return 'Appointment confirmed — awaiting inspection.'
-  if (a?.status === 'provisional') return 'Inspector claimed this appointment — confirmation window in progress.'
+  if (a?.status === 'provisional') return 'Inspector selected this appointment — confirmation window in progress.'
+  if (hasSchedule || a) return 'Inspection appointment is scheduled.'
   return 'Awaiting inspector scheduling.'
 }
 
@@ -167,18 +172,26 @@ export function EnRouteTracker({
 }: EnRouteTrackerProps) {
   if (!isOpen) return null
 
-  const statusLabel = appointmentStatusLabel(appointment)
+  const confirmedWindow = fmtSlot(appointment?.claimedSlot)
+  const requestedWindows = (appointment?.availableSlots ?? [])
+    .map(fmtSlot)
+    .filter((s): s is string => Boolean(s))
+
+  // A schedule exists when there's a selected slot, requested windows, or any
+  // active assignment — used to keep status / window / next-step consistent.
+  const hasSchedule = Boolean(confirmedWindow) || requestedWindows.length > 0 || Boolean(appointment)
+  // Appointment Summary window: selected slot → requested windows → none.
+  const windowValue = confirmedWindow
+    ?? (requestedWindows.length > 0 ? 'Requested windows available' : 'Scheduled window not available')
+
+  const statusLabel = appointmentStatusLabel(appointment, hasSchedule)
   const StatusIcon  = statusLabel === 'Confirmed' ? CheckCircle2 : Clock
   const statusTone =
     statusLabel === 'Confirmed'      ? 'border-success-green/30 bg-success-green/10 text-success-green' :
     statusLabel === 'Awaiting review' ? 'border-electric/30 bg-electric/10 text-electric' :
     statusLabel === 'Provisional'    ? 'border-warning-amber/30 bg-warning-amber/10 text-warning-amber' :
+    statusLabel === 'Scheduled'      ? 'border-electric/25 bg-electric/8 text-electric' :
                                        'border-white/10 bg-white/5 text-muted'
-
-  const confirmedWindow = fmtSlot(appointment?.claimedSlot)
-  const requestedWindows = (appointment?.availableSlots ?? [])
-    .map(fmtSlot)
-    .filter((s): s is string => Boolean(s))
   const inspectorWhen = appointment?.confirmedAt
     ? `Confirmed · ${fmtDate(appointment.confirmedAt)}`
     : appointment?.claimedAt
@@ -229,7 +242,7 @@ export function EnRouteTracker({
             <Field label="Project" value={project.name} />
             <Field label="Stage" value={project.stage} />
             <Field label="Discipline" value={titleCase(appointment?.discipline)} />
-            <Field label="Window" value={confirmedWindow ?? 'Scheduled window not available'} />
+            <Field label="Window" value={windowValue} />
           </div>
 
           {/* ── 2. Inspector Assigned ── */}
@@ -327,7 +340,7 @@ export function EnRouteTracker({
           {/* ── 5. Next Step ── */}
           <div className="card-dark rounded-2xl p-4 inset-top">
             <SectionHeader icon={ArrowRight} label="Next Step" />
-            <div className="text-sm font-bold text-ink leading-snug">{nextStepMessage(appointment)}</div>
+            <div className="text-sm font-bold text-ink leading-snug">{nextStepMessage(appointment, hasSchedule)}</div>
             <div className="mt-2 space-y-1 text-[11px] text-muted leading-relaxed">
               <div>Inspection result will appear after the inspector submits the report.</div>
               <div>Final records become available once generated.</div>
