@@ -1368,6 +1368,9 @@ export default function BuilderDashboard() {
   const dbJobsById = new Map((dbJobs ?? []).map(job => [job.id, job]))
   const storeJobsById = new Map(store.jobs.map(job => [job.id, job]))
   const projectsById = new Map(projects.map(project => [project.id, project]))
+  // Original request row backing the active appointment — surfaces real request
+  // details (requested window, discipline, tier, notes, permit) into the modal.
+  const trackerRequestRow = activeAssignment ? dbJobsById.get(activeAssignment.jobId) : undefined
   const openHoldDetails = Object.values(activeHoldDetails).filter(detail => isHoldOpenStatus(detail.hold.status))
   const onHoldJobs = (dbJobs ?? []).filter(job => job.status === 'on_hold')
   const actionableHoldJobIds = new Set(activeHolds.map(hold => hold.jobId))
@@ -2435,6 +2438,19 @@ export default function BuilderDashboard() {
           address: trackerProjectAddress,
           stage:   trackerStageName,
         }}
+        appointment={activeAssignment ? {
+          status:         activeAssignment.status,
+          objectionState: activeAssignment.objectionState,
+          discipline:     trackerRequestRow?.requiredDiscipline ?? assignedJob?.requiredDiscipline,
+          dispatchTier:   trackerRequestRow?.dispatchTier       ?? assignedJob?.dispatchTier,
+          requestedAt:    trackerRequestRow?.requestedAt        ?? assignedJob?.requestedAt,
+          permitNumber:   trackerRequestRow?.permitNumber       ?? assignedJob?.permitNumber,
+          notes:          trackerRequestRow?.notes,
+          availableSlots: trackerRequestRow?.availableSlots     ?? assignedJob?.availableSlots,
+          claimedSlot:    activeAssignment.claimedSlot,
+          claimedAt:      activeAssignment.claimedAt,
+          confirmedAt:    activeAssignment.confirmedAt,
+        } : undefined}
       />
     </div>
   )

@@ -2,10 +2,33 @@
 
 import React from 'react'
 import {
-  X, CheckCircle2, Navigation, MapPin,
-  BadgeCheck, FileText, Home,
-  KeyRound, HardHat, ClipboardCheck, ShieldCheck,
+  X, CheckCircle2, Clock, BadgeCheck, MapPin,
+  CalendarClock, FileText, ShieldCheck, ArrowRight,
+  KeyRound, HardHat, ClipboardCheck,
 } from 'lucide-react'
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type AppointmentSlot = {
+  date?: string
+  startTime?: string
+  endTime?: string
+  flexible?: boolean
+}
+
+interface AppointmentInfo {
+  status?: string          // assignment status, e.g. 'provisional' | 'confirmed'
+  objectionState?: string  // 'none' | 'pending_review' | 'sustained' | 'overruled'
+  discipline?: string      // required discipline / inspection type
+  dispatchTier?: string    // 'standard' | 'priority' | 'emergency'
+  requestedAt?: string
+  permitNumber?: string
+  notes?: string
+  availableSlots?: AppointmentSlot[]
+  claimedSlot?: AppointmentSlot
+  claimedAt?: string
+  confirmedAt?: string
+}
 
 interface EnRouteTrackerProps {
   isOpen: boolean
@@ -21,64 +44,14 @@ interface EnRouteTrackerProps {
     address: string
     stage: string
   }
+  appointment?: AppointmentInfo
 }
-
-// ─── Stage definitions ────────────────────────────────────────────────────────
-//
-// These describe the EXPECTED arrival sequence for an active assignment. Vero
-// does not currently receive live inspector position, so only the confirmed
-// status is asserted as real — the remaining steps are shown as what to expect,
-// not as a live-tracked position.
-
-type StageId = 'confirmed' | 'preparing' | 'en_route' | 'approaching' | 'on_site'
-
-interface TrackStage {
-  id: StageId
-  label: string
-  sub: string
-  icon: React.ElementType
-}
-
-const STAGES: TrackStage[] = [
-  {
-    id:    'confirmed',
-    label: 'Confirmed',
-    sub:   'Inspector assigned and confirmed for this stage',
-    icon:  CheckCircle2,
-  },
-  {
-    id:    'preparing',
-    label: 'Preparing',
-    sub:   'Inspector reviews site documents before departure',
-    icon:  FileText,
-  },
-  {
-    id:    'en_route',
-    label: 'En Route',
-    sub:   'Inspector travels to your site',
-    icon:  Navigation,
-  },
-  {
-    id:    'approaching',
-    label: 'Approaching',
-    sub:   'Inspector nearing the site',
-    icon:  MapPin,
-  },
-  {
-    id:    'on_site',
-    label: 'On Site',
-    sub:   'Inspector arrives and begins the pre-safety check',
-    icon:  Home,
-  },
-]
-
-// The only status Vero can currently assert from assignment data is "confirmed".
-const CURRENT_STAGE_IDX = 0
 
 // ─── Site readiness checklist ────────────────────────────────────────────────
 //
-// Professional, generally-applicable coordination items. No location, no GPS,
-// no movement — these prepare the builder for the inspector's scheduled visit.
+// Professional, generally-applicable coordination reminders. No location, no
+// GPS, no movement — these help the builder prepare for the scheduled visit.
+// They are reminders, not confirmations that the builder has completed them.
 
 const READINESS_ITEMS: { label: string; sub: string; icon: React.ElementType }[] = [
   {
@@ -96,7 +69,72 @@ const READINESS_ITEMS: { label: string; sub: string; icon: React.ElementType }[]
     sub:   'The stage scope is complete and accessible for inspection',
     icon:  ClipboardCheck,
   },
+  {
+    label: 'Contact available',
+    sub:   'A site contact is reachable during the appointment window',
+    icon:  CheckCircle2,
+  },
 ]
+
+// ─── Formatters ───────────────────────────────────────────────────────────────
+
+function titleCase(value?: string): string {
+  if (!value) return ''
+  return value.replace(/[_-]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+}
+
+function fmtDate(iso?: string): string | null {
+  if (!iso) return null
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return null
+  return d.toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
+function fmtSlot(slot?: AppointmentSlot): string | null {
+  if (!slot) return null
+  if (slot.flexible) return 'Flexible timing'
+  if (!slot.date || !slot.startTime) return null
+  const d = new Date(`${slot.date}T12:00:00`)
+  if (Number.isNaN(d.getTime())) return null
+  const day = d.toLocaleDateString('en-CA', { weekday: 'short', month: 'short', day: 'numeric' })
+  return slot.endTime ? `${day} · ${slot.startTime}–${slot.endTime}` : `${day} · ${slot.startTime}`
+}
+
+function appointmentStatusLabel(a?: AppointmentInfo): string {
+  if (a?.objectionState === 'pending_review') return 'Awaiting review'
+  if (a?.status === 'confirmed') return 'Confirmed'
+  if (a?.status === 'provisional') return 'Provisional'
+  return 'Scheduled'
+}
+
+function nextStepMessage(a?: AppointmentInfo): string {
+  if (a?.objectionState === 'pending_review') return 'Builder review / objection window in progress.'
+  if (a?.status === 'confirmed') return 'Appointment confirmed — awaiting inspection.'
+  if (a?.status === 'provisional') return 'Inspector claimed this appointment — confirmation window in progress.'
+  return 'Awaiting inspector scheduling.'
+}
+
+// ─── Small presentational helpers ────────────────────────────────────────────
+
+/** Renders a label/value row, or nothing when the value is missing. */
+function Field({ label, value }: { label: string; value?: string | null }) {
+  if (!value) return null
+  return (
+    <div className="flex items-start justify-between gap-3 py-1.5 border-b border-white/5 last:border-0">
+      <span className="text-[11px] font-bold uppercase tracking-wide text-subtle shrink-0">{label}</span>
+      <span className="text-xs font-semibold text-ink text-right leading-snug">{value}</span>
+    </div>
+  )
+}
+
+function SectionHeader({ icon: Icon, label }: { icon: React.ElementType; label: string }) {
+  return (
+    <div className="flex items-center gap-2 mb-3">
+      <Icon className="w-4 h-4 text-flame" />
+      <div className="label-mono">{label}</div>
+    </div>
+  )
+}
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
@@ -105,8 +143,27 @@ export function EnRouteTracker({
   onClose,
   inspector,
   project,
+  appointment,
 }: EnRouteTrackerProps) {
   if (!isOpen) return null
+
+  const statusLabel = appointmentStatusLabel(appointment)
+  const StatusIcon  = statusLabel === 'Confirmed' ? CheckCircle2 : Clock
+  const statusTone =
+    statusLabel === 'Confirmed'      ? 'border-success-green/30 bg-success-green/10 text-success-green' :
+    statusLabel === 'Awaiting review' ? 'border-electric/30 bg-electric/10 text-electric' :
+    statusLabel === 'Provisional'    ? 'border-warning-amber/30 bg-warning-amber/10 text-warning-amber' :
+                                       'border-white/10 bg-white/5 text-muted'
+
+  const confirmedWindow = fmtSlot(appointment?.claimedSlot)
+  const requestedWindows = (appointment?.availableSlots ?? [])
+    .map(fmtSlot)
+    .filter((s): s is string => Boolean(s))
+  const inspectorWhen = appointment?.confirmedAt
+    ? `Confirmed · ${fmtDate(appointment.confirmedAt)}`
+    : appointment?.claimedAt
+      ? `Claimed · ${fmtDate(appointment.claimedAt)}`
+      : null
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
@@ -122,7 +179,7 @@ export function EnRouteTracker({
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-white/5 shrink-0">
           <div>
-            <div className="font-black text-ink text-base">Inspector Arrival Status</div>
+            <div className="font-black text-ink text-base">Inspection Appointment Status</div>
             <div className="text-xs text-muted mt-0.5 truncate max-w-[240px]">{project.name} · {project.stage}</div>
           </div>
           <button onClick={onClose}
@@ -133,72 +190,75 @@ export function EnRouteTracker({
 
         <div className="overflow-y-auto flex-1 px-5 py-4 space-y-4">
 
-          {/* ── Inspector card (real assignment data) ── */}
-          <div className="card-dark rounded-2xl p-4 inset-top flex items-center gap-4">
-            <div className="w-14 h-14 bg-flame/15 border border-flame/25 rounded-2xl flex items-center justify-center font-black text-flame text-lg shrink-0">
-              {inspector.avatar}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5">
-                <span className="font-bold text-ink text-sm">{inspector.name}</span>
-                <BadgeCheck className="w-3.5 h-3.5 text-electric shrink-0" />
+          {/* ── 1. Appointment Summary ── */}
+          <div className="card-dark rounded-2xl p-4 inset-top">
+            <div className="flex items-center justify-between mb-3">
+              <SectionHeader icon={CalendarClock} label="Appointment Summary" />
+              <div className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 ${statusTone}`}>
+                <StatusIcon className="w-3 h-3" />
+                <span className="text-[10px] font-bold uppercase tracking-wide">{statusLabel}</span>
               </div>
-              <div className="text-xs font-mono text-muted mt-0.5 truncate">
-                {inspector.license}{inspector.designation ? ` · ${inspector.designation}` : ''}
+            </div>
+            <Field label="Project" value={project.name} />
+            <Field label="Stage" value={project.stage} />
+            <Field label="Discipline" value={titleCase(appointment?.discipline)} />
+            <Field label="Window" value={confirmedWindow ?? 'Scheduled window not available'} />
+          </div>
+
+          {/* ── 2. Inspector Assigned ── */}
+          <div className="card-dark rounded-2xl p-4 inset-top">
+            <SectionHeader icon={BadgeCheck} label="Inspector Assigned" />
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-flame/15 border border-flame/25 rounded-2xl flex items-center justify-center font-black text-flame text-base shrink-0">
+                {inspector.avatar}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-bold text-ink text-sm truncate">{inspector.name}</span>
+                  <BadgeCheck className="w-3.5 h-3.5 text-electric shrink-0" />
+                </div>
+                <div className="text-xs font-mono text-muted mt-0.5 truncate">
+                  {inspector.license}{inspector.designation ? ` · ${titleCase(inspector.designation)}` : ''}
+                </div>
+                {inspectorWhen && (
+                  <div className="text-[11px] font-semibold text-muted mt-1">{inspectorWhen}</div>
+                )}
               </div>
             </div>
           </div>
 
-          {/* ── Arrival status (honest, not a live countdown) ── */}
+          {/* ── 3. Builder Request Details ── */}
           <div className="card-dark rounded-2xl p-4 inset-top">
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <div className="label-mono mb-0.5">Arrival</div>
-                <div className="text-2xl font-black text-ink">Scheduled</div>
+            <SectionHeader icon={FileText} label="Builder Request Details" />
+            <Field label="Requested type" value={titleCase(appointment?.discipline)} />
+            <Field label="Requested" value={fmtDate(appointment?.requestedAt)} />
+            {requestedWindows.length > 0 && (
+              <div className="flex items-start justify-between gap-3 py-1.5 border-b border-white/5">
+                <span className="text-[11px] font-bold uppercase tracking-wide text-subtle shrink-0">Requested windows</span>
+                <div className="text-xs font-semibold text-ink text-right leading-snug space-y-0.5">
+                  {requestedWindows.map((w, i) => <div key={i}>{w}</div>)}
+                </div>
               </div>
-              <div className="text-right">
-                <div className="label-mono mb-0.5">Address</div>
-                <div className="text-xs font-semibold text-ink max-w-[140px] text-right leading-tight">{project.address}</div>
+            )}
+            <Field label="Urgency" value={titleCase(appointment?.dispatchTier)} />
+            <Field label="Permit" value={appointment?.permitNumber} />
+            <div className="flex items-start justify-between gap-3 py-1.5 border-b border-white/5 last:border-0">
+              <span className="text-[11px] font-bold uppercase tracking-wide text-subtle shrink-0">Site</span>
+              <span className="inline-flex items-start gap-1 text-xs font-semibold text-ink text-right leading-snug">
+                <MapPin className="w-3 h-3 text-flame mt-0.5 shrink-0" />{project.address}
+              </span>
+            </div>
+            {appointment?.notes && (
+              <div className="mt-2 rounded-xl border border-white/6 bg-panel/60 p-3">
+                <div className="text-[10px] font-bold uppercase tracking-wide text-subtle mb-1">Notes</div>
+                <div className="text-xs text-ink leading-relaxed whitespace-pre-wrap">{appointment.notes}</div>
               </div>
-            </div>
-            <div className="text-[11px] text-muted leading-relaxed">
-              This status is based on assignment updates, not live location tracking.
-            </div>
+            )}
           </div>
 
-          {/* ── Site readiness / arrival coordination ── */}
+          {/* ── 4. Site Readiness ── */}
           <div className="card-dark rounded-2xl p-4 inset-top">
-            <div className="flex items-center gap-2 mb-3">
-              <ShieldCheck className="w-4 h-4 text-flame" />
-              <div className="label-mono">Site Readiness</div>
-            </div>
-
-            {/* Assignment summary (real data) */}
-            <div className="rounded-xl border border-white/6 bg-panel/60 p-3 mb-3 space-y-2">
-              <div className="flex items-start gap-2">
-                <MapPin className="w-3.5 h-3.5 text-flame mt-0.5 shrink-0" />
-                <div className="min-w-0">
-                  <div className="text-[10px] font-bold uppercase tracking-wide text-subtle">Site</div>
-                  <div className="text-xs font-semibold text-ink leading-snug">{project.address}</div>
-                </div>
-              </div>
-              <div className="flex items-start gap-2">
-                <ClipboardCheck className="w-3.5 h-3.5 text-flame mt-0.5 shrink-0" />
-                <div className="min-w-0">
-                  <div className="text-[10px] font-bold uppercase tracking-wide text-subtle">Stage</div>
-                  <div className="text-xs font-semibold text-ink leading-snug">{project.stage}</div>
-                </div>
-              </div>
-              <div className="flex items-start gap-2">
-                <BadgeCheck className="w-3.5 h-3.5 text-electric mt-0.5 shrink-0" />
-                <div className="min-w-0">
-                  <div className="text-[10px] font-bold uppercase tracking-wide text-subtle">Inspector</div>
-                  <div className="text-xs font-semibold text-ink leading-snug">{inspector.name} · Confirmed</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Readiness reminders (generally applicable) */}
+            <SectionHeader icon={ShieldCheck} label="Site Readiness" />
             <div className="space-y-2.5">
               {READINESS_ITEMS.map(item => {
                 const Icon = item.icon
@@ -215,69 +275,18 @@ export function EnRouteTracker({
                 )
               })}
             </div>
-
             <div className="mt-3 pt-3 border-t border-white/5 text-[11px] text-muted leading-relaxed">
-              Next update will appear when the inspection status changes.
+              These are general preparation reminders. This panel reflects assignment updates, not live location tracking.
             </div>
           </div>
 
-          {/* ── Status timeline (expected sequence) ── */}
+          {/* ── 5. Next Step ── */}
           <div className="card-dark rounded-2xl p-4 inset-top">
-            <div className="flex items-center justify-between mb-4">
-              <div className="label-mono">Arrival Steps</div>
-              <span className="text-[10px] font-semibold text-subtle">Expected sequence</span>
-            </div>
-            <div className="space-y-0">
-              {STAGES.map((stage, idx) => {
-                const isDone    = idx < CURRENT_STAGE_IDX
-                const isCurrent = idx === CURRENT_STAGE_IDX
-                const Icon      = stage.icon
-                const isLast    = idx === STAGES.length - 1
-
-                return (
-                  <div key={stage.id} className="flex gap-3">
-                    {/* Spine + icon */}
-                    <div className="flex flex-col items-center">
-                      <div className={`
-                        w-8 h-8 rounded-full border-2 flex items-center justify-center shrink-0 transition-all duration-300
-                        ${isDone    ? 'bg-success-green border-success-green' : ''}
-                        ${isCurrent ? 'border-flame bg-flame/10' : ''}
-                        ${!isDone && !isCurrent ? 'border-white/10 bg-surface' : ''}
-                      `}>
-                        {isDone ? (
-                          <CheckCircle2 className="w-4 h-4 text-white" />
-                        ) : isCurrent ? (
-                          <Icon className="w-4 h-4 text-flame" />
-                        ) : (
-                          <Icon className="w-3.5 h-3.5 text-subtle" />
-                        )}
-                      </div>
-                      {!isLast && (
-                        <div className={`w-0.5 h-6 mt-1 mb-1 rounded-full transition-all duration-300 ${
-                          isDone ? 'bg-success-green' : 'bg-white/8'
-                        }`} />
-                      )}
-                    </div>
-
-                    {/* Text */}
-                    <div className={`pb-5 flex-1 min-w-0 ${isLast ? 'pb-0' : ''}`}>
-                      <div className={`text-sm font-bold ${
-                        isCurrent ? 'text-flame' :
-                        isDone    ? 'text-success-green' :
-                                    'text-muted'
-                      }`}>{stage.label}</div>
-                      <div className={`text-xs mt-0.5 leading-relaxed ${
-                        isCurrent ? 'text-muted' : 'text-subtle'
-                      }`}>{stage.sub}</div>
-                      {isCurrent && (
-                        <div className="mt-1 inline-flex items-center gap-1 rounded-md border border-flame/20 bg-flame/10 px-1.5 py-0.5">
-                          <span className="text-[10px] font-bold uppercase tracking-wide text-flame">Current status</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
+            <SectionHeader icon={ArrowRight} label="Next Step" />
+            <div className="text-sm font-bold text-ink leading-snug">{nextStepMessage(appointment)}</div>
+            <div className="mt-2 space-y-1 text-[11px] text-muted leading-relaxed">
+              <div>Inspection result will appear after the inspector submits the report.</div>
+              <div>Final records become available once generated.</div>
             </div>
           </div>
 
