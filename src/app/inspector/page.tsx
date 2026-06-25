@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Search, ChevronRight, PlayCircle, Clock, Activity, Filter, Briefcase } from 'lucide-react'
+import { Search, ChevronRight, PlayCircle, Clock, Activity, Filter, Briefcase, FolderLock, AlertTriangle, FileText, Wallet } from 'lucide-react'
 import { Navbar } from '@/components/shared/Navbar'
 import { JobCard } from '@/components/inspector/JobCard'
 import { HardPingProvider } from '@/components/inspector/HardPingProvider'
@@ -992,47 +992,166 @@ export default function InspectorDashboard() {
 
   if (!user || onboardingStatus === null || !eligibilityLoaded || !authorityEligibilityLoaded) return null
 
+  // ── Presentational workday metrics (derived from existing state only; no logic change) ──
+  const inspectorFirstName = user.firstName?.trim()
+  const activeAssignmentCount = activeWorklist.length
+  const needsAttentionCount =
+    acceptedHoldsForInspector.length +
+    activeWorklist.filter(item => item.openHold || item.statusLabel === 'Availability Confirmation Needed').length
+  const draftRecordCount = activeWorklist.filter(
+    item => item.reportStatus === 'draft' || item.statusLabel === 'Draft Record In Progress',
+  ).length
+  const openOpportunityCount = eligibleJobs.length
+
+  const workdayMetrics = [
+    {
+      key: 'active',
+      label: 'Active Assignments',
+      value: String(activeAssignmentCount),
+      helper: 'Open or in progress',
+      valueClass: activeAssignmentCount > 0 ? 'text-electric' : 'text-ink',
+      dot: activeAssignmentCount > 0 ? 'bg-electric' : 'bg-rim',
+      size: 'text-3xl',
+    },
+    {
+      key: 'attention',
+      label: 'Needs Attention',
+      value: String(needsAttentionCount),
+      helper: 'Holds & re-verifications',
+      valueClass: needsAttentionCount > 0 ? 'text-amber-400' : 'text-ink',
+      dot: needsAttentionCount > 0 ? 'bg-amber-400' : 'bg-rim',
+      size: 'text-3xl',
+    },
+    {
+      key: 'drafts',
+      label: 'Records In Progress',
+      value: String(draftRecordCount),
+      helper: 'Field drafts not yet sealed',
+      valueClass: draftRecordCount > 0 ? 'text-flame' : 'text-ink',
+      dot: draftRecordCount > 0 ? 'bg-flame' : 'bg-rim',
+      size: 'text-3xl',
+    },
+    {
+      key: 'open',
+      label: 'Open Opportunities',
+      value: String(openOpportunityCount),
+      helper: 'Eligible for you now',
+      valueClass: openOpportunityCount > 0 ? 'text-emerald-400' : 'text-ink',
+      dot: openOpportunityCount > 0 ? 'bg-emerald-400' : 'bg-rim',
+      size: 'text-3xl',
+    },
+    {
+      key: 'earnings',
+      label: 'Potential Earnings',
+      value: formatCurrency(1329),
+      helper: 'Visible open opportunities',
+      valueClass: 'text-emerald-400',
+      dot: 'bg-emerald-400',
+      size: 'text-2xl',
+    },
+  ]
+
   return (
     <HardPingProvider>
-    <div className={`app-theme-scope min-h-screen ${isDark ? 'bg-[#0f172a]' : 'bg-slate-50'}`}>
+    <div className="app-theme-scope min-h-screen bg-surface">
       <Navbar role="inspector" dark />
       <main className="max-w-5xl mx-auto px-4 py-8">
 
-        {/* ── Builder-Accepted Hold Notifications ── */}
-        {acceptedHoldsForInspector.map(hold => (
-          <div
-            key={hold.id}
-            className={`mb-5 rounded-2xl border overflow-hidden ${
-              isDark
-                ? 'border-amber-500/30 bg-amber-500/10'
-                : 'border-amber-400/40 bg-amber-50'
-            }`}
-          >
-            <div className="px-5 py-4 flex items-start gap-3">
-              <div className="w-10 h-10 bg-amber-500/20 border border-amber-500/30 rounded-xl flex items-center justify-center shrink-0">
-                <Activity className="w-5 h-5 text-amber-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="font-bold text-ink text-sm mb-0.5">Builder Accepted Hold Terms</div>
-                <div className="text-xs text-muted">
-                  Site is ready for re-verification. Return to site and resolve the hold.
+        {/* ── Inspector Field Hub command header ── */}
+        <div className="relative mb-6 overflow-hidden rounded-3xl border border-rim/70 bg-gradient-to-b from-panel to-surface bg-dot bg-dot-sm">
+          <div className="pointer-events-none absolute -top-24 right-[-6rem] h-72 w-72 rounded-full bg-flame/10 blur-3xl" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-flame/40 to-transparent" />
+          <div className="relative px-5 py-7 sm:px-7">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+              <div className="min-w-0">
+                <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-flame/25 bg-flame/[0.08] px-3 py-1">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-flame/70" />
+                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-flame" />
+                  </span>
+                  <span className="label-mono font-bold !text-flame">
+                    Inspector Operations{inspectorFirstName ? ` · ${inspectorFirstName}` : ''}
+                  </span>
                 </div>
-                <div className="mt-2 text-[11px] text-muted">
-                  Fee reserved: <span className="font-bold text-amber-400">${hold.holdCapAmount.toFixed(2)}</span>
-                  {hold.builderAcceptedAt && (
-                    <>{' · '}Accepted {new Date(hold.builderAcceptedAt).toLocaleTimeString('en-CA', { timeZone: 'America/Vancouver', hour: '2-digit', minute: '2-digit' })}</>
-                  )}
-                </div>
+                <h1 className="text-3xl font-black tracking-tight text-ink sm:text-4xl">Inspector Live Board</h1>
+                <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted">
+                  Your field hub for active assignments, holds and re-verifications, open opportunities, and earning potential — in one place.
+                </p>
               </div>
-              <Link
-                href={`/inspector/completion/${hold.relatedInspectionId}#hold`}
-                className={`rounded-lg px-2 py-1 shrink-0 ${isDark ? 'bg-amber-500/15 border border-amber-500/30' : 'bg-amber-100 border border-amber-300'}`}
-              >
-                <div className="text-[10px] text-amber-500 font-bold">Re-verify Now</div>
-              </Link>
+              <div className="flex shrink-0 flex-wrap items-center gap-2.5">
+                <Link
+                  href="/vault"
+                  className="inline-flex items-center gap-2 rounded-2xl border border-rim bg-panel/80 px-5 py-3.5 text-sm font-bold text-ink backdrop-blur transition-colors hover:border-rim hover:bg-raised"
+                >
+                  <FolderLock className="h-4 w-4 text-muted" />
+                  Open Vault
+                </Link>
+              </div>
             </div>
           </div>
-        ))}
+        </div>
+
+        {/* ── Workday metrics ── */}
+        <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          {workdayMetrics.map(metric => (
+            <div
+              key={metric.key}
+              className="relative overflow-hidden rounded-2xl border border-rim/60 bg-panel p-4 shadow-card"
+            >
+              <div className="mb-2.5 flex items-center gap-1.5">
+                <span className={`h-1.5 w-1.5 rounded-full ${metric.dot}`} />
+                <span className="text-[10px] font-black uppercase tracking-[0.14em] text-subtle">{metric.label}</span>
+              </div>
+              <div className={`${metric.size} font-black leading-none tracking-tight ${metric.valueClass}`}>
+                {metric.value}
+              </div>
+              <div className="mt-1.5 text-[11px] font-medium leading-snug text-muted">{metric.helper}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Needs Attention · Re-verification Required ── */}
+        {acceptedHoldsForInspector.length > 0 && (
+          <div className="mb-8">
+            <div className="mb-4 flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-amber-400" />
+              <h2 className="label-mono font-bold !text-amber-400">Needs Attention · Re-verification Required</h2>
+            </div>
+            <div className="space-y-3">
+              {acceptedHoldsForInspector.map(hold => (
+                <div
+                  key={hold.id}
+                  className="overflow-hidden rounded-2xl border border-amber-500/30 bg-amber-500/[0.08]"
+                >
+                  <div className="flex items-start gap-3 px-5 py-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-500/30 bg-amber-500/20">
+                      <Activity className="h-5 w-5 text-amber-400" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-0.5 text-sm font-bold text-ink">Builder Accepted Hold Terms</div>
+                      <div className="text-xs text-muted">
+                        Site is ready for re-verification. Return to site and resolve the hold.
+                      </div>
+                      <div className="mt-2 text-[11px] text-muted">
+                        Fee reserved: <span className="font-bold text-amber-400">${hold.holdCapAmount.toFixed(2)}</span>
+                        {hold.builderAcceptedAt && (
+                          <>{' · '}Accepted {new Date(hold.builderAcceptedAt).toLocaleTimeString('en-CA', { timeZone: 'America/Vancouver', hour: '2-digit', minute: '2-digit' })}</>
+                        )}
+                      </div>
+                    </div>
+                    <Link
+                      href={`/inspector/completion/${hold.relatedInspectionId}#hold`}
+                      className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-amber-500/40 bg-amber-500/15 px-4 py-2.5 text-xs font-black text-amber-300 transition-colors hover:bg-amber-500/25"
+                    >
+                      Re-verify Now
+                      <ChevronRight className="h-4 w-4" />
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Active Worklist */}
         {(activeWorklist.length > 0 || hiddenActiveWorklist.length > 0) && (
@@ -1040,12 +1159,12 @@ export default function InspectorDashboard() {
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <div className="flex items-center gap-2">
-                  <PlayCircle className="w-4 h-4 text-flame" />
-                  <h2 className="text-xs font-bold text-electric tracking-widest uppercase">Your Active Worklist</h2>
+                  <PlayCircle className="h-4 w-4 text-flame" />
+                  <h2 className="label-mono font-bold !text-flame">Your Active Worklist</h2>
                 </div>
-                <p className={`mt-1 text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                <p className="mt-1 text-xs text-muted">
                   These are assignments still open or in progress. Completed submitted records move to Vault.{' '}
-                  <Link href="/vault" className={`underline underline-offset-2 ${isDark ? 'text-slate-300 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}>
+                  <Link href="/vault" className="text-ink underline underline-offset-2 transition-colors hover:text-flame">
                     View Submitted Records in Vault
                   </Link>
                 </p>
@@ -1054,31 +1173,19 @@ export default function InspectorDashboard() {
                 <button
                   type="button"
                   onClick={() => setShowHiddenWorklist(value => !value)}
-                  className={`self-start rounded-xl border px-3 py-2 text-xs font-black transition-all sm:self-auto ${
-                    isDark
-                      ? 'border-slate-600 bg-slate-800 text-slate-200 hover:bg-slate-700'
-                      : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-                  }`}
+                  className="self-start rounded-xl border border-rim bg-panel px-3 py-2 text-xs font-black text-ink transition-colors hover:bg-raised sm:self-auto"
                 >
                   {showHiddenWorklist ? 'Hide Hidden' : `Show Hidden (${hiddenActiveWorklist.length})`}
                 </button>
               )}
             </div>
             {worklistDispositionMessage && (
-              <div className={`mb-3 rounded-xl border px-3 py-2 text-xs font-semibold ${
-                isDark
-                  ? 'border-blue-500/30 bg-blue-500/10 text-blue-100'
-                  : 'border-blue-200 bg-blue-50 text-blue-900'
-              }`}>
+              <div className="mb-3 rounded-xl border border-electric/30 bg-electric/10 px-3 py-2 text-xs font-semibold text-ink">
                 {worklistDispositionMessage}
               </div>
             )}
             {renderedActiveWorklist.length === 0 && (
-              <div className={`rounded-2xl border px-4 py-3 text-sm ${
-                isDark
-                  ? 'border-slate-700 bg-slate-800 text-slate-300'
-                  : 'border-slate-200 bg-white text-slate-600'
-              }`}>
+              <div className="rounded-2xl border border-rim/60 bg-panel px-4 py-3 text-sm text-muted">
                 No visible active assignments. Hidden assignments are not shown unless you choose Show Hidden.
               </div>
             )}
@@ -1098,14 +1205,10 @@ export default function InspectorDashboard() {
                 return (
                   <div
                     key={assignment.id}
-                    className={`flex flex-col gap-4 rounded-2xl border p-4 shadow-sm transition-all hover:border-electric/30 md:flex-row md:items-center ${
+                    className={`flex flex-col gap-4 rounded-2xl border p-4 shadow-card transition-all hover:border-flame/30 md:flex-row md:items-center ${
                       hiddenFromWorklist
-                        ? isDark
-                          ? 'border-slate-700 bg-slate-900/70 opacity-90'
-                          : 'border-slate-200 bg-slate-50 opacity-95'
-                        : isDark
-                          ? 'border-slate-700 bg-slate-800 hover:bg-slate-800/90'
-                          : 'border-slate-200 bg-white hover:bg-slate-50'
+                        ? 'border-rim/50 bg-raised/60 opacity-90'
+                        : 'border-rim/60 bg-panel hover:bg-raised'
                     }`}
                   >
                     <div className="w-12 h-12 bg-flame rounded-xl flex items-center justify-center shrink-0">
@@ -1114,11 +1217,7 @@ export default function InspectorDashboard() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <span className="font-bold text-ink text-base truncate">{assignment.projectName || 'Assigned Project'}</span>
-                        <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase ${
-                          isDark
-                            ? 'border-slate-600 bg-slate-700/50 text-slate-300'
-                            : 'border-slate-300 bg-slate-200 text-slate-700'
-                        }`}>
+                        <span className="rounded-full border border-rim/60 bg-raised px-2 py-0.5 text-[10px] font-bold uppercase text-muted">
                           {assignment.statusLabel}
                         </span>
                         {assignment.jobStatus && assignment.jobStatus !== assignment.status && (
@@ -1144,11 +1243,7 @@ export default function InspectorDashboard() {
                           </span>
                         )}
                         {hiddenFromWorklist && (
-                          <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase ${
-                            isDark
-                              ? 'border-slate-600 bg-slate-700/50 text-slate-300'
-                              : 'border-slate-300 bg-slate-100 text-slate-600'
-                          }`}>
+                          <span className="rounded-full border border-rim/60 bg-raised px-2 py-0.5 text-[10px] font-bold uppercase text-muted">
                             Hidden from Worklist
                           </span>
                         )}
@@ -1156,12 +1251,12 @@ export default function InspectorDashboard() {
                       {(assignment.stage != null || assignment.discipline) && (
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
                           {assignment.stage != null && (
-                            <span className={`text-xs font-semibold ${isDark ? 'text-electric' : 'text-blue-700'}`}>
+                            <span className="text-xs font-semibold text-electric">
                               Stage {assignment.stage}{assignment.stageName ? ` — ${assignment.stageName}` : ''}
                             </span>
                           )}
                           {assignment.discipline && (
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${DISC_BADGE[assignment.discipline] ?? (isDark ? 'border-slate-600 bg-slate-700/50 text-slate-300' : 'border-slate-300 bg-slate-200 text-slate-700')}`}>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${DISC_BADGE[assignment.discipline] ?? 'border-rim/60 bg-raised text-muted'}`}>
                               {formatStoredStatus(assignment.discipline)}
                             </span>
                           )}
@@ -1169,8 +1264,8 @@ export default function InspectorDashboard() {
                       )}
                       {inspectionPreview && (
                         <div className="text-xs mb-1">
-                          <span className={isDark ? 'text-slate-400' : 'text-slate-500'}>Inspection Stage: </span>
-                          <span className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                          <span className="text-subtle">Inspection Stage: </span>
+                          <span className="font-semibold text-ink">
                             {inspectionPreview.code} — {inspectionPreview.name}
                           </span>
                         </div>
@@ -1189,7 +1284,7 @@ export default function InspectorDashboard() {
                               ? `${assignment.claimedSlot.date}${assignment.claimedSlot.startTime ? ` · ${assignment.claimedSlot.startTime}–${assignment.claimedSlot.endTime}` : ''}`
                               : 'Upcoming'}
                         </div>
-                        <div className={`font-mono text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                        <div className="font-mono text-[10px] text-subtle">
                           #{assignment.assignmentIdSuffix}
                         </div>
                       </div>
@@ -1308,11 +1403,7 @@ export default function InspectorDashboard() {
                             type="button"
                             disabled={worklistActionId === `${WORKLIST_HIDE_ACTION}:${assignment.id}`}
                             onClick={() => void handleWorklistDisposition(assignment, WORKLIST_HIDE_ACTION)}
-                            className={`px-4 py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all disabled:cursor-wait disabled:opacity-60 ${
-                              isDark
-                                ? 'border border-slate-600 bg-slate-800 text-slate-300 hover:bg-slate-700'
-                                : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-                            }`}
+                            className="flex items-center justify-center gap-2 rounded-xl border border-rim bg-panel px-4 py-2.5 text-xs font-black text-muted transition-colors hover:bg-raised hover:text-ink disabled:cursor-wait disabled:opacity-60"
                           >
                             Hide from Worklist
                           </button>
@@ -1378,24 +1469,32 @@ export default function InspectorDashboard() {
         )}
 
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-center">
           <div>
-            <h1 className="text-2xl font-black text-ink">Open Requests</h1>
+            <div className="mb-2 flex items-center gap-2">
+              <Briefcase className="h-4 w-4 text-flame" />
+              <span className="label-mono font-bold !text-flame">Open Requests · Opportunities</span>
+            </div>
+            <h2 className="text-2xl font-black text-ink">Open Requests</h2>
             <p className="text-sm text-muted mt-1">
               {eligibleJobs.length} eligible of {classifiedJobs.length} live requests matching your filters
             </p>
-            <p className="text-xs text-subtle mt-1">
+            <p className="text-xs text-subtle mt-1 max-w-xl">
               Open Requests are unclaimed live jobs. Jobs you&apos;ve already claimed appear in Your Active Worklist above. Some jobs may be hidden if they do not match your verified credentials, region, or are already assigned.
             </p>
           </div>
-          <div className={`flex items-center gap-3 rounded-2xl border px-4 py-3 shadow-sm ${
-            isDark ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'
-          }`}>
-            <div className="text-right">
-              <div className="text-[10px] font-bold text-subtle uppercase tracking-widest">Potential Open Earnings</div>
-              <div className={`text-xl font-black ${isDark ? 'text-emerald-300' : 'text-emerald-800'}`}>{formatCurrency(1329)}</div>
-              <div className={`mt-1 text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-                Estimated value of visible open opportunities. Actual payout status appears after admin review and release.
+          <div className="relative shrink-0 overflow-hidden rounded-2xl border border-emerald-500/30 bg-panel px-5 py-4 shadow-card">
+            <div className="pointer-events-none absolute -right-6 -top-8 h-20 w-20 rounded-full bg-emerald-500/10 blur-2xl" />
+            <div className="relative flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/10">
+                <Wallet className="h-5 w-5 text-emerald-400" />
+              </div>
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-subtle">Potential Open Earnings</div>
+                <div className="text-2xl font-black text-emerald-400">{formatCurrency(1329)}</div>
+                <div className="mt-1 max-w-[15rem] text-[10px] text-subtle">
+                  Estimated value of visible open opportunities. Actual payout status appears after admin review and release.
+                </div>
               </div>
             </div>
           </div>
@@ -1407,9 +1506,7 @@ export default function InspectorDashboard() {
         />
 
         {/* Filters */}
-        <div className={`mb-6 rounded-2xl border p-4 shadow-sm ${
-          isDark ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'
-        }`}>
+        <div className="mb-6 rounded-2xl border border-rim/60 bg-panel p-4 shadow-card">
           <div className="relative mb-4">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-subtle" />
             <input
@@ -1417,9 +1514,7 @@ export default function InspectorDashboard() {
               placeholder="Search by project name or address..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className={`w-full rounded-xl border py-3 pl-11 pr-4 text-sm text-ink placeholder-subtle transition-all focus:border-flame focus:outline-none ${
-                isDark ? 'border-slate-700 bg-slate-900' : 'border-slate-200 bg-slate-50'
-              }`}
+              className="w-full rounded-xl border border-rim/60 bg-surface py-3 pl-11 pr-4 text-sm text-ink placeholder-subtle transition-all focus:border-flame focus:outline-none"
             />
           </div>
 
@@ -1432,12 +1527,10 @@ export default function InspectorDashboard() {
             <div className="flex flex-wrap gap-2">
               {REGIONS.map(r => (
                 <button key={r.value} onClick={() => setRegion(r.value as Region | 'all')}
-                  className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg transition-all ${
+                  className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${
                     region === r.value
                       ? 'bg-flame text-white'
-                      : isDark
-                        ? 'border border-slate-600 bg-slate-900 text-muted hover:bg-slate-800 hover:text-ink'
-                        : 'border border-slate-300 bg-white text-muted hover:bg-slate-100 hover:text-ink'
+                      : 'border border-rim/60 bg-surface text-muted hover:bg-raised hover:text-ink'
                   }`}>{r.label}</button>
               ))}
             </div>
@@ -1452,18 +1545,16 @@ export default function InspectorDashboard() {
             <div className="flex flex-wrap gap-2">
               {DISCS.map(d => (
                 <button key={d.value} onClick={() => setDiscipline(d.value as InspectorDiscipline | 'all')}
-                  className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg transition-all ${
+                  className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${
                     discipline === d.value
                       ? 'bg-electric text-white'
-                      : isDark
-                        ? 'border border-slate-600 bg-slate-900 text-muted hover:bg-slate-800 hover:text-ink'
-                        : 'border border-slate-300 bg-white text-muted hover:bg-slate-100 hover:text-ink'
+                      : 'border border-rim/60 bg-surface text-muted hover:bg-raised hover:text-ink'
                   }`}>{d.label}</button>
               ))}
             </div>
           </div>
 
-          <div className={`mt-4 border-t pt-4 ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+          <div className="mt-4 border-t border-rim/50 pt-4">
             <div className="flex items-center gap-2 mb-2">
               <Activity className="w-3 h-3 text-subtle" />
               <span className="text-[10px] font-bold text-subtle uppercase tracking-widest">Board View</span>
@@ -1476,12 +1567,10 @@ export default function InspectorDashboard() {
                 <button
                   key={option.value}
                   onClick={() => setBoardView(option.value)}
-                  className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg transition-all ${
+                  className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${
                     boardView === option.value
-                      ? (isDark ? 'bg-slate-200 text-slate-900' : 'bg-slate-700 text-white')
-                      : isDark
-                        ? 'border border-slate-600 bg-slate-900 text-muted hover:bg-slate-800 hover:text-ink'
-                        : 'border border-slate-300 bg-white text-muted hover:bg-slate-100 hover:text-ink'
+                      ? 'bg-ink text-surface'
+                      : 'border border-rim/60 bg-surface text-muted hover:bg-raised hover:text-ink'
                   }`}
                 >
                   {option.label}
@@ -1494,9 +1583,7 @@ export default function InspectorDashboard() {
         {/* Job list */}
         <div className="space-y-3">
           {classifiedJobs.length === 0 ? (
-            <div className={`rounded-2xl border py-16 text-center shadow-sm ${
-              isDark ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'
-            }`}>
+            <div className="rounded-2xl border border-rim/60 bg-panel py-16 text-center shadow-card">
               <Search className="w-10 h-10 text-subtle mx-auto mb-3" />
               <div className="font-semibold text-muted">No open requests match your filters</div>
               <div className="text-xs text-subtle mt-1">Try adjusting your region or discipline filters</div>
@@ -1506,7 +1593,7 @@ export default function InspectorDashboard() {
               {eligibleJobs.length > 0 && (
                 <section className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <h2 className={`text-xs font-bold tracking-widest uppercase ${isDark ? 'text-emerald-300' : 'text-emerald-800'}`}>Eligible for You</h2>
+                    <h2 className="label-mono font-bold !text-emerald-400">Eligible for You</h2>
                     <span className="text-[10px] font-bold text-subtle uppercase tracking-wider">{eligibleJobs.length} jobs</span>
                   </div>
                   {eligibleJobs.map(({ job, eligibility }) => (
@@ -1523,7 +1610,7 @@ export default function InspectorDashboard() {
               {boardView === 'all' && ineligibleJobs.length > 0 && (
                 <section className="space-y-3 pt-4">
                   <div className="flex items-center justify-between">
-                    <h2 className={`text-xs font-bold tracking-widest uppercase ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Other Live Projects</h2>
+                    <h2 className="label-mono font-bold text-subtle">Other Live Projects</h2>
                     <span className="text-[10px] font-bold text-subtle uppercase tracking-wider">{ineligibleJobs.length} locked</span>
                   </div>
                   {ineligibleJobs.map(({ job, eligibility, primaryReason }) => (
@@ -1539,9 +1626,7 @@ export default function InspectorDashboard() {
               )}
 
               {boardView === 'eligible' && eligibleJobs.length === 0 && (
-                <div className={`rounded-2xl border py-16 text-center shadow-sm ${
-                  isDark ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'
-                }`}>
+                <div className="rounded-2xl border border-rim/60 bg-panel py-16 text-center shadow-card">
                   <Briefcase className="w-10 h-10 text-subtle mx-auto mb-3" />
                   <div className="font-semibold text-muted">No eligible jobs match your filters</div>
                   <div className="text-xs text-subtle mt-1">Switch to All Live Jobs to view the wider marketplace</div>
