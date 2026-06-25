@@ -3338,7 +3338,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
 
   if (loading) {
     return (
-      <div className="completion-workspace min-h-screen bg-[#050816] bg-[#0f172a] text-white">
+      <div className="completion-workspace min-h-screen bg-[var(--color-surface)] text-[color:var(--color-ink)]">
         <Navbar role="inspector" dark />
         <div className="flex min-h-[70vh] items-center justify-center">
           <Loader2 className="h-10 w-10 animate-spin text-[#FF5F15]" />
@@ -3349,7 +3349,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
 
   if (error || !job || !overlay || !report) {
     return (
-      <div className="completion-workspace min-h-screen bg-[#050816] bg-[#0f172a] text-white">
+      <div className="completion-workspace min-h-screen bg-[var(--color-surface)] text-[color:var(--color-ink)]">
         <Navbar role="inspector" dark />
         <div className="mx-auto max-w-3xl px-4 py-16">
           <div className="rounded-3xl border border-red-500/30 bg-red-500/10 p-6">
@@ -3367,7 +3367,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
       || report.sealPayload.projectState === 'COMPLETED'
 
     return (
-      <div className="completion-workspace min-h-screen bg-[#050816] bg-[#0f172a] text-white">
+      <div className="completion-workspace min-h-screen bg-[var(--color-surface)] text-[color:var(--color-ink)]">
         <Navbar role="inspector" dark />
         <main className="mx-auto max-w-3xl px-4 py-12">
           <div className={`rounded-[2rem] p-8 text-center ${
@@ -3455,7 +3455,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
   const currentProgress = stageProgress.find(stage => stage.stage.stage_number === currentStage)
 
   return (
-    <div className="completion-workspace min-h-screen bg-[#050816] bg-[#0f172a] text-white pb-40">
+    <div className="completion-workspace min-h-screen bg-[var(--color-surface)] text-[color:var(--color-ink)] pb-40 [&_.text-zinc-100]:text-[color:var(--color-ink)] [&_.text-zinc-200]:text-[color:var(--color-ink)] [&_.text-zinc-300]:text-[color:var(--color-muted)] [&_.text-zinc-400]:text-[color:var(--color-subtle)] [&_.text-zinc-500]:text-[color:var(--color-subtle)]">
       <Navbar role="inspector" dark />
       <main className="mx-auto max-w-7xl px-4 py-6">
         {sealSuccessMessage && (
@@ -3586,7 +3586,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
           </div>
         )}
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-          <aside className={`completion-sidebar rounded-[2rem] border border-white/10 bg-[#0a1020] p-4 lg:w-[300px] lg:flex-none lg:h-auto lg:min-h-full lg:sticky lg:top-4 lg:self-start lg:max-h-none lg:overflow-visible ${FLOATING_PANEL_CLASS}`}>
+          <aside className={`completion-sidebar rounded-[2rem] border border-white/10 bg-[var(--color-panel)] p-4 lg:w-[300px] lg:flex-none lg:h-auto lg:min-h-full lg:sticky lg:top-4 lg:self-start lg:max-h-none lg:overflow-visible ${FLOATING_PANEL_CLASS}`}>
             {previewMode && (
               <div className="mb-4 rounded-2xl border border-slate-500/40 bg-[repeating-linear-gradient(135deg,rgba(51,65,85,0.9)_0,rgba(51,65,85,0.9)_12px,rgba(71,85,105,0.88)_12px,rgba(71,85,105,0.88)_24px)] px-4 py-3 text-xs font-bold uppercase tracking-[0.18em] text-slate-100 shadow-[0_10px_20px_rgba(15,23,42,0.2)]">
                 Dev Preview Only
@@ -3648,7 +3648,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
               {saving && <Loader2 className="h-4 w-4 animate-spin text-[#FF5F15]" />}
             </div>
 
-            <div className={`mt-4 rounded-[1.75rem] border border-white/10 bg-[#0a1020] p-4 ${FLOATING_PANEL_CLASS}`}>
+            <div className={`mt-4 rounded-[1.75rem] border border-white/10 bg-[var(--color-panel)] p-4 ${FLOATING_PANEL_CLASS}`}>
               <button
                 type="button"
                 onClick={() => setProjectOverviewOpen(open => !open)}
@@ -3762,7 +3762,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
           </aside>
 
           <section className="space-y-5 lg:min-w-0 lg:flex-1">
-            <div className={`rounded-[2rem] border border-white/10 bg-[#0a1020] p-5 ${FLOATING_PANEL_CLASS}`}>
+            <div className={`rounded-[2rem] border border-white/10 bg-[var(--color-panel)] p-5 ${FLOATING_PANEL_CLASS}`}>
               <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                 <div>
                   <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Current Checklist</div>
@@ -4136,7 +4136,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         stageItemRefs.current[item.item_code] = node
                       }}
                       tabIndex={-1}
-                      className={`relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-[#0a1020] p-4 sm:p-5 outline-none ${FLOATING_PANEL_CLASS} ${
+                      className={`relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-[var(--color-panel)] p-4 sm:p-5 outline-none ${FLOATING_PANEL_CLASS} ${
                         stageTransitionHandshake?.targetItemCode === item.item_code ? 'ring-2 ring-emerald-400/45 ring-offset-2 ring-offset-[#050816]' : ''
                       }`}
                     >
@@ -4216,7 +4216,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         </div>
                       )}
 
-                      <div className={`mt-4 rounded-[1.5rem] border border-white/10 bg-[#060b18] p-3 sm:p-4 ${FLOATING_PANEL_CLASS}`}>
+                      <div className={`mt-4 rounded-[1.5rem] border border-white/10 bg-[var(--color-raised)] p-3 sm:p-4 ${FLOATING_PANEL_CLASS}`}>
                         <div className="flex items-center justify-between gap-3">
                           <div>
                             <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Field Checklist</div>
@@ -4267,8 +4267,8 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                     onClick={() => toggleChecklistItem(item.item_code, detail)}
                                     className={`flex min-h-[52px] w-full items-start gap-3 rounded-2xl px-3 py-3 text-left transition-colors lg:flex-1 ${
                                       entryState.checked
-                                        ? 'bg-emerald-500/10 text-white'
-                                        : 'bg-[#060b18] text-zinc-100 hover:bg-[#091022]'
+                                        ? 'bg-emerald-500/10 text-[color:var(--color-ink)]'
+                                        : 'bg-[var(--color-raised)] text-zinc-100 hover:bg-[var(--color-hover)]'
                                     }`}
                                   >
                                     <span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border ${
@@ -4331,7 +4331,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                     onChange={event => updateChecklistNote(item.item_code, detail, event.target.value)}
                                     rows={3}
                                     placeholder={`Note for item ${index + 1}`}
-                                    className="mt-3 w-full rounded-2xl border border-white/10 bg-[#060b18] px-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:border-[#FF5F15] focus:outline-none"
+                                    className="mt-3 w-full rounded-2xl border border-white/10 bg-[var(--color-raised)] px-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:border-[#FF5F15] focus:outline-none"
                                   />
                                 )}
 
@@ -4359,7 +4359,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                       return (
                                         <div
                                           key={capIdx}
-                                          className="flex items-center gap-3 rounded-2xl border border-white/10 bg-[#060b18] px-3 py-3"
+                                          className="flex items-center gap-3 rounded-2xl border border-white/10 bg-[var(--color-raised)] px-3 py-3"
                                         >
                                           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5">
                                             <File className="h-4 w-4 text-zinc-400" />
@@ -4594,7 +4594,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                               <div className={`rounded-3xl border border-white/10 bg-white/5 p-4 ${FLOATING_PANEL_CLASS}`}>
                                 <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Evidence Guidance</div>
                                 <div className="mt-3 text-[17px] leading-7 text-zinc-300">{evidenceSummary}</div>
-                                <div className="mt-4 rounded-2xl border border-white/10 bg-[#060b18] p-3">
+                                <div className="mt-4 rounded-2xl border border-white/10 bg-[var(--color-raised)] p-3">
                                   {item.required_evidence.length > 0 && (
                                     <>
                                       <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Required Evidence</div>
@@ -4654,7 +4654,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                       onChange={event => updateItem(item.item_code, current => ({ ...current, response_note: event.target.value }))}
                                       rows={4}
                                       placeholder={item.inspector_notes_guidance}
-                                      className="mt-3 w-full rounded-2xl border border-white/10 bg-[#060b18] px-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:border-[#FF5F15] focus:outline-none"
+                                      className="mt-3 w-full rounded-2xl border border-white/10 bg-[var(--color-raised)] px-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:border-[#FF5F15] focus:outline-none"
                                     />
                                   </>
                                 )}
@@ -4766,7 +4766,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       stageItemRefs.current[item.item_code] = node
                     }}
                     tabIndex={-1}
-                    className={`relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-[#0a1020] p-4 sm:p-5 outline-none ${FLOATING_PANEL_CLASS} ${
+                    className={`relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-[var(--color-panel)] p-4 sm:p-5 outline-none ${FLOATING_PANEL_CLASS} ${
                       stageTransitionHandshake?.targetItemCode === item.item_code ? 'ring-2 ring-emerald-400/45 ring-offset-2 ring-offset-[#050816]' : ''
                     }`}
                   >
@@ -5018,7 +5018,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                             <div className={`rounded-3xl border border-white/10 bg-white/5 p-4 ${FLOATING_PANEL_CLASS}`}>
                               <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Evidence Guidance</div>
                               <div className="mt-3 text-[17px] leading-7 text-zinc-300">{evidenceSummary}</div>
-                              <div className="mt-4 rounded-2xl border border-white/10 bg-[#060b18] p-3">
+                              <div className="mt-4 rounded-2xl border border-white/10 bg-[var(--color-raised)] p-3">
                                 {item.required_evidence.length > 0 && (
                                   <>
                                     <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Required Evidence</div>
@@ -5081,7 +5081,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                     onChange={event => updateItem(item.item_code, current => ({ ...current, response_note: event.target.value }))}
                                     rows={4}
                                     placeholder={item.inspector_notes_guidance}
-                                    className="mt-3 w-full rounded-2xl border border-white/10 bg-[#060b18] px-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:border-[#FF5F15] focus:outline-none"
+                                    className="mt-3 w-full rounded-2xl border border-white/10 bg-[var(--color-raised)] px-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:border-[#FF5F15] focus:outline-none"
                                   />
                                 </>
                               )}
@@ -5193,14 +5193,14 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
             </div>
 
             {isFinalOccupancyStage ? (
-              <div className="rounded-[2rem] border border-white/10 bg-[#050816] bg-[#0f172a] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.4)]">
+              <div className="rounded-[2rem] border border-white/10 bg-[var(--color-panel)] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.4)]">
                 <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
                   <div className="max-w-2xl">
                     <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-200/90">Final Occupancy Seal</div>
                     <div className="mt-3 flex items-center gap-4">
                       <VeroSealIcon />
                       <div>
-                        <h3 className="text-2xl font-black text-white">Issue Final Occupancy</h3>
+                        <h3 className="text-2xl font-black text-[color:var(--color-ink)]">Issue Final Occupancy</h3>
                         <p className="mt-2 text-sm leading-relaxed text-zinc-300">
                           This is the final Vero certification gate. Required prerequisite stages and items must be passed or marked N/A before the project can be flipped to COMPLETED.
                         </p>
@@ -5367,7 +5367,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                 </div>
               </div>
             ) : (
-              <div className={`rounded-[2rem] border border-[#FF5F15]/20 bg-[#0d1324] p-5 shadow-[0_0_0_1px_rgba(255,95,21,0.08)] ${FLOATING_PANEL_CLASS}`}>
+              <div className={`rounded-[2rem] border border-[#FF5F15]/20 bg-[var(--color-panel)] p-5 shadow-[0_0_0_1px_rgba(255,95,21,0.08)] ${FLOATING_PANEL_CLASS}`}>
                 <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                   <div className="max-w-2xl">
                     <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#FFB089]">Stage Summary Footer</div>
@@ -5515,7 +5515,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
             )}
 
             {!isFinalOccupancyStage && !assignmentScope && (
-              <div className={`rounded-[2rem] border border-white/10 bg-[#0a1020] p-5 ${FLOATING_PANEL_CLASS}`}>
+              <div className={`rounded-[2rem] border border-white/10 bg-[var(--color-panel)] p-5 ${FLOATING_PANEL_CLASS}`}>
                 <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                   <div>
                     <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Completion Gate</div>
@@ -5589,7 +5589,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
         </div>
       </main>
 
-      <div className="fixed inset-x-0 bottom-0 border-t border-white/10 bg-[#050816]/95 bg-[#0f172a]/95 backdrop-blur">
+      <div className="fixed inset-x-0 bottom-0 border-t border-white/10 bg-[var(--color-surface)] backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4">
           <button
             type="button"
@@ -5603,7 +5603,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
 
           <div className="text-center text-xs text-zinc-400">
             Stage {currentStage} of {stages.length}
-            <div className="mt-1 text-sm font-bold text-white">{currentProgress?.resolved ?? 0} / {currentProgress?.total ?? 0} resolved</div>
+            <div className="mt-1 text-sm font-bold text-[color:var(--color-ink)]">{currentProgress?.resolved ?? 0} / {currentProgress?.total ?? 0} resolved</div>
           </div>
 
           <div className="flex items-center gap-3">
