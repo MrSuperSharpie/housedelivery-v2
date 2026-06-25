@@ -2210,8 +2210,7 @@ export default function BuilderDashboard() {
                     <div className="mb-0.5 flex items-center gap-2">
                       <span className="text-sm font-bold text-ink">Inspector En Route</span>
                       <div className="flex items-center gap-1 rounded-md border border-electric/20 bg-electric/10 px-1.5 py-0.5">
-                        <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-electric" />
-                        <span className="text-[9px] font-bold uppercase tracking-wide text-electric">Live</span>
+                        <span className="text-[9px] font-bold uppercase tracking-wide text-electric">Estimated</span>
                       </div>
                     </div>
                     <div className="truncate text-xs text-muted">
@@ -2220,8 +2219,8 @@ export default function BuilderDashboard() {
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
                     <div className="text-right">
-                      <div className="text-xs text-muted">ETA</div>
-                      <div className="font-mono text-lg font-black text-electric">8 min</div>
+                      <div className="text-xs text-muted">Arrival</div>
+                      <div className="text-sm font-bold text-electric">Scheduled</div>
                     </div>
                     <ChevronRight className="h-4 w-4 text-muted transition-colors group-hover:text-electric" />
                   </div>
@@ -2406,8 +2405,6 @@ export default function BuilderDashboard() {
           name:        trackerInspectorName,
           designation: activeAssignment?.inspectorDisciplines?.[0] ?? '',
           license:     trackerInspectorLicense,
-          rating:      4.9,
-          completions: 0,
           avatar:      trackerAvatar,
         }}
         project={{
@@ -2415,7 +2412,6 @@ export default function BuilderDashboard() {
           address: trackerProjectAddress,
           stage:   trackerStageName,
         }}
-        initialEtaMinutes={8}
       />
     </div>
   )
