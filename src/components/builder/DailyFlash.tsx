@@ -24,6 +24,13 @@ interface DailyFlashProps {
   projects: Project[]
   dataMode: ReportDataMode
   reportsByJobId?: Record<string, CompletionReportLike>
+  /**
+   * Ids that resolve in /builder/project/[id]. That route looks up the local
+   * store only, so a row is safe to link only when its id is in this set;
+   * job_opportunities / Supabase-projects ids are not and must stay
+   * non-navigating intelligence rows.
+   */
+  linkableProjectIds?: string[]
 }
 
 type FlashFilter = 'passed' | 'corrections' | 'pending'
@@ -52,9 +59,11 @@ function vancouverWeek(now: Date): { label: string; key: string }[] {
   }))
 }
 
-export function DailyFlash({ projects, dataMode, reportsByJobId }: DailyFlashProps) {
+export function DailyFlash({ projects, dataMode, reportsByJobId, linkableProjectIds }: DailyFlashProps) {
   const [period, setPeriod] = useState<FlashPeriod>('today')
   const [activeFilter, setActiveFilter] = useState<FlashFilter>('passed')
+
+  const linkableIds = new Set(linkableProjectIds ?? [])
 
   const now = new Date()
   const todayKey = vancouverDayKey(now)
@@ -223,6 +232,7 @@ export function DailyFlash({ projects, dataMode, reportsByJobId }: DailyFlashPro
         <div className="space-y-1.5">
           {records.map(project => {
             const reportId = activeFilter === 'passed' ? (reportsByJobId?.[project.id]?.id ?? null) : null
+            const canLink = linkableIds.has(project.id)
             const rowTone =
               activeFilter === 'passed' ? 'border-emerald-600/25 bg-emerald-500/[0.08]'
               : activeFilter === 'corrections' ? 'border-amber-500/25 bg-amber-500/[0.08]'
@@ -237,13 +247,23 @@ export function DailyFlash({ projects, dataMode, reportsByJobId }: DailyFlashPro
                     className="h-10 w-10 shrink-0 rounded-lg object-cover"
                   />
                 )}
-                <Link
-                  href={`/builder/project/${project.id}`}
-                  className="min-w-0 flex-1 transition-opacity hover:opacity-80"
-                >
-                  <div className="truncate text-xs font-bold text-ink">{project.name}</div>
-                  <div className="truncate text-[11px] font-medium text-muted">{project.address}</div>
-                </Link>
+                {canLink ? (
+                  <Link
+                    href={`/builder/project/${project.id}`}
+                    className="min-w-0 flex-1 transition-opacity hover:opacity-80"
+                  >
+                    <div className="truncate text-xs font-bold text-ink">{project.name}</div>
+                    <div className="truncate text-[11px] font-medium text-muted">{project.address}</div>
+                  </Link>
+                ) : (
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-xs font-bold text-ink">{project.name}</div>
+                    <div className="truncate text-[11px] font-medium text-muted">{project.address}</div>
+                    <div className="mt-0.5 text-[10px] font-medium text-subtle">
+                      {activeFilter === 'passed' ? 'View from Live Board' : 'Open from Active Worklist'}
+                    </div>
+                  </div>
+                )}
                 {reportId ? (
                   <a
                     href={`/api/schedule-cb?reportId=${encodeURIComponent(reportId)}`}

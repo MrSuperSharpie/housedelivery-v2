@@ -2260,7 +2260,7 @@ export default function BuilderDashboard() {
           </div>
         </section>
 
-        <DailyFlash projects={dailyFlashProjects} dataMode={dailyFlashMode} reportsByJobId={completionReportsByJobId} />
+        <DailyFlash projects={dailyFlashProjects} dataMode={dailyFlashMode} reportsByJobId={completionReportsByJobId} linkableProjectIds={storeProjects.map(p => p.id)} />
 
             </div>
           </aside>
