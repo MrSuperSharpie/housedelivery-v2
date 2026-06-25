@@ -4216,7 +4216,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         </div>
                       )}
 
-                      <div className={`mt-4 rounded-[1.5rem] border border-white/10 bg-[var(--color-raised)] p-3 sm:p-4 ${FLOATING_PANEL_CLASS}`}>
+                      <div className="mt-5 rounded-2xl bg-white/5 p-4 sm:p-5">
                         <div className="flex items-center justify-between gap-3">
                           <div>
                             <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Field Checklist</div>
@@ -4246,7 +4246,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                           />
                         )}
 
-                        <div className="mt-3 space-y-3">
+                        <div className="mt-4">
                           {checklistItems.map((detail, index) => {
                             const entryState = getChecklistEntryState(item, detail)
                             const noteKey = `${item.item_code}:${checklistEntryKey(detail)}`
@@ -4258,7 +4258,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                             const showText = evidenceActions === null || evidenceActions.includes('text') || Boolean(entryState.note)
 
                             return (
-                              <div key={detail} className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                              <div key={detail} className="border-t border-white/8 py-4 first:border-t-0 first:pt-0">
                                 <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                                   <button
                                     type="button"
@@ -4390,26 +4390,26 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       </div>
 
                       {(item.stop_if ?? []).length > 0 && (
-                        <div className="mt-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 text-slate-700">
+                        <div className="mt-4 rounded-2xl bg-white/5 p-5 text-zinc-300">
                           <button
                             type="button"
                             onClick={() => toggleExpandedRecord(setExpandedStopConditions, item.item_code)}
                             className="flex w-full items-center justify-between gap-3 text-left"
                           >
                             <div className="flex items-center gap-3">
-                              <FileText className="h-5 w-5 shrink-0 text-slate-400" />
-                              <div className="text-sm font-bold uppercase tracking-[0.14em] text-slate-600">{STAGE_BLOCKER_CONDITIONS_HEADING}</div>
+                              <FileText className="h-5 w-5 shrink-0 text-zinc-400" />
+                              <div className="text-sm font-bold uppercase tracking-[0.14em] text-zinc-400">{STAGE_BLOCKER_CONDITIONS_HEADING}</div>
                             </div>
-                            <ChevronRight className={`h-5 w-5 text-slate-400 transition-transform ${stopConditionsOpen ? 'rotate-90' : ''}`} />
+                            <ChevronRight className={`h-5 w-5 text-zinc-400 transition-transform ${stopConditionsOpen ? 'rotate-90' : ''}`} />
                           </button>
-                          <p className="mt-2 text-xs leading-relaxed text-slate-600">{STAGE_BLOCKER_HELPER}</p>
+                          <p className="mt-2 text-xs leading-relaxed text-zinc-400">{STAGE_BLOCKER_HELPER}</p>
 
                           {stopConditionsOpen && (
                             <div className="mt-3">
                               <GuidanceList
                                 items={item.stop_if ?? []}
-                                bulletClassName="bg-slate-300"
-                                textClassName="text-sm text-slate-700"
+                                bulletClassName="bg-zinc-500"
+                                textClassName="text-sm text-zinc-300"
                               />
                             </div>
                           )}
@@ -4516,7 +4516,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       )}
 
                       <div className="mt-4 space-y-4">
-                        <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
+                        <div className="rounded-2xl bg-white/5 p-4">
                           <button
                             type="button"
                             onClick={() => toggleExpandedRecord(setExpandedGuidancePanels, item.item_code)}
@@ -4628,7 +4628,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
                           <div>
                             <div className="space-y-3">
-                              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                              <div className="rounded-2xl bg-white/5 p-4">
                                 <button
                                   type="button"
                                   onClick={() => toggleExpandedRecord(setExpandedContainerNotes, item.item_code)}
@@ -4643,7 +4643,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
 
                                 {containerNotesOpen && (
                                   <>
-                                    <div className="mt-3 rounded-2xl border border-white/10 bg-white/5 p-3">
+                                    <div className="mt-3 rounded-xl bg-white/8 p-3">
                                       <GuidanceList
                                         items={[item.inspector_notes_guidance]}
                                         bulletClassName="bg-zinc-400"
@@ -4664,7 +4664,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                 <StageCodeReferences refs={item.code_references} />
                               )}
 
-                              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                              <div className="rounded-2xl bg-white/5 p-4">
                                 <button
                                   type="button"
                                   onClick={() => toggleExpandedRecord(setExpandedJurisdictionNotes, item.item_code)}
@@ -4694,7 +4694,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                               evidenceUploadRefs.current[item.item_code] = node
                             }}
                             tabIndex={-1}
-                            className={`rounded-3xl border border-white/10 bg-white/5 p-4 outline-none transition-shadow ${
+                            className={`rounded-2xl bg-white/5 p-4 outline-none transition-shadow ${
                               highlightedEvidenceItemCode === item.item_code
                                 ? 'ring-2 ring-rose-400 ring-offset-2 ring-offset-[#050816]'
                                 : ''
@@ -4814,11 +4814,11 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       </div>
 
                       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                        <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5">
+                        <div className="rounded-2xl bg-white/5 px-3 py-2.5">
                           <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-500">Requirement</div>
                           <div className="mt-1 text-xs font-semibold text-zinc-200">{requiredLabel}</div>
                         </div>
-                        <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5">
+                        <div className="rounded-2xl bg-white/5 px-3 py-2.5">
                           <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-500">Evidence</div>
                           <div className="mt-1 text-xs font-semibold text-zinc-200">
                             {item.evidence_mode === 'verify_existing'
@@ -4828,11 +4828,11 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                 : `${item.documents.length} uploaded`}
                           </div>
                         </div>
-                        <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5">
+                        <div className="rounded-2xl bg-white/5 px-3 py-2.5">
                           <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-500">Status</div>
                           <div className="mt-1 text-xs font-semibold text-zinc-200">{item.inspection_status}</div>
                         </div>
-                        <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5">
+                        <div className="rounded-2xl bg-white/5 px-3 py-2.5">
                           <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-500">Docs</div>
                           <div className="mt-1 text-xs font-semibold text-zinc-200">{item.documents.length}</div>
                         </div>
@@ -4930,33 +4930,33 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
 
                     <div className="mt-4 space-y-4">
                       {stopItems.length > 0 && (
-                        <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 text-slate-700">
+                        <div className="rounded-2xl bg-white/5 p-5 text-zinc-300">
                           <button
                             type="button"
                             onClick={() => toggleExpandedRecord(setExpandedStopConditions, item.item_code)}
                             className="flex w-full items-center justify-between gap-3 text-left"
                           >
                             <div className="flex items-center gap-3">
-                              <FileText className="h-5 w-5 shrink-0 text-slate-400" />
-                              <div className="text-sm font-bold uppercase tracking-[0.14em] text-slate-600">{STAGE_BLOCKER_CONDITIONS_HEADING}</div>
+                              <FileText className="h-5 w-5 shrink-0 text-zinc-400" />
+                              <div className="text-sm font-bold uppercase tracking-[0.14em] text-zinc-400">{STAGE_BLOCKER_CONDITIONS_HEADING}</div>
                             </div>
-                            <ChevronRight className={`h-5 w-5 text-slate-400 transition-transform ${stopConditionsOpen ? 'rotate-90' : ''}`} />
+                            <ChevronRight className={`h-5 w-5 text-zinc-400 transition-transform ${stopConditionsOpen ? 'rotate-90' : ''}`} />
                           </button>
-                          <p className="mt-2 text-xs leading-relaxed text-slate-600">{STAGE_BLOCKER_HELPER}</p>
+                          <p className="mt-2 text-xs leading-relaxed text-zinc-400">{STAGE_BLOCKER_HELPER}</p>
 
                           {stopConditionsOpen && (
                             <div className="mt-3">
                               <GuidanceList
                                 items={stopItems}
-                                bulletClassName="bg-slate-300"
-                                textClassName="text-sm text-slate-700"
+                                bulletClassName="bg-zinc-500"
+                                textClassName="text-sm text-zinc-300"
                               />
                             </div>
                           )}
                         </div>
                       )}
 
-                      <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
+                      <div className="rounded-2xl bg-white/5 p-4">
                         <button
                           type="button"
                           onClick={() => toggleExpandedRecord(setExpandedGuidancePanels, item.item_code)}
@@ -5055,7 +5055,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
                         <div>
                           <div className="space-y-3">
-                            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                            <div className="rounded-2xl bg-white/5 p-4">
                               <button
                                 type="button"
                                 onClick={() => toggleExpandedRecord(setExpandedContainerNotes, item.item_code)}
@@ -5070,7 +5070,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
 
                               {containerNotesOpen && (
                                 <>
-                                  <div className="mt-3 rounded-2xl border border-white/10 bg-white/5 p-3">
+                                  <div className="mt-3 rounded-xl bg-white/8 p-3">
                                     <GuidanceList
                                       items={[item.inspector_notes_guidance]}
                                       bulletClassName="bg-zinc-400"
@@ -5087,7 +5087,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                               )}
                             </div>
 
-                            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                            <div className="rounded-2xl bg-white/5 p-4">
                               <button
                                 type="button"
                                 onClick={() => toggleExpandedRecord(setExpandedJurisdictionNotes, item.item_code)}
@@ -5120,7 +5120,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                             evidenceUploadRefs.current[item.item_code] = node
                           }}
                           tabIndex={-1}
-                          className={`rounded-3xl border border-white/10 bg-white/5 p-4 outline-none transition-shadow ${
+                          className={`rounded-2xl bg-white/5 p-4 outline-none transition-shadow ${
                             highlightedEvidenceItemCode === item.item_code
                               ? 'ring-2 ring-rose-400 ring-offset-2 ring-offset-[#050816]'
                               : ''
