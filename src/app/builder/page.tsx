@@ -126,6 +126,41 @@ const ACTIVE_STAGE_REQUEST_STATUSES = new Set([
   'on_hold',
 ])
 
+// ─── Dashboard "Hide from dashboard" disposition (non-destructive) ───────────
+// Mirrors the inspector Active Worklist hide pattern. Hiding a project appends a
+// governance event; it never deletes the project, its jobs, payments, reports,
+// seals, Vault packages, compliance records, or audit history. Current hidden
+// state = the latest disposition event per project id.
+//
+// Manual cleanup (documentation only — do NOT run against real data):
+//   insert into governance_audit_events
+//     (entity_type, entity_id, action, actor_id, actor_role, blocker_type, reason)
+//   values
+//     ('project', '<PROJECT_OR_JOB_ID>', 'project.dashboard_hidden',
+//      '<BUILDER_USER_ID>', 'builder', 'technical', 'Manual mock-data cleanup');
+//   -- Restore by inserting the same row with action 'project.dashboard_restored'.
+const PROJECT_HIDE_ACTION = 'project.dashboard_hidden'
+const PROJECT_RESTORE_ACTION = 'project.dashboard_restored'
+const PROJECT_DASHBOARD_DISPOSITION_ACTIONS = [PROJECT_HIDE_ACTION, PROJECT_RESTORE_ACTION] as const
+const PROJECT_HIDE_CONFIRMATION_COPY =
+  'This hides the project from your dashboard. It does not delete project records, payment records, inspection records, Vault records, sealed reports, or audit history.'
+
+// Latest-event-wins: rows must be passed in ascending created_at order.
+function getHiddenProjectIds(rows: Array<Record<string, unknown>>): Set<string> {
+  const latestByEntity = new Map<string, string>()
+  for (const row of rows) {
+    const entityId = typeof row.entity_id === 'string' ? row.entity_id : ''
+    const action = typeof row.action === 'string' ? row.action : ''
+    if (!entityId || !PROJECT_DASHBOARD_DISPOSITION_ACTIONS.includes(action as typeof PROJECT_DASHBOARD_DISPOSITION_ACTIONS[number])) continue
+    latestByEntity.set(entityId, action)
+  }
+  const hidden = new Set<string>()
+  for (const [entityId, action] of latestByEntity) {
+    if (action === PROJECT_HIDE_ACTION) hidden.add(entityId)
+  }
+  return hidden
+}
+
 const OBJECTION_REASONS: { value: ObjectionReason; label: string; desc: string }[] = [
   { value: 'conflict_of_interest',    label: 'Conflict of interest',      desc: 'Inspector has a personal or financial conflict with this project.' },
   { value: 'access_concern',          label: 'Access concern',            desc: 'Inspector cannot safely or practically access the site.' },
@@ -684,6 +719,7 @@ export default function BuilderDashboard() {
   // FIX #4: separate loading flag for jobs so the spinner doesn't hang indefinitely
   const [isLoadingJobs, setIsLoadingJobs]       = useState(false)
   const [supabaseProjects, setSupabaseProjects] = useState<Project[] | null>(null)
+  const [hiddenProjectIds, setHiddenProjectIds] = useState<Set<string>>(new Set())
   const [dbJobs, setDbJobs]                     = useState<JobOpportunityRow[] | null>(null)
   const [completedRecords, setCompletedRecords] = useState<Record<string, { certRef: string; result: string; completedAt: string }>>({})
   const [completionReportsByJobId, setCompletionReportsByJobId] = useState<Record<string, CompletionReportSummary>>({})
@@ -767,6 +803,31 @@ export default function BuilderDashboard() {
       }
     }
     void loadProjects()
+  }, [user?.supabaseId])
+
+  // Load "hide from dashboard" dispositions for this builder. Append-only
+  // governance events; the latest event per project id decides visibility.
+  useEffect(() => {
+    if (!user?.supabaseId) return
+    const builderId = user.supabaseId
+    let active = true
+    async function loadHiddenProjects() {
+      const { data, error } = await supabase
+        .from('governance_audit_events')
+        .select('entity_id, action, created_at')
+        .eq('entity_type', 'project')
+        .eq('actor_id', builderId)
+        .in('action', PROJECT_DASHBOARD_DISPOSITION_ACTIONS)
+        .order('created_at', { ascending: true })
+      if (!active) return
+      if (error) {
+        console.warn('Builder dashboard: hidden-project lookup failed', error)
+        return
+      }
+      setHiddenProjectIds(getHiddenProjectIds((data ?? []) as Array<Record<string, unknown>>))
+    }
+    void loadHiddenProjects()
+    return () => { active = false }
   }, [user?.supabaseId])
 
   // Fetch job_opportunities directly by builder_id
@@ -964,11 +1025,23 @@ export default function BuilderDashboard() {
     }
   })
 
-  // Combine: Supabase projects table + direct job_opportunities + store fallback
+  // Map each job card's id → its linked project id, so hiding a project also
+  // suppresses its linked job cards (and standalone job cards hidden directly).
+  const jobProjectIdById = new Map<string, string | undefined>()
+  for (const job of dbJobs ?? []) jobProjectIdById.set(job.id, job.projectId)
+  for (const job of builderJobs) jobProjectIdById.set(job.id, job.projectId)
+
+  // A card is hidden if its own id is hidden, or its linked project id is hidden.
+  const isCardVisible = (card: Project) =>
+    !hiddenProjectIds.has(card.id) &&
+    !hiddenProjectIds.has(jobProjectIdById.get(card.id) ?? '')
+
+  // Combine: Supabase projects table + direct job_opportunities + store fallback,
+  // then drop any project/job hidden from the dashboard.
   const projects = [
     ...(supabaseProjects ?? storeProjects),
     ...(dbJobs !== null ? dbJobsAsProjects : standaloneJobsAsProjects),
-  ]
+  ].filter(isCardVisible)
   const dailyFlashMode = resolveReportDataMode(Boolean(user?.supabaseId))
 
   // Two-pass deduplication for Daily Flash.
@@ -1008,10 +1081,11 @@ export default function BuilderDashboard() {
       return [...best.values()].map(v => v.proj)
     })()
 
-    // Pass 2
-    const raw: Project[] = dailyFlashMode === 'live'
+    // Pass 2 (also drops projects/jobs hidden from the dashboard)
+    const raw: Project[] = (dailyFlashMode === 'live'
       ? [...(supabaseProjects ?? []), ...dedupedJobRows]
       : [...storeProjects, ...standaloneJobsAsProjects]
+    ).filter(isCardVisible)
 
     const best = new Map<string, Project>()
     for (const proj of raw) {
@@ -1062,20 +1136,45 @@ export default function BuilderDashboard() {
     })),
   ]
 
-  // FIX #6: wrap confirm() in a try/catch — it throws in some SSR/edge environments
-  const handleDeleteProject = async (projectId: string) => {
+  // Non-destructive "Hide from dashboard": appends a governance event instead of
+  // deleting. The project, jobs, payments, reports, seals, Vault packages,
+  // compliance records, and audit history are all preserved. The latest event
+  // per project id decides visibility (restore by inserting the restore action).
+  // confirm() is wrapped in try/catch — it throws in some SSR/edge environments.
+  const handleHideProject = async (projectId: string) => {
     try {
-      if (!window.confirm('Delete this project?')) return
+      if (!window.confirm(PROJECT_HIDE_CONFIRMATION_COPY)) return
     } catch {
       return
     }
+    const builderId = user?.supabaseId
+    if (!builderId) return
     try {
-      const { error } = await supabase.from('projects').delete().eq('id', projectId)
-      if (!error) {
-        setSupabaseProjects(prev => prev ? prev.filter(p => p.id !== projectId) : prev)
+      const { error } = await supabase.from('governance_audit_events').insert({
+        entity_type: 'project',
+        entity_id: projectId,
+        action: PROJECT_HIDE_ACTION,
+        actor_id: builderId,
+        actor_role: 'builder',
+        rule_ids: ['R-021', 'R-022'],
+        blocker_type: 'technical',
+        reason: 'Builder hid project from dashboard view.',
+        before_state: { dashboardVisible: true },
+        after_state: { dashboardVisible: false },
+        metadata: {
+          source: 'builder_command_center',
+          lifecycleMutation: false,
+          recordsDeleted: false,
+          paymentMutation: false,
+        },
+      })
+      if (error) {
+        console.error('Failed to hide project:', error)
+        return
       }
+      setHiddenProjectIds(prev => new Set(prev).add(projectId))
     } catch (err) {
-      console.error('Failed to delete project:', err)
+      console.error('Failed to hide project:', err)
     }
   }
 
@@ -2222,7 +2321,7 @@ export default function BuilderDashboard() {
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-3 gap-y-5 mb-6">
             {projects.map(p => (
-              <ProjectCard key={p.id} project={p} onRequestInspection={handleRequestInspection} onDelete={handleDeleteProject} />
+              <ProjectCard key={p.id} project={p} onRequestInspection={handleRequestInspection} onHide={handleHideProject} />
             ))}
           </div>
         )}

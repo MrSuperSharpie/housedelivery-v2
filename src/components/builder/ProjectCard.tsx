@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { MapPin, Clock, ChevronRight, CheckCircle2, AlertTriangle, FileText, X, Trash2 } from 'lucide-react'
+import { MapPin, Clock, ChevronRight, CheckCircle2, AlertTriangle, FileText, X, EyeOff } from 'lucide-react'
 import { ProgressRing } from '@/components/ui/ProgressRing'
 import { StatusBadge } from '@/components/ui/Badge'
 import { formatRelativeTime } from '@/lib/utils'
@@ -29,7 +29,9 @@ const PROJECT_NOTES: Record<string, { stage: string; result: 'pass' | 'fail'; no
 interface ProjectCardProps {
   project: Project
   onRequestInspection: (project: Project) => void
-  onDelete?: (projectId: string) => void
+  // Non-destructive: hides the project from the dashboard via an append-only
+  // governance event. It does not delete the project or any linked records.
+  onHide?: (projectId: string) => void
 }
 
 const STAGE_COLORS: Partial<Record<string, string>> = {
@@ -39,7 +41,7 @@ const STAGE_COLORS: Partial<Record<string, string>> = {
   pending:     'bg-white/10',
 }
 
-export function ProjectCard({ project, onRequestInspection, onDelete }: ProjectCardProps) {
+export function ProjectCard({ project, onRequestInspection, onHide }: ProjectCardProps) {
   const router     = useRouter()
   const completed  = project.stages.filter(s => s.status === 'pass').length
   const isLive     = project.status === 'in_progress'
@@ -168,12 +170,12 @@ export function ProjectCard({ project, onRequestInspection, onDelete }: ProjectC
               <ChevronRight className="w-4 h-4" />
             </button>
           </Link>
-          {onDelete && (
+          {onHide && (
             <button
-              onClick={() => onDelete(project.id)}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-rim text-muted transition-all hover:border-fail-red/30 hover:text-fail-red"
-              title="Delete project">
-              <Trash2 className="w-4 h-4" />
+              onClick={() => onHide(project.id)}
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-rim text-muted transition-all hover:border-flame/30 hover:text-flame"
+              title="Hide from dashboard">
+              <EyeOff className="w-4 h-4" />
             </button>
           )}
         </div>
