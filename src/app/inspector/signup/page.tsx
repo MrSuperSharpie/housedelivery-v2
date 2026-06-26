@@ -454,6 +454,7 @@ export default function InspectorSignup() {
     disciplineScope:  [] as string[],
     regions:         [] as string[],
     agreeTerms:      false,
+    smsConsent:      false,
   })
 
   // Pending files — held in memory until auth user is created in handleSubmit
@@ -981,6 +982,24 @@ export default function InspectorSignup() {
               <Field label="Phone">
                 <Input type="tel" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="604-555-0100" />
               </Field>
+              {/* Optional transactional SMS opt-in — separate from Terms of Service. Not required to continue. */}
+              <label className="flex items-start gap-3 cursor-pointer rounded-xl border border-gray-200 bg-gray-50 p-3">
+                <input
+                  type="checkbox"
+                  className="w-5 h-5 accent-[#FF5F15] mt-0.5 shrink-0"
+                  checked={form.smsConsent}
+                  onChange={() => set('smsConsent', !form.smsConsent)}
+                />
+                <span className="text-xs text-gray-600 leading-relaxed">
+                  I agree to receive transactional SMS/text messages from Vero Permit about my account,
+                  inspection scheduling, appointment reminders, project updates, correction notices,
+                  re-verification updates, and inspection workflow notifications. Message frequency varies.
+                  Message and data rates may apply. Reply STOP to unsubscribe or HELP for help.{' '}
+                  <Link href="/sms-consent" target="_blank" className="font-semibold text-flame hover:underline">
+                    SMS Consent
+                  </Link>
+                </span>
+              </label>
               <Field label="Password" required>
                 <Input type="password" value={form.password} onChange={e => set('password', e.target.value)} placeholder="Minimum 8 characters" />
                 {form.password.length > 0 && form.password.length < 8 && (

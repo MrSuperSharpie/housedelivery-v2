@@ -369,6 +369,9 @@ interface FormState {
   // Step 4 — Declarations
   agreeTerms: boolean
   agreeAccuracy: boolean
+
+  // Optional, separate from Terms/Privacy — transactional SMS opt-in
+  smsConsent: boolean
 }
 
 // ─── Main page ─────────────────────────────────────────────────────────────────
@@ -423,6 +426,8 @@ export default function BuilderOnboardingPage() {
 
     agreeTerms: false,
     agreeAccuracy: false,
+
+    smsConsent: false,
   })
 
   const set = (field: keyof FormState, value: unknown) =>
@@ -814,6 +819,32 @@ export default function BuilderOnboardingPage() {
                   />
                 </Field>
               </div>
+
+              {/* Optional transactional SMS opt-in — separate from Terms/Privacy. Not required to continue. */}
+              <label className="flex items-start gap-3 cursor-pointer rounded-xl border-2 border-gray-200 bg-gray-50 p-3">
+                <div
+                  onClick={() => set('smsConsent', !form.smsConsent)}
+                  className={`w-5 h-5 rounded border-2 flex items-center justify-center mt-0.5 shrink-0 transition-all ${
+                    form.smsConsent ? 'bg-flame border-flame' : 'border-gray-300 bg-white'
+                  }`}
+                >
+                  {form.smsConsent && <CheckCircle2 className="w-3 h-3 text-white" />}
+                </div>
+                <span className="text-xs text-gray-600 leading-relaxed">
+                  I agree to receive transactional SMS/text messages from Vero Permit about my account,
+                  inspection scheduling, appointment reminders, project updates, correction notices,
+                  re-verification updates, and inspection workflow notifications. Message frequency varies.
+                  Message and data rates may apply. Reply STOP to unsubscribe or HELP for help.{' '}
+                  <Link
+                    href="/sms-consent"
+                    target="_blank"
+                    onClick={e => e.stopPropagation()}
+                    className="font-semibold text-flame hover:underline"
+                  >
+                    SMS Consent
+                  </Link>
+                </span>
+              </label>
 
               <Field label="Primary Operating Regions" required hint="Jurisdictions where you will post inspection jobs">
                 <div className="grid grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1">
