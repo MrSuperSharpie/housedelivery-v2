@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import {
   Building2, TrendingUp, ChevronRight, MapPin,
   CheckCircle2, Clock, AlertTriangle,
-  Navigation, Shield, Lock, ExternalLink
+  Navigation, Shield, Lock, ExternalLink, EyeOff
 } from 'lucide-react'
 import { Navbar } from '@/components/shared/Navbar'
 import { ProjectCard } from '@/components/builder/ProjectCard'
@@ -1537,7 +1537,23 @@ export default function BuilderDashboard() {
       })
     }
 
-    return Array.from(groups.values()).sort((a, b) => a.projectName.localeCompare(b.projectName))
+    // Drop any progress group hidden from the dashboard. A group is hidden if its
+    // group key, source project id, representative job's project id, or any member
+    // job id has a latest 'project.dashboard_hidden' governance event. Rows are
+    // only suppressed from this view — no records are deleted.
+    const isGroupVisible = (pp: PermitProgressProject) => {
+      const ids = [
+        pp.key,
+        pp.sourceProject?.id,
+        pp.representativeJob?.projectId,
+        ...pp.jobs.map(job => job.id),
+      ]
+      return !ids.some(id => typeof id === 'string' && hiddenProjectIds.has(id))
+    }
+
+    return Array.from(groups.values())
+      .filter(isGroupVisible)
+      .sort((a, b) => a.projectName.localeCompare(b.projectName))
   })()
   const getScorecardJobForStage = (relatedJobs: JobOpportunityRow[], stageNumber: number) => {
     const candidates = relatedJobs.filter(candidate => candidate.stage === stageNumber)
@@ -2235,6 +2251,16 @@ export default function BuilderDashboard() {
                       ) : (
                         <span className="rounded-xl border border-rim bg-surface px-3 py-2 text-[11px] font-bold text-muted">View progress</span>
                       )}
+                      {/* Non-destructive: hides this project from the dashboard via an
+                          append-only governance event. No records are deleted. */}
+                      <button
+                        type="button"
+                        onClick={() => handleHideProject(progressProject.representativeJob?.projectId ?? progressProject.sourceProject?.id ?? progressProject.key)}
+                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-rim text-muted transition-all hover:border-flame/30 hover:text-flame"
+                        title="Hide from dashboard"
+                      >
+                        <EyeOff className="h-4 w-4" />
+                      </button>
                     </div>
                   </div>
 
