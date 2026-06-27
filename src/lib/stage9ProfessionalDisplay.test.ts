@@ -70,7 +70,7 @@ test('field_view items use fieldViewDetails instead of shortPurpose in the purpo
 })
 
 // ===========================================================================
-// 4. Required evidence strip — above Field Checklist for S09
+// 4. Required evidence affordance — rendered within the Field Checklist container
 // ===========================================================================
 
 test('required evidence strip is shown for all field_view items with evidence', () => {
@@ -81,15 +81,20 @@ test('required evidence strip is shown for all field_view items with evidence', 
   )
 })
 
-test('required evidence strip appears before Field Checklist in source order', () => {
+test('required-evidence affordance is rendered within the Field Checklist container', () => {
   const source = read(WORKSPACE)
-  const evidenceStripIdx = source.indexOf('Evidence Required')
+  // The redesigned workspace integrates the evidence affordance into the field
+  // checklist container: a pass-gating RequiredEvidenceActionPanel directly under
+  // the Field Checklist header, plus a "Required Evidence" acceptable-evidence strip.
   const fieldChecklistIdx = source.indexOf('Field Checklist')
-  assert.ok(evidenceStripIdx !== -1, 'Evidence Required strip must exist')
   assert.ok(fieldChecklistIdx !== -1, 'Field Checklist label must exist')
   assert.ok(
-    evidenceStripIdx < fieldChecklistIdx,
-    'Evidence Required strip must appear before Field Checklist in source order'
+    source.includes('<RequiredEvidenceActionPanel'),
+    'RequiredEvidenceActionPanel must be rendered for required-evidence items'
+  )
+  assert.ok(
+    source.includes('Required Evidence'),
+    'Required Evidence strip label must exist'
   )
 })
 

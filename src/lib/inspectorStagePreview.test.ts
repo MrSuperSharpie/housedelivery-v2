@@ -235,13 +235,17 @@ test('completeJobAssignment calls updateJobStatus to mark job as completed', () 
 
 // ── 7-stage builder grid ──────────────────────────────────────────────────────
 
-test('StageProgressRail uses grid-cols-7 for 7-stage scorecard', () => {
+test('builder stage scorecard renders the 7-stage model in a 7-column grid', () => {
   const source = read('app/builder/page.tsx')
-  const railStart = source.indexOf('function StageProgressRail')
-  const railEnd   = source.indexOf('\nfunction', railStart + 1)
-  const railBlock = source.slice(railStart, railEnd)
-  assert.ok(railBlock.includes('grid-cols-7'), 'StageProgressRail must use grid-cols-7 for 7 stages')
-  assert.ok(!railBlock.includes('grid-cols-5'), 'StageProgressRail must not contain stale grid-cols-5')
+  // The redesigned builder command center replaced the standalone StageProgressRail
+  // function with a stageScorecard grid driven by the 7-entry BUILDER_STAGE_DEFINITIONS.
+  const gridIdx = source.indexOf('md:grid-cols-7')
+  assert.ok(gridIdx !== -1, 'builder stage scorecard must use a 7-column grid (md:grid-cols-7)')
+  const gridBlock = source.slice(gridIdx, gridIdx + 200)
+  assert.ok(
+    gridBlock.includes('stageScorecard.map'),
+    'the 7-column grid must render the stageScorecard built from the 7-stage model'
+  )
 })
 
 test('View Progress expanded detail grid uses md:grid-cols-7', () => {
@@ -476,43 +480,42 @@ test('complete-scoped-assignment job SELECT includes builder_id for email lookup
 
 // ── evidence requirement display — InspectorCompletionWorkspace ───────────────
 
-test('required-evidence containers show Evidence Required Before Pass chip in field checklist header', () => {
+test('required-evidence containers surface an evidence-required-before-pass indicator gated on passRequiresEvidence', () => {
   const source = read('components/inspector/InspectorCompletionWorkspace.tsx')
   assert.ok(
-    source.includes('Evidence Required Before Pass'),
-    'field checklist header must show Evidence Required Before Pass chip when evidence is missing'
+    source.includes('Evidence required before Pass'),
+    'redesigned evidence panel must show an "Evidence required before Pass" indicator when evidence is missing'
   )
   assert.ok(
     source.includes('passRequiresEvidence'),
-    'chip visibility must be gated on shared passRequiresEvidence logic, not hardcoded to a specific stage'
+    'indicator visibility must be gated on shared passRequiresEvidence logic, not hardcoded to a specific stage'
   )
 })
 
-test('required-evidence containers show persistent notice inside field checklist panel when evidence is missing', () => {
+test('required-evidence containers show a persistent evidence-required panel with a satisfied state, gated on passBlockedForEvidence', () => {
   const source = read('components/inspector/InspectorCompletionWorkspace.tsx')
+  // Blocked (evidence missing) state
   assert.ok(
-    source.includes('Required evidence missing'),
-    'field checklist panel must show a clear required-evidence-missing panel when passBlockedForEvidence'
+    source.includes('Evidence needed to support this inspection decision'),
+    'evidence panel must explain that evidence is needed to support the inspection decision when missing'
   )
   assert.ok(
-    source.includes('Attach at least one evidence item before passing this container.'),
-    'evidence-required panel must tell inspectors what action is required before Pass'
+    source.includes('Attach supporting field evidence to enable Pass'),
+    'evidence panel must tell inspectors to attach supporting field evidence to enable Pass'
   )
   assert.ok(
-    source.includes('Pass is disabled until evidence is captured or uploaded in this container&apos;s evidence area.'),
-    'evidence-required panel must explain why Pass is disabled and where evidence must be attached'
+    source.includes('Attach evidence'),
+    'evidence panel must provide a clear attach-evidence action'
   )
+  // Satisfied (evidence captured) state
   assert.ok(
-    source.includes('Attach Required Evidence'),
-    'evidence-required panel must provide a clear upload/focus action'
-  )
-  assert.ok(
-    source.includes('Required evidence attached') && source.includes('Evidence requirement satisfied. This container can now be passed if all checklist conditions are complete.'),
-    'evidence-required panel must render a satisfied state after evidence is attached'
+    source.includes('Evidence captured') &&
+      source.includes('Supporting field evidence is attached. This section can be passed once all checklist items are complete.'),
+    'evidence panel must render a satisfied state once evidence is attached'
   )
   assert.ok(
     source.includes('blocked={passBlockedForEvidence}'),
-    'persistent notice must be gated on shared passBlockedForEvidence, not hardcoded to a specific stage'
+    'evidence panel must be gated on shared passBlockedForEvidence, not hardcoded to a specific stage'
   )
 })
 
@@ -542,11 +545,16 @@ test('standard container amber box uses shared passBlockedMessage instead of har
 
 test('evidence requirement display is based on shared passRequiresEvidence logic, not stage-number hardcode', () => {
   const source = read('components/inspector/InspectorCompletionWorkspace.tsx')
-  const evidenceChipIdx = source.indexOf('Evidence Required Before Pass')
-  const noticeIdx = source.indexOf('Evidence required before Pass.')
+  // Evidence guidance must be present both as the panel chip and the shared lock message.
+  const chipIdx = source.indexOf('Evidence required before Pass')
+  const lockMessageIdx = source.indexOf('Evidence required before Pass. Attach at least one evidence item')
   assert.ok(
-    evidenceChipIdx !== -1 && noticeIdx !== -1,
-    'both evidence guidance elements must be present'
+    chipIdx !== -1 && lockMessageIdx !== -1,
+    'both the evidence panel chip and the shared evidence lock message must be present'
+  )
+  assert.ok(
+    source.includes('passRequiresEvidence') && source.includes('passBlockedForEvidence'),
+    'evidence requirement display must derive from shared passRequiresEvidence/passBlockedForEvidence logic'
   )
   assert.ok(
     !source.includes("stageNumber === 13") && !source.includes("stageNumber === 14") && !source.includes("stageNumber === 15"),
