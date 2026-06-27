@@ -266,12 +266,12 @@ function ProvisionalAssignmentPanel({
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+            <span className={`inline-flex items-center gap-1 rounded-full border border-rim/70 bg-white/[0.02] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
               isConfirmed
-                ? 'border-emerald-500/30 bg-emerald-500/10 text-ink'
+                ? 'text-success-green'
                 : assignment.objectionState === 'pending_review' || objected
-                  ? 'border-amber-500/40 bg-amber-500/10 text-ink'
-                  : 'border-slate-400/30 bg-slate-500/10 text-ink'
+                  ? 'text-warning-amber'
+                  : 'text-subtle'
             }`}>
               {isConfirmed ? <CheckCircle2 className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
               {statusLabel}
@@ -308,7 +308,7 @@ function ProvisionalAssignmentPanel({
       )}
 
       {assignment.objectionState === 'pending_review' || objected ? (
-        <div className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-ink">
+        <div className="mt-3 rounded-xl border border-rim/60 bg-raised px-3 py-2 text-xs font-semibold text-muted">
           Your objection has been recorded. Admin will review and either uphold or reject it.
         </div>
       ) : !isConfirmed && (
@@ -325,7 +325,7 @@ function ProvisionalAssignmentPanel({
               <div className="text-[11px] font-bold uppercase tracking-wide text-muted">Select objection reason</div>
               <div className="grid gap-2 md:grid-cols-2">
                 {OBJECTION_REASONS.map(r => (
-                  <label key={r.value} className={`flex items-start gap-2 rounded-xl border p-3 text-xs ${reason === r.value ? 'border-amber-500/40 bg-amber-500/10' : 'border-rim bg-panel'}`}>
+                  <label key={r.value} className={`flex items-start gap-2 rounded-xl border p-3 text-xs transition-colors ${reason === r.value ? 'border-flame/50 bg-flame/[0.06]' : 'border-rim/70 bg-panel hover:border-rim'}`}>
                     <input
                       type="radio"
                       name="objection"
@@ -352,7 +352,7 @@ function ProvisionalAssignmentPanel({
                 <button
                   disabled={!reason || !note.trim() || submitting}
                   onClick={handleObject}
-                  className="rounded-xl bg-warning-amber px-4 py-2 text-xs font-black text-[#080D18] transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded-xl bg-flame px-4 py-2 text-xs font-semibold text-white shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {submitting ? 'Filing...' : 'File Objection'}
                 </button>
@@ -364,7 +364,7 @@ function ProvisionalAssignmentPanel({
                 </button>
               </div>
               {objectionError && (
-                <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-400">
+                <div className="rounded-xl border border-fail-red/30 bg-fail-red/5 px-3 py-2 text-xs font-semibold text-fail-red">
                   {objectionError}
                 </div>
               )}
@@ -378,29 +378,32 @@ function ProvisionalAssignmentPanel({
 
 // ─── Job status badge ─────────────────────────────────────────────────────────
 
+// Neutral outlined pill base — semantic meaning carried by theme-aware text colour, not a fill.
+const BADGE_BASE = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border border-rim/70 bg-white/[0.02]'
+
 const WORKFLOW_BADGE_CONFIG: Record<string, { cls: string; icon?: React.ReactNode }> = {
-  draft:        { cls: 'bg-slate-500/10 text-ink border-slate-400/30' },
-  submitted:    { cls: 'bg-slate-500/10 text-ink border-slate-400/30' },
-  under_review: { cls: 'bg-amber-500/10 text-ink border-amber-500/30' },
-  live:         { cls: 'bg-flame/10 text-ink border-flame/30' },
-  closed:       { cls: 'bg-emerald-500/10 text-ink border-emerald-500/30', icon: <Lock className="w-2.5 h-2.5" /> },
-  archived:     { cls: 'bg-slate-500/10 text-ink border-slate-400/30' },
+  draft:        { cls: 'text-subtle' },
+  submitted:    { cls: 'text-subtle' },
+  under_review: { cls: 'text-warning-amber' },
+  live:         { cls: 'text-flame' },
+  closed:       { cls: 'text-success-green', icon: <Lock className="w-2.5 h-2.5" /> },
+  archived:     { cls: 'text-subtle' },
 }
 
 function StatusBadge({ job }: { job: Pick<JobOpportunityRow, 'status' | 'validationStatus'> }) {
   if (job.status === 'on_hold') {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border border-amber-500/40 bg-amber-500/15 text-ink">
+      <span className={`${BADGE_BASE} text-warning-amber`}>
         <AlertTriangle className="w-2.5 h-2.5" />
         HOLD
       </span>
     )
   }
   const workflowState = getJobWorkflowState(job)
-  const cfg = WORKFLOW_BADGE_CONFIG[workflowState] ?? { cls: 'bg-slate-500/10 text-ink border-slate-400/30' }
+  const cfg = WORKFLOW_BADGE_CONFIG[workflowState] ?? { cls: 'text-subtle' }
   const label = getJobWorkflowLabel(job)
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${cfg.cls}`}>
+    <span className={`${BADGE_BASE} ${cfg.cls}`}>
       {cfg.icon}
       {label}
     </span>
@@ -492,39 +495,39 @@ function getPermitProgressGroupKeyForJob(
 const BUILDER_STAGE_STATUS_COPY: Record<BuilderStageStatus, { label: string; cls: string }> = {
   not_requested: {
     label: 'Not requested',
-    cls: 'border-slate-400/40 bg-panel text-ink',
+    cls: 'border-rim/70 bg-white/[0.02] text-subtle',
   },
   requested_live: {
     label: 'Requested / live',
-    cls: 'border-flame/40 bg-flame/10 text-ink',
+    cls: 'border-rim/70 bg-white/[0.02] text-flame',
   },
   inspector_assigned: {
     label: 'Inspector assigned',
-    cls: 'border-flame/40 bg-flame/10 text-ink',
+    cls: 'border-rim/70 bg-white/[0.02] text-flame',
   },
   in_progress: {
     label: 'In progress',
-    cls: 'border-flame/40 bg-flame/10 text-ink',
+    cls: 'border-rim/70 bg-white/[0.02] text-flame',
   },
   passed: {
     label: 'Passed / complete',
-    cls: 'border-emerald-600/40 bg-emerald-500/10 text-ink',
+    cls: 'border-rim/70 bg-white/[0.02] text-success-green',
   },
   hold: {
     label: 'Hold',
-    cls: 'border-amber-600/50 bg-amber-500/10 text-ink',
+    cls: 'border-rim/70 bg-white/[0.02] text-warning-amber',
   },
   failed: {
     label: 'Failed / correction required',
-    cls: 'border-red-600/50 bg-red-500/10 text-ink',
+    cls: 'border-rim/70 bg-white/[0.02] text-fail-red',
   },
   available_next: {
     label: 'Available next',
-    cls: 'border-flame/40 bg-flame/10 text-ink',
+    cls: 'border-rim/70 bg-white/[0.02] text-flame',
   },
   locked: {
     label: 'Locked / waiting on prerequisite',
-    cls: 'border-slate-400/40 bg-slate-500/10 text-muted',
+    cls: 'border-rim/70 bg-white/[0.02] text-subtle',
   },
 }
 
@@ -619,20 +622,20 @@ function ModificationRequiredCard({
     new Date(iso).toLocaleTimeString('en-CA', { timeZone: 'America/Vancouver', hour: '2-digit', minute: '2-digit' })
 
   return (
-    <div className="mb-5 rounded-2xl border border-amber-500/30 border-l-[6px] border-l-amber-500 bg-panel overflow-hidden">
+    <div className="mb-5 rounded-2xl border border-rim/70 border-l-2 border-l-warning-amber bg-panel overflow-hidden">
       <div className="px-5 py-4 border-b border-rim">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 bg-amber-500/15 border border-amber-500/25 rounded-xl flex items-center justify-center shrink-0">
-              <AlertTriangle className="w-5 h-5 text-amber-500" />
+            <div className="w-10 h-10 bg-raised border border-rim/60 rounded-xl flex items-center justify-center shrink-0">
+              <AlertTriangle className="w-5 h-5 text-warning-amber" />
             </div>
             <div>
-              <div className="font-black text-ink text-sm mb-0.5">Modification Required — {meta.label}</div>
+              <div className="font-bold text-ink text-sm mb-0.5">Modification Required — {meta.label}</div>
               <div className="text-xs text-muted capitalize">{hold.reasonCode.replace('_', ' ')}{hold.estimatedFixMinutes ? ` · Est. ${hold.estimatedFixMinutes} min` : ''}</div>
             </div>
           </div>
-          <div className="bg-amber-500/15 border border-amber-500/30 rounded-lg px-2 py-1 shrink-0">
-            <div className="text-[10px] text-amber-400 font-bold uppercase tracking-wide">Action Required</div>
+          <div className="rounded-full border border-rim/70 bg-white/[0.02] px-2.5 py-1 shrink-0">
+            <div className="text-[10px] text-warning-amber font-semibold uppercase tracking-wide">Action Required</div>
           </div>
         </div>
       </div>
@@ -653,9 +656,9 @@ function ModificationRequiredCard({
           </div>
         )}
         {hold.isBlocking && (
-          <div className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-red-500/10 border border-red-500/30 px-2.5 py-1">
-            <Lock className="w-3 h-3 text-red-400" />
-            <span className="text-[11px] font-bold text-red-400">Blocking — downstream work paused</span>
+          <div className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-rim/70 bg-white/[0.02] px-2.5 py-1">
+            <Lock className="w-3 h-3 text-fail-red" />
+            <span className="text-[11px] font-semibold text-fail-red">Blocking — downstream work paused</span>
           </div>
         )}
       </div>
@@ -664,7 +667,7 @@ function ModificationRequiredCard({
         <button
           onClick={onAccept}
           disabled={isResponding}
-          className="w-full bg-amber-500 hover:bg-amber-400 text-white font-black py-3 rounded-xl text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+          className="w-full bg-flame hover:bg-flame-light text-white font-semibold py-3 rounded-xl text-sm shadow-sm ring-1 ring-inset ring-white/10 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {isResponding
             ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -1706,7 +1709,7 @@ export default function BuilderDashboard() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         {requestGuardMessage && (
-          <div className="mb-6 rounded-2xl border border-amber-600/30 bg-amber-500/10 px-4 py-3 text-sm font-semibold text-ink">
+          <div className="mb-6 rounded-2xl border border-rim/70 border-l-2 border-l-warning-amber bg-raised px-4 py-3 text-sm font-semibold text-ink">
             {requestGuardMessage}
           </div>
         )}
@@ -1729,7 +1732,7 @@ export default function BuilderDashboard() {
                 <div className="text-[11px] font-bold uppercase tracking-[0.12em] text-flame">Needs Action</div>
                 <div className="mt-1 text-sm font-extrabold text-ink">Review holds and builder decisions</div>
               </div>
-              <div className="rounded-full border border-flame/25 bg-flame/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-flame">
+              <div className="rounded-full border border-rim/70 bg-white/[0.02] px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-flame">
                 {actionRequiredHoldJobs.length + activeModHolds.length} open
               </div>
             </div>
@@ -1774,15 +1777,15 @@ export default function BuilderDashboard() {
             : 'Hold detail unavailable'
 
           return (
-            <div key={holdId} className="rounded-2xl border border-flame/40 border-l-[6px] border-l-flame bg-panel overflow-hidden shadow-sm">
-              <div className="px-5 py-4 border-b border-flame/20 bg-flame-dim/70">
+            <div key={holdId} className="rounded-2xl border border-rim/70 border-l-2 border-l-flame bg-panel overflow-hidden shadow-sm">
+              <div className="px-5 py-4 border-b border-rim/60 bg-raised">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-panel/50 border border-flame/20 rounded-xl flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 bg-panel border border-rim/60 rounded-xl flex items-center justify-center shrink-0">
                       <Shield className="w-5 h-5 text-flame" />
                     </div>
                     <div>
-                      <div className="font-black text-ink text-base mb-0.5">Action required — project on hold</div>
+                      <div className="font-bold text-ink text-base mb-0.5">Action required — project on hold</div>
                       <div className="text-xs font-semibold text-muted">{holdJob?.projectName ?? 'Project'} · Stage {holdJob?.stage ?? ''}</div>
                       {holdJob?.address && (
                         <div className="mt-0.5 text-[11px] text-muted">{holdJob.address}{holdJob.city ? `, ${holdJob.city}` : ''}</div>
@@ -1790,8 +1793,8 @@ export default function BuilderDashboard() {
                       <div className="mt-1 text-[11px] text-muted">{builderResponseStatus}</div>
                     </div>
                   </div>
-                  <div className="bg-flame-dim border border-flame/30 rounded-lg px-2 py-1">
-                    <div className="text-[10px] text-flame font-bold uppercase tracking-wide">Action Required</div>
+                  <div className="rounded-full border border-rim/70 bg-white/[0.02] px-2.5 py-1">
+                    <div className="text-[10px] text-flame font-semibold uppercase tracking-wide">Action Required</div>
                   </div>
                 </div>
               </div>
@@ -1894,10 +1897,10 @@ export default function BuilderDashboard() {
                         key={minutes}
                         type="button"
                         onClick={() => setCorrectionWindowByHold(prev => ({ ...prev, [hold.id]: minutes }))}
-                        className={`rounded-xl py-2 text-xs font-bold transition-all ${
+                        className={`rounded-xl py-2 text-xs font-semibold transition-all ${
                           selectedWindow === minutes
-                            ? 'bg-flame text-white'
-                            : 'border border-rim text-muted hover:bg-surface'
+                            ? 'bg-flame text-white shadow-sm ring-1 ring-inset ring-white/10'
+                            : 'border border-rim/70 text-muted hover:bg-surface'
                         }`}
                       >
                         {minutes}m
@@ -1930,7 +1933,7 @@ export default function BuilderDashboard() {
                     <button
                       onClick={() => handleApproveHold(hold)}
                       disabled={isResponding}
-                      className="flex-1 bg-flame hover:bg-flame-light text-white font-black py-3 rounded-xl text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                      className="flex-1 bg-flame hover:bg-flame-light text-white font-semibold py-3 rounded-xl text-sm shadow-sm ring-1 ring-inset ring-white/10 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                       {isResponding
                         ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -2000,18 +2003,18 @@ export default function BuilderDashboard() {
 
         {/* ── Re-verification Pending ── */}
         {visibleAcceptedHolds.map(({ hold, projectName, feeAmount, acceptedAt }) => (
-          <div key={hold.id} className="mb-5 rounded-2xl border border-amber-500/25 bg-amber-500/5 overflow-hidden">
+          <div key={hold.id} className="mb-5 rounded-2xl border border-rim/70 border-l-2 border-l-warning-amber bg-panel overflow-hidden">
             <div className="px-5 py-4">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-amber-500/15 border border-amber-500/25 rounded-xl flex items-center justify-center shrink-0">
-                  <Clock className="w-5 h-5 text-amber-400" />
+                <div className="w-10 h-10 bg-raised border border-rim/60 rounded-xl flex items-center justify-center shrink-0">
+                  <Clock className="w-5 h-5 text-warning-amber" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-bold text-ink text-sm mb-0.5">Re-verification Pending</div>
                   <div className="text-xs text-muted truncate">{projectName}</div>
                   <div className="mt-2 text-[11px] text-muted">
                     Inspector is returning to verify the correction. Your site is reserved.{' '}
-                    Fee locked: <span className="font-bold text-amber-400">${feeAmount.toFixed(2)}</span>
+                    Fee locked: <span className="font-bold text-warning-amber">${feeAmount.toFixed(2)}</span>
                   </div>
                   <div className="mt-1.5 text-[11px] text-muted">
                     Complete the required correction before the inspector returns. If the correction is not ready, the hold may be extended and additional fees may apply.
@@ -2021,8 +2024,8 @@ export default function BuilderDashboard() {
                     {' · '}Correction window: {correctionWindowByHold[hold.id] ?? 60} min
                   </div>
                 </div>
-                <div className="bg-amber-500/15 border border-amber-500/30 rounded-lg px-2 py-1 shrink-0">
-                  <div className="text-[10px] text-amber-400 font-bold">In Progress</div>
+                <div className="rounded-full border border-rim/70 bg-white/[0.02] px-2.5 py-1 shrink-0">
+                  <div className="text-[10px] text-warning-amber font-semibold">In Progress</div>
                 </div>
               </div>
             </div>
@@ -2069,7 +2072,7 @@ export default function BuilderDashboard() {
                 <div className="text-[11px] font-bold uppercase tracking-[0.12em] text-electric">Live Operations</div>
                 <div className="mt-1 text-xs font-medium text-muted">Posted requests are visible to qualified inspectors on the Live Job Board until claimed.</div>
               </div>
-              <div className="inline-flex items-center gap-1.5 rounded-full border border-electric/25 bg-electric/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-electric">
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-rim/70 bg-white/[0.02] px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-electric">
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-electric" />
                 {liveUnclaimedJobs.length} live
               </div>
@@ -2081,7 +2084,7 @@ export default function BuilderDashboard() {
                 return (
                   <div key={job.id} className="rounded-2xl border border-rim bg-panel p-4 shadow-sm transition-colors hover:border-electric/30">
                     <div className="flex items-start gap-3">
-                      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-electric/25 bg-electric/10">
+                      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-rim/60 bg-raised">
                         <Navigation className="h-4 w-4 text-electric" />
                       </div>
                       <div className="min-w-0 flex-1">
@@ -2090,10 +2093,10 @@ export default function BuilderDashboard() {
                           <div className="mt-0.5 truncate text-xs font-medium text-muted">{job.address}{job.city ? `, ${job.city}` : ''}</div>
                         )}
                         <div className="mt-2 flex flex-wrap gap-2">
-                          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-ink">
+                          <span className="inline-flex items-center gap-1 rounded-full border border-rim/70 bg-white/[0.02] px-2 py-0.5 text-[10px] font-semibold text-success-green">
                             Posted to Live Board
                           </span>
-                          <span className="inline-flex items-center gap-1 rounded-full border border-rim bg-surface px-2 py-0.5 text-[10px] font-semibold text-muted">
+                          <span className="inline-flex items-center gap-1 rounded-full border border-rim/70 bg-white/[0.02] px-2 py-0.5 text-[10px] font-semibold text-muted">
                             Waiting for inspector claim
                           </span>
                         </div>
@@ -2109,7 +2112,7 @@ export default function BuilderDashboard() {
                       <button
                         type="button"
                         onClick={() => openManageRequest(job)}
-                        className="rounded-xl border border-electric/30 bg-electric/10 px-3 py-2 text-[11px] font-black text-electric transition-colors hover:bg-electric/15"
+                        className="rounded-xl border border-rim/70 bg-white/[0.02] px-3 py-2 text-[11px] font-semibold text-ink transition-colors hover:border-electric/40 hover:text-electric"
                       >
                         Manage Request
                       </button>
@@ -2215,7 +2218,7 @@ export default function BuilderDashboard() {
                       {actionableHoldForJob ? (
                         <button
                           onClick={() => document.getElementById(`hold-${actionableHoldForJob.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-                          className="rounded-xl border border-amber-600/40 bg-amber-500/10 px-3 py-2 text-[11px] font-black text-ink transition-colors hover:bg-amber-500/15"
+                          className="rounded-xl border border-rim/70 bg-white/[0.02] px-3 py-2 text-[11px] font-semibold text-warning-amber transition-colors hover:border-rim"
                         >
                           Review hold
                         </button>
@@ -2223,7 +2226,7 @@ export default function BuilderDashboard() {
                         <button
                           type="button"
                           onClick={() => handleRequestInspection(requestProject)}
-                          className="rounded-xl bg-flame px-3 py-2 text-[11px] font-black text-white transition-colors hover:bg-flame-light"
+                          className="rounded-xl bg-flame px-3 py-2 text-[11px] font-semibold text-white shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light"
                         >
                           Request {availableStage.stage.label.split(' — ')[0]} Inspection
                         </button>
@@ -2233,7 +2236,7 @@ export default function BuilderDashboard() {
                             href={`/api/schedule-cb?reportId=${encodeURIComponent(completionReportsByJobId[completedJob.id]!.id!)}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="rounded-xl bg-flame px-3 py-2 text-[11px] font-black text-white transition-colors hover:bg-flame-light"
+                            className="rounded-xl bg-flame px-3 py-2 text-[11px] font-semibold text-white shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light"
                           >
                             Download Schedule C-B
                           </a>
@@ -2255,7 +2258,7 @@ export default function BuilderDashboard() {
                             <button
                               type="button"
                               onClick={() => openManageRequest(activeStageEntry.stageJob!)}
-                              className="rounded-xl bg-flame px-3 py-2 text-[11px] font-black text-white transition-colors hover:bg-flame-light"
+                              className="rounded-xl bg-flame px-3 py-2 text-[11px] font-semibold text-white shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light"
                             >
                               Manage Request
                             </button>
@@ -2278,13 +2281,13 @@ export default function BuilderDashboard() {
                   </div>
 
                   {openHoldForJob && (
-                    <div className="mt-3 rounded-xl border border-amber-600/30 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-ink">
+                    <div className="mt-3 rounded-xl border border-rim/70 border-l-2 border-l-warning-amber bg-raised px-3 py-2 text-xs font-semibold text-ink">
                       Project on hold: {openHoldForJob.deficiencyReason || openHoldForJob.reason || 'Builder action may be required before inspection can proceed.'}
                     </div>
                   )}
 
                   {ambiguous && (
-                    <div className="mt-3 rounded-xl border border-amber-600/30 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-ink">
+                    <div className="mt-3 rounded-xl border border-rim/70 border-l-2 border-l-warning-amber bg-raised px-3 py-2 text-xs font-semibold text-ink">
                       Progress review needed. This project has an out-of-sequence inspection record. Vero support needs to review the stage history before the next request can be opened.
                     </div>
                   )}
@@ -2331,7 +2334,7 @@ export default function BuilderDashboard() {
                   </details>
 
                   {completedJob && (
-                    <div className="mt-3 flex items-center justify-between rounded-xl border border-emerald-600/25 bg-emerald-500/10 px-3 py-2.5">
+                    <div className="mt-3 flex items-center justify-between rounded-xl border border-rim/70 border-l-2 border-l-success-green bg-raised px-3 py-2.5">
                       <div>
                         <div className="mb-0.5 text-[10px] font-bold uppercase tracking-widest text-ink">Vero Inspection Record</div>
                         <div className="font-mono text-sm font-black text-ink">
@@ -2374,19 +2377,19 @@ export default function BuilderDashboard() {
               {projects.some(p => p.status === 'in_progress') && (
                 <button
                   onClick={() => setIsTrackerOpen(true)}
-                  className="group flex w-full items-center gap-4 rounded-2xl border border-electric/25 bg-electric/5 p-4 text-left transition-all hover:border-electric/50 hover:bg-electric/8"
+                  className="group flex w-full items-center gap-4 rounded-2xl border border-rim/70 bg-raised p-4 text-left shadow-sm transition-all hover:border-electric/40"
                 >
                   <div className="relative h-11 w-11 shrink-0">
                     <div className="absolute inset-0 animate-ping rounded-full bg-electric/20" style={{ animationDuration: '1.8s' }} />
-                    <div className="relative flex h-11 w-11 items-center justify-center rounded-full border border-electric/30 bg-electric/15">
+                    <div className="relative flex h-11 w-11 items-center justify-center rounded-full border border-rim/60 bg-panel">
                       <Navigation className="h-5 w-5 text-electric" style={{ transform: 'rotate(45deg)' }} />
                     </div>
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="mb-0.5 flex items-center gap-2">
                       <span className="text-sm font-bold text-ink">Inspector Scheduled</span>
-                      <div className="flex items-center gap-1 rounded-md border border-electric/20 bg-electric/10 px-1.5 py-0.5">
-                        <span className="text-[9px] font-bold uppercase tracking-wide text-electric">Estimated</span>
+                      <div className="flex items-center gap-1 rounded-md border border-rim/70 bg-white/[0.02] px-1.5 py-0.5">
+                        <span className="text-[9px] font-semibold uppercase tracking-wide text-electric">Estimated</span>
                       </div>
                     </div>
                     <div className="truncate text-xs text-muted">
@@ -2451,11 +2454,11 @@ export default function BuilderDashboard() {
       >
         {managedLiveJob && (
           <div className="space-y-5">
-            <div className={`rounded-2xl px-4 py-3 ${managedLiveJob.status === 'pending_validation' ? 'border border-amber-500/40 bg-amber-500/15' : 'border border-flame/40 bg-flame/15'}`}>
-              <div className={`text-[11px] font-bold uppercase tracking-[0.12em] ${managedLiveJob.status === 'pending_validation' ? 'text-amber-400' : 'text-flame'}`}>
+            <div className={`rounded-2xl border border-rim/70 bg-raised px-4 py-3 border-l-2 ${managedLiveJob.status === 'pending_validation' ? 'border-l-warning-amber' : 'border-l-flame'}`}>
+              <div className={`text-[11px] font-semibold uppercase tracking-[0.12em] ${managedLiveJob.status === 'pending_validation' ? 'text-warning-amber' : 'text-flame'}`}>
                 {managedLiveJob.status === 'pending_validation' ? 'Awaiting validation — not posted to Live Board' : 'Live request awaiting inspector claim'}
               </div>
-              <div className="mt-2 text-lg font-black text-white">{managedLiveJob.projectName}</div>
+              <div className="mt-2 text-lg font-bold text-white">{managedLiveJob.projectName}</div>
               <div className="mt-1 text-sm font-medium text-slate-300">
                 {managedLiveJob.address}{managedLiveJob.city ? `, ${managedLiveJob.city}` : ''}
               </div>
@@ -2482,20 +2485,20 @@ export default function BuilderDashboard() {
             )}
 
             {manageRequestMessage && (
-              <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-white">
+              <div className="rounded-2xl border border-rim/70 border-l-2 border-l-success-green bg-raised px-4 py-3 text-sm font-semibold text-white">
                 {manageRequestMessage}
               </div>
             )}
 
             {manageRequestError && (
-              <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-semibold text-white">
+              <div className="rounded-2xl border border-rim/70 border-l-2 border-l-fail-red bg-raised px-4 py-3 text-sm font-semibold text-white">
                 {manageRequestError}
               </div>
             )}
 
             {cancelConfirming ? (
-              <div className="rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm">
-                <div className="font-black text-red-400">Confirm Cancellation</div>
+              <div className="rounded-2xl border border-rim/70 border-l-2 border-l-fail-red bg-raised px-4 py-3 text-sm">
+                <div className="font-semibold text-fail-red">Confirm Cancellation</div>
                 <div className="mt-1 text-xs font-medium text-slate-300">
                   {managedLiveJob.status === 'pending_validation'
                     ? 'This cannot be undone. The blocked request will be removed. You can submit a new request for this stage when ready.'
@@ -2506,7 +2509,7 @@ export default function BuilderDashboard() {
                     type="button"
                     disabled={manageRequestCancelling}
                     onClick={() => void handleCancelManagedRequest()}
-                    className="rounded-xl border border-red-500/40 bg-red-500/20 px-4 py-2 text-xs font-black text-red-400 transition-colors hover:bg-red-500/30 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="rounded-xl border border-fail-red/40 bg-fail-red/10 px-4 py-2 text-xs font-semibold text-fail-red transition-colors hover:bg-fail-red/15 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {manageRequestCancelling ? 'Cancelling...' : 'Yes, Cancel Request'}
                   </button>
@@ -2521,8 +2524,8 @@ export default function BuilderDashboard() {
                 </div>
               </div>
             ) : (
-              <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm">
-                <div className="font-black text-amber-400">Cancel Request</div>
+              <div className="rounded-2xl border border-rim/70 border-l-2 border-l-warning-amber bg-raised px-4 py-3 text-sm">
+                <div className="font-semibold text-warning-amber">Cancel Request</div>
                 <div className="mt-1 text-xs font-medium text-slate-300">
                   {managedLiveJob.status === 'pending_validation'
                     ? 'This request has not been validated and is not visible on the Live Job Board. Cancelling it removes the block and allows you to resubmit for this stage.'
@@ -2537,7 +2540,7 @@ export default function BuilderDashboard() {
                 type="button"
                 disabled={manageRequestSaving || manageRequestCancelling}
                 onClick={() => setCancelConfirming(true)}
-                className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-2.5 text-sm font-black text-red-400 transition-colors hover:bg-red-500/15 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-xl border border-fail-red/40 bg-fail-red/5 px-4 py-2.5 text-sm font-semibold text-fail-red transition-colors hover:bg-fail-red/10 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Cancel Request
               </button>
