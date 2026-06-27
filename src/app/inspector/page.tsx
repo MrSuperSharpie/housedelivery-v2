@@ -1161,11 +1161,11 @@ export default function InspectorDashboard() {
           {workdayMetrics.map(metric => (
             <div
               key={metric.key}
-              className="relative overflow-hidden rounded-2xl border border-rim/60 bg-panel p-4 shadow-card"
+              className="relative overflow-hidden rounded-2xl border border-rim/60 bg-panel p-4 shadow-sm"
             >
               <div className="mb-2.5 flex items-center gap-1.5">
                 <span className={`h-1.5 w-1.5 rounded-full ${metric.dot}`} />
-                <span className="text-[10px] font-black uppercase tracking-[0.14em] text-subtle">{metric.label}</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-subtle">{metric.label}</span>
               </div>
               <div className={`${metric.size} font-black leading-none tracking-tight ${metric.valueClass}`}>
                 {metric.value}
@@ -1270,7 +1270,7 @@ export default function InspectorDashboard() {
                 return (
                   <div
                     key={assignment.id}
-                    className={`flex flex-col gap-4 rounded-2xl border p-4 shadow-card transition-all hover:border-flame/30 md:flex-row md:items-center ${
+                    className={`flex flex-col gap-4 rounded-2xl border p-4 shadow-sm transition-all hover:border-flame/30 md:flex-row md:items-center ${
                       hiddenFromWorklist
                         ? 'border-rim/50 bg-raised/60 opacity-90'
                         : 'border-rim/60 bg-panel hover:bg-raised'
@@ -1415,15 +1415,19 @@ export default function InspectorDashboard() {
                                 <div className="mt-1 text-[11px] opacity-80">Required correction: {assignment.openHold.reason}</div>
                               )}
                             </div>
-                            <div className="shrink-0 rounded-lg border border-amber-400/50 bg-amber-100 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-amber-900">
+                            <div className={`shrink-0 rounded-lg border px-2 py-1 text-[10px] font-semibold uppercase tracking-wide ${
+                              isDark
+                                ? 'border-amber-500/40 bg-amber-500/20 text-amber-200'
+                                : 'border-amber-400/50 bg-amber-100 text-amber-900'
+                            }`}>
                               {holdResponseLabel}
                             </div>
                           </div>
                           <div className="mt-2 flex flex-wrap gap-2 text-[10px] font-bold">
-                            <span className="rounded-full bg-white/70 px-2 py-1 text-amber-950">
+                            <span className={`rounded-full px-2 py-1 ${isDark ? 'bg-amber-500/15 text-amber-100' : 'bg-white/70 text-amber-950'}`}>
                               Fee terms: {formatCurrency(assignment.openHold.holdCapAmount)}
                             </span>
-                            <span className="rounded-full bg-white/70 px-2 py-1 text-amber-950">
+                            <span className={`rounded-full px-2 py-1 ${isDark ? 'bg-amber-500/15 text-amber-100' : 'bg-white/70 text-amber-950'}`}>
                               {assignment.openHold.holdEligibleForOnSiteCorrection ? 'Same-day eligible' : 'Rebook required'}
                             </span>
                           </div>
@@ -1548,7 +1552,7 @@ export default function InspectorDashboard() {
               Open Requests are unclaimed live jobs. Jobs you&apos;ve already claimed appear in Your Active Worklist above. Some jobs may be hidden if they do not match your verified credentials, region, or are already assigned.
             </p>
           </div>
-          <div className="relative shrink-0 overflow-hidden rounded-2xl border border-emerald-500/30 bg-panel px-5 py-4 shadow-card">
+          <div className="relative shrink-0 overflow-hidden rounded-2xl border border-emerald-500/30 bg-panel px-5 py-4 shadow-sm">
             <div className="pointer-events-none absolute -right-6 -top-8 h-20 w-20 rounded-full bg-emerald-500/10 blur-2xl" />
             <div className="relative flex items-center gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/10">
@@ -1571,7 +1575,7 @@ export default function InspectorDashboard() {
         />
 
         {/* Filters */}
-        <div className="mb-6 rounded-2xl border border-rim/60 bg-panel p-4 shadow-card">
+        <div className="mb-6 rounded-2xl border border-rim/60 bg-panel p-4 shadow-sm">
           <div className="relative mb-4">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-subtle" />
             <input
@@ -1648,7 +1652,7 @@ export default function InspectorDashboard() {
         {/* Job list */}
         <div className="space-y-3">
           {classifiedJobs.length === 0 ? (
-            <div className="rounded-2xl border border-rim/60 bg-panel py-16 text-center shadow-card">
+            <div className="rounded-2xl border border-rim/60 bg-panel py-16 text-center shadow-sm">
               <Search className="w-10 h-10 text-subtle mx-auto mb-3" />
               <div className="font-semibold text-muted">No open requests match your filters</div>
               <div className="text-xs text-subtle mt-1">Try adjusting your region or discipline filters</div>
@@ -1691,7 +1695,7 @@ export default function InspectorDashboard() {
               )}
 
               {boardView === 'eligible' && eligibleJobs.length === 0 && (
-                <div className="rounded-2xl border border-rim/60 bg-panel py-16 text-center shadow-card">
+                <div className="rounded-2xl border border-rim/60 bg-panel py-16 text-center shadow-sm">
                   <Briefcase className="w-10 h-10 text-subtle mx-auto mb-3" />
                   <div className="font-semibold text-muted">No eligible jobs match your filters</div>
                   <div className="text-xs text-subtle mt-1">Switch to All Live Jobs to view the wider marketplace</div>

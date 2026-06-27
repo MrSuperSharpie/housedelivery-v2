@@ -262,11 +262,11 @@ function ProvisionalAssignmentPanel({
   }
 
   return (
-    <div className="rounded-2xl border border-rim bg-panel p-4 shadow-card">
+    <div className="rounded-2xl border border-rim bg-panel p-4 shadow-sm">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${
+            <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
               isConfirmed
                 ? 'border-emerald-500/30 bg-emerald-500/10 text-ink'
                 : assignment.objectionState === 'pending_review' || objected
@@ -390,7 +390,7 @@ const WORKFLOW_BADGE_CONFIG: Record<string, { cls: string; icon?: React.ReactNod
 function StatusBadge({ job }: { job: Pick<JobOpportunityRow, 'status' | 'validationStatus'> }) {
   if (job.status === 'on_hold') {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black border border-amber-500/40 bg-amber-500/15 text-ink">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border border-amber-500/40 bg-amber-500/15 text-ink">
         <AlertTriangle className="w-2.5 h-2.5" />
         HOLD
       </span>
@@ -400,7 +400,7 @@ function StatusBadge({ job }: { job: Pick<JobOpportunityRow, 'status' | 'validat
   const cfg = WORKFLOW_BADGE_CONFIG[workflowState] ?? { cls: 'bg-slate-500/10 text-ink border-slate-400/30' }
   const label = getJobWorkflowLabel(job)
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black border ${cfg.cls}`}>
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${cfg.cls}`}>
       {cfg.icon}
       {label}
     </span>
@@ -1726,10 +1726,10 @@ export default function BuilderDashboard() {
           <section id="needs-action" className="mb-6">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
-                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-flame">Needs Action</div>
+                <div className="text-[11px] font-bold uppercase tracking-[0.12em] text-flame">Needs Action</div>
                 <div className="mt-1 text-sm font-extrabold text-ink">Review holds and builder decisions</div>
               </div>
-              <div className="rounded-full border border-flame/25 bg-flame/10 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-flame">
+              <div className="rounded-full border border-flame/25 bg-flame/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-flame">
                 {actionRequiredHoldJobs.length + activeModHolds.length} open
               </div>
             </div>
@@ -1774,7 +1774,7 @@ export default function BuilderDashboard() {
             : 'Hold detail unavailable'
 
           return (
-            <div key={holdId} className="rounded-2xl border border-flame/40 border-l-[6px] border-l-flame bg-panel overflow-hidden shadow-[0_18px_34px_rgba(245,124,0,0.16)]">
+            <div key={holdId} className="rounded-2xl border border-flame/40 border-l-[6px] border-l-flame bg-panel overflow-hidden shadow-sm">
               <div className="px-5 py-4 border-b border-flame/20 bg-flame-dim/70">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3">
@@ -2037,10 +2037,10 @@ export default function BuilderDashboard() {
           <section className="mb-6">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
-                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-muted">Active Inspection Appointments</div>
+                <div className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">Active Inspection Appointments</div>
                 <div className="mt-1 text-sm font-extrabold text-ink">Confirmed and provisional inspector assignments</div>
               </div>
-              <div className="rounded-full border border-rim bg-panel px-3 py-1 text-[10px] font-black uppercase tracking-wide text-muted">
+              <div className="rounded-full border border-rim bg-panel px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-muted">
                 {sortedActiveInspectionAppointments.length} active
               </div>
             </div>
@@ -2066,10 +2066,10 @@ export default function BuilderDashboard() {
           <section id="live-operations" className="mb-6">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
-                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-electric">Live Operations</div>
+                <div className="text-[11px] font-bold uppercase tracking-[0.12em] text-electric">Live Operations</div>
                 <div className="mt-1 text-xs font-medium text-muted">Posted requests are visible to qualified inspectors on the Live Job Board until claimed.</div>
               </div>
-              <div className="inline-flex items-center gap-1.5 rounded-full border border-electric/25 bg-electric/10 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-electric">
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-electric/25 bg-electric/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-electric">
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-electric" />
                 {liveUnclaimedJobs.length} live
               </div>
@@ -2079,7 +2079,7 @@ export default function BuilderDashboard() {
                 const stageLabel = BUILDER_STAGE_DEFINITIONS.find(s => s.number === job.stage)?.label ?? `Stage ${job.stage} — ${job.stageName}`
                 const postedAt = job.publishedAt ?? job.requestedAt ?? job.createdAt
                 return (
-                  <div key={job.id} className="rounded-2xl border border-rim bg-panel p-4 shadow-card transition-colors hover:border-electric/30">
+                  <div key={job.id} className="rounded-2xl border border-rim bg-panel p-4 shadow-sm transition-colors hover:border-electric/30">
                     <div className="flex items-start gap-3">
                       <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-electric/25 bg-electric/10">
                         <Navigation className="h-4 w-4 text-electric" />
@@ -2090,7 +2090,7 @@ export default function BuilderDashboard() {
                           <div className="mt-0.5 truncate text-xs font-medium text-muted">{job.address}{job.city ? `, ${job.city}` : ''}</div>
                         )}
                         <div className="mt-2 flex flex-wrap gap-2">
-                          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-black text-ink">
+                          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-ink">
                             Posted to Live Board
                           </span>
                           <span className="inline-flex items-center gap-1 rounded-full border border-rim bg-surface px-2 py-0.5 text-[10px] font-semibold text-muted">
@@ -2125,7 +2125,7 @@ export default function BuilderDashboard() {
         <section id="projects" className="mb-6">
           <div className="mb-3 flex items-center justify-between gap-3">
             <div>
-              <div className="text-[11px] font-black uppercase tracking-[0.18em] text-muted">Project Portfolio</div>
+              <div className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">Project Portfolio</div>
               <div className="mt-1 text-sm font-extrabold text-ink">Permit-stage progress across your active sites</div>
             </div>
             <span className="label-mono">{permitProgressProjects.length || (dbJobs !== null ? visibleDbJobs.length : projects.length)} project{(permitProgressProjects.length || (dbJobs !== null ? visibleDbJobs.length : projects.length)) === 1 ? '' : 's'}</span>
@@ -2143,7 +2143,7 @@ export default function BuilderDashboard() {
             <div className="mt-1 text-xs font-medium text-muted">Post your first inspection request to get started</div>
           </div>
         ) : dbJobs !== null ? (
-          <div className="overflow-hidden rounded-2xl border border-rim bg-panel shadow-card divide-y divide-rim/50">
+          <div className="overflow-hidden rounded-2xl border border-rim bg-panel shadow-sm divide-y divide-rim/50">
             {activeProgressProjects.map(progressProject => {
               const stageScorecard = buildStageScorecard(progressProject.jobs)
               const latestStage = getLatestStageEntry(stageScorecard)
@@ -2290,7 +2290,7 @@ export default function BuilderDashboard() {
                   )}
 
                   <details className="group mt-3 rounded-xl border border-rim/70 bg-surface/60">
-                    <summary className="flex cursor-pointer list-none items-center justify-between px-3 py-2 text-[11px] font-black uppercase tracking-wide text-muted transition-colors hover:text-ink">
+                    <summary className="flex cursor-pointer list-none items-center justify-between px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-muted transition-colors hover:text-ink">
                       <span>View Progress — full stage history</span>
                       <ChevronRight className="h-3.5 w-3.5 shrink-0 transition-transform group-open:rotate-90" />
                     </summary>
@@ -2299,12 +2299,12 @@ export default function BuilderDashboard() {
                         const copy = BUILDER_STAGE_STATUS_COPY[status]
                         return (
                           <div key={stage.number} className={`rounded-xl border px-3 py-2 ${copy.cls}`}>
-                            <div className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wide">
+                            <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide">
                               <StageStatusIcon status={status} />
                               {stage.label.split(' — ')[0]}
                             </div>
                             <div className="mt-1 min-h-8 text-[11px] font-semibold leading-snug text-ink">{stage.label.split(' — ')[1]}</div>
-                            <div className="mt-2 text-[10px] font-black uppercase tracking-wide">{copy.label}</div>
+                            <div className="mt-2 text-[10px] font-bold uppercase tracking-wide">{copy.label}</div>
                             {status === 'passed' && (
                               <div className="mt-1 text-[10px] font-semibold normal-case tracking-normal text-ink">Vero inspection record complete</div>
                             )}
@@ -2417,7 +2417,7 @@ export default function BuilderDashboard() {
         {/* ── Weekly Activity ── */}
         <section className="mb-6">
           <div className="mb-3">
-            <div className="text-[11px] font-black uppercase tracking-[0.18em] text-muted">Weekly Activity</div>
+            <div className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">Weekly Activity</div>
           </div>
           <div className="grid grid-cols-3 gap-3">
             {[
@@ -2425,8 +2425,8 @@ export default function BuilderDashboard() {
               { icon: TrendingUp, label: 'Passed / Week', value: passedThisWeek, color: 'text-ink' },
               { icon: Clock,      label: 'Active Stages', value: activeStages,   color: 'text-ink' },
             ].map(({ icon: Icon, label, value, color }) => (
-              <div key={label} className="rounded-2xl border border-rim bg-panel p-4 shadow-card">
-                <div className="mb-2 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wide text-muted">
+              <div key={label} className="rounded-2xl border border-rim bg-panel p-4 shadow-sm">
+                <div className="mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-muted">
                   <Icon className="h-3.5 w-3.5" />{label}
                 </div>
                 <div className={`text-2xl font-extrabold ${color}`}>{value}</div>
@@ -2452,7 +2452,7 @@ export default function BuilderDashboard() {
         {managedLiveJob && (
           <div className="space-y-5">
             <div className={`rounded-2xl px-4 py-3 ${managedLiveJob.status === 'pending_validation' ? 'border border-amber-500/40 bg-amber-500/15' : 'border border-flame/40 bg-flame/15'}`}>
-              <div className={`text-[11px] font-black uppercase tracking-[0.18em] ${managedLiveJob.status === 'pending_validation' ? 'text-amber-400' : 'text-flame'}`}>
+              <div className={`text-[11px] font-bold uppercase tracking-[0.12em] ${managedLiveJob.status === 'pending_validation' ? 'text-amber-400' : 'text-flame'}`}>
                 {managedLiveJob.status === 'pending_validation' ? 'Awaiting validation — not posted to Live Board' : 'Live request awaiting inspector claim'}
               </div>
               <div className="mt-2 text-lg font-black text-white">{managedLiveJob.projectName}</div>
