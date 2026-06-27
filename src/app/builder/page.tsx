@@ -1036,6 +1036,17 @@ export default function BuilderDashboard() {
     !hiddenProjectIds.has(card.id) &&
     !hiddenProjectIds.has(jobProjectIdById.get(card.id) ?? '')
 
+  // Single source of truth for "hide from dashboard" across every job-derived
+  // panel and count. A job_opportunities row is hidden if its own id or its
+  // linked project id has a latest 'project.dashboard_hidden' governance event.
+  // `visibleDbJobs` is the filtered base every display derivation should read
+  // from; `hiddenJobIdSet` lets assignment/hold panels test by jobId.
+  const isJobHidden = (job: JobOpportunityRow) =>
+    hiddenProjectIds.has(job.id) ||
+    (typeof job.projectId === 'string' && hiddenProjectIds.has(job.projectId))
+  const visibleDbJobs: JobOpportunityRow[] = (dbJobs ?? []).filter(job => !isJobHidden(job))
+  const hiddenJobIdSet = new Set((dbJobs ?? []).filter(isJobHidden).map(job => job.id))
+
   // Combine: Supabase projects table + direct job_opportunities + store fallback,
   // then drop any project/job hidden from the dashboard.
   const projects = [
@@ -1416,7 +1427,7 @@ export default function BuilderDashboard() {
   // Match the builder's own assignments by jobId as well, so a claimed
   // appointment still resolves for the dashboard and the appointment modal.
   const builderJobIds = new Set<string>([
-    ...(dbJobs ?? []).map(j => j.id),
+    ...visibleDbJobs.map(j => j.id),
     ...store.jobs.filter(j => isMatch(j.builderId)).map(j => j.id),
   ])
   const isBuildersAssignment = (a: Assignment) => isMatch(a.builderId) || builderJobIds.has(a.jobId)
@@ -1424,7 +1435,7 @@ export default function BuilderDashboard() {
   // Active inspection appointments — confirmed/provisional assignments and
   // objection-review items for this builder.
   const activeInspectionAppointments = store.assignments.filter(
-    a => isBuildersAssignment(a) && (a.status === 'provisional' || a.status === 'confirmed' || a.objectionState === 'pending_review')
+    a => isBuildersAssignment(a) && !hiddenJobIdSet.has(a.jobId) && (a.status === 'provisional' || a.status === 'confirmed' || a.objectionState === 'pending_review')
   )
   // Operational urgency rank: confirmed first, objection review next, provisional last.
   const appointmentUrgencyRank = (a: Assignment): number => {
@@ -1454,7 +1465,7 @@ export default function BuilderDashboard() {
   const assignedJob         = activeAssignment ? store.jobs.find(j => j.id === activeAssignment.jobId) : null
   // Claimed jobs may be absent from store.jobs; the builder DB job set still has
   // them, so prefer it for the appointment's project / stage / request details.
-  const assignedDbJob       = activeAssignment ? (dbJobs ?? []).find(j => j.id === activeAssignment.jobId) : null
+  const assignedDbJob       = activeAssignment ? visibleDbJobs.find(j => j.id === activeAssignment.jobId) : null
   const inProgressProject   = projects.find(p => p.status === 'in_progress')
 
   const trackerInspectorName    = activeAssignment?.inspectorName    ?? 'Inspector'
@@ -1470,7 +1481,7 @@ export default function BuilderDashboard() {
     ? activeAssignment.inspectorName.split(' ').filter(Boolean).map(w => w[0]).join('').slice(0, 2).toUpperCase()
     : 'IN'
 
-  const statsSource    = supabaseProjects ?? storeProjects
+  const statsSource    = (supabaseProjects ?? storeProjects).filter(p => !hiddenProjectIds.has(p.id))
   const activeCount    = statsSource.filter(p => p.status !== 'pass' && p.status !== 'completed').length
   const passedThisWeek = statsSource.filter(p => p.status === 'pass').length
   const activeStages   = statsSource
@@ -1479,15 +1490,17 @@ export default function BuilderDashboard() {
       const openStages = project.stages.filter(stage => stage.status !== 'pass').length
       return sum + Math.max(openStages, 1)
     }, 0)
-  const dbJobsById = new Map((dbJobs ?? []).map(job => [job.id, job]))
+  const dbJobsById = new Map(visibleDbJobs.map(job => [job.id, job]))
   const storeJobsById = new Map(store.jobs.map(job => [job.id, job]))
   const projectsById = new Map(projects.map(project => [project.id, project]))
   const openHoldDetails = Object.values(activeHoldDetails).filter(detail => isHoldOpenStatus(detail.hold.status))
-  const onHoldJobs = (dbJobs ?? []).filter(job => job.status === 'on_hold')
+  const onHoldJobs = visibleDbJobs.filter(job => job.status === 'on_hold')
   const actionableHoldJobIds = new Set(activeHolds.map(hold => hold.jobId))
   const actionRequiredHoldJobs = onHoldJobs.filter(job => actionableHoldJobIds.has(job.id))
   const getOpenHoldDetailForJob = (jobId: string) => openHoldDetails.find(detail => detail.hold.jobId === jobId)
-  const hasBuilderActions = actionRequiredHoldJobs.length > 0 || activeModHolds.length > 0 || acceptedHolds.length > 0
+  // Job-based accepted holds for hidden projects are suppressed too (same id space).
+  const visibleAcceptedHolds = acceptedHolds.filter(({ hold }) => !hiddenProjectIds.has(hold.jobId))
+  const hasBuilderActions = actionRequiredHoldJobs.length > 0 || activeModHolds.length > 0 || visibleAcceptedHolds.length > 0
   const resolveAppointmentJobDisplay = (assignment: Assignment) => {
     const dbJob = dbJobsById.get(assignment.jobId)
     const storeJob = storeJobsById.get(assignment.jobId)
@@ -1504,8 +1517,8 @@ export default function BuilderDashboard() {
   }
   const permitProgressProjects: PermitProgressProject[] = (() => {
     const groups = new Map<string, PermitProgressProject>()
-    const jobsById = new Map((dbJobs ?? []).map(job => [job.id, job]))
-    for (const job of dbJobs ?? []) {
+    const jobsById = new Map(visibleDbJobs.map(job => [job.id, job]))
+    for (const job of visibleDbJobs) {
       const key = getPermitProgressGroupKeyForJob(job, jobsById)
       const existing = groups.get(key)
       if (existing) {
@@ -1619,14 +1632,14 @@ export default function BuilderDashboard() {
     }
   }
   const activeAppointmentJobIds = new Set(activeInspectionAppointments.map(assignment => assignment.jobId))
-  const liveUnclaimedJobs = (dbJobs ?? [])
+  const liveUnclaimedJobs = visibleDbJobs
     .filter(job => job.status === 'live' && job.validationStatus === 'validated' && !activeAppointmentJobIds.has(job.id))
     .sort((a, b) => {
       const ta = a.publishedAt ?? a.requestedAt ?? a.createdAt
       const tb = b.publishedAt ?? b.requestedAt ?? b.createdAt
       return tb.localeCompare(ta)
     })
-  const pendingValidationJobs = (dbJobs ?? [])
+  const pendingValidationJobs = visibleDbJobs
     .filter(job => job.status === 'pending_validation')
     .sort((a, b) => b.requestedAt.localeCompare(a.requestedAt))
 
@@ -1652,7 +1665,7 @@ export default function BuilderDashboard() {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
-  const needsActionCount = actionRequiredHoldJobs.length + activeModHolds.length + acceptedHolds.length
+  const needsActionCount = actionRequiredHoldJobs.length + activeModHolds.length + visibleAcceptedHolds.length
 
   const situationMetrics: SituationMetric[] = [
     { key: 'needs-action', label: 'Needs Action', count: needsActionCount, helper: 'Holds & decisions', tone: 'flame', targetId: 'needs-action' },
@@ -1986,7 +1999,7 @@ export default function BuilderDashboard() {
         ))}
 
         {/* ── Re-verification Pending ── */}
-        {acceptedHolds.map(({ hold, projectName, feeAmount, acceptedAt }) => (
+        {visibleAcceptedHolds.map(({ hold, projectName, feeAmount, acceptedAt }) => (
           <div key={hold.id} className="mb-5 rounded-2xl border border-amber-500/25 bg-amber-500/5 overflow-hidden">
             <div className="px-5 py-4">
               <div className="flex items-start gap-3">
@@ -2115,7 +2128,7 @@ export default function BuilderDashboard() {
               <div className="text-[11px] font-black uppercase tracking-[0.18em] text-muted">Project Portfolio</div>
               <div className="mt-1 text-sm font-extrabold text-ink">Permit-stage progress across your active sites</div>
             </div>
-            <span className="label-mono">{permitProgressProjects.length || (dbJobs ?? projects).length} project{(permitProgressProjects.length || (dbJobs ?? projects).length) === 1 ? '' : 's'}</span>
+            <span className="label-mono">{permitProgressProjects.length || (dbJobs !== null ? visibleDbJobs.length : projects.length)} project{(permitProgressProjects.length || (dbJobs !== null ? visibleDbJobs.length : projects.length)) === 1 ? '' : 's'}</span>
           </div>
 
         {isLoading ? (
@@ -2123,7 +2136,7 @@ export default function BuilderDashboard() {
             <div className="w-8 h-8 border-2 border-flame/30 border-t-flame rounded-full animate-spin" />
             <span className="ml-3 text-sm font-medium text-muted">Loading projects…</span>
           </div>
-        ) : (dbJobs ?? []).length === 0 && projects.length === 0 ? (
+        ) : visibleDbJobs.length === 0 && projects.length === 0 ? (
           <div className="text-center py-16 card-dark rounded-2xl mb-6">
             <Building2 className="w-10 h-10 text-subtle mx-auto mb-3" />
             <div className="text-sm font-bold text-ink">No projects yet</div>
