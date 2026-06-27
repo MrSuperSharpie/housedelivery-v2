@@ -122,6 +122,13 @@ const WORKLIST_RESTORE_ACTION = 'assignment.worklist_restored'
 const WORKLIST_DISPOSITION_ACTIONS = [WORKLIST_HIDE_ACTION, WORKLIST_RESTORE_ACTION] as const
 const WORKLIST_HIDE_CONFIRMATION_COPY = 'Hide this assignment from your Active Worklist? This does not cancel the assignment, release the job, notify the builder, or delete any draft report or evidence. It only removes this item from your active worklist view.'
 
+// Builder-side "Hide from dashboard" governance events. A job/project hidden by
+// its builder is also withdrawn from the Inspector Live Board. Read-only: the
+// inspector never writes these. Latest event per project/job id decides state.
+const PROJECT_DASHBOARD_HIDE_ACTION = 'project.dashboard_hidden'
+const PROJECT_DASHBOARD_RESTORE_ACTION = 'project.dashboard_restored'
+const PROJECT_DASHBOARD_DISPOSITION_ACTIONS = [PROJECT_DASHBOARD_HIDE_ACTION, PROJECT_DASHBOARD_RESTORE_ACTION] as const
+
 type ProjectStageIdentity = {
   id: string
   projectId?: string
@@ -259,6 +266,24 @@ function getHiddenWorklistAssignmentIds(rows: Array<Record<string, unknown>>): S
   return hiddenAssignmentIds
 }
 
+// Latest-event-wins over builder dashboard hide/restore events. Rows must be
+// passed in ascending created_at order. Returns the set of currently-hidden
+// project/job ids (entity_id values whose latest disposition is "hidden").
+function getHiddenProjectIds(rows: Array<Record<string, unknown>>): Set<string> {
+  const latestByEntity = new Map<string, string>()
+  for (const row of rows) {
+    const entityId = typeof row.entity_id === 'string' ? row.entity_id : ''
+    const action = typeof row.action === 'string' ? row.action : ''
+    if (!entityId || !PROJECT_DASHBOARD_DISPOSITION_ACTIONS.includes(action as typeof PROJECT_DASHBOARD_DISPOSITION_ACTIONS[number])) continue
+    latestByEntity.set(entityId, action)
+  }
+  const hidden = new Set<string>()
+  for (const [entityId, action] of latestByEntity) {
+    if (action === PROJECT_DASHBOARD_HIDE_ACTION) hidden.add(entityId)
+  }
+  return hidden
+}
+
 function formatStoredStatus(value: string): string {
   return value
     .split('_')
@@ -345,6 +370,7 @@ export default function InspectorDashboard() {
   const [confirmAvailabilityErrors, setConfirmAvailabilityErrors] = useState<Map<string, string>>(new Map())
   const [dbOpenJobs, setDbOpenJobs] = useState<InspectionJob[] | null>(null)
   const [dbBoardLifecycleJobs, setDbBoardLifecycleJobs] = useState<JobOpportunityRow[]>([])
+  const [hiddenProjectIds, setHiddenProjectIds] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     if (!user) { router.replace('/sign-in?role=inspector'); return }
@@ -473,7 +499,15 @@ export default function InspectorDashboard() {
       }))
   }, [myAssignments, store.jobs])
 
-  const activeWorklist = user?.supabaseId ? (dbActiveWorklist ?? []) : storedActiveWorklist
+  // A job is hidden from the board if its job id or its project id has a latest
+  // builder project.dashboard_hidden event. Used across worklist, open requests,
+  // counts, and potential earnings so a hidden job disappears everywhere.
+  const isJobIdHidden = (jobId?: string, projectId?: string) =>
+    (typeof jobId === 'string' && jobId !== '' && hiddenProjectIds.has(jobId)) ||
+    (typeof projectId === 'string' && projectId !== '' && hiddenProjectIds.has(projectId))
+
+  const activeWorklist = (user?.supabaseId ? (dbActiveWorklist ?? []) : storedActiveWorklist)
+    .filter(item => !isJobIdHidden(item.jobId, item.projectId))
   const hiddenActiveWorklist = user?.supabaseId ? dbHiddenWorklist : []
   const renderedActiveWorklist = showHiddenWorklist
     ? [...activeWorklist, ...hiddenActiveWorklist]
@@ -817,6 +851,30 @@ export default function InspectorDashboard() {
     }
   }, [user?.supabaseId])
 
+  // Load builder "Hide from dashboard" dispositions. A job/project whose latest
+  // event is project.dashboard_hidden is suppressed from the Live Board. Read
+  // path only — uses the existing governance_audit_events SELECT policy (any
+  // authenticated user may read), latest-event-per-id wins.
+  useEffect(() => {
+    let active = true
+    async function loadHiddenProjects() {
+      const { data, error } = await supabase
+        .from('governance_audit_events')
+        .select('entity_id, action, created_at')
+        .eq('entity_type', 'project')
+        .in('action', PROJECT_DASHBOARD_DISPOSITION_ACTIONS)
+        .order('created_at', { ascending: true })
+      if (!active) return
+      if (error) {
+        console.warn('Inspector board: hidden-project lookup failed', error)
+        return
+      }
+      setHiddenProjectIds(getHiddenProjectIds((data ?? []) as Array<Record<string, unknown>>))
+    }
+    void loadHiddenProjects()
+    return () => { active = false }
+  }, [])
+
   // Poll for holds that builders have accepted — these need a re-verification action.
   useEffect(() => {
     const jobIds = store.assignments
@@ -852,9 +910,10 @@ export default function InspectorDashboard() {
         job.address.toLowerCase().includes(search.toLowerCase())
 
       const isAlreadyClaimedByMe = myAssignments.some(a => a.jobId === job.id)
-      return matchesRegion && matchesDisc && matchesSearch && !isAlreadyClaimedByMe
+      const isHidden = isJobIdHidden(job.id, job.projectId)
+      return matchesRegion && matchesDisc && matchesSearch && !isAlreadyClaimedByMe && !isHidden
     })
-  }, [openJobs, region, discipline, search, myAssignments])
+  }, [openJobs, region, discipline, search, myAssignments, hiddenProjectIds])
 
   const inspectorEligibility = useMemo(() => {
     if (user?.supabaseId) {
@@ -945,6 +1004,12 @@ export default function InspectorDashboard() {
 
   const eligibleJobs = classifiedJobs.filter(entry => entry.eligibility.eligible)
   const ineligibleJobs = classifiedJobs.filter(entry => !entry.eligibility.eligible)
+  // Estimated value of the visible (non-hidden) open opportunities. Derived from
+  // the filtered eligible jobs so hidden jobs contribute nothing.
+  const potentialEarnings = eligibleJobs.reduce(
+    (sum, entry) => sum + (entry.job.offeredRate ?? entry.job.escrowAmount ?? 0),
+    0,
+  )
   const showOnboardingBanner = !inspectorTestOverride && inspectorEligibility.status !== 'approved'
   const reliabilityDashboardModel = useMemo(() => buildInspectorReliabilityDashboardModel({
     profile: reliabilityData?.profile ?? {
@@ -1043,7 +1108,7 @@ export default function InspectorDashboard() {
     {
       key: 'earnings',
       label: 'Potential Earnings',
-      value: formatCurrency(1329),
+      value: formatCurrency(potentialEarnings),
       helper: 'Visible open opportunities',
       valueClass: 'text-emerald-400',
       dot: 'bg-emerald-400',
@@ -1491,7 +1556,7 @@ export default function InspectorDashboard() {
               </div>
               <div>
                 <div className="text-[10px] font-bold uppercase tracking-widest text-subtle">Potential Open Earnings</div>
-                <div className="text-2xl font-black text-emerald-400">{formatCurrency(1329)}</div>
+                <div className="text-2xl font-black text-emerald-400">{formatCurrency(potentialEarnings)}</div>
                 <div className="mt-1 max-w-[15rem] text-[10px] text-subtle">
                   Estimated value of visible open opportunities. Actual payout status appears after admin review and release.
                 </div>
