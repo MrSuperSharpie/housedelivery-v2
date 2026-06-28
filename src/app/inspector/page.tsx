@@ -1080,6 +1080,7 @@ export default function InspectorDashboard() {
       valueClass: 'text-ink',
       dot: activeAssignmentCount > 0 ? 'bg-electric' : 'bg-rim',
       size: 'text-3xl',
+      targetId: 'active-worklist',
     },
     {
       key: 'attention',
@@ -1089,6 +1090,10 @@ export default function InspectorDashboard() {
       valueClass: 'text-ink',
       dot: needsAttentionCount > 0 ? 'bg-warning-amber' : 'bg-rim',
       size: 'text-3xl',
+      // The dedicated Needs Attention section only renders when there are accepted
+      // holds. When it is absent, fall back to the always-present Active Worklist,
+      // where holds & availability items also surface — so the card never no-ops.
+      targetId: acceptedHoldsForInspector.length > 0 ? 'needs-attention' : 'active-worklist',
     },
     {
       key: 'drafts',
@@ -1098,6 +1103,7 @@ export default function InspectorDashboard() {
       valueClass: 'text-ink',
       dot: draftRecordCount > 0 ? 'bg-flame' : 'bg-rim',
       size: 'text-3xl',
+      targetId: 'active-worklist',
     },
     {
       key: 'open',
@@ -1107,6 +1113,7 @@ export default function InspectorDashboard() {
       valueClass: 'text-ink',
       dot: openOpportunityCount > 0 ? 'bg-success-green' : 'bg-rim',
       size: 'text-3xl',
+      targetId: 'open-requests',
     },
     {
       key: 'earnings',
@@ -1116,8 +1123,23 @@ export default function InspectorDashboard() {
       valueClass: 'text-ink',
       dot: 'bg-success-green',
       size: 'text-2xl',
+      targetId: undefined,
     },
   ]
+
+  // Mirrors the Builder Command Center's scroll-to-section navigation. Optional
+  // chaining is a safety net only — targetIds resolve to always-present anchors
+  // (see Needs Attention's conditional target) so clicks land somewhere useful.
+  const scrollToSection = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  // Human-readable destination phrases for metric-card aria-labels.
+  const SECTION_LABEL: Record<string, string> = {
+    'active-worklist': 'active worklist',
+    'needs-attention': 'needs attention',
+    'open-requests': 'open opportunities',
+  }
 
   return (
     <HardPingProvider>
@@ -1160,27 +1182,50 @@ export default function InspectorDashboard() {
         </div>
 
         {/* ── Workday metrics ── */}
+        {/* Operational metrics double as section navigation (mirrors the Builder
+            Command Center's SituationStrip). Clicking a card scrolls to its
+            section; neutral by default, restrained flame emphasis only on
+            hover/keyboard-focus. */}
         <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-          {workdayMetrics.map(metric => (
-            <div
-              key={metric.key}
-              className="relative overflow-hidden rounded-2xl border border-rim/60 bg-panel p-4 shadow-sm"
-            >
-              <div className="mb-2.5 flex items-center gap-1.5">
-                <span className={`h-1.5 w-1.5 rounded-full ${metric.dot}`} />
-                <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-subtle">{metric.label}</span>
+          {workdayMetrics.map(metric => {
+            const cardClass = `relative overflow-hidden rounded-2xl border border-rim/60 bg-panel p-4 shadow-sm${
+              metric.targetId
+                ? ' cursor-pointer text-left transition-all hover:-translate-y-0.5 hover:border-flame/40 focus:outline-none focus-visible:border-flame/40 focus-visible:ring-2 focus-visible:ring-flame/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface'
+                : ''
+            }`
+            const cardBody = (
+              <>
+                <div className="mb-2.5 flex items-center gap-1.5">
+                  <span className={`h-1.5 w-1.5 rounded-full ${metric.dot}`} />
+                  <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-subtle">{metric.label}</span>
+                </div>
+                <div className={`${metric.size} font-black leading-none tracking-tight ${metric.valueClass}`}>
+                  {metric.value}
+                </div>
+                <div className="mt-1.5 text-[11px] font-medium leading-snug text-muted">{metric.helper}</div>
+              </>
+            )
+            return metric.targetId ? (
+              <button
+                key={metric.key}
+                type="button"
+                onClick={() => scrollToSection(metric.targetId!)}
+                aria-label={`Jump to ${SECTION_LABEL[metric.targetId] ?? metric.label.toLowerCase()}`}
+                className={cardClass}
+              >
+                {cardBody}
+              </button>
+            ) : (
+              <div key={metric.key} className={cardClass}>
+                {cardBody}
               </div>
-              <div className={`${metric.size} font-black leading-none tracking-tight ${metric.valueClass}`}>
-                {metric.value}
-              </div>
-              <div className="mt-1.5 text-[11px] font-medium leading-snug text-muted">{metric.helper}</div>
-            </div>
-          ))}
+            )
+          })}
         </div>
 
         {/* ── Needs Attention · Re-verification Required ── */}
         {acceptedHoldsForInspector.length > 0 && (
-          <div className="mb-8">
+          <div id="needs-attention" className="mb-8 scroll-mt-20">
             <div className="mb-4 flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 text-warning-amber" />
               <h2 className="label-mono font-bold !text-warning-amber">Needs Attention · Re-verification Required</h2>
@@ -1223,7 +1268,7 @@ export default function InspectorDashboard() {
 
         {/* Active Worklist */}
         {(activeWorklist.length > 0 || hiddenActiveWorklist.length > 0) && (
-          <div className="mb-10">
+          <div id="active-worklist" className="mb-10 scroll-mt-20">
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <div className="flex items-center gap-2">
@@ -1507,7 +1552,7 @@ export default function InspectorDashboard() {
         )}
 
         {/* Header */}
-        <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-center">
+        <div id="open-requests" className="mb-6 flex scroll-mt-20 flex-col justify-between gap-4 md:flex-row md:items-center">
           <div>
             <div className="mb-2 flex items-center gap-2">
               <Briefcase className="h-4 w-4 text-flame" />
