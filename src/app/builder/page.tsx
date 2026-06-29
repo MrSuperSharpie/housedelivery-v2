@@ -6,7 +6,8 @@ import {
   Building2, TrendingUp, ChevronRight, MapPin,
   CheckCircle2, Clock, AlertTriangle,
   Navigation, Shield, Lock, ExternalLink, EyeOff,
-  LayoutDashboard, CalendarCheck, FolderLock, ClipboardCheck, FileCheck, Plus, User
+  LayoutDashboard, CalendarCheck, FolderLock, ClipboardCheck, FileCheck, Plus, User,
+  PauseCircle, FileText
 } from 'lucide-react'
 import { RoleDashboardShell } from '@/components/shared/RoleDashboardShell'
 import type { DashboardNavGroup } from '@/components/shared/DashboardSidebar'
@@ -1681,23 +1682,42 @@ export default function BuilderDashboard() {
 
   // ─── Operations-console sidebar (route links + in-page section anchors) ───────
   const builderProjectCount = permitProgressProjects.length || (dbJobs !== null ? visibleDbJobs.length : projects.length)
+  // Major destinations stay visible even at zero count (muted, never hidden) so
+  // the sidebar teaches where work lives. Conditionally-rendered sections fall
+  // back to the nearest always-present anchor so a click never no-ops.
+  const holdsDecisionsCount = actionRequiredHoldJobs.length + activeModHolds.length
   const dashboardNavGroups: DashboardNavGroup[] = [
     {
       label: 'Workspace',
       items: [
         { id: 'overview', kind: 'section', targetId: 'overview', label: 'Dashboard', icon: LayoutDashboard },
-        { id: 'needs-action', kind: 'section', targetId: 'needs-action', label: 'Needs Action', icon: AlertTriangle, badge: needsActionCount, available: hasBuilderActions },
-        { id: 'appointments', kind: 'section', targetId: 'appointments', label: 'Appointments', icon: CalendarCheck, badge: sortedActiveInspectionAppointments.length, available: sortedActiveInspectionAppointments.length > 0 },
-        { id: 'inspection-requests', kind: 'section', targetId: 'live-operations', label: 'Inspection Requests', icon: Navigation, badge: liveUnclaimedJobs.length, available: liveUnclaimedJobs.length > 0 },
+        { id: 'needs-action', kind: 'section', targetId: hasBuilderActions ? 'needs-action' : 'overview', label: 'Needs Action', icon: AlertTriangle, badge: needsActionCount, muted: !hasBuilderActions },
         { id: 'projects', kind: 'section', targetId: 'projects', label: 'Projects', icon: Building2, badge: builderProjectCount },
+        { id: 'inspection-requests', kind: 'section', targetId: liveUnclaimedJobs.length > 0 ? 'live-operations' : 'projects', label: 'Inspection Requests', icon: Navigation, badge: liveUnclaimedJobs.length, muted: liveUnclaimedJobs.length === 0 },
+        { id: 'appointments', kind: 'section', targetId: sortedActiveInspectionAppointments.length > 0 ? 'appointments' : 'projects', label: 'Appointments', icon: CalendarCheck, badge: sortedActiveInspectionAppointments.length, muted: sortedActiveInspectionAppointments.length === 0 },
+        { id: 'holds-decisions', kind: 'section', targetId: hasBuilderActions ? 'needs-action' : 'overview', label: 'Holds & Decisions', icon: PauseCircle, badge: holdsDecisionsCount, muted: holdsDecisionsCount === 0 },
         { id: 'vault', kind: 'route', href: '/vault', label: 'Records / Vault', icon: FolderLock },
+      ],
+    },
+    {
+      label: 'Actions',
+      items: [
+        { id: 'post-request', kind: 'action', onClick: handleNewRequest, label: 'Post Inspection Request', icon: Plus },
+        { id: 'open-vault', kind: 'route', href: '/vault', label: 'Open Vault', icon: FolderLock },
       ],
     },
     {
       label: 'Project Tools',
       items: [
-        { id: 'awaiting-validation', kind: 'section', targetId: 'awaiting-validation', label: 'Awaiting Validation', icon: ClipboardCheck, badge: pendingValidationJobs.length, available: pendingValidationJobs.length > 0 },
-        { id: 'records-ready', kind: 'section', targetId: 'records-ready', label: 'Records Ready', icon: FileCheck, badge: completedProgressProjects.length, available: completedProgressProjects.length > 0 },
+        { id: 'stage-progress', kind: 'section', targetId: 'projects', label: 'Stage Progress', icon: TrendingUp },
+        { id: 'awaiting-validation', kind: 'section', targetId: 'awaiting-validation', label: 'Awaiting Validation', icon: ClipboardCheck, badge: pendingValidationJobs.length, muted: pendingValidationJobs.length === 0 },
+        { id: 'records-ready', kind: 'section', targetId: 'records-ready', label: 'Records Ready', icon: FileCheck, badge: completedProgressProjects.length, muted: completedProgressProjects.length === 0 },
+        { id: 'schedule-cb', kind: 'route', href: '/vault', label: 'Schedule C-B / Filed Records', icon: FileText },
+      ],
+    },
+    {
+      label: 'Account',
+      items: [
         { id: 'profile', kind: 'route', href: '/builder/profile', label: 'Profile', icon: User },
       ],
     },

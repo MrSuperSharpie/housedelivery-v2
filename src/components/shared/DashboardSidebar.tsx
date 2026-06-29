@@ -6,18 +6,22 @@ import { usePathname } from 'next/navigation'
 import type { LucideIcon } from 'lucide-react'
 
 // A dashboard sidebar item is either a real route link or an in-page section
-// anchor that smooth-scrolls. Section items get scroll-spy active state; route
-// items light up on pathname match. This keeps navigation honest — every item
-// points at a real destination, never a fake page.
+// anchor that smooth-scrolls, or an action that runs an existing handler.
+// Section items get scroll-spy active state; route items light up on pathname
+// match. This keeps navigation honest — every item points at a real
+// destination or a real action, never a fake page.
 export type DashboardNavItem = {
   id: string
   label: string
   icon?: LucideIcon
   badge?: number | string | null
   available?: boolean
+  /** Render visible but dimmed (e.g. a zero-count operational destination). */
+  muted?: boolean
 } & (
-  | { kind: 'route'; href: string; targetId?: never }
-  | { kind: 'section'; targetId: string; href?: never }
+  | { kind: 'route'; href: string; targetId?: never; onClick?: never }
+  | { kind: 'section'; targetId: string; href?: never; onClick?: never }
+  | { kind: 'action'; onClick: () => void; href?: never; targetId?: never }
 )
 
 export interface DashboardNavGroup {
@@ -81,16 +85,19 @@ export function DashboardSidebar({ brandEyebrow, brandTitle, groups, onNavigate 
     .find(item =>
       item.kind === 'section' && item.available !== false && item.targetId === activeSection)?.id ?? null
 
-  const itemClass = (active: boolean) =>
+  const itemClass = (active: boolean, muted = false) =>
     `group relative flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-flame/50 focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${
       active
         ? 'border-flame/30 bg-flame/10 text-flame'
-        : 'border-transparent text-muted hover:bg-raised hover:text-ink'
+        : `border-transparent text-muted hover:bg-raised hover:text-ink${muted ? ' opacity-55 hover:opacity-100' : ''}`
     }`
 
   const renderInner = (item: DashboardNavItem, active: boolean) => {
     const Icon = item.icon
     const showBadge = item.badge != null && item.badge !== 0
+    // The primary "action" item keeps a restrained flame icon so it reads as
+    // the create affordance without shouting like a filled button.
+    const flameIcon = active || item.kind === 'action'
     return (
       <>
         <span
@@ -99,7 +106,7 @@ export function DashboardSidebar({ brandEyebrow, brandTitle, groups, onNavigate 
             active ? 'bg-flame' : 'bg-transparent'
           }`}
         />
-        {Icon && <Icon className={`h-4 w-4 shrink-0 ${active ? 'text-flame' : 'text-subtle group-hover:text-ink'}`} />}
+        {Icon && <Icon className={`h-4 w-4 shrink-0 ${flameIcon ? 'text-flame' : 'text-subtle group-hover:text-ink'}`} />}
         <span className="min-w-0 flex-1 truncate text-left">{item.label}</span>
         {showBadge && (
           <span
@@ -142,10 +149,22 @@ export function DashboardSidebar({ brandEyebrow, brandTitle, groups, onNavigate 
                         href={item.href}
                         onClick={onNavigate}
                         aria-current={active ? 'page' : undefined}
-                        className={itemClass(active)}
+                        className={itemClass(active, item.muted)}
                       >
                         {renderInner(item, active)}
                       </Link>
+                    )
+                  }
+                  if (item.kind === 'action') {
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => { item.onClick(); onNavigate?.() }}
+                        className={itemClass(false, item.muted)}
+                      >
+                        {renderInner(item, false)}
+                      </button>
                     )
                   }
                   const active = item.id === activeItemId
@@ -155,7 +174,7 @@ export function DashboardSidebar({ brandEyebrow, brandTitle, groups, onNavigate 
                       type="button"
                       onClick={() => handleSection(item.targetId)}
                       aria-current={active ? 'true' : undefined}
-                      className={itemClass(active)}
+                      className={itemClass(active, item.muted)}
                     >
                       {renderInner(item, active)}
                     </button>
