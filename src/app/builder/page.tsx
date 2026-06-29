@@ -5,15 +5,16 @@ import { useRouter } from 'next/navigation'
 import {
   Building2, TrendingUp, ChevronRight, MapPin,
   CheckCircle2, Clock, AlertTriangle,
-  Navigation, Shield, Lock, ExternalLink, EyeOff
+  Navigation, Shield, Lock, ExternalLink, EyeOff,
+  LayoutDashboard, CalendarCheck, FolderLock, ClipboardCheck, FileCheck, Plus, User
 } from 'lucide-react'
-import { Navbar } from '@/components/shared/Navbar'
+import { RoleDashboardShell } from '@/components/shared/RoleDashboardShell'
+import type { DashboardNavGroup } from '@/components/shared/DashboardSidebar'
 import { ProjectCard } from '@/components/builder/ProjectCard'
 import { DispatchModal } from '@/components/builder/DispatchModal'
 import { SchedulingPicker, type TimeSlot } from '@/components/builder/SchedulingPicker'
 import { EnRouteTracker } from '@/components/builder/EnRouteTracker'
 import { DailyFlash } from '@/components/builder/DailyFlash'
-import { CommandHeader } from '@/components/builder/CommandHeader'
 import { SituationStrip, type SituationMetric } from '@/components/builder/SituationStrip'
 import { AwaitingValidationPanel, type ValidationItem } from '@/components/builder/AwaitingValidationPanel'
 import { RecordsReadyPanel, type RecordItem } from '@/components/builder/RecordsReadyPanel'
@@ -1678,6 +1679,30 @@ export default function BuilderDashboard() {
     { key: 'records-ready', label: 'Records Ready', count: completedProgressProjects.length, helper: 'Filed & downloadable', tone: 'emerald', targetId: 'records-ready' },
   ]
 
+  // ─── Operations-console sidebar (route links + in-page section anchors) ───────
+  const builderProjectCount = permitProgressProjects.length || (dbJobs !== null ? visibleDbJobs.length : projects.length)
+  const dashboardNavGroups: DashboardNavGroup[] = [
+    {
+      label: 'Workspace',
+      items: [
+        { id: 'overview', kind: 'section', targetId: 'overview', label: 'Dashboard', icon: LayoutDashboard },
+        { id: 'needs-action', kind: 'section', targetId: 'needs-action', label: 'Needs Action', icon: AlertTriangle, badge: needsActionCount, available: hasBuilderActions },
+        { id: 'appointments', kind: 'section', targetId: 'appointments', label: 'Appointments', icon: CalendarCheck, badge: sortedActiveInspectionAppointments.length, available: sortedActiveInspectionAppointments.length > 0 },
+        { id: 'inspection-requests', kind: 'section', targetId: 'live-operations', label: 'Inspection Requests', icon: Navigation, badge: liveUnclaimedJobs.length, available: liveUnclaimedJobs.length > 0 },
+        { id: 'projects', kind: 'section', targetId: 'projects', label: 'Projects', icon: Building2, badge: builderProjectCount },
+        { id: 'vault', kind: 'route', href: '/vault', label: 'Records / Vault', icon: FolderLock },
+      ],
+    },
+    {
+      label: 'Project Tools',
+      items: [
+        { id: 'awaiting-validation', kind: 'section', targetId: 'awaiting-validation', label: 'Awaiting Validation', icon: ClipboardCheck, badge: pendingValidationJobs.length, available: pendingValidationJobs.length > 0 },
+        { id: 'records-ready', kind: 'section', targetId: 'records-ready', label: 'Records Ready', icon: FileCheck, badge: completedProgressProjects.length, available: completedProgressProjects.length > 0 },
+        { id: 'profile', kind: 'route', href: '/builder/profile', label: 'Profile', icon: User },
+      ],
+    },
+  ]
+
   const validationPanelItems: ValidationItem[] = pendingValidationJobs.map(job => ({
     id: job.id,
     projectName: job.projectName,
@@ -1697,25 +1722,24 @@ export default function BuilderDashboard() {
   })
 
   return (
-    <div className="app-theme-scope min-h-screen bg-surface">
-      <Navbar role="builder" dark />
-
-      {/* ── Command Header ── */}
-      <CommandHeader
-        company={user?.company ?? MOCK_BUILDER.companyName}
-        onPostRequest={handleNewRequest}
-        onOpenVault={() => router.push('/vault')}
-      />
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+    <RoleDashboardShell
+      brandEyebrow="Builder Operations"
+      brandTitle={user?.company ?? MOCK_BUILDER.companyName}
+      navGroups={dashboardNavGroups}
+      topbar={{
+        role: 'builder',
+        primaryAction: { label: 'Post Inspection Request', onClick: handleNewRequest, icon: Plus },
+        secondaryAction: { label: 'Open Vault', onClick: () => router.push('/vault'), icon: FolderLock },
+      }}
+    >
         {requestGuardMessage && (
           <div className="mb-6 rounded-2xl border border-rim/70 border-l-2 border-l-warning-amber bg-raised px-4 py-3 text-sm font-semibold text-ink">
             {requestGuardMessage}
           </div>
         )}
 
-        {/* ── Situation Strip ── */}
-        <div className="mb-6">
+        {/* ── Situation Strip (compact Today summary) ── */}
+        <div id="overview" className="mb-6 scroll-mt-20">
           <SituationStrip metrics={situationMetrics} onSelect={scrollToSection} />
         </div>
 
@@ -1726,7 +1750,7 @@ export default function BuilderDashboard() {
 
         {/* ── Needs Action (always first) ── */}
         {hasBuilderActions && (
-          <section id="needs-action" className="mb-6">
+          <section id="needs-action" className="mb-6 scroll-mt-20">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
                 <div className="text-[11px] font-bold uppercase tracking-[0.12em] text-flame">Needs Action</div>
@@ -2037,7 +2061,7 @@ export default function BuilderDashboard() {
 
         {/* ── Active Inspection Appointments ── */}
         {sortedActiveInspectionAppointments.length > 0 && (
-          <section className="mb-6">
+          <section id="appointments" className="mb-6 scroll-mt-20">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
                 <div className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">Active Inspection Appointments</div>
@@ -2066,7 +2090,7 @@ export default function BuilderDashboard() {
 
         {/* ── Live Operations ── */}
         {liveUnclaimedJobs.length > 0 && (
-          <section id="live-operations" className="mb-6">
+          <section id="live-operations" className="mb-6 scroll-mt-20">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
                 <div className="text-[11px] font-bold uppercase tracking-[0.12em] text-electric">Live Operations</div>
@@ -2125,7 +2149,7 @@ export default function BuilderDashboard() {
         )}
 
         {/* ── Projects & Stage Progress ── */}
-        <section id="projects" className="mb-6">
+        <section id="projects" className="mb-6 scroll-mt-20">
           <div className="mb-3 flex items-center justify-between gap-3">
             <div>
               <div className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">Project Portfolio</div>
@@ -2406,16 +2430,20 @@ export default function BuilderDashboard() {
                 </button>
               )}
 
-              <AwaitingValidationPanel
-                items={validationPanelItems}
-                total={pendingValidationJobs.length}
-                onSelect={id => {
-                  const job = pendingValidationJobs.find(j => j.id === id)
-                  if (job) openManageRequest(job)
-                }}
-              />
+              <div id="awaiting-validation" className="scroll-mt-20">
+                <AwaitingValidationPanel
+                  items={validationPanelItems}
+                  total={pendingValidationJobs.length}
+                  onSelect={id => {
+                    const job = pendingValidationJobs.find(j => j.id === id)
+                    if (job) openManageRequest(job)
+                  }}
+                />
+              </div>
 
-              <RecordsReadyPanel records={recordsReadyItems} onOpenVault={() => router.push('/vault')} />
+              <div id="records-ready" className="scroll-mt-20">
+                <RecordsReadyPanel records={recordsReadyItems} onOpenVault={() => router.push('/vault')} />
+              </div>
 
         {/* ── Weekly Activity ── */}
         <section className="mb-6">
@@ -2443,7 +2471,6 @@ export default function BuilderDashboard() {
             </div>
           </aside>
         </div>
-      </main>
 
       <Modal
         isOpen={Boolean(managedLiveJob)}
@@ -2607,6 +2634,6 @@ export default function BuilderDashboard() {
           confirmedAt:    activeAssignment.confirmedAt,
         } : undefined}
       />
-    </div>
+    </RoleDashboardShell>
   )
 }
