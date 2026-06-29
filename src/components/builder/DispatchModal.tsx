@@ -668,7 +668,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             </p>
           )}
 
-          <Button variant="primary" size="lg" fullWidth className="shadow-sm shadow-gray-900/10 disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400" disabled={!address.trim() || permitNumberIsMissing} onClick={() => {
+          <Button variant="premium" size="lg" fullWidth className="disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-transparent disabled:shadow-none" disabled={!address.trim() || permitNumberIsMissing} onClick={() => {
             setPostError(null)
             const addrErr = validateSiteAddressFormat(address)
             if (addrErr) { setPostError(addrErr); return }
@@ -709,7 +709,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             {selectedTier === 'emergency' && 'Emergency dispatch windows are limited to today and tomorrow.'}
           </div>
           <SchedulingPicker slots={slots} onChange={setSlots} max={3} tier={selectedTier} />
-          <Button variant="primary" size="lg" fullWidth className="shadow-sm shadow-gray-900/10 disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400"
+          <Button variant="premium" size="lg" fullWidth className="disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-transparent disabled:shadow-none"
             disabled={!hasValidSchedulingWindow}
             onClick={() => setStep('intent')}>
             Continue <ChevronRight className="w-4 h-4" />
@@ -842,7 +842,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
               Safety. The technical stage / discipline screens are NOT in this
               flow — they are reachable only via the clearly-secondary "Change
               inspection details" link below. */}
-          <Button variant="primary" size="lg" fullWidth className="shadow-sm shadow-gray-900/10 disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400" disabled={!selectedStage || !selectedDisc} onClick={() => {
+          <Button variant="premium" size="lg" fullWidth className="disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-transparent disabled:shadow-none" disabled={!selectedStage || !selectedDisc} onClick={() => {
             setPostError(null)
             if (validatePermitReferenceBeforeContinuing()) return
             setStep('safety')
@@ -911,7 +911,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             Selecting a stage loads the detailed inspection requirements for that phase.
           </p>
 
-          <Button variant="primary" size="lg" fullWidth className="shadow-sm shadow-gray-900/10 disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400" disabled={!selectedStage} onClick={() => {
+          <Button variant="premium" size="lg" fullWidth className="disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-transparent disabled:shadow-none" disabled={!selectedStage} onClick={() => {
             setPostError(null)
             if (validatePermitReferenceBeforeContinuing()) return
             setStep('discipline')
@@ -952,7 +952,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             })}
           </div>
 
-          <Button variant="primary" size="lg" fullWidth className="shadow-sm shadow-gray-900/10 disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400" disabled={!selectedDisc} onClick={() => setStep('safety')}>
+          <Button variant="premium" size="lg" fullWidth className="disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-transparent disabled:shadow-none" disabled={!selectedDisc} onClick={() => setStep('safety')}>
             Continue <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
@@ -1036,7 +1036,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             />
           </div>
 
-          <Button variant="primary" size="lg" fullWidth className="shadow-sm shadow-gray-900/10 disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400" onClick={() => setStep('tier')}>
+          <Button variant="premium" size="lg" fullWidth className="disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-transparent disabled:shadow-none" onClick={() => setStep('tier')}>
             Continue <ChevronRight className="w-4 h-4" />
           </Button>
           <button onClick={() => setStep('tier')}
@@ -1169,7 +1169,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
           </div>
 
           <div className="sticky bottom-0 -mx-5 -mb-5 px-5 pt-3 pb-5 bg-white/95 backdrop-blur border-t border-gray-100 z-10">
-            <Button variant="primary" size="lg" fullWidth className="shadow-sm shadow-gray-900/10 disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400" disabled={!hasValidSchedulingWindow} onClick={() => {
+            <Button variant="premium" size="lg" fullWidth className="disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-transparent disabled:shadow-none" disabled={!hasValidSchedulingWindow} onClick={() => {
               if (validateProjectIdentityBeforeContinuing()) return
               if (validatePermitReferenceBeforeContinuing()) return
               setStep('vault')
@@ -1251,12 +1251,14 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             </p>
           </div>
 
-          <button
+          <Button
+            variant="premium"
+            size="lg"
+            fullWidth
             onClick={() => setStep('confirm')}
-            className="w-full py-3.5 bg-flame text-white font-black text-sm rounded-2xl hover:bg-flame-light transition-all flex items-center justify-center gap-2"
           >
             Continue to Review <ChevronRight className="w-4 h-4" />
-          </button>
+          </Button>
         </div>
       )}
 
@@ -1645,10 +1647,10 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
               </div>
             )}
             <Button
-              variant="primary"
+              variant="premium"
               size="lg"
               fullWidth
-              className="shadow-sm shadow-gray-900/10 disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400"
+              className="disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-transparent disabled:shadow-none"
               disabled={!siteAgreed}
               onClick={handlePost}
             >
