@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import { readFile } from 'node:fs/promises'
+import path from 'node:path'
 import { redirect } from 'next/navigation'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
@@ -39,6 +41,23 @@ function getServiceClient() {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!url || !key) return null
   return createServiceClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } })
+}
+
+// Embed the black Vero Permit wordmark as a base64 data URI so it is baked into
+// the HTML and always renders in the browser "Save as PDF" / print output — a
+// path-based <img> is not reliably fetched at print time. Mirrors the approach
+// used by the Schedule C-B packet generator.
+let cachedLogoDataUri: string | null = null
+async function loadBrandLogoDataUri(): Promise<string> {
+  if (cachedLogoDataUri) return cachedLogoDataUri
+  try {
+    const logoPath = path.join(process.cwd(), 'public', 'vero-permit-light.png')
+    const buffer = await readFile(logoPath)
+    cachedLogoDataUri = `data:image/png;base64,${buffer.toString('base64')}`
+  } catch {
+    cachedLogoDataUri = ''
+  }
+  return cachedLogoDataUri
 }
 
 function str(value: unknown): string {
@@ -84,6 +103,7 @@ export default async function FieldNoteRecordPage({
 }) {
   const { documentId: rawDocumentId } = await params
   const documentId = str(rawDocumentId)
+  const logoSrc = await loadBrandLogoDataUri()
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -93,10 +113,10 @@ export default async function FieldNoteRecordPage({
 
   const service = getServiceClient()
   if (!service) {
-    return <RecordUnavailable message="The record service is temporarily unavailable. Please try again shortly." />
+    return <RecordUnavailable logoSrc={logoSrc} message="The record service is temporarily unavailable. Please try again shortly." />
   }
   if (!documentId) {
-    return <RecordUnavailable message="No field note was specified." />
+    return <RecordUnavailable logoSrc={logoSrc} message="No field note was specified." />
   }
 
   // 1. Evidence document → report linkage. The storage path is read from the DB,
@@ -108,7 +128,7 @@ export default async function FieldNoteRecordPage({
     .maybeSingle()
 
   if (!docData) {
-    return <RecordUnavailable message="This field note record could not be found." />
+    return <RecordUnavailable logoSrc={logoSrc} message="This field note record could not be found." />
   }
   const doc = docData as Record<string, unknown>
   const reportId = str(doc.report_id)
@@ -149,7 +169,7 @@ export default async function FieldNoteRecordPage({
   const isOwningBuilder = builderId !== '' && user.id === builderId
 
   if (!isAdmin && !isInspectorOfRecord && !isOwningBuilder) {
-    return <RecordUnavailable message="You do not have access to this field note record." />
+    return <RecordUnavailable logoSrc={logoSrc} message="You do not have access to this field note record." />
   }
 
   // 4. Checklist context (requirement + section) for the note's item.
@@ -263,9 +283,17 @@ export default async function FieldNoteRecordPage({
       </div>
 
       <article className="field-note-sheet mx-auto max-w-3xl rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm sm:p-12">
-        <header className="border-b border-zinc-200 pb-6">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/vero-permit-light.png" alt="Vero Permit" className="h-8 w-auto" />
+        {/* Use a div, not <header>: the global print stylesheet hides
+            `header` elements, which would drop the logo and title from the PDF. */}
+        <div className="border-b border-zinc-200 pb-6">
+          {logoSrc ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={logoSrc} alt="Vero Permit" className="block h-9 w-auto" style={{ height: 36 }} />
+          ) : (
+            <span className="text-2xl font-black tracking-tight text-zinc-900">
+              vero<span className="text-base font-bold text-zinc-500"> Permit</span>
+            </span>
+          )}
           <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-[#FF5F15]/30 bg-[#FF5F15]/[0.07] px-3 py-1">
             <span className="h-1.5 w-1.5 rounded-full bg-[#FF5F15]" />
             <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#c24d12]">Inspection Evidence File</span>
@@ -274,7 +302,7 @@ export default async function FieldNoteRecordPage({
           <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-500">
             Formal record of an inspector field note captured as part of the Vero Permit inspection evidence file.
           </p>
-        </header>
+        </div>
 
         <section className="mt-7">
           <h2 className="text-[11px] font-bold uppercase tracking-[0.16em] text-zinc-400">Field Note</h2>
@@ -330,12 +358,18 @@ export default async function FieldNoteRecordPage({
   )
 }
 
-function RecordUnavailable({ message }: { message: string }) {
+function RecordUnavailable({ message, logoSrc }: { message: string; logoSrc?: string }) {
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#f4f1ea] px-4 py-10 text-zinc-900">
       <div className="mx-auto max-w-md rounded-2xl border border-zinc-200 bg-white p-8 text-center shadow-sm">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/vero-permit-light.png" alt="Vero Permit" className="mx-auto h-7 w-auto" />
+        {logoSrc ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={logoSrc} alt="Vero Permit" className="mx-auto block h-7 w-auto" style={{ height: 28 }} />
+        ) : (
+          <span className="text-xl font-black tracking-tight text-zinc-900">
+            vero<span className="text-sm font-bold text-zinc-500"> Permit</span>
+          </span>
+        )}
         <h1 className="mt-4 text-xl font-black text-zinc-900">Field Note Record</h1>
         <p className="mt-2 text-sm leading-relaxed text-zinc-500">{message}</p>
       </div>
