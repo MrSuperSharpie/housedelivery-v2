@@ -272,11 +272,16 @@ export default async function FieldNoteRecordPage({
       <style>{`
         .field-note-record { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         @media print {
+          /* Tighter margins than the global default so the whole record fits one page. */
+          @page { margin: 1.3cm 1.5cm; }
           .no-print { display: none !important; }
           .field-note-record { background: #ffffff !important; min-height: 0 !important; padding: 0 !important; }
           /* Collapse the on-screen card framing so the document fills the page
              margins and stays on one page. */
           .field-note-sheet { box-shadow: none !important; border: none !important; border-radius: 0 !important; margin: 0 !important; padding: 0 !important; max-width: none !important; }
+          .fn-header { padding-bottom: 14px !important; }
+          .fn-note-box { padding: 12px 16px !important; }
+          .fn-block { margin-top: 16px !important; }
         }
       `}</style>
 
@@ -287,7 +292,7 @@ export default async function FieldNoteRecordPage({
       <article className="field-note-sheet mx-auto max-w-3xl rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm sm:p-12">
         {/* Use a div, not <header>: the global print stylesheet hides
             `header` elements, which would drop the logo and title from the PDF. */}
-        <div className="border-b border-zinc-200 pb-6">
+        <div className="fn-header border-b border-zinc-200 pb-6">
           {logoSrc ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={logoSrc} alt="Vero Permit" className="block h-9 w-auto" style={{ height: 36 }} />
@@ -301,7 +306,7 @@ export default async function FieldNoteRecordPage({
             <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#c24d12]">Inspection Evidence File</span>
           </div>
           <h1 className="mt-4 text-3xl font-black tracking-tight text-zinc-900">Field Note Record</h1>
-          <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-500">
+          <p className="no-print mt-2 max-w-xl text-sm leading-relaxed text-zinc-500">
             Formal record of an inspector field note captured as part of the Vero Permit inspection evidence file.
           </p>
         </div>
@@ -309,9 +314,9 @@ export default async function FieldNoteRecordPage({
         {/* Plain <div>, not <section>: the global print stylesheet forces
             `page-break-inside: avoid` + padding on sections, which split this
             record across two pages. */}
-        <div className="mt-6">
+        <div className="fn-block mt-6">
           <h2 className="text-[11px] font-bold uppercase tracking-[0.16em] text-zinc-400">Field Note</h2>
-          <div className="mt-3 rounded-xl border border-zinc-200 bg-[#faf9f6] p-5">
+          <div className="fn-note-box mt-3 rounded-xl border border-zinc-200 bg-[#faf9f6] p-5">
             {noteBody ? (
               <p className="whitespace-pre-wrap text-lg font-medium leading-relaxed text-zinc-900">{noteBody}</p>
             ) : (
@@ -326,7 +331,7 @@ export default async function FieldNoteRecordPage({
           </div>
         </div>
 
-        <div className="mt-6">
+        <div className="fn-block mt-6">
           <h2 className="text-[11px] font-bold uppercase tracking-[0.16em] text-zinc-400">Record Metadata</h2>
           <table className="mt-3 w-full border-collapse text-sm">
             <tbody>
@@ -353,7 +358,7 @@ export default async function FieldNoteRecordPage({
           </div>
         )}
 
-        <div className="mt-7 border-t border-zinc-200 pt-5 text-xs leading-relaxed text-zinc-400">
+        <div className="fn-block mt-7 border-t border-zinc-200 pt-5 text-xs leading-relaxed text-zinc-400">
           This Field Note Record is part of the Vero Permit inspection evidence file. The original captured
           file is preserved unaltered as the source audit artifact. This document is a platform record and is
           not a building permit, occupancy authorization, or authority decision.
