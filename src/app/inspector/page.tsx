@@ -3,8 +3,9 @@
 import React, { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Search, ChevronRight, PlayCircle, Clock, Activity, Filter, Briefcase, FolderLock, AlertTriangle, FileText, Wallet } from 'lucide-react'
-import { Navbar } from '@/components/shared/Navbar'
+import { Search, ChevronRight, PlayCircle, Clock, Activity, Filter, Briefcase, FolderLock, AlertTriangle, FileText, Wallet, LayoutDashboard, ListChecks, User } from 'lucide-react'
+import { RoleDashboardShell } from '@/components/shared/RoleDashboardShell'
+import type { DashboardNavGroup } from '@/components/shared/DashboardSidebar'
 import { JobCard } from '@/components/inspector/JobCard'
 import { HardPingProvider } from '@/components/inspector/HardPingProvider'
 import { ReliabilityTierDashboard } from '@/components/inspector/ReliabilityTierDashboard'
@@ -53,14 +54,17 @@ const DISCS: { value: InspectorDiscipline | 'all'; label: string }[] = [
   { value: 'fire_protection', label: 'Fire Protection' },
 ]
 
+// Discipline is communicated by the label text; the pill stays neutral and outlined
+// rather than introducing a decorative per-discipline colour palette.
+const DISC_BADGE_NEUTRAL = 'border-rim/70 bg-white/[0.02] text-muted'
 const DISC_BADGE: Record<string, string> = {
-  structural:     'border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-500/30 dark:bg-orange-500/15 dark:text-orange-300',
-  geotech:        'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300',
-  electrical:     'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/15 dark:text-blue-300',
-  mechanical:     'border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-500/30 dark:bg-violet-500/15 dark:text-violet-300',
-  architectural:  'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-300',
-  plumbing:       'border-cyan-200 bg-cyan-50 text-cyan-700 dark:border-cyan-500/30 dark:bg-cyan-500/15 dark:text-cyan-300',
-  fire_protection:'border-red-200 bg-red-50 text-red-700 dark:border-red-500/30 dark:bg-red-500/15 dark:text-red-300',
+  structural:     DISC_BADGE_NEUTRAL,
+  geotech:        DISC_BADGE_NEUTRAL,
+  electrical:     DISC_BADGE_NEUTRAL,
+  mechanical:     DISC_BADGE_NEUTRAL,
+  architectural:  DISC_BADGE_NEUTRAL,
+  plumbing:       DISC_BADGE_NEUTRAL,
+  fire_protection:DISC_BADGE_NEUTRAL,
 }
 
 const INSPECTION_STAGE_LABELS: Record<number, string> = {
@@ -1074,56 +1078,106 @@ export default function InspectorDashboard() {
       label: 'Active Assignments',
       value: String(activeAssignmentCount),
       helper: 'Open or in progress',
-      valueClass: activeAssignmentCount > 0 ? 'text-electric' : 'text-ink',
+      valueClass: 'text-ink',
       dot: activeAssignmentCount > 0 ? 'bg-electric' : 'bg-rim',
       size: 'text-3xl',
+      targetId: 'active-worklist',
     },
     {
       key: 'attention',
       label: 'Needs Attention',
       value: String(needsAttentionCount),
       helper: 'Holds & re-verifications',
-      valueClass: needsAttentionCount > 0 ? 'text-amber-400' : 'text-ink',
-      dot: needsAttentionCount > 0 ? 'bg-amber-400' : 'bg-rim',
+      valueClass: 'text-ink',
+      dot: needsAttentionCount > 0 ? 'bg-warning-amber' : 'bg-rim',
       size: 'text-3xl',
+      // The dedicated Needs Attention section only renders when there are accepted
+      // holds. When it is absent, fall back to the always-present Active Worklist,
+      // where holds & availability items also surface — so the card never no-ops.
+      targetId: acceptedHoldsForInspector.length > 0 ? 'needs-attention' : 'active-worklist',
     },
     {
       key: 'drafts',
       label: 'Records In Progress',
       value: String(draftRecordCount),
       helper: 'Field drafts not yet sealed',
-      valueClass: draftRecordCount > 0 ? 'text-flame' : 'text-ink',
+      valueClass: 'text-ink',
       dot: draftRecordCount > 0 ? 'bg-flame' : 'bg-rim',
       size: 'text-3xl',
+      targetId: 'active-worklist',
     },
     {
       key: 'open',
       label: 'Open Opportunities',
       value: String(openOpportunityCount),
       helper: 'Eligible for you now',
-      valueClass: openOpportunityCount > 0 ? 'text-emerald-400' : 'text-ink',
-      dot: openOpportunityCount > 0 ? 'bg-emerald-400' : 'bg-rim',
+      valueClass: 'text-ink',
+      dot: openOpportunityCount > 0 ? 'bg-success-green' : 'bg-rim',
       size: 'text-3xl',
+      targetId: 'open-requests',
     },
     {
       key: 'earnings',
       label: 'Potential Earnings',
       value: formatCurrency(potentialEarnings),
       helper: 'Visible open opportunities',
-      valueClass: 'text-emerald-400',
-      dot: 'bg-emerald-400',
+      valueClass: 'text-ink',
+      dot: 'bg-success-green',
       size: 'text-2xl',
+      targetId: undefined,
+    },
+  ]
+
+  // Mirrors the Builder Command Center's scroll-to-section navigation. Optional
+  // chaining is a safety net only — targetIds resolve to always-present anchors
+  // (see Needs Attention's conditional target) so clicks land somewhere useful.
+  const scrollToSection = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  // Human-readable destination phrases for metric-card aria-labels.
+  const SECTION_LABEL: Record<string, string> = {
+    'active-worklist': 'active worklist',
+    'needs-attention': 'needs attention',
+    'open-requests': 'open opportunities',
+  }
+
+  // ─── Operations-console sidebar (route links + in-page section anchors) ───────
+  const hasNeedsAttention = acceptedHoldsForInspector.length > 0
+  const dashboardNavGroups: DashboardNavGroup[] = [
+    {
+      label: 'Workspace',
+      items: [
+        { id: 'live-board', kind: 'section', targetId: 'overview', label: 'Live Board', icon: LayoutDashboard },
+        { id: 'needs-attention', kind: 'section', targetId: 'needs-attention', label: 'Needs Attention', icon: AlertTriangle, badge: needsAttentionCount, available: hasNeedsAttention },
+        { id: 'worklist', kind: 'section', targetId: 'active-worklist', label: 'Worklist', icon: PlayCircle, badge: activeAssignmentCount },
+        { id: 'open-requests', kind: 'section', targetId: 'open-requests', label: 'Open Requests', icon: Briefcase, badge: openOpportunityCount },
+        { id: 'vault', kind: 'route', href: '/vault', label: 'Vault', icon: FolderLock },
+        { id: 'profile', kind: 'route', href: '/inspector/profile', label: 'Profile', icon: User },
+      ],
+    },
+    {
+      label: 'Field Operations',
+      items: [
+        { id: 'current-assignments', kind: 'section', targetId: 'active-worklist', label: 'Current Assignments', icon: ListChecks, badge: activeAssignmentCount },
+        { id: 'holds-reverifications', kind: 'section', targetId: 'needs-attention', label: 'Holds / Re-verifications', icon: AlertTriangle, badge: needsAttentionCount, available: hasNeedsAttention },
+        { id: 'available-opportunities', kind: 'section', targetId: 'open-requests', label: 'Available Opportunities', icon: Briefcase, badge: openOpportunityCount },
+        { id: 'records-in-progress', kind: 'section', targetId: 'active-worklist', label: 'Records in Progress', icon: FileText, badge: draftRecordCount },
+      ],
     },
   ]
 
   return (
     <HardPingProvider>
-    <div className="app-theme-scope min-h-screen bg-surface">
-      <Navbar role="inspector" dark />
-      <main className="max-w-5xl mx-auto px-4 py-8">
+    <RoleDashboardShell
+      brandEyebrow="Inspector Operations"
+      brandTitle={inspectorFirstName ? inspectorFirstName : 'Inspector'}
+      navGroups={dashboardNavGroups}
+      topbar={{ role: 'inspector' }}
+    >
 
         {/* ── Inspector Field Hub command header ── */}
-        <div className="relative mb-6 overflow-hidden rounded-3xl border border-rim/70 bg-gradient-to-b from-panel to-surface bg-dot bg-dot-sm">
+        <div id="overview" className="relative mb-6 scroll-mt-20 overflow-hidden rounded-3xl border border-rim/70 bg-gradient-to-b from-panel to-surface bg-dot bg-dot-sm">
           <div className="pointer-events-none absolute -top-24 right-[-6rem] h-72 w-72 rounded-full bg-flame/10 blur-3xl" />
           <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-flame/40 to-transparent" />
           <div className="relative px-5 py-7 sm:px-7">
@@ -1157,40 +1211,67 @@ export default function InspectorDashboard() {
         </div>
 
         {/* ── Workday metrics ── */}
+        {/* Operational metrics double as section navigation (mirrors the Builder
+            Command Center's SituationStrip). Clicking a card scrolls to its
+            section; neutral by default, restrained flame emphasis only on
+            hover/keyboard-focus. */}
         <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-          {workdayMetrics.map(metric => (
-            <div
-              key={metric.key}
-              className="relative overflow-hidden rounded-2xl border border-rim/60 bg-panel p-4 shadow-card"
-            >
-              <div className="mb-2.5 flex items-center gap-1.5">
-                <span className={`h-1.5 w-1.5 rounded-full ${metric.dot}`} />
-                <span className="text-[10px] font-black uppercase tracking-[0.14em] text-subtle">{metric.label}</span>
+          {workdayMetrics.map(metric => {
+            const cardClass = `relative overflow-hidden rounded-2xl border border-rim/60 bg-panel p-4 shadow-sm${
+              metric.targetId
+                ? ' cursor-pointer text-left transition-all hover:-translate-y-0.5 hover:border-flame/40 focus:outline-none focus-visible:border-flame/40 focus-visible:ring-2 focus-visible:ring-flame/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface'
+                : ''
+            }`
+            const cardBody = (
+              <>
+                <div className="mb-2.5 flex items-center gap-1.5">
+                  <span className={`h-1.5 w-1.5 rounded-full ${metric.dot}`} />
+                  <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-subtle">{metric.label}</span>
+                </div>
+                <div className={`${metric.size} font-black leading-none tracking-tight ${metric.valueClass}`}>
+                  {metric.value}
+                </div>
+                <div className="mt-1.5 text-[11px] font-medium leading-snug text-muted">{metric.helper}</div>
+              </>
+            )
+            return metric.targetId ? (
+              <button
+                key={metric.key}
+                type="button"
+                onClick={() => scrollToSection(metric.targetId!)}
+                aria-label={`Jump to ${SECTION_LABEL[metric.targetId] ?? metric.label.toLowerCase()}`}
+                className={cardClass}
+              >
+                {cardBody}
+              </button>
+            ) : (
+              <div key={metric.key} className={cardClass}>
+                {cardBody}
               </div>
-              <div className={`${metric.size} font-black leading-none tracking-tight ${metric.valueClass}`}>
-                {metric.value}
-              </div>
-              <div className="mt-1.5 text-[11px] font-medium leading-snug text-muted">{metric.helper}</div>
-            </div>
-          ))}
+            )
+          })}
         </div>
+
+        {/* ── Operations grid: action-first main column + status right rail ── */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+          <div className="space-y-8 lg:col-span-8">
 
         {/* ── Needs Attention · Re-verification Required ── */}
         {acceptedHoldsForInspector.length > 0 && (
-          <div className="mb-8">
+          <div id="needs-attention" className="mb-8 scroll-mt-20">
             <div className="mb-4 flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-amber-400" />
-              <h2 className="label-mono font-bold !text-amber-400">Needs Attention · Re-verification Required</h2>
+              <AlertTriangle className="h-4 w-4 text-warning-amber" />
+              <h2 className="label-mono font-bold !text-warning-amber">Needs Attention · Re-verification Required</h2>
             </div>
             <div className="space-y-3">
               {acceptedHoldsForInspector.map(hold => (
                 <div
                   key={hold.id}
-                  className="overflow-hidden rounded-2xl border border-amber-500/30 bg-amber-500/[0.08]"
+                  className="overflow-hidden rounded-2xl border border-rim/70 border-l-2 border-l-warning-amber bg-panel shadow-sm"
                 >
                   <div className="flex items-start gap-3 px-5 py-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-500/30 bg-amber-500/20">
-                      <Activity className="h-5 w-5 text-amber-400" />
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-rim/60 bg-raised">
+                      <Activity className="h-5 w-5 text-warning-amber" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="mb-0.5 text-sm font-bold text-ink">Builder Accepted Hold Terms</div>
@@ -1198,7 +1279,7 @@ export default function InspectorDashboard() {
                         Site is ready for re-verification. Return to site and resolve the hold.
                       </div>
                       <div className="mt-2 text-[11px] text-muted">
-                        Fee reserved: <span className="font-bold text-amber-400">${hold.holdCapAmount.toFixed(2)}</span>
+                        Fee reserved: <span className="font-bold text-warning-amber">${hold.holdCapAmount.toFixed(2)}</span>
                         {hold.builderAcceptedAt && (
                           <>{' · '}Accepted {new Date(hold.builderAcceptedAt).toLocaleTimeString('en-CA', { timeZone: 'America/Vancouver', hour: '2-digit', minute: '2-digit' })}</>
                         )}
@@ -1206,7 +1287,7 @@ export default function InspectorDashboard() {
                     </div>
                     <Link
                       href={`/inspector/completion/${hold.relatedInspectionId}#hold`}
-                      className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-amber-500/40 bg-amber-500/15 px-4 py-2.5 text-xs font-black text-amber-300 transition-colors hover:bg-amber-500/25"
+                      className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-flame px-4 py-2.5 text-xs font-semibold text-white shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light"
                     >
                       Re-verify Now
                       <ChevronRight className="h-4 w-4" />
@@ -1220,7 +1301,7 @@ export default function InspectorDashboard() {
 
         {/* Active Worklist */}
         {(activeWorklist.length > 0 || hiddenActiveWorklist.length > 0) && (
-          <div className="mb-10">
+          <div id="active-worklist" className="mb-10 scroll-mt-20">
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <div className="flex items-center gap-2">
@@ -1245,7 +1326,7 @@ export default function InspectorDashboard() {
               )}
             </div>
             {worklistDispositionMessage && (
-              <div className="mb-3 rounded-xl border border-electric/30 bg-electric/10 px-3 py-2 text-xs font-semibold text-ink">
+              <div className="mb-3 rounded-xl border border-rim/70 border-l-2 border-l-electric bg-raised px-3 py-2 text-xs font-semibold text-ink">
                 {worklistDispositionMessage}
               </div>
             )}
@@ -1270,7 +1351,7 @@ export default function InspectorDashboard() {
                 return (
                   <div
                     key={assignment.id}
-                    className={`flex flex-col gap-4 rounded-2xl border p-4 shadow-card transition-all hover:border-flame/30 md:flex-row md:items-center ${
+                    className={`flex flex-col gap-4 rounded-2xl border p-4 shadow-sm transition-all hover:border-flame/30 md:flex-row md:items-center ${
                       hiddenFromWorklist
                         ? 'border-rim/50 bg-raised/60 opacity-90'
                         : 'border-rim/60 bg-panel hover:bg-raised'
@@ -1286,23 +1367,13 @@ export default function InspectorDashboard() {
                           {assignment.statusLabel}
                         </span>
                         {assignment.jobStatus && assignment.jobStatus !== assignment.status && (
-                          <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase ${
-                            isDark
-                              ? 'border-blue-700/50 bg-blue-900/30 text-blue-300'
-                              : 'border-blue-200 bg-blue-50 text-blue-700'
-                          }`}>
+                          <span className="rounded-full border border-rim/70 bg-white/[0.02] px-2 py-0.5 text-[10px] font-semibold uppercase text-muted">
                             Job: {formatStoredStatus(assignment.jobStatus)}
                           </span>
                         )}
                         {assignment.reportStatus && (
-                          <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase ${
-                            assignment.reportStatus === 'sealed'
-                              ? isDark
-                                ? 'border-emerald-700/50 bg-emerald-900/30 text-emerald-300'
-                                : 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                              : isDark
-                                ? 'border-amber-700/50 bg-amber-900/30 text-amber-300'
-                                : 'border-amber-200 bg-amber-50 text-amber-700'
+                          <span className={`rounded-full border border-rim/70 bg-white/[0.02] px-2 py-0.5 text-[10px] font-semibold uppercase ${
+                            assignment.reportStatus === 'sealed' ? 'text-success-green' : 'text-warning-amber'
                           }`}>
                             Field Record: {formatStoredStatus(assignment.reportStatus)}
                           </span>
@@ -1354,14 +1425,10 @@ export default function InspectorDashboard() {
                         </div>
                       </div>
                       {(assignment.statusLabel === 'Availability Confirmation Needed' || confirmedAvailabilityResults.has(assignment.id)) && (
-                        <div className={`mt-3 rounded-xl border px-3 py-3 ${
-                          isDark
-                            ? 'border-blue-500/40 bg-blue-500/10 text-blue-100'
-                            : 'border-blue-300 bg-blue-50 text-blue-950'
-                        }`}>
+                        <div className="mt-3 rounded-xl border border-rim/70 border-l-2 border-l-electric bg-raised px-3 py-3 text-ink">
                           {confirmedAvailabilityResults.has(assignment.id) ? (
                             <>
-                              <div className="text-sm font-black">Availability Confirmed</div>
+                              <div className="text-sm font-bold">Availability Confirmed</div>
                               <div className="mt-1 text-xs">
                                 {confirmedAvailabilityResults.get(assignment.id)?.emailSent
                                   ? 'You confirmed availability for this inspection. The builder has been notified that the visit remains on track.'
@@ -1371,7 +1438,7 @@ export default function InspectorDashboard() {
                             </>
                           ) : (
                             <>
-                              <div className="text-sm font-black">Availability Confirmation Needed</div>
+                              <div className="text-sm font-bold">Availability Confirmation Needed</div>
                               <div className="mt-1 text-xs">
                                 {user?.firstName
                                   ? `${user.firstName}, please confirm you are still available for this inspection.`
@@ -1379,7 +1446,7 @@ export default function InspectorDashboard() {
                                 }{' '}This helps keep the builder informed and gives Vero time to reassign the work if needed.
                               </div>
                               {confirmAvailabilityErrors.has(assignment.id) && (
-                                <div className={`mt-2 text-xs font-semibold ${isDark ? 'text-red-300' : 'text-red-700'}`}>
+                                <div className="mt-2 text-xs font-semibold text-fail-red">
                                   {confirmAvailabilityErrors.get(assignment.id)}
                                 </div>
                               )}
@@ -1387,11 +1454,7 @@ export default function InspectorDashboard() {
                                 type="button"
                                 disabled={confirmingAvailabilityIds.has(assignment.id)}
                                 onClick={() => void handleConfirmAvailability(assignment.id, assignment.jobId)}
-                                className={`mt-2 w-full px-3 py-2 rounded-lg text-xs font-black transition-all disabled:cursor-wait disabled:opacity-60 ${
-                                  isDark
-                                    ? 'bg-blue-600 text-white hover:bg-blue-500'
-                                    : 'bg-blue-600 text-white hover:bg-blue-700'
-                                }`}
+                                className="mt-2 w-full px-3 py-2 rounded-lg text-xs font-semibold text-white bg-flame shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light disabled:cursor-wait disabled:opacity-60"
                               >
                                 {confirmingAvailabilityIds.has(assignment.id) ? 'Confirming...' : 'Confirm Availability'}
                               </button>
@@ -1400,14 +1463,10 @@ export default function InspectorDashboard() {
                         </div>
                       )}
                       {assignment.openHold && (
-                        <div className={`mt-3 rounded-xl border px-3 py-3 ${
-                          isDark
-                            ? 'border-amber-500/40 bg-amber-500/10 text-amber-100'
-                            : 'border-amber-300 bg-amber-50 text-amber-950'
-                        }`}>
+                        <div className="mt-3 rounded-xl border border-rim/70 border-l-2 border-l-warning-amber bg-raised px-3 py-3 text-ink">
                           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                             <div>
-                              <div className="text-sm font-black">{holdHeadline}</div>
+                              <div className="text-sm font-bold">{holdHeadline}</div>
                               <div className="mt-1 text-xs font-semibold">
                                 {assignment.openHold.deficiencyReason || assignment.openHold.reason}
                               </div>
@@ -1415,15 +1474,15 @@ export default function InspectorDashboard() {
                                 <div className="mt-1 text-[11px] opacity-80">Required correction: {assignment.openHold.reason}</div>
                               )}
                             </div>
-                            <div className="shrink-0 rounded-lg border border-amber-400/50 bg-amber-100 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-amber-900">
+                            <div className="shrink-0 rounded-full border border-rim/70 bg-white/[0.02] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-warning-amber">
                               {holdResponseLabel}
                             </div>
                           </div>
-                          <div className="mt-2 flex flex-wrap gap-2 text-[10px] font-bold">
-                            <span className="rounded-full bg-white/70 px-2 py-1 text-amber-950">
+                          <div className="mt-2 flex flex-wrap gap-2 text-[10px] font-semibold">
+                            <span className="rounded-full border border-rim/60 bg-white/[0.02] px-2 py-1 text-muted">
                               Fee terms: {formatCurrency(assignment.openHold.holdCapAmount)}
                             </span>
-                            <span className="rounded-full bg-white/70 px-2 py-1 text-amber-950">
+                            <span className="rounded-full border border-rim/60 bg-white/[0.02] px-2 py-1 text-muted">
                               {assignment.openHold.holdEligibleForOnSiteCorrection ? 'Same-day eligible' : 'Rebook required'}
                             </span>
                           </div>
@@ -1434,11 +1493,7 @@ export default function InspectorDashboard() {
                       {assignment.openHold && !hiddenFromWorklist && (
                         <button
                           onClick={() => router.push(holdDetailsHref)}
-                          className={`px-4 py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all ${
-                            isDark
-                              ? 'border border-amber-500/40 bg-amber-500/10 text-amber-100 hover:bg-amber-500/20'
-                              : 'border border-amber-300 bg-amber-100 text-amber-950 hover:bg-amber-200'
-                          }`}
+                          className="px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors border border-rim/70 bg-white/[0.02] text-warning-amber hover:border-rim"
                         >
                           View Hold Details <ChevronRight className="w-4 h-4" />
                         </button>
@@ -1448,11 +1503,7 @@ export default function InspectorDashboard() {
                           type="button"
                           disabled={worklistActionId === `${WORKLIST_RESTORE_ACTION}:${assignment.id}`}
                           onClick={() => void handleWorklistDisposition(assignment, WORKLIST_RESTORE_ACTION)}
-                          className={`px-4 py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all disabled:cursor-wait disabled:opacity-60 ${
-                            isDark
-                              ? 'border border-blue-500/40 bg-blue-500/10 text-blue-100 hover:bg-blue-500/20'
-                              : 'border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100'
-                          }`}
+                          className="px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors border border-rim/70 bg-white/[0.02] text-ink hover:border-electric/40 disabled:cursor-wait disabled:opacity-60"
                         >
                           Restore to Worklist
                         </button>
@@ -1460,7 +1511,7 @@ export default function InspectorDashboard() {
                         <>
                           <button
                             onClick={() => router.push(`/inspector/completion/${assignment.id}`)}
-                            className="bg-flame text-white px-4 py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 hover:bg-flame-light transition-all glow-flame-sm"
+                            className="bg-flame text-white px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 shadow-sm ring-1 ring-inset ring-white/10 hover:bg-flame-light transition-colors"
                           >
                             Continue Assignment <ChevronRight className="w-4 h-4" />
                           </button>
@@ -1483,10 +1534,10 @@ export default function InspectorDashboard() {
         )}
 
         {showOnboardingBanner && (
-          <div className="mb-6 rounded-2xl border border-amber-300 bg-amber-100 p-4 text-amber-900">
+          <div className="mb-6 rounded-2xl border border-rim/70 border-l-2 border-l-warning-amber bg-raised p-4 text-ink">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
-                <div className="text-sm font-black">Waiting for Vero approval</div>
+                <div className="text-sm font-bold">Waiting for Vero approval</div>
                 <p className="mt-1 text-xs">
                   {inspectorEligibility.status !== 'approved'
                     ? 'Your application is under review. The Live Board and uploads stay locked until your profile is approved.'
@@ -1495,7 +1546,7 @@ export default function InspectorDashboard() {
               </div>
               <button
                 onClick={() => router.push('/inspector/onboarding')}
-                className="shrink-0 rounded-xl bg-amber-900 px-4 py-2.5 text-xs font-black text-white hover:opacity-90"
+                className="shrink-0 rounded-xl bg-flame px-4 py-2.5 text-xs font-semibold text-white shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light"
               >
                 View Approval Status
               </button>
@@ -1506,7 +1557,7 @@ export default function InspectorDashboard() {
         {/* Dev-only fast-track: seed a sealed report + open the PDF. Hidden in
             production builds via NEXT_PUBLIC_ build-time swap. */}
         {process.env.NODE_ENV === 'development' && (
-          <div className="mb-4 flex items-center gap-2 rounded-2xl border border-amber-400/40 bg-amber-500/10 px-4 py-3 text-xs text-amber-900 dark:text-amber-200">
+          <div className="mb-4 flex items-center gap-2 rounded-2xl border border-rim/70 border-l-2 border-l-warning-amber bg-raised px-4 py-3 text-xs text-muted">
             <span className="font-bold uppercase tracking-widest">Dev</span>
             <span className="flex-1">Skip the 15-stage flow — seed a sealed report and open the PDF.</span>
             <button
@@ -1526,7 +1577,7 @@ export default function InspectorDashboard() {
                   alert('Seed failed: network error')
                 }
               }}
-              className="rounded-xl bg-flame px-3 py-2 text-[11px] font-black uppercase tracking-widest text-white hover:bg-flame-light"
+              className="rounded-xl bg-flame px-3 py-2 text-[11px] font-semibold tracking-wide text-white shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light"
             >
               Dev: Generate Test Certificate
             </button>
@@ -1534,35 +1585,18 @@ export default function InspectorDashboard() {
         )}
 
         {/* Header */}
-        <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-center">
-          <div>
-            <div className="mb-2 flex items-center gap-2">
-              <Briefcase className="h-4 w-4 text-flame" />
-              <span className="label-mono font-bold !text-flame">Open Requests · Opportunities</span>
-            </div>
-            <h2 className="text-2xl font-black text-ink">Open Requests</h2>
-            <p className="text-sm text-muted mt-1">
-              {eligibleJobs.length} eligible of {classifiedJobs.length} live requests matching your filters
-            </p>
-            <p className="text-xs text-subtle mt-1 max-w-xl">
-              Open Requests are unclaimed live jobs. Jobs you&apos;ve already claimed appear in Your Active Worklist above. Some jobs may be hidden if they do not match your verified credentials, region, or are already assigned.
-            </p>
+        <div id="open-requests" className="mb-6 scroll-mt-20">
+          <div className="mb-2 flex items-center gap-2">
+            <Briefcase className="h-4 w-4 text-flame" />
+            <span className="label-mono font-bold !text-flame">Open Requests · Opportunities</span>
           </div>
-          <div className="relative shrink-0 overflow-hidden rounded-2xl border border-emerald-500/30 bg-panel px-5 py-4 shadow-card">
-            <div className="pointer-events-none absolute -right-6 -top-8 h-20 w-20 rounded-full bg-emerald-500/10 blur-2xl" />
-            <div className="relative flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/10">
-                <Wallet className="h-5 w-5 text-emerald-400" />
-              </div>
-              <div>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-subtle">Potential Open Earnings</div>
-                <div className="text-2xl font-black text-emerald-400">{formatCurrency(potentialEarnings)}</div>
-                <div className="mt-1 max-w-[15rem] text-[10px] text-subtle">
-                  Estimated value of visible open opportunities. Actual payout status appears after admin review and release.
-                </div>
-              </div>
-            </div>
-          </div>
+          <h2 className="text-2xl font-black text-ink">Open Requests</h2>
+          <p className="text-sm text-muted mt-1">
+            {eligibleJobs.length} eligible of {classifiedJobs.length} live requests matching your filters
+          </p>
+          <p className="text-xs text-subtle mt-1 max-w-xl">
+            Open Requests are unclaimed live jobs. Jobs you&apos;ve already claimed appear in Your Active Worklist above. Some jobs may be hidden if they do not match your verified credentials, region, or are already assigned. Potential earnings are summarized in the status rail.
+          </p>
         </div>
 
         <ReliabilityTierDashboard
@@ -1571,7 +1605,7 @@ export default function InspectorDashboard() {
         />
 
         {/* Filters */}
-        <div className="mb-6 rounded-2xl border border-rim/60 bg-panel p-4 shadow-card">
+        <div className="mb-6 rounded-2xl border border-rim/60 bg-panel p-4 shadow-sm">
           <div className="relative mb-4">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-subtle" />
             <input
@@ -1592,9 +1626,9 @@ export default function InspectorDashboard() {
             <div className="flex flex-wrap gap-2">
               {REGIONS.map(r => (
                 <button key={r.value} onClick={() => setRegion(r.value as Region | 'all')}
-                  className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${
+                  className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${
                     region === r.value
-                      ? 'bg-flame text-white'
+                      ? 'bg-ink text-surface'
                       : 'border border-rim/60 bg-surface text-muted hover:bg-raised hover:text-ink'
                   }`}>{r.label}</button>
               ))}
@@ -1610,9 +1644,9 @@ export default function InspectorDashboard() {
             <div className="flex flex-wrap gap-2">
               {DISCS.map(d => (
                 <button key={d.value} onClick={() => setDiscipline(d.value as InspectorDiscipline | 'all')}
-                  className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${
+                  className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${
                     discipline === d.value
-                      ? 'bg-electric text-white'
+                      ? 'bg-ink text-surface'
                       : 'border border-rim/60 bg-surface text-muted hover:bg-raised hover:text-ink'
                   }`}>{d.label}</button>
               ))}
@@ -1632,7 +1666,7 @@ export default function InspectorDashboard() {
                 <button
                   key={option.value}
                   onClick={() => setBoardView(option.value)}
-                  className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${
+                  className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${
                     boardView === option.value
                       ? 'bg-ink text-surface'
                       : 'border border-rim/60 bg-surface text-muted hover:bg-raised hover:text-ink'
@@ -1648,7 +1682,7 @@ export default function InspectorDashboard() {
         {/* Job list */}
         <div className="space-y-3">
           {classifiedJobs.length === 0 ? (
-            <div className="rounded-2xl border border-rim/60 bg-panel py-16 text-center shadow-card">
+            <div className="rounded-2xl border border-rim/60 bg-panel py-16 text-center shadow-sm">
               <Search className="w-10 h-10 text-subtle mx-auto mb-3" />
               <div className="font-semibold text-muted">No open requests match your filters</div>
               <div className="text-xs text-subtle mt-1">Try adjusting your region or discipline filters</div>
@@ -1658,7 +1692,7 @@ export default function InspectorDashboard() {
               {eligibleJobs.length > 0 && (
                 <section className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <h2 className="label-mono font-bold !text-emerald-400">Eligible for You</h2>
+                    <h2 className="label-mono font-bold !text-success-green">Eligible for You</h2>
                     <span className="text-[10px] font-bold text-subtle uppercase tracking-wider">{eligibleJobs.length} jobs</span>
                   </div>
                   {eligibleJobs.map(({ job, eligibility }) => (
@@ -1673,7 +1707,7 @@ export default function InspectorDashboard() {
               )}
 
               {boardView === 'all' && ineligibleJobs.length > 0 && (
-                <section className="space-y-3 pt-4">
+                <section className="space-y-3 pt-4 opacity-70 transition-opacity duration-200 hover:opacity-100 focus-within:opacity-100">
                   <div className="flex items-center justify-between">
                     <h2 className="label-mono font-bold text-subtle">Other Live Projects</h2>
                     <span className="text-[10px] font-bold text-subtle uppercase tracking-wider">{ineligibleJobs.length} locked</span>
@@ -1691,7 +1725,7 @@ export default function InspectorDashboard() {
               )}
 
               {boardView === 'eligible' && eligibleJobs.length === 0 && (
-                <div className="rounded-2xl border border-rim/60 bg-panel py-16 text-center shadow-card">
+                <div className="rounded-2xl border border-rim/60 bg-panel py-16 text-center shadow-sm">
                   <Briefcase className="w-10 h-10 text-subtle mx-auto mb-3" />
                   <div className="font-semibold text-muted">No eligible jobs match your filters</div>
                   <div className="text-xs text-subtle mt-1">Switch to All Live Jobs to view the wider marketplace</div>
@@ -1700,8 +1734,57 @@ export default function InspectorDashboard() {
             </>
           )}
         </div>
-      </main>
-    </div>
+          </div>
+
+          {/* ── Status right rail (secondary, persistent context) ── */}
+          <aside className="lg:col-span-4">
+            <div className="space-y-4 lg:sticky lg:top-[5rem]">
+              <div className="rounded-2xl border border-rim/70 border-l-2 border-l-success-green bg-panel p-5 shadow-sm">
+                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-subtle">
+                  <Wallet className="h-3.5 w-3.5 text-success-green" /> Potential Earnings
+                </div>
+                <div className="mt-2 text-3xl font-black text-success-green">{formatCurrency(potentialEarnings)}</div>
+                <div className="mt-1 text-[11px] leading-snug text-subtle">
+                  Estimated value of visible open opportunities. Actual payout status appears after admin review and release.
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-rim/70 bg-panel p-5 shadow-sm">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-subtle">Field Summary</div>
+                <div className="mt-3 space-y-2">
+                  {[
+                    { label: 'Active assignments', value: activeAssignmentCount, dot: 'bg-electric', target: 'active-worklist' },
+                    { label: 'Needs attention', value: needsAttentionCount, dot: 'bg-warning-amber', target: hasNeedsAttention ? 'needs-attention' : 'active-worklist' },
+                    { label: 'Records in progress', value: draftRecordCount, dot: 'bg-flame', target: 'active-worklist' },
+                    { label: 'Open opportunities', value: openOpportunityCount, dot: 'bg-success-green', target: 'open-requests' },
+                  ].map(row => (
+                    <button
+                      key={row.label}
+                      type="button"
+                      onClick={() => scrollToSection(row.target)}
+                      aria-label={`Jump to ${SECTION_LABEL[row.target] ?? row.label.toLowerCase()}`}
+                      className="flex w-full items-center justify-between rounded-xl border border-rim/60 bg-surface px-3 py-2.5 text-left transition-colors hover:border-flame/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-flame/50 focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+                    >
+                      <span className="flex items-center gap-2 text-xs font-semibold text-muted">
+                        <span className={`h-1.5 w-1.5 rounded-full ${row.dot}`} />
+                        {row.label}
+                      </span>
+                      <span className="text-sm font-black tabular-nums text-ink">{row.value}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <Link
+                href="/vault"
+                className="flex items-center justify-center gap-2 rounded-2xl border border-rim bg-panel px-4 py-3 text-sm font-bold text-ink transition-colors hover:bg-raised"
+              >
+                <FolderLock className="h-4 w-4 text-muted" /> Open Vault
+              </Link>
+            </div>
+          </aside>
+        </div>
+    </RoleDashboardShell>
     </HardPingProvider>
   )
 }

@@ -21,7 +21,7 @@ export function PaymentSuccessCta({ isHoldPayment = false }: { isHoldPayment?: b
         href={BUILDER_HREF}
         className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-flame px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-flame-light"
       >
-        {isHoldPayment ? 'Return' : 'Go'} to Builder&apos;s Command Center
+        Return to Builder Command Center
       </Link>
     )
   }

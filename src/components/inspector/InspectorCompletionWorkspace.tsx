@@ -836,12 +836,12 @@ function StatusPill({
     : null
 
   const activeClass =
-    value === 'Passed' ? 'border-emerald-500 bg-emerald-500 text-white shadow-[0_10px_22px_rgba(16,185,129,0.3)]' :
-    value === 'Failed' ? 'border-rose-500 bg-rose-500 text-white shadow-[0_10px_22px_rgba(244,63,94,0.28)]' :
-    value === 'Pending' ? 'border-white/25 bg-white/15 text-[color:var(--color-ink)]' :
-    'border-white/25 bg-white/15 text-[color:var(--color-ink)]'
+    value === 'Passed' ? 'border-success-green bg-success-green text-white shadow-sm ring-1 ring-inset ring-white/10' :
+    value === 'Failed' ? 'border-fail-red bg-fail-red text-white shadow-sm ring-1 ring-inset ring-white/10' :
+    value === 'Pending' ? 'border-rim bg-white/10 text-[color:var(--color-ink)]' :
+    'border-rim bg-white/10 text-[color:var(--color-ink)]'
 
-  const idleClass = 'border-white/10 bg-transparent text-[color:var(--color-subtle)] hover:bg-white/10 hover:text-[color:var(--color-ink)]'
+  const idleClass = 'border-rim/60 bg-transparent text-[color:var(--color-subtle)] hover:bg-white/10 hover:text-[color:var(--color-ink)]'
   const disabledClass = 'cursor-not-allowed opacity-40'
 
   return (
@@ -876,15 +876,15 @@ function StatusPill({
  */
 function FailedSectionPanel({ documented }: { documented: boolean }) {
   return (
-    <div className="mt-3 rounded-2xl border-2 border-rose-500/60 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
+    <div className="mt-3 rounded-2xl border border-rim/70 border-l-2 border-l-fail-red bg-white/5 px-4 py-3 text-sm text-ink">
       <div className="flex items-center gap-2">
-        <AlertTriangle className="h-4 w-4 shrink-0 text-rose-300" />
-        <span className="rounded-full border border-rose-400/50 bg-rose-500/20 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-[0.14em] text-rose-100">
+        <AlertTriangle className="h-4 w-4 shrink-0 text-fail-red" />
+        <span className="rounded-full border border-rim/70 bg-white/5 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-[0.14em] text-fail-red">
           Corrections Required
         </span>
       </div>
-      <p className="mt-2 leading-relaxed text-rose-100/90">{FAIL_SECTION_PANEL_MESSAGE}</p>
-      <div className={`mt-2 flex items-center gap-2 font-semibold ${documented ? 'text-emerald-200' : 'text-amber-200'}`}>
+      <p className="mt-2 leading-relaxed text-muted">{FAIL_SECTION_PANEL_MESSAGE}</p>
+      <div className={`mt-2 flex items-center gap-2 font-semibold ${documented ? 'text-success-green' : 'text-warning-amber'}`}>
         {documented
           ? <CheckCircle2 className="h-4 w-4 shrink-0" />
           : <AlertCircle className="h-4 w-4 shrink-0" />}
@@ -897,10 +897,10 @@ function FailedSectionPanel({ documented }: { documented: boolean }) {
 const FLOATING_PANEL_CLASS = 'shadow-[0_18px_34px_rgba(15,23,42,0.18)]'
 const TACTILE_MEDIA_BUTTON_CLASS = 'inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl border border-white/10 bg-white/8 px-0 text-[color:var(--color-muted)] transition-colors hover:bg-white/15 hover:text-[color:var(--color-ink)] disabled:cursor-not-allowed disabled:opacity-50'
 const EMPHASIZED_BODY_TEXT_CLASS = 'text-[17px] leading-7 text-zinc-300'
-const HOLD_ACTION_BUTTON_CLASS = 'min-h-12 rounded-2xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm font-black text-[color:var(--color-ink)] transition-colors hover:bg-amber-500/20 disabled:cursor-not-allowed disabled:opacity-50'
+const HOLD_ACTION_BUTTON_CLASS = 'min-h-12 rounded-2xl border border-warning-amber/30 bg-warning-amber/10 px-4 py-3 text-sm font-black text-warning-amber transition-colors hover:bg-warning-amber/15 disabled:cursor-not-allowed disabled:opacity-50'
 const REQUIRED_EVIDENCE_LOCK_MESSAGE = 'Evidence required before Pass. Attach at least one evidence item in the Attached Evidence section below. A regular note/comment does not satisfy this requirement unless it is captured as evidence.'
-const REQUIRED_EVIDENCE_NOTICE_CLASS = 'rounded-2xl border-2 border-rose-500 bg-white px-4 py-3 text-sm font-semibold leading-6 text-slate-950 shadow-[0_14px_28px_rgba(15,23,42,0.18)]'
-const DEPENDENCY_BLOCKER_NOTICE_CLASS = 'rounded-2xl border-2 border-amber-500 bg-white px-4 py-3 text-sm font-semibold leading-6 text-slate-950 shadow-[0_14px_28px_rgba(15,23,42,0.18)]'
+const REQUIRED_EVIDENCE_NOTICE_CLASS = 'rounded-2xl border border-rim/70 border-l-2 border-l-warning-amber bg-white/5 px-4 py-3 text-sm font-semibold leading-6 text-ink shadow-sm'
+const DEPENDENCY_BLOCKER_NOTICE_CLASS = 'rounded-2xl border border-rim/70 border-l-2 border-l-warning-amber bg-white/5 px-4 py-3 text-sm font-semibold leading-6 text-ink shadow-sm'
 
 // Shown when a Failed required item is not yet documented enough to submit on the scoped path.
 const FAIL_DOCUMENTATION_REQUIRED_MESSAGE = 'Add a deficiency note and evidence before submitting a failed item.'
@@ -937,9 +937,9 @@ function RequiredEvidenceActionPanel({
 
   if (!blocked) {
     return (
-      <div className="mt-4 overflow-hidden rounded-2xl border border-emerald-400/30 bg-emerald-500/10">
+      <div className="mt-4 overflow-hidden rounded-2xl border border-rim/70 border-l-2 border-l-success-green bg-white/5">
         <div className="flex items-start gap-3 px-4 py-3.5">
-          <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-emerald-400/30 bg-emerald-500/15 text-emerald-300">
+          <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-rim/60 bg-raised text-success-green">
             <ShieldCheck className="h-5 w-5" />
           </span>
           <div className="min-w-0">
@@ -954,9 +954,9 @@ function RequiredEvidenceActionPanel({
   }
 
   return (
-    <div className="mt-4 overflow-hidden rounded-2xl border border-white/10 bg-white/5">
-      <div className="flex items-center gap-2 border-l-2 border-amber-400/70 bg-amber-500/5 px-4 py-2.5">
-        <Camera className="h-4 w-4 shrink-0 text-amber-300" />
+    <div className="mt-4 overflow-hidden rounded-2xl border border-rim/70 border-l-2 border-l-warning-amber bg-white/5">
+      <div className="flex items-center gap-2 bg-white/5 px-4 py-2.5">
+        <Camera className="h-4 w-4 shrink-0 text-warning-amber" />
         <span className="text-[11px] font-black uppercase tracking-[0.16em] text-[color:var(--color-ink)]">Evidence required before Pass</span>
       </div>
       <div className="flex flex-col gap-4 px-4 py-4 lg:flex-row lg:items-start lg:justify-between">
@@ -965,15 +965,15 @@ function RequiredEvidenceActionPanel({
           <div className="mt-1 text-sm leading-6 text-[color:var(--color-muted)]">
             Attach supporting field evidence to enable Pass. Required evidence must support the inspection decision — not just satisfy a file check.
           </div>
-          <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-bold text-[color:var(--color-muted)]">
-            <CircleDashed className="h-3.5 w-3.5 shrink-0 text-amber-300" />
+          <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-rim/70 bg-white/5 px-3 py-1 text-[11px] font-bold text-[color:var(--color-muted)]">
+            <CircleDashed className="h-3.5 w-3.5 shrink-0 text-warning-amber" />
             {capturedCount} of 1 required evidence items captured
           </div>
           <div className="mt-3 text-[11px] font-black uppercase tracking-[0.16em] text-[color:var(--color-subtle)]">Acceptable evidence</div>
           <ul className="mt-2 space-y-1.5 text-sm leading-5 text-[color:var(--color-muted)]">
             {guidanceItems.map(guidance => (
               <li key={guidance} className="flex gap-2">
-                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#FF5F15]" />
+                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-flame" />
                 <span>{guidance}</span>
               </li>
             ))}
@@ -982,7 +982,7 @@ function RequiredEvidenceActionPanel({
         <button
           type="button"
           onClick={onAttachRequiredEvidence}
-          className="inline-flex min-h-[48px] w-full shrink-0 items-center justify-center gap-2 rounded-2xl bg-[#FF5F15] px-5 py-3 text-sm font-black text-white shadow-[0_10px_22px_rgba(255,95,21,0.3)] transition-colors hover:bg-[#e25412] lg:w-auto"
+          className="inline-flex min-h-[48px] w-full shrink-0 items-center justify-center gap-2 rounded-2xl bg-flame px-5 py-3 text-sm font-black text-white shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light lg:w-auto"
         >
           <Upload className="h-4 w-4" />
           Attach evidence
@@ -1013,12 +1013,12 @@ function ContainerRequirementsSummary({
 }) {
   if (requirements.length === 0) return null
   return (
-    <div className={`mt-3 rounded-2xl border px-4 py-3 ${ready ? 'border-emerald-500/30 bg-emerald-500/10' : 'border-amber-500/25 bg-amber-500/5'}`}>
+    <div className={`mt-3 rounded-2xl border border-rim/70 border-l-2 px-4 py-3 bg-white/5 ${ready ? 'border-l-success-green' : 'border-l-warning-amber'}`}>
       <div className="flex items-center gap-2">
         {ready
-          ? <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-300" />
-          : <AlertCircle className="h-4 w-4 shrink-0 text-amber-300" />}
-        <span className={`text-[11px] font-black uppercase tracking-[0.16em] ${ready ? 'text-emerald-200' : 'text-amber-200'}`}>
+          ? <CheckCircle2 className="h-4 w-4 shrink-0 text-success-green" />
+          : <AlertCircle className="h-4 w-4 shrink-0 text-warning-amber" />}
+        <span className={`text-[11px] font-black uppercase tracking-[0.16em] ${ready ? 'text-success-green' : 'text-warning-amber'}`}>
           {ready ? 'Requirements complete' : 'Requirements to complete'}
         </span>
       </div>
@@ -3342,7 +3342,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
       <div className="completion-workspace min-h-screen bg-[var(--color-surface)] text-[color:var(--color-ink)]">
         <Navbar role="inspector" dark />
         <div className="flex min-h-[70vh] items-center justify-center">
-          <Loader2 className="h-10 w-10 animate-spin text-[#FF5F15]" />
+          <Loader2 className="h-10 w-10 animate-spin text-flame" />
         </div>
       </div>
     )
@@ -3373,8 +3373,8 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
         <main className="mx-auto max-w-3xl px-4 py-12">
           <div className={`rounded-[2rem] p-8 text-center ${
             isProjectCertified
-              ? 'border border-amber-300/30 bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.18),rgba(5,8,22,0.94)_58%)]'
-              : 'border border-emerald-500/25 bg-emerald-500/10'
+              ? 'border border-rim/70 border-l-2 border-l-warning-amber bg-panel'
+              : 'border border-rim/70 border-l-2 border-l-success-green bg-panel'
           }`}>
             <div className="mx-auto mb-5 flex items-center justify-center">
               <VeroSealIcon certified={isProjectCertified} className="h-20 w-20" />
@@ -3395,12 +3395,12 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
               </div>
               <div>
                 <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">{isProjectCertified ? 'Record Status' : 'Outcome'}</div>
-                <div className={`mt-1 inline-flex rounded-full px-3 py-1 text-sm font-black ${
+                <div className={`mt-1 inline-flex rounded-full border border-rim/70 bg-white/5 px-3 py-1 text-sm font-black ${
                   isProjectCertified
-                    ? 'bg-amber-300/15 text-amber-200'
+                    ? 'text-warning-amber'
                     : result === 'fail'
-                      ? 'bg-red-500/15 text-red-300'
-                      : 'bg-emerald-500/15 text-emerald-300'
+                      ? 'text-fail-red'
+                      : 'text-success-green'
                 }`}>
                   {isProjectCertified
                     ? 'Final Vero Record Issued'
@@ -3442,7 +3442,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
               <button
                 type="button"
                 onClick={() => router.push('/inspector')}
-                className="rounded-2xl bg-[#FF5F15] px-5 py-3 text-sm font-black text-white hover:bg-[#e25412]"
+                className="rounded-2xl bg-flame px-5 py-3 text-sm font-black text-white hover:bg-flame-light"
               >
                 Back to Inspector Board
               </button>
@@ -3460,12 +3460,12 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
       <Navbar role="inspector" dark />
       <main className="mx-auto max-w-7xl px-4 py-6">
         {sealSuccessMessage && (
-          <div className={`mb-6 rounded-[1.75rem] border border-emerald-500/30 bg-emerald-100 px-5 py-4 text-emerald-900 ${FLOATING_PANEL_CLASS}`}>
+          <div className={`mb-6 rounded-[1.75rem] border border-rim/70 border-l-2 border-l-success-green bg-white/5 px-5 py-4 text-ink ${FLOATING_PANEL_CLASS}`}>
             <div className="flex items-start gap-3">
-              <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" />
+              <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-success-green" />
               <div>
-                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-700/80">Seal Applied</div>
-                <div className="mt-1 text-base font-medium text-emerald-900">
+                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-success-green">Seal Applied</div>
+                <div className="mt-1 text-base font-medium text-ink">
                   {sealSuccessMessage}
                 </div>
               </div>
@@ -3473,12 +3473,12 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
           </div>
         )}
         {showStageSuccessBanner && stageTransitionHandshake && (
-          <div className={`mb-6 rounded-[1.75rem] border border-emerald-500/30 bg-emerald-200 px-5 py-4 text-emerald-900 ${FLOATING_PANEL_CLASS}`}>
+          <div className={`mb-6 rounded-[1.75rem] border border-rim/70 border-l-2 border-l-success-green bg-white/5 px-5 py-4 text-ink ${FLOATING_PANEL_CLASS}`}>
             <div className="flex items-start gap-3">
-              <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" />
+              <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-success-green" />
               <div>
-                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-700/80">Stage Transition</div>
-                <div className="mt-1 text-base font-medium text-emerald-900">
+                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-success-green">Stage Transition</div>
+                <div className="mt-1 text-base font-medium text-ink">
                   Stage {stageTransitionHandshake.completedStageNumber} Complete! You are now working on Stage {stageTransitionHandshake.nextStageNumber}.
                 </div>
               </div>
@@ -3486,34 +3486,34 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
           </div>
         )}
         {activeJobHold && isHoldOpenStatus(activeJobHold.status) && (
-          <div id="hold" className={`mb-6 rounded-[1.75rem] border border-amber-400/40 bg-amber-100 px-5 py-4 text-amber-950 ${FLOATING_PANEL_CLASS}`}>
+          <div id="hold" className={`mb-6 rounded-[1.75rem] border border-rim/70 border-l-2 border-l-warning-amber bg-white/5 px-5 py-4 text-ink ${FLOATING_PANEL_CLASS}`}>
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div className="flex items-start gap-3">
-                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
+                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-warning-amber" />
                 <div>
-                  <div className="text-[11px] font-black uppercase tracking-[0.18em] text-amber-800/80">Hold Active</div>
-                  <div className="mt-1 text-lg font-black text-amber-950">{getWorkspaceHoldResponseLabel(activeJobHold)}</div>
-                  <div className="mt-2 text-sm font-semibold text-amber-950">
+                  <div className="text-[11px] font-black uppercase tracking-[0.18em] text-warning-amber">Hold Active</div>
+                  <div className="mt-1 text-lg font-black text-ink">{getWorkspaceHoldResponseLabel(activeJobHold)}</div>
+                  <div className="mt-2 text-sm font-semibold text-ink">
                     {activeJobHold.deficiencyReason || activeJobHold.reason}
                   </div>
                   {activeJobHold.deficiencyReason && (
-                    <div className="mt-1 text-sm text-amber-900">Required correction: {activeJobHold.reason}</div>
+                    <div className="mt-1 text-sm text-muted">Required correction: {activeJobHold.reason}</div>
                   )}
                 </div>
               </div>
               <div className="flex flex-wrap gap-2 lg:justify-end">
                 {typeof activeJobHold.holdCapAmount === 'number' && (
-                  <div className="rounded-xl border border-amber-300 bg-white/70 px-3 py-2 text-xs font-black text-amber-950">
+                  <div className="rounded-xl border border-rim/70 bg-white/5 px-3 py-2 text-xs font-black text-ink">
                     Fee terms: ${activeJobHold.holdCapAmount.toFixed(2)}
                   </div>
                 )}
                 {typeof activeJobHold.holdEligibleForOnSiteCorrection === 'boolean' && (
-                  <div className="rounded-xl border border-amber-300 bg-white/70 px-3 py-2 text-xs font-black text-amber-950">
+                  <div className="rounded-xl border border-rim/70 bg-white/5 px-3 py-2 text-xs font-black text-ink">
                     {activeJobHold.holdEligibleForOnSiteCorrection ? 'Same-day correction eligible' : 'Rebook required'}
                   </div>
                 )}
                 {activeJobHold.builderSelectedCorrectionMinutes && (
-                  <div className="rounded-xl border border-amber-300 bg-white/70 px-3 py-2 text-xs font-black text-amber-950">
+                  <div className="rounded-xl border border-rim/70 bg-white/5 px-3 py-2 text-xs font-black text-ink">
                     Builder window: {activeJobHold.builderSelectedCorrectionMinutes} min
                   </div>
                 )}
@@ -3525,40 +3525,40 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
           <div
             ref={scopedCompletionPanelRef}
             tabIndex={-1}
-            className={`mb-6 rounded-[2rem] border border-emerald-400/50 bg-emerald-100 px-5 py-5 text-emerald-950 outline-none ring-0 ${FLOATING_PANEL_CLASS}`}
+            className={`mb-6 rounded-[2rem] border border-rim/70 border-l-2 border-l-success-green bg-white/5 px-5 py-5 text-ink outline-none ring-0 ${FLOATING_PANEL_CLASS}`}
           >
             <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
               <div className="flex min-w-0 flex-1 items-start gap-4">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-700 text-white shadow-sm">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-success-green/30 bg-success-green/10 text-success-green">
                   <CheckCircle2 className="h-6 w-6" />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-[11px] font-black uppercase tracking-[0.18em] text-emerald-800/80">Stage Complete</div>
-                  <h2 className="mt-1 text-2xl font-black text-emerald-950">Stage complete</h2>
-                  <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-emerald-900">
+                  <div className="text-[11px] font-black uppercase tracking-[0.18em] text-success-green">Stage Complete</div>
+                  <h2 className="mt-1 text-2xl font-black text-ink">Stage complete</h2>
+                  <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-muted">
                     Thank you. The inspection has been submitted successfully. The builder has been notified, and the official field record is now available.
                   </p>
 
                   <div className="mt-5 grid gap-3 md:grid-cols-3">
-                    <div className="rounded-2xl border border-emerald-300 bg-white/80 px-4 py-3">
-                      <div className="text-[11px] font-black uppercase tracking-[0.16em] text-emerald-800/70">Outcome</div>
-                      <div className="mt-1 text-sm font-black text-emerald-950">
+                    <div className="rounded-2xl border border-rim/70 bg-white/5 px-4 py-3">
+                      <div className="text-[11px] font-black uppercase tracking-[0.16em] text-subtle">Outcome</div>
+                      <div className="mt-1 text-sm font-black text-ink">
                         {((report?.sealPayload?.overallResult as string | undefined) ?? 'pass') === 'fail'
                           ? 'Corrections required — reinspection needed'
                           : 'Inspection passed'}
                       </div>
                     </div>
-                    <div className="rounded-2xl border border-emerald-300 bg-white/80 px-4 py-3">
-                      <div className="text-[11px] font-black uppercase tracking-[0.16em] text-emerald-800/70">Builder notification</div>
-                      <div className="mt-1 text-sm font-black text-emerald-950">Sent</div>
+                    <div className="rounded-2xl border border-rim/70 bg-white/5 px-4 py-3">
+                      <div className="text-[11px] font-black uppercase tracking-[0.16em] text-subtle">Builder notification</div>
+                      <div className="mt-1 text-sm font-black text-ink">Sent</div>
                     </div>
-                    <div className="rounded-2xl border border-emerald-300 bg-white/80 px-4 py-3">
-                      <div className="text-[11px] font-black uppercase tracking-[0.16em] text-emerald-800/70">Payment status</div>
-                      <div className="mt-1 text-sm font-black text-emerald-950">Pending processing</div>
+                    <div className="rounded-2xl border border-rim/70 bg-white/5 px-4 py-3">
+                      <div className="text-[11px] font-black uppercase tracking-[0.16em] text-subtle">Payment status</div>
+                      <div className="mt-1 text-sm font-black text-ink">Pending processing</div>
                     </div>
                   </div>
 
-                  <p className="mt-3 max-w-3xl text-sm leading-6 text-emerald-900">
+                  <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">
                     Payment release is pending processing and will be processed according to the project terms.
                   </p>
                 </div>
@@ -3568,7 +3568,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                 <button
                   type="button"
                   onClick={() => router.push('/inspector')}
-                  className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-2xl bg-emerald-800 px-4 py-2.5 text-xs font-black text-white transition-colors hover:bg-emerald-900"
+                  className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-2xl bg-flame px-4 py-2.5 text-xs font-semibold text-white shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light"
                 >
                   Return to Job Board <ChevronRight className="h-4 w-4" />
                 </button>
@@ -3577,7 +3577,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                     href={`/api/schedule-cb?reportId=${report.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-2xl border border-emerald-700/30 bg-white px-4 py-2.5 text-xs font-black text-emerald-950 transition-colors hover:bg-emerald-50"
+                    className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-2xl border border-rim/70 bg-white/5 px-4 py-2.5 text-xs font-semibold text-ink transition-colors hover:bg-white/5"
                   >
                     View Completed Record <FileCheck2 className="h-4 w-4" />
                   </a>
@@ -3602,19 +3602,19 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
               Inspector Board
             </button>
 
-            <div className={`rounded-3xl border border-[#24406e] bg-[#0d1730] p-4 ${FLOATING_PANEL_CLASS}`}>
+            <div className={`rounded-3xl border border-rim/70 bg-panel p-4 ${FLOATING_PANEL_CLASS}`}>
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-cyan-300/70">Inspector Completion</div>
+                  <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-electric">Inspector Completion</div>
                   <h1 className="mt-2 text-xl font-black">{job.projectName}</h1>
                 </div>
-                <div className="rounded-full bg-[#FF5F15]/15 px-3 py-1 text-[11px] font-black text-[#FFB089]">
+                <div className="rounded-full border border-rim/70 bg-white/5 px-3 py-1 text-[11px] font-black text-flame">
                   {assignmentScope ? `Stage ${assignmentScope.builderStageNumber} of 5` : '15 Stages'}
                 </div>
               </div>
               <div className="mt-4 space-y-2 text-sm text-zinc-300">
                 <div className="flex items-start gap-2">
-                  <MapPin className="mt-0.5 h-4 w-4 text-cyan-300" />
+                  <MapPin className="mt-0.5 h-4 w-4 text-electric" />
                   <span>{job.address}, {job.city}</span>
                 </div>
                 {job.stage && (
@@ -3634,19 +3634,19 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
               </div>
             </div>
 
-            <div className={`mt-4 rounded-3xl border border-amber-500/20 bg-amber-500/10 p-4 ${FLOATING_PANEL_CLASS}`}>
+            <div className={`mt-4 rounded-3xl border border-rim/70 border-l-2 border-l-warning-amber bg-white/5 p-4 ${FLOATING_PANEL_CLASS}`}>
               <div className="flex items-start gap-2">
-                <AlertTriangle className="mt-0.5 h-4 w-4 text-amber-300" />
+                <AlertTriangle className="mt-0.5 h-4 w-4 text-warning-amber" />
                 <div>
-                  <div className="text-sm font-black text-amber-200">AHJ Overlay Active</div>
-                  <div className="mt-1 text-xs leading-relaxed text-amber-100/80">{overlay.summary}</div>
+                  <div className="text-sm font-black text-warning-amber">AHJ Overlay Active</div>
+                  <div className="mt-1 text-xs leading-relaxed text-muted">{overlay.summary}</div>
                 </div>
               </div>
             </div>
 
             <div className="mt-4 flex items-center justify-between text-xs text-zinc-400">
               <span>{lastSavedLabel}</span>
-              {saving && <Loader2 className="h-4 w-4 animate-spin text-[#FF5F15]" />}
+              {saving && <Loader2 className="h-4 w-4 animate-spin text-flame" />}
             </div>
 
             <div className={`mt-4 rounded-[1.75rem] border border-white/10 bg-[var(--color-panel)] p-4 ${FLOATING_PANEL_CLASS}`}>
@@ -3659,7 +3659,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                   <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Project Overview</div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-[11px] font-black text-cyan-200">
+                  <div className="rounded-full border border-rim/70 bg-white/5 px-3 py-1 text-[11px] font-black text-electric">
                     {assignmentScope
                       ? `${projectOverviewStages.filter(s => s.stage.stage_number === assignmentScope.internalStageNumber && s.status === 'passed').length}/1 passed — ${assignmentScope.builderStageLabel}`
                       : `${projectOverviewStages.filter(stage => stage.status === 'passed').length}/${projectOverviewStages.length} passed`
@@ -3691,20 +3691,20 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                               : 'Not active in this inspection request.'
                           const containerClass =
                             !isInAssignmentScope
-                              ? 'border-white/8 bg-white/[0.03]'
+                              ? 'border-rim/60 bg-white/5'
                               : status === 'passed'
-                              ? 'border-emerald-500/30 bg-emerald-500/10'
+                              ? 'border-rim/70 border-l-2 border-l-success-green bg-white/5'
                               : status === 'active'
-                                ? 'border-cyan-500/30 bg-cyan-500/10'
-                                : 'border-white/8 bg-white/[0.03]'
+                                ? 'border-rim/70 border-l-2 border-l-electric bg-white/5'
+                                : 'border-rim/60 bg-white/5'
                           const badgeClass =
                             !isInAssignmentScope
-                              ? 'border-white/10 bg-white/5 text-zinc-400'
+                              ? 'border-rim/60 bg-white/5 text-subtle'
                               : status === 'passed'
-                              ? 'border-emerald-400/30 bg-emerald-400/15 text-emerald-200'
+                              ? 'border-rim/70 bg-white/5 text-success-green'
                               : status === 'active'
-                                ? 'border-cyan-400/30 bg-cyan-400/15 text-cyan-200'
-                                : 'border-white/10 bg-white/5 text-zinc-400'
+                                ? 'border-rim/70 bg-white/5 text-electric'
+                                : 'border-rim/60 bg-white/5 text-subtle'
 
                           return (
                             <button
@@ -3714,7 +3714,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                               onClick={() => {
                                 if (isClickable) navigateToStage(stage.stage_number)
                               }}
-                              className={`w-full rounded-2xl border p-3 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${containerClass} ${isCurrent ? 'ring-1 ring-[#FF5F15]/60' : ''}`}
+                              className={`w-full rounded-2xl border p-3 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${containerClass} ${isCurrent ? 'ring-1 ring-flame/60' : ''}`}
                             >
                               <div className="flex items-start justify-between gap-3">
                                 <div className="min-w-0">
@@ -3726,7 +3726,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                       {!isInAssignmentScope ? 'Locked' : status === 'passed' ? 'Passed' : status === 'active' ? 'Active' : 'Locked'}
                                     </span>
                                     {isCurrent && (
-                                      <span className="rounded-full border border-[#FF5F15]/40 bg-[#FF5F15]/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-[#FFB089]">
+                                      <span className="rounded-full border border-rim/70 bg-white/5 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-flame">
                                         In View
                                       </span>
                                     )}
@@ -3743,9 +3743,9 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                   </div>
                                 </div>
                                 {status === 'passed' ? (
-                                  <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-300" />
+                                  <CheckCircle2 className="h-5 w-5 shrink-0 text-success-green" />
                                 ) : status === 'active' ? (
-                                  <CircleDashed className="h-5 w-5 shrink-0 text-cyan-300" />
+                                  <CircleDashed className="h-5 w-5 shrink-0 text-electric" />
                                 ) : (
                                   <Lock className="h-5 w-5 shrink-0 text-zinc-500" />
                                 )}
@@ -3769,7 +3769,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                   <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Current Checklist</div>
                   <h2 className="mt-2 text-3xl font-black">S{String(currentStage).padStart(2, '0')} — {currentProgress?.stage.stage_name}</h2>
                   {job.stage && (
-                    <p className="mt-1 text-xs font-semibold uppercase tracking-[0.14em] text-cyan-300/80">
+                    <p className="mt-1 text-xs font-semibold uppercase tracking-[0.14em] text-electric">
                       Builder request: {job.stageName}
                     </p>
                   )}
@@ -3786,7 +3786,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                   </div>
                   <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-center">
                     <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-500">Seal Gate</div>
-                    <div className={`mt-2 text-sm font-black ${sealReady ? 'text-emerald-300' : 'text-amber-300'}`}>
+                    <div className={`mt-2 text-sm font-black ${sealReady ? 'text-success-green' : 'text-warning-amber'}`}>
                       {sealReady ? 'Ready' : 'Locked'}
                     </div>
                   </div>
@@ -4144,7 +4144,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       {showRequirementIndicator && (
                         <div
                           aria-hidden="true"
-                          className={`absolute inset-y-0 left-0 w-1 ${passBlockedForEvidence ? 'bg-rose-500' : 'bg-emerald-500'}`}
+                          className={`absolute inset-y-0 left-0 w-0.5 ${passBlockedForEvidence ? 'bg-warning-amber/50' : 'bg-success-green/50'}`}
                         />
                       )}
                       <div className="flex flex-col gap-3">
@@ -4176,13 +4176,13 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                               <h3 className="text-lg font-black leading-tight sm:text-xl">{item.item_label}</h3>
                               {showRequirementIndicator && (
                                 passBlockedForEvidence ? (
-                                  <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-500/10 px-2.5 py-1 text-[11px] font-bold text-[color:var(--color-ink)]">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                                  <span className="inline-flex items-center gap-1.5 rounded-full border border-rim/70 bg-white/5 px-2.5 py-1 text-[11px] font-bold text-warning-amber">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-warning-amber" />
                                     Evidence required
                                   </span>
                                 ) : (
                                   <span
-                                    className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-500/15 text-emerald-300"
+                                    className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-rim/60 bg-raised text-success-green"
                                     aria-label="Required evidence uploaded"
                                     title="Required evidence uploaded"
                                   >
@@ -4246,13 +4246,13 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                     onClick={() => toggleChecklistItem(item.item_code, detail)}
                                     className={`flex min-h-[52px] w-full items-start gap-3 rounded-2xl px-3 py-3 text-left transition-colors lg:flex-1 ${
                                       entryState.checked
-                                        ? 'bg-emerald-500/10 text-[color:var(--color-ink)]'
+                                        ? 'bg-white/[0.03] text-[color:var(--color-ink)]'
                                         : 'text-[color:var(--color-ink)] hover:bg-white/5'
                                     }`}
                                   >
                                     <span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border ${
                                       entryState.checked
-                                        ? 'border-emerald-300 bg-emerald-400/20 text-emerald-200'
+                                        ? 'border-success-green/40 bg-success-green/10 text-success-green'
                                         : 'border-zinc-600 bg-transparent text-zinc-500'
                                     }`}>
                                       <CheckCircle2 className="h-4 w-4" />
@@ -4295,7 +4295,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                         label="Add text note"
                                         buttonClassName={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl border px-0 transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
                                           noteOpen
-                                            ? 'border-[#FF5F15]/40 bg-[#FF5F15]/15 text-[#FF5F15]'
+                                            ? 'border-flame/40 bg-flame/15 text-flame'
                                             : 'border-white/10 bg-white/8 text-[color:var(--color-muted)] hover:bg-white/15 hover:text-[color:var(--color-ink)]'
                                         }`}
                                         onCapture={payload => handleChecklistCapture(item.item_code, detail, payload)}
@@ -4310,7 +4310,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                     onChange={event => updateChecklistNote(item.item_code, detail, event.target.value)}
                                     rows={3}
                                     placeholder={`Note for item ${index + 1}`}
-                                    className="mt-3 w-full rounded-2xl border border-white/10 bg-[var(--color-raised)] px-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:border-[#FF5F15] focus:outline-none"
+                                    className="mt-3 w-full rounded-2xl border border-white/10 bg-[var(--color-raised)] px-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:border-flame focus:outline-none"
                                   />
                                 )}
 
@@ -4396,25 +4396,25 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       )}
 
                       {item.fail_when.length > 0 && (
-                        <div className="mt-3 rounded-[1.5rem] border border-amber-800/20 border-l-4 border-l-amber-700/30 bg-amber-950/20 p-4">
+                        <div className="mt-3 rounded-[1.5rem] border border-rim/70 border-l-4 border-l-warning-amber bg-white/5 p-4">
                           <button
                             type="button"
                             onClick={() => toggleExpandedRecord(setExpandedFailConditions, item.item_code)}
                             className="flex w-full items-center justify-between gap-3 text-left"
                           >
                             <div className="flex items-center gap-3">
-                              <AlertTriangle className="h-5 w-5 shrink-0 text-amber-500" />
-                              <div className="text-sm font-black uppercase tracking-[0.14em] text-amber-400">Fail Conditions</div>
+                              <AlertTriangle className="h-5 w-5 shrink-0 text-warning-amber" />
+                              <div className="text-sm font-black uppercase tracking-[0.14em] text-warning-amber">Fail Conditions</div>
                             </div>
-                            <ChevronRight className={`h-5 w-5 text-amber-500 transition-transform ${failConditionsOpen ? 'rotate-90' : ''}`} />
+                            <ChevronRight className={`h-5 w-5 text-warning-amber transition-transform ${failConditionsOpen ? 'rotate-90' : ''}`} />
                           </button>
 
                           {failConditionsOpen && (
                             <div className="mt-3">
                               <GuidanceList
                                 items={item.fail_when}
-                                bulletClassName="bg-amber-500"
-                                textClassName="text-sm text-amber-200"
+                                bulletClassName="bg-warning-amber"
+                                textClassName="text-sm text-warning-amber"
                               />
                             </div>
                           )}
@@ -4485,7 +4485,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       </div>
 
                       {passBlocked && !passBlockedForEvidence && (
-                        <div className="mt-3 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100/90">
+                        <div className="mt-3 rounded-2xl border border-rim/70 border-l-2 border-l-warning-amber bg-white/5 px-4 py-3 text-sm text-ink">
                           {passBlockedMessage}
                         </div>
                       )}
@@ -4534,10 +4534,10 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                 </div>
                               </div>
 
-                              <div className={`rounded-3xl border border-emerald-500/15 bg-emerald-500/5 p-4 ${FLOATING_PANEL_CLASS}`}>
-                                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-200/80">Pass / Fail / Pending</div>
+                              <div className={`rounded-3xl border border-rim/70 bg-white/5 p-4 ${FLOATING_PANEL_CLASS}`}>
+                                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-subtle">Pass / Fail / Pending</div>
                                 <div className="mt-3">
-                                  <div className="text-xs font-black uppercase tracking-[0.14em] text-emerald-300">Pass When</div>
+                                  <div className="text-xs font-black uppercase tracking-[0.14em] text-success-green">Pass When</div>
                                   <div className="mt-2">
                                     <GuidanceList
                                       items={item.pass_when}
@@ -4548,7 +4548,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                 </div>
                                 {item.fail_when.length > 0 && (
                                   <div className="mt-4">
-                                    <div className="text-xs font-black uppercase tracking-[0.14em] text-rose-300">Fail When</div>
+                                    <div className="text-xs font-black uppercase tracking-[0.14em] text-fail-red">Fail When</div>
                                     <div className="mt-2">
                                       <GuidanceList
                                         items={item.fail_when}
@@ -4559,11 +4559,11 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                   </div>
                                 )}
                                 <div className="mt-4">
-                                  <div className="text-xs font-black uppercase tracking-[0.14em] text-amber-300">Pending When</div>
+                                  <div className="text-xs font-black uppercase tracking-[0.14em] text-warning-amber">Pending When</div>
                                   <div className="mt-2">
                                     <GuidanceList
                                       items={item.pending_when}
-                                      bulletClassName="bg-amber-300"
+                                      bulletClassName="bg-warning-amber"
                                       textClassName={EMPHASIZED_BODY_TEXT_CLASS}
                                     />
                                   </div>
@@ -4580,7 +4580,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                       <div className="mt-2">
                                         <GuidanceList
                                           items={item.required_evidence}
-                                          bulletClassName="bg-[#FFB089]"
+                                          bulletClassName="bg-warning-amber"
                                           textClassName="text-sm text-zinc-300"
                                         />
                                       </div>
@@ -4633,7 +4633,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                       onChange={event => updateItem(item.item_code, current => ({ ...current, response_note: event.target.value }))}
                                       rows={4}
                                       placeholder={item.inspector_notes_guidance}
-                                      className="mt-3 w-full rounded-2xl border border-white/10 bg-[var(--color-raised)] px-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:border-[#FF5F15] focus:outline-none"
+                                      className="mt-3 w-full rounded-2xl border border-white/10 bg-[var(--color-raised)] px-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:border-flame focus:outline-none"
                                     />
                                   </>
                                 )}
@@ -4675,7 +4675,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                             tabIndex={-1}
                             className={`rounded-2xl bg-white/5 p-4 outline-none transition-shadow ${
                               highlightedEvidenceItemCode === item.item_code
-                                ? 'ring-2 ring-rose-400 ring-offset-2 ring-offset-[#050816]'
+                                ? 'ring-2 ring-warning-amber ring-offset-2 ring-offset-[#050816]'
                                 : ''
                             }`}
                           >
@@ -4699,7 +4699,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                   buttonClassName={TACTILE_MEDIA_BUTTON_CLASS}
                                   onCapture={async payload => { await handleFieldEvidenceCapture(item.item_code, payload) }}
                                 />
-                                <label className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-2xl bg-[#FF5F15] px-4 py-3 text-xs font-black text-white hover:bg-[#e25412]">
+                                <label className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-2xl bg-flame px-4 py-3 text-xs font-black text-white hover:bg-flame-light">
                                   <Upload className="h-4 w-4" />
                                   Upload
                                   <input
@@ -4752,7 +4752,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                     {showRequirementIndicator && (
                       <div
                         aria-hidden="true"
-                        className={`absolute inset-y-0 left-0 w-1 ${passBlockedForEvidence ? 'bg-rose-500' : 'bg-emerald-500'}`}
+                        className={`absolute inset-y-0 left-0 w-1 ${passBlockedForEvidence ? 'bg-warning-amber' : 'bg-success-green'}`}
                       />
                     )}
                     <div className="flex flex-col gap-3">
@@ -4774,13 +4774,13 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                             <h3 className="text-lg font-black leading-tight sm:text-xl">{item.item_label}</h3>
                             {showRequirementIndicator && (
                               passBlockedForEvidence ? (
-                                  <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-500/10 px-2.5 py-1 text-[11px] font-bold text-[color:var(--color-ink)]">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                                  <span className="inline-flex items-center gap-1.5 rounded-full border border-rim/70 bg-white/5 px-2.5 py-1 text-[11px] font-bold text-warning-amber">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-warning-amber" />
                                     Evidence required
                                   </span>
                               ) : (
                                 <span
-                                  className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-500/15 text-emerald-300"
+                                  className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-rim/60 bg-raised text-success-green"
                                   aria-label="Required evidence uploaded"
                                   title="Required evidence uploaded"
                                 >
@@ -4971,7 +4971,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                               </div>
                             </div>
 
-                            <div className={`rounded-3xl border border-emerald-500/15 bg-emerald-500/5 p-4 ${FLOATING_PANEL_CLASS}`}>
+                            <div className={`rounded-3xl border border-rim/70 bg-white/5 p-4 ${FLOATING_PANEL_CLASS}`}>
                               <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-200/80">Pass / Pending</div>
                               <div className="mt-3">
                                 <div className="text-xs font-black uppercase tracking-[0.14em] text-emerald-300">Pass When</div>
@@ -4984,11 +4984,11 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                 </div>
                               </div>
                               <div className="mt-4">
-                                <div className="text-xs font-black uppercase tracking-[0.14em] text-amber-300">Pending When</div>
+                                <div className="text-xs font-black uppercase tracking-[0.14em] text-warning-amber">Pending When</div>
                                 <div className="mt-2">
                                   <GuidanceList
                                     items={item.pending_when}
-                                    bulletClassName="bg-amber-300"
+                                    bulletClassName="bg-warning-amber"
                                     textClassName={EMPHASIZED_BODY_TEXT_CLASS}
                                   />
                                 </div>
@@ -5005,7 +5005,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                     <div className="mt-2">
                                       <GuidanceList
                                         items={item.required_evidence}
-                                        bulletClassName="bg-[#FFB089]"
+                                        bulletClassName="bg-warning-amber"
                                         textClassName="text-sm text-zinc-300"
                                       />
                                     </div>
@@ -5061,7 +5061,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                     onChange={event => updateItem(item.item_code, current => ({ ...current, response_note: event.target.value }))}
                                     rows={4}
                                     placeholder={item.inspector_notes_guidance}
-                                    className="mt-3 w-full rounded-2xl border border-white/10 bg-[var(--color-raised)] px-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:border-[#FF5F15] focus:outline-none"
+                                    className="mt-3 w-full rounded-2xl border border-white/10 bg-[var(--color-raised)] px-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:border-flame focus:outline-none"
                                   />
                                 </>
                               )}
@@ -5102,7 +5102,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                           tabIndex={-1}
                           className={`rounded-2xl bg-white/5 p-4 outline-none transition-shadow ${
                             highlightedEvidenceItemCode === item.item_code
-                              ? 'ring-2 ring-rose-400 ring-offset-2 ring-offset-[#050816]'
+                              ? 'ring-2 ring-warning-amber ring-offset-2 ring-offset-[#050816]'
                               : ''
                           }`}
                         >
@@ -5128,7 +5128,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                 buttonClassName={TACTILE_MEDIA_BUTTON_CLASS}
                                 onCapture={async payload => { await handleFieldEvidenceCapture(item.item_code, payload) }}
                               />
-                              <label className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-xl bg-[#FF5F15] px-4 py-3 text-xs font-black text-white hover:bg-[#e25412]">
+                              <label className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-xl bg-flame px-4 py-3 text-xs font-black text-white hover:bg-flame-light">
                                 <Upload className="h-4 w-4" />
                                 Upload
                                 <input
@@ -5190,11 +5190,11 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
 
                   <div className={`rounded-3xl border px-4 py-3 ${
                     finalOccupancyReady
-                      ? 'border-emerald-300/30 bg-emerald-500/10'
-                      : 'border-zinc-700 bg-white/5'
+                      ? 'border-rim/70 border-l-2 border-l-success-green bg-white/5'
+                      : 'border-rim/60 bg-white/5'
                   }`}>
                     <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Certification Gate</div>
-                    <div className={`mt-2 text-lg font-black ${finalOccupancyReady ? 'text-emerald-200' : 'text-zinc-200'}`}>
+                    <div className={`mt-2 text-lg font-black ${finalOccupancyReady ? 'text-success-green' : 'text-zinc-200'}`}>
                       {isScopedFinalOccupancy
                         ? `${scopedBuilderStagePassedCount} / 5`
                         : `${passedStageCount + (stageReadyForSignOff && !currentStageSignOff ? 1 : 0)} / ${stages.length}`
@@ -5218,32 +5218,32 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                   </div>
                   <div className="mt-3 h-3 overflow-hidden rounded-full bg-white/10">
                     <div
-                      className="h-full rounded-full bg-emerald-500 transition-all"
+                      className="h-full rounded-full bg-success-green transition-all"
                       style={{ width: `${Math.min(100, Math.round(((isScopedFinalOccupancy ? scopedBuilderStagePassedCount : passedStageCount + (stageReadyForSignOff && !currentStageSignOff ? 1 : 0)) / Math.max(isScopedFinalOccupancy ? 5 : stages.length, 1)) * 100))}%` }}
                     />
                   </div>
                 </div>
 
                 {!finalOccupancyReady && (
-                  <div className="mt-5 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100/90">
+                  <div className="mt-5 rounded-2xl border border-rim/70 border-l-2 border-l-warning-amber bg-white/5 px-4 py-3 text-sm text-ink">
                     Required prerequisite stages and items must be passed or marked N/A before final occupancy can be issued.
                   </div>
                 )}
 
                 {finalOccupancyReady && !finalSealLocationIntegrityReady && (
-                  <div className="mt-5 rounded-2xl border border-amber-300/40 bg-amber-100 px-4 py-4 text-sm text-amber-950 shadow-sm">
+                  <div className="mt-5 rounded-2xl border border-rim/70 border-l-2 border-l-warning-amber bg-white/5 px-4 py-4 text-sm text-ink shadow-sm">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div>
-                        <div className="flex items-center gap-2 font-black text-amber-950">
-                          <AlertTriangle className="h-5 w-5 text-amber-700" />
+                        <div className="flex items-center gap-2 font-black text-ink">
+                          <AlertTriangle className="h-5 w-5 text-warning-amber" />
                           Pre-seal evidence location review required
                         </div>
-                        <p className="mt-2 max-w-3xl leading-relaxed text-amber-950">
+                        <p className="mt-2 max-w-3xl leading-relaxed text-muted">
                           Final occupancy is blocked until each evidence item has GPS coordinates or a manual location note.
                           This supports the Vero platform record only and does not represent AHJ approval.
                         </p>
                       </div>
-                      <div className="rounded-xl border border-amber-300 bg-white px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-amber-900">
+                      <div className="rounded-xl border border-rim/70 bg-white/5 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-warning-amber">
                         {preSealEvidenceLocationIssues.length} item{preSealEvidenceLocationIssues.length === 1 ? '' : 's'} to resolve
                       </div>
                     </div>
@@ -5300,7 +5300,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                 type="button"
                                 disabled={saving || draft.trim().length === 0}
                                 onClick={() => void handleManualLocationNoteSave(itemCode, doc, draft)}
-                                className="inline-flex min-h-[42px] items-center justify-center gap-2 rounded-xl bg-amber-600 px-4 py-2 text-sm font-black text-white transition-colors hover:bg-amber-700 disabled:cursor-not-allowed disabled:bg-zinc-300 disabled:text-zinc-600"
+                                className="inline-flex min-h-[42px] items-center justify-center gap-2 rounded-xl bg-flame px-4 py-2 text-sm font-semibold text-white shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light disabled:cursor-not-allowed disabled:bg-zinc-300 disabled:text-zinc-600"
                               >
                                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
                                 {saving ? 'Saving...' : 'Save Manual Location Note'}
@@ -5326,7 +5326,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       Final occupancy stamps the current geolocation and ISO timestamp into the certification record.
                     </div>
                     <div className="flex items-center gap-2">
-                      <Stamp className="h-4 w-4 text-amber-300" />
+                      <Stamp className="h-4 w-4 text-warning-amber" />
                       Project state will transition to Completed and display as Project Record Complete.
                     </div>
                   </div>
@@ -5337,7 +5337,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                     onClick={() => void handleFinalOccupancyIssue()}
                     className={`inline-flex min-h-[54px] items-center justify-center gap-2 rounded-2xl px-6 py-3 text-sm font-black uppercase tracking-[0.12em] transition-colors ${
                       finalOccupancyActionReady
-                        ? 'bg-emerald-600 text-white shadow-[0_18px_34px_rgba(5,150,105,0.28)] hover:bg-emerald-700'
+                        ? 'bg-flame text-white shadow-sm ring-1 ring-inset ring-white/10 hover:bg-flame-light'
                         : 'cursor-not-allowed bg-zinc-800 text-zinc-500'
                     }`}
                   >
@@ -5347,10 +5347,10 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                 </div>
               </div>
             ) : (
-              <div className={`rounded-[2rem] border border-[#FF5F15]/20 bg-[var(--color-panel)] p-5 shadow-[0_0_0_1px_rgba(255,95,21,0.08)] ${FLOATING_PANEL_CLASS}`}>
+              <div className={`rounded-[2rem] border border-flame/20 bg-[var(--color-panel)] p-5 shadow-[0_0_0_1px_rgba(255,95,21,0.08)] ${FLOATING_PANEL_CLASS}`}>
                 <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                   <div className="max-w-2xl">
-                    <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#FFB089]">Stage Summary Footer</div>
+                    <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-flame">Stage Summary Footer</div>
                     <h3 className="mt-2 text-2xl font-black">Sign Off S{String(currentStage).padStart(2, '0')}</h3>
                     <p className="mt-2 text-sm text-zinc-300">
                       Required containers must be fully checked, evidence-backed, and clear of failures before this stage can be signed and pushed forward.
@@ -5359,20 +5359,20 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
 
                   <div className={`rounded-3xl border px-4 py-3 ${
                     stageReadyForSignOff
-                      ? 'border-emerald-500/30 bg-emerald-500/10'
-                      : 'border-amber-500/20 bg-amber-500/10'
+                      ? 'border-rim/70 border-l-2 border-l-success-green bg-white/5'
+                      : 'border-rim/70 border-l-2 border-l-warning-amber bg-white/5'
                   }`}>
                     <div className="flex items-start gap-3">
                       {currentStageSignOff ? (
-                        <ShieldCheck className="mt-0.5 h-5 w-5 text-emerald-300" />
+                        <ShieldCheck className="mt-0.5 h-5 w-5 text-success-green" />
                       ) : stageReadyForSignOff ? (
-                        <CheckCircle2 className="mt-0.5 h-5 w-5 text-emerald-300" />
+                        <CheckCircle2 className="mt-0.5 h-5 w-5 text-success-green" />
                       ) : (
-                        <Lock className="mt-0.5 h-5 w-5 text-amber-300" />
+                        <Lock className="mt-0.5 h-5 w-5 text-warning-amber" />
                       )}
                       <div className="text-sm">
                         <div className={`font-black ${
-                          currentStageSignOff || stageReadyForSignOff ? 'text-emerald-200' : 'text-amber-200'
+                          currentStageSignOff || stageReadyForSignOff ? 'text-success-green' : 'text-warning-amber'
                         }`}>
                           {currentStageSignOff ? 'Stage Passed' : stageReadyForSignOff ? 'Ready for Sign-Off' : 'Requirements Incomplete'}
                         </div>
@@ -5394,7 +5394,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                   <div className="mt-3 h-3 overflow-hidden rounded-full bg-white/8">
                     <div
                       className={`h-full rounded-full transition-all ${
-                        currentStageSignOff || stageReadyForSignOff ? 'bg-emerald-400' : 'bg-[#FF5F15]'
+                        currentStageSignOff || stageReadyForSignOff ? 'bg-success-green' : 'bg-flame'
                       }`}
                       style={{ width: `${currentStageSignOff ? 100 : stageCompletionPercent}%` }}
                     />
@@ -5405,33 +5405,33 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                   || (!currentStageSignOff && failedStageItems.length > 0)
                   || (!currentStageSignOff && blockedStageItems.length > 0)
                   || (!currentStageSignOff && incompleteStageItems.length > 0)) && (
-                  <div className="mt-4 rounded-2xl border border-amber-500/25 bg-amber-500/5 px-4 py-3">
-                    <div className="text-[11px] font-black uppercase tracking-[0.18em] text-amber-200/90">Remaining before sign-off</div>
+                  <div className="mt-4 rounded-2xl border border-rim/70 border-l-2 border-l-warning-amber bg-white/5 px-4 py-3">
+                    <div className="text-[11px] font-black uppercase tracking-[0.18em] text-warning-amber">Remaining before sign-off</div>
                     <div className="mt-3 space-y-2 text-sm">
                       {blockingFailedStageItems.length > 0 && (
-                        <div className="flex items-start gap-2 text-red-100/90">
-                          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-300" />
+                        <div className="flex items-start gap-2 text-muted">
+                          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-fail-red" />
                           <span>{FAIL_DOCUMENTATION_REQUIRED_MESSAGE} {blockingFailedStageItems.map(item => item.item_code).join(', ')}.</span>
                         </div>
                       )}
 
                       {!currentStageSignOff && blockingFailedStageItems.length === 0 && failedStageItems.length > 0 && (
-                        <div className="flex items-start gap-2 text-amber-100/90">
-                          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
+                        <div className="flex items-start gap-2 text-muted">
+                          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-warning-amber" />
                           <span>Documented deficiencies will be filed: {failedStageItems.map(item => item.item_code).join(', ')}. This stage will not advance and the builder will receive a Corrections Required notice.</span>
                         </div>
                       )}
 
                       {!currentStageSignOff && blockingFailedStageItems.length === 0 && blockedStageItems.length > 0 && (
-                        <div className="flex items-start gap-2 text-amber-100/90">
-                          <Lock className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
+                        <div className="flex items-start gap-2 text-muted">
+                          <Lock className="mt-0.5 h-4 w-4 shrink-0 text-warning-amber" />
                           <span>Resolve dependency blockers before signing off: {blockedStageItems.map(({ item, blockedBy }) => `${item.item_code} needs ${blockedBy.join(', ')}`).join('; ')}.</span>
                         </div>
                       )}
 
                       {!currentStageSignOff && blockingFailedStageItems.length === 0 && blockedStageItems.length === 0 && incompleteStageItems.length > 0 && (
-                        <div className="flex items-start gap-2 text-amber-100/90">
-                          <CircleDashed className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
+                        <div className="flex items-start gap-2 text-muted">
+                          <CircleDashed className="mt-0.5 h-4 w-4 shrink-0 text-warning-amber" />
                           <span>Finish these containers first: {incompleteStageItems.map(item => item.item_code).join(', ')}.</span>
                         </div>
                       )}
@@ -5440,7 +5440,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                 )}
 
                 {stageSignOffError && (
-                  <div className="mt-4 rounded-2xl border border-cyan-500/20 bg-cyan-500/10 px-4 py-3 text-sm text-cyan-100/90">
+                  <div className="mt-4 rounded-2xl border border-rim/70 border-l-2 border-l-electric bg-white/5 px-4 py-3 text-sm text-ink">
                     {stageSignOffError}
                   </div>
                 )}
@@ -5448,12 +5448,12 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                 <div className="mt-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                   <div className="space-y-2 text-xs text-zinc-400">
                     <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-cyan-300" />
+                      <MapPin className="h-4 w-4 text-electric" />
                       Sign-off stamps the current geolocation and ISO timestamp into the stage record.
                     </div>
                     {currentStageSignOff && (
                       <div className="flex items-center gap-2">
-                        <Stamp className="h-4 w-4 text-[#FFB089]" />
+                        <Stamp className="h-4 w-4 text-flame" />
                         {currentStageSignOff.unlockedStages.length > 0
                           ? `Unlocked stages: ${currentStageSignOff.unlockedStages.map(stage => `Stage ${stage}`).join(', ')}`
                           : 'No downstream stage was unlocked by this sign-off yet.'}
@@ -5463,13 +5463,13 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
 
                   <div className="flex flex-col gap-3 sm:items-end">
                     {assignmentCloseRetryAvailable && (
-                      <div className="rounded-2xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-amber-100/90 sm:max-w-sm">
-                        <div className="font-black text-amber-100">Stage is signed. Finish closing the assignment record.</div>
+                      <div className="rounded-2xl border border-rim/70 border-l-2 border-l-warning-amber bg-white/5 px-4 py-3 text-sm text-ink sm:max-w-sm">
+                        <div className="font-black text-ink">Stage is signed. Finish closing the assignment record.</div>
                         <button
                           type="button"
                           disabled={assignmentCloseRetrying}
                           onClick={() => void handleScopedAssignmentCloseRetry()}
-                          className="mt-3 inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-amber-400 px-4 py-2.5 text-xs font-black text-zinc-950 transition-colors hover:bg-amber-300 disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500"
+                          className="mt-3 inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-flame px-4 py-2.5 text-xs font-semibold text-white shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500"
                         >
                           {assignmentCloseRetrying ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
                           {assignmentCloseRetrying ? 'Closing Assignment...' : 'Complete Assignment Close'}
@@ -5483,7 +5483,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       className={`inline-flex min-h-[52px] items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-black transition-colors ${
                         !stageReadyForSignOff || currentStageSignOff
                           ? 'cursor-not-allowed bg-zinc-800 text-zinc-500'
-                          : 'bg-[#FF5F15] text-white shadow-[0_14px_30px_rgba(255,95,21,0.28)] hover:bg-[#e25412]'
+                          : 'bg-flame text-white shadow-sm ring-1 ring-inset ring-white/10 hover:bg-flame-light'
                       }`}
                     >
                       {stageSigning ? <Loader2 className="h-4 w-4 animate-spin" /> : currentStageSignOff ? <ShieldCheck className="h-4 w-4" /> : stageReadyForSignOff ? <Stamp className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
@@ -5505,15 +5505,15 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                     </p>
                   </div>
 
-                  <div className={`rounded-3xl border px-4 py-3 ${sealReady && finalSealLocationIntegrityReady ? 'border-emerald-500/30 bg-emerald-500/10' : 'border-amber-500/20 bg-amber-500/10'}`}>
+                  <div className={`rounded-3xl border px-4 py-3 ${sealReady && finalSealLocationIntegrityReady ? 'border-rim/70 border-l-2 border-l-success-green bg-white/5' : 'border-rim/70 border-l-2 border-l-warning-amber bg-white/5'}`}>
                     <div className="flex items-start gap-3">
                       {sealReady && finalSealLocationIntegrityReady ? (
-                        <ShieldCheck className="mt-0.5 h-5 w-5 text-emerald-300" />
+                        <ShieldCheck className="mt-0.5 h-5 w-5 text-success-green" />
                       ) : (
-                        <Lock className="mt-0.5 h-5 w-5 text-amber-300" />
+                        <Lock className="mt-0.5 h-5 w-5 text-warning-amber" />
                       )}
                       <div className="text-sm">
-                        <div className={`font-black ${sealReady && finalSealLocationIntegrityReady ? 'text-emerald-200' : 'text-amber-200'}`}>
+                        <div className={`font-black ${sealReady && finalSealLocationIntegrityReady ? 'text-success-green' : 'text-warning-amber'}`}>
                           {sealReady && finalSealLocationIntegrityReady ? 'Seal Ready' : 'Seal Locked'}
                         </div>
                         <div className="mt-1 text-xs text-zinc-300">
@@ -5554,7 +5554,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       onClick={() => void applySeal()}
                       className={`inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-black ${
                         sealReady && finalSealLocationIntegrityReady
-                          ? 'bg-[#FF5F15] text-white hover:bg-[#e25412]'
+                          ? 'bg-flame text-white hover:bg-flame-light'
                           : 'cursor-not-allowed bg-zinc-800 text-zinc-100'
                       }`}
                     >
@@ -5599,7 +5599,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
               className={`inline-flex min-h-[48px] items-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold text-white ${
                 footerIssueCount > 0
                   ? 'cursor-not-allowed bg-zinc-700 text-zinc-300'
-                  : 'bg-[#FF5F15] disabled:cursor-not-allowed disabled:opacity-40'
+                  : 'bg-flame disabled:cursor-not-allowed disabled:opacity-40'
               }`}
             >
               Next Stage

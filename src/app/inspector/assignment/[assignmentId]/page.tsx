@@ -219,9 +219,9 @@ export default function InspectorAssignmentDetailPage() {
       <div className="app-theme-scope min-h-screen bg-surface">
         <Navbar role="inspector" dark />
         <main className="mx-auto max-w-3xl px-4 py-10">
-          <div className="rounded-3xl border border-red-500/20 bg-red-500/10 p-6 text-red-100">
-            <div className="text-lg font-black">Assignment unavailable</div>
-            <p className="mt-2 text-sm text-red-100/80">{error ?? 'The provisional assignment could not be loaded.'}</p>
+          <div className="rounded-3xl border border-rim/70 border-l-2 border-l-fail-red bg-raised p-6">
+            <div className="text-lg font-black text-fail-red">Assignment unavailable</div>
+            <p className="mt-2 text-sm text-muted">{error ?? 'The provisional assignment could not be loaded.'}</p>
             <Link href="/inspector" className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-white">
               <ArrowLeft className="h-4 w-4" />
               Back to Live Board
@@ -244,15 +244,15 @@ export default function InspectorAssignmentDetailPage() {
           Back to Live Board
         </Link>
 
-        <div className="rounded-[28px] border border-electric/20 bg-panel p-6 shadow-card">
+        <div className="rounded-[28px] border border-rim/70 bg-panel p-6 shadow-sm">
           {previewMode && (
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-amber-200">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-rim/70 bg-white/[0.02] px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-warning-amber">
               Dev Preview Only
             </div>
           )}
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div>
-              <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-electric/30 bg-electric/10 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-electric">
+              <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-rim/70 bg-white/[0.02] px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-electric">
                 <ShieldCheck className="h-3.5 w-3.5" />
                 {provisional ? 'Provisional Assignment' : 'Assignment Ready'}
               </div>
@@ -312,7 +312,7 @@ export default function InspectorAssignmentDetailPage() {
             <div className="mt-4 flex flex-col gap-3 sm:flex-row">
               <Link
                 href={`/inspector/completion/${assignment.id}`}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-flame px-5 py-3 text-sm font-black text-white transition-all hover:bg-flame-light"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-flame px-5 py-3 text-sm font-semibold text-white shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light"
               >
                 Open Completion Workspace
                 <ChevronRight className="h-4 w-4" />
@@ -327,8 +327,8 @@ export default function InspectorAssignmentDetailPage() {
           </div>
 
           {provisional && (countdown === null || countdown.remainingMs > 0) && (
-            <div className="mt-4 flex items-start gap-2 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-xs text-amber-900">
-              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
+            <div className="mt-4 flex items-start gap-2 rounded-2xl border border-rim/70 border-l-2 border-l-warning-amber bg-raised px-4 py-3 text-xs text-ink">
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-warning-amber" />
               <span>
                 You have successfully claimed this inspection, but the assignment is currently provisional. To ensure fair dispatch, builders cannot hand-pick inspectors, but they do have a brief window to submit a formal objection before your assignment is finalized.
               </span>

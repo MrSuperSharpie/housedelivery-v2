@@ -135,14 +135,16 @@ export function DailyFlash({ projects, dataMode, reportsByJobId, linkableProject
     { key: 'pending',     label: 'Pending',     sub: 'action needed',   count: pendingProjects.length,    tone: 'sky' },
   ]
 
-  const toneClasses: Record<string, { border: string; bg: string; text: string; ring: string }> = {
-    emerald: { border: 'border-emerald-600/25', bg: 'bg-emerald-500/10', text: 'text-emerald-400', ring: 'ring-emerald-400/60' },
-    amber:   { border: 'border-amber-500/25',   bg: 'bg-amber-500/10',   text: 'text-amber-400',   ring: 'ring-amber-400/60' },
-    sky:     { border: 'border-sky-500/25',     bg: 'bg-sky-500/10',     text: 'text-sky-400',     ring: 'ring-sky-400/60' },
+  // Neutral card surfaces; state meaning carried by the theme-aware semantic icon/label
+  // colour, not a pastel fill. Active state shown with a thin semantic ring.
+  const toneClasses: Record<string, { text: string; ring: string }> = {
+    emerald: { text: 'text-success-green', ring: 'ring-success-green/50' },
+    amber:   { text: 'text-warning-amber', ring: 'ring-warning-amber/50' },
+    sky:     { text: 'text-electric',      ring: 'ring-electric/50' },
   }
 
   return (
-    <section className="rounded-2xl border border-rim bg-panel p-4 shadow-card" data-report-mode={dataMode}>
+    <section className="rounded-2xl border border-rim/70 bg-panel p-4 shadow-sm" data-report-mode={dataMode}>
       {/* Header */}
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
@@ -179,8 +181,8 @@ export function DailyFlash({ projects, dataMode, reportsByJobId, linkableProject
               type="button"
               onClick={() => setActiveFilter(card.key)}
               aria-pressed={isActive}
-              className={`rounded-xl border p-3 text-left transition-all ${tone.border} ${tone.bg} ${
-                isActive ? `ring-2 ${tone.ring}` : 'hover:brightness-110'
+              className={`rounded-xl border border-rim/70 bg-white/[0.02] p-3 text-left transition-all ${
+                isActive ? `ring-2 ${tone.ring}` : 'hover:border-rim'
               }`}
             >
               <div className="mb-1 flex items-center gap-1.5">
@@ -189,7 +191,7 @@ export function DailyFlash({ projects, dataMode, reportsByJobId, linkableProject
                 {card.key === 'pending' && <Clock className={`h-3.5 w-3.5 ${tone.text}`} />}
                 <span className={`text-[11px] font-bold ${tone.text}`}>{card.label}</span>
               </div>
-              <div className={`text-2xl font-black ${tone.text}`}>{card.count}</div>
+              <div className="text-2xl font-black text-ink">{card.count}</div>
               <div className="mt-0.5 text-[10px] font-medium text-muted">{card.sub}</div>
             </button>
           )
@@ -234,9 +236,9 @@ export function DailyFlash({ projects, dataMode, reportsByJobId, linkableProject
             const reportId = activeFilter === 'passed' ? (reportsByJobId?.[project.id]?.id ?? null) : null
             const canLink = linkableIds.has(project.id)
             const rowTone =
-              activeFilter === 'passed' ? 'border-emerald-600/25 bg-emerald-500/[0.08]'
-              : activeFilter === 'corrections' ? 'border-amber-500/25 bg-amber-500/[0.08]'
-              : 'border-sky-500/25 bg-sky-500/[0.08]'
+              activeFilter === 'passed' ? 'border-rim/70 border-l-2 border-l-success-green bg-white/[0.02]'
+              : activeFilter === 'corrections' ? 'border-rim/70 border-l-2 border-l-warning-amber bg-white/[0.02]'
+              : 'border-rim/70 border-l-2 border-l-electric bg-white/[0.02]'
             return (
               <div key={project.id} className={`flex items-center gap-3 rounded-xl border p-2.5 ${rowTone}`}>
                 {project.photos[0] && (
@@ -274,11 +276,11 @@ export function DailyFlash({ projects, dataMode, reportsByJobId, linkableProject
                     Download C-B
                   </a>
                 ) : activeFilter === 'passed' ? (
-                  <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-success-green" />
                 ) : activeFilter === 'corrections' ? (
-                  <AlertTriangle className="h-4 w-4 shrink-0 text-amber-400" />
+                  <AlertTriangle className="h-4 w-4 shrink-0 text-warning-amber" />
                 ) : (
-                  <Clock className="h-4 w-4 shrink-0 text-sky-400" />
+                  <Clock className="h-4 w-4 shrink-0 text-electric" />
                 )}
               </div>
             )

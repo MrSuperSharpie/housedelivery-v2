@@ -41,13 +41,16 @@ const COMMITMENT_CHECKS = [
   'I understand that I am paid for professional inspection work and documentation, not for issuing a Pass result.',
 ]
 
+// Discipline is read from the label text; the pill stays neutral and outlined rather
+// than a per-discipline pastel colour (matches the dashboard colour discipline).
+const DISCIPLINE_NEUTRAL = 'text-muted bg-white/[0.02] border-rim/70'
 const DISCIPLINE_COLOR: Record<string, string> = {
-  structural:    'text-orange-300 bg-orange-500/15 border-orange-500/25',
-  geotech:       'text-yellow-300 bg-yellow-500/15 border-yellow-500/25',
-  electrical:    'text-blue-300   bg-blue-500/15   border-blue-500/25',
-  mechanical:    'text-purple-300 bg-purple-500/15 border-purple-500/25',
-  architectural: 'text-emerald-300 bg-emerald-500/15 border-emerald-500/25',
-  plumbing:      'text-cyan-300   bg-cyan-500/15   border-cyan-500/25',
+  structural:    DISCIPLINE_NEUTRAL,
+  geotech:       DISCIPLINE_NEUTRAL,
+  electrical:    DISCIPLINE_NEUTRAL,
+  mechanical:    DISCIPLINE_NEUTRAL,
+  architectural: DISCIPLINE_NEUTRAL,
+  plumbing:      DISCIPLINE_NEUTRAL,
 }
 
 const TIER_META = {
@@ -285,7 +288,7 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim, onConfirmAt
       <ModalShell onClose={onClose} onBack={() => setStep(backStep as ClaimStep)} title="Confirm Professional Commitment">
         <div className="p-5 space-y-5">
           {claimError && (
-            <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300">
+            <div className="rounded-xl border border-rim/70 border-l-2 border-l-fail-red bg-raised px-3 py-2 text-xs text-fail-red">
               {claimError}
             </div>
           )}
@@ -296,8 +299,8 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim, onConfirmAt
             {COMMITMENT_CHECKS.map((text, i) => (
               <label key={i} className={`flex cursor-pointer gap-3 rounded-2xl border p-3.5 transition-all ${
                 checks[i]
-                  ? 'border-success-green/40 bg-success-green/10'
-                  : 'border-white/10 bg-panel hover:border-white/20'
+                  ? 'border-rim/70 bg-white/[0.02]'
+                  : 'border-rim/50 bg-panel hover:border-rim/70'
               }`}>
                 <input
                   type="checkbox"
@@ -316,7 +319,7 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim, onConfirmAt
           <button
             onClick={handleCommitmentClaim}
             disabled={!allChecked}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-success-green py-4 text-base font-black text-white transition-all hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-success-green/30 disabled:cursor-not-allowed disabled:opacity-40 disabled:text-white/80">
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-flame py-4 text-base font-semibold text-white shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light focus:outline-none focus:ring-2 focus:ring-flame/40 disabled:cursor-not-allowed disabled:opacity-40 disabled:text-white/80">
             <CheckCircle2 className="w-5 h-5" />
             Claim Inspection
           </button>
@@ -345,7 +348,7 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim, onConfirmAt
         <div className="p-5 space-y-5">
           <p className="text-sm text-muted">Propose a time that works for you. If you claim it, the assignment becomes provisional immediately and the builder keeps only governed objection rights.</p>
           {claimError && (
-            <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300">
+            <div className="rounded-xl border border-rim/70 border-l-2 border-l-fail-red bg-raised px-3 py-2 text-xs text-fail-red">
               {claimError}
             </div>
           )}
@@ -398,7 +401,7 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim, onConfirmAt
           <button
             onClick={handleConfirmSuggest}
             disabled={!suggestDate || !suggestStart || !suggestEnd}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-flame py-4 font-bold text-white transition-all hover:bg-flame-light focus:outline-none focus:ring-2 focus:ring-flame/30 disabled:cursor-not-allowed disabled:opacity-45 disabled:text-white/80">
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-flame py-4 font-semibold text-white shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light focus:outline-none focus:ring-2 focus:ring-flame/40 disabled:cursor-not-allowed disabled:opacity-45 disabled:text-white/80">
             <Calendar className="w-4 h-4" />
             Claim Suggested Time
           </button>
@@ -414,7 +417,7 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim, onConfirmAt
         <div className="p-5 space-y-4">
           <p className="text-sm text-muted">Select a time slot to claim this job. Your assignment is provisional — the builder has a limited window to raise an objection.</p>
           {claimError && (
-            <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300">
+            <div className="rounded-xl border border-rim/70 border-l-2 border-l-fail-red bg-raised px-3 py-2 text-xs text-fail-red">
               {claimError}
             </div>
           )}
@@ -426,7 +429,7 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim, onConfirmAt
                 return (
                   <button key={i} onClick={() => setSelectedSlot(isSelected ? null : slot)}
                     className={`w-full rounded-2xl border-2 p-4 text-left transition-all focus:outline-none focus:ring-2 focus:ring-flame/30 ${
-                      isSelected ? 'border-flame bg-flame/10' : 'border-white/8 bg-panel hover:border-white/20 hover:bg-raised'
+                      isSelected ? 'border-flame bg-flame/[0.05]' : 'border-rim/50 bg-panel hover:border-rim/70 hover:bg-raised'
                     }`}>
                     <div className="flex items-center justify-between">
                       <div>
@@ -469,7 +472,7 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim, onConfirmAt
           <button
             onClick={handleConfirmSlot}
             disabled={!selectedSlot && !!job.availableSlots && job.availableSlots.length > 0}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-success-green py-4 text-base font-black text-white transition-all hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-success-green/30 disabled:cursor-not-allowed disabled:opacity-40 disabled:text-white/80">
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-flame py-4 text-base font-semibold text-white shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light focus:outline-none focus:ring-2 focus:ring-flame/40 disabled:cursor-not-allowed disabled:opacity-40 disabled:text-white/80">
             <CheckCircle2 className="w-5 h-5" />
             {selectedSlot
               ? `Claim — ${fmtDate(selectedSlot.date)}, ${fmtTime(selectedSlot.startTime)}`
@@ -509,7 +512,7 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim, onConfirmAt
             </div>
           </div>
           <div className="text-right shrink-0">
-            <div className="text-2xl font-black text-success-green">{formatCurrency(pricing.inspectorPayout)}</div>
+            <div className="text-2xl font-black text-ink">{formatCurrency(pricing.inspectorPayout)}</div>
             <div className="text-xs text-muted">${hrlyRate}/hr est.</div>
           </div>
         </div>
@@ -549,13 +552,13 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim, onConfirmAt
         <Section
           title="Next Required Check-in"
           icon={Clock}
-          accent={nextCheckIn.critical ? 'border-amber-300 bg-amber-100 text-amber-900 dark:border-warning-amber/30 dark:bg-warning-amber/10' : undefined}
+          accent={nextCheckIn.critical ? 'border-rim/70 border-l-2 border-l-warning-amber bg-raised text-ink' : undefined}
         >
           <Row label="Checkpoint" val={nextCheckIn.label ?? 'Check-in'} />
           <Row label="Status" val={nextCheckInStatus.charAt(0).toUpperCase() + nextCheckInStatus.slice(1)} />
           <Row label="Required" val={nextCheckInTime} />
           {nextCheckIn.checkpoint === 't_90m' && (
-            <p className="text-xs text-amber-900 dark:text-warning-amber">
+            <p className="text-xs text-warning-amber">
               Missing this go/no-go check may activate standby dispatch support.
             </p>
           )}
@@ -564,7 +567,7 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim, onConfirmAt
               type="button"
               onClick={handleConfirmAttendance}
               disabled={isConfirmingAttendance}
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-success-green px-3 py-2.5 text-xs font-black text-white transition-all hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-success-green/30 disabled:cursor-not-allowed disabled:opacity-50"
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-flame px-3 py-2.5 text-xs font-semibold text-white shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light focus:outline-none focus:ring-2 focus:ring-flame/40 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <CheckCircle2 className="h-4 w-4" />
               {isConfirmingAttendance ? 'Recording check-in...' : 'Confirm Attendance'}
@@ -801,7 +804,7 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim, onConfirmAt
           <>
             <button
               onClick={() => goToCommitment(flexibleClaimSlot)}
-              className="flex w-full items-center justify-center gap-2.5 rounded-2xl bg-fail-red/90 py-4 text-base font-black text-white transition-all hover:bg-fail-red focus:outline-none focus:ring-2 focus:ring-fail-red/30">
+              className="flex w-full items-center justify-center gap-2.5 rounded-2xl bg-fail-red py-4 text-base font-semibold text-white shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-fail-red/40">
               <Zap className="w-5 h-5" />
               Claim Emergency Slot — respond within 24h · {formatCurrency(job.offeredRate)}
             </button>
@@ -812,7 +815,7 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim, onConfirmAt
         ) : (
           <>
             <button onClick={() => setStep('schedule')}
-              className="flex w-full items-center justify-center gap-2.5 rounded-2xl bg-flame py-4 text-base font-black text-white transition-all hover:bg-flame-light focus:outline-none focus:ring-2 focus:ring-flame/30">
+              className="flex w-full items-center justify-center gap-2.5 rounded-2xl bg-flame py-4 text-base font-semibold text-white shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light focus:outline-none focus:ring-2 focus:ring-flame/40">
               <CheckCircle2 className="w-5 h-5" />
               Claim This Slot — {formatCurrency(job.offeredRate)}
               <ChevronRight className="w-4 h-4" />
@@ -887,7 +890,7 @@ function Row({ label, val, mono, highlight }: { label: string; val: string; mono
   return (
     <div className="flex items-center justify-between gap-4">
       <span className="text-xs text-muted shrink-0">{label}</span>
-      <span className={`text-xs text-right ${mono ? 'font-mono' : 'font-semibold'} ${highlight ? 'text-success-green font-bold' : 'text-ink'}`}>
+      <span className={`text-xs text-right ${mono ? 'font-mono' : 'font-semibold'} ${highlight ? 'text-ink font-bold' : 'text-ink'}`}>
         {val}
       </span>
     </div>

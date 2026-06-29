@@ -559,7 +559,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
       )}
 
       {postError && step !== 'confirm' && (
-        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-semibold text-red-600">
+        <div className="mb-4 rounded-xl border border-gray-200 border-l-2 border-l-red-500 bg-gray-50 p-3 text-xs font-semibold text-gray-700">
           {postError}
         </div>
       )}
@@ -575,7 +575,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
               type="button"
               onClick={handleUseCurrentLocation}
               disabled={isLocating}
-              className="absolute left-2 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl border border-orange-200 bg-orange-50 text-flame transition-all hover:border-flame/40 hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-flame/30 disabled:cursor-wait disabled:opacity-60"
+              className="absolute left-2 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl border border-gray-200 bg-gray-50 text-flame transition-all hover:border-gray-300 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 disabled:cursor-wait disabled:opacity-60"
               aria-label="Use current location"
               title="Use current location"
             >
@@ -668,7 +668,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             </p>
           )}
 
-          <Button variant="primary" size="lg" fullWidth disabled={!address.trim() || permitNumberIsMissing} onClick={() => {
+          <Button variant="primary" size="lg" fullWidth className="shadow-sm shadow-gray-900/10 disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400" disabled={!address.trim() || permitNumberIsMissing} onClick={() => {
             setPostError(null)
             const addrErr = validateSiteAddressFormat(address)
             if (addrErr) { setPostError(addrErr); return }
@@ -709,7 +709,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             {selectedTier === 'emergency' && 'Emergency dispatch windows are limited to today and tomorrow.'}
           </div>
           <SchedulingPicker slots={slots} onChange={setSlots} max={3} tier={selectedTier} />
-          <Button variant="primary" size="lg" fullWidth
+          <Button variant="primary" size="lg" fullWidth className="shadow-sm shadow-gray-900/10 disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400"
             disabled={!hasValidSchedulingWindow}
             onClick={() => setStep('intent')}>
             Continue <ChevronRight className="w-4 h-4" />
@@ -760,7 +760,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                       if (resolved.builderStage < 2 || permitNumber.trim()) setPermitError(null)
                     }}
                       className={`w-full text-left rounded-xl border-2 p-4 transition-all ${
-                        isSelected ? 'border-flame bg-orange-50' : 'border-gray-200 hover:border-gray-300 bg-white'
+                        isSelected ? 'border-gray-900 bg-white' : 'border-gray-200 hover:border-gray-300 bg-white'
                       }`}>
                       <div className="flex items-center gap-3">
                         <div className="flex-1 min-w-0">
@@ -794,7 +794,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                       if (resolved.builderStage < 2 || permitNumber.trim()) setPermitError(null)
                     }}
                       className={`w-full text-left rounded-xl border-2 p-4 transition-all ${
-                        isSelected ? 'border-flame bg-orange-50' : 'border-gray-200 hover:border-gray-300 bg-white'
+                        isSelected ? 'border-gray-900 bg-white' : 'border-gray-200 hover:border-gray-300 bg-white'
                       }`}>
                       <div className="flex items-center gap-3">
                         <div className="flex-1 min-w-0">
@@ -817,7 +817,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             if (!activeOpt) return null
             const isLow = activeOpt.confidence === 'low'
             return (
-              <div className="mb-5 rounded-xl border border-flame/30 bg-orange-50 px-4 py-3">
+              <div className="mb-5 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
                 <div className="text-xs font-black uppercase tracking-widest text-flame mb-1">
                   {isLow ? "We'll get you started" : 'This looks like'}
                 </div>
@@ -842,7 +842,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
               Safety. The technical stage / discipline screens are NOT in this
               flow — they are reachable only via the clearly-secondary "Change
               inspection details" link below. */}
-          <Button variant="primary" size="lg" fullWidth disabled={!selectedStage || !selectedDisc} onClick={() => {
+          <Button variant="primary" size="lg" fullWidth className="shadow-sm shadow-gray-900/10 disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400" disabled={!selectedStage || !selectedDisc} onClick={() => {
             setPostError(null)
             if (validatePermitReferenceBeforeContinuing()) return
             setStep('safety')
@@ -884,7 +884,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                   if (stage.id < 2 || permitNumber.trim()) setPermitError(null)
                 }}
                   className={`w-full text-left rounded-xl border-2 p-4 transition-all ${
-                    isSelected ? 'border-flame bg-orange-50' : 'border-gray-200 hover:border-gray-300 bg-white'
+                    isSelected ? 'border-gray-900 bg-white' : 'border-gray-200 hover:border-gray-300 bg-white'
                   }`}>
                   <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shrink-0 ${
@@ -911,7 +911,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             Selecting a stage loads the detailed inspection requirements for that phase.
           </p>
 
-          <Button variant="primary" size="lg" fullWidth disabled={!selectedStage} onClick={() => {
+          <Button variant="primary" size="lg" fullWidth className="shadow-sm shadow-gray-900/10 disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400" disabled={!selectedStage} onClick={() => {
             setPostError(null)
             if (validatePermitReferenceBeforeContinuing()) return
             setStep('discipline')
@@ -940,7 +940,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
               return (
                 <button key={disc.id} onClick={() => setSelectedDisc(disc.id)}
                   className={`text-left rounded-xl border-2 p-3.5 transition-all ${
-                    isSelected ? 'border-flame bg-orange-50' : 'border-gray-200 hover:border-gray-300 bg-white'
+                    isSelected ? 'border-gray-900 bg-white' : 'border-gray-200 hover:border-gray-300 bg-white'
                   }`}>
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center mb-2 ${isSelected ? 'bg-flame' : 'bg-gray-100'}`}>
                     <Icon className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-gray-600'}`} />
@@ -952,7 +952,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             })}
           </div>
 
-          <Button variant="primary" size="lg" fullWidth disabled={!selectedDisc} onClick={() => setStep('safety')}>
+          <Button variant="primary" size="lg" fullWidth className="shadow-sm shadow-gray-900/10 disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400" disabled={!selectedDisc} onClick={() => setStep('safety')}>
             Continue <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
@@ -967,8 +967,8 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             <ChevronLeft className="w-3.5 h-3.5" /> Back
           </button>
           <div className="flex items-center gap-2.5 mb-1">
-            <div className="w-8 h-8 bg-red-50 border border-red-100 rounded-xl flex items-center justify-center">
-              <Shield className="w-4 h-4 text-red-500" />
+            <div className="w-8 h-8 bg-gray-100 border border-gray-200 rounded-xl flex items-center justify-center">
+              <Shield className="w-4 h-4 text-gray-500" />
             </div>
             <h2 className="text-xl font-black text-gray-900">Safety Requirements</h2>
           </div>
@@ -978,7 +978,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
           {/* PPE Minimums */}
           <div className="mb-5">
             <div className="flex items-center gap-2 mb-2.5">
-              <div className="w-1 h-4 bg-flame rounded-full" />
+              <div className="w-1 h-4 bg-gray-300 rounded-full" />
               <span className="text-xs font-black text-gray-700 uppercase tracking-widest">PPE Minimums</span>
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -987,10 +987,10 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                 return (
                   <button key={opt.id} onClick={() => toggleItem(ppeRequired, setPpeRequired, opt.id)}
                     className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl border-2 text-left transition-all ${
-                      sel ? 'border-flame bg-orange-50' : 'border-gray-200 hover:border-gray-300 bg-white'
+                      sel ? 'border-gray-900 bg-white' : 'border-gray-200 hover:border-gray-300 bg-white'
                     }`}>
                     <span className="text-base leading-none">{opt.emoji}</span>
-                    <span className={`text-xs font-bold ${sel ? 'text-flame' : 'text-gray-700'}`}>{opt.label}</span>
+                    <span className={`text-xs font-bold ${sel ? 'text-gray-900' : 'text-gray-700'}`}>{opt.label}</span>
                     {sel && <CheckCircle2 className="w-3.5 h-3.5 text-flame ml-auto shrink-0" />}
                   </button>
                 )
@@ -1001,7 +1001,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
           {/* Hazard Flags */}
           <div className="mb-5">
             <div className="flex items-center gap-2 mb-2.5">
-              <div className="w-1 h-4 bg-amber-500 rounded-full" />
+              <div className="w-1 h-4 bg-gray-300 rounded-full" />
               <span className="text-xs font-black text-gray-700 uppercase tracking-widest">Site Hazards</span>
             </div>
             <div className="space-y-1.5">
@@ -1010,7 +1010,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                 return (
                   <button key={flag.id} onClick={() => toggleItem(hazardFlags, setHazardFlags, flag.id)}
                     className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border-2 text-left transition-all ${
-                      sel ? 'border-amber-400 bg-amber-50' : 'border-gray-200 hover:border-gray-300 bg-white'
+                      sel ? 'border-gray-900 bg-white' : 'border-gray-200 hover:border-gray-300 bg-white'
                     }`}>
                     <AlertTriangle className={`w-3.5 h-3.5 shrink-0 ${sel ? 'text-amber-500' : 'text-gray-300'}`} />
                     <span className={`text-xs font-semibold flex-1 ${sel ? 'text-amber-700' : 'text-gray-600'}`}>{flag.label}</span>
@@ -1036,7 +1036,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             />
           </div>
 
-          <Button variant="primary" size="lg" fullWidth onClick={() => setStep('tier')}>
+          <Button variant="primary" size="lg" fullWidth className="shadow-sm shadow-gray-900/10 disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400" onClick={() => setStep('tier')}>
             Continue <ChevronRight className="w-4 h-4" />
           </Button>
           <button onClick={() => setStep('tier')}
@@ -1081,7 +1081,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
               return (
                 <button key={pricingCard.tier} onClick={() => handleTierSelection(pricingCard.tier)}
                   className={`w-full text-left rounded-xl border-2 p-4 transition-all ${
-                    isSelected ? 'border-flame bg-orange-50' : 'border-gray-200 hover:border-gray-300 bg-white'
+                    isSelected ? 'border-gray-900 bg-white' : 'border-gray-200 hover:border-gray-300 bg-white'
                   }`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -1125,51 +1125,51 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             </p>
           </div>
 
-          <div className="mb-5 rounded-2xl border border-blue-100 bg-blue-50 p-4">
-            <div className="text-xs font-black uppercase tracking-widest text-blue-700">Estimated Total</div>
+          <div className="mb-5 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+            <div className="text-xs font-black uppercase tracking-widest text-gray-500">Estimated Total</div>
             <div className="mt-2 flex items-end justify-between gap-3">
               <div>
-                <div className="text-sm text-blue-700/80">Total escrow required</div>
-                <div className="text-2xl font-black text-slate-900">{formatCurrency(pricing.builderEscrowTotal)}</div>
+                <div className="text-sm text-gray-500">Total escrow required</div>
+                <div className="text-2xl font-black text-gray-900">{formatCurrency(pricing.builderEscrowTotal)}</div>
               </div>
-              <div className="text-right text-xs text-blue-700/80">
+              <div className="text-right text-xs text-gray-500">
                 {pricingMode === 'specialist_hourly' ? 'Specialist pricing applied automatically when required' : 'Fixed dispatch pricing'}
               </div>
             </div>
-            <div className="mt-4 border-t border-blue-100 pt-3 space-y-2 text-sm">
+            <div className="mt-4 border-t border-gray-200 pt-3 space-y-2 text-sm">
               <div className="flex items-center justify-between">
-                <span className="text-blue-700/80">Pricing mode</span>
+                <span className="text-gray-500">Pricing mode</span>
                 <span className="font-bold text-gray-900">{pricingMode === 'specialist_hourly' ? 'Specialist hourly' : 'Fixed dispatch'}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-blue-700/80">Dispatch speed</span>
+                <span className="text-gray-500">Dispatch speed</span>
                 <span className="font-bold text-gray-900">{tierMeta[selectedTier].label}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-blue-700/80">Base booking</span>
+                <span className="text-gray-500">Base booking</span>
                 <span className="font-bold text-gray-900">{formatCurrency(pricing.baseFee)}</span>
               </div>
               {pricing.multiplier > 1 && (
                 <div className="flex items-center justify-between">
-                  <span className="text-blue-700/80">Urgency multiplier</span>
+                  <span className="text-gray-500">Urgency multiplier</span>
                   <span className="font-bold text-gray-900">×{pricing.multiplier.toFixed(1)}</span>
                 </div>
               )}
               {pricing.urgencyAdjustment > 0 && (
                 <div className="flex items-center justify-between">
-                  <span className="text-blue-700/80">Urgency adjustment</span>
+                  <span className="text-gray-500">Urgency adjustment</span>
                   <span className="font-bold text-gray-900">{formatCurrency(pricing.urgencyAdjustment)}</span>
                 </div>
               )}
               <div className="flex items-center justify-between">
-                <span className="text-blue-700/80">Platform fee</span>
+                <span className="text-gray-500">Platform fee</span>
                 <span className="font-bold text-gray-900">{formatCurrency(pricing.platformCommission)}</span>
               </div>
             </div>
           </div>
 
           <div className="sticky bottom-0 -mx-5 -mb-5 px-5 pt-3 pb-5 bg-white/95 backdrop-blur border-t border-gray-100 z-10">
-            <Button variant="primary" size="lg" fullWidth disabled={!hasValidSchedulingWindow} onClick={() => {
+            <Button variant="primary" size="lg" fullWidth className="shadow-sm shadow-gray-900/10 disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400" disabled={!hasValidSchedulingWindow} onClick={() => {
               if (validateProjectIdentityBeforeContinuing()) return
               if (validatePermitReferenceBeforeContinuing()) return
               setStep('vault')
@@ -1212,7 +1212,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                 onClick={() => setVaultTier(option.tier)}
                 className={`w-full text-left rounded-2xl border-2 p-4 transition-all ${
                   vaultTier === option.tier
-                    ? 'border-flame bg-flame/5'
+                    ? 'border-gray-900 bg-white'
                     : 'border-gray-100 bg-white hover:border-gray-200'
                 }`}
               >
@@ -1244,9 +1244,9 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             ))}
           </div>
 
-          <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 mb-5 flex items-start gap-2">
-            <Archive className="w-3.5 h-3.5 text-blue-500 mt-0.5 shrink-0" />
-            <p className="text-xs text-blue-600 leading-relaxed">
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 mb-5 flex items-start gap-2">
+            <Archive className="w-3.5 h-3.5 text-gray-500 mt-0.5 shrink-0" />
+            <p className="text-xs text-gray-600 leading-relaxed">
               Your sealed inspection record, evidence, and submission package will be retained in the Vero Vault for the selected period. Upgrade at any time from the Vault dashboard.
             </p>
           </div>
@@ -1277,9 +1277,9 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             <div className="bg-slate-900 px-4 py-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-flame rounded-full animate-pulse" />
-                <span className="text-xs font-bold text-blue-300 tracking-widest uppercase">Draft Listing</span>
+                <span className="text-xs font-bold text-gray-300 tracking-widest uppercase">Draft Listing</span>
               </div>
-              <span className="text-xs font-mono text-blue-500">{jobRef ?? 'Draft'}</span>
+              <span className="text-xs font-mono text-gray-400">{jobRef ?? 'Draft'}</span>
             </div>
 
             {/* Body */}
@@ -1343,9 +1343,9 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
               {(ppeRequired.length > 0 || hazardFlags.length > 0 || safetyNotes) && (
                 <div className="pt-3 border-t border-gray-100">
                   <div className="flex items-center gap-1.5 mb-2">
-                    <Shield className="w-3.5 h-3.5 text-red-500" />
+                    <Shield className="w-3.5 h-3.5 text-gray-500" />
                     <span className="text-xs font-black text-gray-700 uppercase tracking-wide">Safety Requirements</span>
-                    <span className="ml-auto text-[10px] bg-red-50 text-red-500 font-bold px-1.5 py-0.5 rounded border border-red-100">WorkSafe BC</span>
+                    <span className="ml-auto text-[10px] bg-gray-100 text-gray-600 font-bold px-1.5 py-0.5 rounded border border-gray-200">WorkSafe BC</span>
                   </div>
 
                   {ppeRequired.length > 0 && (
@@ -1355,7 +1355,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                         {ppeRequired.map(id => {
                           const opt = PPE_OPTIONS.find(p => p.id === id)
                           return opt ? (
-                            <span key={id} className="inline-flex items-center gap-1 text-[10px] font-bold bg-orange-50 text-orange-700 border border-orange-100 rounded-md px-1.5 py-0.5">
+                            <span key={id} className="inline-flex items-center gap-1 text-[10px] font-bold bg-gray-100 text-gray-700 border border-gray-200 rounded-md px-1.5 py-0.5">
                               {opt.emoji} {opt.label}
                             </span>
                           ) : null
@@ -1430,7 +1430,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
               aria-pressed={paymentMethod === 'interac'}
               className={`w-full text-left rounded-xl border-2 p-4 transition-all ${
                 paymentMethod === 'interac'
-                  ? 'border-flame bg-flame/5'
+                  ? 'border-gray-900 bg-white'
                   : 'border-gray-200 bg-white hover:border-gray-300'
               }`}
             >
@@ -1441,7 +1441,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                   {paymentMethod === 'interac' && <div className="w-2 h-2 rounded-full bg-flame" />}
                 </div>
                 <span className="font-bold text-sm text-gray-900">Interac e-Transfer</span>
-                <span className="ml-auto text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-1.5 py-0.5">
+                <span className="ml-auto text-[10px] font-bold text-gray-600 bg-gray-100 border border-gray-200 rounded px-1.5 py-0.5">
                   No Vero processing fee
                 </span>
               </div>
@@ -1467,7 +1467,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
               aria-pressed={paymentMethod === 'card'}
               className={`w-full text-left rounded-xl border-2 p-4 mt-3 transition-all ${
                 paymentMethod === 'card'
-                  ? 'border-flame bg-flame/5'
+                  ? 'border-gray-900 bg-white'
                   : 'border-gray-200 bg-white hover:border-gray-300'
               }`}
             >
@@ -1494,10 +1494,10 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
           </div>
 
           {/* Vault retention tier */}
-          <div className="bg-blue-50 border border-blue-100 rounded-xl p-3.5 mb-4">
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-3.5 mb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Archive className="w-3.5 h-3.5 text-electric" />
+                <Archive className="w-3.5 h-3.5 text-gray-500" />
                 <span className="text-xs font-bold text-gray-700">Vault Retention</span>
                 <span className="text-xs text-gray-500">
                   {VAULT_RETENTION_OPTIONS.find(o => o.tier === vaultTier)?.label} · {VAULT_RETENTION_OPTIONS.find(o => o.tier === vaultTier)?.duration}
@@ -1511,7 +1511,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                 <span className="text-xs font-bold text-success-green">Included</span>
               )}
             </div>
-            <button onClick={() => setStep('vault')} className="text-[10px] text-blue-500 hover:text-blue-700 mt-1 hover:underline">Change retention tier</button>
+            <button onClick={() => setStep('vault')} className="text-[10px] text-gray-500 hover:text-gray-700 mt-1 hover:underline">Change retention tier</button>
           </div>
 
           {/* What happens next */}
@@ -1526,7 +1526,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                 { icon: FileText,    text: 'Inspector auto-generates a signed Schedule C-B on completion' },
               ].map(({ icon: Icon, text }, i) => (
                 <div key={i} className="flex items-start gap-2">
-                  <Icon className="w-3.5 h-3.5 text-flame mt-0.5 shrink-0" />
+                  <Icon className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
                   <span className="text-xs text-gray-600">{text}</span>
                 </div>
               ))}
@@ -1534,10 +1534,10 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
           </div>
 
           {selectedStage === 1 && !permitNumber.trim() && (
-            <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3">
+            <div className="mb-4 rounded-xl border border-gray-200 border-l-2 border-l-amber-500 bg-gray-50 p-3">
               <div className="flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
-                <p className="text-xs text-amber-700">
+                <p className="text-xs text-gray-700">
                   <span className="font-bold">Pre-permit review.</span>{' '}
                   This Stage 1 request can proceed without a permit number. Later inspection stages will require a permit number or municipal file reference.
                 </p>
@@ -1551,7 +1551,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
 
           {/* ── Site Readiness Agreement (collapsible) ── */}
           <div className={`rounded-2xl border-2 overflow-hidden transition-all ${
-            siteAgreed ? 'border-emerald-200 bg-emerald-50' : 'border-amber-100 bg-amber-50'
+            siteAgreed ? 'border-gray-200 border-l-[3px] border-l-success-green bg-gray-50' : 'border-gray-200 border-l-[3px] border-l-amber-500 bg-gray-50'
           }`}>
             {/* Agreement header — click to expand/collapse terms */}
             <button
@@ -1560,18 +1560,16 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
               aria-expanded={siteAgreementExpanded}
               className={`w-full px-4 py-3 border-b flex items-center gap-2 transition-colors ${
                 siteAgreed
-                  ? 'border-emerald-200 bg-emerald-100/60 hover:bg-emerald-100/80'
-                  : 'border-amber-100 bg-amber-100/60 hover:bg-amber-100/80'
+                  ? 'border-gray-200 bg-gray-100 hover:bg-gray-200'
+                  : 'border-gray-200 bg-gray-100 hover:bg-gray-200'
               }`}
             >
               <Shield className={`w-4 h-4 shrink-0 ${siteAgreed ? 'text-emerald-600' : 'text-amber-600'}`} />
               <span className={`text-xs font-black uppercase tracking-wide ${siteAgreed ? 'text-emerald-700' : 'text-amber-700'}`}>
                 Site Readiness Agreement
               </span>
-              <span className={`ml-auto text-[9px] font-bold px-1.5 py-0.5 rounded border ${
-                siteAgreed
-                  ? 'text-emerald-600 bg-emerald-50 border-emerald-200'
-                  : 'text-amber-600 bg-amber-50 border-amber-200'
+              <span className={`ml-auto text-[9px] font-bold px-1.5 py-0.5 rounded border bg-gray-100 border-gray-200 ${
+                siteAgreed ? 'text-emerald-600' : 'text-amber-600'
               }`}>Required</span>
               <ChevronDown
                 className={`w-3.5 h-3.5 ml-1 shrink-0 transition-transform ${
@@ -1602,9 +1600,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                 },
               ].map(({ bullet, text }) => (
                 <div key={bullet} className="flex items-start gap-2.5">
-                  <div className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black shrink-0 mt-0.5 ${
-                    siteAgreed ? 'bg-emerald-200 text-emerald-700' : 'bg-amber-200 text-amber-700'
-                  }`}>{bullet}</div>
+                  <div className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black shrink-0 mt-0.5 bg-gray-200 text-gray-700">{bullet}</div>
                   <p
                     className="text-xs text-gray-600 leading-relaxed"
                     dangerouslySetInnerHTML={{ __html: text }}
@@ -1617,16 +1613,16 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             {/* Checkbox */}
             <button
               onClick={() => setSiteAgreed(a => !a)}
-              className={`w-full flex items-center gap-3 px-4 py-3 border-t transition-all ${
+              className={`w-full flex items-center gap-3 px-4 py-3 border-t border-gray-200 transition-all ${
                 siteAgreed
-                  ? 'border-emerald-200 bg-emerald-100/40 hover:bg-emerald-100/60'
-                  : 'border-amber-100 bg-white hover:bg-amber-50'
+                  ? 'bg-gray-100/60 hover:bg-gray-100'
+                  : 'bg-white hover:bg-gray-50'
               }`}
             >
               <div className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-all ${
                 siteAgreed
-                  ? 'bg-emerald-500 border-emerald-500'
-                  : 'bg-white border-amber-300 hover:border-amber-400'
+                  ? 'bg-success-green border-success-green'
+                  : 'bg-white border-gray-300 hover:border-gray-400'
               }`}>
                 {siteAgreed && (
                   <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
@@ -1634,7 +1630,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                   </svg>
                 )}
               </div>
-              <span className={`text-xs font-semibold ${siteAgreed ? 'text-emerald-700' : 'text-gray-700'}`}>
+              <span className={`text-xs font-semibold ${siteAgreed ? 'text-gray-900' : 'text-gray-700'}`}>
                 I confirm the site will be ready and I understand Vero Permit will record readiness and late-change events for governed review
               </span>
             </button>
@@ -1643,15 +1639,16 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
           {/* Sticky footer */}
           <div className="sticky bottom-0 -mx-5 -mb-5 px-5 pt-3 pb-5 bg-white/95 backdrop-blur border-t border-gray-100 z-10">
             {postError && (
-              <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-3 flex items-start gap-2">
+              <div className="bg-gray-50 border border-gray-200 border-l-2 border-l-red-500 rounded-xl p-3 mb-3 flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
-                <p className="text-xs text-red-600 font-medium">{postError}</p>
+                <p className="text-xs text-gray-700 font-medium">{postError}</p>
               </div>
             )}
             <Button
               variant="primary"
               size="lg"
               fullWidth
+              className="shadow-sm shadow-gray-900/10 disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400"
               disabled={!siteAgreed}
               onClick={handlePost}
             >
@@ -1705,17 +1702,17 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
           <div className="bg-slate-900 rounded-2xl p-4 text-left mb-4">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-2 h-2 bg-flame rounded-full animate-pulse" />
-              <span className="text-xs font-bold text-blue-300 tracking-widest uppercase">Payment Pending</span>
-              <span className="ml-auto text-xs font-mono text-blue-500">{jobRef}</span>
+              <span className="text-xs font-bold text-gray-300 tracking-widest uppercase">Payment Pending</span>
+              <span className="ml-auto text-xs font-mono text-gray-400">{jobRef}</span>
             </div>
             <div className="text-sm font-bold text-white mb-1">{address}</div>
-            <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-blue-900">
+            <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-slate-700">
               <div>
-                <div className="text-xs text-blue-500">Stage</div>
+                <div className="text-xs text-gray-400">Stage</div>
                 <div className="text-sm font-bold text-white">{stageData?.shortName}</div>
               </div>
               <div>
-                <div className="text-xs text-blue-500">Est. Payment</div>
+                <div className="text-xs text-gray-400">Est. Payment</div>
                 <div className="text-sm font-black text-flame">{formatCurrency(totalEscrow)}</div>
               </div>
             </div>
@@ -1725,10 +1722,10 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
               path (card redirects to Stripe before this screen). The payment
               details stay visible regardless of the email outcome. */}
           {paymentMethod === 'interac' && (
-            <div className="bg-white border-2 border-flame/30 rounded-2xl p-4 text-left mb-4">
+            <div className="bg-white border-2 border-gray-200 rounded-2xl p-4 text-left mb-4">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xs font-black text-gray-900 uppercase tracking-wide">Send your Interac e-Transfer</span>
-                <span className="ml-auto text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-1.5 py-0.5">
+                <span className="ml-auto text-[10px] font-bold text-gray-600 bg-gray-100 border border-gray-200 rounded px-1.5 py-0.5">
                   No Vero processing fee
                 </span>
               </div>
@@ -1741,9 +1738,9 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                 </div>
               )}
               {interacEmailStatus === 'sent' && (
-                <div className="flex items-start gap-2 mb-2 rounded-lg bg-emerald-50 border border-emerald-200 px-2.5 py-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 mt-0.5 shrink-0" />
-                  <p className="text-[11px] text-emerald-700 leading-relaxed">
+                <div className="flex items-start gap-2 mb-2 rounded-lg border border-gray-200 border-l-2 border-l-success-green bg-gray-50 px-2.5 py-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-success-green mt-0.5 shrink-0" />
+                  <p className="text-[11px] text-gray-700 leading-relaxed">
                     {user?.email
                       ? `A copy of these payment instructions has been emailed to ${user.email}.`
                       : 'A copy of these payment instructions has been emailed to your builder account email.'}
@@ -1751,9 +1748,9 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                 </div>
               )}
               {interacEmailStatus === 'failed' && (
-                <div className="flex items-start gap-2 mb-2 rounded-lg bg-amber-50 border border-amber-200 px-2.5 py-2">
+                <div className="flex items-start gap-2 mb-2 rounded-lg border border-gray-200 border-l-2 border-l-amber-500 bg-gray-50 px-2.5 py-2">
                   <AlertTriangle className="w-3.5 h-3.5 text-amber-600 mt-0.5 shrink-0" />
-                  <p className="text-[11px] text-amber-700 leading-relaxed">
+                  <p className="text-[11px] text-gray-700 leading-relaxed">
                     We could not confirm the email was sent. The payment details are shown below so you can complete the e-Transfer manually.
                   </p>
                 </div>
