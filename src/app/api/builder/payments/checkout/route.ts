@@ -14,7 +14,21 @@ function getServiceClient() {
   return createServiceClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } })
 }
 
-function getAppUrl(): string {
+// Build the absolute URL Stripe redirects back to after Checkout. Prefer the
+// origin the builder is actually browsing (sent as the Origin header on this
+// same-origin POST) so the post-payment landing returns to the SAME origin.
+// Supabase auth cookies are per-origin: redirecting to a different configured
+// host (e.g. a Vercel Preview URL vs NEXT_PUBLIC_APP_URL) leaves the cookie
+// absent on the success page and makes the builder appear signed out. Falls
+// back to the forwarded host, then the configured app URL, then localhost.
+function getAppUrl(req: NextRequest): string {
+  const origin = getString(req.headers.get('origin'))
+  if (origin) return origin.replace(/\/+$/, '')
+  const forwardedHost = getString(req.headers.get('x-forwarded-host')) || getString(req.headers.get('host'))
+  if (forwardedHost) {
+    const proto = getString(req.headers.get('x-forwarded-proto')) || 'https'
+    return `${proto}://${forwardedHost}`.replace(/\/+$/, '')
+  }
   return (process.env.NEXT_PUBLIC_APP_URL ?? '').replace(/\/+$/, '') || 'http://localhost:3000'
 }
 
@@ -118,7 +132,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: 'Card payments are not configured.' }, { status: 503 })
   }
 
-  const appUrl = getAppUrl()
+  const appUrl = getAppUrl(req)
   const productName = job.project_name
     ? `Vero inspection dispatch — ${job.project_name}`
     : 'Vero inspection dispatch'
