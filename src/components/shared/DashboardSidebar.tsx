@@ -74,6 +74,13 @@ export function DashboardSidebar({ brandEyebrow, brandTitle, groups, onNavigate 
     onNavigate?.()
   }
 
+  // When several nav items point at the same section (e.g. "Worklist" and
+  // "Current Assignments"), highlight only the first so the rail stays calm.
+  const activeItemId = groups
+    .flatMap(group => group.items)
+    .find(item =>
+      item.kind === 'section' && item.available !== false && item.targetId === activeSection)?.id ?? null
+
   const itemClass = (active: boolean) =>
     `group relative flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-flame/50 focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${
       active
@@ -141,7 +148,7 @@ export function DashboardSidebar({ brandEyebrow, brandTitle, groups, onNavigate 
                       </Link>
                     )
                   }
-                  const active = activeSection === item.targetId
+                  const active = item.id === activeItemId
                   return (
                     <button
                       key={item.id}

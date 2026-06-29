@@ -2395,7 +2395,7 @@ export default function BuilderDashboard() {
           </div>
           {/* ── RIGHT RAIL ── */}
           <aside className="lg:col-span-4">
-            <div className="space-y-4 lg:sticky lg:top-6">
+            <div className="space-y-4 lg:sticky lg:top-[5rem]">
 
               {/* Inspector Arrival Status */}
               {projects.some(p => p.status === 'in_progress') && (
