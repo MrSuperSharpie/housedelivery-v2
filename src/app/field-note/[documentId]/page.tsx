@@ -273,8 +273,10 @@ export default async function FieldNoteRecordPage({
         .field-note-record { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         @media print {
           .no-print { display: none !important; }
-          .field-note-record { background: #ffffff !important; padding: 0 !important; }
-          .field-note-sheet { box-shadow: none !important; border: none !important; margin: 0 !important; }
+          .field-note-record { background: #ffffff !important; min-height: 0 !important; padding: 0 !important; }
+          /* Collapse the on-screen card framing so the document fills the page
+             margins and stays on one page. */
+          .field-note-sheet { box-shadow: none !important; border: none !important; border-radius: 0 !important; margin: 0 !important; padding: 0 !important; max-width: none !important; }
         }
       `}</style>
 
@@ -304,7 +306,10 @@ export default async function FieldNoteRecordPage({
           </p>
         </div>
 
-        <section className="mt-7">
+        {/* Plain <div>, not <section>: the global print stylesheet forces
+            `page-break-inside: avoid` + padding on sections, which split this
+            record across two pages. */}
+        <div className="mt-6">
           <h2 className="text-[11px] font-bold uppercase tracking-[0.16em] text-zinc-400">Field Note</h2>
           <div className="mt-3 rounded-xl border border-zinc-200 bg-[#faf9f6] p-5">
             {noteBody ? (
@@ -319,24 +324,24 @@ export default async function FieldNoteRecordPage({
               </p>
             )}
           </div>
-        </section>
+        </div>
 
-        <section className="mt-8">
+        <div className="mt-6">
           <h2 className="text-[11px] font-bold uppercase tracking-[0.16em] text-zinc-400">Record Metadata</h2>
           <table className="mt-3 w-full border-collapse text-sm">
             <tbody>
               {metaRows.map(row => (
                 <tr key={row.label} className="border-b border-zinc-100 align-top last:border-b-0">
-                  <td className="w-[42%] py-2.5 pr-4 font-semibold text-zinc-500">{row.label}</td>
-                  <td className={`py-2.5 text-zinc-900 ${row.mono ? 'font-mono text-[13px] break-all' : ''}`}>{row.value}</td>
+                  <td className="w-[42%] py-2 pr-4 font-semibold text-zinc-500">{row.label}</td>
+                  <td className={`py-2 text-zinc-900 ${row.mono ? 'font-mono text-[13px] break-all' : ''}`}>{row.value}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </section>
+        </div>
 
         {originalFileUrl && (
-          <section className="mt-7 no-print">
+          <div className="mt-6 no-print">
             <a
               href={originalFileUrl}
               target="_blank"
@@ -345,14 +350,14 @@ export default async function FieldNoteRecordPage({
             >
               View original evidence file ({fileName || 'source object'})
             </a>
-          </section>
+          </div>
         )}
 
-        <footer className="mt-8 border-t border-zinc-200 pt-5 text-xs leading-relaxed text-zinc-400">
+        <div className="mt-7 border-t border-zinc-200 pt-5 text-xs leading-relaxed text-zinc-400">
           This Field Note Record is part of the Vero Permit inspection evidence file. The original captured
           file is preserved unaltered as the source audit artifact. This document is a platform record and is
           not a building permit, occupancy authorization, or authority decision.
-        </footer>
+        </div>
       </article>
     </main>
   )
