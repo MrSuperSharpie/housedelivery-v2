@@ -133,6 +133,22 @@ function getServiceClient() {
   })
 }
 
+// Absolute origin of the Vero app, used to build in-app Field Note Record links
+// inside the generated packet. Prefers the origin the user is actually browsing
+// (Origin / forwarded host) so a packet opened on a Preview URL links back to
+// the same origin where the viewer's session cookie lives. Falls back to the
+// configured app URL, then localhost.
+function getAppBaseUrl(req: NextRequest): string {
+  const origin = (req.headers.get('origin') ?? '').trim()
+  if (origin) return origin.replace(/\/+$/, '')
+  const forwardedHost = (req.headers.get('x-forwarded-host') ?? req.headers.get('host') ?? '').trim()
+  if (forwardedHost) {
+    const proto = (req.headers.get('x-forwarded-proto') ?? 'https').trim()
+    return `${proto}://${forwardedHost}`.replace(/\/+$/, '')
+  }
+  return (process.env.NEXT_PUBLIC_APP_URL ?? '').replace(/\/+$/, '') || 'http://localhost:3000'
+}
+
 function toPacketDocument(row: Record<string, unknown>): ScheduleCBPacketDocumentRecord {
   const captureGeo = (row.capture_geo as Record<string, unknown> | null) ?? null
   const fileName = row.file_name as string
@@ -814,6 +830,7 @@ export async function GET(req: NextRequest) {
         generatedAtIso: new Date().toISOString(),
         verificationId: report.sealReference ?? report.id,
         exportMode,
+        appBaseUrl: getAppBaseUrl(req),
         packetScope,
         builderStage: builderStageNumber
           ? {
