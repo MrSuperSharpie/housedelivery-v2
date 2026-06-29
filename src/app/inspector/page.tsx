@@ -3,8 +3,9 @@
 import React, { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Search, ChevronRight, PlayCircle, Clock, Activity, Filter, Briefcase, FolderLock, AlertTriangle, FileText, Wallet } from 'lucide-react'
-import { Navbar } from '@/components/shared/Navbar'
+import { Search, ChevronRight, PlayCircle, Clock, Activity, Filter, Briefcase, FolderLock, AlertTriangle, FileText, Wallet, LayoutDashboard, ListChecks, User } from 'lucide-react'
+import { RoleDashboardShell } from '@/components/shared/RoleDashboardShell'
+import type { DashboardNavGroup } from '@/components/shared/DashboardSidebar'
 import { JobCard } from '@/components/inspector/JobCard'
 import { HardPingProvider } from '@/components/inspector/HardPingProvider'
 import { ReliabilityTierDashboard } from '@/components/inspector/ReliabilityTierDashboard'
@@ -1141,14 +1142,42 @@ export default function InspectorDashboard() {
     'open-requests': 'open opportunities',
   }
 
+  // ─── Operations-console sidebar (route links + in-page section anchors) ───────
+  const hasNeedsAttention = acceptedHoldsForInspector.length > 0
+  const dashboardNavGroups: DashboardNavGroup[] = [
+    {
+      label: 'Workspace',
+      items: [
+        { id: 'live-board', kind: 'section', targetId: 'overview', label: 'Live Board', icon: LayoutDashboard },
+        { id: 'needs-attention', kind: 'section', targetId: 'needs-attention', label: 'Needs Attention', icon: AlertTriangle, badge: needsAttentionCount, available: hasNeedsAttention },
+        { id: 'worklist', kind: 'section', targetId: 'active-worklist', label: 'Worklist', icon: PlayCircle, badge: activeAssignmentCount },
+        { id: 'open-requests', kind: 'section', targetId: 'open-requests', label: 'Open Requests', icon: Briefcase, badge: openOpportunityCount },
+        { id: 'vault', kind: 'route', href: '/vault', label: 'Vault', icon: FolderLock },
+        { id: 'profile', kind: 'route', href: '/inspector/profile', label: 'Profile', icon: User },
+      ],
+    },
+    {
+      label: 'Field Operations',
+      items: [
+        { id: 'current-assignments', kind: 'section', targetId: 'active-worklist', label: 'Current Assignments', icon: ListChecks, badge: activeAssignmentCount },
+        { id: 'holds-reverifications', kind: 'section', targetId: 'needs-attention', label: 'Holds / Re-verifications', icon: AlertTriangle, badge: needsAttentionCount, available: hasNeedsAttention },
+        { id: 'available-opportunities', kind: 'section', targetId: 'open-requests', label: 'Available Opportunities', icon: Briefcase, badge: openOpportunityCount },
+        { id: 'records-in-progress', kind: 'section', targetId: 'active-worklist', label: 'Records in Progress', icon: FileText, badge: draftRecordCount },
+      ],
+    },
+  ]
+
   return (
     <HardPingProvider>
-    <div className="app-theme-scope min-h-screen bg-surface">
-      <Navbar role="inspector" dark />
-      <main className="max-w-5xl mx-auto px-4 py-8">
+    <RoleDashboardShell
+      brandEyebrow="Inspector Operations"
+      brandTitle={inspectorFirstName ? inspectorFirstName : 'Inspector'}
+      navGroups={dashboardNavGroups}
+      topbar={{ role: 'inspector' }}
+    >
 
         {/* ── Inspector Field Hub command header ── */}
-        <div className="relative mb-6 overflow-hidden rounded-3xl border border-rim/70 bg-gradient-to-b from-panel to-surface bg-dot bg-dot-sm">
+        <div id="overview" className="relative mb-6 scroll-mt-20 overflow-hidden rounded-3xl border border-rim/70 bg-gradient-to-b from-panel to-surface bg-dot bg-dot-sm">
           <div className="pointer-events-none absolute -top-24 right-[-6rem] h-72 w-72 rounded-full bg-flame/10 blur-3xl" />
           <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-flame/40 to-transparent" />
           <div className="relative px-5 py-7 sm:px-7">
@@ -1222,6 +1251,10 @@ export default function InspectorDashboard() {
             )
           })}
         </div>
+
+        {/* ── Operations grid: action-first main column + status right rail ── */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+          <div className="space-y-8 lg:col-span-8">
 
         {/* ── Needs Attention · Re-verification Required ── */}
         {acceptedHoldsForInspector.length > 0 && (
@@ -1552,34 +1585,18 @@ export default function InspectorDashboard() {
         )}
 
         {/* Header */}
-        <div id="open-requests" className="mb-6 flex scroll-mt-20 flex-col justify-between gap-4 md:flex-row md:items-center">
-          <div>
-            <div className="mb-2 flex items-center gap-2">
-              <Briefcase className="h-4 w-4 text-flame" />
-              <span className="label-mono font-bold !text-flame">Open Requests · Opportunities</span>
-            </div>
-            <h2 className="text-2xl font-black text-ink">Open Requests</h2>
-            <p className="text-sm text-muted mt-1">
-              {eligibleJobs.length} eligible of {classifiedJobs.length} live requests matching your filters
-            </p>
-            <p className="text-xs text-subtle mt-1 max-w-xl">
-              Open Requests are unclaimed live jobs. Jobs you&apos;ve already claimed appear in Your Active Worklist above. Some jobs may be hidden if they do not match your verified credentials, region, or are already assigned.
-            </p>
+        <div id="open-requests" className="mb-6 scroll-mt-20">
+          <div className="mb-2 flex items-center gap-2">
+            <Briefcase className="h-4 w-4 text-flame" />
+            <span className="label-mono font-bold !text-flame">Open Requests · Opportunities</span>
           </div>
-          <div className="relative shrink-0 overflow-hidden rounded-2xl border border-rim/70 border-l-2 border-l-success-green bg-panel px-5 py-4 shadow-sm">
-            <div className="relative flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-rim/60 bg-raised">
-                <Wallet className="h-5 w-5 text-success-green" />
-              </div>
-              <div>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-subtle">Potential Open Earnings</div>
-                <div className="text-2xl font-black text-success-green">{formatCurrency(potentialEarnings)}</div>
-                <div className="mt-1 max-w-[15rem] text-[10px] text-subtle">
-                  Estimated value of visible open opportunities. Actual payout status appears after admin review and release.
-                </div>
-              </div>
-            </div>
-          </div>
+          <h2 className="text-2xl font-black text-ink">Open Requests</h2>
+          <p className="text-sm text-muted mt-1">
+            {eligibleJobs.length} eligible of {classifiedJobs.length} live requests matching your filters
+          </p>
+          <p className="text-xs text-subtle mt-1 max-w-xl">
+            Open Requests are unclaimed live jobs. Jobs you&apos;ve already claimed appear in Your Active Worklist above. Some jobs may be hidden if they do not match your verified credentials, region, or are already assigned. Potential earnings are summarized in the status rail.
+          </p>
         </div>
 
         <ReliabilityTierDashboard
@@ -1690,7 +1707,7 @@ export default function InspectorDashboard() {
               )}
 
               {boardView === 'all' && ineligibleJobs.length > 0 && (
-                <section className="space-y-3 pt-4">
+                <section className="space-y-3 pt-4 opacity-70 transition-opacity duration-200 hover:opacity-100 focus-within:opacity-100">
                   <div className="flex items-center justify-between">
                     <h2 className="label-mono font-bold text-subtle">Other Live Projects</h2>
                     <span className="text-[10px] font-bold text-subtle uppercase tracking-wider">{ineligibleJobs.length} locked</span>
@@ -1717,8 +1734,57 @@ export default function InspectorDashboard() {
             </>
           )}
         </div>
-      </main>
-    </div>
+          </div>
+
+          {/* ── Status right rail (secondary, persistent context) ── */}
+          <aside className="lg:col-span-4">
+            <div className="space-y-4 lg:sticky lg:top-[5rem]">
+              <div className="rounded-2xl border border-rim/70 border-l-2 border-l-success-green bg-panel p-5 shadow-sm">
+                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-subtle">
+                  <Wallet className="h-3.5 w-3.5 text-success-green" /> Potential Earnings
+                </div>
+                <div className="mt-2 text-3xl font-black text-success-green">{formatCurrency(potentialEarnings)}</div>
+                <div className="mt-1 text-[11px] leading-snug text-subtle">
+                  Estimated value of visible open opportunities. Actual payout status appears after admin review and release.
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-rim/70 bg-panel p-5 shadow-sm">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-subtle">Field Summary</div>
+                <div className="mt-3 space-y-2">
+                  {[
+                    { label: 'Active assignments', value: activeAssignmentCount, dot: 'bg-electric', target: 'active-worklist' },
+                    { label: 'Needs attention', value: needsAttentionCount, dot: 'bg-warning-amber', target: hasNeedsAttention ? 'needs-attention' : 'active-worklist' },
+                    { label: 'Records in progress', value: draftRecordCount, dot: 'bg-flame', target: 'active-worklist' },
+                    { label: 'Open opportunities', value: openOpportunityCount, dot: 'bg-success-green', target: 'open-requests' },
+                  ].map(row => (
+                    <button
+                      key={row.label}
+                      type="button"
+                      onClick={() => scrollToSection(row.target)}
+                      aria-label={`Jump to ${SECTION_LABEL[row.target] ?? row.label.toLowerCase()}`}
+                      className="flex w-full items-center justify-between rounded-xl border border-rim/60 bg-surface px-3 py-2.5 text-left transition-colors hover:border-flame/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-flame/50 focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+                    >
+                      <span className="flex items-center gap-2 text-xs font-semibold text-muted">
+                        <span className={`h-1.5 w-1.5 rounded-full ${row.dot}`} />
+                        {row.label}
+                      </span>
+                      <span className="text-sm font-black tabular-nums text-ink">{row.value}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <Link
+                href="/vault"
+                className="flex items-center justify-center gap-2 rounded-2xl border border-rim bg-panel px-4 py-3 text-sm font-bold text-ink transition-colors hover:bg-raised"
+              >
+                <FolderLock className="h-4 w-4 text-muted" /> Open Vault
+              </Link>
+            </div>
+          </aside>
+        </div>
+    </RoleDashboardShell>
     </HardPingProvider>
   )
 }
