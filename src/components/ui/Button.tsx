@@ -2,7 +2,7 @@ import React from 'react'
 import { cn } from '@/lib/utils'
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'premium' | 'secondary' | 'success' | 'danger' | 'ghost' | 'outline'
+  variant?: 'primary' | 'secondary' | 'success' | 'danger' | 'ghost' | 'outline'
   size?: 'sm' | 'md' | 'lg' | 'xl'
   loading?: boolean
   fullWidth?: boolean
@@ -23,10 +23,6 @@ export function Button({
 
   const variants = {
     primary: 'bg-safety-orange text-white hover:bg-orange-600 focus:ring-safety-orange shadow-lg shadow-orange-500/25',
-    // Premium charcoal CTA — near-black body with a subtle reused dot texture
-    // and a restrained Vero-orange edge/glow. The orange reads as accent, not as
-    // a full bright slab.
-    premium: 'bg-dot bg-[#0E1727] text-white border border-flame/40 hover:bg-[#162133] hover:border-flame/60 focus:ring-flame shadow-[0_10px_30px_-8px_rgba(255,95,21,0.45)]',
     secondary: 'bg-slate-100 text-slate-900 hover:bg-slate-200 focus:ring-slate-400 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700',
     success: 'bg-success-green text-white hover:bg-emerald-600 focus:ring-success-green shadow-lg shadow-emerald-500/25',
     danger: 'bg-fail-red text-white hover:bg-red-600 focus:ring-fail-red shadow-lg shadow-red-500/25',

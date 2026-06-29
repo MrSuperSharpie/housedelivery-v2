@@ -1758,8 +1758,56 @@ export default function BuilderDashboard() {
           </div>
         )}
 
+        {/* ── Builder Command Center hero ── */}
+        {/* Premium dark dotted banner that mirrors the Inspector Live Board hero:
+            charcoal surface, subtle dot texture, restrained flame glow + eyebrow,
+            strong white typography. Presentation only — the CTAs reuse the
+            existing handlers (new request modal + Vault route). */}
+        <div id="overview" className="relative mb-6 scroll-mt-20 overflow-hidden rounded-3xl border border-rim/70 bg-gradient-to-b from-panel to-surface bg-dot bg-dot-sm">
+          <div className="pointer-events-none absolute -top-24 right-[-6rem] h-72 w-72 rounded-full bg-flame/10 blur-3xl" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-flame/40 to-transparent" />
+          <div className="relative px-5 py-7 sm:px-7">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+              <div className="min-w-0">
+                <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-flame/25 bg-flame/[0.08] px-3 py-1">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-flame/70" />
+                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-flame" />
+                  </span>
+                  <span className="label-mono font-bold !text-flame">
+                    Builder Operations · {user?.company ?? MOCK_BUILDER.companyName}
+                  </span>
+                </div>
+                <h1 className="text-3xl font-black tracking-tight text-ink sm:text-4xl">Builder Command Center</h1>
+                <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted">
+                  Track live inspections, unblock stalled sites, and download filed records from one place.
+                </p>
+              </div>
+              <div className="flex shrink-0 flex-wrap items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={handleNewRequest}
+                  className="inline-flex items-center gap-2 rounded-2xl bg-flame px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-orange-500/25 transition-colors hover:bg-flame-light"
+                >
+                  <MapPin className="h-4 w-4" />
+                  Post Inspection Request
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => router.push('/vault')}
+                  className="inline-flex items-center gap-2 rounded-2xl border border-rim bg-panel/80 px-5 py-3.5 text-sm font-bold text-ink backdrop-blur transition-colors hover:border-rim hover:bg-raised"
+                >
+                  <FolderLock className="h-4 w-4 text-muted" />
+                  Open Vault
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* ── Situation Strip (compact Today summary) ── */}
-        <div id="overview" className="mb-6 scroll-mt-20">
+        <div className="mb-6">
           <SituationStrip metrics={situationMetrics} onSelect={scrollToSection} />
         </div>
 
