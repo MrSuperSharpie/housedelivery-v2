@@ -45,6 +45,10 @@ export interface ScheduleCBPacketSource {
   generatedAtIso?: string
   verificationId?: string
   exportMode?: 'platform_preview' | 'authority_facing'
+  // Absolute origin of the Vero app (e.g. https://app.veropermit.com). When
+  // present, field-note appendix entries link to the formal in-app Field Note
+  // Record (/field-note/<id>) instead of the raw signed .txt storage object.
+  appBaseUrl?: string
   packetScope?: {
     mode: 'stage_level' | 'full_project'
     stageNumbers: number[]
@@ -67,6 +71,9 @@ export interface ScheduleCBPacketAppendixEntry {
   coordinatesText: string
   imageUrl?: string
   signedUrl?: string
+  // For field-note (text) evidence: the in-app formal Field Note Record URL.
+  // When set, the appendix links here instead of the raw signed .txt file.
+  recordUrl?: string
 }
 
 export interface ScheduleCBPacketAuditTrail {

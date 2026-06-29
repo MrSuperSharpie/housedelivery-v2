@@ -6,6 +6,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { ScheduleCBPacketDocument } from '../ScheduleCBPacketDocument'
 import {
   APPENDIX_PAGE_SIZE,
+  buildFieldNoteRecordUrl,
   buildScheduleCBPacketData,
   chunkAppendixEntries,
   coerceHoldHistoryEntry,
@@ -13,6 +14,7 @@ import {
   formatCoordinates,
   formatDisplayTimestamp,
   formatForensicTimestamp,
+  isFieldNoteDocument,
   toDisplayFileKind,
 } from '../scheduleCBPacketHelpers'
 import { SAMPLE_SCHEDULE_CB_PACKET_SOURCE } from '../scheduleCBPacketFixtures'
@@ -759,4 +761,72 @@ test('platform_preview disclaimerText explicitly states this is not an occupancy
     data.disclaimerText.toLowerCase().includes('occupancy authorization'),
     'platform_preview disclaimer must disclaim occupancy authorization status',
   )
+})
+
+// ─── H. Field Note Record routing ─────────────────────────────────────────────
+
+test('isFieldNoteDocument detects text field notes and excludes other evidence', () => {
+  assert.equal(isFieldNoteDocument('text/plain', 'field-note.txt'), true)
+  assert.equal(isFieldNoteDocument(undefined, 'field-note.txt'), false)
+  assert.equal(isFieldNoteDocument('image/jpeg', 'photo.jpg'), false)
+  assert.equal(isFieldNoteDocument('application/pdf', 'doc.pdf'), false)
+})
+
+test('buildFieldNoteRecordUrl builds an absolute record URL and is safe on empty inputs', () => {
+  assert.equal(buildFieldNoteRecordUrl('https://app.veropermit.com', 'doc-1'), 'https://app.veropermit.com/field-note/doc-1')
+  assert.equal(buildFieldNoteRecordUrl('https://app.veropermit.com/', 'doc-1'), 'https://app.veropermit.com/field-note/doc-1')
+  assert.equal(buildFieldNoteRecordUrl(undefined, 'doc-1'), undefined)
+  assert.equal(buildFieldNoteRecordUrl('https://app.veropermit.com', ''), undefined)
+})
+
+test('field-note document appendix entry links to the formal record when appBaseUrl is set', () => {
+  const source = {
+    ...SAMPLE_SCHEDULE_CB_PACKET_SOURCE,
+    appBaseUrl: 'https://app.veropermit.com',
+    documents: [
+      {
+        id: 'note-doc-1',
+        itemCode: 'S15-01',
+        fileName: 'field-note-2026-04-11.txt',
+        storagePath: 'inspector_documents/note-doc-1.txt',
+        mimeType: 'text/plain',
+        createdAt: '2026-04-11T16:02:00.000Z',
+        capturedAt: '2026-04-11T16:02:00.000Z',
+        signedUrl: 'https://storage.example.com/sign/note-doc-1.txt',
+      },
+    ],
+  }
+  const data = buildScheduleCBPacketData(source)
+  const entry = data.appendixEntries.find(e => e.id === 'note-doc-1')
+  assert.ok(entry, 'field-note document must appear in appendix')
+  assert.equal(entry?.fileKindLabel, 'Field Note')
+  assert.equal(entry?.recordUrl, 'https://app.veropermit.com/field-note/note-doc-1')
+})
+
+test('non-text evidence never gets a Field Note Record URL even when appBaseUrl is set', () => {
+  const source = { ...SAMPLE_SCHEDULE_CB_PACKET_SOURCE, appBaseUrl: 'https://app.veropermit.com' }
+  const data = buildScheduleCBPacketData(source)
+  // The fixture contains only image evidence — none should be routed to /field-note.
+  assert.ok(data.appendixEntries.every(e => e.recordUrl === undefined))
+})
+
+test('field-note document keeps raw signed link when no appBaseUrl is provided', () => {
+  const source = {
+    ...SAMPLE_SCHEDULE_CB_PACKET_SOURCE,
+    documents: [
+      {
+        id: 'note-doc-2',
+        itemCode: 'S15-01',
+        fileName: 'field-note-2026-04-11.txt',
+        storagePath: 'inspector_documents/note-doc-2.txt',
+        mimeType: 'text/plain',
+        createdAt: '2026-04-11T16:02:00.000Z',
+        signedUrl: 'https://storage.example.com/sign/note-doc-2.txt',
+      },
+    ],
+  }
+  const data = buildScheduleCBPacketData(source)
+  const entry = data.appendixEntries.find(e => e.id === 'note-doc-2')
+  assert.equal(entry?.recordUrl, undefined)
+  assert.equal(entry?.signedUrl, 'https://storage.example.com/sign/note-doc-2.txt')
 })

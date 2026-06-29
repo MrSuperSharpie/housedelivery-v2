@@ -69,6 +69,22 @@ export function toDisplayFileKind(mimeType?: string, fileName?: string): string 
   return 'Evidence Attachment'
 }
 
+// A field note is a plain-text evidence object whose message body lives in the
+// file content. These open as a formal in-app Field Note Record rather than the
+// raw .txt file.
+export function isFieldNoteDocument(mimeType?: string, fileName?: string): boolean {
+  return toDisplayFileKind(mimeType, fileName) === 'Field Note'
+}
+
+// Builds the absolute URL to the formal Field Note Record for one evidence
+// document. Returns undefined when no app base URL is available (the appendix
+// then falls back to linking the raw signed file).
+export function buildFieldNoteRecordUrl(appBaseUrl: string | undefined, documentId: string): string | undefined {
+  const base = (appBaseUrl ?? '').replace(/\/+$/, '')
+  if (!base || !documentId) return undefined
+  return `${base}/field-note/${encodeURIComponent(documentId)}`
+}
+
 export function chunkAppendixEntries<T>(entries: T[], size = APPENDIX_PAGE_SIZE): T[][] {
   if (size <= 0) return [entries]
   const chunks: T[][] = []
@@ -434,6 +450,11 @@ export function buildScheduleCBPacketData(source: ScheduleCBPacketSource): Sched
     .map(document => {
       const item = itemMap.get(document.itemCode)
       const capturedAtIso = normalizeIso(document.capturedAt ?? document.createdAt, generatedAtIso)
+      // Field notes (plain text) open as a formal in-app record; other evidence
+      // (photo/video/PDF) keeps linking to its raw signed file.
+      const recordUrl = isFieldNoteDocument(document.mimeType, document.fileName)
+        ? buildFieldNoteRecordUrl(source.appBaseUrl, document.id)
+        : undefined
 
       return {
         id: document.id,
@@ -446,6 +467,7 @@ export function buildScheduleCBPacketData(source: ScheduleCBPacketSource): Sched
         coordinatesText: formatCoordinates(document.latitude, document.longitude),
         imageUrl: document.imageUrl,
         signedUrl: document.signedUrl,
+        recordUrl,
       }
     })
 

@@ -1261,14 +1261,18 @@ function AppendixPages({ data }: { data: ScheduleCBPacketData }) {
             </header>
 
             <div className="appendix-grid">
-              {pageEntries.map(entry => (
+              {pageEntries.map(entry => {
+                // Field notes link to the formal in-app Field Note Record;
+                // all other evidence links to its raw signed file.
+                const entryLinkHref = entry.recordUrl ?? entry.signedUrl
+                return (
                 <article key={entry.id} className="appendix-card">
                   <div className="appendix-image-frame">
                     {entry.imageUrl ? (
-                      entry.signedUrl ? (
+                      entryLinkHref ? (
                         <a
                           className="appendix-image-link"
-                          href={entry.signedUrl}
+                          href={entryLinkHref}
                           aria-label={`Open source file for ${entry.fileName}`}
                         >
                           <img className="appendix-image" src={entry.imageUrl} alt={entry.caption} />
@@ -1284,11 +1288,15 @@ function AppendixPages({ data }: { data: ScheduleCBPacketData }) {
                   <div className="appendix-topline">
                     <div className="appendix-kicker">{entry.fileKindLabel}</div>
                     <div className="appendix-id mono">
-                      {entry.signedUrl ? (
+                      {entryLinkHref ? (
                         <a
                           className="appendix-link"
-                          href={entry.signedUrl}
-                          aria-label={`Open source file for evidence ${entry.id}`}
+                          href={entryLinkHref}
+                          aria-label={
+                            entry.recordUrl
+                              ? `Open Field Note Record for evidence ${entry.id}`
+                              : `Open source file for evidence ${entry.id}`
+                          }
                         >
                           {entry.id}
                         </a>
@@ -1305,11 +1313,11 @@ function AppendixPages({ data }: { data: ScheduleCBPacketData }) {
                       <tr>
                         <td>Requirement</td>
                         <td>
-                          {entry.signedUrl ? (
+                          {entryLinkHref ? (
                             <a
                               className="appendix-link"
-                              href={entry.signedUrl}
-                              aria-label={`Open source file for requirement ${entry.requirementReference}`}
+                              href={entryLinkHref}
+                              aria-label={`Open record for requirement ${entry.requirementReference}`}
                             >
                               {entry.requirementReference}
                             </a>
@@ -1338,7 +1346,8 @@ function AppendixPages({ data }: { data: ScheduleCBPacketData }) {
                     </tbody>
                   </table>
                 </article>
-              ))}
+                )
+              })}
             </div>
 
             <PageFooter data={data} label="Evidence appendix" />
