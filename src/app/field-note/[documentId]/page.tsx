@@ -250,6 +250,7 @@ export default async function FieldNoteRecordPage({
   return (
     <main className="field-note-record min-h-screen bg-[#f4f1ea] px-4 py-10 text-zinc-900">
       <style>{`
+        .field-note-record { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         @media print {
           .no-print { display: none !important; }
           .field-note-record { background: #ffffff !important; padding: 0 !important; }
@@ -257,18 +258,17 @@ export default async function FieldNoteRecordPage({
         }
       `}</style>
 
-      <div className="mx-auto mb-5 flex max-w-3xl items-center justify-between gap-3">
-        <span className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">
-          Vero Permit · Inspection Evidence File
-        </span>
+      <div className="no-print mx-auto mb-5 flex max-w-3xl items-center justify-end gap-3">
         <PrintButton />
       </div>
 
       <article className="field-note-sheet mx-auto max-w-3xl rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm sm:p-12">
         <header className="border-b border-zinc-200 pb-6">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#FF5F15]/30 bg-[#FF5F15]/[0.07] px-3 py-1">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/vero-permit-light.png" alt="Vero Permit" className="h-8 w-auto" />
+          <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-[#FF5F15]/30 bg-[#FF5F15]/[0.07] px-3 py-1">
             <span className="h-1.5 w-1.5 rounded-full bg-[#FF5F15]" />
-            <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#c24d12]">Vero Permit</span>
+            <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#c24d12]">Inspection Evidence File</span>
           </div>
           <h1 className="mt-4 text-3xl font-black tracking-tight text-zinc-900">Field Note Record</h1>
           <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-500">
@@ -334,10 +334,8 @@ function RecordUnavailable({ message }: { message: string }) {
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#f4f1ea] px-4 py-10 text-zinc-900">
       <div className="mx-auto max-w-md rounded-2xl border border-zinc-200 bg-white p-8 text-center shadow-sm">
-        <div className="inline-flex items-center gap-2 rounded-full border border-[#FF5F15]/30 bg-[#FF5F15]/[0.07] px-3 py-1">
-          <span className="h-1.5 w-1.5 rounded-full bg-[#FF5F15]" />
-          <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#c24d12]">Vero Permit</span>
-        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/vero-permit-light.png" alt="Vero Permit" className="mx-auto h-7 w-auto" />
         <h1 className="mt-4 text-xl font-black text-zinc-900">Field Note Record</h1>
         <p className="mt-2 text-sm leading-relaxed text-zinc-500">{message}</p>
       </div>
