@@ -1,0 +1,340 @@
+'use client'
+export const dynamic = 'force-dynamic'
+
+import React, { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { ArrowLeft, CheckCircle2, MinusCircle, AlertTriangle, Activity } from 'lucide-react'
+import { AdminShell } from '@/components/admin/AdminShell'
+
+// ─── Types (mirror /api/admin/checklists/coverage response) ─────────────────────
+
+interface Totals {
+  jurisdictions: number
+  activeJurisdictions: number
+  stages: number
+  activeStages: number
+  templates: number
+  activeTemplates: number
+  inactiveTemplates: number
+  items: number
+  activeItems: number
+  responses: number
+  coverageCells: number
+  activeCells: number
+  inactiveOnlyCells: number
+  missingCells: number
+}
+
+interface CoverageCell {
+  jurisdictionId: string
+  jurisdictionName: string
+  stageId: string
+  stageNumber: number
+  stageTitle: string
+  status: 'active' | 'inactive-only' | 'missing'
+  activeVersion: number | null
+  versionCount: number
+  activeItemCount: number
+  requiredItemCount: number
+}
+
+interface OrphanTemplate {
+  id: string
+  title: string
+  missingStage: boolean
+  missingJurisdiction: boolean
+}
+
+interface ResolverDimension {
+  dimension: string
+  used: boolean
+  note: string
+}
+
+interface GapDimension {
+  dimension: string
+  supported: boolean
+}
+
+interface CoveragePayload {
+  ok: boolean
+  totals: Totals
+  jurisdictions: { id: string; name: string; codeVersion: string | null }[]
+  stages: { id: string; stageNumber: number; title: string }[]
+  coverage: CoverageCell[]
+  orphanTemplates: OrphanTemplate[]
+  orphanItemCount: number
+  resolverBasis: ResolverDimension[]
+  largerProjectGaps: GapDimension[]
+  templateGovernance: { hasReviewPublishWorkflow: boolean; note: string }
+}
+
+// ─── Small presentational helpers ───────────────────────────────────────────────
+
+function StatTile({ label, value, hint }: { label: string; value: React.ReactNode; hint?: string }) {
+  return (
+    <div className="rounded-xl border border-white/8 bg-white/5 p-4">
+      <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-subtle">{label}</div>
+      <div className="mt-1.5 text-2xl font-black text-ink">{value}</div>
+      {hint && <div className="mt-1 text-[11px] text-muted">{hint}</div>}
+    </div>
+  )
+}
+
+function StatusBadge({ status }: { status: CoverageCell['status'] }) {
+  if (status === 'active') {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-success-green/25 bg-success-green/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-success-green">
+        <CheckCircle2 className="h-3 w-3" /> Active
+      </span>
+    )
+  }
+  if (status === 'inactive-only') {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-flame/25 bg-flame/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-flame">
+        <MinusCircle className="h-3 w-3" /> Inactive only
+      </span>
+    )
+  }
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-muted">
+      <AlertTriangle className="h-3 w-3" /> No template
+    </span>
+  )
+}
+
+// ─── Page ───────────────────────────────────────────────────────────────────────
+
+export default function ChecklistCoveragePage() {
+  const [data, setData] = useState<CoveragePayload | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    void fetch('/api/admin/checklists/coverage')
+      .then(async r => {
+        if (!r.ok) throw new Error(`Request failed (${r.status})`)
+        return r.json() as Promise<CoveragePayload>
+      })
+      .then(payload => {
+        if (payload.ok) setData(payload)
+        else setError('Diagnostic data unavailable.')
+      })
+      .catch((e: unknown) => setError(e instanceof Error ? e.message : 'Failed to load diagnostic.'))
+      .finally(() => setLoading(false))
+  }, [])
+
+  const cellsByJurisdiction = React.useMemo(() => {
+    if (!data) return []
+    const map = new Map<string, CoverageCell[]>()
+    for (const cell of data.coverage) {
+      const list = map.get(cell.jurisdictionName) ?? []
+      list.push(cell)
+      map.set(cell.jurisdictionName, list)
+    }
+    return Array.from(map.entries()).map(([name, cells]) => ({
+      name,
+      cells: cells.slice().sort((a, b) => a.stageNumber - b.stageNumber),
+    }))
+  }, [data])
+
+  return (
+    <AdminShell
+      title="Coverage Diagnostic"
+      subtitle="Internal read-only view of checklist/template coverage and larger-project readiness. This is an operational diagnostic, not an approval or compliance decision."
+    >
+      <div className="mb-6">
+        <Link
+          href="/admin/checklists"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-muted transition-colors hover:text-ink"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" /> Back to Checklist Templates
+        </Link>
+      </div>
+
+      {loading ? (
+        <div className="py-16 text-center text-sm text-muted">Loading diagnostic…</div>
+      ) : error ? (
+        <div className="rounded-xl border border-flame/20 bg-flame/5 p-6 text-sm text-flame">{error}</div>
+      ) : !data ? (
+        <div className="py-16 text-center text-sm text-muted">No diagnostic data.</div>
+      ) : (
+        <div className="space-y-8">
+
+          {/* Overview */}
+          <section>
+            <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.28em] text-subtle">Overview</div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <StatTile label="Jurisdictions" value={data.totals.activeJurisdictions} hint={`${data.totals.jurisdictions} total`} />
+              <StatTile label="Inspection Stages" value={data.totals.activeStages} hint={`${data.totals.stages} total`} />
+              <StatTile
+                label="Templates"
+                value={data.totals.activeTemplates}
+                hint={`${data.totals.inactiveTemplates} inactive · ${data.totals.templates} total`}
+              />
+              <StatTile
+                label="Checklist Items"
+                value={data.totals.activeItems}
+                hint={`${data.totals.items} total (incl. retired)`}
+              />
+            </div>
+          </section>
+
+          {/* Coverage signals */}
+          <section>
+            <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.28em] text-subtle">Readiness Signals</div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <StatTile
+                label="Cells Covered"
+                value={<span className="text-success-green">{data.totals.activeCells}</span>}
+                hint={`of ${data.totals.coverageCells} stage × jurisdiction cells`}
+              />
+              <StatTile
+                label="Inactive-only Cells"
+                value={<span className={data.totals.inactiveOnlyCells ? 'text-flame' : 'text-ink'}>{data.totals.inactiveOnlyCells}</span>}
+                hint="templates exist but none active"
+              />
+              <StatTile
+                label="Missing Cells"
+                value={<span className={data.totals.missingCells ? 'text-flame' : 'text-ink'}>{data.totals.missingCells}</span>}
+                hint="no template for stage × jurisdiction"
+              />
+              <StatTile
+                label="Recorded Responses"
+                value={data.totals.responses}
+                hint="permit checklist responses on file"
+              />
+            </div>
+          </section>
+
+          {/* Current resolver basis */}
+          <section className="rounded-xl border border-white/8 bg-white/5 p-6">
+            <div className="flex items-center gap-2">
+              <Activity className="h-4 w-4 text-flame" />
+              <h2 className="text-sm font-black uppercase tracking-[0.18em] text-ink">Current Resolver Basis</h2>
+            </div>
+            <p className="mt-2 text-xs text-muted">
+              These are the only inputs the live template resolver uses today. Nothing here changes resolution — it
+              simply reports the current basis.
+            </p>
+            <ul className="mt-4 space-y-2">
+              {data.resolverBasis.map(d => (
+                <li key={d.dimension} className="flex items-start gap-3 rounded-lg border border-white/8 bg-surface/40 px-4 py-3">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success-green" />
+                  <div>
+                    <div className="text-sm font-bold text-ink">{d.dimension}</div>
+                    <div className="text-xs text-muted">{d.note}</div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          {/* Larger-project gaps */}
+          <section className="rounded-xl border border-white/8 bg-white/5 p-6">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-flame" />
+              <h2 className="text-sm font-black uppercase tracking-[0.18em] text-ink">Larger-Project Gaps</h2>
+            </div>
+            <p className="mt-2 text-xs text-muted">
+              Project dimensions the current resolver does not consider. These are informational signals about coverage
+              breadth — not a compliance assessment. The city or proper authority still has the final say.
+            </p>
+            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+              {data.largerProjectGaps.map(g => (
+                <div key={g.dimension} className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-surface/40 px-4 py-2.5">
+                  <MinusCircle className="h-3.5 w-3.5 shrink-0 text-muted" />
+                  <span className="text-sm text-ink">{g.dimension}</span>
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-subtle">Not used by resolver</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 flex items-start gap-2.5 rounded-lg border border-white/8 bg-surface/40 px-4 py-3">
+              <MinusCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted" />
+              <div>
+                <div className="text-sm font-bold text-ink">Template review / publish governance</div>
+                <div className="text-xs text-muted">{data.templateGovernance.note}</div>
+              </div>
+            </div>
+          </section>
+
+          {/* Coverage matrix */}
+          <section>
+            <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.28em] text-subtle">
+              Coverage by Jurisdiction &amp; Stage
+            </div>
+            <div className="space-y-6">
+              {cellsByJurisdiction.map(group => (
+                <div key={group.name} className="rounded-xl border border-white/8 bg-white/5 p-5">
+                  <h3 className="text-sm font-black text-ink">{group.name}</h3>
+                  <div className="mt-3 overflow-x-auto">
+                    <table className="w-full min-w-[640px] border-collapse text-left">
+                      <thead>
+                        <tr className="text-[10px] font-bold uppercase tracking-wider text-subtle">
+                          <th className="py-2 pr-4">Stage</th>
+                          <th className="py-2 pr-4">Status</th>
+                          <th className="py-2 pr-4">Active ver.</th>
+                          <th className="py-2 pr-4">Versions</th>
+                          <th className="py-2 pr-4">Active items</th>
+                          <th className="py-2 pr-4">Required</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {group.cells.map(cell => (
+                          <tr key={cell.stageId} className="border-t border-white/8 text-sm">
+                            <td className="py-2.5 pr-4">
+                              <span className="text-subtle">S{String(cell.stageNumber).padStart(2, '0')}</span>{' '}
+                              <span className="text-ink/85">{cell.stageTitle}</span>
+                            </td>
+                            <td className="py-2.5 pr-4"><StatusBadge status={cell.status} /></td>
+                            <td className="py-2.5 pr-4 text-ink/70">{cell.activeVersion ?? '—'}</td>
+                            <td className="py-2.5 pr-4 text-ink/70">{cell.versionCount}</td>
+                            <td className="py-2.5 pr-4 text-ink/70">{cell.status === 'active' ? cell.activeItemCount : '—'}</td>
+                            <td className="py-2.5 pr-4 text-ink/70">{cell.status === 'active' ? cell.requiredItemCount : '—'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Data integrity */}
+          {(data.orphanTemplates.length > 0 || data.orphanItemCount > 0) && (
+            <section className="rounded-xl border border-flame/20 bg-flame/5 p-6">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-flame" />
+                <h2 className="text-sm font-black uppercase tracking-[0.18em] text-ink">Data Integrity</h2>
+              </div>
+              <p className="mt-2 text-xs text-muted">
+                Records that reference a missing parent. Surfaced for visibility only — nothing is changed.
+              </p>
+              <ul className="mt-3 space-y-1.5 text-sm text-ink/85">
+                {data.orphanItemCount > 0 && (
+                  <li>{data.orphanItemCount} checklist item(s) reference a template that no longer exists.</li>
+                )}
+                {data.orphanTemplates.map(t => (
+                  <li key={t.id}>
+                    “{t.title}” references a missing{' '}
+                    {[t.missingStage ? 'stage' : null, t.missingJurisdiction ? 'jurisdiction' : null]
+                      .filter(Boolean)
+                      .join(' and ')}
+                    .
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          <p className="pt-2 text-[11px] leading-relaxed text-subtle">
+            Internal admin diagnostic only. Vero Permit helps inspection information move from scattered to organized; it
+            does not approve permits, certify compliance, or replace the city, building official, or qualified
+            professional. The proper authority retains final say.
+          </p>
+        </div>
+      )}
+    </AdminShell>
+  )
+}

@@ -278,6 +278,16 @@ export default function AdminChecklistsPage() {
       ) : (
         <div className="space-y-8">
 
+          {/* Read-only diagnostic entry point */}
+          <div className="flex justify-end">
+            <a
+              href="/admin/checklists/coverage"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-muted transition-colors hover:text-ink"
+            >
+              View Coverage Diagnostic →
+            </a>
+          </div>
+
           {/* Selectors */}
           <section className="rounded-xl border border-white/8 bg-white/5 p-6">
             <div className="text-[10px] font-bold uppercase tracking-[0.28em] text-subtle mb-3">
