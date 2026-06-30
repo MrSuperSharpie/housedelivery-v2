@@ -419,7 +419,7 @@ export default function PackagePreviewClient() {
             <div>
               <div style={{ fontWeight: 900, fontSize: '14pt', letterSpacing: '0.02em' }}>Vero Permit</div>
               <div style={{ fontSize: '8pt', color: '#555555', marginTop: '2pt' }}>
-                Inspection Compliance Platform · getvero.ca
+                Inspection Records Platform · getvero.ca
               </div>
             </div>
             <div style={{ textAlign: 'right', fontSize: '8pt', color: '#555555' }}>
@@ -448,7 +448,7 @@ export default function PackagePreviewClient() {
           <div style={{ marginBottom: '32pt' }}>
             <div style={{ fontWeight: 900, fontSize: '22pt', letterSpacing: '0.03em' }}>Vero Permit</div>
             <div style={{ fontSize: '9pt', color: '#555555', marginTop: '3pt' }}>
-              Inspection Compliance Platform · getvero.ca
+              Inspection Records Platform · getvero.ca
             </div>
           </div>
 

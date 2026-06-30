@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     template: '%s | Vero',
   },
   description:
-    'Uber for construction inspections. Connect with licensed engineers and architects for rapid private building inspections that generate legally binding BC Schedule C-B letters.',
+    'Vero Permit helps builders and inspectors keep inspection records, photos, notes, deficiencies, reports, and project history organized in one secure project file, supporting private building inspections in BC.',
   keywords: ['construction inspection', 'BC Schedule C-B', 'building inspection', 'private inspector', 'Vancouver'],
   openGraph: {
     title: 'Vero',
