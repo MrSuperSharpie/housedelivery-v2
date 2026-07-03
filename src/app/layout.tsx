@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     template: '%s | Vero',
   },
   description:
-    'Vero Permit helps builders and inspectors keep inspection records, photos, notes, deficiencies, reports, and project history organized in one secure project file, supporting private building inspections in BC.',
+    'Vero connects builders with qualified engineers, architects, and certified professionals to keep permit inspections and project documentation moving. Built in British Columbia and expanding across Canada in 2026.',
   keywords: ['construction inspection', 'BC Schedule C-B', 'building inspection', 'private inspector', 'Vancouver'],
   openGraph: {
     title: 'Vero',

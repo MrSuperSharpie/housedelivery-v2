@@ -141,10 +141,10 @@ export default function LandingPage() {
           <div className="max-w-4xl">
             {/* Eyebrow */}
             <div className="flex items-center gap-3 mb-8">
-              <Chip><Zap className="w-3 h-3" /> On-demand permit inspections for Metro Vancouver</Chip>
+              <Chip><Zap className="w-3 h-3" /> On-demand permit inspections for Canadian builders</Chip>
               <div className="hidden md:flex items-center gap-2 text-xs text-muted">
                 <div className="w-1.5 h-1.5 bg-success-green rounded-full animate-pulse" />
-                Live in Metro Vancouver
+                Launching first in Metro Vancouver · Expanding across Canada in 2026
               </div>
             </div>
 
@@ -157,8 +157,7 @@ export default function LandingPage() {
             </h1>
 
             <p className="text-lg sm:text-xl text-muted max-w-2xl leading-relaxed mb-10">
-              Vero connects builders with licensed engineers and architects for rapid private building inspections.
-              Qualified professionals can review, sign, and deliver Schedule C-B packages through Vero.
+              Vero gives builders a faster way to keep projects moving — and gives qualified professionals the freedom to claim nearby inspection work on their own terms. From field review to Schedule C-B documentation, Vero brings speed, accountability, and clean records into one workflow.
             </p>
 
             {/* CTA row */}
@@ -210,8 +209,8 @@ export default function LandingPage() {
           <AudienceCard
             icon={Building2}
             eyebrow="Home Builders"
-            title="Buy velocity, not just an inspection."
-            body="Every idle day on your site costs thousands. Dispatch a licensed engineer in hours, track their arrival in real time, and get your Schedule C-B the same day."
+            title="Keep your project moving."
+            body="Post the inspection, fund the job, and get matched with a qualified professional. No more lost days waiting while crews and trades sit idle."
             href="/builder"
             cta="Open command center"
             accent="bg-gradient-to-r from-flame to-transparent"
@@ -219,8 +218,8 @@ export default function LandingPage() {
           <AudienceCard
             icon={HardHat}
             eyebrow="Certified Professionals"
-            title="Accept verified inspection work on your terms."
-            body="Claim jobs on your commute. Zero paperwork — the app generates the Schedule C-B automatically. Payment hits your bank account the moment the builder releases funds."
+            title="Work when you want. Earn when you're ready."
+            body="Open Vero, see nearby opportunities, and claim the jobs that fit your day. Payouts are shown upfront, records are handled in-platform, and completed work builds your professional history."
             href="/inspector"
             cta="View live board"
             accent="bg-gradient-to-r from-electric to-transparent"
@@ -228,8 +227,8 @@ export default function LandingPage() {
           <AudienceCard
             icon={Eye}
             eyebrow="City Auditors"
-            title="Compliance-ready. Zero new software."
-            body="Vero prepares standardized PDF report packages for participating permit desks when municipal workflows are configured."
+            title="Cleaner records. Less chasing."
+            body="Vero organizes inspection records, photo evidence, and Schedule C-B documentation so project files are easier to review, retrieve, and audit."
             href="/auditor"
             cta="Open vault"
             accent="bg-gradient-to-r from-plasma to-transparent"
@@ -393,10 +392,10 @@ export default function LandingPage() {
         <section className="border-t border-white/5 py-28">
         <div className="max-w-2xl mx-auto px-5 text-center">
           <h2 className="text-4xl sm:text-5xl font-black text-ink mb-4 leading-tight">
-            The permit backlog<br />ends here.
+            Keep the job moving.
           </h2>
           <p className="text-muted text-lg mb-10">
-            Builders get velocity. Inspectors get autonomy. Cities get compliance. Everyone wins.
+            Builders get speed. Professionals get flexibility. Projects get cleaner records.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link href="/get-started"
@@ -405,7 +404,7 @@ export default function LandingPage() {
             </Link>
             <Link href="/inspector/signup"
               className="inline-flex items-center justify-center gap-2.5 border border-white/10 text-ink font-bold text-base px-8 py-4 rounded-2xl hover:bg-raised transition-all">
-              Apply as Inspector
+              Apply as a Professional
             </Link>
           </div>
         </div>
