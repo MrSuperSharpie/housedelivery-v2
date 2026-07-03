@@ -39,19 +39,19 @@ function AudienceCard({
   accent: string
 }) {
   return (
-    <div className="group relative flex flex-col rounded-2xl overflow-hidden card-dark border-flame-gradient hover:border-flame/20 transition-all duration-300 hover:translate-y-[-2px]">
+    <div className="group relative flex flex-col rounded-2xl overflow-hidden card-dark border-teal-gradient hover:border-[#2DD4BF]/20 transition-all duration-300 hover:translate-y-[-2px]">
       {/* Top accent bar */}
       <div className={`h-px w-full ${accent}`} />
       <div className="p-7 flex flex-col flex-1">
         {/* Icon */}
-        <div className="w-11 h-11 rounded-xl bg-flame/10 border border-flame/20 flex items-center justify-center mb-5">
-          <Icon className="w-5 h-5 text-flame" />
+        <div className="w-11 h-11 rounded-xl bg-[#2DD4BF]/10 border border-[#2DD4BF]/20 flex items-center justify-center mb-5">
+          <Icon className="w-5 h-5 text-[#2DD4BF]" />
         </div>
         <div className="label-mono mb-2">{eyebrow}</div>
         <h3 className="text-lg font-black text-ink mb-3 leading-snug">{title}</h3>
         <p className="text-sm text-muted leading-relaxed flex-1">{body}</p>
         <Link href={href}
-          className="inline-flex items-center gap-2 text-sm font-bold text-flame mt-6 group-hover:gap-3 transition-all">
+          className="inline-flex items-center gap-2 text-sm font-bold text-[#2DD4BF] mt-6 group-hover:gap-3 transition-all">
           {cta} <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
@@ -62,8 +62,8 @@ function AudienceCard({
 function StepRow({ n, title, body }: { n: string; title: string; body: string }) {
   return (
     <div className="flex gap-5 items-start">
-      <div className="w-8 h-8 rounded-lg bg-flame/10 border border-flame/20 flex items-center justify-center shrink-0 mt-0.5">
-        <span className="text-xs font-black text-flame font-mono">{n}</span>
+      <div className="w-8 h-8 rounded-lg bg-[#2DD4BF]/10 border border-[#2DD4BF]/20 flex items-center justify-center shrink-0 mt-0.5">
+        <span className="text-xs font-black text-[#2DD4BF] font-mono">{n}</span>
       </div>
       <div>
         <div className="font-bold text-ink text-sm">{title}</div>
@@ -76,8 +76,8 @@ function StepRow({ n, title, body }: { n: string; title: string; body: string })
 function FeatureTile({ icon: Icon, title, body }: { icon: React.ElementType; title: string; body: string }) {
   return (
     <div className="card-dark rounded-2xl p-5 hover:bg-raised transition-colors duration-200">
-      <div className="w-9 h-9 rounded-xl bg-flame/10 border border-flame/20 flex items-center justify-center mb-4">
-        <Icon className="w-4 h-4 text-flame" />
+      <div className="w-9 h-9 rounded-xl bg-[#2DD4BF]/10 border border-[#2DD4BF]/20 flex items-center justify-center mb-4">
+        <Icon className="w-4 h-4 text-[#2DD4BF]" />
       </div>
       <div className="font-bold text-ink text-sm mb-1.5">{title}</div>
       <div className="text-xs text-muted leading-relaxed">{body}</div>
@@ -213,7 +213,7 @@ export default function LandingPage() {
             body="Post the inspection, fund the job, and get matched with a qualified professional. No more lost days waiting while crews and trades sit idle."
             href="/builder"
             cta="Open command center"
-            accent="bg-gradient-to-r from-flame to-transparent"
+            accent="bg-gradient-to-r from-[#14B8A6] to-transparent"
           />
           <AudienceCard
             icon={HardHat}
@@ -301,18 +301,18 @@ export default function LandingPage() {
               <div key={pricing.tier}
                 className={`relative rounded-2xl p-6 flex flex-col ${
                   pricing.tier === 'priority'
-                    ? 'bg-flame/10 border-2 border-flame/40 glow-flame-sm'
+                    ? 'bg-[#14B8A6]/10 border-2 border-[#14B8A6]/40 glow-teal-sm'
                     : 'card-dark'
                 }`}>
                 {pricing.tier === 'priority' && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="bg-flame text-white text-xs font-bold px-3 py-1 rounded-full">Most Popular</span>
+                    <span className="bg-[#0D9488] text-white text-xs font-bold px-3 py-1 rounded-full">Most Popular</span>
                   </div>
                 )}
                 <div className="label-mono mb-2">{pricing.label} Dispatch</div>
                 <div className="text-3xl font-black text-ink mb-0.5">${pricing.price} total</div>
                 <div className="text-xs text-muted mb-1">Includes platform fee</div>
-                <div className="flex items-center gap-1.5 text-xs text-flame mb-5">
+                <div className="flex items-center gap-1.5 text-xs text-[#2DD4BF] mb-5">
                   <Clock className="w-3 h-3" /> {pricing.timeframe}
                 </div>
                 <div className="space-y-2.5 flex-1">
@@ -330,7 +330,7 @@ export default function LandingPage() {
                 <Link href="/get-started"
                   className={`mt-6 flex items-center justify-center gap-2 font-bold text-sm px-4 py-3 rounded-xl transition-all ${
                     pricing.tier === 'priority'
-                      ? 'bg-flame text-white hover:bg-flame-light glow-flame-sm'
+                      ? 'bg-[#0D9488] text-white hover:bg-[#14B8A6] glow-teal-sm'
                       : 'border border-white/10 text-ink hover:bg-raised'
                   }`}>
                   Get Started <ChevronRight className="w-4 h-4" />

@@ -590,6 +590,22 @@ html[data-theme='light'] .app-theme-scope {
     -webkit-text-fill-color: transparent;
     animation: shimmer 3s linear infinite;
   }
+  .border-teal-gradient {
+    position: relative;
+  }
+  .border-teal-gradient::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(13,148,136,0.6), rgba(13,148,136,0.05));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
 
   /* Text glow */
   .text-glow-flame {
