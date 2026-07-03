@@ -131,16 +131,16 @@ export default function LandingPage() {
       {/* ══════════════════════════════════════════════════════════════════ */}
       {/* HERO                                                              */}
       {/* ══════════════════════════════════════════════════════════════════ */}
-        <section className="relative min-h-screen flex flex-col justify-center pt-16 bg-dot bg-dot-sm overflow-hidden">
+        <section className="relative min-h-screen flex flex-col justify-start pt-16 bg-dot bg-dot-sm overflow-hidden">
         {/* Radial glow */}
         <div className="hero-glow" />
         {/* Bottom fade */}
         <div className="absolute bottom-0 inset-x-0 h-48 bg-gradient-to-t from-surface to-transparent" />
 
-        <div className="relative max-w-7xl mx-auto px-5 py-24 md:py-32">
+        <div className="relative max-w-7xl mx-auto px-5 pt-12 pb-20 md:pt-16 md:pb-28">
           <div className="max-w-4xl">
             {/* Eyebrow */}
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-8">
+            <div className="flex flex-col items-start gap-2 mb-8">
               <Chip><Zap className="w-3 h-3" /> On-demand permit inspections for Canadian builders</Chip>
               <div className="hidden md:flex items-center gap-2 text-xs text-muted">
                 <div className="w-1.5 h-1.5 bg-success-green rounded-full animate-pulse" />
