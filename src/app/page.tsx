@@ -12,7 +12,7 @@ import { DISPATCH_PRICING, SPECIALIST_ROLE_OPTIONS } from '@/lib/pricing/config'
 
 function Chip({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-widest uppercase text-flame border border-flame/30 bg-flame/8 px-3 py-1.5 rounded-full">
+    <span className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-widest uppercase text-[#2DD4BF] border border-[#2DD4BF]/30 bg-[#2DD4BF]/10 px-3 py-1.5 rounded-full">
       {children}
     </span>
   )
@@ -121,7 +121,7 @@ export default function LandingPage() {
               Join as Inspector
             </Link>
             <Link href="/get-started"
-              className="inline-flex items-center gap-1.5 text-sm font-bold bg-flame text-white px-4 py-2.5 rounded-xl hover:bg-flame-light transition-all glow-flame-sm">
+              className="inline-flex items-center gap-1.5 text-sm font-bold bg-[#0D9488] text-white px-4 py-2.5 rounded-xl hover:bg-[#14B8A6] transition-all glow-teal-sm">
               Get Started <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -133,7 +133,7 @@ export default function LandingPage() {
       {/* ══════════════════════════════════════════════════════════════════ */}
         <section className="relative min-h-[760px] flex flex-col justify-start pt-16 bg-dot bg-dot-sm overflow-hidden">
         {/* Radial glow */}
-        <div className="hero-glow" />
+        <div className="hero-glow-teal" />
         {/* Bottom fade */}
         <div className="absolute bottom-0 inset-x-0 h-48 bg-gradient-to-t from-surface to-transparent" />
 
@@ -153,7 +153,7 @@ export default function LandingPage() {
               <span className="text-ink">Stop paying your</span>
               <br />
               <span className="text-ink">crew to </span>
-              <span className="text-shimmer">stand still.</span>
+              <span className="text-shimmer-teal">stand still.</span>
             </h1>
 
             <p className="text-lg sm:text-xl text-muted max-w-2xl leading-relaxed mb-10">
@@ -163,7 +163,7 @@ export default function LandingPage() {
             {/* CTA row */}
             <div className="flex flex-wrap gap-3 mb-12">
               <Link href="/get-started?role=builder"
-                className="inline-flex items-center gap-2.5 bg-flame text-white font-bold text-base px-8 py-4 rounded-2xl hover:bg-flame-light transition-all glow-flame shadow-flame">
+                className="inline-flex items-center gap-2.5 bg-[#0D9488] text-white font-bold text-base px-8 py-4 rounded-2xl hover:bg-[#14B8A6] transition-all glow-teal">
                 I&apos;m a Builder <ArrowRight className="w-5 h-5" />
               </Link>
               <Link href="/sign-in?role=inspector"
@@ -399,7 +399,7 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link href="/get-started"
-              className="inline-flex items-center justify-center gap-2.5 bg-flame text-white font-bold text-base px-8 py-4 rounded-2xl hover:bg-flame-light transition-all glow-flame shadow-flame">
+              className="inline-flex items-center justify-center gap-2.5 bg-[#0D9488] text-white font-bold text-base px-8 py-4 rounded-2xl hover:bg-[#14B8A6] transition-all glow-teal">
               Get Started <ArrowRight className="w-5 h-5" />
             </Link>
             <Link href="/inspector/signup"

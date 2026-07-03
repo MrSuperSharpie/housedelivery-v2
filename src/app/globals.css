@@ -559,6 +559,38 @@ html[data-theme='light'] .app-theme-scope {
     box-shadow: 0 0 24px rgba(16,185,129,0.3);
   }
 
+  /* Marketing homepage teal-first accent experiment (additive; flame utilities untouched) */
+  .glow-teal {
+    box-shadow: 0 0 40px rgba(13,148,136,0.28), 0 0 80px rgba(13,148,136,0.10);
+  }
+  .glow-teal-sm {
+    box-shadow: 0 0 20px rgba(13,148,136,0.22);
+  }
+  .hero-glow-teal {
+    position: absolute;
+    top: -20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 900px;
+    height: 500px;
+    background: radial-gradient(ellipse, rgba(13,148,136,0.14) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .text-shimmer-teal {
+    background: linear-gradient(
+      105deg,
+      #0D9488 0%,
+      #5EEAD4 30%,
+      #0D9488 60%,
+      #5EEAD4 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer 3s linear infinite;
+  }
+
   /* Text glow */
   .text-glow-flame {
     text-shadow: 0 0 40px rgba(255,95,21,0.6);
