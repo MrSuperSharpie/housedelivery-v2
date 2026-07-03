@@ -131,7 +131,7 @@ export default function LandingPage() {
       {/* ══════════════════════════════════════════════════════════════════ */}
       {/* HERO                                                              */}
       {/* ══════════════════════════════════════════════════════════════════ */}
-        <section className="relative min-h-screen flex flex-col justify-start pt-16 bg-dot bg-dot-sm overflow-hidden">
+        <section className="relative min-h-[760px] flex flex-col justify-start pt-16 bg-dot bg-dot-sm overflow-hidden">
         {/* Radial glow */}
         <div className="hero-glow" />
         {/* Bottom fade */}
