@@ -392,10 +392,10 @@ export default function LandingPage() {
         <section className="border-t border-white/5 py-28">
         <div className="max-w-2xl mx-auto px-5 text-center">
           <h2 className="text-4xl sm:text-5xl font-black text-ink mb-4 leading-tight">
-            Keep the job moving.
+            The permit backlog<br />ends here.
           </h2>
           <p className="text-muted text-lg mb-10">
-            Builders get speed. Professionals get flexibility. Projects get cleaner records.
+            Builders get velocity. Inspectors get autonomy. Cities get compliance. Everyone wins.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link href="/get-started"
