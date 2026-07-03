@@ -137,14 +137,14 @@ export default function LandingPage() {
         {/* Bottom fade */}
         <div className="absolute bottom-0 inset-x-0 h-48 bg-gradient-to-t from-surface to-transparent" />
 
-        <div className="relative max-w-7xl mx-auto px-5 py-28 md:py-40">
+        <div className="relative max-w-7xl mx-auto px-5 py-24 md:py-32">
           <div className="max-w-4xl">
             {/* Eyebrow */}
-            <div className="flex items-center gap-3 mb-8">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-8">
               <Chip><Zap className="w-3 h-3" /> On-demand permit inspections for Canadian builders</Chip>
               <div className="hidden md:flex items-center gap-2 text-xs text-muted">
                 <div className="w-1.5 h-1.5 bg-success-green rounded-full animate-pulse" />
-                Launching first in Metro Vancouver · Expanding across Canada in 2026
+                Launching in Metro Vancouver · Canada-wide expansion in 2026
               </div>
             </div>
 
@@ -157,11 +157,11 @@ export default function LandingPage() {
             </h1>
 
             <p className="text-lg sm:text-xl text-muted max-w-2xl leading-relaxed mb-10">
-              Vero gives builders a faster way to keep projects moving — and gives qualified professionals the freedom to claim nearby inspection work on their own terms. From field review to Schedule C-B documentation, Vero brings speed, accountability, and clean records into one workflow.
+              Vero helps builders keep projects moving and gives qualified professionals the freedom to claim nearby inspection work on their own terms. From field review to Schedule C-B documentation, every job stays organized, accountable, and audit-ready.
             </p>
 
             {/* CTA row */}
-            <div className="flex flex-wrap gap-3 mb-16">
+            <div className="flex flex-wrap gap-3 mb-12">
               <Link href="/get-started?role=builder"
                 className="inline-flex items-center gap-2.5 bg-flame text-white font-bold text-base px-8 py-4 rounded-2xl hover:bg-flame-light transition-all glow-flame shadow-flame">
                 I&apos;m a Builder <ArrowRight className="w-5 h-5" />
