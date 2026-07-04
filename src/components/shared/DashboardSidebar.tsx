@@ -86,32 +86,32 @@ export function DashboardSidebar({ brandEyebrow, brandTitle, groups, onNavigate 
       item.kind === 'section' && item.available !== false && item.targetId === activeSection)?.id ?? null
 
   const itemClass = (active: boolean, muted = false) =>
-    `group relative flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-flame/50 focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${
+    `group relative flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C6A15B]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${
       active
-        ? 'border-flame/30 bg-flame/10 text-flame'
+        ? 'border-[#C6A15B]/30 bg-[#C6A15B]/10 text-[#C6A15B]'
         : `border-transparent text-muted hover:bg-raised hover:text-ink${muted ? ' opacity-55 hover:opacity-100' : ''}`
     }`
 
   const renderInner = (item: DashboardNavItem, active: boolean) => {
     const Icon = item.icon
     const showBadge = item.badge != null && item.badge !== 0
-    // The primary "action" item keeps a restrained flame icon so it reads as
+    // The primary "action" item keeps a restrained brass icon so it reads as
     // the create affordance without shouting like a filled button.
-    const flameIcon = active || item.kind === 'action'
+    const brandIcon = active || item.kind === 'action'
     return (
       <>
         <span
           aria-hidden
           className={`absolute left-0 top-1/2 h-6 w-0.5 -translate-y-1/2 rounded-full transition-colors ${
-            active ? 'bg-flame' : 'bg-transparent'
+            active ? 'bg-[#C6A15B]' : 'bg-transparent'
           }`}
         />
-        {Icon && <Icon className={`h-4 w-4 shrink-0 ${flameIcon ? 'text-flame' : 'text-subtle group-hover:text-ink'}`} />}
+        {Icon && <Icon className={`h-4 w-4 shrink-0 ${brandIcon ? 'text-[#C6A15B]' : 'text-subtle group-hover:text-ink'}`} />}
         <span className="min-w-0 flex-1 truncate text-left">{item.label}</span>
         {showBadge && (
           <span
             className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-black tabular-nums ${
-              active ? 'bg-flame/15 text-flame' : 'bg-raised text-subtle'
+              active ? 'bg-[#C6A15B]/15 text-[#C6A15B]' : 'bg-raised text-subtle'
             }`}
           >
             {item.badge}
@@ -125,7 +125,7 @@ export function DashboardSidebar({ brandEyebrow, brandTitle, groups, onNavigate 
     <nav className="flex h-full flex-col" aria-label={`${brandEyebrow} navigation`}>
       <div className="border-b border-rim/60 px-4 pb-4 pt-5">
         <div className="rounded-2xl border border-rim/70 bg-raised px-4 py-3">
-          <div className="text-[10px] font-bold uppercase tracking-[0.24em] text-flame">{brandEyebrow}</div>
+          <div className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#C6A15B]">{brandEyebrow}</div>
           <div className="mt-1 truncate text-sm font-black tracking-tight text-ink">{brandTitle}</div>
         </div>
       </div>
