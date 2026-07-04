@@ -11,9 +11,9 @@ const ROLES = [
     Icon:        Building2,
     label:       'Builder / Developer',
     tagline:     'Post inspection requests and track your projects',
-    color:       'border-flame/40 hover:border-flame bg-flame/5',
-    iconBg:      'bg-flame/15 border-flame/25 text-flame',
-    ctaColor:    'bg-flame hover:bg-flame-light text-white',
+    color:       'border-[#C6A15B]/40 hover:border-[#C6A15B] bg-[#C6A15B]/5',
+    iconBg:      'bg-[#C6A15B]/15 border-[#C6A15B]/25 text-[#C6A15B]',
+    ctaColor:    'bg-[#C6A15B] hover:bg-[#D8B871] text-[#1B1508]',
     perks: [
       'Post inspection requests in under 2 minutes',
       'Vero assigns the appropriate inspector automatically',
@@ -70,8 +70,8 @@ export default function GetStartedPage() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12">
         {/* Hero */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-1.5 bg-flame/10 border border-flame/20 text-flame text-xs font-bold px-3 py-1.5 rounded-full mb-5">
-            <div className="w-1.5 h-1.5 bg-flame rounded-full animate-pulse" />
+          <div className="inline-flex items-center gap-1.5 bg-[#C6A15B]/10 border border-[#C6A15B]/20 text-[#C6A15B] text-xs font-bold px-3 py-1.5 rounded-full mb-5">
+            <div className="w-1.5 h-1.5 bg-[#C6A15B] rounded-full animate-pulse" />
             Create your account
           </div>
           <h1 className="text-3xl sm:text-4xl font-black text-ink mb-3">
@@ -121,7 +121,7 @@ export default function GetStartedPage() {
 
         <p className="text-center text-xs text-subtle">
           Already have an account?{' '}
-          <Link href="/sign-in" className="text-flame hover:underline font-semibold">Sign in</Link>
+          <Link href="/sign-in" className="text-[#C6A15B] hover:underline font-semibold">Sign in</Link>
         </p>
       </div>
     </div>
