@@ -632,12 +632,23 @@ html[data-theme='light'] .app-theme-scope {
   .home-hero-grid .bg-dot {
     background-image: radial-gradient(circle, rgba(228,210,170,0.08) 1px, transparent 1px);
   }
-  /* Brushed-brass wordmark/heading fill — static (no shimmer) for a metal, not neon, feel */
+  /* Brushed-brass heading fill — slow metallic sheen sweep (reuses @keyframes
+     shimmer). Kept slow and warm so it reads like light moving across brass,
+     not a neon flash. */
   .text-metallic-gold {
-    background: linear-gradient(180deg, #F2E2AC 0%, #D8B871 38%, #C6A15B 62%, #9C7C3C 100%);
+    background: linear-gradient(
+      105deg,
+      #B98F45 0%,
+      #C6A15B 25%,
+      #F4E4AE 50%,
+      #C6A15B 72%,
+      #B98F45 100%
+    );
+    background-size: 200% auto;
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+    animation: shimmer 4.5s linear infinite;
   }
   .border-gold-gradient {
     position: relative;
@@ -778,6 +789,13 @@ html[data-theme='light'] .app-theme-scope {
   @keyframes shimmer {
     from { background-position: 200% center; }
     to   { background-position: -200% center; }
+  }
+
+  /* Respect reduced-motion: hold the brass headline as a static gradient */
+  @media (prefers-reduced-motion: reduce) {
+    .text-metallic-gold {
+      animation: none;
+    }
   }
 
   /* Live pulse dot */
