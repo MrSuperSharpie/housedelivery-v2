@@ -90,7 +90,7 @@ function FeatureTile({ icon: Icon, title, body }: { icon: React.ElementType; tit
 export default function LandingPage() {
   return (
     <div className="dark">
-      <div className="min-h-screen overflow-x-hidden bg-[#0B0B0E] text-white [--color-surface:#0B0B0E] [--color-panel:#141317] [--color-raised:#1C1A1F] [--color-hover:#242128] [--color-rim:#3A3742] [--color-ink:#FFFFFF] [--color-muted:#D6D3CC] [--color-subtle:#9C978C]">
+      <div className="home-hero-grid min-h-screen overflow-x-hidden bg-[#0B0B0E] text-white [--color-surface:#0B0B0E] [--color-panel:#141317] [--color-raised:#1C1A1F] [--color-hover:#242128] [--color-rim:#3A3742] [--color-ink:#FFFFFF] [--color-muted:#D6D3CC] [--color-subtle:#9C978C]">
 
         {/* ══════════════════════════════════════════════════════════════════ */}
         {/* NAVBAR                                                            */}

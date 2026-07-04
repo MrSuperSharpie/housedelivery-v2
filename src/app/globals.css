@@ -620,10 +620,17 @@ html[data-theme='light'] .app-theme-scope {
     top: -20%;
     left: 50%;
     transform: translateX(-50%);
-    width: 900px;
-    height: 500px;
-    background: radial-gradient(ellipse, rgba(198,161,91,0.10) 0%, transparent 70%);
+    width: 1000px;
+    height: 560px;
+    /* Warmer, a touch more visible, still soft and diffused (two-stop falloff) */
+    background: radial-gradient(ellipse, rgba(206,168,96,0.16) 0%, rgba(198,161,91,0.05) 46%, transparent 72%);
     pointer-events: none;
+  }
+  /* Homepage-scoped dot grid — a touch clearer and faintly warm to sit with the
+     brass accents. Scoped to the marketing page so shared .bg-dot panels on the
+     builder/inspector overviews are unaffected. */
+  .home-hero-grid .bg-dot {
+    background-image: radial-gradient(circle, rgba(228,210,170,0.08) 1px, transparent 1px);
   }
   /* Brushed-brass wordmark/heading fill — static (no shimmer) for a metal, not neon, feel */
   .text-metallic-gold {
