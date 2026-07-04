@@ -3342,7 +3342,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
       <div className="completion-workspace min-h-screen bg-[var(--color-surface)] text-[color:var(--color-ink)]">
         <Navbar role="inspector" dark />
         <div className="flex min-h-[70vh] items-center justify-center">
-          <Loader2 className="h-10 w-10 animate-spin text-flame" />
+          <Loader2 className="h-10 w-10 animate-spin text-[#C6A15B]" />
         </div>
       </div>
     )
@@ -3442,7 +3442,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
               <button
                 type="button"
                 onClick={() => router.push('/inspector')}
-                className="rounded-2xl bg-flame px-5 py-3 text-sm font-black text-white hover:bg-flame-light"
+                className="rounded-2xl bg-[#C6A15B] px-5 py-3 text-sm font-black text-[#1B1508] hover:bg-[#D8B871]"
               >
                 Back to Inspector Board
               </button>
@@ -3568,7 +3568,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                 <button
                   type="button"
                   onClick={() => router.push('/inspector')}
-                  className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-2xl bg-flame px-4 py-2.5 text-xs font-semibold text-white shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light"
+                  className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-2xl bg-[#C6A15B] px-4 py-2.5 text-xs font-semibold text-[#1B1508] shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-[#D8B871]"
                 >
                   Return to Job Board <ChevronRight className="h-4 w-4" />
                 </button>
@@ -3608,7 +3608,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                   <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-electric">Inspector Completion</div>
                   <h1 className="mt-2 text-xl font-black">{job.projectName}</h1>
                 </div>
-                <div className="rounded-full border border-rim/70 bg-white/5 px-3 py-1 text-[11px] font-black text-flame">
+                <div className="rounded-full border border-rim/70 bg-white/5 px-3 py-1 text-[11px] font-black text-[#C6A15B]">
                   {assignmentScope ? `Stage ${assignmentScope.builderStageNumber} of 5` : '15 Stages'}
                 </div>
               </div>
@@ -3646,7 +3646,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
 
             <div className="mt-4 flex items-center justify-between text-xs text-zinc-400">
               <span>{lastSavedLabel}</span>
-              {saving && <Loader2 className="h-4 w-4 animate-spin text-flame" />}
+              {saving && <Loader2 className="h-4 w-4 animate-spin text-[#C6A15B]" />}
             </div>
 
             <div className={`mt-4 rounded-[1.75rem] border border-white/10 bg-[var(--color-panel)] p-4 ${FLOATING_PANEL_CLASS}`}>
@@ -3714,7 +3714,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                               onClick={() => {
                                 if (isClickable) navigateToStage(stage.stage_number)
                               }}
-                              className={`w-full rounded-2xl border p-3 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${containerClass} ${isCurrent ? 'ring-1 ring-flame/60' : ''}`}
+                              className={`w-full rounded-2xl border p-3 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${containerClass} ${isCurrent ? 'ring-1 ring-[#C6A15B]/60' : ''}`}
                             >
                               <div className="flex items-start justify-between gap-3">
                                 <div className="min-w-0">
@@ -3726,7 +3726,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                       {!isInAssignmentScope ? 'Locked' : status === 'passed' ? 'Passed' : status === 'active' ? 'Active' : 'Locked'}
                                     </span>
                                     {isCurrent && (
-                                      <span className="rounded-full border border-rim/70 bg-white/5 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-flame">
+                                      <span className="rounded-full border border-rim/70 bg-white/5 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-[#C6A15B]">
                                         In View
                                       </span>
                                     )}
@@ -4295,7 +4295,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                         label="Add text note"
                                         buttonClassName={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl border px-0 transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
                                           noteOpen
-                                            ? 'border-flame/40 bg-flame/15 text-flame'
+                                            ? 'border-[#C6A15B]/40 bg-[#C6A15B]/15 text-[#C6A15B]'
                                             : 'border-white/10 bg-white/8 text-[color:var(--color-muted)] hover:bg-white/15 hover:text-[color:var(--color-ink)]'
                                         }`}
                                         onCapture={payload => handleChecklistCapture(item.item_code, detail, payload)}
@@ -4310,7 +4310,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                     onChange={event => updateChecklistNote(item.item_code, detail, event.target.value)}
                                     rows={3}
                                     placeholder={`Note for item ${index + 1}`}
-                                    className="mt-3 w-full rounded-2xl border border-white/10 bg-[var(--color-raised)] px-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:border-flame focus:outline-none"
+                                    className="mt-3 w-full rounded-2xl border border-white/10 bg-[var(--color-raised)] px-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:border-[#C6A15B] focus:outline-none"
                                   />
                                 )}
 
@@ -4633,7 +4633,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                       onChange={event => updateItem(item.item_code, current => ({ ...current, response_note: event.target.value }))}
                                       rows={4}
                                       placeholder={item.inspector_notes_guidance}
-                                      className="mt-3 w-full rounded-2xl border border-white/10 bg-[var(--color-raised)] px-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:border-flame focus:outline-none"
+                                      className="mt-3 w-full rounded-2xl border border-white/10 bg-[var(--color-raised)] px-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:border-[#C6A15B] focus:outline-none"
                                     />
                                   </>
                                 )}
@@ -5061,7 +5061,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                     onChange={event => updateItem(item.item_code, current => ({ ...current, response_note: event.target.value }))}
                                     rows={4}
                                     placeholder={item.inspector_notes_guidance}
-                                    className="mt-3 w-full rounded-2xl border border-white/10 bg-[var(--color-raised)] px-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:border-flame focus:outline-none"
+                                    className="mt-3 w-full rounded-2xl border border-white/10 bg-[var(--color-raised)] px-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:border-[#C6A15B] focus:outline-none"
                                   />
                                 </>
                               )}
@@ -5300,7 +5300,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                 type="button"
                                 disabled={saving || draft.trim().length === 0}
                                 onClick={() => void handleManualLocationNoteSave(itemCode, doc, draft)}
-                                className="inline-flex min-h-[42px] items-center justify-center gap-2 rounded-xl bg-flame px-4 py-2 text-sm font-semibold text-white shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light disabled:cursor-not-allowed disabled:bg-zinc-300 disabled:text-zinc-600"
+                                className="inline-flex min-h-[42px] items-center justify-center gap-2 rounded-xl bg-[#C6A15B] px-4 py-2 text-sm font-semibold text-[#1B1508] shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-[#D8B871] disabled:cursor-not-allowed disabled:bg-zinc-300 disabled:text-zinc-600"
                               >
                                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
                                 {saving ? 'Saving...' : 'Save Manual Location Note'}
@@ -5337,7 +5337,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                     onClick={() => void handleFinalOccupancyIssue()}
                     className={`inline-flex min-h-[54px] items-center justify-center gap-2 rounded-2xl px-6 py-3 text-sm font-black uppercase tracking-[0.12em] transition-colors ${
                       finalOccupancyActionReady
-                        ? 'bg-flame text-white shadow-sm ring-1 ring-inset ring-white/10 hover:bg-flame-light'
+                        ? 'bg-[#C6A15B] text-[#1B1508] shadow-sm ring-1 ring-inset ring-white/10 hover:bg-[#D8B871]'
                         : 'cursor-not-allowed bg-zinc-800 text-zinc-500'
                     }`}
                   >
@@ -5347,10 +5347,10 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                 </div>
               </div>
             ) : (
-              <div className={`rounded-[2rem] border border-flame/20 bg-[var(--color-panel)] p-5 shadow-[0_0_0_1px_rgba(255,95,21,0.08)] ${FLOATING_PANEL_CLASS}`}>
+              <div className={`rounded-[2rem] border border-[#C6A15B]/20 bg-[var(--color-panel)] p-5 shadow-[0_0_0_1px_rgba(198,161,91,0.08)] ${FLOATING_PANEL_CLASS}`}>
                 <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                   <div className="max-w-2xl">
-                    <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-flame">Stage Summary Footer</div>
+                    <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#C6A15B]">Stage Summary Footer</div>
                     <h3 className="mt-2 text-2xl font-black">Sign Off S{String(currentStage).padStart(2, '0')}</h3>
                     <p className="mt-2 text-sm text-zinc-300">
                       Required containers must be fully checked, evidence-backed, and clear of failures before this stage can be signed and pushed forward.
@@ -5453,7 +5453,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                     </div>
                     {currentStageSignOff && (
                       <div className="flex items-center gap-2">
-                        <Stamp className="h-4 w-4 text-flame" />
+                        <Stamp className="h-4 w-4 text-[#C6A15B]" />
                         {currentStageSignOff.unlockedStages.length > 0
                           ? `Unlocked stages: ${currentStageSignOff.unlockedStages.map(stage => `Stage ${stage}`).join(', ')}`
                           : 'No downstream stage was unlocked by this sign-off yet.'}
@@ -5469,7 +5469,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                           type="button"
                           disabled={assignmentCloseRetrying}
                           onClick={() => void handleScopedAssignmentCloseRetry()}
-                          className="mt-3 inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-flame px-4 py-2.5 text-xs font-semibold text-white shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500"
+                          className="mt-3 inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-[#C6A15B] px-4 py-2.5 text-xs font-semibold text-[#1B1508] shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-[#D8B871] disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500"
                         >
                           {assignmentCloseRetrying ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
                           {assignmentCloseRetrying ? 'Closing Assignment...' : 'Complete Assignment Close'}
@@ -5483,7 +5483,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       className={`inline-flex min-h-[52px] items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-black transition-colors ${
                         !stageReadyForSignOff || currentStageSignOff
                           ? 'cursor-not-allowed bg-zinc-800 text-zinc-500'
-                          : 'bg-flame text-white shadow-sm ring-1 ring-inset ring-white/10 hover:bg-flame-light'
+                          : 'bg-[#C6A15B] text-[#1B1508] shadow-sm ring-1 ring-inset ring-white/10 hover:bg-[#D8B871]'
                       }`}
                     >
                       {stageSigning ? <Loader2 className="h-4 w-4 animate-spin" /> : currentStageSignOff ? <ShieldCheck className="h-4 w-4" /> : stageReadyForSignOff ? <Stamp className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
@@ -5554,7 +5554,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       onClick={() => void applySeal()}
                       className={`inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-black ${
                         sealReady && finalSealLocationIntegrityReady
-                          ? 'bg-flame text-white hover:bg-flame-light'
+                          ? 'bg-[#C6A15B] text-[#1B1508] hover:bg-[#D8B871]'
                           : 'cursor-not-allowed bg-zinc-800 text-zinc-100'
                       }`}
                     >
@@ -5596,10 +5596,10 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
               type="button"
               disabled={currentStage === stages.length || footerIssueCount > 0 || Boolean(assignmentScope)}
               onClick={() => navigateToStage(Math.min(stages.length, currentStage + 1))}
-              className={`inline-flex min-h-[48px] items-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold text-white ${
+              className={`inline-flex min-h-[48px] items-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold ${
                 footerIssueCount > 0
                   ? 'cursor-not-allowed bg-zinc-700 text-zinc-300'
-                  : 'bg-flame disabled:cursor-not-allowed disabled:opacity-40'
+                  : 'bg-[#C6A15B] text-[#1B1508] disabled:cursor-not-allowed disabled:opacity-40'
               }`}
             >
               Next Stage
