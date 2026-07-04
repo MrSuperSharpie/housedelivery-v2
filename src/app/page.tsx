@@ -6,7 +6,7 @@ import {
   HardHat, Building2, Eye
 } from 'lucide-react'
 import { BrandWordmark } from '@/components/shared/Navbar'
-import { DISPATCH_PRICING, SPECIALIST_ROLE_OPTIONS } from '@/lib/pricing/config'
+import { DISPATCH_PRICING } from '@/lib/pricing/config'
 
 /* ─── Micro-components ───────────────────────────────────────────────────── */
 
@@ -280,7 +280,7 @@ export default function LandingPage() {
         <div className="max-w-4xl mx-auto px-5">
           <div className="text-center mb-12">
             <div className="label-mono mb-3">PRICING</div>
-            <h2 className="text-3xl font-black text-ink">Choose your dispatch speed. Vero handles the pricing model.</h2>
+            <h2 className="text-3xl font-black text-ink">Choose your dispatch speed. Vero keeps pricing clear.</h2>
             <p className="text-muted text-sm mt-3 max-w-2xl mx-auto">
               Standard, Priority, and Emergency control how quickly an inspector is dispatched.
               For routine inspections, pricing is fixed-fee.
@@ -310,8 +310,8 @@ export default function LandingPage() {
                   </div>
                 )}
                 <div className="label-mono mb-2">{pricing.label} Dispatch</div>
-                <div className="text-3xl font-black text-ink mb-0.5">${pricing.price} total</div>
-                <div className="text-xs text-muted mb-1">Includes platform fee</div>
+                <div className="text-3xl font-black text-ink mb-0.5">${pricing.price}</div>
+                <div className="text-xs text-muted mb-1">per routine booking · platform fee included</div>
                 <div className="flex items-center gap-1.5 text-xs text-[#2DD4BF] mb-5">
                   <Clock className="w-3 h-3" /> {pricing.timeframe}
                 </div>
@@ -340,37 +340,15 @@ export default function LandingPage() {
           </div>
 
           <div className="mt-5 rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-sm text-muted">
-            These fixed-fee cards apply to routine dispatch only. If the file requires a registered professional, specialist hourly pricing applies below.
+            Covers one routine inspection visit, up to 3 professional hours, and in-platform photos, video, notes, and inspection records. Extra time, on-site holds, specialist review, sealed sign-off, or a second visit are approved before any additional charge.
           </div>
 
           <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-6">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <div className="label-mono mb-2">STEP 2 — SPECIALIST PRICING, IF REQUIRED</div>
-                <h3 className="text-2xl font-black text-ink">Hourly specialist and professional review rates</h3>
-                <p className="text-sm text-muted max-w-2xl">
-                  Applied when the inspection requires field review, sealed review, sign-off, or another registered-professional obligation.
-                  Dispatch speed still controls urgency, but hourly specialist rates become the pricing basis.
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-5 grid gap-3 md:grid-cols-2">
-              {SPECIALIST_ROLE_OPTIONS.map(role => (
-                <div key={role.id} className="rounded-2xl border border-white/10 bg-[#0E1727] px-4 py-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <div className="text-sm font-bold text-ink">{role.label}</div>
-                      <div className="mt-1 text-xs text-muted">Typical range: {role.rateRangeLabel}</div>
-                      <div className="mt-1 text-xs text-muted">Minimum {role.minimumHours} hours</div>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <div className="text-lg font-black text-ink">${role.defaultRate}/hr</div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <div className="label-mono mb-2">STEP 2 — SPECIALIST REVIEW, WHEN REQUIRED</div>
+            <h3 className="text-2xl font-black text-ink">Specialist review, when required</h3>
+            <p className="text-sm text-muted max-w-2xl mt-2">
+              Most routine bookings use fixed dispatch pricing. If a request requires registered-professional review, sealed sign-off, Schedule C-B support, or additional technical review, Vero confirms the scope and price before added work proceeds.
+            </p>
           </div>
 
           <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-6">
