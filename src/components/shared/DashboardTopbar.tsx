@@ -31,7 +31,7 @@ function ActionButton({ action, variant }: { action: DashboardTopbarAction; vari
   const Icon = action.icon
   const cls =
     variant === 'primary'
-      ? 'bg-flame text-white hover:bg-flame-light'
+      ? 'bg-[#C6A15B] text-[#1B1508] hover:bg-[#D8B871]'
       : 'border border-rim bg-panel text-ink hover:border-rim hover:bg-raised'
   const content = (
     <>
@@ -39,7 +39,7 @@ function ActionButton({ action, variant }: { action: DashboardTopbarAction; vari
       <span className="hidden sm:inline">{action.label}</span>
     </>
   )
-  const shared = `inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-flame/50 focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${cls}`
+  const shared = `inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C6A15B]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${cls}`
   if (action.href) {
     return (
       <Link href={action.href} className={shared} aria-label={action.label}>
@@ -108,7 +108,7 @@ export function DashboardTopbar({ role, primaryAction, secondaryAction, onOpenNa
               aria-expanded={userOpen}
               className="flex items-center gap-2 rounded-xl py-1.5 pl-2 pr-3 text-xs font-semibold text-muted transition-colors hover:bg-raised hover:text-ink"
             >
-              <span className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full bg-flame text-[10px] font-black text-white">
+              <span className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full bg-[#C6A15B] text-[10px] font-black text-[#1B1508]">
                 {displayLogoUrl ? (
                   <Image src={displayLogoUrl} alt={`${displayName} logo`} width={24} height={24} className="h-full w-full object-cover" unoptimized />
                 ) : (

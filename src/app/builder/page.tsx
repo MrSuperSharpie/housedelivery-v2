@@ -293,7 +293,7 @@ function ProvisionalAssignmentPanel({
           <button
             type="button"
             onClick={() => setShowDetails(prev => !prev)}
-            className="rounded-xl border border-rim bg-panel px-3 py-2 text-[11px] font-black text-ink transition-colors hover:border-flame/40"
+            className="rounded-xl border border-rim bg-panel px-3 py-2 text-[11px] font-black text-ink transition-colors hover:border-[#C6A15B]/40"
           >
             View Appointment
           </button>
@@ -327,7 +327,7 @@ function ProvisionalAssignmentPanel({
               <div className="text-[11px] font-bold uppercase tracking-wide text-muted">Select objection reason</div>
               <div className="grid gap-2 md:grid-cols-2">
                 {OBJECTION_REASONS.map(r => (
-                  <label key={r.value} className={`flex items-start gap-2 rounded-xl border p-3 text-xs transition-colors ${reason === r.value ? 'border-flame/50 bg-flame/[0.06]' : 'border-rim/70 bg-panel hover:border-rim'}`}>
+                  <label key={r.value} className={`flex items-start gap-2 rounded-xl border p-3 text-xs transition-colors ${reason === r.value ? 'border-[#C6A15B]/50 bg-[#C6A15B]/[0.06]' : 'border-rim/70 bg-panel hover:border-rim'}`}>
                     <input
                       type="radio"
                       name="objection"
@@ -354,7 +354,7 @@ function ProvisionalAssignmentPanel({
                 <button
                   disabled={!reason || !note.trim() || submitting}
                   onClick={handleObject}
-                  className="rounded-xl bg-flame px-4 py-2 text-xs font-semibold text-white shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded-xl bg-[#C6A15B] px-4 py-2 text-xs font-semibold text-[#1B1508] shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-[#D8B871] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {submitting ? 'Filing...' : 'File Objection'}
                 </button>
@@ -669,7 +669,7 @@ function ModificationRequiredCard({
         <button
           onClick={onAccept}
           disabled={isResponding}
-          className="w-full bg-flame hover:bg-flame-light text-white font-semibold py-3 rounded-xl text-sm shadow-sm ring-1 ring-inset ring-white/10 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+          className="w-full bg-[#C6A15B] hover:bg-[#D8B871] text-[#1B1508] font-semibold py-3 rounded-xl text-sm shadow-sm ring-1 ring-inset ring-white/10 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {isResponding
             ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -681,7 +681,7 @@ function ModificationRequiredCard({
             value={declineNote}
             onChange={e => setDeclineNote(e.target.value)}
             placeholder="Reason for declining (required)..."
-            className="flex-1 bg-surface border border-rim rounded-xl px-3 py-2.5 text-xs text-ink placeholder-subtle focus:outline-none focus:border-flame/60"
+            className="flex-1 bg-surface border border-rim rounded-xl px-3 py-2.5 text-xs text-ink placeholder-subtle focus:outline-none focus:border-[#C6A15B]/60"
           />
           <button
             onClick={() => onDecline(declineNote)}
@@ -1760,21 +1760,21 @@ export default function BuilderDashboard() {
 
         {/* ── Builder Command Center hero ── */}
         {/* Premium dark dotted banner that mirrors the Inspector Live Board hero:
-            charcoal surface, subtle dot texture, restrained flame glow + eyebrow,
+            charcoal surface, subtle dot texture, restrained brass glow + eyebrow,
             strong white typography. Presentation only — the CTAs reuse the
             existing handlers (new request modal + Vault route). */}
         <div id="overview" className="relative mb-6 scroll-mt-20 overflow-hidden rounded-3xl border border-rim/70 bg-gradient-to-b from-panel to-surface bg-dot bg-dot-sm">
-          <div className="pointer-events-none absolute -top-24 right-[-6rem] h-72 w-72 rounded-full bg-flame/10 blur-3xl" />
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-flame/40 to-transparent" />
+          <div className="pointer-events-none absolute -top-24 right-[-6rem] h-72 w-72 rounded-full bg-[#C6A15B]/10 blur-3xl" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#C6A15B]/40 to-transparent" />
           <div className="relative px-5 py-7 sm:px-7">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
               <div className="min-w-0">
-                <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-flame/25 bg-flame/[0.08] px-3 py-1">
+                <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#C6A15B]/25 bg-[#C6A15B]/[0.08] px-3 py-1">
                   <span className="relative flex h-1.5 w-1.5">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-flame/70" />
-                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-flame" />
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#C6A15B]/70" />
+                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#C6A15B]" />
                   </span>
-                  <span className="label-mono font-bold !text-flame">
+                  <span className="label-mono font-bold !text-[#C6A15B]">
                     Builder Operations · {user?.company ?? MOCK_BUILDER.companyName}
                   </span>
                 </div>
@@ -1787,7 +1787,7 @@ export default function BuilderDashboard() {
                 <button
                   type="button"
                   onClick={handleNewRequest}
-                  className="inline-flex items-center gap-2 rounded-2xl bg-flame px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-orange-500/25 transition-colors hover:bg-flame-light"
+                  className="btn-gold inline-flex items-center gap-2 rounded-2xl px-5 py-3.5 text-sm font-bold transition-all glow-gold-sm"
                 >
                   <MapPin className="h-4 w-4" />
                   Post Inspection Request
@@ -1927,7 +1927,7 @@ export default function BuilderDashboard() {
                               type="button"
                               onClick={() => handleOpenHoldEvidence(evidence.id)}
                               disabled={openingEvidenceId === evidence.id}
-                              className="inline-flex items-center gap-1 rounded-lg border border-rim bg-panel px-2 py-1 text-[10px] font-bold text-flame transition-colors hover:bg-surface disabled:opacity-50"
+                              className="inline-flex items-center gap-1 rounded-lg border border-rim bg-panel px-2 py-1 text-[10px] font-bold text-[#C6A15B] transition-colors hover:bg-surface disabled:opacity-50"
                             >
                               <ExternalLink className="h-3 w-3" />
                               {openingEvidenceId === evidence.id ? 'Opening…' : 'Open photo'}
@@ -1981,7 +1981,7 @@ export default function BuilderDashboard() {
                 <div className="px-5 py-3 border-b border-rim">
                   <div className="mb-2 flex items-center justify-between">
                     <div className="text-[10px] font-bold text-muted uppercase tracking-widest">Select Correction Window</div>
-                    <div className="text-[10px] font-bold text-flame">{selectedWindow} min selected</div>
+                    <div className="text-[10px] font-bold text-[#C6A15B]">{selectedWindow} min selected</div>
                   </div>
                   <div className="grid grid-cols-5 gap-1.5">
                     {[30, 60, 90, 120, 150].map(minutes => (
@@ -1991,7 +1991,7 @@ export default function BuilderDashboard() {
                         onClick={() => setCorrectionWindowByHold(prev => ({ ...prev, [hold.id]: minutes }))}
                         className={`rounded-xl py-2 text-xs font-semibold transition-all ${
                           selectedWindow === minutes
-                            ? 'bg-flame text-white shadow-sm ring-1 ring-inset ring-white/10'
+                            ? 'bg-[#C6A15B] text-[#1B1508] shadow-sm ring-1 ring-inset ring-white/10'
                             : 'border border-rim/70 text-muted hover:bg-surface'
                         }`}
                       >
@@ -2025,7 +2025,7 @@ export default function BuilderDashboard() {
                     <button
                       onClick={() => handleApproveHold(hold)}
                       disabled={isResponding}
-                      className="flex-1 bg-flame hover:bg-flame-light text-white font-semibold py-3 rounded-xl text-sm shadow-sm ring-1 ring-inset ring-white/10 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                      className="flex-1 bg-[#C6A15B] hover:bg-[#D8B871] text-[#1B1508] font-semibold py-3 rounded-xl text-sm shadow-sm ring-1 ring-inset ring-white/10 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                       {isResponding
                         ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -2057,7 +2057,7 @@ export default function BuilderDashboard() {
                       value={thisDeclineNote}
                       onChange={e => setDeclineNotes(prev => ({ ...prev, [hold.id]: e.target.value }))}
                       placeholder="Reason for declining (required)..."
-                      className="flex-1 bg-surface border border-rim rounded-xl px-3 py-2.5 text-xs text-ink placeholder-subtle focus:outline-none focus:border-flame/60"
+                      className="flex-1 bg-surface border border-rim rounded-xl px-3 py-2.5 text-xs text-ink placeholder-subtle focus:outline-none focus:border-[#C6A15B]/60"
                     />
                     <button
                       onClick={() => handleDeclineHold(hold)}
@@ -2228,7 +2228,7 @@ export default function BuilderDashboard() {
 
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
-            <div className="w-8 h-8 border-2 border-flame/30 border-t-flame rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 border-[#C6A15B]/30 border-t-[#C6A15B] rounded-full animate-spin" />
             <span className="ml-3 text-sm font-medium text-muted">Loading projects…</span>
           </div>
         ) : visibleDbJobs.length === 0 && projects.length === 0 ? (
@@ -2318,7 +2318,7 @@ export default function BuilderDashboard() {
                         <button
                           type="button"
                           onClick={() => handleRequestInspection(requestProject)}
-                          className="rounded-xl bg-flame px-3 py-2 text-[11px] font-semibold text-white shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light"
+                          className="rounded-xl bg-[#C6A15B] px-3 py-2 text-[11px] font-semibold text-[#1B1508] shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-[#D8B871]"
                         >
                           Request {availableStage.stage.label.split(' — ')[0]} Inspection
                         </button>
@@ -2328,7 +2328,7 @@ export default function BuilderDashboard() {
                             href={`/api/schedule-cb?reportId=${encodeURIComponent(completionReportsByJobId[completedJob.id]!.id!)}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="rounded-xl bg-flame px-3 py-2 text-[11px] font-semibold text-white shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light"
+                            className="rounded-xl bg-[#C6A15B] px-3 py-2 text-[11px] font-semibold text-[#1B1508] shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-[#D8B871]"
                           >
                             Download Schedule C-B
                           </a>
@@ -2350,7 +2350,7 @@ export default function BuilderDashboard() {
                             <button
                               type="button"
                               onClick={() => openManageRequest(activeStageEntry.stageJob!)}
-                              className="rounded-xl bg-flame px-3 py-2 text-[11px] font-semibold text-white shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light"
+                              className="rounded-xl bg-[#C6A15B] px-3 py-2 text-[11px] font-semibold text-[#1B1508] shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-[#D8B871]"
                             >
                               Manage Request
                             </button>
@@ -2364,7 +2364,7 @@ export default function BuilderDashboard() {
                       <button
                         type="button"
                         onClick={() => handleHideProject(progressProject.representativeJob?.projectId ?? progressProject.sourceProject?.id ?? progressProject.key)}
-                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-rim text-muted transition-all hover:border-flame/30 hover:text-flame"
+                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-rim text-muted transition-all hover:border-[#C6A15B]/30 hover:text-[#C6A15B]"
                         title="Hide from dashboard"
                       >
                         <EyeOff className="h-4 w-4" />
@@ -2409,7 +2409,7 @@ export default function BuilderDashboard() {
                                   href={`/api/schedule-cb?reportId=${encodeURIComponent(report.id)}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="mt-2 block text-[10px] font-black text-flame underline decoration-current/40 underline-offset-2"
+                                  className="mt-2 block text-[10px] font-black text-[#C6A15B] underline decoration-current/40 underline-offset-2"
                                 >
                                   View Schedule C-B
                                 </a>
@@ -2438,7 +2438,7 @@ export default function BuilderDashboard() {
                           href={`/api/schedule-cb?reportId=${encodeURIComponent(completionReportsByJobId[completedJob.id]!.id!)}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-1.5 text-[11px] font-bold text-flame hover:underline"
+                          className="flex items-center gap-1.5 text-[11px] font-bold text-[#C6A15B] hover:underline"
                         >
                           Download Schedule C-B <ExternalLink className="w-3 h-3" />
                         </a>
@@ -2654,7 +2654,7 @@ export default function BuilderDashboard() {
                   type="button"
                   disabled={manageRequestSaving || manageRequestCancelling || managedSlots.length === 0}
                   onClick={() => void handleSaveManagedRequest()}
-                  className="rounded-xl bg-flame px-4 py-2.5 text-sm font-black text-white transition-colors hover:bg-flame-light disabled:cursor-not-allowed disabled:bg-surface"
+                  className="rounded-xl bg-[#C6A15B] px-4 py-2.5 text-sm font-black text-[#1B1508] transition-colors hover:bg-[#D8B871] disabled:cursor-not-allowed disabled:bg-surface"
                 >
                   {manageRequestSaving ? 'Saving...' : 'Save Time Windows'}
                 </button>

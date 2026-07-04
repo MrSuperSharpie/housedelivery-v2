@@ -74,9 +74,9 @@ const ROLE_CONFIG = {
   builder: {
     label:   'Builder / Developer',
     icon:    Building2,
-    color:   'text-flame',
-    ring:    'focus:border-flame',
-    btn:     'bg-flame hover:bg-flame-light text-white',
+    color:   'text-[#C6A15B]',
+    ring:    'focus:border-[#C6A15B]',
+    btn:     'bg-[#C6A15B] hover:bg-[#D8B871] text-[#1B1508]',
     dashHref: '/builder',
     fields:  ['name', 'company', 'position', 'email', 'phone', 'password'] as const,
   },
@@ -101,9 +101,9 @@ const ROLE_CONFIG = {
   admin: {
     label:   'Vero Admin',
     icon:    Shield,
-    color:   'text-flame',
-    ring:    'focus:border-flame',
-    btn:     'bg-flame hover:bg-flame-light text-white',
+    color:   'text-[#C6A15B]',
+    ring:    'focus:border-[#C6A15B]',
+    btn:     'bg-[#C6A15B] hover:bg-[#D8B871] text-[#1B1508]',
     dashHref: '/admin',
     fields:  ['name', 'email', 'password'] as const,
   },
@@ -412,7 +412,7 @@ function SignInInner() {
             {(['builder', 'inspector', 'auditor', 'admin'] as UserRole[]).map(r => (
               <button key={r} onClick={() => { setRole(r); if (r === 'admin' || r === 'inspector') setIsNew(false) }}
                 className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all capitalize ${
-                  role === r ? 'bg-flame text-white' : 'text-muted hover:text-ink'
+                  role === r ? 'bg-[#C6A15B] text-[#1B1508]' : 'text-muted hover:text-ink'
                 }`}>{r === 'admin' ? '⚙ Admin' : r}</button>
             ))}
           </div>
@@ -421,7 +421,7 @@ function SignInInner() {
           <div className="mb-6">
             <div className="flex items-center gap-2.5 mb-2">
               <div className={`w-9 h-9 rounded-xl border flex items-center justify-center ${
-                role === 'builder'  ? 'bg-flame/15 border-flame/25' :
+                role === 'builder'  ? 'bg-[#C6A15B]/15 border-[#C6A15B]/25' :
                 role === 'inspector'? 'bg-electric/15 border-electric/25' :
                 'bg-white/10 border-white/15'
               }`}>
@@ -436,7 +436,7 @@ function SignInInner() {
                   <button
                     type="button"
                     onClick={() => role === 'inspector' ? router.push('/inspector/signup') : setIsNew(n => !n)}
-                    className="mt-2 text-left text-sm font-semibold text-ink underline decoration-flame decoration-2 underline-offset-4 hover:text-flame transition-colors"
+                    className="mt-2 text-left text-sm font-semibold text-ink underline decoration-[#C6A15B] decoration-2 underline-offset-4 hover:text-[#C6A15B] transition-colors"
                   >
                     {role === 'inspector' ? 'New inspector? Apply to join' : isNew ? 'Already have an account? Sign in' : "Don't have an account? Create one"}
                   </button>
@@ -579,7 +579,7 @@ function SignInInner() {
 
 export default function SignInPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-surface flex items-center justify-center"><div className="w-8 h-8 border-2 border-flame/30 border-t-flame rounded-full animate-spin" /></div>}>
+    <Suspense fallback={<div className="min-h-screen bg-surface flex items-center justify-center"><div className="w-8 h-8 border-2 border-[#C6A15B]/30 border-t-[#C6A15B] rounded-full animate-spin" /></div>}>
       <SignInInner />
     </Suspense>
   )

@@ -1178,17 +1178,17 @@ export default function InspectorDashboard() {
 
         {/* ── Inspector Field Hub command header ── */}
         <div id="overview" className="relative mb-6 scroll-mt-20 overflow-hidden rounded-3xl border border-rim/70 bg-gradient-to-b from-panel to-surface bg-dot bg-dot-sm">
-          <div className="pointer-events-none absolute -top-24 right-[-6rem] h-72 w-72 rounded-full bg-flame/10 blur-3xl" />
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-flame/40 to-transparent" />
+          <div className="pointer-events-none absolute -top-24 right-[-6rem] h-72 w-72 rounded-full bg-[#C6A15B]/10 blur-3xl" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#C6A15B]/40 to-transparent" />
           <div className="relative px-5 py-7 sm:px-7">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
               <div className="min-w-0">
-                <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-flame/25 bg-flame/[0.08] px-3 py-1">
+                <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#C6A15B]/25 bg-[#C6A15B]/[0.08] px-3 py-1">
                   <span className="relative flex h-1.5 w-1.5">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-flame/70" />
-                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-flame" />
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#C6A15B]/70" />
+                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#C6A15B]" />
                   </span>
-                  <span className="label-mono font-bold !text-flame">
+                  <span className="label-mono font-bold !text-[#C6A15B]">
                     Inspector Operations{inspectorFirstName ? ` · ${inspectorFirstName}` : ''}
                   </span>
                 </div>
@@ -1213,13 +1213,13 @@ export default function InspectorDashboard() {
         {/* ── Workday metrics ── */}
         {/* Operational metrics double as section navigation (mirrors the Builder
             Command Center's SituationStrip). Clicking a card scrolls to its
-            section; neutral by default, restrained flame emphasis only on
+            section; neutral by default, restrained brass emphasis only on
             hover/keyboard-focus. */}
         <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {workdayMetrics.map(metric => {
             const cardClass = `relative overflow-hidden rounded-2xl border border-rim/60 bg-panel p-4 shadow-sm${
               metric.targetId
-                ? ' cursor-pointer text-left transition-all hover:-translate-y-0.5 hover:border-flame/40 focus:outline-none focus-visible:border-flame/40 focus-visible:ring-2 focus-visible:ring-flame/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface'
+                ? ' cursor-pointer text-left transition-all hover:-translate-y-0.5 hover:border-[#C6A15B]/40 focus:outline-none focus-visible:border-[#C6A15B]/40 focus-visible:ring-2 focus-visible:ring-[#C6A15B]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface'
                 : ''
             }`
             const cardBody = (
@@ -1287,7 +1287,7 @@ export default function InspectorDashboard() {
                     </div>
                     <Link
                       href={`/inspector/completion/${hold.relatedInspectionId}#hold`}
-                      className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-flame px-4 py-2.5 text-xs font-semibold text-white shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light"
+                      className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-[#C6A15B] px-4 py-2.5 text-xs font-semibold text-[#1B1508] shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-[#D8B871]"
                     >
                       Re-verify Now
                       <ChevronRight className="h-4 w-4" />
@@ -1305,12 +1305,12 @@ export default function InspectorDashboard() {
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <div className="flex items-center gap-2">
-                  <PlayCircle className="h-4 w-4 text-flame" />
-                  <h2 className="label-mono font-bold !text-flame">Your Active Worklist</h2>
+                  <PlayCircle className="h-4 w-4 text-[#C6A15B]" />
+                  <h2 className="label-mono font-bold !text-[#C6A15B]">Your Active Worklist</h2>
                 </div>
                 <p className="mt-1 text-xs text-muted">
                   These are assignments still open or in progress. Completed submitted records move to Vault.{' '}
-                  <Link href="/vault" className="text-ink underline underline-offset-2 transition-colors hover:text-flame">
+                  <Link href="/vault" className="text-ink underline underline-offset-2 transition-colors hover:text-[#C6A15B]">
                     View Submitted Records in Vault
                   </Link>
                 </p>
@@ -1351,14 +1351,14 @@ export default function InspectorDashboard() {
                 return (
                   <div
                     key={assignment.id}
-                    className={`flex flex-col gap-4 rounded-2xl border p-4 shadow-sm transition-all hover:border-flame/30 md:flex-row md:items-center ${
+                    className={`flex flex-col gap-4 rounded-2xl border p-4 shadow-sm transition-all hover:border-[#C6A15B]/30 md:flex-row md:items-center ${
                       hiddenFromWorklist
                         ? 'border-rim/50 bg-raised/60 opacity-90'
                         : 'border-rim/60 bg-panel hover:bg-raised'
                     }`}
                   >
-                    <div className="w-12 h-12 bg-flame rounded-xl flex items-center justify-center shrink-0">
-                      <Activity className="w-6 h-6 text-white" />
+                    <div className="w-12 h-12 bg-[#C6A15B] rounded-xl flex items-center justify-center shrink-0">
+                      <Activity className="w-6 h-6 text-[#1B1508]" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -1454,7 +1454,7 @@ export default function InspectorDashboard() {
                                 type="button"
                                 disabled={confirmingAvailabilityIds.has(assignment.id)}
                                 onClick={() => void handleConfirmAvailability(assignment.id, assignment.jobId)}
-                                className="mt-2 w-full px-3 py-2 rounded-lg text-xs font-semibold text-white bg-flame shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light disabled:cursor-wait disabled:opacity-60"
+                                className="mt-2 w-full px-3 py-2 rounded-lg text-xs font-semibold text-[#1B1508] bg-[#C6A15B] shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-[#D8B871] disabled:cursor-wait disabled:opacity-60"
                               >
                                 {confirmingAvailabilityIds.has(assignment.id) ? 'Confirming...' : 'Confirm Availability'}
                               </button>
@@ -1511,7 +1511,7 @@ export default function InspectorDashboard() {
                         <>
                           <button
                             onClick={() => router.push(`/inspector/completion/${assignment.id}`)}
-                            className="bg-flame text-white px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 shadow-sm ring-1 ring-inset ring-white/10 hover:bg-flame-light transition-colors"
+                            className="bg-[#C6A15B] text-[#1B1508] px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 shadow-sm ring-1 ring-inset ring-white/10 hover:bg-[#D8B871] transition-colors"
                           >
                             Continue Assignment <ChevronRight className="w-4 h-4" />
                           </button>
@@ -1546,7 +1546,7 @@ export default function InspectorDashboard() {
               </div>
               <button
                 onClick={() => router.push('/inspector/onboarding')}
-                className="shrink-0 rounded-xl bg-flame px-4 py-2.5 text-xs font-semibold text-white shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light"
+                className="shrink-0 rounded-xl bg-[#C6A15B] px-4 py-2.5 text-xs font-semibold text-[#1B1508] shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-[#D8B871]"
               >
                 View Approval Status
               </button>
@@ -1577,7 +1577,7 @@ export default function InspectorDashboard() {
                   alert('Seed failed: network error')
                 }
               }}
-              className="rounded-xl bg-flame px-3 py-2 text-[11px] font-semibold tracking-wide text-white shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light"
+              className="rounded-xl bg-[#C6A15B] px-3 py-2 text-[11px] font-semibold tracking-wide text-[#1B1508] shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-[#D8B871]"
             >
               Dev: Generate Test Certificate
             </button>
@@ -1587,8 +1587,8 @@ export default function InspectorDashboard() {
         {/* Header */}
         <div id="open-requests" className="mb-6 scroll-mt-20">
           <div className="mb-2 flex items-center gap-2">
-            <Briefcase className="h-4 w-4 text-flame" />
-            <span className="label-mono font-bold !text-flame">Open Requests · Opportunities</span>
+            <Briefcase className="h-4 w-4 text-[#C6A15B]" />
+            <span className="label-mono font-bold !text-[#C6A15B]">Open Requests · Opportunities</span>
           </div>
           <h2 className="text-2xl font-black text-ink">Open Requests</h2>
           <p className="text-sm text-muted mt-1">
@@ -1613,7 +1613,7 @@ export default function InspectorDashboard() {
               placeholder="Search by project name or address..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-xl border border-rim/60 bg-surface py-3 pl-11 pr-4 text-sm text-ink placeholder-subtle transition-all focus:border-flame focus:outline-none"
+              className="w-full rounded-xl border border-rim/60 bg-surface py-3 pl-11 pr-4 text-sm text-ink placeholder-subtle transition-all focus:border-[#C6A15B] focus:outline-none"
             />
           </div>
 
@@ -1763,7 +1763,7 @@ export default function InspectorDashboard() {
                       type="button"
                       onClick={() => scrollToSection(row.target)}
                       aria-label={`Jump to ${SECTION_LABEL[row.target] ?? row.label.toLowerCase()}`}
-                      className="flex w-full items-center justify-between rounded-xl border border-rim/60 bg-surface px-3 py-2.5 text-left transition-colors hover:border-flame/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-flame/50 focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+                      className="flex w-full items-center justify-between rounded-xl border border-rim/60 bg-surface px-3 py-2.5 text-left transition-colors hover:border-[#C6A15B]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C6A15B]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
                     >
                       <span className="flex items-center gap-2 text-xs font-semibold text-muted">
                         <span className={`h-1.5 w-1.5 rounded-full ${row.dot}`} />
