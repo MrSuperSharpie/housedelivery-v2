@@ -607,6 +607,63 @@ html[data-theme='light'] .app-theme-scope {
     pointer-events: none;
   }
 
+  /* Marketing homepage deep-metallic-gold accent experiment (additive; restrained
+     brushed-brass seal on a charcoal base — flame/teal utilities untouched). */
+  .glow-gold {
+    box-shadow: 0 0 40px rgba(198,161,91,0.18), 0 0 80px rgba(198,161,91,0.06);
+  }
+  .glow-gold-sm {
+    box-shadow: 0 0 18px rgba(198,161,91,0.16);
+  }
+  .hero-glow-gold {
+    position: absolute;
+    top: -20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 900px;
+    height: 500px;
+    background: radial-gradient(ellipse, rgba(198,161,91,0.10) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  /* Brushed-brass wordmark/heading fill — static (no shimmer) for a metal, not neon, feel */
+  .text-metallic-gold {
+    background: linear-gradient(180deg, #F2E2AC 0%, #D8B871 38%, #C6A15B 62%, #9C7C3C 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .border-gold-gradient {
+    position: relative;
+  }
+  .border-gold-gradient::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(198,161,91,0.55), rgba(198,161,91,0.05));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+  /* Metallic brass button — dark text, restrained sheen; reads like a struck seal */
+  .btn-gold {
+    background: linear-gradient(180deg, #E7CE8C 0%, #C6A15B 48%, #A9863F 100%);
+    color: #1B1508;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.40),
+      0 8px 22px rgba(150,115,45,0.22);
+    transition: filter 0.2s ease, box-shadow 0.2s ease;
+  }
+  .btn-gold:hover {
+    filter: brightness(1.06);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.52),
+      0 10px 26px rgba(150,115,45,0.30);
+  }
+
   /* Text glow */
   .text-glow-flame {
     text-shadow: 0 0 40px rgba(255,95,21,0.6);
