@@ -551,7 +551,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
           </div>
           <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
             <div
-              className="h-full bg-flame rounded-full transition-all duration-500"
+              className="h-full bg-[#C6A15B] rounded-full transition-all duration-500"
               style={{ width: `${(STEP_NUM[step] / 8) * 100}%` }}
             />
           </div>
@@ -575,7 +575,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
               type="button"
               onClick={handleUseCurrentLocation}
               disabled={isLocating}
-              className="absolute left-2 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl border border-gray-200 bg-gray-50 text-flame transition-all hover:border-gray-300 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 disabled:cursor-wait disabled:opacity-60"
+              className="absolute left-2 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl border border-gray-200 bg-gray-50 text-[#C6A15B] transition-all hover:border-gray-300 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 disabled:cursor-wait disabled:opacity-60"
               aria-label="Use current location"
               title="Use current location"
             >
@@ -590,11 +590,11 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                 setAddress(e.target.value)
               }}
               placeholder="123 Main St, Vancouver, BC"
-              className="w-full rounded-xl border-2 border-gray-200 bg-white py-3.5 pl-13 pr-4 text-sm font-medium text-gray-900 caret-gray-900 transition-colors placeholder:text-gray-400 focus:border-flame focus:ring-1 focus:ring-flame/30 focus:outline-none"
+              className="w-full rounded-xl border-2 border-gray-200 bg-white py-3.5 pl-13 pr-4 text-sm font-medium text-gray-900 caret-gray-900 transition-colors placeholder:text-gray-400 focus:border-[#C6A15B] focus:ring-1 focus:ring-[#C6A15B]/30 focus:outline-none"
             />
           </div>
           {(isLocating || locationError || locationHint) && (
-            <p className={`mb-3 px-1 text-xs font-medium ${locationError ? 'text-red-600' : isLocating ? 'text-flame' : 'text-gray-500'}`}>
+            <p className={`mb-3 px-1 text-xs font-medium ${locationError ? 'text-red-600' : isLocating ? 'text-[#C6A15B]' : 'text-gray-500'}`}>
               {locationError ?? (isLocating ? 'Capturing your current location…' : locationHint)}
             </p>
           )}
@@ -621,14 +621,14 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             if (permitNumber.trim() !== e.target.value.trim()) setPermitError(null)
           }}
             placeholder="Project name (e.g. Kitsilano Infill Duplex)"
-            className="relative z-10 mb-3 w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-3.5 text-sm font-medium text-gray-900 caret-gray-900 transition-colors placeholder:text-gray-400 focus:border-flame focus:ring-1 focus:ring-flame/30 focus:outline-none" />
+            className="relative z-10 mb-3 w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-3.5 text-sm font-medium text-gray-900 caret-gray-900 transition-colors placeholder:text-gray-400 focus:border-[#C6A15B] focus:ring-1 focus:ring-[#C6A15B]/30 focus:outline-none" />
 
           <label htmlFor="housing-model" className="mb-1 block px-1 text-xs font-black uppercase tracking-wide text-gray-600">
             Housing model <span className="font-semibold normal-case text-gray-400">(optional)</span>
           </label>
           <div className="relative z-10 mb-1">
             <select id="housing-model" value={selectedModelCode ?? ''} onChange={e => setSelectedModelCode(e.target.value || null)}
-              className="w-full appearance-none rounded-xl border-2 border-gray-200 bg-white px-4 py-3.5 text-sm font-medium text-gray-900 transition-colors focus:border-flame focus:ring-1 focus:ring-flame/30 focus:outline-none">
+              className="w-full appearance-none rounded-xl border-2 border-gray-200 bg-white px-4 py-3.5 text-sm font-medium text-gray-900 transition-colors focus:border-[#C6A15B] focus:ring-1 focus:ring-[#C6A15B]/30 focus:outline-none">
               <option value="">Not from catalogue / not specified</option>
               {CATALOGUE_MODEL_OPTIONS.map(model => (
                 <option key={model.code} value={model.code}>{model.housingModel}</option>
@@ -653,7 +653,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
               className={`w-full rounded-xl border-2 bg-white px-4 py-3.5 text-sm font-medium font-mono text-gray-900 caret-gray-900 transition-colors placeholder:text-gray-400 focus:ring-1 focus:outline-none ${
                 permitError || permitNumberIsMissing || permitReferenceMatchesProjectName
                   ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20'
-                  : 'border-gray-200 focus:border-flame focus:ring-flame/30'
+                  : 'border-gray-200 focus:border-[#C6A15B] focus:ring-[#C6A15B]/30'
               }`} />
           </div>
           {permitError || permitNumberIsMissing || (requiresPermitNumber(selectedStage) && permitReferenceMatchesProjectName) ? (
@@ -668,7 +668,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             </p>
           )}
 
-          <Button variant="primary" size="lg" fullWidth className="shadow-sm shadow-gray-900/10 disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400" disabled={!address.trim() || permitNumberIsMissing} onClick={() => {
+          <Button variant="primary" size="lg" fullWidth className="bg-[#C6A15B] text-[#1B1508] hover:bg-[#D8B871] focus:ring-[#C6A15B] shadow-sm shadow-gray-900/10 disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400" disabled={!address.trim() || permitNumberIsMissing} onClick={() => {
             setPostError(null)
             const addrErr = validateSiteAddressFormat(address)
             if (addrErr) { setPostError(addrErr); return }
@@ -709,7 +709,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             {selectedTier === 'emergency' && 'Emergency dispatch windows are limited to today and tomorrow.'}
           </div>
           <SchedulingPicker slots={slots} onChange={setSlots} max={3} tier={selectedTier} />
-          <Button variant="primary" size="lg" fullWidth className="shadow-sm shadow-gray-900/10 disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400"
+          <Button variant="primary" size="lg" fullWidth className="bg-[#C6A15B] text-[#1B1508] hover:bg-[#D8B871] focus:ring-[#C6A15B] shadow-sm shadow-gray-900/10 disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400"
             disabled={!hasValidSchedulingWindow}
             onClick={() => setStep('intent')}>
             Continue <ChevronRight className="w-4 h-4" />
@@ -767,7 +767,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                           <div className="font-bold text-gray-900 text-sm">{option.label}</div>
                           <div className="text-xs text-gray-400 mt-0.5">{option.helperText}</div>
                         </div>
-                        {isSelected && <CheckCircle2 className="w-5 h-5 text-flame shrink-0" />}
+                        {isSelected && <CheckCircle2 className="w-5 h-5 text-[#C6A15B] shrink-0" />}
                       </div>
                     </button>
                   )
@@ -800,7 +800,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                         <div className="flex-1 min-w-0">
                           <div className="font-bold text-gray-900 text-sm">{bucket.label}</div>
                         </div>
-                        {isSelected && <CheckCircle2 className="w-5 h-5 text-flame shrink-0" />}
+                        {isSelected && <CheckCircle2 className="w-5 h-5 text-[#C6A15B] shrink-0" />}
                       </div>
                     </button>
                   )
@@ -818,7 +818,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             const isLow = activeOpt.confidence === 'low'
             return (
               <div className="mb-5 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
-                <div className="text-xs font-black uppercase tracking-widest text-flame mb-1">
+                <div className="text-xs font-black uppercase tracking-widest text-[#C6A15B] mb-1">
                   {isLow ? "We'll get you started" : 'This looks like'}
                 </div>
                 <div className="text-sm font-bold text-gray-900">
@@ -842,7 +842,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
               Safety. The technical stage / discipline screens are NOT in this
               flow — they are reachable only via the clearly-secondary "Change
               inspection details" link below. */}
-          <Button variant="primary" size="lg" fullWidth className="shadow-sm shadow-gray-900/10 disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400" disabled={!selectedStage || !selectedDisc} onClick={() => {
+          <Button variant="primary" size="lg" fullWidth className="bg-[#C6A15B] text-[#1B1508] hover:bg-[#D8B871] focus:ring-[#C6A15B] shadow-sm shadow-gray-900/10 disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400" disabled={!selectedStage || !selectedDisc} onClick={() => {
             setPostError(null)
             if (validatePermitReferenceBeforeContinuing()) return
             setStep('safety')
@@ -888,7 +888,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                   }`}>
                   <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shrink-0 ${
-                      isSelected ? 'bg-flame text-white' : 'bg-gray-100 text-gray-600'
+                      isSelected ? 'bg-[#C6A15B] text-[#1B1508]' : 'bg-gray-100 text-gray-600'
                     }`}>{stage.id}</div>
                     <div className="flex-1 min-w-0">
                       <div className="font-bold text-gray-900 text-sm">{stage.name}</div>
@@ -900,7 +900,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                         </div>
                       )}
                     </div>
-                    {isSelected && <CheckCircle2 className="w-5 h-5 text-flame shrink-0" />}
+                    {isSelected && <CheckCircle2 className="w-5 h-5 text-[#C6A15B] shrink-0" />}
                   </div>
                 </button>
               )
@@ -911,7 +911,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             Selecting a stage loads the detailed inspection requirements for that phase.
           </p>
 
-          <Button variant="primary" size="lg" fullWidth className="shadow-sm shadow-gray-900/10 disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400" disabled={!selectedStage} onClick={() => {
+          <Button variant="primary" size="lg" fullWidth className="bg-[#C6A15B] text-[#1B1508] hover:bg-[#D8B871] focus:ring-[#C6A15B] shadow-sm shadow-gray-900/10 disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400" disabled={!selectedStage} onClick={() => {
             setPostError(null)
             if (validatePermitReferenceBeforeContinuing()) return
             setStep('discipline')
@@ -930,7 +930,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
           <h2 className="text-xl font-black text-gray-900 mb-1">Required discipline</h2>
           <p className="text-sm text-gray-500 mb-2">Your listing will only be sent to credentialed professionals in this field.</p>
           {selectedDisc && STAGE_TO_DISCIPLINE[selectedStage ?? 0] === selectedDisc && (
-            <p className="mb-4 text-xs text-flame font-semibold">Auto-selected based on inspection stage — override if needed.</p>
+            <p className="mb-4 text-xs text-[#C6A15B] font-semibold">Auto-selected based on inspection stage — override if needed.</p>
           )}
 
           <div className="grid grid-cols-2 gap-2.5 mb-5">
@@ -942,8 +942,8 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                   className={`text-left rounded-xl border-2 p-3.5 transition-all ${
                     isSelected ? 'border-gray-900 bg-white' : 'border-gray-200 hover:border-gray-300 bg-white'
                   }`}>
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center mb-2 ${isSelected ? 'bg-flame' : 'bg-gray-100'}`}>
-                    <Icon className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-gray-600'}`} />
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center mb-2 ${isSelected ? 'bg-[#C6A15B]' : 'bg-gray-100'}`}>
+                    <Icon className={`w-4 h-4 ${isSelected ? 'text-[#1B1508]' : 'text-gray-600'}`} />
                   </div>
                   <div className="font-bold text-gray-900 text-sm">{disc.label}</div>
                   <div className="text-xs text-gray-400 mt-0.5 leading-tight">{disc.description}</div>
@@ -952,7 +952,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             })}
           </div>
 
-          <Button variant="primary" size="lg" fullWidth className="shadow-sm shadow-gray-900/10 disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400" disabled={!selectedDisc} onClick={() => setStep('safety')}>
+          <Button variant="primary" size="lg" fullWidth className="bg-[#C6A15B] text-[#1B1508] hover:bg-[#D8B871] focus:ring-[#C6A15B] shadow-sm shadow-gray-900/10 disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400" disabled={!selectedDisc} onClick={() => setStep('safety')}>
             Continue <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
@@ -991,7 +991,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                     }`}>
                     <span className="text-base leading-none">{opt.emoji}</span>
                     <span className={`text-xs font-bold ${sel ? 'text-gray-900' : 'text-gray-700'}`}>{opt.label}</span>
-                    {sel && <CheckCircle2 className="w-3.5 h-3.5 text-flame ml-auto shrink-0" />}
+                    {sel && <CheckCircle2 className="w-3.5 h-3.5 text-[#C6A15B] ml-auto shrink-0" />}
                   </button>
                 )
               })}
@@ -1032,11 +1032,11 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
               onChange={e => setSafetyNotes(e.target.value)}
               placeholder="Any other site-specific safety requirements, WorkSafe BC special conditions, or inspector instructions…"
               rows={3}
-              className="w-full resize-none rounded-xl border-2 border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-900 caret-gray-900 transition-colors placeholder:text-gray-400 focus:border-flame focus:ring-1 focus:ring-flame/30 focus:outline-none"
+              className="w-full resize-none rounded-xl border-2 border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-900 caret-gray-900 transition-colors placeholder:text-gray-400 focus:border-[#C6A15B] focus:ring-1 focus:ring-[#C6A15B]/30 focus:outline-none"
             />
           </div>
 
-          <Button variant="primary" size="lg" fullWidth className="shadow-sm shadow-gray-900/10 disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400" onClick={() => setStep('tier')}>
+          <Button variant="primary" size="lg" fullWidth className="bg-[#C6A15B] text-[#1B1508] hover:bg-[#D8B871] focus:ring-[#C6A15B] shadow-sm shadow-gray-900/10 disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400" onClick={() => setStep('tier')}>
             Continue <ChevronRight className="w-4 h-4" />
           </Button>
           <button onClick={() => setStep('tier')}
@@ -1085,8 +1085,8 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                   }`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isSelected ? 'bg-flame' : 'bg-gray-100'}`}>
-                        <Icon className={`w-5 h-5 ${isSelected ? 'text-white' : 'text-gray-500'}`} />
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isSelected ? 'bg-[#C6A15B]' : 'bg-gray-100'}`}>
+                        <Icon className={`w-5 h-5 ${isSelected ? 'text-[#1B1508]' : 'text-gray-500'}`} />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
@@ -1169,7 +1169,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
           </div>
 
           <div className="sticky bottom-0 -mx-5 -mb-5 px-5 pt-3 pb-5 bg-white/95 backdrop-blur border-t border-gray-100 z-10">
-            <Button variant="primary" size="lg" fullWidth className="shadow-sm shadow-gray-900/10 disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400" disabled={!hasValidSchedulingWindow} onClick={() => {
+            <Button variant="primary" size="lg" fullWidth className="bg-[#C6A15B] text-[#1B1508] hover:bg-[#D8B871] focus:ring-[#C6A15B] shadow-sm shadow-gray-900/10 disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400" disabled={!hasValidSchedulingWindow} onClick={() => {
               if (validateProjectIdentityBeforeContinuing()) return
               if (validatePermitReferenceBeforeContinuing()) return
               setStep('vault')
@@ -1219,7 +1219,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                 <div className="flex items-start justify-between gap-3 mb-1.5">
                   <div className="flex items-center gap-2">
                     <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
-                      vaultTier === option.tier ? 'border-flame bg-flame' : 'border-gray-300'
+                      vaultTier === option.tier ? 'border-[#C6A15B] bg-[#C6A15B]' : 'border-gray-300'
                     }`}>
                       {vaultTier === option.tier && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                     </div>
@@ -1238,7 +1238,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                 </div>
                 <p className="text-xs text-gray-500 leading-relaxed ml-6">{option.description}</p>
                 {option.badge && vaultTier !== option.tier && option.tier === 'professional' && (
-                  <span className="ml-6 mt-1.5 inline-block text-[10px] font-bold text-flame bg-flame/10 px-2 py-0.5 rounded-full">{option.badge}</span>
+                  <span className="ml-6 mt-1.5 inline-block text-[10px] font-bold text-[#C6A15B] bg-[#C6A15B]/10 px-2 py-0.5 rounded-full">{option.badge}</span>
                 )}
               </button>
             ))}
@@ -1253,7 +1253,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
 
           <button
             onClick={() => setStep('confirm')}
-            className="w-full py-3.5 bg-flame text-white font-black text-sm rounded-2xl hover:bg-flame-light transition-all flex items-center justify-center gap-2"
+            className="w-full py-3.5 bg-[#C6A15B] text-[#1B1508] font-black text-sm rounded-2xl hover:bg-[#D8B871] transition-all flex items-center justify-center gap-2"
           >
             Continue to Review <ChevronRight className="w-4 h-4" />
           </button>
@@ -1276,7 +1276,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             {/* Header bar */}
             <div className="bg-slate-900 px-4 py-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-flame rounded-full animate-pulse" />
+                <div className="w-2 h-2 bg-[#C6A15B] rounded-full animate-pulse" />
                 <span className="text-xs font-bold text-gray-300 tracking-widest uppercase">Draft Listing</span>
               </div>
               <span className="text-xs font-mono text-gray-400">{jobRef ?? 'Draft'}</span>
@@ -1287,7 +1287,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
               <div>
                 <div className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Site Address</div>
                 <div className="font-bold text-gray-900 flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-flame shrink-0" />
+                  <MapPin className="w-3.5 h-3.5 text-[#C6A15B] shrink-0" />
                   {address}
                 </div>
                 {permitNumber && <div className="text-xs font-mono text-gray-400 mt-0.5 ml-5">{permitNumber}</div>}
@@ -1310,7 +1310,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
                 </div>
                 <div>
                   <div className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">{pricingMode === 'specialist_hourly' ? 'Pricing Mode' : 'Inspector Payout'}</div>
-                  <div className="font-black text-flame text-lg">{pricingMode === 'specialist_hourly' ? 'Specialist hourly' : formatCurrency(pricing.inspectorPayout)}</div>
+                  <div className="font-black text-[#C6A15B] text-lg">{pricingMode === 'specialist_hourly' ? 'Specialist hourly' : formatCurrency(pricing.inspectorPayout)}</div>
                 </div>
                 {pricingMode === 'specialist_hourly' && (
                   <div>
@@ -1436,9 +1436,9 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             >
               <div className="flex items-center gap-2">
                 <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                  paymentMethod === 'interac' ? 'border-flame' : 'border-gray-300'
+                  paymentMethod === 'interac' ? 'border-[#C6A15B]' : 'border-gray-300'
                 }`}>
-                  {paymentMethod === 'interac' && <div className="w-2 h-2 rounded-full bg-flame" />}
+                  {paymentMethod === 'interac' && <div className="w-2 h-2 rounded-full bg-[#C6A15B]" />}
                 </div>
                 <span className="font-bold text-sm text-gray-900">Interac e-Transfer</span>
                 <span className="ml-auto text-[10px] font-bold text-gray-600 bg-gray-100 border border-gray-200 rounded px-1.5 py-0.5">
@@ -1473,9 +1473,9 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
             >
               <div className="flex items-center gap-2">
                 <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                  paymentMethod === 'card' ? 'border-flame' : 'border-gray-300'
+                  paymentMethod === 'card' ? 'border-[#C6A15B]' : 'border-gray-300'
                 }`}>
-                  {paymentMethod === 'card' && <div className="w-2 h-2 rounded-full bg-flame" />}
+                  {paymentMethod === 'card' && <div className="w-2 h-2 rounded-full bg-[#C6A15B]" />}
                 </div>
                 <CreditCard className="w-4 h-4 text-gray-500 shrink-0" />
                 <span className="font-bold text-sm text-gray-900">Credit card</span>
@@ -1648,7 +1648,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
               variant="primary"
               size="lg"
               fullWidth
-              className="shadow-sm shadow-gray-900/10 disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400"
+              className="bg-[#C6A15B] text-[#1B1508] hover:bg-[#D8B871] focus:ring-[#C6A15B] shadow-sm shadow-gray-900/10 disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-400"
               disabled={!siteAgreed}
               onClick={handlePost}
             >
@@ -1664,11 +1664,11 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
         <div className="text-center py-8">
           <div className="relative mx-auto w-24 h-24 mb-6">
             {/* Ripple rings */}
-            <div className="absolute inset-0 rounded-full border-2 border-flame opacity-20 animate-ping" style={{ animationDuration: '1s' }} />
-            <div className="absolute inset-2 rounded-full border-2 border-flame opacity-30 animate-ping" style={{ animationDuration: '1.3s' }} />
-            <div className="absolute inset-4 rounded-full border-2 border-flame opacity-50 animate-ping" style={{ animationDuration: '1.6s' }} />
+            <div className="absolute inset-0 rounded-full border-2 border-[#C6A15B] opacity-20 animate-ping" style={{ animationDuration: '1s' }} />
+            <div className="absolute inset-2 rounded-full border-2 border-[#C6A15B] opacity-30 animate-ping" style={{ animationDuration: '1.3s' }} />
+            <div className="absolute inset-4 rounded-full border-2 border-[#C6A15B] opacity-50 animate-ping" style={{ animationDuration: '1.6s' }} />
             <div className="relative w-24 h-24 bg-slate-900 rounded-full flex items-center justify-center">
-              <Radio className="w-9 h-9 text-flame" />
+              <Radio className="w-9 h-9 text-[#C6A15B]" />
             </div>
           </div>
 
@@ -1680,7 +1680,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
               <span className="text-xs text-blue-400 font-mono uppercase tracking-widest">CPs Notified</span>
               {broadcastDone && <span className="text-xs text-success-green font-bold">✓ Complete</span>}
             </div>
-            <div className="text-5xl font-black text-flame font-mono tabular-nums">{broadcastCount}</div>
+            <div className="text-5xl font-black text-[#C6A15B] font-mono tabular-nums">{broadcastCount}</div>
             <div className="text-xs text-blue-500 mt-1 font-mono">{address}</div>
           </div>
         </div>
@@ -1701,7 +1701,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
 
           <div className="bg-slate-900 rounded-2xl p-4 text-left mb-4">
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-2 h-2 bg-flame rounded-full animate-pulse" />
+              <div className="w-2 h-2 bg-[#C6A15B] rounded-full animate-pulse" />
               <span className="text-xs font-bold text-gray-300 tracking-widest uppercase">Payment Pending</span>
               <span className="ml-auto text-xs font-mono text-gray-400">{jobRef}</span>
             </div>
@@ -1713,7 +1713,7 @@ export function DispatchModal({ project, isOpen, onClose, onDispatch }: Dispatch
               </div>
               <div>
                 <div className="text-xs text-gray-400">Est. Payment</div>
-                <div className="text-sm font-black text-flame">{formatCurrency(totalEscrow)}</div>
+                <div className="text-sm font-black text-[#C6A15B]">{formatCurrency(totalEscrow)}</div>
               </div>
             </div>
           </div>
