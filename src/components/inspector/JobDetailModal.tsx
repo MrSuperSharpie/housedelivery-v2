@@ -319,7 +319,7 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim, onConfirmAt
           <button
             onClick={handleCommitmentClaim}
             disabled={!allChecked}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-flame py-4 text-base font-semibold text-white shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light focus:outline-none focus:ring-2 focus:ring-flame/40 disabled:cursor-not-allowed disabled:opacity-40 disabled:text-white/80">
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#C6A15B] py-4 text-base font-semibold text-[#1B1508] shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-[#D8B871] focus:outline-none focus:ring-2 focus:ring-[#C6A15B]/40 disabled:cursor-not-allowed disabled:opacity-40 disabled:text-[#1B1508]/80">
             <CheckCircle2 className="w-5 h-5" />
             Claim Inspection
           </button>
@@ -333,7 +333,7 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim, onConfirmAt
     return (
       <ModalShell onClose={onClose}>
         <div className="flex flex-col items-center justify-center py-16 px-6">
-          <div className="w-16 h-16 border-2 border-flame/30 border-t-flame rounded-full animate-spin mb-6" />
+          <div className="w-16 h-16 border-2 border-[#C6A15B]/30 border-t-[#C6A15B] rounded-full animate-spin mb-6" />
           <div className="font-bold text-ink text-lg mb-1">Claiming slot…</div>
           <div className="text-sm text-muted text-center">Creating provisional assignment…</div>
         </div>
@@ -359,8 +359,8 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim, onConfirmAt
             <div className="flex gap-1.5 overflow-x-auto pb-2">
               {days.slice(0, 10).map(d => (
                 <button key={d} onClick={() => setSuggestDate(d)}
-                  className={`min-w-[52px] shrink-0 rounded-xl px-3 py-2.5 text-center transition-all focus:outline-none focus:ring-2 focus:ring-flame/30 ${
-                    suggestDate === d ? 'bg-flame text-white' : 'bg-panel border border-white/8 text-muted hover:text-ink hover:border-white/15'
+                  className={`min-w-[52px] shrink-0 rounded-xl px-3 py-2.5 text-center transition-all focus:outline-none focus:ring-2 focus:ring-[#C6A15B]/30 ${
+                    suggestDate === d ? 'bg-[#C6A15B] text-[#1B1508]' : 'bg-panel border border-white/8 text-muted hover:text-ink hover:border-white/15'
                   }`}>
                   <div className="text-[10px] font-semibold">{new Date(d+'T12:00:00').toLocaleDateString('en-CA',{weekday:'short'})}</div>
                   <div className="font-black text-sm">{new Date(d+'T12:00:00').getDate()}</div>
@@ -374,7 +374,7 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim, onConfirmAt
             <div>
               <div className="label-mono mb-2">From</div>
               <select value={suggestStart} onChange={e => setSuggestStart(e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-panel px-3 py-3 text-sm text-ink focus:outline-none focus:border-flame focus:ring-2 focus:ring-flame/20">
+                className="w-full rounded-xl border border-white/10 bg-panel px-3 py-3 text-sm text-ink focus:outline-none focus:border-[#C6A15B] focus:ring-2 focus:ring-[#C6A15B]/20">
                 <option value="">Select…</option>
                 {SUGGEST_TIMES.map(t => <option key={t} value={t}>{fmtTime(t)}</option>)}
               </select>
@@ -382,7 +382,7 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim, onConfirmAt
             <div>
               <div className="label-mono mb-2">To</div>
               <select value={suggestEnd} onChange={e => setSuggestEnd(e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-panel px-3 py-3 text-sm text-ink focus:outline-none focus:border-flame focus:ring-2 focus:ring-flame/20">
+                className="w-full rounded-xl border border-white/10 bg-panel px-3 py-3 text-sm text-ink focus:outline-none focus:border-[#C6A15B] focus:ring-2 focus:ring-[#C6A15B]/20">
                 <option value="">Select…</option>
                 {SUGGEST_TIMES.filter(t => !suggestStart || t > suggestStart).map(t => <option key={t} value={t}>{fmtTime(t)}</option>)}
               </select>
@@ -395,13 +395,13 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim, onConfirmAt
             <textarea value={suggestNote} onChange={e => setSuggestNote(e.target.value)}
               placeholder="e.g. I can do earlier if needed — just let me know"
               rows={3}
-              className="w-full resize-none rounded-xl border border-white/8 bg-panel px-3 py-2.5 text-sm text-ink placeholder-subtle focus:outline-none focus:border-flame focus:ring-2 focus:ring-flame/20" />
+              className="w-full resize-none rounded-xl border border-white/8 bg-panel px-3 py-2.5 text-sm text-ink placeholder-subtle focus:outline-none focus:border-[#C6A15B] focus:ring-2 focus:ring-[#C6A15B]/20" />
           </div>
 
           <button
             onClick={handleConfirmSuggest}
             disabled={!suggestDate || !suggestStart || !suggestEnd}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-flame py-4 font-semibold text-white shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light focus:outline-none focus:ring-2 focus:ring-flame/40 disabled:cursor-not-allowed disabled:opacity-45 disabled:text-white/80">
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#C6A15B] py-4 font-semibold text-[#1B1508] shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-[#D8B871] focus:outline-none focus:ring-2 focus:ring-[#C6A15B]/40 disabled:cursor-not-allowed disabled:opacity-45 disabled:text-[#1B1508]/80">
             <Calendar className="w-4 h-4" />
             Claim Suggested Time
           </button>
@@ -428,8 +428,8 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim, onConfirmAt
                 const isSelected = selectedSlot?.date === slot.date && selectedSlot?.startTime === slot.startTime
                 return (
                   <button key={i} onClick={() => setSelectedSlot(isSelected ? null : slot)}
-                    className={`w-full rounded-2xl border-2 p-4 text-left transition-all focus:outline-none focus:ring-2 focus:ring-flame/30 ${
-                      isSelected ? 'border-flame bg-flame/[0.05]' : 'border-rim/50 bg-panel hover:border-rim/70 hover:bg-raised'
+                    className={`w-full rounded-2xl border-2 p-4 text-left transition-all focus:outline-none focus:ring-2 focus:ring-[#C6A15B]/30 ${
+                      isSelected ? 'border-[#C6A15B] bg-[#C6A15B]/[0.05]' : 'border-rim/50 bg-panel hover:border-rim/70 hover:bg-raised'
                     }`}>
                     <div className="flex items-center justify-between">
                       <div>
@@ -439,9 +439,9 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim, onConfirmAt
                         </div>
                       </div>
                       <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                        isSelected ? 'bg-flame border-flame' : 'border-subtle'
+                        isSelected ? 'bg-[#C6A15B] border-[#C6A15B]' : 'border-subtle'
                       }`}>
-                        {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
+                        {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-[#1B1508]" />}
                       </div>
                     </div>
                   </button>
@@ -463,7 +463,7 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim, onConfirmAt
 
           {/* Suggest different time */}
           <button onClick={() => setStep('suggest')}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-panel py-3.5 text-sm font-bold text-ink transition-all hover:bg-raised focus:outline-none focus:ring-2 focus:ring-flame/20">
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-panel py-3.5 text-sm font-bold text-ink transition-all hover:bg-raised focus:outline-none focus:ring-2 focus:ring-[#C6A15B]/20">
             <Calendar className="w-4 h-4 text-muted" />
             Suggest a Different Time
           </button>
@@ -472,7 +472,7 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim, onConfirmAt
           <button
             onClick={handleConfirmSlot}
             disabled={!selectedSlot && !!job.availableSlots && job.availableSlots.length > 0}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-flame py-4 text-base font-semibold text-white shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light focus:outline-none focus:ring-2 focus:ring-flame/40 disabled:cursor-not-allowed disabled:opacity-40 disabled:text-white/80">
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#C6A15B] py-4 text-base font-semibold text-[#1B1508] shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-[#D8B871] focus:outline-none focus:ring-2 focus:ring-[#C6A15B]/40 disabled:cursor-not-allowed disabled:opacity-40 disabled:text-[#1B1508]/80">
             <CheckCircle2 className="w-5 h-5" />
             {selectedSlot
               ? `Claim — ${fmtDate(selectedSlot.date)}, ${fmtTime(selectedSlot.startTime)}`
@@ -567,7 +567,7 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim, onConfirmAt
               type="button"
               onClick={handleConfirmAttendance}
               disabled={isConfirmingAttendance}
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-flame px-3 py-2.5 text-xs font-semibold text-white shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light focus:outline-none focus:ring-2 focus:ring-flame/40 disabled:cursor-not-allowed disabled:opacity-50"
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-[#C6A15B] px-3 py-2.5 text-xs font-semibold text-[#1B1508] shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-[#D8B871] focus:outline-none focus:ring-2 focus:ring-[#C6A15B]/40 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <CheckCircle2 className="h-4 w-4" />
               {isConfirmingAttendance ? 'Recording check-in...' : 'Confirm Attendance'}
@@ -619,7 +619,7 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim, onConfirmAt
                 <div>
                   <button
                     onClick={() => setScopeExpanded(v => !v)}
-                    className="flex items-center gap-1 text-[11px] font-semibold text-muted transition-colors hover:text-ink focus:outline-none focus:ring-2 focus:ring-flame/20 rounded-lg px-1 py-0.5">
+                    className="flex items-center gap-1 text-[11px] font-semibold text-muted transition-colors hover:text-ink focus:outline-none focus:ring-2 focus:ring-[#C6A15B]/20 rounded-lg px-1 py-0.5">
                     <ChevronRight className={`w-3.5 h-3.5 transition-transform ${scopeExpanded ? 'rotate-90' : ''}`} />
                     {scopeExpanded ? 'Hide' : 'Show'} {scope.items.length} checklist item{scope.items.length === 1 ? '' : 's'}
                   </button>
@@ -674,7 +674,7 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim, onConfirmAt
         {/* Builder profile */}
         <Section title="Builder Profile" icon={HardHat}>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-flame/15 border border-flame/25 rounded-xl flex items-center justify-center font-black text-flame text-sm shrink-0">
+            <div className="w-10 h-10 bg-[#C6A15B]/15 border border-[#C6A15B]/25 rounded-xl flex items-center justify-center font-black text-[#C6A15B] text-sm shrink-0">
               {(job.builderName ?? 'B').charAt(0)}
             </div>
             <div>
@@ -738,7 +738,7 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim, onConfirmAt
             <div className="space-y-2">
               {job.availableSlots.map((slot, i) => (
                 <div key={i} className="flex items-center gap-3 bg-raised border border-white/5 rounded-xl px-3 py-2.5">
-                  <div className="w-7 h-7 bg-flame/10 rounded-lg flex items-center justify-center text-xs font-black text-flame">
+                  <div className="w-7 h-7 bg-[#C6A15B]/10 rounded-lg flex items-center justify-center text-xs font-black text-[#C6A15B]">
                     {i + 1}
                   </div>
                   <div>
@@ -791,7 +791,7 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim, onConfirmAt
             <button
               type="button"
               onClick={handleSharePosting}
-              className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-panel py-3.5 text-sm font-bold text-ink transition-all hover:bg-raised focus:outline-none focus:ring-2 focus:ring-flame/20"
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-panel py-3.5 text-sm font-bold text-ink transition-all hover:bg-raised focus:outline-none focus:ring-2 focus:ring-[#C6A15B]/20"
             >
               <Share2 className="w-4 h-4 text-muted" />
               Share This Posting
@@ -815,7 +815,7 @@ export function JobDetailModal({ job, eligibility, onClose, onClaim, onConfirmAt
         ) : (
           <>
             <button onClick={() => setStep('schedule')}
-              className="flex w-full items-center justify-center gap-2.5 rounded-2xl bg-flame py-4 text-base font-semibold text-white shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-flame-light focus:outline-none focus:ring-2 focus:ring-flame/40">
+              className="flex w-full items-center justify-center gap-2.5 rounded-2xl bg-[#C6A15B] py-4 text-base font-semibold text-[#1B1508] shadow-sm ring-1 ring-inset ring-white/10 transition-colors hover:bg-[#D8B871] focus:outline-none focus:ring-2 focus:ring-[#C6A15B]/40">
               <CheckCircle2 className="w-5 h-5" />
               Claim This Slot — {formatCurrency(job.offeredRate)}
               <ChevronRight className="w-4 h-4" />
@@ -849,14 +849,14 @@ function ModalShell({ children, onClose, onBack, title }: {
         <div className="flex items-center justify-between px-5 pt-4 pb-2 border-b border-white/5 shrink-0">
           <div className="w-12 h-1 bg-white/10 rounded-full mx-auto sm:hidden absolute top-2 left-1/2 -translate-x-1/2" />
           {onBack ? (
-            <button onClick={onBack} className="flex items-center gap-1 text-xs text-muted transition-colors hover:text-ink focus:outline-none focus:ring-2 focus:ring-flame/20 rounded-lg px-1.5 py-1">
+            <button onClick={onBack} className="flex items-center gap-1 text-xs text-muted transition-colors hover:text-ink focus:outline-none focus:ring-2 focus:ring-[#C6A15B]/20 rounded-lg px-1.5 py-1">
               ← Back
             </button>
           ) : (
             <div />
           )}
           {title && <span className="text-sm font-bold text-ink">{title}</span>}
-          <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-xl bg-raised text-muted transition-all hover:text-ink focus:outline-none focus:ring-2 focus:ring-flame/20">
+          <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-xl bg-raised text-muted transition-all hover:text-ink focus:outline-none focus:ring-2 focus:ring-[#C6A15B]/20">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -878,7 +878,7 @@ function Section({ title, icon: Icon, children, accent }: {
   return (
     <div className={`rounded-2xl border p-4 ${accent ?? 'border-white/8 bg-panel'}`}>
       <div className="flex items-center gap-2 mb-3">
-        <Icon className="w-3.5 h-3.5 text-flame" />
+        <Icon className="w-3.5 h-3.5 text-[#C6A15B]" />
         <span className="label-mono">{title}</span>
       </div>
       <div className="space-y-2">{children}</div>
