@@ -238,7 +238,7 @@ export function SchedulingPicker({ slots, onChange, max = 3, tier }: SchedulingP
                 : 'border border-gray-200 bg-gray-50'
             }`}
           >
-            <Calendar className="w-3.5 h-3.5 text-flame shrink-0" />
+            <Calendar className="w-3.5 h-3.5 text-[#C6A15B] shrink-0" />
             <div className="flex-1 text-sm">
               <span className="font-bold text-gray-900">{fmtDate(slot.date)}</span>
               <span className="ml-2 text-gray-500">{fmtTime(slot.startTime)} – {fmtTime(slot.endTime)}</span>
@@ -256,7 +256,7 @@ export function SchedulingPicker({ slots, onChange, max = 3, tier }: SchedulingP
       {/* Add slot */}
       {adding ? (
         <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-3">
-          <div className="rounded-xl border border-orange-100 bg-orange-50 px-3 py-2 text-xs text-gray-600">
+          <div className="rounded-xl border border-[#C6A15B]/20 bg-[#C6A15B]/10 px-3 py-2 text-xs text-gray-600">
             {resolvedTier === 'standard' && 'Standard dispatch: select a window 5 business days or more out.'}
             {resolvedTier === 'priority' && 'Priority dispatch: select a window 2-3 business days out.'}
             {resolvedTier === 'emergency' && 'Emergency dispatch: only today and tomorrow are available for scheduling.'}
@@ -293,9 +293,9 @@ export function SchedulingPicker({ slots, onChange, max = 3, tier }: SchedulingP
                 const isValidDate = isDateValidForTier(d, resolvedTier, baseDate)
                 return (
                 <button key={d} type="button" disabled={!isValidDate} onClick={() => setDraft(p => ({ ...p, date: d, startTime: undefined, endTime: undefined }))}
-                  className={`shrink-0 rounded-lg px-3 py-2 text-xs font-bold transition-all focus:outline-none focus:ring-2 focus:ring-flame/30 ${
+                  className={`shrink-0 rounded-lg px-3 py-2 text-xs font-bold transition-all focus:outline-none focus:ring-2 focus:ring-[#C6A15B]/30 ${
                     selectedDate === d
-                      ? 'bg-flame text-white'
+                      ? 'bg-[#C6A15B] text-[#1B1508]'
                       : isValidDate
                         ? 'border border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:text-gray-900'
                         : 'cursor-not-allowed border border-gray-200 bg-gray-100 text-gray-300'
@@ -313,7 +313,7 @@ export function SchedulingPicker({ slots, onChange, max = 3, tier }: SchedulingP
               <div className="label-mono mb-2">From</div>
               <select value={selectedStartTime} onChange={e => setDraft(p => ({ ...p, startTime: e.target.value, endTime: undefined }))}
                 disabled={!selectedDate}
-                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-medium text-gray-900 focus:outline-none focus:border-flame focus:ring-2 focus:ring-flame/20 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400">
+                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-medium text-gray-900 focus:outline-none focus:border-[#C6A15B] focus:ring-2 focus:ring-[#C6A15B]/20 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400">
                 <option value="">Select…</option>
                 {availableStartTimes.map(t => <option key={t} value={t}>{fmtTime(t)}</option>)}
               </select>
@@ -322,7 +322,7 @@ export function SchedulingPicker({ slots, onChange, max = 3, tier }: SchedulingP
               <div className="label-mono mb-2">To</div>
               <select value={selectedEndTime} onChange={e => setDraft(p => ({ ...p, endTime: e.target.value }))}
                 disabled={!selectedDate || !selectedStartTime}
-                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-medium text-gray-900 focus:outline-none focus:border-flame focus:ring-2 focus:ring-flame/20 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400">
+                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-medium text-gray-900 focus:outline-none focus:border-[#C6A15B] focus:ring-2 focus:ring-[#C6A15B]/20 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400">
                 <option value="">Select…</option>
                 {availableEndTimes.map(t => (
                   <option key={t} value={t}>{fmtTime(t)}</option>
@@ -333,18 +333,18 @@ export function SchedulingPicker({ slots, onChange, max = 3, tier }: SchedulingP
 
           <div className="flex gap-2">
             <button onClick={() => { setAdding(false); setDraft({}) }}
-              className="flex-1 rounded-xl border border-gray-200 bg-white py-2.5 text-sm font-semibold text-gray-600 transition-colors hover:border-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-flame/20">
+              className="flex-1 rounded-xl border border-gray-200 bg-white py-2.5 text-sm font-semibold text-gray-600 transition-colors hover:border-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#C6A15B]/20">
               Cancel
             </button>
             <button onClick={addSlot} disabled={!selectedDate || !selectedStartTime || !selectedEndTime}
-              className="flex-1 rounded-xl bg-flame py-2.5 text-sm font-bold text-white transition-all hover:bg-flame-light focus:outline-none focus:ring-2 focus:ring-flame/30 disabled:cursor-not-allowed disabled:bg-orange-200 disabled:text-white/80">
+              className="flex-1 rounded-xl bg-[#C6A15B] py-2.5 text-sm font-bold text-[#1B1508] transition-all hover:bg-[#D8B871] focus:outline-none focus:ring-2 focus:ring-[#C6A15B]/30 disabled:cursor-not-allowed disabled:bg-[#C6A15B]/40 disabled:text-white/80">
               Add Window
             </button>
           </div>
         </div>
       ) : slots.length < max ? (
         <button onClick={startAdding}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 bg-white py-3 text-sm text-gray-600 transition-all hover:border-flame/40 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-flame/20">
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 bg-white py-3 text-sm text-gray-600 transition-all hover:border-[#C6A15B]/40 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#C6A15B]/20">
           <Plus className="w-4 h-4" />
           Add availability window {slots.length > 0 ? `(${slots.length}/${max})` : ''}
         </button>
