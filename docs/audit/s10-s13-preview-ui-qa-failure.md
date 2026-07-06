@@ -92,24 +92,32 @@ and `JobDetailModal` would show the **same** stale content on this Preview DB.
 requires `is_active = true`. Titles are keyed off `inspection_stages`. That split (titles from stage rows,
 content from template rows) is exactly why titles look fixed while content does not.
 
-## 4. Is this because `20260705000000` was not applied to the Preview DB? — YES (with a caveat to verify)
+## 4. Is this because `20260705000000` was not applied to the Preview DB? — YES (CONFIRMED read-only, 2026-07-06)
 
-Yes. The observed state is byte-for-byte the pre-`20260705000000` state (§2), and the Admin API would
-surface any v2 row if present (§3). Therefore the alignment migration has **not** been applied to the
-database backing Preview.
+**Confirmed by a targeted read-only SELECT against the exact project Preview uses.** Preview's
+`NEXT_PUBLIC_SUPABASE_URL` resolves to Supabase project ref **`llbcoqdtuvbwamptzipo`** (identified
+read-only; no keys/secrets recorded). Querying `stage_checklist_templates` there for S10–S13 returned
+**only `version = 1` (active) rows carrying the OLD construction titles** — no `version = 2` at all:
 
-**⚠️ Caveat / contradiction to resolve.** The final handoff (§3) recorded that an **earlier hosted read-only
-check found S10–S13 already correct (v2 active) on hosted.** This Preview QA **contradicts** that. Possible
-explanations (to be confirmed by read-only inspection, not assumed):
+| Stage | BCBC 2024 — active v1 title | VBBL 2025 — active v1 title |
+|---|---|---|
+| S10 | Building Envelope — BC Building Code 2024 | Building Envelope — Vancouver Building By-law 2025 |
+| S11 | Insulation & Vapour Barrier — BC Building Code 2024 | Insulation & Vapour Barrier — Vancouver Building By-law 2025 |
+| S12 | Drywall & Interior Finish — BC Building Code 2024 | Drywall & Interior Finish — Vancouver Building By-law 2025 |
+| S13 | Life Safety Systems — BC Building Code 2024 | Life Safety Systems — Vancouver Building By-law 2025 |
 
-1. **The Preview deployment points at a different Supabase project/branch DB** than the one that was
-   read-only-verified (e.g. a preview/branch database, or a different project ref). Most likely.
-2. The earlier hosted read-only verification was **misattributed** (checked the wrong stage rows,
-   jurisdiction, or a different environment).
-3. v2 was applied to one environment (e.g. production) but **not** to the environment Preview is wired to.
+So on `llbcoqdtuvbwamptzipo`: **v2 corrected templates are ABSENT; only v1 old templates exist for both
+jurisdictions; `20260705000000` has NOT been applied to this database.** This is the definitive root cause
+of the UI QA failure.
 
-This must be **investigated read-only** before any apply — see §6. Do not assume the earlier "already
-correct" note covers the Preview DB.
+**Contradiction RESOLVED.** The earlier "hosted v2 active" note (final handoff §3, reconciliation decision
+§1, gap inventory row 10) does **not** hold for the database Preview serves from, and is therefore
+**retracted as incorrect or misattributed.** If some other Supabase project holds v2, that project is
+unidentified and is **not** the one Preview (or, absent evidence otherwise, production) is wired to — so it
+is not authoritative here. The affected docs have been corrected:
+`hosted-migration-gap-inventory.md` (Round 5 correction; row 10 → EFFECT ABSENT; totals 9→8) and
+`hosted-migration-ledger-reconciliation-decision.md` (scope 9→8; exclude `20260705000000` from ledger
+repair).
 
 ## 5. What is NOT the cause (ruled out)
 
@@ -122,12 +130,12 @@ correct" note covers the Preview DB.
 - **Not the System C completion workspace** — that path (`src/lib/inspectorCompletion.ts` RAW_STAGES) is
   independent and already permit-centric; this failure is confined to System B template preview/admin.
 
-## 6. Recommended next safe validation path (read-only, no writes)
+## 6. Next safe validation path (read-only, no writes)
 
-1. **Identify which database Preview is actually using** — read-only: inspect the Preview deployment's
-   Supabase env (`NEXT_PUBLIC_SUPABASE_URL` / project ref) and compare it to the project ref used for the
-   earlier hosted read-only verification. Resolve the §4 contradiction first.
-2. **Read-only SELECT against that exact DB** to confirm the gap (no writes):
+1. ✅ **DONE (2026-07-06) — Preview DB identified:** project ref **`llbcoqdtuvbwamptzipo`** (from Preview
+   `NEXT_PUBLIC_SUPABASE_URL`, read-only; no secrets recorded). §4 contradiction resolved (retracted).
+2. ✅ **DONE (2026-07-06) — read-only SELECT run against `llbcoqdtuvbwamptzipo`:** only `version = 1` old
+   templates for S10–S13 (both jurisdictions); **no v2**. See §4 table. The reference query used:
    ```sql
    -- Do v2 templates exist for S10–S13 in the DB Preview is using?
    select s.stage_number, j.slug as jurisdiction, sct.version, sct.is_active, sct.title

@@ -13,7 +13,9 @@
 
 ## 0. Context
 
-- Hosted **S10–S13 data** was verified correct (see decision note).
+- ~~Hosted **S10–S13 data** was verified correct (see decision note).~~ **RETRACTED (Round 5,
+  2026-07-06):** on the Preview DB `llbcoqdtuvbwamptzipo` only **v1 old** S10–S13 templates exist; the
+  corrected **v2 is absent** (`20260705000000` not applied). See §Round 5 and `s10-s13-preview-ui-qa-failure.md`.
 - The hosted ledger `supabase_migrations.schema_migrations` shows entries only **through the 202604
   series**, and returned **no rows** for `20260605000000` or `20260705000000`.
 - Therefore the gap is broader than S10–S13: **every** local migration from `20260501…` (May 2026)
@@ -94,11 +96,44 @@ Final hosted **read-only** group (payments pair) completed — both **verified p
 - Both are **payments/Stripe-adjacent** → any ledger repair for them still requires **payments-owner
   sign-off**. This inventory does not touch Stripe/payment logic.
 
-**FINAL TOTALS: 9 of 10 verified effects present · 1 of 10 partial/effect-missing
-(`20260611000000_inspector_completion_rls_seal_latch`).** All 10 versions verified — verification phase
-complete. **A blanket ledger repair is unsafe.** Any future targeted repair must **exclude
-`20260611000000`** and include **only the 9 verified-present** migrations, with **payments-owner sign-off**
-for `20260615000000` and `20260622000000`. No hosted writes.
+**FINAL TOTALS (Round 4): 9 of 10 verified effects present · 1 of 10 partial/effect-missing
+(`20260611000000_inspector_completion_rls_seal_latch`).**
+
+> ⚠️ **SUPERSEDED by Round 5 — see below.** Round 4 counted `20260705000000` (S10–S13 templates) as
+> "effect present." Round 5 (2026-07-06), a targeted read-only re-check against the project ref the
+> Vercel Preview actually uses, found its effect is **ABSENT**. Corrected totals: **8 of 10 verified
+> present · 2 of 10 NOT safe to ledger-repair** (`20260611000000` partial + `20260705000000` absent).
+
+## Hosted verification log — Round 5 · CORRECTION (2026-07-06)
+
+Targeted read-only re-check of `20260705000000` against the **exact Supabase project the Vercel Preview
+deployment uses**: project ref **`llbcoqdtuvbwamptzipo`** (identified read-only from the Preview
+`NEXT_PUBLIC_SUPABASE_URL`; no keys/secrets recorded). Result: **only `version = 1` (old
+construction-model) templates exist for S10–S13 — `version = 2` is ABSENT** for both jurisdictions.
+Observed active titles on `llbcoqdtuvbwamptzipo`:
+
+| Stage | BCBC 2024 (v1, active) | VBBL 2025 (v1, active) |
+|---|---|---|
+| S10 | Building Envelope — BC Building Code 2024 | Building Envelope — Vancouver Building By-law 2025 |
+| S11 | Insulation & Vapour Barrier — BC Building Code 2024 | Insulation & Vapour Barrier — Vancouver Building By-law 2025 |
+| S12 | Drywall & Interior Finish — BC Building Code 2024 | Drywall & Interior Finish — Vancouver Building By-law 2025 |
+| S13 | Life Safety Systems — BC Building Code 2024 | Life Safety Systems — Vancouver Building By-law 2025 |
+
+**Conclusions (Round 5):**
+- Preview uses Supabase project ref **`llbcoqdtuvbwamptzipo`**.
+- Only **v1 old** templates exist for S10–S13 (both BCBC + VBBL); **v2 corrected templates are absent**.
+- **`20260705000000_align_s10_s13_templates_permit_centric.sql` has NOT been applied** to this database.
+- The Round 3/4 **"hosted v2 active" claim is RETRACTED** as incorrect or misattributed (it did not hold
+  for the project Preview serves from; if any other project holds v2, that project is unidentified and not
+  authoritative for Preview).
+- **Preview UI QA remains FAILED** (see `s10-s13-preview-ui-qa-failure.md`).
+
+**CORRECTED FINAL TOTALS: 8 of 10 verified effects present · 2 of 10 NOT safe to ledger-repair —
+`20260611000000` (partial/effect-missing) and `20260705000000` (effect ABSENT on Preview DB).** A blanket
+ledger repair is unsafe. Any targeted repair must **exclude BOTH `20260611000000` and `20260705000000`**
+and include **only the 8 verified-present** migrations, with **payments-owner sign-off** for
+`20260615000000` and `20260622000000`. `20260705000000` now needs a **real reviewed apply** (like the
+seal-latch), not a ledger repair. No hosted writes.
 
 ---
 
@@ -133,7 +168,7 @@ order by version;
 | 7 | 20260615000000 | inspector_payment_accounts | `inspector_payment_accounts` table + RLS | Missing | ✅ **Effect verified present (2026-07-05)** — table + columns + `select_own` policy present · **PAYMENTS: ledger repair needs payments-owner sign-off** |
 | 8 | 20260622000000 | hold_payment_gate | `job_holds` Stripe columns + check | Missing | ✅ **Effect verified present (2026-07-05)** — 4 columns + status check present · **PAYMENTS/Stripe: ledger repair needs payments-owner sign-off** |
 | 9 | 20260623000000 | catalogue_model_code | `job_opportunities.catalogue_model_code` column | Missing | ✅ **Effect verified present (2026-07-05)** — column exists (`text`, nullable) |
-| 10 | 20260705000000 | align_s10_s13_templates_permit_centric | `stage_checklist_templates/items` S10–S13 v2 | Missing | **Effect VERIFIED PRESENT** (v2 active, v1 inactive) |
+| 10 | 20260705000000 | align_s10_s13_templates_permit_centric | `stage_checklist_templates/items` S10–S13 v2 | Missing | ⛔ **EFFECT ABSENT (2026-07-06, Round 5)** — on Preview DB `llbcoqdtuvbwamptzipo` only v1 old templates exist; **no v2**. Round 4 "verified present" is **retracted**. **Do NOT ledger-repair; needs a real reviewed apply → `s10-s13-preview-ui-qa-failure.md`.** |
 
 **Classification legend:** *Missing from hosted ledger* · *Effect verified present* · *Effect not yet
 verified* · *Effect missing* · *Unsafe to mark applied without deeper review*.
@@ -263,8 +298,8 @@ where table_schema='public' and table_name='job_opportunities' and column_name='
 -- expected: 1 row (text, nullable) if effect present.
 ```
 
-### 10 — `20260705000000_align_s10_s13_templates_permit_centric.sql`  · ✅ verified present
-Re-seeds S10–S13 `stage_checklist_templates`/`items` (v2 active, v1 inactive).
+### 10 — `20260705000000_align_s10_s13_templates_permit_centric.sql`  · ⛔ EFFECT ABSENT (Round 5, 2026-07-06)
+Re-seeds S10–S13 `stage_checklist_templates`/`items` (intended: v2 active, v1 inactive).
 ```sql
 select s.stage_number, j.slug, sct.version, sct.is_active, count(sci.id) as items
 from public.stage_checklist_templates sct
@@ -274,7 +309,9 @@ left join public.stage_checklist_items sci on sci.template_id = sct.id
 where s.stage_number in (10,11,12,13)
 group by s.stage_number, j.slug, sct.version, sct.is_active
 order by s.stage_number, j.slug, sct.version;
--- Effect present (confirmed): version 2 active with 4/4/4·5/5 items; version 1 inactive.
+-- ACTUAL on Preview DB llbcoqdtuvbwamptzipo (2026-07-06): only version = 1 (active) rows, carrying the
+-- OLD construction titles (Building Envelope / Insulation & Vapour Barrier / Drywall & Interior Finish /
+-- Life Safety Systems) for both jurisdictions. NO version = 2 rows. → Migration NOT applied here.
 ```
 
 ---
@@ -283,20 +320,23 @@ order by s.stage_number, j.slug, sct.version;
 
 - **All 10 versions are missing from the hosted ledger** (Round 1 confirmed) — the full 202605–202607
   range is unledgered.
-- **Verification phase COMPLETE — all 10 versions checked (Rounds 1–4).**
-- **Nine migrations are effect-verified present:** `20260501010000` (builder_documents), `20260501020000`
+- **Verification phase COMPLETE — all 10 versions checked (Rounds 1–4); `20260705000000` corrected in
+  Round 5 (2026-07-06).**
+- **Eight migrations are effect-verified present:** `20260501010000` (builder_documents), `20260501020000`
   (builder doc storage policies), `20260501030000` (inspector admin storage policy), `20260509132000`
   (job-assignment `'completed'` status), `20260605000000` (stage labels), `20260615000000`
   (inspector_payment_accounts — PAYMENTS), `20260622000000` (hold_payment_gate — PAYMENTS/Stripe),
-  `20260623000000` (catalogue_model_code), `20260705000000` (S10–S13 templates).
-- **One migration is PARTIAL / EFFECT MISSING:** `20260611000000_inspector_completion_rls_seal_latch` —
-  its functions + triggers are **absent on hosted**. **It must NOT be marked "applied" via ledger
-  repair** (that would hide a real integrity gap in completion seal-latch enforcement). It needs a
-  **real, reviewed apply/fix** later.
-- **Therefore a blanket ledger repair is unsafe.** Any future targeted repair must **exclude
-  `20260611000000`** and include **only the 9 verified-present** migrations, with **payments-owner
-  sign-off** for the two payments migrations (`20260615000000`, `20260622000000`). This inventory does
-  **not** touch Stripe/payment logic.
+  `20260623000000` (catalogue_model_code).
+- **Two migrations are NOT safe to ledger-repair (effect not present):**
+  - `20260611000000_inspector_completion_rls_seal_latch` — **PARTIAL / EFFECT MISSING**: functions +
+    triggers **absent on hosted**. Needs a **real, reviewed apply/fix** → `seal-latch-fix-apply-decision.md`.
+  - `20260705000000_align_s10_s13_templates_permit_centric` — **EFFECT ABSENT (Round 5)**: on Preview DB
+    `llbcoqdtuvbwamptzipo`, only v1 old templates exist; **no v2**. The Round 4 "verified present" is
+    **retracted**. Needs a **real, reviewed apply** to the Preview DB → `s10-s13-preview-ui-qa-failure.md`.
+- **Therefore a blanket ledger repair is unsafe.** Any future targeted repair must **exclude BOTH
+  `20260611000000` and `20260705000000`** and include **only the 8 verified-present** migrations, with
+  **payments-owner sign-off** for the two payments migrations (`20260615000000`, `20260622000000`). This
+  inventory does **not** touch Stripe/payment logic.
 - **`profiles.id` ambiguity RESOLVED on hosted → `uuid`.** The earlier `builder_documents` "effect
   missing" risk is **cleared** (hosted `profiles.id` is `uuid`, not `text`; the local blocker is
   local-only). `inspector_payment_accounts` uses a `text` FK to the same `uuid` column — note this for
