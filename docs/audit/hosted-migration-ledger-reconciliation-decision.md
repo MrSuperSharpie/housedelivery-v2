@@ -26,22 +26,29 @@ no re-apply performed or authorized by this note.
 - **`builder_documents` table EXISTS** on hosted (`to_regclass` returned it) → the local `profiles.id
   text` blocker is local-only; that migration's effect is present.
 
-So far (Round 1 + Round 2, 2026-07-05) **six of ten** effects are verified present on hosted:
+So far (Rounds 1–3, 2026-07-05) **seven of ten** effects are verified present on hosted:
 `20260501010000` (builder_documents), `20260501020000` (builder doc storage policies), `20260501030000`
 (inspector admin storage policy), `20260509132000` (job-assignment `'completed'` status),
-`20260605000000` (stage labels), `20260705000000` (S10–S13 templates). The remaining **four** are **not
-yet verified**: `20260611000000` (completion RLS/seal-latch), `20260615000000`
-(inspector_payment_accounts — payments), `20260622000000` (hold_payment_gate — payments/Stripe),
-`20260623000000` (catalogue_model_code).
+`20260605000000` (stage labels), `20260623000000` (catalogue_model_code), `20260705000000` (S10–S13
+templates).
+
+**⛔ One migration is PARTIAL / EFFECT MISSING:** `20260611000000_inspector_completion_rls_seal_latch` —
+its three functions and three triggers are **absent on hosted** (only 1 policy present). This **must NOT
+be marked applied via ledger repair**; it requires a real, reviewed apply/fix path. Its existence proves
+a **blanket "mark the whole 202605–202607 range applied" is unsafe** — the range must be reconciled
+per-migration.
+
+The remaining **two** are **not yet verified**: `20260615000000` (inspector_payment_accounts — payments),
+`20260622000000` (hold_payment_gate — payments/Stripe).
 
 **Interpretation:** the hosted data reflects the *effects* of migrations that the ledger does not record
 as applied. Corrections/features reached hosted **out-of-band** (e.g. direct SQL / Studio), so the ledger
 under-reports what has actually been applied, across the **whole 202605→202607 range** in Git.
 
-**Next step (governance):** verify the remaining **four** migrations' effects **one small group at a
-time** (see `hosted-migration-gap-inventory.md` §3.6 completion RLS, §3.7–§3.8 payments pair, §3.9
-catalogue) before deciding any ledger repair. The payments pair (`20260615000000`, `20260622000000`)
-also needs payments-owner sign-off. No hosted writes.
+**Next step (governance):** verify the remaining **two** payments-domain migrations' effects
+(`hosted-migration-gap-inventory.md` §3.7–§3.8) **with payments-owner involvement** before deciding any
+ledger repair. Separately, scope a **real reviewed apply/fix** for the effect-missing
+`20260611000000` seal-latch objects (do not ledger-repair it). No hosted writes.
 
 ---
 
@@ -130,7 +137,10 @@ Only after all boxes are checked may a follow-up sprint execute the selected opt
 
 ## 7. Recommendation
 
-Pursue **Option A** (targeted `migration repair --status applied`) **scoped to the full verified gap**,
-but only after the §4 read-only inventory + per-migration effect verification and the §5 approvals. If the
-inventory reveals any gap migration whose effect is **not** present in hosted, escalate that migration
-separately — do not blanket-mark the range as applied.
+Pursue **Option A** (targeted `migration repair --status applied`) **scoped only to the effect-verified
+migrations** (currently the 7 confirmed present), after the §5 approvals — and **exclude**
+`20260611000000_inspector_completion_rls_seal_latch`, whose effect is **missing** on hosted. That one is
+now a concrete instance of the "escalate separately" rule: it needs a **real, reviewed apply/fix** of its
+functions + triggers, **not** a ledger repair. Complete the final two payments-domain verifications
+(§3.7–§3.8, with payments-owner sign-off) before finalizing the repair scope. Under no circumstances
+blanket-mark the whole 202605–202607 range as applied.

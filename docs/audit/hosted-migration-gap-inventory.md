@@ -59,6 +59,24 @@ Second hosted **read-only** group completed — three more effects **verified pr
 `20260623000000` (catalogue_model_code). Verify these next (payments pair needs domain-owner sign-off
 before any repair). No hosted writes.
 
+## Hosted verification log — Round 3 (2026-07-05)
+
+- **§3.9 `20260623000000_catalogue_model_code`:** hosted `job_opportunities.catalogue_model_code` exists
+  (`text`, `is_nullable = YES`). → **Effect verified present.** ✅
+- **§3.6 `20260611000000_inspector_completion_rls_seal_latch`:** ⚠ **PARTIAL / EFFECT MISSING.** Hosted
+  completion-policy count returned **1**, but the three expected **functions**
+  (`completion_is_client_request`, `completion_report_is_locked`, `enforce_completion_seal_latch`) and
+  the three expected **triggers** (`trg_completion_reports_seal_latch`,
+  `trg_completion_stage_items_seal_latch`, `trg_completion_documents_seal_latch`) **all returned no
+  rows**. The seal-latch enforcement objects are **absent on hosted**.
+  - ⛔ **Must NOT be marked applied via ledger repair.** Marking it applied would falsely record the
+    seal-latch enforcement as deployed while it is not — hiding a real integrity gap in completion
+    sealing. This migration requires a **real, reviewed apply/fix path** later (separate, approved).
+
+**Running total: 7 of 10 verified present · 1 of 10 partial/effect-missing (`20260611000000`).**
+**Remaining unverified (2):** `20260615000000` (inspector_payment_accounts — payments),
+`20260622000000` (hold_payment_gate — payments/Stripe) — payments-owner sign-off required. No hosted writes.
+
 ---
 
 ## 1. Ledger presence check (run once, for all versions)
@@ -88,10 +106,10 @@ order by version;
 | 3 | 20260501030000 | inspector_document_admin_storage_policy | `storage.objects` RLS policy | Missing | ✅ **Effect verified present (2026-07-05)** — `inspector_documents_admin_select` returned |
 | 4 | 20260509132000 | allow_completed_job_assignments | `job_assignments` status check constraint | Missing | ✅ **Effect verified present (2026-07-05)** — check includes `'completed'` |
 | 5 | 20260605000000 | correct_inspection_stage_labels_s10_s15 | `inspection_stages` titles/slugs | Missing | **Effect VERIFIED PRESENT** (S10–S13 hosted titles permit-centric) |
-| 6 | 20260611000000 | inspector_completion_rls_seal_latch | Functions + triggers + RLS on `inspector_completion_*` | Missing | Effect not yet verified |
+| 6 | 20260611000000 | inspector_completion_rls_seal_latch | Functions + triggers + RLS on `inspector_completion_*` | Missing | ⛔ **PARTIAL / EFFECT MISSING (2026-07-05)** — 3 functions + 3 triggers absent (only 1 policy present). **Do NOT ledger-repair; needs a real reviewed apply/fix.** |
 | 7 | 20260615000000 | inspector_payment_accounts | `inspector_payment_accounts` table + RLS | Missing | Effect not yet verified · **Unsafe to mark applied without deeper review (PAYMENTS domain)** |
 | 8 | 20260622000000 | hold_payment_gate | `job_holds` Stripe columns + check | Missing | Effect not yet verified · **Unsafe to mark applied without deeper review (PAYMENTS/Stripe)** |
-| 9 | 20260623000000 | catalogue_model_code | `job_opportunities.catalogue_model_code` column | Missing | Effect not yet verified |
+| 9 | 20260623000000 | catalogue_model_code | `job_opportunities.catalogue_model_code` column | Missing | ✅ **Effect verified present (2026-07-05)** — column exists (`text`, nullable) |
 | 10 | 20260705000000 | align_s10_s13_templates_permit_centric | `stage_checklist_templates/items` S10–S13 v2 | Missing | **Effect VERIFIED PRESENT** (v2 active, v1 inactive) |
 
 **Classification legend:** *Missing from hosted ledger* · *Effect verified present* · *Effect not yet
@@ -165,8 +183,11 @@ where stage_number in (10,11,12,13,14,15) order by stage_number;
 -- 14 exterior_works_site_finalization; 15 final_approval_and_occupancy.
 ```
 
-### 6 — `20260611000000_inspector_completion_rls_seal_latch.sql`
-Adds seal-latch functions, triggers, and RLS on the `inspector_completion_*` tables.
+### 6 — `20260611000000_inspector_completion_rls_seal_latch.sql`  · ⛔ PARTIAL / EFFECT MISSING (2026-07-05)
+Adds seal-latch functions, triggers, and RLS on the `inspector_completion_*` tables. **Round 3 result:**
+only **1** completion policy present; all **3 functions** and **3 triggers** returned **no rows** →
+seal-latch enforcement is **absent on hosted**. **Do NOT mark applied via ledger repair** — requires a
+real, reviewed apply/fix path (separate, approved).
 ```sql
 -- Functions
 select proname from pg_proc
@@ -206,8 +227,9 @@ select pg_get_constraintdef(oid) from pg_constraint where conname='job_holds_hol
 -- expected CHECK: hold_payment_status in ('unpaid','paid','failed','cancelled')
 ```
 
-### 9 — `20260623000000_catalogue_model_code.sql`
-Adds `public.job_opportunities.catalogue_model_code text` (nullable, no backfill).
+### 9 — `20260623000000_catalogue_model_code.sql`  · ✅ verified present (2026-07-05)
+Adds `public.job_opportunities.catalogue_model_code text` (nullable, no backfill). Hosted column exists
+(`text`, `is_nullable = YES`).
 ```sql
 select column_name, data_type, is_nullable from information_schema.columns
 where table_schema='public' and table_name='job_opportunities' and column_name='catalogue_model_code';
@@ -234,13 +256,18 @@ order by s.stage_number, j.slug, sct.version;
 
 - **All 10 versions are missing from the hosted ledger** (Round 1 confirmed) — the full 202605–202607
   range is unledgered.
-- **Six migrations are effect-verified present (Round 1 + 2):** `20260501010000` (builder_documents),
+- **Seven migrations are effect-verified present (Rounds 1–3):** `20260501010000` (builder_documents),
   `20260501020000` (builder doc storage policies), `20260501030000` (inspector admin storage policy),
   `20260509132000` (job-assignment `'completed'` status), `20260605000000` (stage labels),
-  `20260705000000` (S10–S13 templates). The remaining **four** are **not yet verified**:
-  `20260611000000` (completion RLS/seal-latch), `20260615000000` (inspector_payment_accounts),
-  `20260622000000` (hold_payment_gate), `20260623000000` (catalogue_model_code) — run §3.6, §3.7–§3.8,
-  §3.9 next, one small group at a time.
+  `20260623000000` (catalogue_model_code), `20260705000000` (S10–S13 templates).
+- **One migration is PARTIAL / EFFECT MISSING:** `20260611000000_inspector_completion_rls_seal_latch` —
+  its functions + triggers are **absent on hosted**. This is exactly the case flagged earlier: **it must
+  NOT be marked "applied" via ledger repair** (that would hide a real integrity gap in completion
+  seal-latch enforcement). It needs a **real, reviewed apply/fix** later. This single finding blocks any
+  blanket "mark the whole range applied" approach.
+- **Two migrations remain not yet verified:** `20260615000000` (inspector_payment_accounts) and
+  `20260622000000` (hold_payment_gate) — payments/Stripe domain; run §3.7–§3.8 with payments-owner
+  involvement.
 - **`profiles.id` ambiguity RESOLVED on hosted → `uuid`.** The earlier `builder_documents` "effect
   missing" risk is **cleared** (hosted `profiles.id` is `uuid`, not `text`; the local blocker is
   local-only). `inspector_payment_accounts` uses a `text` FK to the same `uuid` column — note this for
