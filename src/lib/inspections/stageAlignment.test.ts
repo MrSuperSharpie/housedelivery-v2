@@ -108,3 +108,25 @@ test('renamed stage titles stay synchronised with the runtime (System C) model',
       + `completion model ("${rt[n]}"). Rename both together.`)
   }
 })
+
+// Jurisdiction resolution: source-derived assertion on resolveActiveTemplate's
+// city → jurisdiction mapping (Vancouver → vbbl_2025; everything else → bcbc_2024).
+test('resolver maps Vancouver to vbbl_2025 and non-Vancouver to bcbc_2024', () => {
+  const resolver = src('src/lib/inspections/resolveActiveTemplate.ts')
+  assert.match(resolver, /=== 'vancouver'\s*\?\s*'vbbl_2025'\s*:\s*'bcbc_2024'/,
+    'Vancouver → vbbl_2025 / else → bcbc_2024 mapping not found in resolveActiveTemplate.ts')
+  assert.match(resolver, /if \(!city\) return 'bcbc_2024'/,
+    'null-city default → bcbc_2024 not found in resolveActiveTemplate.ts')
+})
+
+// Intended post-migration state (Option A). Marked `todo` so it documents the
+// target without failing CI before the canonical S10–S13 migration lands. The
+// script docs/audit/validate-stage-alignment.mjs is the fail-before/pass-after
+// gate. When the migration lands, promote this to a real assertion (hard === 0)
+// and drop S10–S13 from KNOWN_HARD above.
+test('S10–S13 title/content hard-mismatch is eliminated after canonical migration', { todo: true }, () => {
+  const db = parseDbTitles(), tm = parseTemplateSubjects(), renamed = renamedStageNumbers()
+  const hard: number[] = []
+  for (const n of renamed) if (!overlaps(db[n], tm[n])) hard.push(n)
+  assert.deepEqual(hard, [], `expected 0 hard mismatches post-migration, found S${hard.join(', S')}`)
+})
