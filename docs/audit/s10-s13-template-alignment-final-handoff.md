@@ -99,8 +99,11 @@ Hosted ledger + seal-latch (the four requested):
 
 ## 8. What remains before merge or production promotion
 
-1. **Human review of S10–S13 wording** — titles, item text, and the VBBL Step Code overlay, by a
-   practicing BC inspector.
+1. ✅ **DONE — human PRODUCT review of S10–S13 wording (2026-07-05):** S10, S11, S12, and S13 were
+   **accepted for product QA**; the VBBL S12 "Vancouver Mandatory Minimum Step Code Tier" item is
+   **present**; no old mismatched content was found. See `s10-s13-human-review-packet.md`. **This is
+   product-level acceptance only — NOT a professional inspector / code sign-off** (that remains a separate
+   later step before treating the content as final legal/code advice).
 2. **Vercel Preview UI QA** — on a preview deployment, confirm `/inspector/stages` and `JobDetailModal`
    render S10–S13 content matching their titles, and Vancouver→`vbbl_2025` / non-Vancouver→`bcbc_2024`.
 3. **Decision on the targeted ledger repair** for the **9 verified-present** migrations — approvals per
@@ -110,6 +113,10 @@ Hosted ledger + seal-latch (the four requested):
    `seal-latch-staging-apply-runbook.md`: staging → verify → security + DB owner approval → hosted apply →
    then record its ledger entry.
 5. **No hosted writes until approvals** — everything above is gated on human sign-off.
+6. **Open item — evidence requirement clarity (out of scope for this branch):** this branch aligned
+   S10–S13 titles/content but did **not** correct evidence-requirement clarity (typed evidence, per-item
+   evidence binding/wording). That should be handled in a **separate evidence-requirements audit**, not
+   here. (Context in `canonical-template-reconciliation-plan.md` §LOOP 4.)
 
 ## 9. Do-not-do list
 
