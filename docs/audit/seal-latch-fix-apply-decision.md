@@ -9,6 +9,10 @@
 > Companion to `hosted-migration-ledger-reconciliation-decision.md` and
 > `hosted-migration-gap-inventory.md`. This note is specifically about the **one** migration whose effect
 > is **missing** on hosted and therefore **must not be ledger-repaired**.
+>
+> **Execution runbook:** the step-by-step staging apply + verification procedure is in
+> **`docs/audit/seal-latch-staging-apply-runbook.md`** (staging first; hosted production must not be
+> touched until that runbook is reviewed and approved).
 
 ---
 
