@@ -77,6 +77,29 @@ before any repair). No hosted writes.
 **Remaining unverified (2):** `20260615000000` (inspector_payment_accounts — payments),
 `20260622000000` (hold_payment_gate — payments/Stripe) — payments-owner sign-off required. No hosted writes.
 
+## Hosted verification log — Round 4 · FINAL (2026-07-05)
+
+Final hosted **read-only** group (payments pair) completed — both **verified present**:
+- **§3.8 `20260622000000_hold_payment_gate`:** hosted `job_holds` has all 4 columns — `hold_paid_at`
+  (timestamptz), `hold_payment_status` (text), `stripe_checkout_session_id` (text),
+  `stripe_payment_intent_id` (text); and `job_holds_hold_payment_status_check` allows
+  `unpaid, paid, failed, cancelled`. ✅
+- **§3.7 `20260615000000_inspector_payment_accounts`:** hosted table has all expected columns
+  (`inspector_id` uuid, `stripe_account_id`, `account_type`, `charges_enabled`, `payouts_enabled`,
+  `details_submitted`, `requirements_currently_due` jsonb, `onboarding_started_at`,
+  `onboarding_completed_at`, `created_at`, `updated_at`) and policy `inspector_payment_accounts_select_own`
+  is present. ✅ *(Neutral note: hosted `inspector_id` is `uuid`, matching hosted `profiles.id = uuid`;
+  the migration file declares it `text`. Effect is present either way; noted for the reconciliation
+  record.)*
+- Both are **payments/Stripe-adjacent** → any ledger repair for them still requires **payments-owner
+  sign-off**. This inventory does not touch Stripe/payment logic.
+
+**FINAL TOTALS: 9 of 10 verified effects present · 1 of 10 partial/effect-missing
+(`20260611000000_inspector_completion_rls_seal_latch`).** All 10 versions verified — verification phase
+complete. **A blanket ledger repair is unsafe.** Any future targeted repair must **exclude
+`20260611000000`** and include **only the 9 verified-present** migrations, with **payments-owner sign-off**
+for `20260615000000` and `20260622000000`. No hosted writes.
+
 ---
 
 ## 1. Ledger presence check (run once, for all versions)
@@ -107,8 +130,8 @@ order by version;
 | 4 | 20260509132000 | allow_completed_job_assignments | `job_assignments` status check constraint | Missing | ✅ **Effect verified present (2026-07-05)** — check includes `'completed'` |
 | 5 | 20260605000000 | correct_inspection_stage_labels_s10_s15 | `inspection_stages` titles/slugs | Missing | **Effect VERIFIED PRESENT** (S10–S13 hosted titles permit-centric) |
 | 6 | 20260611000000 | inspector_completion_rls_seal_latch | Functions + triggers + RLS on `inspector_completion_*` | Missing | ⛔ **PARTIAL / EFFECT MISSING (2026-07-05)** — 3 functions + 3 triggers absent (only 1 policy present). **Do NOT ledger-repair; needs a real reviewed apply/fix.** |
-| 7 | 20260615000000 | inspector_payment_accounts | `inspector_payment_accounts` table + RLS | Missing | Effect not yet verified · **Unsafe to mark applied without deeper review (PAYMENTS domain)** |
-| 8 | 20260622000000 | hold_payment_gate | `job_holds` Stripe columns + check | Missing | Effect not yet verified · **Unsafe to mark applied without deeper review (PAYMENTS/Stripe)** |
+| 7 | 20260615000000 | inspector_payment_accounts | `inspector_payment_accounts` table + RLS | Missing | ✅ **Effect verified present (2026-07-05)** — table + columns + `select_own` policy present · **PAYMENTS: ledger repair needs payments-owner sign-off** |
+| 8 | 20260622000000 | hold_payment_gate | `job_holds` Stripe columns + check | Missing | ✅ **Effect verified present (2026-07-05)** — 4 columns + status check present · **PAYMENTS/Stripe: ledger repair needs payments-owner sign-off** |
 | 9 | 20260623000000 | catalogue_model_code | `job_opportunities.catalogue_model_code` column | Missing | ✅ **Effect verified present (2026-07-05)** — column exists (`text`, nullable) |
 | 10 | 20260705000000 | align_s10_s13_templates_permit_centric | `stage_checklist_templates/items` S10–S13 v2 | Missing | **Effect VERIFIED PRESENT** (v2 active, v1 inactive) |
 
@@ -203,8 +226,11 @@ where schemaname='public' and tablename in
   ('inspector_completion_reports','inspector_completion_stage_items','inspector_completion_documents');
 ```
 
-### 7 — `20260615000000_inspector_payment_accounts.sql`  · Unsafe to mark applied w/o review (PAYMENTS)
-Creates `public.inspector_payment_accounts` (FK `inspector_id text → profiles(id)`) + read-own RLS.
+### 7 — `20260615000000_inspector_payment_accounts.sql`  · ✅ verified present (2026-07-05) · PAYMENTS (sign-off req.)
+Creates `public.inspector_payment_accounts` (FK `inspector_id → profiles(id)`) + read-own RLS. Hosted has
+all expected columns (hosted `inspector_id` is `uuid`, matching hosted `profiles.id`) and the
+`inspector_payment_accounts_select_own` policy. Effect present; ledger repair still needs payments-owner
+sign-off.
 ```sql
 select to_regclass('public.inspector_payment_accounts') as inspector_payment_accounts_table;
 select column_name, data_type from information_schema.columns
@@ -215,9 +241,10 @@ where schemaname='public' and tablename='inspector_payment_accounts';
 **Note:** payments-domain object — even if the effect is present, marking this "applied" in the ledger
 requires the payments owner's sign-off (see decision note §5). Do not touch Stripe wiring.
 
-### 8 — `20260622000000_hold_payment_gate.sql`  · Unsafe to mark applied w/o review (PAYMENTS/Stripe)
+### 8 — `20260622000000_hold_payment_gate.sql`  · ✅ verified present (2026-07-05) · PAYMENTS/Stripe (sign-off req.)
 Adds `hold_payment_status`, `stripe_checkout_session_id`, `stripe_payment_intent_id`, `hold_paid_at` to
-`public.job_holds`, plus a status check constraint.
+`public.job_holds`, plus a status check constraint. Hosted has all 4 columns and the check allowing
+`unpaid, paid, failed, cancelled`. Effect present; ledger repair still needs payments-owner sign-off.
 ```sql
 select column_name, data_type from information_schema.columns
 where table_schema='public' and table_name='job_holds'
@@ -256,18 +283,20 @@ order by s.stage_number, j.slug, sct.version;
 
 - **All 10 versions are missing from the hosted ledger** (Round 1 confirmed) — the full 202605–202607
   range is unledgered.
-- **Seven migrations are effect-verified present (Rounds 1–3):** `20260501010000` (builder_documents),
-  `20260501020000` (builder doc storage policies), `20260501030000` (inspector admin storage policy),
-  `20260509132000` (job-assignment `'completed'` status), `20260605000000` (stage labels),
+- **Verification phase COMPLETE — all 10 versions checked (Rounds 1–4).**
+- **Nine migrations are effect-verified present:** `20260501010000` (builder_documents), `20260501020000`
+  (builder doc storage policies), `20260501030000` (inspector admin storage policy), `20260509132000`
+  (job-assignment `'completed'` status), `20260605000000` (stage labels), `20260615000000`
+  (inspector_payment_accounts — PAYMENTS), `20260622000000` (hold_payment_gate — PAYMENTS/Stripe),
   `20260623000000` (catalogue_model_code), `20260705000000` (S10–S13 templates).
 - **One migration is PARTIAL / EFFECT MISSING:** `20260611000000_inspector_completion_rls_seal_latch` —
-  its functions + triggers are **absent on hosted**. This is exactly the case flagged earlier: **it must
-  NOT be marked "applied" via ledger repair** (that would hide a real integrity gap in completion
-  seal-latch enforcement). It needs a **real, reviewed apply/fix** later. This single finding blocks any
-  blanket "mark the whole range applied" approach.
-- **Two migrations remain not yet verified:** `20260615000000` (inspector_payment_accounts) and
-  `20260622000000` (hold_payment_gate) — payments/Stripe domain; run §3.7–§3.8 with payments-owner
-  involvement.
+  its functions + triggers are **absent on hosted**. **It must NOT be marked "applied" via ledger
+  repair** (that would hide a real integrity gap in completion seal-latch enforcement). It needs a
+  **real, reviewed apply/fix** later.
+- **Therefore a blanket ledger repair is unsafe.** Any future targeted repair must **exclude
+  `20260611000000`** and include **only the 9 verified-present** migrations, with **payments-owner
+  sign-off** for the two payments migrations (`20260615000000`, `20260622000000`). This inventory does
+  **not** touch Stripe/payment logic.
 - **`profiles.id` ambiguity RESOLVED on hosted → `uuid`.** The earlier `builder_documents` "effect
   missing" risk is **cleared** (hosted `profiles.id` is `uuid`, not `text`; the local blocker is
   local-only). `inspector_payment_accounts` uses a `text` FK to the same `uuid` column — note this for
