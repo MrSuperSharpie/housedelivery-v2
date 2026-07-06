@@ -11,6 +11,29 @@
 
 ---
 
+## Product review result (recorded 2026-07-05)
+
+Human **product** review of this packet is complete. Result:
+
+| Stage | Result |
+|---|---|
+| S10 — Electrical Permit and Scope | ✅ **Accept for product QA** |
+| S11 — Gas Permit and Mechanical / HVAC Scope | ✅ **Accept for product QA** |
+| S12 — Insulation and Energy Compliance | ✅ **Accept for product QA** |
+| S13 — Interior Completion | ✅ **Accept for product QA** |
+| S12 VBBL — Vancouver Mandatory Minimum Step Code Tier | ✅ **Present** (Vancouver-only overlay confirmed) |
+
+- **No old mismatched content identified** — no Building Envelope / Vapour Barrier / Drywall / Life Safety
+  content appears in the active S10–S13 checklists reviewed.
+- ⚠️ **Professional inspector / code review is still recommended** before treating this content as final
+  legal/code advice. "Accept for product QA" clears the content for the next validation steps
+  (Vercel Preview UI QA, etc.) — it is **not** a professional code sign-off.
+
+**Scope of this result:** product-level acceptance only. It does not change any content, does not authorize
+a hosted apply, and does not substitute for the professional/code review noted above.
+
+---
+
 ## 1. S10 — Electrical Permit and Scope · BCBC 2024
 
 | # | Checklist item | Short purpose | Code reference | Review (Accept / Revise / Unsure) |
@@ -102,7 +125,7 @@
 
 | Reviewer | Role | Date | Overall (Accept / Revise / Unsure) | Notes |
 |---|---|---|---|---|
-| | | | | |
+| (product reviewer) | Product | 2026-07-05 | **Accept for product QA** | S10–S13 accepted; VBBL S12 Step Code item present; no old mismatched content found. Professional inspector/code review still recommended before final legal/code advice. |
 
-*This packet does not change any content. Mark items above; revisions (if any) are actioned in a separate
-approved change, not here.*
+*This packet does not change any content. Product acceptance recorded above; any revisions (if any) are
+actioned in a separate approved change, not here. Professional/code sign-off is a separate later step.*
