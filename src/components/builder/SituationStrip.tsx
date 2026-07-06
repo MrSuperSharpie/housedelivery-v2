@@ -40,7 +40,7 @@ export function SituationStrip({ metrics, onSelect }: SituationStripProps) {
             key={metric.key}
             type="button"
             onClick={() => onSelect(metric.targetId)}
-            className={`group relative overflow-hidden rounded-2xl border bg-panel p-4 text-left shadow-card transition-all duration-200 hover:-translate-y-0.5 ${tone.hover} ${lit ? 'border-rim' : 'border-rim/60'}`}
+            className={`border-gold-gradient group relative overflow-hidden rounded-2xl border bg-panel p-4 text-left shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lift focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C6A15B]/55 focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${tone.hover} ${lit ? 'border-rim' : 'border-rim/60'}`}
           >
             {/* Subtle corner wash — stronger when the metric is live */}
             <div
@@ -48,7 +48,7 @@ export function SituationStrip({ metrics, onSelect }: SituationStripProps) {
             />
             <div className="relative">
               <div className="mb-2.5 flex items-center gap-1.5">
-                <span className={`h-1.5 w-1.5 rounded-full ${lit ? tone.dot : 'bg-rim'}`} />
+                <span className={`h-1.5 w-1.5 rounded-full shadow-[0_0_12px_rgba(198,161,91,0.16)] ${lit ? tone.dot : 'bg-rim'}`} />
                 <span className="text-[10px] font-black uppercase tracking-[0.14em] text-subtle">
                   {metric.label}
                 </span>

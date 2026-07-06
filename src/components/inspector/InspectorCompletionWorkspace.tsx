@@ -925,10 +925,12 @@ const STAGE_BLOCKER_HELPER = 'Review these conditions before marking this sectio
 function RequiredEvidenceActionPanel({
   item,
   blocked,
+  dependencyBlocked,
   onAttachRequiredEvidence,
 }: {
   item: WorkspaceItem
   blocked: boolean
+  dependencyBlocked: boolean
   onAttachRequiredEvidence: () => void
 }) {
   const guidanceItems = item.required_evidence.length > 0
@@ -947,9 +949,9 @@ function RequiredEvidenceActionPanel({
             <ShieldCheck className="h-5 w-5" />
           </span>
           <div className="min-w-0">
-            <div className="text-sm font-black text-[color:var(--color-ink)]">Evidence captured</div>
+            <div className="text-sm font-black text-[color:var(--color-ink)]">Item evidence attached</div>
             <div className="mt-0.5 text-sm leading-6 text-[color:var(--color-muted)]">
-              Supporting field evidence is attached. This section can be passed once all checklist items are complete.
+              Evidence is attached to {item.item_code} — {item.item_label}. Review that it substantively supports this checklist item before marking the section Passed.
             </div>
           </div>
         </div>
@@ -965,9 +967,10 @@ function RequiredEvidenceActionPanel({
       </div>
       <div className="flex flex-col gap-4 px-4 py-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0 flex-1">
-          <div className="text-base font-black text-[color:var(--color-ink)]">Evidence needed to support this inspection decision</div>
+          <div className="text-base font-black text-[color:var(--color-ink)]">Evidence needed for {item.item_code} — {item.item_label}</div>
           <div className="mt-1 text-sm leading-6 text-[color:var(--color-muted)]">
-            Attach supporting field evidence to enable Pass. Required evidence must support the inspection decision — not just satisfy a file check.
+            Attach evidence that specifically supports this checklist item. A generic or unrelated upload only shows a file was attached; it does not prove the item was inspected correctly.
+            {dependencyBlocked ? ' Pass remains locked by prerequisite order until the earlier container is Passed.' : ''}
           </div>
           <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-rim/70 bg-white/5 px-3 py-1 text-[11px] font-bold text-[color:var(--color-muted)]">
             <CircleDashed className="h-3.5 w-3.5 shrink-0 text-warning-amber" />
@@ -1062,10 +1065,10 @@ function getWorkspaceHoldResponseLabel(hold: ActiveJobHoldSummary): string {
 function getDependencyBlockerMessage(itemCode: string, blockedBy: string[]): string {
   if (blockedBy.length === 1) {
     const dependencyCode = blockedBy[0]
-    return `${itemCode} is locked because ${dependencyCode} must be passed first. Complete ${dependencyCode}, attach required evidence, and mark ${dependencyCode} Passed before returning here.`
+    return `${itemCode} is locked by prerequisite order, not this container's evidence. ${dependencyCode} must be passed first. Complete ${dependencyCode}, attach required evidence where needed, and mark ${dependencyCode} Passed before returning here.`
   }
 
-  return `${itemCode} is locked because ${blockedBy.join(', ')} must be passed first. Complete those prerequisite containers, attach required evidence where needed, and mark them Passed before returning here.`
+  return `${itemCode} is locked by prerequisite order, not this container's evidence. ${blockedBy.join(', ')} must be passed first. Complete those prerequisite containers, attach required evidence where needed, and mark them Passed before returning here.`
 }
 
 async function closeScopedAssignmentOnServer(input: {
@@ -4124,11 +4127,11 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       ...(runtimeChecklistEntries.length > 0
                         ? [{ label: `Complete checklist items (${runtimeChecklistDone}/${runtimeChecklistEntries.length})`, done: runtimeChecklistDone === runtimeChecklistEntries.length }]
                         : []),
-                      ...(passRequiresEvidence
-                        ? [{ label: 'Capture required evidence', done: !passBlockedForEvidence }]
-                        : []),
                       ...(blockedBy.length > 0
-                        ? [{ label: `Clear prerequisites: ${blockedBy.join(', ')}`, done: false }]
+                        ? [{ label: `Clear prerequisite order first: ${blockedBy.join(', ')}`, done: false }]
+                        : []),
+                      ...(passRequiresEvidence
+                        ? [{ label: `Attach item-specific evidence for ${item.item_code}`, done: !passBlockedForEvidence }]
                         : []),
                       { label: 'Select a section outcome', done: item.inspection_status !== 'Pending' },
                     ]
@@ -4187,8 +4190,8 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                 ) : (
                                   <span
                                     className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-rim/60 bg-raised text-success-green"
-                                    aria-label="Required evidence uploaded"
-                                    title="Required evidence uploaded"
+                                    aria-label="Item evidence attached"
+                                    title="Item evidence attached"
                                   >
                                     <CheckCircle2 className="h-3.5 w-3.5" />
                                   </span>
@@ -4225,6 +4228,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                           <RequiredEvidenceActionPanel
                             item={item}
                             blocked={passBlockedForEvidence}
+                            dependencyBlocked={passBlockedForDependency}
                             onAttachRequiredEvidence={() => focusRequiredEvidenceUpload(item.item_code)}
                           />
                         )}
@@ -4433,7 +4437,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       <div className="mt-3 grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-white/5 p-2 sm:grid-cols-4">
                         <StatusPill
                           label="Passed"
-                          sublabel={passBlocked ? (passBlockedForEvidence ? 'Needs required evidence' : 'Blocked by prerequisite') : 'Verified Clear'}
+                          sublabel={passBlocked ? (passBlockedForDependency ? 'Blocked by prerequisite' : 'Needs item evidence') : 'Verified Clear'}
                           value="Passed"
                           active={item.inspection_status === 'Passed'}
                           disabled={passBlocked}
@@ -4687,11 +4691,13 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                 : ''
                             }`}
                           >
-                            <div className="flex flex-wrap items-center justify-between gap-3">
-                              <div>
-                                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Attached Evidence</div>
-                                <div className="mt-1 text-xs text-zinc-400">Container-level uploads remain available when you need broader context.</div>
-                              </div>
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Attached Evidence for {item.item_code}</div>
+                                <div className="mt-1 text-xs text-zinc-400">
+                                  Attach only photos, video, notes, or documents that support {item.item_label}. Attachment confirms a file exists, not that it is substantively correct.
+                                </div>
+                            </div>
                               <div className="flex flex-wrap items-center gap-2">
                                 <FieldMediaUploader
                                   expectedType="camera"
@@ -4726,7 +4732,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                             <div className="mt-4 space-y-2">
                               {item.documents.length === 0 ? (
                                 <div className="rounded-2xl border border-dashed border-white/10 px-4 py-5 text-center text-xs text-zinc-500">
-                                  No evidence captured for this container yet.
+                                  No item-specific evidence attached for {item.item_code} yet.
                                 </div>
                               ) : (
                                 item.documents.map(doc => (
@@ -4789,8 +4795,8 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                               ) : (
                                 <span
                                   className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-rim/60 bg-raised text-success-green"
-                                  aria-label="Required evidence uploaded"
-                                  title="Required evidence uploaded"
+                                  aria-label="Item evidence attached"
+                                  title="Item evidence attached"
                                 >
                                   <CheckCircle2 className="h-3.5 w-3.5" />
                                 </span>
@@ -4843,7 +4849,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                     <div className="mt-3 grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-white/5 p-2 sm:grid-cols-4">
                       <StatusPill
                         label="Passed"
-                        sublabel={passBlocked ? (passBlockedForEvidence ? 'Needs required evidence' : 'Blocked by prerequisite') : 'Verified Clear'}
+                        sublabel={passBlocked ? (passBlockedForDependency ? 'Blocked by prerequisite' : 'Needs item evidence') : 'Verified Clear'}
                         value="Passed"
                         active={item.inspection_status === 'Passed'}
                         disabled={passBlocked}
@@ -4906,6 +4912,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       <RequiredEvidenceActionPanel
                         item={item}
                         blocked={passBlockedForEvidence}
+                        dependencyBlocked={passBlockedForDependency}
                         onAttachRequiredEvidence={() => focusRequiredEvidenceUpload(item.item_code)}
                       />
                     )}
@@ -5120,9 +5127,9 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         >
                           <div className="flex flex-wrap items-center justify-between gap-3">
                             <div>
-                              <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Attached Evidence</div>
+                              <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Attached Evidence for {item.item_code}</div>
                               <div className="mt-1 text-xs text-zinc-400">
-                                {evidenceSummary}
+                                Attach only photos, video, notes, or documents that support {item.item_label}. Attachment confirms a file exists, not that it is substantively correct.
                               </div>
                             </div>
                             <div className="flex flex-wrap items-center gap-2">
@@ -5162,8 +5169,8 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                 {item.evidence_mode === 'verify_existing'
                                   ? 'No project documents are attached to this container yet. Upload is optional unless you need to document a discrepancy.'
                                   : item.document_upload_required
-                                    ? 'No documents uploaded yet.'
-                                    : 'No supporting documents attached.'}
+                                    ? `No item-specific evidence attached for ${item.item_code} yet.`
+                                    : `No supporting documents attached for ${item.item_code}.`}
                               </div>
                             ) : (
                               item.documents.map(doc => (

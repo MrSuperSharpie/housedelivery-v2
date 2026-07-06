@@ -496,12 +496,12 @@ test('required-evidence containers show a persistent evidence-required panel wit
   const source = read('components/inspector/InspectorCompletionWorkspace.tsx')
   // Blocked (evidence missing) state
   assert.ok(
-    source.includes('Evidence needed to support this inspection decision'),
-    'evidence panel must explain that evidence is needed to support the inspection decision when missing'
+    source.includes('Evidence needed for {item.item_code}'),
+    'evidence panel must name the exact checklist item when evidence is missing'
   )
   assert.ok(
-    source.includes('Attach supporting field evidence to enable Pass'),
-    'evidence panel must tell inspectors to attach supporting field evidence to enable Pass'
+    source.includes('Attach evidence that specifically supports this checklist item.'),
+    'evidence panel must tell inspectors to attach item-specific supporting evidence'
   )
   assert.ok(
     source.includes('Attach evidence'),
@@ -509,13 +509,46 @@ test('required-evidence containers show a persistent evidence-required panel wit
   )
   // Satisfied (evidence captured) state
   assert.ok(
-    source.includes('Evidence captured') &&
-      source.includes('Supporting field evidence is attached. This section can be passed once all checklist items are complete.'),
-    'evidence panel must render a satisfied state once evidence is attached'
+    source.includes('Item evidence attached') &&
+      source.includes('Evidence is attached to {item.item_code}') &&
+      source.includes('Review that it substantively supports this checklist item before marking the section Passed.'),
+    'evidence panel must render a satisfied state without implying the evidence is substantively correct'
   )
   assert.ok(
     source.includes('blocked={passBlockedForEvidence}'),
     'evidence panel must be gated on shared passBlockedForEvidence, not hardcoded to a specific stage'
+  )
+})
+
+test('attached evidence copy is item-specific and does not imply substantive validation', () => {
+  const source = read('components/inspector/InspectorCompletionWorkspace.tsx')
+  assert.ok(
+    source.includes('Attached Evidence for {item.item_code}'),
+    'attached evidence rail must name the checklist item code'
+  )
+  assert.ok(
+    source.includes('Attachment confirms a file exists, not that it is substantively correct.'),
+    'attached evidence rail must avoid implying that an upload validates the item'
+  )
+  assert.ok(
+    source.includes('No item-specific evidence attached for {item.item_code} yet.'),
+    'empty evidence state must use item-specific language'
+  )
+})
+
+test('prerequisite-blocked pass state is explicit that evidence is not the current blocker', () => {
+  const source = read('components/inspector/InspectorCompletionWorkspace.tsx')
+  assert.ok(
+    source.includes("locked by prerequisite order, not this container's evidence"),
+    'dependency blocker message must tell inspectors prerequisite order is the blocker'
+  )
+  assert.ok(
+    source.includes("passBlockedForDependency ? 'Blocked by prerequisite' : 'Needs item evidence'"),
+    'Pass pill sublabel must prioritize prerequisite blockers over missing evidence'
+  )
+  assert.ok(
+    source.includes('Clear prerequisite order first:'),
+    'requirements summary must list unresolved prerequisites before evidence work'
   )
 })
 
@@ -731,8 +764,9 @@ test('S14-05 dependency blocker points inspectors back to S14-04', () => {
     'S14-05 must still depend on S14-04'
   )
   assert.ok(
-    workspace.includes('is locked because ${dependencyCode} must be passed first. Complete ${dependencyCode}, attach required evidence, and mark ${dependencyCode} Passed before returning here.'),
-    'single-dependency message must clearly tell inspectors to complete and pass the prerequisite container'
+    workspace.includes("is locked by prerequisite order, not this container's evidence. ${dependencyCode} must be passed first.") &&
+      workspace.includes('Complete ${dependencyCode}, attach required evidence where needed, and mark ${dependencyCode} Passed before returning here.'),
+    'single-dependency message must clearly tell inspectors prerequisite order is the blocker and point them back to the prerequisite container'
   )
 })
 
