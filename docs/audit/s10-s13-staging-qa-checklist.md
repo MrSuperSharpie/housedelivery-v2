@@ -160,11 +160,18 @@ project. Goal: **every stage title matches the checklist content shown beneath i
    `local-s10-s13-validation-runbook.md` → "Local validation results". (A pre-existing, unrelated local
    chain error at `20260501010000_builder_documents.sql` — `profiles.id text` vs `user_id uuid` FK — was
    worked around and does not affect S10–S13.)
-2. **Complete the §4 manual UI QA** with a Vancouver and a non-Vancouver project.
-3. **Human inspector review** of S10–S13 titles, item wording, and the VBBL Step Code overlay.
-4. **Hosted read-only preflight** before any hosted apply (confirm S10–S13 already permit-centric +
-   current active-template state — see the runbook's "Hosted read-only preflight").
-5. On approval, apply to hosted (separate approved step) → then merge.
+2. ✅ **DONE — hosted read-only verification (2026-07-05):** S10–S13 hosted **data is already correct**
+   (active v2 = permit-centric titles; v1 preserved+inactive; VBBL S12 Step Code item present; content
+   spot-check passed). **But** the hosted migration ledger (`schema_migrations`) has **no rows** for
+   `20260605000000` / `20260705000000` (ledger only through 202604) → data corrected out-of-band; ledger
+   drifted from Git history.
+3. **Resolve hosted migration-ledger drift** before merge/promotion — see
+   `hosted-migration-ledger-reconciliation-decision.md` (approvals required; do **not** `db push`,
+   `migration repair`, or re-apply; must not change already-correct data).
+4. **Complete the §4 manual UI QA** with a Vancouver and a non-Vancouver project.
+5. **Human inspector review** of S10–S13 titles, item wording, and the VBBL Step Code overlay.
+6. On all approvals, apply to hosted only if the ledger decision requires it (data is already correct) →
+   then merge.
 
 **Not blocking / out of scope this sprint:** full 15-stage reconciliation, typed evidence schema,
 governed N/A, richer Hold taxonomy (tracked in `canonical-template-reconciliation-plan.md`).

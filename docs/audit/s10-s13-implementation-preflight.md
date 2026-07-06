@@ -211,11 +211,24 @@ No evidence code was modified.
 - **Validators/tests green:** `validate-stage-alignment.mjs` → **0 hard mismatches, exit 0**;
   `stageAlignment.test.ts` → **5/5**.
 - **Live-data query needed:** No — counts confirmed all-zero previously; blocker cleared.
+- **Hosted read-only verification (2026-07-05): data already correct, but ledger drifted.**
+  A hosted **read-only** check found the S10–S13 hosted **data is already in the corrected state**:
+  active `version = 2` = Electrical Permit and Scope / Gas Permit and Mechanical / HVAC Scope /
+  Insulation and Energy Compliance / Interior Completion; `version = 1` rows preserved + inactive;
+  VBBL S12 includes "Vancouver Mandatory Minimum Step Code Tier"; content spot-check passed.
+  **However**, `supabase_migrations.schema_migrations` returned **no rows** for `20260605000000` or
+  `20260705000000`, and the hosted ledger shows entries only through the **202604** series. So the
+  hosted **data appears corrected out-of-band while the migration ledger is NOT aligned with the Git
+  migration history.** This is a governance issue tracked separately in
+  **`docs/audit/hosted-migration-ledger-reconciliation-decision.md`**.
+- **Governance directives (in force):** do **not** re-apply the S10–S13 migration; do **not**
+  `supabase db push`; do **not** run `supabase migration repair` yet. Ledger reconciliation requires a
+  separate decision note + approvals (see the linked doc).
 - **Before merge (remaining):**
-  1. **Hosted read-only preflight** — before applying to hosted, confirm the prerequisite stage-label
-     state exists in hosted (S10–S13 already permit-centric) and current active-template state. See the
-     read-only query in `local-s10-s13-validation-runbook.md` → "Hosted read-only preflight".
-  2. Apply the migration to hosted only as a **separate, explicitly-approved** step (not in this sprint).
+  1. ✅ **DONE — hosted read-only verification** (above): S10–S13 hosted data confirmed correct.
+  2. **Resolve the hosted migration-ledger drift** via the decision note
+     (`hosted-migration-ledger-reconciliation-decision.md`) — approvals + safe option selected — **before**
+     merge/production promotion. Do not change already-correct data.
   3. **Human inspector review** of the S10–S13 content (titles, item wording, VBBL Step Code overlay).
   4. Confirm `inspector/stages` + `JobDetailModal` render S10–S13 content matching their titles, and
      Vancouver→`vbbl_2025` / non-Vancouver→`bcbc_2024`.
