@@ -76,9 +76,15 @@ Reconcile the entire 202605→202607 gap in one reviewed batch after inventoryin
 
 ## 4. Required pre-work before ANY option (read-only)
 
+> **Required evidence packet:** the gap inventory + per-migration read-only verification checks live in
+> **`docs/audit/hosted-migration-gap-inventory.md`**. That packet must be completed (every version's
+> effect confirmed present/absent via its read-only SQL) **before** any ledger-repair option is chosen or
+> executed. It already flags two effect-verified migrations, the `builder_documents` potential
+> effect-missing risk, and the two payments-domain migrations that need domain-owner sign-off.
+
 1. **Inventory the gap:** list every Git migration with version > the last ledgered version (≈ end of
    202604) through `20260705000000`, and classify each as data-changing vs schema-changing and
-   idempotent vs not.
+   idempotent vs not. → **done in `hosted-migration-gap-inventory.md` §2 (10 migrations, May–Jul 2026).**
 2. **Per-migration effect verification (read-only):** for each gap migration, confirm its effect is
    present in hosted (tables/columns/constraints/seed rows/policies as applicable). Only migrations whose
    effect is confirmed present may be marked "applied".
