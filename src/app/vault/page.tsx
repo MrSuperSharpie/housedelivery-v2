@@ -21,12 +21,12 @@ function getNavbarRole(role?: string) {
 
 function getResultVariant(result: VaultRecord['result']) {
   if (result === 'pass') return 'statusSuccess'
-  return 'statusFail' // 'fail' and 'stopped' (builder-declined hold) both display as Fail per platform standard
+  return 'statusFail'
 }
 
 function getResultLabel(result: VaultRecord['result']) {
   if (result === 'pass') return 'Pass'
-  return 'Fail' // 'stopped' = builder declined a hold; per New Standard this is a Fail outcome
+  return 'Corrections Required'
 }
 
 // ─── Authority Bridge Panel ───────────────────────────────────────────────────

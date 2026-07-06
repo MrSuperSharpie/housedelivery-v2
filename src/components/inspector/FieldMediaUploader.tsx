@@ -108,7 +108,7 @@ function buttonCopy(expectedType: FieldMediaExpectedType): {
     case 'camera':
       return {
         title: 'Camera Capture',
-        subtitle: 'Launch the rear camera for a field photo.',
+        subtitle: 'Capture a field photo for the specific checklist item, including deficiencies or completed corrections.',
         idleLabel: 'Open Camera',
         loadingLabel: 'Saving Photo…',
       }
@@ -136,7 +136,7 @@ function buttonCopy(expectedType: FieldMediaExpectedType): {
     case 'document':
       return {
         title: 'Document Upload',
-        subtitle: 'Attach an existing file from the device.',
+        subtitle: 'Attach permit proof, inspection card/status, manufacturer documents, field notes, test results, or correction evidence.',
         idleLabel: 'Choose File',
         loadingLabel: 'Saving File…',
       }

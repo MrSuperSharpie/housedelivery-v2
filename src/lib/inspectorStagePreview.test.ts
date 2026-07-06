@@ -547,7 +547,7 @@ test('evidence requirement display is based on shared passRequiresEvidence logic
   const source = read('components/inspector/InspectorCompletionWorkspace.tsx')
   // Evidence guidance must be present both as the panel chip and the shared lock message.
   const chipIdx = source.indexOf('Evidence required before Pass')
-  const lockMessageIdx = source.indexOf('Evidence required before Pass. Attach at least one evidence item')
+  const lockMessageIdx = source.indexOf('Evidence required before Pass. Attach at least one item-bound evidence record')
   assert.ok(
     chipIdx !== -1 && lockMessageIdx !== -1,
     'both the evidence panel chip and the shared evidence lock message must be present'
@@ -845,8 +845,8 @@ test('final occupancy UI shows a pre-seal evidence location resolution panel', (
     'final occupancy area must show an inline pre-seal evidence location panel',
   )
   assert.ok(
-    workspace.includes('Final occupancy is blocked until each evidence item has GPS coordinates or a manual location note.'),
-    'panel must explain why final occupancy is blocked',
+    workspace.includes('AHJ occupancy evidence recording is blocked until each evidence item has GPS coordinates or a manual location note.'),
+    'panel must explain why AHJ occupancy evidence recording is blocked',
   )
   assert.ok(
     workspace.includes('Related checklist item:'),
