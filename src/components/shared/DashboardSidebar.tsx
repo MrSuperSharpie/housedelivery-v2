@@ -86,10 +86,10 @@ export function DashboardSidebar({ brandEyebrow, brandTitle, groups, onNavigate 
       item.kind === 'section' && item.available !== false && item.targetId === activeSection)?.id ?? null
 
   const itemClass = (active: boolean, muted = false) =>
-    `group relative flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C6A15B]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${
+    `group relative flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-sm font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C6A15B]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${
       active
-        ? 'border-[#C6A15B]/30 bg-[#C6A15B]/10 text-[#C6A15B]'
-        : `border-transparent text-muted hover:bg-raised hover:text-ink${muted ? ' opacity-55 hover:opacity-100' : ''}`
+        ? 'border-[#C6A15B]/35 bg-[linear-gradient(135deg,rgba(198,161,91,0.16),rgba(198,161,91,0.06))] text-[#C6A15B] shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_8px_22px_rgba(198,161,91,0.08)]'
+        : `border-transparent text-muted hover:border-rim/70 hover:bg-raised hover:text-ink${muted ? ' opacity-55 hover:opacity-100' : ''}`
     }`
 
   const renderInner = (item: DashboardNavItem, active: boolean) => {
@@ -106,7 +106,15 @@ export function DashboardSidebar({ brandEyebrow, brandTitle, groups, onNavigate 
             active ? 'bg-[#C6A15B]' : 'bg-transparent'
           }`}
         />
-        {Icon && <Icon className={`h-4 w-4 shrink-0 ${brandIcon ? 'text-[#C6A15B]' : 'text-subtle group-hover:text-ink'}`} />}
+        {Icon && (
+          <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border transition-all ${
+            brandIcon
+              ? 'border-[#C6A15B]/30 bg-[#C6A15B]/10 text-[#C6A15B] shadow-[inset_0_1px_0_rgba(255,255,255,0.10)]'
+              : 'border-rim/50 bg-raised text-subtle group-hover:border-[#C6A15B]/25 group-hover:bg-[#C6A15B]/[0.06] group-hover:text-ink'
+          }`}>
+            <Icon className="h-4 w-4" />
+          </span>
+        )}
         <span className="min-w-0 flex-1 truncate text-left">{item.label}</span>
         {showBadge && (
           <span

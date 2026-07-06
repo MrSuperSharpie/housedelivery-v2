@@ -46,7 +46,7 @@ export function RoleDashboardShell({ brandEyebrow, brandTitle, navGroups, topbar
       <div className="mx-auto flex w-full max-w-[1680px] lg:px-4">
         {/* Persistent desktop sidebar */}
         <aside className="hidden lg:block lg:w-[17rem] lg:shrink-0 lg:px-4 lg:py-5" aria-label={`${brandEyebrow} navigation`}>
-          <div className="sticky top-[5rem] h-[calc(100vh-6rem)] overflow-hidden rounded-3xl border border-rim/70 bg-panel shadow-sm">
+          <div className="sticky top-[5rem] h-[calc(100vh-6rem)] overflow-hidden rounded-3xl border border-rim/70 bg-panel shadow-card ring-1 ring-[#C6A15B]/10">
             <DashboardSidebar brandEyebrow={brandEyebrow} brandTitle={brandTitle} groups={navGroups} />
           </div>
         </aside>

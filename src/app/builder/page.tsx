@@ -2545,7 +2545,7 @@ export default function BuilderDashboard() {
         onClose={closeManageRequest}
         title="Manage Request"
         size="lg"
-        dark
+        themed
       >
         {managedLiveJob && (
           <div className="space-y-5">
@@ -2553,19 +2553,19 @@ export default function BuilderDashboard() {
               <div className={`text-[11px] font-semibold uppercase tracking-[0.12em] ${managedLiveJob.status === 'pending_validation' ? 'text-warning-amber' : 'text-flame'}`}>
                 {managedLiveJob.status === 'pending_validation' ? 'Awaiting validation — not posted to Live Board' : 'Live request awaiting inspector claim'}
               </div>
-              <div className="mt-2 text-lg font-bold text-white">{managedLiveJob.projectName}</div>
-              <div className="mt-1 text-sm font-medium text-slate-300">
+              <div className="mt-2 text-lg font-bold text-ink">{managedLiveJob.projectName}</div>
+              <div className="mt-1 text-sm font-medium text-muted">
                 {managedLiveJob.address}{managedLiveJob.city ? `, ${managedLiveJob.city}` : ''}
               </div>
-              <div className="mt-2 text-sm font-bold text-slate-200">
+              <div className="mt-2 text-sm font-bold text-ink">
                 {BUILDER_STAGE_DEFINITIONS.find(stage => stage.number === managedLiveJob.stage)?.label ?? `Stage ${managedLiveJob.stage} — ${managedLiveJob.stageName}`}
               </div>
             </div>
 
             {managedLiveJob.status !== 'pending_validation' && (
             <div>
-              <div className="mb-2 text-sm font-black text-white">Available time windows</div>
-              <div className="[&_.bg-white]:!bg-raised [&_.bg-gray-50]:!bg-panel [&_.bg-gray-100]:!bg-surface [&_.border-gray-200]:!border-rim [&_.border-gray-300]:!border-rim [&_.text-gray-900]:!text-white [&_.text-gray-600]:!text-slate-300 [&_.text-gray-500]:!text-slate-400 [&_.text-gray-400]:!text-slate-500 [&_.text-gray-300]:!text-slate-500 [&_.bg-orange-50]:!bg-flame/10 [&_.border-orange-100]:!border-flame/30">
+              <div className="mb-2 text-sm font-black text-ink">Available time windows</div>
+              <div className="[&_.bg-white]:!bg-raised [&_.bg-gray-50]:!bg-panel [&_.bg-gray-100]:!bg-surface [&_.border-gray-200]:!border-rim [&_.border-gray-300]:!border-rim [&_.text-gray-900]:!text-ink [&_.text-gray-600]:!text-muted [&_.text-gray-500]:!text-muted [&_.text-gray-400]:!text-subtle [&_.text-gray-300]:!text-subtle [&_.bg-orange-50]:!bg-flame/10 [&_.border-orange-100]:!border-flame/30">
                 <SchedulingPicker
                   slots={managedSlots}
                   onChange={setManagedSlots}
@@ -2573,20 +2573,20 @@ export default function BuilderDashboard() {
                   tier={managedLiveJob.dispatchTier}
                 />
               </div>
-              <p className="mt-2 text-xs font-medium text-slate-300">
+              <p className="mt-2 text-xs font-medium text-muted">
                 Updating these windows keeps the same Live Job Board request. It does not create a new project or duplicate stage request.
               </p>
             </div>
             )}
 
             {manageRequestMessage && (
-              <div className="rounded-2xl border border-rim/70 border-l-2 border-l-success-green bg-raised px-4 py-3 text-sm font-semibold text-white">
+              <div className="rounded-2xl border border-rim/70 border-l-2 border-l-success-green bg-raised px-4 py-3 text-sm font-semibold text-ink">
                 {manageRequestMessage}
               </div>
             )}
 
             {manageRequestError && (
-              <div className="rounded-2xl border border-rim/70 border-l-2 border-l-fail-red bg-raised px-4 py-3 text-sm font-semibold text-white">
+              <div className="rounded-2xl border border-rim/70 border-l-2 border-l-fail-red bg-raised px-4 py-3 text-sm font-semibold text-ink">
                 {manageRequestError}
               </div>
             )}
@@ -2594,7 +2594,7 @@ export default function BuilderDashboard() {
             {cancelConfirming ? (
               <div className="rounded-2xl border border-rim/70 border-l-2 border-l-fail-red bg-raised px-4 py-3 text-sm">
                 <div className="font-semibold text-fail-red">Confirm Cancellation</div>
-                <div className="mt-1 text-xs font-medium text-slate-300">
+                <div className="mt-1 text-xs font-medium text-muted">
                   {managedLiveJob.status === 'pending_validation'
                     ? 'This cannot be undone. The blocked request will be removed. You can submit a new request for this stage when ready.'
                     : 'This cannot be undone. The request will be removed from the Live Job Board. You will need to submit a new request from this project when ready.'}
@@ -2612,7 +2612,7 @@ export default function BuilderDashboard() {
                     type="button"
                     disabled={manageRequestCancelling}
                     onClick={() => setCancelConfirming(false)}
-                    className="rounded-xl border border-slate-600 px-4 py-2 text-xs font-bold text-slate-300 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                    className="rounded-xl border border-rim bg-panel px-4 py-2 text-xs font-bold text-muted transition-colors hover:bg-raised hover:text-ink disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     Go Back
                   </button>
@@ -2621,7 +2621,7 @@ export default function BuilderDashboard() {
             ) : (
               <div className="rounded-2xl border border-rim/70 border-l-2 border-l-warning-amber bg-raised px-4 py-3 text-sm">
                 <div className="font-semibold text-warning-amber">Cancel Request</div>
-                <div className="mt-1 text-xs font-medium text-slate-300">
+                <div className="mt-1 text-xs font-medium text-muted">
                   {managedLiveJob.status === 'pending_validation'
                     ? 'This request has not been validated and is not visible on the Live Job Board. Cancelling it removes the block and allows you to resubmit for this stage.'
                     : 'Cancelling removes this unclaimed request from the Live Job Board. The same stage can be requested again from this existing project.'}
@@ -2645,7 +2645,7 @@ export default function BuilderDashboard() {
                   type="button"
                   disabled={manageRequestSaving || manageRequestCancelling}
                   onClick={closeManageRequest}
-                  className="rounded-xl border border-slate-600 bg-slate-700/40 px-4 py-2.5 text-sm font-bold text-slate-300 transition-colors hover:bg-slate-700/70 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-xl border border-rim bg-panel px-4 py-2.5 text-sm font-bold text-muted transition-colors hover:bg-raised hover:text-ink disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   Close
                 </button>

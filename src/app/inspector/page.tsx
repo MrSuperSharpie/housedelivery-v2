@@ -1219,13 +1219,13 @@ export default function InspectorDashboard() {
           {workdayMetrics.map(metric => {
             const cardClass = `relative overflow-hidden rounded-2xl border border-rim/60 bg-panel p-4 shadow-sm${
               metric.targetId
-                ? ' cursor-pointer text-left transition-all hover:-translate-y-0.5 hover:border-[#C6A15B]/40 focus:outline-none focus-visible:border-[#C6A15B]/40 focus-visible:ring-2 focus-visible:ring-[#C6A15B]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface'
+                ? ' border-gold-gradient cursor-pointer text-left transition-all hover:-translate-y-0.5 hover:border-[#C6A15B]/40 hover:shadow-lift focus:outline-none focus-visible:border-[#C6A15B]/40 focus-visible:ring-2 focus-visible:ring-[#C6A15B]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface'
                 : ''
             }`
             const cardBody = (
               <>
                 <div className="mb-2.5 flex items-center gap-1.5">
-                  <span className={`h-1.5 w-1.5 rounded-full ${metric.dot}`} />
+                  <span className={`h-1.5 w-1.5 rounded-full shadow-[0_0_12px_rgba(198,161,91,0.16)] ${metric.dot}`} />
                   <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-subtle">{metric.label}</span>
                 </div>
                 <div className={`${metric.size} font-black leading-none tracking-tight ${metric.valueClass}`}>
