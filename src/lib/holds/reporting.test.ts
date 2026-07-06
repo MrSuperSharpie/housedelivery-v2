@@ -16,6 +16,7 @@ const SAMPLE_HOLD_DETAIL: HoldDetail = {
     expiresAt: '2026-04-12T19:00:00.000Z',
     checklistItemIds: ['S11-01'],
     status: 'hold_resolved_pass',
+    holdPaymentStatus: 'unpaid',
     reason: 'Minor vent support deficiency.',
     deficiencyReason: 'Vent support needed at final run.',
     holdCategory: 'minor_deficiency',
