@@ -24,13 +24,16 @@ const migrations = join(process.cwd(), 'supabase', 'migrations')
 const mig = (f: string) => readFileSync(join(migrations, f), 'utf8')
 const src = (f: string) => readFileSync(join(process.cwd(), f), 'utf8')
 
-// Original slug (how templates were keyed) → stage_number.
+// Slug → stage_number (original + current permit-centric slugs; later migrations
+// override earlier per stage number in parseTemplateSubjects).
 const SLUG_TO_NUM: Record<string, number> = {
   site_survey_excavation: 1, foundation_formwork_rebar: 2, foundation_pour: 3,
   framing_lockup: 4, roof_deck_sheathing: 5, mechanical_rough_in: 6,
   fire_suppression_rough_in: 7, electrical_rough_in: 8, plumbing_rough_in: 9,
   building_envelope: 10, insulation_vapor_barrier: 11, drywall_interior_finish: 12,
   life_safety_systems: 13, final_site_grading: 14, final_occupancy_permit: 15,
+  electrical_permit_and_scope: 10, gas_mechanical_hvac_scope: 11,
+  insulation_energy_compliance: 12, interior_completion: 13,
 }
 
 function parseDbTitles(): Record<number, string> {
@@ -48,7 +51,13 @@ function parseDbTitles(): Record<number, string> {
 
 function parseTemplateSubjects(): Record<number, string> {
   const out: Record<number, string> = {}
-  for (const f of ['20260427030000_checklist_template_seeds.sql', '20260428010000_checklist_remaining_stages.sql']) {
+  // Parsed in order; later migration overrides earlier for the same stage, so the
+  // S10–S13 re-seed supersedes the original construction-model subjects.
+  for (const f of [
+    '20260427030000_checklist_template_seeds.sql',
+    '20260428010000_checklist_remaining_stages.sql',
+    '20260705000000_align_s10_s13_templates_permit_centric.sql',
+  ]) {
     for (const m of mig(f).matchAll(/\('([a-z_]+)',\s*'bcbc_2024',\s*'([^']+)'\)/g)) {
       const num = SLUG_TO_NUM[m[1]]
       if (num) out[num] = m[2].replace(/\s*[—-]\s*(BC Building Code 2024|British Columbia Building Code 2024).*/, '').trim()
@@ -76,9 +85,7 @@ function renamedStageNumbers(): Set<number> {
 const STOP = new Set(['and', 'the', 'of', 'for', 'permit', 'scope', 'systems'])
 const tokenize = (s: string) => new Set(s.toLowerCase().replace(/[^a-z ]/g, ' ').split(/\s+/).filter(w => w.length > 2 && !STOP.has(w)))
 const overlaps = (a: string, b: string) => { const B = tokenize(b); for (const w of tokenize(a)) if (B.has(w)) return true; return false }
-
-// The known, documented hard-mismatch set at the time of this audit sprint.
-const KNOWN_HARD = new Set([10, 11, 12, 13])
+const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
 
 test('parsers resolve all 15 stages from every source', () => {
   const db = parseDbTitles(), tm = parseTemplateSubjects(), rt = parseRuntimeNames()
@@ -89,16 +96,14 @@ test('parsers resolve all 15 stages from every source', () => {
   }
 })
 
-test('no NEW title/content hard-mismatch beyond the documented S10–S13 set', () => {
+test('no title/content hard-mismatch on any stage (S10–S13 alignment applied)', () => {
   const db = parseDbTitles(), tm = parseTemplateSubjects(), renamed = renamedStageNumbers()
-  const hard = new Set<number>()
-  for (const n of renamed) if (!overlaps(db[n], tm[n])) hard.add(n)
-  // Subset guard: tolerates the canonical migration reducing the set; fails if a
-  // new mismatch is introduced anywhere.
-  for (const n of hard) {
-    assert.ok(KNOWN_HARD.has(n), `NEW stage title/content mismatch introduced at S${n}: `
-      + `"${db[n]}" renders over "${tm[n]}" checklist content. Fix the migration or update the audit doc.`)
-  }
+  const hard: number[] = []
+  // Hard = a renamed stage whose title shares no significant word with its
+  // attached checklist subject. Post-alignment this set must be empty.
+  for (const n of renamed) if (!overlaps(db[n], tm[n])) hard.push(n)
+  assert.deepEqual(hard, [], `title/content hard-mismatch present at S${hard.join(', S')}. `
+    + `A stage renders a title over unrelated checklist content — fix the alignment migration.`)
 })
 
 test('renamed stage titles stay synchronised with the runtime (System C) model', () => {
@@ -119,14 +124,12 @@ test('resolver maps Vancouver to vbbl_2025 and non-Vancouver to bcbc_2024', () =
     'null-city default → bcbc_2024 not found in resolveActiveTemplate.ts')
 })
 
-// Intended post-migration state (Option A). Marked `todo` so it documents the
-// target without failing CI before the canonical S10–S13 migration lands. The
-// script docs/audit/validate-stage-alignment.mjs is the fail-before/pass-after
-// gate. When the migration lands, promote this to a real assertion (hard === 0)
-// and drop S10–S13 from KNOWN_HARD above.
-test('S10–S13 title/content hard-mismatch is eliminated after canonical migration', { todo: true }, () => {
-  const db = parseDbTitles(), tm = parseTemplateSubjects(), renamed = renamedStageNumbers()
-  const hard: number[] = []
-  for (const n of renamed) if (!overlaps(db[n], tm[n])) hard.push(n)
-  assert.deepEqual(hard, [], `expected 0 hard mismatches post-migration, found S${hard.join(', S')}`)
+// Specific proof of the S10–S13 alignment migration: each stage's active
+// template subject now equals its permit-centric DB stage title.
+test('S10–S13 active template subject equals the permit-centric stage title', () => {
+  const db = parseDbTitles(), tm = parseTemplateSubjects()
+  for (const n of [10, 11, 12, 13]) {
+    assert.equal(norm(tm[n]), norm(db[n]), `S${n} template subject ("${tm[n]}") does not match `
+      + `its stage title ("${db[n]}"). The S10–S13 alignment re-seed is missing or regressed.`)
+  }
 })

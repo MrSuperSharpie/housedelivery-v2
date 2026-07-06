@@ -2,8 +2,17 @@
 
 **Sprint:** implementation-preflight LOOP (Option A approved)
 **Branch:** `fix/s10-s13-template-alignment-option-a` (from `audit/template-source-of-truth-stabilization`)
-**Date:** 2026-07-05 · **Status:** ⛔ **STOPPED before migration** — read-only live-data count required.
+**Date:** 2026-07-05 · **Status:** ✅ **Live-data blocker cleared (all counts zero) — migration DRAFTED, not applied.**
 **No merge, no deploy, no hosted migration, no `supabase db push`. No restricted systems touched.**
+
+### Live-data results (queries A + B, run by product on the hosted DB)
+Global System B counts — `total_responses: 0`, `total_stage_statuses: 0`, `total_seals: 0`.
+Per-stage S10–S13 — all of `checklist_responses`, `permits_with_responses`, `sealed_rows`,
+`in_flight_unsealed_rows` = **0** for every stage. **Decision rule → "all zero" → the version-bump
+re-seed is clearly safe.** Blocker cleared; migration authored below.
+
+**Migration file:** `supabase/migrations/20260705000000_align_s10_s13_templates_permit_centric.sql`
+(draft — **not** applied to hosted Supabase).
 
 ---
 
@@ -41,10 +50,10 @@ except `is_active`.** So a version-bump protects the *resolver display* but **no
 in-flight permits. Full protection would require making the seal RPC version-aware (or effective-date /
 per-permit pinned) — a logic change **outside** the "S10–S13 templates only" scope.
 
-### 5. Is a read-only Supabase count required before migration approval? **YES.**
-Whether §3/§4 is a real problem depends on live row counts that cannot be read from code. Per the sprint
-rules I **stop here** and hand you the exact read-only queries below. No migration file is authored until
-the counts are known, because the safe migration *pattern* depends on the result.
+### 5. Is a read-only Supabase count required before migration approval? **YES → now satisfied.**
+Whether §3/§4 was a real problem depended on live row counts that cannot be read from code. The counts
+(above) came back **all zero**, so the version-bump re-seed is safe and the migration has been drafted.
+The queries used are retained below for the audit record.
 
 #### Read-only query A — is the System B seal path even populated?
 ```sql
@@ -110,10 +119,25 @@ no `inspection_stages` UUID or title change is required for the S10–S13 hotfix
 
 ---
 
-## LOOP 3 — Migration design (drafted, NOT authored as an applied file)
+## LOOP 3 — Migration (DRAFTED as a file; NOT applied)
 
-**No `.sql` migration file was created this sprint** — see LOOP 1 §5 stop. The safe pattern, ready to
-implement once the counts return all-zero (or after the seal path is made version-aware):
+**Migration file authored:** `supabase/migrations/20260705000000_align_s10_s13_templates_permit_centric.sql`.
+It is a draft for review — **not applied to hosted Supabase, no `supabase db push`.** Safe because the
+live counts are all zero (§1.5). What it does / does not do:
+
+**Changes (S10–S13 only, both jurisdictions):**
+- Inserts `version = 2`, `is_active = true` `stage_checklist_templates` for S10–S13 × {`bcbc_2024`,
+  `vbbl_2025`} with permit-centric titles, then deactivates the `version = 1` rows.
+- Inserts `stage_checklist_items` from the live System C S10–S13 containers (verbatim `purpose` →
+  `requirement_text`; governing code reference → `legal_reference`). Counts: S10 = 4, S11 = 4, S12 = 4
+  (BCBC) / 5 (VBBL, +Vancouver mandatory Step Code tier overlay), S13 = 5.
+- Fully idempotent (`ON CONFLICT DO UPDATE`); inline rollback note (reactivate v1 / deactivate v2).
+
+**Does NOT change:** `inspection_stages` (rows/titles/slugs/UUIDs — already permit-centric),
+`permit_checklist_responses` or any response/seal rows, S01–S09, S14–S15, the seal RPC, or System C.
+No `DELETE` — historical v1 rows preserved.
+
+### Safe pattern (as implemented)
 
 1. Author canonical S10–S13 content as a reviewed source derived from `inspectorCompletion.ts` (the four
    container sets above), BCBC base + VBBL overlays (promote each container's `isVbblOnly` reference /
@@ -134,20 +158,20 @@ the seal gate resolve the version pinned per permit/effective-date — a separat
 
 ## LOOP 4 — Tests and validators (implemented, safe)
 
-`src/lib/inspections/stageAlignment.test.ts` — **5 tests, 4 pass + 1 `todo`** (0 fail):
+`src/lib/inspections/stageAlignment.test.ts` — **5 tests, 5 pass, 0 fail, 0 todo** (parses the new
+migration as the active template state):
 1. parsers resolve all 15 stages from every source.
-2. no NEW hard mismatch beyond documented S10–S13 (subset guard — unchanged, not weakened).
+2. **no title/content hard-mismatch on any stage** (was the subset guard; now asserts the set is empty
+   post-alignment — strengthened, not weakened).
 3. renamed stage titles stay synced with System C runtime names.
-4. **new:** resolver maps Vancouver → `vbbl_2025`, non-Vancouver / null → `bcbc_2024` (source-derived).
-5. **new (`todo`):** S10–S13 hard-mismatch eliminated after the canonical migration — documents the
-   intended future state without failing CI (promote to a real assertion + drop S10–S13 from
-   `KNOWN_HARD` when the migration lands).
+4. resolver maps Vancouver → `vbbl_2025`, non-Vancouver / null → `bcbc_2024` (source-derived).
+5. **S10–S13 active template subject equals the permit-centric stage title** (specific proof of this
+   migration; replaces the earlier `todo` placeholder).
 
-`docs/audit/validate-stage-alignment.mjs` — unchanged, remains the **fail-before / pass-after** gate:
-exit 1 today (4 hard mismatches), will exit 0 once S10–S13 templates are re-seeded. Proves items #1–#3
-and #7 of the sprint's validation requirements. Jurisdiction resolution (#4–#5) is asserted in the test.
-No existing assertion was weakened; the known mismatch is not hidden (it is still asserted as known and
-still fails the script).
+`docs/audit/validate-stage-alignment.mjs` — the **fail-before / pass-after** gate. It now parses the new
+migration and reports **0 hard mismatches, exit 0** (was 4 / exit 1 before the migration existed).
+Proves items #1–#7 of the sprint's validation requirements. No existing assertion was weakened; the
+guard is stronger (any reintroduced mismatch fails both the script and test #2).
 
 ---
 
@@ -172,14 +196,22 @@ No evidence code was modified.
 
 ## Status & what remains before merge
 
-- **Migration:** ⛔ **not created** — blocked on read-only counts (queries A/B above) and, if non-zero,
-  on making the seal path version-aware.
-- **Live-data query still needed:** **Yes** — please run query A + B (staging first). Reply with results
-  and I will either (a) author the safe version-bump migration (all-zero) or (b) scope the seal-path
-  version-awareness change first.
-- **Before merge:** counts confirmed → migration authored + applied on a review env (not hosted prod) →
-  `todo` test promoted to real assertion → `validate-stage-alignment.mjs` exits 0 → human inspector
-  review of the S10–S13 content → then merge.
+- **Migration:** ✅ **drafted** (`20260705000000_align_s10_s13_templates_permit_centric.sql`) — **not
+  applied** to hosted Supabase.
+- **Validators/tests updated & green:**
+  `validate-stage-alignment.mjs` now parses the new migration and reports **0 hard mismatches, exit 0**
+  (was 4/exit 1); `stageAlignment.test.ts` is **5 tests / 5 pass / 0 todo** — the `todo` target was
+  promoted to a real assertion plus a specific "S10–S13 template subject equals stage title" proof, and
+  jurisdiction resolution is asserted. No existing assertion was weakened.
+- **Live-data query still needed:** **No** — counts confirmed all-zero; blocker cleared.
+- **Before merge (remaining):**
+  1. Apply the migration on a **review/staging** Supabase env (not hosted prod) and run the verification
+     query in §4 of the migration (expected counts 4/4/4·5/5).
+  2. **Human inspector review** of the S10–S13 content (titles, item wording, VBBL Step Code overlay).
+  3. Confirm the `inspector/stages` page + `JobDetailModal` scope preview render S10–S13 content that
+     matches their titles, and Vancouver→`vbbl_2025` / non-Vancouver→`bcbc_2024` still hold.
+  4. Then merge. (Full 15-stage reconciliation, typed evidence schema, governed N/A, and richer Hold
+     taxonomy remain future work per `canonical-template-reconciliation-plan.md`.)
 
 **No-touch (unchanged):** Stripe/payments/checkout/escrow/Connect/pricing, auth/session, Vault storage,
 Schedule C-B generation, job-claiming, `inspectorCompletion.ts` runtime logic, `admin/builders/page.tsx`.

@@ -20,13 +20,18 @@ const repo = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const mig = (f) => readFileSync(join(repo, 'supabase', 'migrations', f), 'utf8')
 const src = (f) => readFileSync(join(repo, f), 'utf8')
 
-// Original slug (how templates were keyed) → stage_number.
+// Slug → stage_number. Includes both the ORIGINAL slugs (how templates were
+// first keyed) and the CURRENT permit-centric slugs (S10–S13 rename +
+// 20260705000000 re-seed). Later migrations override earlier per stage number.
 const SLUG_TO_NUM = {
   site_survey_excavation: 1, foundation_formwork_rebar: 2, foundation_pour: 3,
   framing_lockup: 4, roof_deck_sheathing: 5, mechanical_rough_in: 6,
   fire_suppression_rough_in: 7, electrical_rough_in: 8, plumbing_rough_in: 9,
   building_envelope: 10, insulation_vapor_barrier: 11, drywall_interior_finish: 12,
   life_safety_systems: 13, final_site_grading: 14, final_occupancy_permit: 15,
+  // current permit-centric slugs (S10–S13 alignment migration)
+  electrical_permit_and_scope: 10, gas_mechanical_hvac_scope: 11,
+  insulation_energy_compliance: 12, interior_completion: 13,
 }
 
 // ── 1. DB stage titles ───────────────────────────────────────────────────────
@@ -46,9 +51,16 @@ const dbTitle = {}
   }
 }
 
-// ── 2. Attached template subjects (bcbc rows; strip " — BC Building Code 2024") ─
+// ── 2. Active template subjects (bcbc rows; strip " — BC Building Code 2024").
+//    Files are parsed in order; a later migration overrides an earlier one for
+//    the same stage, so the S10–S13 re-seed (20260705000000) supersedes the
+//    original construction-model subjects. Reflects the active served template.
 const tmplSubject = {}
-for (const f of ['20260427030000_checklist_template_seeds.sql', '20260428010000_checklist_remaining_stages.sql']) {
+for (const f of [
+  '20260427030000_checklist_template_seeds.sql',
+  '20260428010000_checklist_remaining_stages.sql',
+  '20260705000000_align_s10_s13_templates_permit_centric.sql',
+]) {
   const text = mig(f)
   for (const m of text.matchAll(/\('([a-z_]+)',\s*'bcbc_2024',\s*'([^']+)'\)/g)) {
     const num = SLUG_TO_NUM[m[1]]
@@ -80,6 +92,7 @@ const renamed = new Set()
 const STOP = new Set(['and', 'the', 'of', 'for', 'a', 'to', 'in', 'with', 'permit', 'scope', 'systems'])
 const tokens = (s) => new Set(s.toLowerCase().replace(/[^a-z ]/g, ' ').split(/\s+/).filter(w => w.length > 2 && !STOP.has(w)))
 const overlaps = (a, b) => { const A = tokens(a), B = tokens(b); for (const w of A) if (B.has(w)) return true; return false }
+const norm = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
 
 const rows = []
 let hard = 0
@@ -90,6 +103,7 @@ for (let n = 1; n <= 15; n++) {
   const dbRuntimeAgree = db === rt
   let status
   if (!renamed.has(n)) status = 'OK'
+  else if (norm(db) === norm(tm)) status = 'OK (title matches content)'
   else if (overlaps(db, tm)) status = 'SOFT (title changed, intent preserved)'
   else { status = 'HARD MISMATCH'; hard++ }
   rows.push({ n, db, tm, rt, dbRuntimeAgree, status })
