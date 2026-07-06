@@ -196,22 +196,33 @@ No evidence code was modified.
 
 ## Status & what remains before merge
 
-- **Migration:** ✅ **drafted** (`20260705000000_align_s10_s13_templates_permit_centric.sql`) — **not
-  applied** to hosted Supabase.
-- **Validators/tests updated & green:**
-  `validate-stage-alignment.mjs` now parses the new migration and reports **0 hard mismatches, exit 0**
-  (was 4/exit 1); `stageAlignment.test.ts` is **5 tests / 5 pass / 0 todo** — the `todo` target was
-  promoted to a real assertion plus a specific "S10–S13 template subject equals stage title" proof, and
-  jurisdiction resolution is asserted. No existing assertion was weakened.
-- **Live-data query still needed:** **No** — counts confirmed all-zero; blocker cleared.
+- **Migration:** ✅ **drafted** (`20260705000000_align_s10_s13_templates_permit_centric.sql`) and
+  ✅ **locally validated** (see `local-s10-s13-validation-runbook.md` → "Local validation results").
+  **Not applied to hosted Supabase.**
+- **Local validation (2026-07-05): PASSED.** Applied locally on top of the prerequisite stage-label
+  migration; counts confirmed **S10 4/4 · S11 4/4 · S12 4/5 · S13 5/5**, exactly one active v2 template
+  per stage+jurisdiction, v1 preserved+inactive, labels now match the stage discipline, and VBBL S12
+  carries the Vancouver-only Step Code item. Hosted Supabase was **not** modified.
+- **Unrelated local blocker (documented, not ours):** a full `supabase migration up --local` fails
+  earlier in the chain at `20260501010000_builder_documents.sql` — that migration references
+  `public.profiles(id)` via `user_id uuid`, but local `public.profiles.id` is `text`. This is a
+  pre-existing migration-chain type mismatch **unrelated to S10–S13**; it did not affect this validation
+  (the prerequisite label migration + the S10–S13 migration were applied directly).
+- **Validators/tests green:** `validate-stage-alignment.mjs` → **0 hard mismatches, exit 0**;
+  `stageAlignment.test.ts` → **5/5**.
+- **Live-data query needed:** No — counts confirmed all-zero previously; blocker cleared.
 - **Before merge (remaining):**
-  1. Apply the migration on a **review/staging** Supabase env (not hosted prod) and run the verification
-     query in §4 of the migration (expected counts 4/4/4·5/5).
-  2. **Human inspector review** of the S10–S13 content (titles, item wording, VBBL Step Code overlay).
-  3. Confirm the `inspector/stages` page + `JobDetailModal` scope preview render S10–S13 content that
-     matches their titles, and Vancouver→`vbbl_2025` / non-Vancouver→`bcbc_2024` still hold.
-  4. Then merge. (Full 15-stage reconciliation, typed evidence schema, governed N/A, and richer Hold
+  1. **Hosted read-only preflight** — before applying to hosted, confirm the prerequisite stage-label
+     state exists in hosted (S10–S13 already permit-centric) and current active-template state. See the
+     read-only query in `local-s10-s13-validation-runbook.md` → "Hosted read-only preflight".
+  2. Apply the migration to hosted only as a **separate, explicitly-approved** step (not in this sprint).
+  3. **Human inspector review** of the S10–S13 content (titles, item wording, VBBL Step Code overlay).
+  4. Confirm `inspector/stages` + `JobDetailModal` render S10–S13 content matching their titles, and
+     Vancouver→`vbbl_2025` / non-Vancouver→`bcbc_2024`.
+  5. Then merge. (Full 15-stage reconciliation, typed evidence schema, governed N/A, and richer Hold
      taxonomy remain future work per `canonical-template-reconciliation-plan.md`.)
+  6. *(Optional, separate)* fix the unrelated `20260501010000_builder_documents.sql` profiles FK type
+     mismatch so the full local migration chain runs clean.
 
 **No-touch (unchanged):** Stripe/payments/checkout/escrow/Connect/pricing, auth/session, Vault storage,
 Schedule C-B generation, job-claiming, `inspectorCompletion.ts` runtime logic, `admin/builders/page.tsx`.

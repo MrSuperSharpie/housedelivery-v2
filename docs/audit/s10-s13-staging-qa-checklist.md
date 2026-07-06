@@ -154,10 +154,17 @@ project. Goal: **every stage title matches the checklist content shown beneath i
 
 ## 5. Remaining blocker before merge
 
-1. **Apply on local/review Supabase** (not hosted prod) and run §3a–§3d — confirm expected results.
+1. ✅ **DONE — local apply + verification (2026-07-05):** applied on local Supabase; §3a–§3d confirmed
+   (S10 4/4 · S11 4/4 · S12 4/5 · S13 5/5; one active v2 per stage+jurisdiction; v1 preserved+inactive;
+   labels match the stage discipline; VBBL S12 Step Code overlay present). Details in
+   `local-s10-s13-validation-runbook.md` → "Local validation results". (A pre-existing, unrelated local
+   chain error at `20260501010000_builder_documents.sql` — `profiles.id text` vs `user_id uuid` FK — was
+   worked around and does not affect S10–S13.)
 2. **Complete the §4 manual UI QA** with a Vancouver and a non-Vancouver project.
 3. **Human inspector review** of S10–S13 titles, item wording, and the VBBL Step Code overlay.
-4. On approval, apply to hosted (separate approved step) → then merge.
+4. **Hosted read-only preflight** before any hosted apply (confirm S10–S13 already permit-centric +
+   current active-template state — see the runbook's "Hosted read-only preflight").
+5. On approval, apply to hosted (separate approved step) → then merge.
 
 **Not blocking / out of scope this sprint:** full 15-stage reconciliation, typed evidence schema,
 governed N/A, richer Hold taxonomy (tracked in `canonical-template-reconciliation-plan.md`).

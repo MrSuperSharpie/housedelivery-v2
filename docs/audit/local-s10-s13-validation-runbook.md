@@ -16,6 +16,49 @@
 
 ---
 
+## Local validation results — COMPLETED (2026-07-05)
+
+Local-only validation of the S10–S13 migration was run and **PASSED**. Hosted Supabase was **not**
+modified.
+
+**Blocker encountered (unrelated to S10–S13):** a full `supabase migration up --local` fails earlier in
+the chain at `20260501010000_builder_documents.sql`. Root cause: that migration references
+`public.profiles(id)` via a `user_id uuid` foreign key, but local `public.profiles.id` is `text` — a
+pre-existing local migration-chain type mismatch. It is **not** caused by and does **not** affect the
+S10–S13 migration.
+
+**Method used (worked around the unrelated blocker):**
+- Confirmed the required local tables existed: `inspection_stages`, `stage_checklist_templates`,
+  `stage_checklist_items`, `jurisdictions`.
+- Applied the prerequisite stage-label migration locally:
+  `20260605000000_correct_inspection_stage_labels_s10_s15.sql`.
+- Applied the S10–S13 migration locally:
+  `20260705000000_align_s10_s13_templates_permit_centric.sql`.
+
+**Verification results (local):**
+
+| Stage | jurisdiction | version | active | items |
+|---|---|---|---|---|
+| S10 Electrical Permit and Scope | bcbc_2024 | 2 | ✅ | 4 |
+| S10 Electrical Permit and Scope | vbbl_2025 | 2 | ✅ | 4 |
+| S11 Gas Permit and Mechanical / HVAC Scope | bcbc_2024 | 2 | ✅ | 4 |
+| S11 Gas Permit and Mechanical / HVAC Scope | vbbl_2025 | 2 | ✅ | 4 |
+| S12 Insulation and Energy Compliance | bcbc_2024 | 2 | ✅ | 4 |
+| S12 Insulation and Energy Compliance | vbbl_2025 | 2 | ✅ | 5 |
+| S13 Interior Completion | bcbc_2024 | 2 | ✅ | 5 |
+| S13 Interior Completion | vbbl_2025 | 2 | ✅ | 5 |
+
+- **Active-template integrity:** exactly **1** active template per S10–S13 stage + jurisdiction pair.
+- **Content spot-check:** active S10 labels match electrical permit/scope; S11 match gas/mechanical/HVAC;
+  S12 match insulation & energy compliance; S13 match interior completion. **No** active S10–S13 row
+  retains the old Building Envelope / Vapour Barrier / Drywall / Life Safety content. VBBL S12 includes
+  the Vancouver-only item **"Vancouver Mandatory Minimum Step Code Tier."**
+
+**Conclusion:** local-only validation passed; hosted Supabase untouched. Before any hosted migration, run
+the **Hosted read-only preflight** below to confirm the prerequisite stage-label state exists in hosted.
+
+---
+
 ## Step 0 — Copy-paste preflight guard (run this first; it only *checks*, it does not apply anything)
 
 ```bash
@@ -202,6 +245,42 @@ update public.stage_checklist_templates sct
  where sct.stage_id = s.id and s.stage_number in (10, 11, 12, 13);
 ```
 Or simply `supabase db reset --local` to rebuild the local DB from migrations (local data only).
+
+---
+
+## Hosted read-only preflight (run BEFORE any approved hosted apply — SELECT only, safe)
+
+Local validation passed, but the hosted DB must be confirmed to already carry the **prerequisite
+stage-label state** (permit-centric S10–S13 titles from `20260605000000`) before the alignment migration
+is applied there. These are **read-only SELECTs** — they change nothing.
+
+```sql
+-- 1. Prerequisite: S10–S13 stage rows must already be permit-centric.
+select stage_number, slug, title
+from public.inspection_stages
+where stage_number in (10, 11, 12, 13)
+order by stage_number;
+-- Expected:
+--   10 | electrical_permit_and_scope  | Electrical Permit and Scope
+--   11 | gas_mechanical_hvac_scope    | Gas Permit and Mechanical / HVAC Scope
+--   12 | insulation_energy_compliance | Insulation and Energy Compliance
+--   13 | interior_completion          | Interior Completion
+-- If titles/slugs are still the old construction model, apply
+-- 20260605000000_correct_inspection_stage_labels_s10_s15.sql on hosted FIRST.
+
+-- 2. Current active-template state (pre-apply baseline).
+select s.stage_number, j.slug, sct.version, sct.is_active, sct.title
+from public.stage_checklist_templates sct
+join public.inspection_stages s on s.id = sct.stage_id
+join public.jurisdictions     j on j.id = sct.jurisdiction_id
+where s.stage_number in (10, 11, 12, 13)
+order by s.stage_number, j.slug, sct.version;
+-- Expected pre-apply: only version = 1, is_active = true (old construction-model
+-- templates). After the approved hosted apply, version = 2 becomes active and
+-- version = 1 becomes inactive (see Step 3 expected results).
+```
+
+If either query does not match the pre-apply expectation, **stop** and reconcile before applying.
 
 ---
 
