@@ -121,7 +121,7 @@ test('Section Outcome helper frames Hold as a same-day correction, never Unable 
   const idx = source.indexOf('const SECTION_OUTCOME_HELPER =')
   assert.ok(idx !== -1, 'SECTION_OUTCOME_HELPER must exist')
   const line = source.slice(idx, source.indexOf('\n', idx))
-  assert.ok(line.includes('Use Hold for a minor correction'), 'Hold must be framed as a minor (same-day) correction')
+  assert.ok(line.includes('Use Hold only for a same-day correction'), 'Hold must be framed as a same-day correction')
   assert.ok(!source.includes('Unable to Verify'), 'no Unable to Verify outcome wording may appear')
 })
 

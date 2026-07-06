@@ -898,7 +898,7 @@ const FLOATING_PANEL_CLASS = 'shadow-[0_18px_34px_rgba(15,23,42,0.18)]'
 const TACTILE_MEDIA_BUTTON_CLASS = 'inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl border border-white/10 bg-white/8 px-0 text-[color:var(--color-muted)] transition-colors hover:bg-white/15 hover:text-[color:var(--color-ink)] disabled:cursor-not-allowed disabled:opacity-50'
 const EMPHASIZED_BODY_TEXT_CLASS = 'text-[17px] leading-7 text-zinc-300'
 const HOLD_ACTION_BUTTON_CLASS = 'min-h-12 rounded-2xl border border-warning-amber/30 bg-warning-amber/10 px-4 py-3 text-sm font-black text-warning-amber transition-colors hover:bg-warning-amber/15 disabled:cursor-not-allowed disabled:opacity-50'
-const REQUIRED_EVIDENCE_LOCK_MESSAGE = 'Evidence required before Pass. Attach at least one evidence item in the Attached Evidence section below. A regular note/comment does not satisfy this requirement unless it is captured as evidence.'
+const REQUIRED_EVIDENCE_LOCK_MESSAGE = 'Evidence required before Pass. Attach at least one item-bound evidence record in the Attached Evidence section below. A regular note/comment does not satisfy this requirement unless it is captured as evidence.'
 const REQUIRED_EVIDENCE_NOTICE_CLASS = 'rounded-2xl border border-rim/70 border-l-2 border-l-warning-amber bg-white/5 px-4 py-3 text-sm font-semibold leading-6 text-ink shadow-sm'
 const DEPENDENCY_BLOCKER_NOTICE_CLASS = 'rounded-2xl border border-rim/70 border-l-2 border-l-warning-amber bg-white/5 px-4 py-3 text-sm font-semibold leading-6 text-ink shadow-sm'
 
@@ -907,7 +907,7 @@ const FAIL_DOCUMENTATION_REQUIRED_MESSAGE = 'Add a deficiency note and evidence 
 
 // ── Section Outcome clarity copy (inspector field UI) ──────────────────────
 const SECTION_OUTCOME_HEADING = 'Section Outcome'
-const SECTION_OUTCOME_HELPER = 'These actions apply to this full inspection section. Use Corrections Required when you observed a deficiency. Use Hold for a minor correction that can be completed while you are still on site. Pending is the default draft state until you select an outcome.'
+const SECTION_OUTCOME_HELPER = 'These actions apply to this full inspection section. Use Corrections Required when you observed a deficiency. Use Hold only for a same-day correction while you are still on site. Use N/A only when the item is outside project scope or not required by the permit path. Pending is the default draft state until you select an outcome.'
 // Failed-section panel copy.
 const FAIL_SECTION_PANEL_MESSAGE = 'Use Corrections Required when the section cannot be cleared because the inspector observed a deficiency. Document the issue, attach evidence, and continue inspecting safe and accessible items.'
 const FAIL_SECTION_DOC_REQUIRED_MESSAGE = 'Add a deficiency note and evidence before submitting this failed section.'
@@ -915,6 +915,7 @@ const FAIL_SECTION_READY_MESSAGE = 'Ready to submit as Corrections Required.'
 // Hold clarity copy. Hold is a minor same-day correction opportunity, not an
 // unable-to-verify condition. Wording only — no timers or workflow changes.
 const HOLD_SAME_DAY_HELPER = 'Use Hold when a minor correction can likely be completed while you are still on site. Add what needs to be corrected. If it is not corrected before you leave the site, mark Corrections Required.'
+const NA_SCOPE_HELPER = 'Use N/A only when the condition is genuinely outside scope or not triggered for this job, such as no fire suppression scope, no gas appliances, no deep foundations, site services outside scope, phased occupancy not requested, occupancy permit not required for the job type, or Vancouver-only requirements on a BCBC project.'
 // Clearance-notes panel (formerly "Critical Stop" / "Stage Blocker"). The Stage
 // Blocker workflow is not built yet, so this is presented as calm reference notes
 // — not a major active outcome. Wording/visual only — no logic or automation.
@@ -932,7 +933,10 @@ function RequiredEvidenceActionPanel({
 }) {
   const guidanceItems = item.required_evidence.length > 0
     ? item.required_evidence
-    : ['A photo, video, file, or captured field note that documents the inspected condition.']
+    : [
+      'Photo or short video showing the inspected condition.',
+      'Permit proof, inspection card or status, manufacturer document, field note, test result, deficiency photo, or correction evidence tied to this item.',
+    ]
   const capturedCount = item.documents.length
 
   if (!blocked) {
@@ -4404,7 +4408,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                           >
                             <div className="flex items-center gap-3">
                               <AlertTriangle className="h-5 w-5 shrink-0 text-warning-amber" />
-                              <div className="text-sm font-black uppercase tracking-[0.14em] text-warning-amber">Fail Conditions</div>
+                              <div className="text-sm font-black uppercase tracking-[0.14em] text-warning-amber">Correction Triggers</div>
                             </div>
                             <ChevronRight className={`h-5 w-5 text-warning-amber transition-transform ${failConditionsOpen ? 'rotate-90' : ''}`} />
                           </button>
@@ -4484,6 +4488,10 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                         </button>
                       </div>
 
+                      <div className="mt-3 rounded-2xl border border-rim/70 border-l-2 border-l-warning-amber bg-white/5 px-4 py-3 text-xs leading-relaxed text-zinc-300">
+                        {NA_SCOPE_HELPER}
+                      </div>
+
                       {passBlocked && !passBlockedForEvidence && (
                         <div className="mt-3 rounded-2xl border border-rim/70 border-l-2 border-l-warning-amber bg-white/5 px-4 py-3 text-sm text-ink">
                           {passBlockedMessage}
@@ -4535,7 +4543,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                               </div>
 
                               <div className={`rounded-3xl border border-rim/70 bg-white/5 p-4 ${FLOATING_PANEL_CLASS}`}>
-                                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-subtle">Pass / Fail / Pending</div>
+                                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-subtle">Pass / Corrections / Pending</div>
                                 <div className="mt-3">
                                   <div className="text-xs font-black uppercase tracking-[0.14em] text-success-green">Pass When</div>
                                   <div className="mt-2">
@@ -4548,7 +4556,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                 </div>
                                 {item.fail_when.length > 0 && (
                                   <div className="mt-4">
-                                    <div className="text-xs font-black uppercase tracking-[0.14em] text-fail-red">Fail When</div>
+                                    <div className="text-xs font-black uppercase tracking-[0.14em] text-fail-red">Corrections Required When</div>
                                     <div className="mt-2">
                                       <GuidanceList
                                         items={item.fail_when}
@@ -4890,6 +4898,10 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       </button>
                     </div>
 
+                    <div className="mt-3 rounded-2xl border border-rim/70 border-l-2 border-l-warning-amber bg-white/5 px-4 py-3 text-xs leading-relaxed text-zinc-300">
+                      {NA_SCOPE_HELPER}
+                    </div>
+
                     {passRequiresEvidence && (
                       <RequiredEvidenceActionPanel
                         item={item}
@@ -5176,13 +5188,13 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
               <div className="rounded-[2rem] border border-white/10 bg-[var(--color-panel)] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.4)]">
                 <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
                   <div className="max-w-2xl">
-                    <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-200/90">Final Occupancy Seal</div>
+                    <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-200/90">Final AHJ Evidence Record</div>
                     <div className="mt-3 flex items-center gap-4">
                       <VeroSealIcon />
                       <div>
-                        <h3 className="text-2xl font-black text-[color:var(--color-ink)]">Issue Final Occupancy</h3>
+                        <h3 className="text-2xl font-black text-[color:var(--color-ink)]">Record AHJ Occupancy Evidence</h3>
                         <p className="mt-2 text-sm leading-relaxed text-zinc-300">
-                          This is the final Vero certification gate. Required prerequisite stages and items must be passed or marked N/A before the project can be flipped to COMPLETED.
+                          This records the Vero Permit closeout package and AHJ occupancy evidence. Vero does not issue occupancy, grant final approval, or replace the authority having jurisdiction.
                         </p>
                       </div>
                     </div>
@@ -5193,7 +5205,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       ? 'border-rim/70 border-l-2 border-l-success-green bg-white/5'
                       : 'border-rim/60 bg-white/5'
                   }`}>
-                    <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Certification Gate</div>
+                    <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Authority Evidence Gate</div>
                     <div className={`mt-2 text-lg font-black ${finalOccupancyReady ? 'text-success-green' : 'text-zinc-200'}`}>
                       {isScopedFinalOccupancy
                         ? `${scopedBuilderStagePassedCount} / 5`
@@ -5201,14 +5213,14 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                       } stages ready
                     </div>
                     <div className="mt-1 text-xs text-zinc-400">
-                      {finalOccupancyReady ? 'All prerequisite gates are satisfied.' : 'Resolve prerequisite stage and item gates before issuing occupancy.'}
+                      {finalOccupancyReady ? 'All prerequisite record gates are satisfied.' : 'Resolve prerequisite stage and item gates before recording AHJ occupancy evidence.'}
                     </div>
                   </div>
                 </div>
 
                 <div className="mt-6">
                   <div className="flex items-center justify-between gap-3 text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">
-                    <span>Global Certification Progress</span>
+                    <span>Closeout Record Progress</span>
                     <span>
                       {isScopedFinalOccupancy
                         ? `${scopedBuilderStagePassedCount} / 5`
@@ -5226,7 +5238,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
 
                 {!finalOccupancyReady && (
                   <div className="mt-5 rounded-2xl border border-rim/70 border-l-2 border-l-warning-amber bg-white/5 px-4 py-3 text-sm text-ink">
-                    Required prerequisite stages and items must be passed or marked N/A before final occupancy can be issued.
+                    Required prerequisite stages and items must be passed or marked N/A before Vero can record AHJ occupancy evidence.
                   </div>
                 )}
 
@@ -5239,7 +5251,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                           Pre-seal evidence location review required
                         </div>
                         <p className="mt-2 max-w-3xl leading-relaxed text-muted">
-                          Final occupancy is blocked until each evidence item has GPS coordinates or a manual location note.
+                          AHJ occupancy evidence recording is blocked until each evidence item has GPS coordinates or a manual location note.
                           This supports the Vero platform record only and does not represent AHJ approval.
                         </p>
                       </div>
@@ -5323,7 +5335,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                   <div className="space-y-2 text-xs text-zinc-400">
                     <div className="flex items-center gap-2">
                       <MapPin className="h-4 w-4 text-cyan-300" />
-                      Final occupancy stamps the current geolocation and ISO timestamp into the certification record.
+                      AHJ occupancy evidence records the current geolocation and ISO timestamp in the Vero Permit record.
                     </div>
                     <div className="flex items-center gap-2">
                       <Stamp className="h-4 w-4 text-warning-amber" />
@@ -5342,7 +5354,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                     }`}
                   >
                     {sealing ? <Loader2 className="h-4 w-4 animate-spin" /> : <VeroSealIcon className="h-10 w-10" />}
-                    {sealing ? 'Issuing Final Occupancy...' : 'ISSUE FINAL OCCUPANCY'}
+                    {sealing ? 'Recording AHJ Evidence...' : 'RECORD AHJ EVIDENCE'}
                   </button>
                 </div>
               </div>
@@ -5350,10 +5362,10 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
               <div className={`rounded-[2rem] border border-[#C6A15B]/20 bg-[var(--color-panel)] p-5 shadow-[0_0_0_1px_rgba(198,161,91,0.08)] ${FLOATING_PANEL_CLASS}`}>
                 <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                   <div className="max-w-2xl">
-                    <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#C6A15B]">Stage Summary Footer</div>
+                    <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#C6A15B]">Stage Summary</div>
                     <h3 className="mt-2 text-2xl font-black">Sign Off S{String(currentStage).padStart(2, '0')}</h3>
                     <p className="mt-2 text-sm text-zinc-300">
-                      Required containers must be fully checked, evidence-backed, and clear of failures before this stage can be signed and pushed forward.
+                      Required containers must be fully checked, evidence-backed, and clear of open Corrections Required outcomes before this stage can be signed and pushed forward.
                     </p>
                   </div>
 

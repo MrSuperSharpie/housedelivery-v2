@@ -111,24 +111,24 @@ test('stop_if and fail_when are rendered in separate panels for all field_view i
   )
 })
 
-test('Fail Conditions panel exists with amber styling for S09', () => {
+test('Correction Triggers panel exists with amber styling for S09', () => {
   const source = read(WORKSPACE)
-  assert.ok(source.includes('Fail Conditions'), 'Fail Conditions panel must exist')
-  const failIdx = source.indexOf('Fail Conditions')
+  assert.ok(source.includes('Correction Triggers'), 'Correction Triggers panel must exist')
+  const failIdx = source.indexOf('Correction Triggers')
   const block = source.slice(failIdx - 300, failIdx + 300)
-  assert.ok(block.includes('amber'), 'Fail Conditions panel must use amber styling')
+  assert.ok(block.includes('amber'), 'Correction Triggers panel must use amber styling')
 })
 
-test('Fail Conditions panel is shown for all field_view items with fail_when', () => {
+test('Correction Triggers panel is shown for all field_view items with fail_when', () => {
   const source = read(WORKSPACE)
-  assert.ok(source.includes('Fail Conditions'), 'Fail Conditions panel must exist')
+  assert.ok(source.includes('Correction Triggers'), 'Correction Triggers panel must exist')
   assert.ok(
     source.includes('item.fail_when.length > 0 && ('),
-    'Fail Conditions panel must be gated on item.fail_when.length > 0'
+    'Correction Triggers panel must be gated on item.fail_when.length > 0'
   )
   assert.ok(
     !source.includes('isS09Item && item.fail_when.length > 0'),
-    'Fail Conditions must not be restricted to S09 items'
+    'Correction Triggers must not be restricted to S09 items'
   )
 })
 
@@ -144,11 +144,11 @@ test('expandedFailConditions state is declared', () => {
 // 6. Guidance accordion — fail_when inside Pass/Fail/Pending panel for S09
 // ===========================================================================
 
-test('guidance accordion shows Pass / Fail / Pending label for S09', () => {
+test('guidance accordion shows Pass / Corrections / Pending label for S09', () => {
   const source = read(WORKSPACE)
   assert.ok(
-    source.includes('Pass / Fail / Pending'),
-    'Guidance accordion must show Pass / Fail / Pending for S09 items'
+    source.includes('Pass / Corrections / Pending'),
+    'Guidance accordion must show Pass / Corrections / Pending for S09 items'
   )
 })
 
@@ -164,16 +164,16 @@ test('fail_when is referenced inside the guidance accordion block', () => {
   )
 })
 
-test('Fail When section in guidance is shown for all field_view items with fail_when', () => {
+test('Corrections Required When section in guidance is shown for all field_view items with fail_when', () => {
   const source = read(WORKSPACE)
-  assert.ok(source.includes('Fail When'), 'Fail When label must appear in guidance accordion')
+  assert.ok(source.includes('Corrections Required When'), 'Corrections Required When label must appear in guidance accordion')
   // Guard is now item.fail_when.length > 0 only — not restricted to S09
   const guidanceOpen = source.indexOf('guidancePanelOpen && (')
   assert.ok(guidanceOpen !== -1, 'guidancePanelOpen block must exist')
   const failWhenInGuidance = source.indexOf('item.fail_when.length > 0 && (', guidanceOpen)
   assert.ok(
     failWhenInGuidance !== -1,
-    'Fail When in guidance accordion must be gated on item.fail_when.length > 0'
+    'Corrections Required When in guidance accordion must be gated on item.fail_when.length > 0'
   )
 })
 
