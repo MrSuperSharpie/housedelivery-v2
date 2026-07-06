@@ -13,16 +13,15 @@ no re-apply performed or authorized by this note.
 
 ## 1. What was found (hosted read-only verification, 2026-07-05)
 
-**Data — S10–S13 templates: RETRACTED / NOT correct on the Preview DB (Round 5, 2026-07-06).**
-> ⚠️ The Round 3/4 note below ("`version = 2` active…") could **not** be reproduced on the Supabase
-> project the Vercel Preview uses (project ref **`llbcoqdtuvbwamptzipo`**). A targeted read-only re-check
-> found **only `version = 1` old templates** for S10–S13 (Building Envelope / Insulation & Vapour Barrier
-> / Drywall & Interior Finish / Life Safety Systems), both jurisdictions; **`version = 2` is ABSENT** and
-> the VBBL S12 Step Code item is **absent**. So `20260705000000` is **NOT applied** to that database. The
-> original claim is treated as **incorrect or misattributed**. See `s10-s13-preview-ui-qa-failure.md`.
->
-> ~~S10–S13 active `version = 2` templates carry the permit-centric content; v1 inactive; VBBL S12 Step
-> Code item present; content spot-check passed.~~ *(superseded)*
+**Data — S10–S13 templates: RETRACTED (Round 5) → RESOLVED by apply (Round 6, 2026-07-06).**
+> ⚠️ The Round 3/4 note ("`version = 2` active…") could **not** be reproduced on the project the Vercel
+> Preview uses (ref **`llbcoqdtuvbwamptzipo`**) — Round 5 found **only v1 old templates**, v2 ABSENT
+> (`20260705000000` not applied there).
+> ✅ **Resolved Round 6 (2026-07-06):** `20260705000000` was **applied + verified** on
+> `llbcoqdtuvbwamptzipo` — S10–S13 **`version = 2` active** (4/4/4·5/5 items; VBBL S12 Step Code item
+> present); `version = 1` **preserved + inactive**. So the data is now genuinely correct on the Preview DB
+> **via the applied migration**, and its **ledger entry is still pending** (effect present, unledgered).
+> See `s10-s13-preview-ui-qa-failure.md` (RESOLUTION).
 
 **Ledger — NOT aligned with Git history (Round 1 hosted check confirmed 2026-07-05):**
 - `supabase_migrations.schema_migrations` returned **"Success. No rows"** for **all 10** versions from
@@ -31,33 +30,31 @@ no re-apply performed or authorized by this note.
 - **`builder_documents` table EXISTS** on hosted (`to_regclass` returned it) → the local `profiles.id
   text` blocker is local-only; that migration's effect is present.
 
-**Verification phase COMPLETE (Rounds 1–4, 2026-07-05; `20260705000000` corrected Round 5, 2026-07-06).**
-**Eight of ten** effects are verified present on hosted: `20260501010000` (builder_documents),
-`20260501020000` (builder doc storage policies), `20260501030000` (inspector admin storage policy),
-`20260509132000` (job-assignment `'completed'` status), `20260605000000` (stage labels), `20260615000000`
-(inspector_payment_accounts — payments), `20260622000000` (hold_payment_gate — payments/Stripe),
-`20260623000000` (catalogue_model_code).
+**Verification phase COMPLETE (Rounds 1–4, 2026-07-05; `20260705000000` corrected Round 5 then applied +
+verified Round 6, 2026-07-06).** **Nine of ten** effects are verified present: `20260501010000`
+(builder_documents), `20260501020000` (builder doc storage policies), `20260501030000` (inspector admin
+storage policy), `20260509132000` (job-assignment `'completed'` status), `20260605000000` (stage labels),
+`20260615000000` (inspector_payment_accounts — payments), `20260622000000` (hold_payment_gate —
+payments/Stripe), `20260623000000` (catalogue_model_code), `20260705000000` (S10–S13 templates —
+**applied + verified on `llbcoqdtuvbwamptzipo`, Round 6**; ledger entry still pending).
 
-**⛔ Two migrations are NOT safe to ledger-repair (effect not present):**
+**⛔ One migration is NOT safe to ledger-repair (effect not present):**
 - `20260611000000_inspector_completion_rls_seal_latch` — three functions + three triggers **absent on
   hosted** (only 1 of 16 policies present). Real reviewed apply/fix required → `seal-latch-fix-apply-decision.md`.
-- `20260705000000_align_s10_s13_templates_permit_centric` — **effect ABSENT** on the Preview DB
-  `llbcoqdtuvbwamptzipo` (only v1 old templates; no v2). The Round 4 "verified present" is **retracted**.
-  Real reviewed apply required → `s10-s13-preview-ui-qa-failure.md`.
 
-Their existence proves a **blanket "mark the whole 202605–202607 range applied" is unsafe** — the range
-must be reconciled per-migration, and these two must be **excluded** from any ledger repair.
+Its existence proves a **blanket "mark the whole 202605–202607 range applied" is unsafe** — the range must
+be reconciled per-migration, and `20260611000000` must be **excluded** from any ledger repair.
 
 **Interpretation:** the hosted data reflects the *effects* of migrations that the ledger does not record
 as applied. Corrections/features reached hosted **out-of-band** (e.g. direct SQL / Studio), so the ledger
 under-reports what has actually been applied, across the **whole 202605→202607 range** in Git.
 
 **Next step (governance):** verification is complete. Convene the §5 approvals to execute a **targeted**
-Option A repair covering **only the 8 verified-present** migrations (with payments-owner sign-off for
-`20260615000000` and `20260622000000`), and **exclude BOTH `20260611000000` and `20260705000000`**. The
-two excluded migrations are handled on separate real-apply tracks — `20260611000000` (security) per
-**`seal-latch-fix-apply-decision.md`**, and `20260705000000` (S10–S13 templates) per
-**`s10-s13-preview-ui-qa-failure.md`** — each a real apply/fix, **not** a ledger repair. No hosted writes.
+Option A repair covering **only the 9 verified-present** migrations (now including `20260705000000`, whose
+effect is present but unledgered after the Round 6 apply), with payments-owner sign-off for `20260615000000`
+and `20260622000000`, and **exclude `20260611000000`**. That one remains on a separate security-reviewed
+apply track per **`seal-latch-fix-apply-decision.md`** — a real apply/fix, **not** a ledger repair. No
+hosted writes.
 
 ---
 
@@ -98,10 +95,10 @@ Reconcile the entire 202605→202607 gap in one reviewed batch after inventoryin
   posture. Not recommended beyond a short holding period.
 
 ### Explicitly rejected for now
-- ~~**Re-applying `20260705000000`** (unnecessary — data already correct).~~ **REVISED (Round 5):** its
-  effect is **absent** on the Preview DB, so it **does** need a real reviewed apply (not a ledger repair);
-  that is tracked separately in `s10-s13-preview-ui-qa-failure.md`, and it is **excluded** from the
-  ledger-repair scope here.
+- ~~**Re-applying `20260705000000`** (unnecessary — data already correct).~~ **REVISED (Round 5 → 6):** its
+  effect was **absent** on the Preview DB (Round 5), so it needed a real reviewed apply — which was **done +
+  verified on `llbcoqdtuvbwamptzipo` (Round 6, 2026-07-06)**. It now needs **only its ledger entry**
+  (in-scope for the targeted repair), **not** re-application.
 - **`supabase db push`** (would replay the whole gap).
 - **`supabase db reset` on hosted** (destructive — never).
 
@@ -111,8 +108,8 @@ Reconcile the entire 202605→202607 gap in one reviewed batch after inventoryin
 
 > **Required evidence packet — COMPLETE (2026-07-05):** the gap inventory + per-migration read-only
 > verification checks in **`docs/audit/hosted-migration-gap-inventory.md`** are done for all 10 versions.
-> Result (corrected Round 5, 2026-07-06): **8 effect-verified present, 2 effect-not-present
-> (`20260611000000` partial, `20260705000000` absent on Preview DB).** This satisfies the
+> Result (Round 6, 2026-07-06): **9 effect-verified present** (incl. `20260705000000`, applied + verified
+> on `llbcoqdtuvbwamptzipo`), **1 effect-not-present (`20260611000000` partial).** This satisfies the
 > "confirm every version's effect present/absent before choosing a repair option" precondition.
 
 1. **Inventory the gap:** list every Git migration with version > the last ledgered version (≈ end of
@@ -140,8 +137,9 @@ Only after all boxes are checked may a follow-up sprint execute the selected opt
 
 ## 6. Governance directives (in force now)
 
-- The S10–S13 migration (`20260705000000`) is **not applied** on the Preview DB (Round 5). Do **not**
-  ledger-repair it; any real apply goes through the reviewed path in `s10-s13-preview-ui-qa-failure.md`.
+- The S10–S13 migration (`20260705000000`) is **applied + verified** on the Preview DB
+  `llbcoqdtuvbwamptzipo` (Round 6). Its **ledger entry is pending** and is in-scope for the targeted
+  repair; do **not** re-apply it.
 - Do **not** run `supabase db push`.
 - Do **not** run `supabase migration repair` yet.
 - Do **not** merge or promote to production until the ledger reconciliation option is approved (§5) and
@@ -150,11 +148,10 @@ Only after all boxes are checked may a follow-up sprint execute the selected opt
 
 ## 7. Recommendation
 
-Pursue **Option A** (targeted `migration repair --status applied`) **scoped only to the 8 effect-verified
-migrations**, after the §5 approvals (including **payments-owner sign-off** for `20260615000000` and
-`20260622000000`) — and **exclude BOTH** `20260611000000_inspector_completion_rls_seal_latch` (functions
-+ triggers **missing** on hosted) **and** `20260705000000_align_s10_s13_templates_permit_centric` (S10–S13
-v2 **absent** on the Preview DB, Round 5). Those two are the concrete instances of the "escalate
-separately" rule: each needs a **real, reviewed apply/fix**, **not** a ledger repair (seal-latch →
-`seal-latch-fix-apply-decision.md`; S10–S13 → `s10-s13-preview-ui-qa-failure.md`). Under no circumstances
-blanket-mark the whole 202605–202607 range as applied.
+Pursue **Option A** (targeted `migration repair --status applied`) **scoped only to the 9 effect-verified
+migrations** (now including `20260705000000`, whose effect is present but unledgered after the Round 6
+apply), after the §5 approvals (including **payments-owner sign-off** for `20260615000000` and
+`20260622000000`) — and **exclude** `20260611000000_inspector_completion_rls_seal_latch` (functions +
+triggers **missing** on hosted). That one is the concrete instance of the "escalate separately" rule: it
+needs a **real, reviewed apply/fix**, **not** a ledger repair (→ `seal-latch-fix-apply-decision.md`). Under
+no circumstances blanket-mark the whole 202605–202607 range as applied.

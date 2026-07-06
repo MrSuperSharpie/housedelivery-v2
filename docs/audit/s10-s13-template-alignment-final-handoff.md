@@ -43,13 +43,13 @@ S12 Insulation and Energy Compliance · S13 Interior Completion**, with VBBL S12
 
 - ~~**S10–S13 data already correct on hosted:** active `version = 2` = permit-centric titles; `version = 1`
   preserved + inactive; VBBL S12 Step Code item present; content spot-check passed.~~
-  > ⛔ **RETRACTED (2026-07-06):** a targeted read-only re-check against the Supabase project the Vercel
-  > Preview actually uses — project ref **`llbcoqdtuvbwamptzipo`** — found **only `version = 1` old
-  > templates** for S10–S13 (both jurisdictions); **v2 is ABSENT** and the VBBL S12 Step Code item is
-  > absent. So `20260705000000` is **NOT applied** to that DB and the "already correct" claim is
-  > **incorrect or misattributed**. Corrected records: `hosted-migration-gap-inventory.md` (Round 5;
-  > 9→8 present), `hosted-migration-ledger-reconciliation-decision.md` (scope 9→8), and
-  > `s10-s13-preview-ui-qa-failure.md` §4.
+  > ⛔ **RETRACTED then RESOLVED (2026-07-06):** the original "already correct" claim was **wrong** for the
+  > Preview DB — project ref **`llbcoqdtuvbwamptzipo`** held **only v1 old templates** (Round 5, v2 ABSENT).
+  > It has since been **fixed**: `20260705000000` was **applied + verified** on `llbcoqdtuvbwamptzipo`
+  > (2026-07-06) — v2 active, v1 preserved + inactive, VBBL S12 Step Code item present, counts matched.
+  > So the claim is now **true for the Preview DB by way of the applied migration**, not the earlier
+  > out-of-band assertion. Records: `s10-s13-preview-ui-qa-failure.md` (RESOLUTION),
+  > `hosted-migration-gap-inventory.md` (Round 6), `hosted-migration-ledger-reconciliation-decision.md`.
 - **Ledger drift discovered:** `supabase_migrations.schema_migrations` records the range only **through
   202604**; **all 10** migrations `20260501010000 → 20260705000000` are **missing** from the ledger,
   though (most of) their effects are present — i.e. changes reached hosted **out-of-band**.
@@ -60,16 +60,16 @@ S12 Insulation and Energy Compliance · S13 Interior Completion**, with VBBL S12
 
 Verification of all 10 unledgered migrations is **complete**:
 
-- **8 of 10 have verified effects present:** `20260501010000` (builder_documents), `20260501020000`
+- **9 of 10 have verified effects present:** `20260501010000` (builder_documents), `20260501020000`
   (builder doc storage policies), `20260501030000` (inspector admin storage policy), `20260509132000`
   (job-assignment `'completed'`), `20260605000000` (stage labels), `20260615000000`
   (inspector_payment_accounts — PAYMENTS), `20260622000000` (hold_payment_gate — PAYMENTS/Stripe),
-  `20260623000000` (catalogue_model_code).
-- **2 of 10 are NOT effect-present (do not ledger-repair):**
+  `20260623000000` (catalogue_model_code), and **`20260705000000` (S10–S13 templates) — now APPLIED +
+  verified on `llbcoqdtuvbwamptzipo` (2026-07-06)** after the Round 5 gap; effect present, ledger entry
+  still pending.
+- **1 of 10 is NOT effect-present (do not ledger-repair):**
   `20260611000000_inspector_completion_rls_seal_latch` — **3 functions** + **3 triggers** absent, only
-  **1 of 16** RLS policies present; and `20260705000000` (S10–S13 templates) — **v2 ABSENT** on the
-  Preview DB `llbcoqdtuvbwamptzipo` (Round 5, 2026-07-06; only v1 old templates). Each needs a real
-  reviewed apply.
+  **1 of 16** RLS policies present. Needs a real reviewed apply → `seal-latch-fix-apply-decision.md`.
 
 ## 5. Why a blanket ledger repair is unsafe
 
@@ -114,24 +114,21 @@ Hosted ledger + seal-latch (the four requested):
    **present**; no old mismatched content was found. See `s10-s13-human-review-packet.md`. **This is
    product-level acceptance only — NOT a professional inspector / code sign-off** (that remains a separate
    later step before treating the content as final legal/code advice).
-2. ⛔ **FAILED — Vercel Preview UI QA (2026-07-06):** on the Preview deployment, Admin Workspace →
-   Checklist Templates shows **correct S10–S13 stage titles but still the OLD construction-model template
-   content** (S10→Building Envelope, S11→Insulation & Vapour Barrier, S12→Drywall & Interior Finish,
-   S13→Life Safety Systems), for **both BCBC 2024 and VBBL 2025**; the VBBL S12 Step Code item is absent.
-   **Diagnosis:** the drafted migration `20260705000000` has **not been applied to the database backing
-   Preview** — the screen is the exact pre-migration state (stage rows renamed by the applied
-   `20260605000000`, but the `version = 1` old-content templates still attached by `stage_id`; no
-   `version = 2` rows present). **CONFIRMED read-only (2026-07-06):** Preview uses Supabase project ref
-   **`llbcoqdtuvbwamptzipo`**; a SELECT there returned **only v1 old templates for S10–S13, no v2**. This
-   **retracts** §3's earlier "hosted already correct (v2 active)" note as incorrect/misattributed.
-   Full report: **`s10-s13-preview-ui-qa-failure.md`**. `20260705000000` now needs a **real reviewed apply**
-   to the Preview DB (excluded from the ledger-repair scope — see §3/§8.3).
-   Not fixed here — no apply, no `db push`, no `migration repair`, no Admin-UI edit.
-3. **Decision on the targeted ledger repair** for the **8 verified-present** migrations — approvals per
+2. ✅ **RESOLVED — Vercel Preview UI QA (2026-07-06).** The QA first **FAILED**: Admin → Checklist
+   Templates showed correct S10–S13 titles but the OLD construction-model content, and a read-only SELECT
+   confirmed the Preview DB (project ref **`llbcoqdtuvbwamptzipo`**) held **only v1 old templates, no v2**
+   — i.e. `20260705000000` was not applied there. **Fix applied 2026-07-06:** the migration was applied to
+   `llbcoqdtuvbwamptzipo` via a controlled transactional SQL apply, and post-apply read-only verification
+   matched (S10 4/4 · S11 4/4 · S12 4 BCBC / 5 VBBL incl. Step Code · S13 5/5; v1 preserved + inactive).
+   **Preview UI now renders the corrected permit-centric S10–S13 templates for both jurisdictions.**
+   Full report: **`s10-s13-preview-ui-qa-failure.md`**. Remaining: the ledger on `llbcoqdtuvbwamptzipo`
+   still does not record `20260705000000` (effect now present but unledgered → targeted ledger-repair set;
+   no `migration repair` run). No `db push`, no deploy/promotion, no Admin-UI edits.
+3. **Decision on the targeted ledger repair** for the **9 verified-present** migrations (now including
+   `20260705000000`, applied + verified 2026-07-06 but still unledgered) — approvals per
    `hosted-migration-ledger-reconciliation-decision.md` §5, with **payments-owner sign-off** for
-   `20260615000000` and `20260622000000`; **exclude BOTH `20260611000000` (seal-latch, effect missing)
-   and `20260705000000` (S10–S13 v2, absent on Preview DB — Round 5)**. The two excluded migrations each
-   need a real reviewed apply, not a ledger repair.
+   `20260615000000` and `20260622000000`; **exclude `20260611000000` (seal-latch, effect still missing)**,
+   which needs a real reviewed apply, not a ledger repair.
 4. **Separate staged apply/fix for the seal-latch** (`20260611000000`) — follow
    `seal-latch-staging-apply-runbook.md`: staging → verify → security + DB owner approval → hosted apply →
    then record its ledger entry.
@@ -144,11 +141,12 @@ Hosted ledger + seal-latch (the four requested):
 ## 9. Do-not-do list
 
 - ❌ **No `supabase db push`.**
-- ❌ **No `migration repair` for `20260611000000` or `20260705000000`** (their effects are missing/absent —
-  repair would hide the gap).
+- ❌ **No `migration repair` for `20260611000000`** (its effect is still missing — repair would hide the gap).
+  (`20260705000000` is now applied + verified on `llbcoqdtuvbwamptzipo`, so it is ledger-repair-eligible —
+  its ledger entry is a pending, approved-scope action, not a prohibition.)
 - ❌ **No blanket ledger repair** of the 202605–202607 range — only a targeted, per-migration repair of
-  the 8 verified-present versions (exclude `20260611000000` and `20260705000000`), with payments-owner
-  sign-off for the two payments migrations.
+  the 9 verified-present versions (exclude `20260611000000`), with payments-owner sign-off for the two
+  payments migrations.
 - ❌ **No production apply without staging approval** — staging verification + DB/security-owner sign-off
   + backup are prerequisites for any hosted apply.
 - ❌ **No merge / no deploy** from this branch until items §8.1–§8.4 are satisfied.

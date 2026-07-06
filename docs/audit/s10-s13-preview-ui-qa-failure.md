@@ -1,12 +1,32 @@
-# Preview UI QA — FAILED (S10–S13 checklist template content)
+# Preview UI QA — FAILED → ✅ RESOLVED (S10–S13 checklist template content)
 
 **Branch:** `fix/s10-s13-template-alignment-option-a`
-**Date:** 2026-07-06 · **Type:** QA failure report + code-path diagnosis — **documentation only, no fix applied.**
+**Date:** 2026-07-06 · **Type:** QA failure report + code-path diagnosis → resolution record.
 **Surface:** Vercel Preview → Admin Workspace → **Checklist Templates** (`/admin/checklists`).
-**Result:** ⛔ **FAILED for BOTH British Columbia Building Code 2024 and Vancouver Building By-law 2025.**
+**Original result:** ⛔ FAILED for both BCBC 2024 and VBBL 2025.
+**Current result:** ✅ **RESOLVED — migration `20260705000000` applied + verified on the Preview DB.**
 
-> No migration applied, no app code changed, no SQL run, no hosted Supabase writes, no Admin-UI edits,
-> no `db push`, no `migration repair`, no deploy/promote. This report diagnoses **why**; it does not fix.
+> ## ✅ RESOLUTION (2026-07-06)
+> `supabase/migrations/20260705000000_align_s10_s13_templates_permit_centric.sql` was applied to the
+> Preview Supabase project **`llbcoqdtuvbwamptzipo`** (controlled SQL apply, wrapped in a transaction).
+> **Post-apply read-only verification matched expectations:**
+> - S10 BCBC/VBBL — v2 active, **4** items each
+> - S11 BCBC/VBBL — v2 active, **4** items each
+> - S12 BCBC — v2 active, **4** items · S12 VBBL — v2 active, **5** items (incl. **Vancouver Mandatory
+>   Minimum Step Code Tier**)
+> - S13 BCBC/VBBL — v2 active, **5** items each
+> - `version = 1` templates **preserved but inactive** (audit history intact).
+>
+> **Preview UI now shows the corrected S10–S13 permit-centric templates for both jurisdictions.** The
+> title↔content mismatch and the "effect absent" gap are closed on the Preview DB.
+>
+> **Still open (not done here):** the migration ledger on `llbcoqdtuvbwamptzipo` still does not record
+> `20260705000000` — its effect is now present but unledgered, so it re-joins the targeted ledger-repair
+> set (see `hosted-migration-ledger-reconciliation-decision.md`). No `migration repair` was run.
+> Production promotion of the Preview and any other environments remain separate, ungated actions.
+
+> The sections below are the **original diagnosis (retained for the audit trail)**. They describe the
+> pre-apply FAILED state and remain accurate as of before the 2026-07-06 apply above.
 
 ---
 
