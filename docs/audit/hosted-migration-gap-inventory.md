@@ -129,7 +129,7 @@ order by version;
 | 3 | 20260501030000 | inspector_document_admin_storage_policy | `storage.objects` RLS policy | Missing | ✅ **Effect verified present (2026-07-05)** — `inspector_documents_admin_select` returned |
 | 4 | 20260509132000 | allow_completed_job_assignments | `job_assignments` status check constraint | Missing | ✅ **Effect verified present (2026-07-05)** — check includes `'completed'` |
 | 5 | 20260605000000 | correct_inspection_stage_labels_s10_s15 | `inspection_stages` titles/slugs | Missing | **Effect VERIFIED PRESENT** (S10–S13 hosted titles permit-centric) |
-| 6 | 20260611000000 | inspector_completion_rls_seal_latch | Functions + triggers + RLS on `inspector_completion_*` | Missing | ⛔ **PARTIAL / EFFECT MISSING (2026-07-05)** — 3 functions + 3 triggers absent (only 1 policy present). **Do NOT ledger-repair; needs a real reviewed apply/fix.** |
+| 6 | 20260611000000 | inspector_completion_rls_seal_latch | Functions + triggers + RLS on `inspector_completion_*` | Missing | ⛔ **PARTIAL / EFFECT MISSING (2026-07-05)** — 3 functions + 3 triggers absent (only 1 of 16 policies present). **Do NOT ledger-repair; needs a real reviewed apply/fix → `seal-latch-fix-apply-decision.md`.** |
 | 7 | 20260615000000 | inspector_payment_accounts | `inspector_payment_accounts` table + RLS | Missing | ✅ **Effect verified present (2026-07-05)** — table + columns + `select_own` policy present · **PAYMENTS: ledger repair needs payments-owner sign-off** |
 | 8 | 20260622000000 | hold_payment_gate | `job_holds` Stripe columns + check | Missing | ✅ **Effect verified present (2026-07-05)** — 4 columns + status check present · **PAYMENTS/Stripe: ledger repair needs payments-owner sign-off** |
 | 9 | 20260623000000 | catalogue_model_code | `job_opportunities.catalogue_model_code` column | Missing | ✅ **Effect verified present (2026-07-05)** — column exists (`text`, nullable) |
@@ -208,9 +208,9 @@ where stage_number in (10,11,12,13,14,15) order by stage_number;
 
 ### 6 — `20260611000000_inspector_completion_rls_seal_latch.sql`  · ⛔ PARTIAL / EFFECT MISSING (2026-07-05)
 Adds seal-latch functions, triggers, and RLS on the `inspector_completion_*` tables. **Round 3 result:**
-only **1** completion policy present; all **3 functions** and **3 triggers** returned **no rows** →
-seal-latch enforcement is **absent on hosted**. **Do NOT mark applied via ledger repair** — requires a
-real, reviewed apply/fix path (separate, approved).
+only **1** of 16 completion policies present; all **3 functions** and **3 triggers** returned **no rows**
+→ seal-latch enforcement is **absent on hosted**. **Do NOT mark applied via ledger repair** — requires a
+real, reviewed apply/fix path (separate, approved). See **`docs/audit/seal-latch-fix-apply-decision.md`**.
 ```sql
 -- Functions
 select proname from pg_proc

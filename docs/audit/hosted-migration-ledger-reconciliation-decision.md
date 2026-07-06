@@ -34,10 +34,10 @@ doc storage policies), `20260501030000` (inspector admin storage policy), `20260
 `20260623000000` (catalogue_model_code), `20260705000000` (S10–S13 templates).
 
 **⛔ One migration is PARTIAL / EFFECT MISSING:** `20260611000000_inspector_completion_rls_seal_latch` —
-its three functions and three triggers are **absent on hosted** (only 1 policy present). This **must NOT
-be marked applied via ledger repair**; it requires a real, reviewed apply/fix path. Its existence proves
-a **blanket "mark the whole 202605–202607 range applied" is unsafe** — the range must be reconciled
-per-migration.
+its three functions and three triggers are **absent on hosted** (only 1 of 16 policies present). This
+**must NOT be marked applied via ledger repair**; it requires a real, reviewed apply/fix path — see the
+dedicated **`docs/audit/seal-latch-fix-apply-decision.md`**. Its existence proves a **blanket "mark the
+whole 202605–202607 range applied" is unsafe** — the range must be reconciled per-migration.
 
 **Interpretation:** the hosted data reflects the *effects* of migrations that the ledger does not record
 as applied. Corrections/features reached hosted **out-of-band** (e.g. direct SQL / Studio), so the ledger
@@ -45,9 +45,10 @@ under-reports what has actually been applied, across the **whole 202605→202607
 
 **Next step (governance):** verification is complete. Convene the §5 approvals to execute a **targeted**
 Option A repair covering **only the 9 verified-present** migrations (with payments-owner sign-off for
-`20260615000000` and `20260622000000`), and **exclude `20260611000000`**. Separately, scope a **real
-reviewed apply/fix** for the effect-missing `20260611000000` seal-latch functions + triggers (do **not**
-ledger-repair it). No hosted writes.
+`20260615000000` and `20260622000000`), and **exclude `20260611000000`**. The effect-missing
+`20260611000000` seal-latch functions + triggers are handled on a separate security-reviewed apply track
+— see **`docs/audit/seal-latch-fix-apply-decision.md`** (a real apply/fix, **not** a ledger repair).
+No hosted writes.
 
 ---
 
