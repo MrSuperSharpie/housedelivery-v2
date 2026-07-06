@@ -42,6 +42,23 @@ S10–S13 templates, and `builder_documents`), while the ledger records none of 
 remaining migrations' effects **one small group at a time** (§3.2–§3.4, then §3.6, then §3.9, then the
 payments pair §3.7–§3.8) before any ledger-repair decision. No hosted writes.
 
+## Hosted verification log — Round 2 (2026-07-05)
+
+Second hosted **read-only** group completed — three more effects **verified present**:
+- **§3.2 `20260501020000_builder_document_storage_policies`:** all **5** expected `storage.objects`
+  policies returned (`builder_documents_admin_select`, `_delete_own`, `_insert_own`, `_select_own`,
+  `_update_own`). ✅
+- **§3.3 `20260501030000_inspector_document_admin_storage_policy`:** `inspector_documents_admin_select`
+  returned. ✅
+- **§3.4 `20260509132000_allow_completed_job_assignments`:** `job_assignments_status_check` includes
+  `provisional, confirmed, cancelled, invalidated, completed` → `'completed'` present. ✅
+
+**Running total: 6 of 10** missing-ledger migrations now have **verified effects present**.
+**Remaining unverified (4):** `20260611000000` (completion RLS/seal-latch), `20260615000000`
+(inspector_payment_accounts — payments), `20260622000000` (hold_payment_gate — payments/Stripe),
+`20260623000000` (catalogue_model_code). Verify these next (payments pair needs domain-owner sign-off
+before any repair). No hosted writes.
+
 ---
 
 ## 1. Ledger presence check (run once, for all versions)
@@ -67,9 +84,9 @@ order by version;
 | # | Version | File | Domain | Ledger | Effect classification |
 |---|---------|------|--------|--------|-----------------------|
 | 1 | 20260501010000 | builder_documents | Builder docs metadata table | Missing | ✅ **Effect present (2026-07-05)** — table exists on hosted; hosted `profiles.id` is `uuid`, so the local `profiles.id text` blocker does not apply. (Columns/policies not yet spot-checked — §3.1c/d.) |
-| 2 | 20260501020000 | builder_document_storage_policies | `storage.objects` RLS policies | Missing | Effect not yet verified |
-| 3 | 20260501030000 | inspector_document_admin_storage_policy | `storage.objects` RLS policy | Missing | Effect not yet verified |
-| 4 | 20260509132000 | allow_completed_job_assignments | `job_assignments` status check constraint | Missing | Effect not yet verified |
+| 2 | 20260501020000 | builder_document_storage_policies | `storage.objects` RLS policies | Missing | ✅ **Effect verified present (2026-07-05)** — all 5 policies returned |
+| 3 | 20260501030000 | inspector_document_admin_storage_policy | `storage.objects` RLS policy | Missing | ✅ **Effect verified present (2026-07-05)** — `inspector_documents_admin_select` returned |
+| 4 | 20260509132000 | allow_completed_job_assignments | `job_assignments` status check constraint | Missing | ✅ **Effect verified present (2026-07-05)** — check includes `'completed'` |
 | 5 | 20260605000000 | correct_inspection_stage_labels_s10_s15 | `inspection_stages` titles/slugs | Missing | **Effect VERIFIED PRESENT** (S10–S13 hosted titles permit-centric) |
 | 6 | 20260611000000 | inspector_completion_rls_seal_latch | Functions + triggers + RLS on `inspector_completion_*` | Missing | Effect not yet verified |
 | 7 | 20260615000000 | inspector_payment_accounts | `inspector_payment_accounts` table + RLS | Missing | Effect not yet verified · **Unsafe to mark applied without deeper review (PAYMENTS domain)** |
@@ -106,8 +123,8 @@ where schemaname='public' and tablename='builder_documents' order by policyname;
 **Verdict rule:** if (a) is NULL → **Effect missing** (needs a real, approved apply, not a repair). If the
 table exists with the columns/policies → Effect present.
 
-### 2 — `20260501020000_builder_document_storage_policies.sql`
-Creates `storage.objects` RLS policies for the builder-documents bucket.
+### 2 — `20260501020000_builder_document_storage_policies.sql`  · ✅ verified present (2026-07-05)
+Creates `storage.objects` RLS policies for the builder-documents bucket. Hosted returned all 5 policies.
 ```sql
 select policyname from pg_policies
 where schemaname='storage' and tablename='objects'
@@ -120,7 +137,7 @@ order by policyname;
 -- Expected: 5 rows if effect present.
 ```
 
-### 3 — `20260501030000_inspector_document_admin_storage_policy.sql`
+### 3 — `20260501030000_inspector_document_admin_storage_policy.sql`  · ✅ verified present (2026-07-05)
 ```sql
 select policyname from pg_policies
 where schemaname='storage' and tablename='objects'
@@ -128,8 +145,9 @@ where schemaname='storage' and tablename='objects'
 -- Expected: 1 row if effect present.
 ```
 
-### 4 — `20260509132000_allow_completed_job_assignments.sql`
-Replaces `job_assignments_status_check` to add `'completed'` to the allowed statuses.
+### 4 — `20260509132000_allow_completed_job_assignments.sql`  · ✅ verified present (2026-07-05)
+Replaces `job_assignments_status_check` to add `'completed'` to the allowed statuses. Hosted CHECK
+includes `provisional, confirmed, cancelled, invalidated, completed`.
 ```sql
 select pg_get_constraintdef(oid) as def
 from pg_constraint where conname = 'job_assignments_status_check';
@@ -216,9 +234,13 @@ order by s.stage_number, j.slug, sct.version;
 
 - **All 10 versions are missing from the hosted ledger** (Round 1 confirmed) — the full 202605–202607
   range is unledgered.
-- **Three migrations are effect-verified present:** `20260605000000` (stage labels), `20260705000000`
-  (S10–S13 templates), and `20260501010000` (`builder_documents` table exists). The remaining **seven**
-  are **not yet verified** — run §3.2–§3.4, §3.6, §3.7–§3.8, §3.9 next, one small group at a time.
+- **Six migrations are effect-verified present (Round 1 + 2):** `20260501010000` (builder_documents),
+  `20260501020000` (builder doc storage policies), `20260501030000` (inspector admin storage policy),
+  `20260509132000` (job-assignment `'completed'` status), `20260605000000` (stage labels),
+  `20260705000000` (S10–S13 templates). The remaining **four** are **not yet verified**:
+  `20260611000000` (completion RLS/seal-latch), `20260615000000` (inspector_payment_accounts),
+  `20260622000000` (hold_payment_gate), `20260623000000` (catalogue_model_code) — run §3.6, §3.7–§3.8,
+  §3.9 next, one small group at a time.
 - **`profiles.id` ambiguity RESOLVED on hosted → `uuid`.** The earlier `builder_documents` "effect
   missing" risk is **cleared** (hosted `profiles.id` is `uuid`, not `text`; the local blocker is
   local-only). `inspector_payment_accounts` uses a `text` FK to the same `uuid` column — note this for

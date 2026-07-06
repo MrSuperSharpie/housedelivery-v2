@@ -26,15 +26,22 @@ no re-apply performed or authorized by this note.
 - **`builder_documents` table EXISTS** on hosted (`to_regclass` returned it) → the local `profiles.id
   text` blocker is local-only; that migration's effect is present.
 
-So far **three** effects are verified present on hosted (stage labels `20260605000000`, S10–S13 templates
-`20260705000000`, and `builder_documents` `20260501010000`); the other **seven** are **not yet verified**.
+So far (Round 1 + Round 2, 2026-07-05) **six of ten** effects are verified present on hosted:
+`20260501010000` (builder_documents), `20260501020000` (builder doc storage policies), `20260501030000`
+(inspector admin storage policy), `20260509132000` (job-assignment `'completed'` status),
+`20260605000000` (stage labels), `20260705000000` (S10–S13 templates). The remaining **four** are **not
+yet verified**: `20260611000000` (completion RLS/seal-latch), `20260615000000`
+(inspector_payment_accounts — payments), `20260622000000` (hold_payment_gate — payments/Stripe),
+`20260623000000` (catalogue_model_code).
 
 **Interpretation:** the hosted data reflects the *effects* of migrations that the ledger does not record
 as applied. Corrections/features reached hosted **out-of-band** (e.g. direct SQL / Studio), so the ledger
 under-reports what has actually been applied, across the **whole 202605→202607 range** in Git.
 
-**Next step (governance):** verify the remaining seven migrations' effects **one small group at a time**
-(see `hosted-migration-gap-inventory.md` §3) before deciding any ledger repair. No hosted writes.
+**Next step (governance):** verify the remaining **four** migrations' effects **one small group at a
+time** (see `hosted-migration-gap-inventory.md` §3.6 completion RLS, §3.7–§3.8 payments pair, §3.9
+catalogue) before deciding any ledger repair. The payments pair (`20260615000000`, `20260622000000`)
+also needs payments-owner sign-off. No hosted writes.
 
 ---
 
