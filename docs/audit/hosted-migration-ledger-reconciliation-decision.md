@@ -19,15 +19,22 @@ no re-apply performed or authorized by this note.
 - `version = 1` rows are preserved and **inactive**; `version = 2` rows are **active**.
 - VBBL S12 includes "Vancouver Mandatory Minimum Step Code Tier". Content spot-check passed.
 
-**Ledger — NOT aligned with Git history:**
-- `supabase_migrations.schema_migrations` returned **no rows** for `20260605000000`
-  (stage-label rename) or `20260705000000` (S10–S13 alignment).
-- Recent ledger entries show migrations only **through the 202604 series**.
+**Ledger — NOT aligned with Git history (Round 1 hosted check confirmed 2026-07-05):**
+- `supabase_migrations.schema_migrations` returned **"Success. No rows"** for **all 10** versions from
+  `20260501010000` through `20260705000000` → the **entire 202605–202607 range is unledgered**.
+- **`public.profiles.id` = `uuid`** on hosted (systemic FK ambiguity resolved).
+- **`builder_documents` table EXISTS** on hosted (`to_regclass` returned it) → the local `profiles.id
+  text` blocker is local-only; that migration's effect is present.
+
+So far **three** effects are verified present on hosted (stage labels `20260605000000`, S10–S13 templates
+`20260705000000`, and `builder_documents` `20260501010000`); the other **seven** are **not yet verified**.
 
 **Interpretation:** the hosted data reflects the *effects* of migrations that the ledger does not record
-as applied. In other words, corrections reached hosted **out-of-band** (e.g. direct SQL / Studio), so the
-ledger under-reports what has actually been applied. The gap is **not limited to the two S10–S13
-migrations** — the ledger appears to be missing the entire 202605→202607 range that exists in Git.
+as applied. Corrections/features reached hosted **out-of-band** (e.g. direct SQL / Studio), so the ledger
+under-reports what has actually been applied, across the **whole 202605→202607 range** in Git.
+
+**Next step (governance):** verify the remaining seven migrations' effects **one small group at a time**
+(see `hosted-migration-gap-inventory.md` §3) before deciding any ledger repair. No hosted writes.
 
 ---
 

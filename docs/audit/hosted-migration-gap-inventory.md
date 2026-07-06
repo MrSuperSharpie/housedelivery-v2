@@ -25,6 +25,25 @@ checks to determine whether the *effect* is actually present in hosted.
 
 ---
 
+## Hosted verification log — Round 1 (2026-07-05)
+
+First hosted **read-only** check completed. Results:
+- **Ledger presence (§1):** query returned **"Success. No rows"** for all 10 versions →
+  **all 10 migrations are missing from the hosted ledger.** The full 202605–202607 range is unledgered.
+- **`public.profiles.id` type (§2):** **`uuid`.** The systemic `profiles.id` ambiguity is resolved on
+  hosted — hosted uses `uuid`.
+- **`builder_documents` (§3.1a):** `to_regclass('public.builder_documents')` returned
+  `builder_documents` → **the table EXISTS on hosted.** Because hosted `profiles.id` is `uuid`, the local
+  `profiles.id text` blocker **does not apply to hosted**, so this migration's effect is present (the
+  top-risk "effect missing" concern is cleared).
+
+**Interim conclusion:** hosted carries at least some effects of the missing range (stage labels,
+S10–S13 templates, and `builder_documents`), while the ledger records none of it. **Next:** verify the
+remaining migrations' effects **one small group at a time** (§3.2–§3.4, then §3.6, then §3.9, then the
+payments pair §3.7–§3.8) before any ledger-repair decision. No hosted writes.
+
+---
+
 ## 1. Ledger presence check (run once, for all versions)
 
 ```sql
@@ -47,7 +66,7 @@ order by version;
 
 | # | Version | File | Domain | Ledger | Effect classification |
 |---|---------|------|--------|--------|-----------------------|
-| 1 | 20260501010000 | builder_documents | Builder docs metadata table | Missing | **Effect not yet verified** ⚠ **may be Effect missing** — FKs `profiles(id)` as `uuid`; this is the migration that *failed locally* on `profiles.id text`. Verify table actually exists on hosted. |
+| 1 | 20260501010000 | builder_documents | Builder docs metadata table | Missing | ✅ **Effect present (2026-07-05)** — table exists on hosted; hosted `profiles.id` is `uuid`, so the local `profiles.id text` blocker does not apply. (Columns/policies not yet spot-checked — §3.1c/d.) |
 | 2 | 20260501020000 | builder_document_storage_policies | `storage.objects` RLS policies | Missing | Effect not yet verified |
 | 3 | 20260501030000 | inspector_document_admin_storage_policy | `storage.objects` RLS policy | Missing | Effect not yet verified |
 | 4 | 20260509132000 | allow_completed_job_assignments | `job_assignments` status check constraint | Missing | Effect not yet verified |
@@ -65,10 +84,11 @@ verified* · *Effect missing* · *Unsafe to mark applied without deeper review*.
 
 ## 3. Per-migration read-only verification checks
 
-### 1 — `20260501010000_builder_documents.sql`  · ⚠ potential Effect missing
+### 1 — `20260501010000_builder_documents.sql`  · ✅ Effect present (table confirmed 2026-07-05)
 Creates `public.builder_documents` (FK `user_id uuid → profiles(id)`), indexes, `updated_at` trigger,
-and RLS policies. **Risk:** FKs `profiles(id)` as `uuid`; if hosted `profiles.id` is `text` (as it is
-locally), this migration would have **failed to apply**, so the table may not exist on hosted.
+and RLS policies. **Round 1 result:** `to_regclass('public.builder_documents')` returned the table, and
+hosted `profiles.id` is `uuid`, so the local `profiles.id text` blocker does not apply. Risk cleared. The
+remaining checks (c/d) are an optional completeness spot-check of columns and policies.
 ```sql
 -- (a) Does the table exist? NULL = absent = Effect missing.
 select to_regclass('public.builder_documents') as builder_documents_table;
@@ -194,14 +214,16 @@ order by s.stage_number, j.slug, sct.version;
 
 ## 4. Findings & cautions for the reconciliation decision
 
-- **Two migrations are effect-verified present** (`20260605000000`, `20260705000000`). The remaining
-  eight are **not yet verified** — run §3 before classifying them.
-- **`20260501010000_builder_documents` is the top risk:** it FKs `profiles(id)` as `uuid` and is the
-  migration that failed on the local `profiles.id text`. If hosted `profiles.id` is also `text`, its
-  effect is likely **missing** and it must be **applied (approved), not repaired**. Check §3-item-1 first.
-- **`profiles.id` type ambiguity is systemic:** `builder_documents` assumes `uuid`; `inspector_payment_accounts`
-  uses `text`. Resolve which is true in hosted before any repair — it changes several classifications.
-- **Payments-domain migrations (`20260615000000`, `20260622000000`) are "unsafe to mark applied without
+- **All 10 versions are missing from the hosted ledger** (Round 1 confirmed) — the full 202605–202607
+  range is unledgered.
+- **Three migrations are effect-verified present:** `20260605000000` (stage labels), `20260705000000`
+  (S10–S13 templates), and `20260501010000` (`builder_documents` table exists). The remaining **seven**
+  are **not yet verified** — run §3.2–§3.4, §3.6, §3.7–§3.8, §3.9 next, one small group at a time.
+- **`profiles.id` ambiguity RESOLVED on hosted → `uuid`.** The earlier `builder_documents` "effect
+  missing" risk is **cleared** (hosted `profiles.id` is `uuid`, not `text`; the local blocker is
+  local-only). `inspector_payment_accounts` uses a `text` FK to the same `uuid` column — note this for
+  §3.7 (its effect check confirms whether that table applied cleanly on hosted regardless).
+- **Payments-domain migrations (`20260615000000`, `20260622000000`) remain "unsafe to mark applied without
   deeper review."** Even if effects are present, ledger repair for these needs the payments owner's
   sign-off. This inventory does **not** touch Stripe/payment logic.
 - A migration marked "applied" in the ledger while its effect is **absent** would hide real drift — hence
