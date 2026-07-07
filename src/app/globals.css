@@ -636,6 +636,7 @@ html[data-theme='light'] .app-theme-scope {
      shimmer). Kept slow and warm so it reads like light moving across brass,
      not a neon flash. */
   .text-metallic-gold {
+    display: inline-block;
     background: linear-gradient(
       105deg,
       #B98F45 0%,
@@ -649,6 +650,7 @@ html[data-theme='light'] .app-theme-scope {
     background-clip: text;
     -webkit-text-fill-color: transparent;
     animation: shimmer 4.5s linear infinite;
+    will-change: background-position;
   }
   .border-gold-gradient {
     position: relative;
