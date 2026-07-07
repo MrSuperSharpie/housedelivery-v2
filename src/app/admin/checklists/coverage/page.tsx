@@ -56,6 +56,19 @@ interface GapDimension {
   supported: boolean
 }
 
+interface DormantOntarioCoverage {
+  family: 'ontario'
+  statusLabel: 'Planned / Dormant / Not Publicly Enabled'
+  baseSlug: string
+  plannedSlugs: string[]
+  isActive: boolean
+  dispatchEnabled: boolean
+  templatesActive: boolean
+  publicRoutingEnabled: boolean
+  resolverFallbackToBcbcBlocked: boolean
+  note: string
+}
+
 interface CoveragePayload {
   ok: boolean
   totals: Totals
@@ -67,6 +80,7 @@ interface CoveragePayload {
   resolverBasis: ResolverDimension[]
   largerProjectGaps: GapDimension[]
   templateGovernance: { hasReviewPublishWorkflow: boolean; note: string }
+  dormantOntarioCoverage: DormantOntarioCoverage
 }
 
 // ─── Small presentational helpers ───────────────────────────────────────────────
@@ -228,6 +242,68 @@ export default function ChecklistCoveragePage() {
                 </li>
               ))}
             </ul>
+          </section>
+
+          {/* Dormant Ontario scaffold */}
+          <section className="rounded-xl border border-flame/20 bg-flame/5 p-6">
+            <div className="flex flex-wrap items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-flame" />
+              <h2 className="text-sm font-black uppercase tracking-[0.18em] text-ink">Ontario Coverage Readiness</h2>
+              <span className="rounded-full border border-flame/25 bg-flame/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-flame">
+                {data.dormantOntarioCoverage.statusLabel}
+              </span>
+            </div>
+            <p className="mt-2 text-xs text-muted">{data.dormantOntarioCoverage.note}</p>
+            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+              <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-surface/40 px-4 py-2.5">
+                <MinusCircle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                <span className="text-sm text-ink">Ontario active</span>
+                <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-flame">
+                  {data.dormantOntarioCoverage.isActive ? 'Yes' : 'No'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-surface/40 px-4 py-2.5">
+                <MinusCircle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                <span className="text-sm text-ink">Ontario dispatch</span>
+                <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-flame">
+                  {data.dormantOntarioCoverage.dispatchEnabled ? 'Enabled' : 'Disabled'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-surface/40 px-4 py-2.5">
+                <MinusCircle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                <span className="text-sm text-ink">Ontario templates</span>
+                <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-flame">
+                  {data.dormantOntarioCoverage.templatesActive ? 'Active' : 'Not active'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-surface/40 px-4 py-2.5">
+                <MinusCircle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                <span className="text-sm text-ink">Public Ontario routing</span>
+                <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-flame">
+                  {data.dormantOntarioCoverage.publicRoutingEnabled ? 'Enabled' : 'Disabled'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-surface/40 px-4 py-2.5">
+                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success-green" />
+                <span className="text-sm text-ink">Explicit Ontario → BCBC fallback</span>
+                <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-success-green">
+                  {data.dormantOntarioCoverage.resolverFallbackToBcbcBlocked ? 'Blocked' : 'Allowed'}
+                </span>
+              </div>
+            </div>
+            <div className="mt-4 rounded-lg border border-white/8 bg-surface/40 px-4 py-3">
+              <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-subtle">Planned Dormant Slugs</div>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {data.dormantOntarioCoverage.plannedSlugs.map(slug => (
+                  <span
+                    key={slug}
+                    className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-bold text-ink/80"
+                  >
+                    {slug}
+                  </span>
+                ))}
+              </div>
+            </div>
           </section>
 
           {/* Larger-project gaps */}

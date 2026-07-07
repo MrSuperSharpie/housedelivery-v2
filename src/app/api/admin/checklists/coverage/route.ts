@@ -4,6 +4,7 @@ import { requireAdminApi } from '@/lib/adminApiGuard'
 import {
   ACTIVE_BC_TEMPLATE_JURISDICTIONS,
   DORMANT_ONTARIO_JURISDICTION_FAMILY,
+  getDormantOntarioCoverageReadiness,
 } from '@/lib/inspections/jurisdictionResolver'
 
 /**
@@ -198,6 +199,8 @@ export async function GET() {
     note: 'Templates carry only an active flag and a version number — no draft, review, or publish governance field exists.',
   }
 
+  const dormantOntarioCoverage = getDormantOntarioCoverageReadiness()
+
   const totals = {
     jurisdictions: allJurisdictions.length,
     activeJurisdictions: activeJurisdictions.length,
@@ -226,5 +229,6 @@ export async function GET() {
     resolverBasis,
     largerProjectGaps,
     templateGovernance,
+    dormantOntarioCoverage,
   })
 }

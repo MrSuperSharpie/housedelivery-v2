@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import {
   ACTIVE_BC_TEMPLATE_JURISDICTIONS,
   DORMANT_ONTARIO_JURISDICTION_FAMILY,
+  getDormantOntarioCoverageReadiness,
   resolveTemplateJurisdiction,
 } from './jurisdictionResolver'
 
@@ -44,4 +45,21 @@ test('Ontario scaffold remains dormant and inactive', () => {
     ['toronto_obc_2024', 'ottawa_obc_2024', 'mississauga_obc_2024'],
   )
   assert.ok(DORMANT_ONTARIO_JURISDICTION_FAMILY.futureOverlays.every(overlay => overlay.isActive === false))
+})
+
+test('Ontario admin coverage readiness reports dormant safeguards', () => {
+  const readiness = getDormantOntarioCoverageReadiness()
+
+  assert.equal(readiness.statusLabel, 'Planned / Dormant / Not Publicly Enabled')
+  assert.equal(readiness.isActive, false)
+  assert.equal(readiness.dispatchEnabled, false)
+  assert.equal(readiness.templatesActive, false)
+  assert.equal(readiness.publicRoutingEnabled, false)
+  assert.equal(readiness.resolverFallbackToBcbcBlocked, true)
+  assert.deepEqual(readiness.plannedSlugs, [
+    'obc_2024',
+    'toronto_obc_2024',
+    'ottawa_obc_2024',
+    'mississauga_obc_2024',
+  ])
 })

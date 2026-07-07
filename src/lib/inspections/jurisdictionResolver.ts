@@ -18,6 +18,19 @@ export const DORMANT_ONTARIO_JURISDICTION_FAMILY = {
   ],
 } as const
 
+export interface DormantOntarioCoverageReadiness {
+  family: typeof DORMANT_ONTARIO_JURISDICTION_FAMILY.family
+  statusLabel: 'Planned / Dormant / Not Publicly Enabled'
+  baseSlug: typeof DORMANT_ONTARIO_JURISDICTION_FAMILY.baseSlug
+  plannedSlugs: string[]
+  isActive: false
+  dispatchEnabled: false
+  templatesActive: false
+  publicRoutingEnabled: false
+  resolverFallbackToBcbcBlocked: true
+  note: string
+}
+
 export interface TemplateJurisdictionInput {
   city?: string | null
   province?: string | null
@@ -98,5 +111,23 @@ export function resolveTemplateJurisdiction(
     slug: ACTIVE_BC_TEMPLATE_JURISDICTIONS.provinceBase,
     allowTemplateFallback: true,
     reason: 'BC launch fallback resolves to BCBC 2024.',
+  }
+}
+
+export function getDormantOntarioCoverageReadiness(): DormantOntarioCoverageReadiness {
+  return {
+    family: DORMANT_ONTARIO_JURISDICTION_FAMILY.family,
+    statusLabel: 'Planned / Dormant / Not Publicly Enabled',
+    baseSlug: DORMANT_ONTARIO_JURISDICTION_FAMILY.baseSlug,
+    plannedSlugs: [
+      DORMANT_ONTARIO_JURISDICTION_FAMILY.baseSlug,
+      ...DORMANT_ONTARIO_JURISDICTION_FAMILY.futureOverlays.map(overlay => overlay.slug),
+    ],
+    isActive: false,
+    dispatchEnabled: false,
+    templatesActive: false,
+    publicRoutingEnabled: false,
+    resolverFallbackToBcbcBlocked: true,
+    note: 'Ontario is scaffolded for admin readiness review only; no Ontario templates, dispatch, or public routing are active.',
   }
 }

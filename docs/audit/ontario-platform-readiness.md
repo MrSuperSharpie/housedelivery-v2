@@ -749,6 +749,20 @@ The dormant Ontario scaffold is not a public launch. It should not add database 
 - `ottawa_obc_2024`
 - `mississauga_obc_2024`
 
+## LOOP 03 Admin Coverage Visibility Notes
+
+The dormant Ontario scaffold can be shown in Coverage Diagnostic as an admin-only readiness signal. This is visibility, not activation.
+
+The admin diagnostic should clearly report:
+
+- Ontario is planned, dormant, and not publicly enabled,
+- Ontario dispatch is disabled,
+- Ontario templates are not active,
+- explicit Ontario context is blocked from falling back to BCBC, and
+- planned slugs remain `obc_2024`, `toronto_obc_2024`, `ottawa_obc_2024`, and `mississauga_obc_2024`.
+
+This does not add database rows, migrations, Ontario checklist templates, builder dispatch options, inspector claiming behavior, Schedule C-B changes, Vault/seal changes, or production settings. The live BC/Vancouver coverage matrix remains driven by active DB jurisdictions and stages only.
+
 ## Documentation-Only Confirmation
 
 This audit is documentation only.
