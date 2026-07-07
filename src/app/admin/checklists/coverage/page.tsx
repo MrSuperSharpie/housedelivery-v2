@@ -69,6 +69,36 @@ interface DormantOntarioCoverage {
   note: string
 }
 
+interface DormantOntarioTemplateFoundation {
+  family: 'ontario'
+  statusLabel: 'Draft / Planned / Dormant / Not Active / Requires Review'
+  scopeLabel: string
+  isActive: boolean
+  templatesActive: boolean
+  publicRoutingEnabled: boolean
+  dispatchEnabled: boolean
+  participatesInActiveDbResolution: boolean
+  checklistResponsesExpected: boolean
+  note: string
+  categories: {
+    id: string
+    title: string
+    status: string
+    requiresReview: boolean
+    isActive: boolean
+    participatesInActiveResolution: boolean
+    note: string
+  }[]
+  municipalOverlays: {
+    slug: string
+    municipality: string
+    status: string
+    requiresReview: boolean
+    isActive: boolean
+    templatesActive: boolean
+  }[]
+}
+
 interface CoveragePayload {
   ok: boolean
   totals: Totals
@@ -81,6 +111,7 @@ interface CoveragePayload {
   largerProjectGaps: GapDimension[]
   templateGovernance: { hasReviewPublishWorkflow: boolean; note: string }
   dormantOntarioCoverage: DormantOntarioCoverage
+  dormantOntarioTemplateFoundation: DormantOntarioTemplateFoundation
 }
 
 // ─── Small presentational helpers ───────────────────────────────────────────────
@@ -302,6 +333,67 @@ export default function ChecklistCoveragePage() {
                     {slug}
                   </span>
                 ))}
+              </div>
+            </div>
+            <div className="mt-4 rounded-lg border border-white/8 bg-surface/40 px-4 py-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="text-sm font-black text-ink">{data.dormantOntarioTemplateFoundation.scopeLabel}</div>
+                <span className="rounded-full border border-flame/25 bg-flame/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-flame">
+                  {data.dormantOntarioTemplateFoundation.statusLabel}
+                </span>
+              </div>
+              <p className="mt-2 text-xs text-muted">{data.dormantOntarioTemplateFoundation.note}</p>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-black/10 px-3 py-2">
+                  <MinusCircle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                  <span className="text-xs text-ink">Foundation participates in DB resolution</span>
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-flame">
+                    {data.dormantOntarioTemplateFoundation.participatesInActiveDbResolution ? 'Yes' : 'No'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-black/10 px-3 py-2">
+                  <MinusCircle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                  <span className="text-xs text-ink">Ontario checklist responses expected</span>
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-flame">
+                    {data.dormantOntarioTemplateFoundation.checklistResponsesExpected ? 'Yes' : 'No'}
+                  </span>
+                </div>
+              </div>
+              <div className="mt-4">
+                <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-subtle">
+                  Draft/Internal Template Categories
+                </div>
+                <div className="mt-2 grid gap-2 md:grid-cols-2">
+                  {data.dormantOntarioTemplateFoundation.categories.map(category => (
+                    <div key={category.id} className="rounded-lg border border-white/8 bg-black/10 px-3 py-2.5">
+                      <div className="text-xs font-bold text-ink">{category.title}</div>
+                      <div className="mt-1 text-[11px] text-muted">{category.note}</div>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        <span className="rounded-full border border-flame/20 bg-flame/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-flame">
+                          Not live
+                        </span>
+                        <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-subtle">
+                          Requires review
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-4">
+                <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-subtle">
+                  Municipal Overlay Placeholders
+                </div>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {data.dormantOntarioTemplateFoundation.municipalOverlays.map(overlay => (
+                    <span
+                      key={overlay.slug}
+                      className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-bold text-ink/80"
+                    >
+                      {overlay.municipality}: {overlay.slug} · Future review required
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
           </section>

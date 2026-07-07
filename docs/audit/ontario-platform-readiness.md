@@ -763,6 +763,29 @@ The admin diagnostic should clearly report:
 
 This does not add database rows, migrations, Ontario checklist templates, builder dispatch options, inspector claiming behavior, Schedule C-B changes, Vault/seal changes, or production settings. The live BC/Vancouver coverage matrix remains driven by active DB jurisdictions and stages only.
 
+## LOOP 04 Small Residential Template Foundation Notes
+
+The first Ontario template foundation should remain TypeScript-only planning metadata. It can help admins see the future Ontario small-residential coverage shape without creating live Supabase checklist templates or routing Ontario work into production.
+
+The dormant foundation should describe draft/internal categories for:
+
+- Ontario Building Code 2024 small residential core,
+- Application for a Permit to Construct or Demolish,
+- Schedule 1 Designer Information,
+- BCIN/designer information placeholders,
+- site plan,
+- architectural drawings,
+- structural drawings/details where applicable,
+- energy efficiency / SB-12 where applicable,
+- HVAC / mechanical scope,
+- plumbing scope,
+- electrical authority boundary,
+- applicable law / zoning / municipal precheck,
+- final inspection / occupancy readiness, and
+- future Toronto, Ottawa, and Mississauga municipal overlay review.
+
+This foundation is not an active checklist template. It should be shown only in Admin Coverage Diagnostic or another internal admin-only review surface. It must not add database rows, migrations, Ontario dispatch, Ontario public routing, Ontario inspector claiming, Schedule C-B wording, Vault/seal behavior, or production settings.
+
 ## Documentation-Only Confirmation
 
 This audit is documentation only.
