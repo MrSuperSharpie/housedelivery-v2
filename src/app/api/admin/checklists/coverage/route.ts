@@ -8,6 +8,7 @@ import {
 } from '@/lib/inspections/jurisdictionResolver'
 import { getDormantOntarioSmallResidentialTemplateFoundation } from '@/lib/inspections/ontarioSmallResidentialTemplateFoundation'
 import { getDormantOntarioStageAlignedTemplateMatrix } from '@/lib/inspections/ontarioStageAlignedTemplateMatrix'
+import { getDormantOntarioTemplateGovernance } from '@/lib/inspections/ontarioTemplateGovernance'
 
 /**
  * Read-only admin diagnostic: reports current checklist/template coverage and
@@ -204,6 +205,7 @@ export async function GET() {
   const dormantOntarioCoverage = getDormantOntarioCoverageReadiness()
   const dormantOntarioTemplateFoundation = getDormantOntarioSmallResidentialTemplateFoundation()
   const dormantOntarioStageMatrix = getDormantOntarioStageAlignedTemplateMatrix()
+  const dormantOntarioTemplateGovernance = getDormantOntarioTemplateGovernance()
 
   const totals = {
     jurisdictions: allJurisdictions.length,
@@ -236,5 +238,6 @@ export async function GET() {
     dormantOntarioCoverage,
     dormantOntarioTemplateFoundation,
     dormantOntarioStageMatrix,
+    dormantOntarioTemplateGovernance,
   })
 }

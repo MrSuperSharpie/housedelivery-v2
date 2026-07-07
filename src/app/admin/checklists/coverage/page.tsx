@@ -126,6 +126,35 @@ interface DormantOntarioStageMatrix {
   municipalOverlaySlugs: string[]
 }
 
+interface DormantOntarioTemplateGovernance {
+  family: 'ontario'
+  statusLabel: 'Draft / Dormant / Not Active / Not Publicly Enabled / Not Production Approved'
+  governanceStatus: string
+  foundationStatus: string
+  stageMatrixStatus: string
+  publicEnabled: boolean
+  dispatchEnabled: boolean
+  inspectorClaimingEnabled: boolean
+  activeTemplateResolutionEnabled: boolean
+  sourceReviewStatus: string
+  professionalReviewStatus: string
+  municipalOverlayReviewStatus: string
+  productionApprovalStatus: string
+  checklistResponsesExpected: boolean
+  referencesExistingFoundation: boolean
+  referencesExistingStageMatrix: boolean
+  foundationScopeLabel: string
+  stageMatrixScopeLabel: string
+  note: string
+  activationBlockers: string[]
+  sourceCategories: {
+    id: string
+    label: string
+    status: string
+    note: string
+  }[]
+}
+
 interface CoveragePayload {
   ok: boolean
   totals: Totals
@@ -140,6 +169,7 @@ interface CoveragePayload {
   dormantOntarioCoverage: DormantOntarioCoverage
   dormantOntarioTemplateFoundation: DormantOntarioTemplateFoundation
   dormantOntarioStageMatrix: DormantOntarioStageMatrix
+  dormantOntarioTemplateGovernance: DormantOntarioTemplateGovernance
 }
 
 // ─── Small presentational helpers ───────────────────────────────────────────────
@@ -348,6 +378,84 @@ export default function ChecklistCoveragePage() {
                 <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-success-green">
                   {data.dormantOntarioCoverage.resolverFallbackToBcbcBlocked ? 'Blocked' : 'Allowed'}
                 </span>
+              </div>
+            </div>
+            <div className="mt-4 rounded-lg border border-white/8 bg-surface/40 px-4 py-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="text-sm font-black text-ink">Ontario Template Governance &amp; Source Review</div>
+                <span className="rounded-full border border-flame/25 bg-flame/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-flame">
+                  {data.dormantOntarioTemplateGovernance.statusLabel}
+                </span>
+              </div>
+              <p className="mt-2 text-xs text-muted">{data.dormantOntarioTemplateGovernance.note}</p>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-black/10 px-3 py-2">
+                  <MinusCircle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                  <span className="text-xs text-ink">Production approval</span>
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-flame">
+                    {data.dormantOntarioTemplateGovernance.productionApprovalStatus.replaceAll('_', ' ')}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-black/10 px-3 py-2">
+                  <MinusCircle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                  <span className="text-xs text-ink">Inspector claiming</span>
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-flame">
+                    {data.dormantOntarioTemplateGovernance.inspectorClaimingEnabled ? 'Enabled' : 'Disabled'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-black/10 px-3 py-2">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                  <span className="text-xs text-ink">Source review</span>
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-flame">
+                    {data.dormantOntarioTemplateGovernance.sourceReviewStatus.replaceAll('_', ' ')}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-black/10 px-3 py-2">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                  <span className="text-xs text-ink">Professional/AHJ review</span>
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-flame">
+                    {data.dormantOntarioTemplateGovernance.professionalReviewStatus.replaceAll('_', ' ')}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-black/10 px-3 py-2">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                  <span className="text-xs text-ink">Municipal overlay review</span>
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-flame">
+                    {data.dormantOntarioTemplateGovernance.municipalOverlayReviewStatus.replaceAll('_', ' ')}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-black/10 px-3 py-2">
+                  <MinusCircle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                  <span className="text-xs text-ink">Active template resolution</span>
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-flame">
+                    {data.dormantOntarioTemplateGovernance.activeTemplateResolutionEnabled ? 'Enabled' : 'Not participating'}
+                  </span>
+                </div>
+              </div>
+              <div className="mt-4">
+                <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-subtle">Activation Blockers</div>
+                <ul className="mt-2 grid gap-1.5 md:grid-cols-2">
+                  {data.dormantOntarioTemplateGovernance.activationBlockers.map(blocker => (
+                    <li key={blocker} className="flex items-start gap-2 rounded-lg border border-white/8 bg-black/10 px-3 py-2 text-[11px] text-muted">
+                      <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0 text-flame" />
+                      <span>{blocker}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="mt-4">
+                <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-subtle">Draft Source Categories</div>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {data.dormantOntarioTemplateGovernance.sourceCategories.map(category => (
+                    <span
+                      key={category.id}
+                      className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-bold text-ink/80"
+                      title={category.note}
+                    >
+                      {category.label} · Requires review
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
             <div className="mt-4 rounded-lg border border-white/8 bg-surface/40 px-4 py-3">

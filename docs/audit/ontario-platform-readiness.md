@@ -805,6 +805,28 @@ The stage matrix should remain TypeScript-only internal planning metadata. It sh
 
 This matrix is not an active checklist, does not participate in DB template resolution, does not create Ontario checklist responses, and does not enable Ontario dispatch, public routing, inspector claiming, Schedule C-B wording, Vault/seal behavior, or production settings. Toronto, Ottawa, and Mississauga overlays remain future/review-required placeholders.
 
+## LOOP 06 Template Governance and Source Review Notes
+
+The Ontario foundation and stage matrix need a dormant governance layer before any future activation decision. The layer should remain TypeScript-only internal planning metadata and should identify review status, source categories, production approval state, and activation blockers.
+
+The governance layer should report:
+
+- foundation status: draft, dormant, not active,
+- stage matrix status: draft, dormant, not active,
+- public availability: not publicly enabled,
+- builder dispatch: disabled,
+- inspector claiming: disabled,
+- active DB template resolution: not participating,
+- source review: required before activation,
+- professional/AHJ review: required before activation,
+- municipal overlays: future review required,
+- production approval: not granted, and
+- checklist responses: none expected while dormant.
+
+Source categories remain draft/internal references for OBC 2024 core, municipal building department requirements, Schedule 1 Designer Information, BCIN/designer information, applicable law/zoning/municipal precheck, energy efficiency/SB-12, trade authority boundaries, final inspection/occupancy readiness, and future Toronto, Ottawa, and Mississauga overlays.
+
+This governance layer does not approve Ontario content, does not make templates live, and does not change BC/Vancouver resolver behavior, dispatch, inspector claiming, Schedule C-B, Vault/seal behavior, or production settings.
+
 ## Documentation-Only Confirmation
 
 This audit is documentation only.
