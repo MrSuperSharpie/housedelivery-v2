@@ -786,6 +786,25 @@ The dormant foundation should describe draft/internal categories for:
 
 This foundation is not an active checklist template. It should be shown only in Admin Coverage Diagnostic or another internal admin-only review surface. It must not add database rows, migrations, Ontario dispatch, Ontario public routing, Ontario inspector claiming, Schedule C-B wording, Vault/seal behavior, or production settings.
 
+## LOOP 05 Stage-Aligned Template Matrix Notes
+
+The Ontario template foundation can be mapped to Vero's existing S01-S15 stage architecture as a dormant planning matrix. This keeps Ontario inside the existing Vero Permit platform instead of creating a separate Ontario workflow.
+
+The stage matrix should remain TypeScript-only internal planning metadata. It should show draft Ontario coverage for the existing stages, including:
+
+- S01 site survey / excavation readiness,
+- S02-S05 planning, site, foundation, and structural readiness where applicable,
+- S06-S07 framing and architectural/envelope review readiness,
+- S09 plumbing scope placeholder,
+- S10 electrical authority boundary placeholder,
+- S11 HVAC / mechanical scope placeholder,
+- S12 energy efficiency / SB-12 placeholder,
+- S13 interior completion readiness,
+- S14 exterior/site finalization readiness, and
+- S15 final inspection / occupancy readiness placeholder.
+
+This matrix is not an active checklist, does not participate in DB template resolution, does not create Ontario checklist responses, and does not enable Ontario dispatch, public routing, inspector claiming, Schedule C-B wording, Vault/seal behavior, or production settings. Toronto, Ottawa, and Mississauga overlays remain future/review-required placeholders.
+
 ## Documentation-Only Confirmation
 
 This audit is documentation only.

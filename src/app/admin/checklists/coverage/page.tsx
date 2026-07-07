@@ -99,6 +99,33 @@ interface DormantOntarioTemplateFoundation {
   }[]
 }
 
+interface DormantOntarioStageMatrix {
+  family: 'ontario'
+  statusLabel: 'Draft / Planned / Dormant / Not Active / Requires Review'
+  scopeLabel: string
+  isActive: boolean
+  templatesActive: boolean
+  publicRoutingEnabled: boolean
+  dispatchEnabled: boolean
+  participatesInActiveDbResolution: boolean
+  checklistResponsesExpected: boolean
+  usesExistingVeroStageArchitecture: boolean
+  note: string
+  stages: {
+    stageId: string
+    stageNumber: number
+    stageTitle: string
+    draftOntarioCoverage: string
+    foundationCategoryIds: string[]
+    status: string
+    requiresReview: boolean
+    isActive: boolean
+    participatesInActiveResolution: boolean
+    note: string
+  }[]
+  municipalOverlaySlugs: string[]
+}
+
 interface CoveragePayload {
   ok: boolean
   totals: Totals
@@ -112,6 +139,7 @@ interface CoveragePayload {
   templateGovernance: { hasReviewPublishWorkflow: boolean; note: string }
   dormantOntarioCoverage: DormantOntarioCoverage
   dormantOntarioTemplateFoundation: DormantOntarioTemplateFoundation
+  dormantOntarioStageMatrix: DormantOntarioStageMatrix
 }
 
 // ─── Small presentational helpers ───────────────────────────────────────────────
@@ -391,6 +419,83 @@ export default function ChecklistCoveragePage() {
                       className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-bold text-ink/80"
                     >
                       {overlay.municipality}: {overlay.slug} · Future review required
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="mt-4 rounded-lg border border-white/8 bg-surface/40 px-4 py-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="text-sm font-black text-ink">{data.dormantOntarioStageMatrix.scopeLabel}</div>
+                <span className="rounded-full border border-flame/25 bg-flame/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-flame">
+                  {data.dormantOntarioStageMatrix.statusLabel}
+                </span>
+              </div>
+              <p className="mt-2 text-xs text-muted">{data.dormantOntarioStageMatrix.note}</p>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-black/10 px-3 py-2">
+                  <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success-green" />
+                  <span className="text-xs text-ink">Uses Vero S01-S15 stage architecture</span>
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-success-green">
+                    {data.dormantOntarioStageMatrix.usesExistingVeroStageArchitecture ? 'Yes' : 'No'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-black/10 px-3 py-2">
+                  <MinusCircle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                  <span className="text-xs text-ink">Stage matrix participates in DB resolution</span>
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-flame">
+                    {data.dormantOntarioStageMatrix.participatesInActiveDbResolution ? 'Yes' : 'No'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-black/10 px-3 py-2">
+                  <MinusCircle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                  <span className="text-xs text-ink">Ontario stage templates active</span>
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-flame">
+                    {data.dormantOntarioStageMatrix.templatesActive ? 'Yes' : 'No'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-black/10 px-3 py-2">
+                  <MinusCircle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                  <span className="text-xs text-ink">Ontario stage responses expected</span>
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-flame">
+                    {data.dormantOntarioStageMatrix.checklistResponsesExpected ? 'Yes' : 'No'}
+                  </span>
+                </div>
+              </div>
+              <div className="mt-4">
+                <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-subtle">
+                  Draft/Internal Stage Matrix
+                </div>
+                <div className="mt-2 grid gap-2">
+                  {data.dormantOntarioStageMatrix.stages.map(stage => (
+                    <div key={stage.stageId} className="rounded-lg border border-white/8 bg-black/10 px-3 py-2.5">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-[11px] font-black uppercase tracking-wide text-subtle">{stage.stageId}</span>
+                        <span className="text-xs font-bold text-ink">{stage.stageTitle}</span>
+                        <span className="rounded-full border border-flame/20 bg-flame/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-flame">
+                          Planned, not live
+                        </span>
+                        <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-subtle">
+                          Requires review
+                        </span>
+                      </div>
+                      <div className="mt-1 text-[11px] text-muted">{stage.draftOntarioCoverage}</div>
+                      <div className="mt-1 text-[10px] text-subtle">{stage.note}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-4">
+                <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-subtle">
+                  Future Municipal Overlay Review
+                </div>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {data.dormantOntarioStageMatrix.municipalOverlaySlugs.map(slug => (
+                    <span
+                      key={slug}
+                      className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-bold text-ink/80"
+                    >
+                      {slug} · Future review required
                     </span>
                   ))}
                 </div>
