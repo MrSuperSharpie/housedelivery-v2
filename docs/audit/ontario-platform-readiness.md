@@ -734,6 +734,21 @@ Recommended scope:
 
 The first technical goal is preventing the unsafe fallback where an Ontario city would resolve to BCBC 2024. The first product goal is keeping Ontario as an expansion path while BC/Vancouver launch remains stable.
 
+## LOOP 02 Scaffold Notes
+
+The first dormant scaffold should do only three things:
+
+- centralize BC jurisdiction resolution so the duplicated Vancouver/BCBC mapping does not drift,
+- preserve live BC behavior exactly, and
+- introduce Ontario as inactive metadata so explicit Ontario context cannot silently receive a BCBC template.
+
+The dormant Ontario scaffold is not a public launch. It should not add database rows, enable dispatch, create templates, change inspector eligibility, or alter Schedule C-B/Vault/seal behavior. Future Ontario slugs remain planning metadata until reviewed:
+
+- `obc_2024`
+- `toronto_obc_2024`
+- `ottawa_obc_2024`
+- `mississauga_obc_2024`
+
 ## Documentation-Only Confirmation
 
 This audit is documentation only.

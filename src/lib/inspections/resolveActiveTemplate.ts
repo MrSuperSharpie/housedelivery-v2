@@ -9,6 +9,7 @@
  * response/progress data — it returns the blank reference template only.
  */
 import type { createClient } from '@/lib/supabase/server'
+import { resolveTemplateJurisdiction } from '@/lib/inspections/jurisdictionResolver'
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
 
@@ -33,18 +34,9 @@ export type ResolvedTemplate =
     }
   | { resolved: false }
 
-// Maps a project city to the best matching jurisdiction slug. Vancouver
-// projects use VBBL 2025; all other BC projects default to BCBC 2024.
-// NOTE: copied (Phase 0) from src/app/inspector/stages/page.tsx to avoid
-// editing that working page; consolidate into one helper in a later phase.
-function cityToJurisdictionSlug(city: string | null): string {
-  if (!city) return 'bcbc_2024'
-  return city.trim().toLowerCase() === 'vancouver' ? 'vbbl_2025' : 'bcbc_2024'
-}
-
 export async function resolveActiveTemplate(
   supabase: SupabaseServerClient,
-  { stageNumber, city }: { stageNumber: number; city: string | null },
+  { stageNumber, city, province }: { stageNumber: number; city: string | null; province?: string | null },
 ): Promise<ResolvedTemplate> {
   // ── DB stage row (stage_number → id + title) ────────────────────────────────
   const { data: stageRow } = await supabase
@@ -65,33 +57,36 @@ export async function resolveActiveTemplate(
   let templateVersion: number | null = null
   let jurisdictionName: string | null = null
 
-  const jurisdictionSlug = cityToJurisdictionSlug(city)
-  const { data: jx } = await supabase
-    .from('jurisdictions')
-    .select('id, name')
-    .eq('slug', jurisdictionSlug)
-    .maybeSingle()
+  const jurisdictionResolution = resolveTemplateJurisdiction({ city, province })
 
-  if (jx?.id) {
-    const { data: tmpl } = await supabase
-      .from('stage_checklist_templates')
-      .select('id, title, version')
-      .eq('stage_id', stageId)
-      .eq('jurisdiction_id', jx.id)
-      .eq('is_active', true)
-      .order('version', { ascending: false })
-      .limit(1)
+  if (jurisdictionResolution.status === 'active') {
+    const { data: jx } = await supabase
+      .from('jurisdictions')
+      .select('id, name')
+      .eq('slug', jurisdictionResolution.slug)
       .maybeSingle()
-    if (tmpl?.id) {
-      templateId = tmpl.id as string
-      templateTitle = tmpl.title as string
-      templateVersion = tmpl.version as number
-      jurisdictionName = (jx.name as string | null) ?? null
+
+    if (jx?.id) {
+      const { data: tmpl } = await supabase
+        .from('stage_checklist_templates')
+        .select('id, title, version')
+        .eq('stage_id', stageId)
+        .eq('jurisdiction_id', jx.id)
+        .eq('is_active', true)
+        .order('version', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      if (tmpl?.id) {
+        templateId = tmpl.id as string
+        templateTitle = tmpl.title as string
+        templateVersion = tmpl.version as number
+        jurisdictionName = (jx.name as string | null) ?? null
+      }
     }
   }
 
   // Fallback: any active template for this stage (unknown/unmapped city).
-  if (!templateId) {
+  if (!templateId && jurisdictionResolution.allowTemplateFallback) {
     const { data: tmpl } = await supabase
       .from('stage_checklist_templates')
       .select('id, title, version')

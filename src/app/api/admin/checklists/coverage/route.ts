@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { requireAdminApi } from '@/lib/adminApiGuard'
+import {
+  ACTIVE_BC_TEMPLATE_JURISDICTIONS,
+  DORMANT_ONTARIO_JURISDICTION_FAMILY,
+} from '@/lib/inspections/jurisdictionResolver'
 
 /**
  * Read-only admin diagnostic: reports current checklist/template coverage and
@@ -172,7 +176,7 @@ export async function GET() {
     {
       dimension: 'Jurisdiction',
       used: true,
-      note: 'City maps to a jurisdiction (Vancouver → VBBL 2025, otherwise BCBC 2024).',
+      note: `City maps to a jurisdiction (Vancouver → ${ACTIVE_BC_TEMPLATE_JURISDICTIONS.vancouver}, otherwise ${ACTIVE_BC_TEMPLATE_JURISDICTIONS.provinceBase}). Dormant Ontario scaffold (${DORMANT_ONTARIO_JURISDICTION_FAMILY.baseSlug}) is not active and is not used for live resolution.`,
     },
   ]
 

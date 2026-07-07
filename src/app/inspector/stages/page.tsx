@@ -7,6 +7,7 @@ import {
   getStageLockState,
 } from '@/lib/inspections/access'
 import type { InspectionStage, ChecklistItem, ChecklistResponse, StageLockState } from '@/lib/inspections/access'
+import { resolveTemplateJurisdiction } from '@/lib/inspections/jurisdictionResolver'
 import { StagesClient } from './StagesClient'
 
 // null = error fetching lock state
@@ -19,13 +20,6 @@ interface SchemaDependency {
 
 interface Props {
   searchParams: Promise<{ stage?: string; permitId?: string }>
-}
-
-// Maps a project city to the best matching jurisdiction slug.
-// Vancouver projects use VBBL 2025; all other BC projects default to BCBC 2024.
-function cityToJurisdictionSlug(city: string | null): string {
-  if (!city) return 'bcbc_2024'
-  return city.trim().toLowerCase() === 'vancouver' ? 'vbbl_2025' : 'bcbc_2024'
 }
 
 export default async function InspectorStagesPage({ searchParams }: Props) {
@@ -78,25 +72,27 @@ export default async function InspectorStagesPage({ searchParams }: Props) {
         .eq('id', projectIdNum)
         .single()
 
-      const jurisdictionSlug = cityToJurisdictionSlug(project?.city ?? null)
+      const jurisdictionResolution = resolveTemplateJurisdiction({ city: project?.city ?? null })
 
-      const { data: jx } = await supabase
-        .from('jurisdictions')
-        .select('id')
-        .eq('slug', jurisdictionSlug)
-        .maybeSingle()
-
-      if (jx?.id) {
-        const { data: tmpl } = await supabase
-          .from('stage_checklist_templates')
+      if (jurisdictionResolution.status === 'active') {
+        const { data: jx } = await supabase
+          .from('jurisdictions')
           .select('id')
-          .eq('stage_id', selectedStage.id)
-          .eq('jurisdiction_id', jx.id)
-          .eq('is_active', true)
-          .order('version', { ascending: false })
-          .limit(1)
+          .eq('slug', jurisdictionResolution.slug)
           .maybeSingle()
-        activeTemplateId = tmpl?.id ?? null
+
+        if (jx?.id) {
+          const { data: tmpl } = await supabase
+            .from('stage_checklist_templates')
+            .select('id')
+            .eq('stage_id', selectedStage.id)
+            .eq('jurisdiction_id', jx.id)
+            .eq('is_active', true)
+            .order('version', { ascending: false })
+            .limit(1)
+            .maybeSingle()
+          activeTemplateId = tmpl?.id ?? null
+        }
       }
     }
 
