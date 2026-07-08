@@ -861,6 +861,14 @@ Each dry-run result must remain dormant and must state that public routing, disp
 
 The dry-run is not a resolver activation path. Explicit Ontario context must continue to block silent fallback to `bcbc_2024`, and BC/Vancouver behavior must remain unchanged.
 
+## LOOP 09 Project Taxonomy Foundation Notes
+
+Ontario project taxonomy support should remain TypeScript-only internal planning metadata until product, professional/AHJ, municipal, and data-model review are complete. It should identify future fields Ontario will need without creating production intake, database rows, migrations, active templates, dispatch, claiming, or live resolver behavior.
+
+The dormant taxonomy should cover jurisdiction fields, project archetype, work type, small-residential categories, dwelling-unit counts, storeys, approximate building area, Part 9 / Part 3 path, occupancy classification, Schedule 1 Designer Information, BCIN/designer information, architect/engineer/general review placeholders, applicable law/zoning/municipal precheck, energy efficiency / SB-12, plumbing scope, HVAC/mechanical scope, electrical authority boundaries, municipal overlay review, professional/AHJ review, and production approval status.
+
+Every taxonomy field remains draft, planned, dormant, not active, requires review, not publicly enabled, and not production approved. No database migration has been created, Ontario project intake is not enabled, and the taxonomy does not participate in active DB template resolution.
+
 ## Documentation-Only Confirmation
 
 This audit is documentation only.

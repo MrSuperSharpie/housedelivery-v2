@@ -236,6 +236,36 @@ interface DormantOntarioAdminResolverDryRun {
   }[]
 }
 
+interface DormantOntarioProjectTaxonomyFoundation {
+  family: 'ontario'
+  statusLabel: string
+  scopeLabel: string
+  taxonomyStatus: string
+  publicRoutingEnabled: boolean
+  dispatchEnabled: boolean
+  inspectorClaimingEnabled: boolean
+  activeTemplateResolutionEnabled: boolean
+  projectIntakeEnabled: boolean
+  databaseMigrationCreated: boolean
+  productionApprovalStatus: string
+  municipalOverlayReviewStatus: string
+  professionalAhjReviewStatus: string
+  usesExistingOntarioMetadata: boolean
+  standaloneWorkflowCreated: boolean
+  note: string
+  activationBlockers: string[]
+  fields: {
+    id: string
+    label: string
+    group: string
+    status: string
+    reviewStatus: string
+    isActiveProductionField: boolean
+    requiresDatabaseMigrationBeforeActivation: boolean
+    note: string
+  }[]
+}
+
 interface CoveragePayload {
   ok: boolean
   totals: Totals
@@ -253,6 +283,7 @@ interface CoveragePayload {
   dormantOntarioTemplateGovernance: DormantOntarioTemplateGovernance
   dormantOntarioMunicipalOverlayFoundation: DormantOntarioMunicipalOverlayFoundation
   dormantOntarioAdminResolverDryRun: DormantOntarioAdminResolverDryRun
+  dormantOntarioProjectTaxonomyFoundation: DormantOntarioProjectTaxonomyFoundation
 }
 
 // ─── Small presentational helpers ───────────────────────────────────────────────
@@ -322,6 +353,17 @@ export default function ChecklistCoveragePage() {
       name,
       cells: cells.slice().sort((a, b) => a.stageNumber - b.stageNumber),
     }))
+  }, [data])
+
+  const ontarioTaxonomyFieldGroups = React.useMemo(() => {
+    if (!data) return []
+    const map = new Map<string, DormantOntarioProjectTaxonomyFoundation['fields']>()
+    for (const field of data.dormantOntarioProjectTaxonomyFoundation.fields) {
+      const list = map.get(field.group) ?? []
+      list.push(field)
+      map.set(field.group, list)
+    }
+    return Array.from(map.entries()).map(([group, fields]) => ({ group, fields }))
   }, [data])
 
   return (
@@ -763,6 +805,88 @@ export default function ChecklistCoveragePage() {
                           </li>
                         ))}
                       </ul>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="mt-4 rounded-lg border border-white/8 bg-surface/40 px-4 py-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="text-sm font-black text-ink">{data.dormantOntarioProjectTaxonomyFoundation.scopeLabel}</div>
+                <span className="rounded-full border border-flame/25 bg-flame/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-flame">
+                  {data.dormantOntarioProjectTaxonomyFoundation.statusLabel}
+                </span>
+              </div>
+              <p className="mt-2 text-xs text-muted">{data.dormantOntarioProjectTaxonomyFoundation.note}</p>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-black/10 px-3 py-2">
+                  <MinusCircle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                  <span className="text-xs text-ink">Ontario project intake</span>
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-flame">
+                    {data.dormantOntarioProjectTaxonomyFoundation.projectIntakeEnabled ? 'Enabled' : 'No'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-black/10 px-3 py-2">
+                  <MinusCircle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                  <span className="text-xs text-ink">Database migration created</span>
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-flame">
+                    {data.dormantOntarioProjectTaxonomyFoundation.databaseMigrationCreated ? 'Yes' : 'No'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-black/10 px-3 py-2">
+                  <MinusCircle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                  <span className="text-xs text-ink">Public Ontario routing</span>
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-flame">
+                    {data.dormantOntarioProjectTaxonomyFoundation.publicRoutingEnabled ? 'Enabled' : 'No'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-black/10 px-3 py-2">
+                  <MinusCircle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                  <span className="text-xs text-ink">Dispatch / inspector claiming</span>
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-flame">
+                    {data.dormantOntarioProjectTaxonomyFoundation.dispatchEnabled || data.dormantOntarioProjectTaxonomyFoundation.inspectorClaimingEnabled ? 'Enabled' : 'No'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-black/10 px-3 py-2">
+                  <MinusCircle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                  <span className="text-xs text-ink">Active DB template resolution</span>
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-flame">
+                    {data.dormantOntarioProjectTaxonomyFoundation.activeTemplateResolutionEnabled ? 'Enabled' : 'No'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-black/10 px-3 py-2">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                  <span className="text-xs text-ink">Review / production status</span>
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-flame">
+                    {data.dormantOntarioProjectTaxonomyFoundation.productionApprovalStatus.replaceAll('_', ' ')}
+                  </span>
+                </div>
+              </div>
+              <div className="mt-4">
+                <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-subtle">Activation Blockers</div>
+                <ul className="mt-2 grid gap-1.5 md:grid-cols-2">
+                  {data.dormantOntarioProjectTaxonomyFoundation.activationBlockers.map(blocker => (
+                    <li key={blocker} className="flex items-start gap-2 rounded-lg border border-white/8 bg-black/10 px-3 py-2 text-[11px] text-muted">
+                      <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0 text-flame" />
+                      <span>{blocker}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                {ontarioTaxonomyFieldGroups.map(group => (
+                  <div key={group.group} className="rounded-lg border border-white/8 bg-black/10 px-3 py-3">
+                    <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-subtle">{group.group}</div>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {group.fields.map(field => (
+                        <span
+                          key={field.id}
+                          className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-bold text-ink/75"
+                          title={field.note}
+                        >
+                          {field.label} · Draft · Requires review
+                        </span>
+                      ))}
                     </div>
                   </div>
                 ))}
