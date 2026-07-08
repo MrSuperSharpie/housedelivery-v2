@@ -415,6 +415,36 @@ interface DormantOntarioEvidenceDocumentRequirementsFoundation {
   }[]
 }
 
+interface DormantOntarioAuthorityPackageWordingSpec {
+  family: 'ontario'
+  statusLabel: string
+  specStatus: string
+  sourceDocumentPath: string
+  sourceDocumentTitle: string
+  recommendedPackageName: string
+  isActive: boolean
+  publicEnabled: boolean
+  authorityPackageGenerationEnabled: boolean
+  productionApprovalStatus: string
+  wordingReviewStatus: string
+  scheduleCbReusedForOntario: boolean
+  scheduleCbGenerationChanged: boolean
+  vaultSealCompletionChanged: boolean
+  vaultSealCompletionSecurityChanged: boolean
+  publicRoutingEnabled: boolean
+  dispatchEnabled: boolean
+  inspectorClaimingEnabled: boolean
+  activeTemplateResolutionEnabled: boolean
+  referencesExistingOntarioChecklistCatalog: boolean
+  referencesExistingOntarioEvidenceFoundation: boolean
+  referencesExistingOntarioGovernance: boolean
+  referencesExistingOntarioSimulator: boolean
+  standaloneWorkflowCreated: boolean
+  note: string
+  requiredSeparations: string[]
+  activationBlockers: string[]
+}
+
 interface CoveragePayload {
   ok: boolean
   totals: Totals
@@ -436,6 +466,7 @@ interface CoveragePayload {
   dormantOntarioIntakeRoutingReadinessSimulator: DormantOntarioIntakeRoutingReadinessSimulator
   dormantOntarioDraftChecklistItemCatalog: DormantOntarioDraftChecklistItemCatalog
   dormantOntarioEvidenceDocumentRequirementsFoundation: DormantOntarioEvidenceDocumentRequirementsFoundation
+  dormantOntarioAuthorityPackageWordingSpec: DormantOntarioAuthorityPackageWordingSpec
 }
 
 // ─── Small presentational helpers ───────────────────────────────────────────────
@@ -1349,6 +1380,64 @@ export default function ChecklistCoveragePage() {
                     Reuses the Ontario checklist catalog, foundation, stage matrix, taxonomy, municipal overlays,
                     governance, and simulator metadata. No evidence enforcement workflow is created.
                   </div>
+                </div>
+              </div>
+            </div>
+            <div className="mt-4 rounded-lg border border-white/8 bg-surface/40 px-4 py-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="text-sm font-black text-ink">Ontario Authority Package Wording Spec</div>
+                <span className="rounded-full border border-flame/25 bg-flame/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-flame">
+                  {data.dormantOntarioAuthorityPackageWordingSpec.statusLabel}
+                </span>
+              </div>
+              <p className="mt-2 text-xs text-muted">{data.dormantOntarioAuthorityPackageWordingSpec.note}</p>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {[
+                  ['Spec document', data.dormantOntarioAuthorityPackageWordingSpec.sourceDocumentPath],
+                  ['Recommended package name', data.dormantOntarioAuthorityPackageWordingSpec.recommendedPackageName],
+                  ['Authority package generation', data.dormantOntarioAuthorityPackageWordingSpec.authorityPackageGenerationEnabled ? 'Enabled' : 'Disabled'],
+                  ['Schedule C-B reused for Ontario', data.dormantOntarioAuthorityPackageWordingSpec.scheduleCbReusedForOntario ? 'Yes' : 'No'],
+                  ['Schedule C-B generation changed', data.dormantOntarioAuthorityPackageWordingSpec.scheduleCbGenerationChanged ? 'Yes' : 'No'],
+                  ['Vault/seal/completion changed', data.dormantOntarioAuthorityPackageWordingSpec.vaultSealCompletionChanged || data.dormantOntarioAuthorityPackageWordingSpec.vaultSealCompletionSecurityChanged ? 'Yes' : 'No'],
+                  ['Public Ontario routing', data.dormantOntarioAuthorityPackageWordingSpec.publicRoutingEnabled ? 'Enabled' : 'Disabled'],
+                  ['Dispatch / inspector claiming', data.dormantOntarioAuthorityPackageWordingSpec.dispatchEnabled || data.dormantOntarioAuthorityPackageWordingSpec.inspectorClaimingEnabled ? 'Enabled' : 'Disabled'],
+                  ['Production approval', data.dormantOntarioAuthorityPackageWordingSpec.productionApprovalStatus.replaceAll('_', ' ')],
+                ].map(([label, value]) => (
+                  <div key={label} className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-black/10 px-3 py-2">
+                    <MinusCircle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                    <span className="text-xs text-ink">{label}</span>
+                    <span className="ml-auto text-right text-[10px] font-bold uppercase tracking-wide text-flame">
+                      {value}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                <div className="rounded-lg border border-white/8 bg-black/10 px-3 py-3">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-subtle">
+                    Required Separations
+                  </div>
+                  <ul className="mt-2 grid gap-1.5">
+                    {data.dormantOntarioAuthorityPackageWordingSpec.requiredSeparations.map(item => (
+                      <li key={item} className="flex items-start gap-1.5 text-[10px] text-muted">
+                        <AlertTriangle className="mt-0.5 h-2.5 w-2.5 shrink-0 text-flame" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="rounded-lg border border-white/8 bg-black/10 px-3 py-3">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-subtle">
+                    Activation Blockers
+                  </div>
+                  <ul className="mt-2 grid gap-1.5">
+                    {data.dormantOntarioAuthorityPackageWordingSpec.activationBlockers.map(blocker => (
+                      <li key={blocker} className="flex items-start gap-1.5 text-[10px] text-muted">
+                        <AlertTriangle className="mt-0.5 h-2.5 w-2.5 shrink-0 text-flame" />
+                        <span>{blocker}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             </div>

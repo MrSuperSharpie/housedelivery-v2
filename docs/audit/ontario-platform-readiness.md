@@ -897,6 +897,12 @@ Planned requirement groups should remain explicitly labeled draft, planned, dorm
 
 Each planned requirement must preserve the activation blockers: no evidence upload enforcement, no active production document requirements, source review, municipal review, professional/AHJ review, production approval, inactive DB template resolution, disabled public routing, disabled dispatch, disabled inspector claiming, and no DB rows or migrations. These requirements are not approved Ontario evidence requirements and must remain visible only in Admin Coverage Diagnostic or another internal admin-only preview until later review.
 
+## LOOP 13 Authority Package Wording Spec Notes
+
+Ontario authority package wording should use the Pro-generated wording specification copied into `docs/specs/ontario-authority-package-wording-spec.md` as its dormant source document. The spec recommends Ontario Permit Support Package framing and explicitly separates Ontario wording from BC Schedule C-B, Letters of Assurance, and other British Columbia or Vancouver assurance language.
+
+This loop adds only an internal reference to the wording spec. Ontario authority package generation remains disabled, not publicly enabled, not production approved, and blocked by Ontario legal, municipal-process, and professional-practice review. Schedule C-B generation, Vault/seal/completion behavior, inspector workflow, dispatch, templates, Supabase state, and production behavior remain unchanged.
+
 ## Documentation-Only Confirmation
 
 This audit is documentation only.

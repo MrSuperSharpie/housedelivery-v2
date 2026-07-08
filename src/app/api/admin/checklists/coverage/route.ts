@@ -15,6 +15,7 @@ import { getDormantOntarioProjectTaxonomyFoundation } from '@/lib/inspections/on
 import { getDormantOntarioIntakeRoutingReadinessSimulator } from '@/lib/inspections/ontarioIntakeRoutingReadinessSimulator'
 import { getDormantOntarioDraftChecklistItemCatalog } from '@/lib/inspections/ontarioDraftChecklistItemCatalog'
 import { getDormantOntarioEvidenceDocumentRequirementsFoundation } from '@/lib/inspections/ontarioEvidenceDocumentRequirementsFoundation'
+import { getDormantOntarioAuthorityPackageWordingSpec } from '@/lib/inspections/ontarioAuthorityPackageWordingSpec'
 
 /**
  * Read-only admin diagnostic: reports current checklist/template coverage and
@@ -218,6 +219,7 @@ export async function GET() {
   const dormantOntarioIntakeRoutingReadinessSimulator = getDormantOntarioIntakeRoutingReadinessSimulator()
   const dormantOntarioDraftChecklistItemCatalog = getDormantOntarioDraftChecklistItemCatalog()
   const dormantOntarioEvidenceDocumentRequirementsFoundation = getDormantOntarioEvidenceDocumentRequirementsFoundation()
+  const dormantOntarioAuthorityPackageWordingSpec = getDormantOntarioAuthorityPackageWordingSpec()
 
   const totals = {
     jurisdictions: allJurisdictions.length,
@@ -257,5 +259,6 @@ export async function GET() {
     dormantOntarioIntakeRoutingReadinessSimulator,
     dormantOntarioDraftChecklistItemCatalog,
     dormantOntarioEvidenceDocumentRequirementsFoundation,
+    dormantOntarioAuthorityPackageWordingSpec,
   })
 }
