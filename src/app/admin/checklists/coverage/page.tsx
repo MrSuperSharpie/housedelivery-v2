@@ -365,6 +365,56 @@ interface DormantOntarioDraftChecklistItemCatalog {
   }[]
 }
 
+interface DormantOntarioEvidenceDocumentRequirementsFoundation {
+  family: 'ontario'
+  statusLabel: string
+  foundationStatus: string
+  isActive: boolean
+  activeRequirementsCreated: boolean
+  activeEvidenceEnforcementEnabled: boolean
+  databaseRowsCreated: boolean
+  databaseMigrationCreated: boolean
+  publicRoutingEnabled: boolean
+  dispatchEnabled: boolean
+  inspectorClaimingEnabled: boolean
+  activeTemplateResolutionEnabled: boolean
+  checklistResponsesExpected: boolean
+  sourceReviewStatus: string
+  municipalReviewStatus: string
+  professionalReviewStatus: string
+  productionApprovalStatus: string
+  referencesExistingOntarioChecklistCatalog: boolean
+  referencesExistingOntarioFoundation: boolean
+  referencesExistingOntarioStageMatrix: boolean
+  referencesExistingOntarioTaxonomy: boolean
+  referencesExistingOntarioMunicipalOverlays: boolean
+  referencesExistingOntarioGovernance: boolean
+  referencesExistingOntarioSimulator: boolean
+  standaloneWorkflowCreated: boolean
+  note: string
+  activationBlockers: string[]
+  requirements: {
+    requirementId: string
+    title: string
+    draftDescription: string
+    relatedChecklistItemIds: string[]
+    relatedStageCodes: string[]
+    requirementType: string
+    appliesToMunicipalities: string[]
+    requiredStatus: string
+    sourceReviewStatus: string
+    municipalReviewStatus: string
+    professionalReviewStatus: string
+    productionApprovalStatus: string
+    activeEvidenceEnforcementEnabled: boolean
+    activeTemplateResolutionEnabled: boolean
+    publicEnabled: boolean
+    dispatchEnabled: boolean
+    inspectorClaimingEnabled: boolean
+    activationBlockers: string[]
+  }[]
+}
+
 interface CoveragePayload {
   ok: boolean
   totals: Totals
@@ -385,6 +435,7 @@ interface CoveragePayload {
   dormantOntarioProjectTaxonomyFoundation: DormantOntarioProjectTaxonomyFoundation
   dormantOntarioIntakeRoutingReadinessSimulator: DormantOntarioIntakeRoutingReadinessSimulator
   dormantOntarioDraftChecklistItemCatalog: DormantOntarioDraftChecklistItemCatalog
+  dormantOntarioEvidenceDocumentRequirementsFoundation: DormantOntarioEvidenceDocumentRequirementsFoundation
 }
 
 // ─── Small presentational helpers ───────────────────────────────────────────────
@@ -1214,6 +1265,89 @@ export default function ChecklistCoveragePage() {
                   </ul>
                   <div className="mt-3 rounded-lg border border-white/8 bg-white/5 px-3 py-2 text-[10px] text-muted">
                     Reuses existing Ontario foundation, stage matrix, taxonomy, municipal overlays, governance, and simulator metadata. No second workflow is created.
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="mt-4 rounded-lg border border-white/8 bg-surface/40 px-4 py-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="text-sm font-black text-ink">Ontario Evidence &amp; Document Requirements Foundation</div>
+                <span className="rounded-full border border-flame/25 bg-flame/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-flame">
+                  {data.dormantOntarioEvidenceDocumentRequirementsFoundation.statusLabel}
+                </span>
+              </div>
+              <p className="mt-2 text-xs text-muted">{data.dormantOntarioEvidenceDocumentRequirementsFoundation.note}</p>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {[
+                  ['Evidence enforcement', data.dormantOntarioEvidenceDocumentRequirementsFoundation.activeEvidenceEnforcementEnabled ? 'Enabled' : 'Not enforced'],
+                  ['Production requirements', data.dormantOntarioEvidenceDocumentRequirementsFoundation.activeRequirementsCreated ? 'Active' : 'Not active'],
+                  ['DB rows / migrations', data.dormantOntarioEvidenceDocumentRequirementsFoundation.databaseRowsCreated || data.dormantOntarioEvidenceDocumentRequirementsFoundation.databaseMigrationCreated ? 'Created' : 'None'],
+                  ['Active DB template resolution', data.dormantOntarioEvidenceDocumentRequirementsFoundation.activeTemplateResolutionEnabled ? 'Enabled' : 'Disabled'],
+                  ['Public Ontario routing', data.dormantOntarioEvidenceDocumentRequirementsFoundation.publicRoutingEnabled ? 'Enabled' : 'Disabled'],
+                  ['Dispatch', data.dormantOntarioEvidenceDocumentRequirementsFoundation.dispatchEnabled ? 'Enabled' : 'Disabled'],
+                  ['Inspector claiming', data.dormantOntarioEvidenceDocumentRequirementsFoundation.inspectorClaimingEnabled ? 'Enabled' : 'Disabled'],
+                  ['Checklist responses expected', data.dormantOntarioEvidenceDocumentRequirementsFoundation.checklistResponsesExpected ? 'Yes' : 'No'],
+                  ['Source review', data.dormantOntarioEvidenceDocumentRequirementsFoundation.sourceReviewStatus.replaceAll('_', ' ')],
+                  ['Municipal review', data.dormantOntarioEvidenceDocumentRequirementsFoundation.municipalReviewStatus.replaceAll('_', ' ')],
+                  ['Professional/AHJ review', data.dormantOntarioEvidenceDocumentRequirementsFoundation.professionalReviewStatus.replaceAll('_', ' ')],
+                  ['Production approval', data.dormantOntarioEvidenceDocumentRequirementsFoundation.productionApprovalStatus.replaceAll('_', ' ')],
+                ].map(([label, value]) => (
+                  <div key={label} className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-black/10 px-3 py-2">
+                    <MinusCircle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                    <span className="text-xs text-ink">{label}</span>
+                    <span className="ml-auto text-right text-[10px] font-bold uppercase tracking-wide text-flame">
+                      {value}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 grid gap-3 lg:grid-cols-[1.15fr_0.85fr]">
+                <div className="rounded-lg border border-white/8 bg-black/10 px-3 py-3">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-subtle">
+                    Draft/Internal Evidence &amp; Document Groups
+                  </div>
+                  <div className="mt-2 grid gap-2 md:grid-cols-2">
+                    {data.dormantOntarioEvidenceDocumentRequirementsFoundation.requirements.map(requirement => (
+                      <div key={requirement.requirementId} className="rounded-lg border border-white/8 bg-white/5 px-3 py-2.5">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <div className="text-xs font-bold text-ink">{requirement.title}</div>
+                          <span className="rounded-full border border-flame/20 bg-flame/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-flame">
+                            Not enforced
+                          </span>
+                        </div>
+                        <div className="mt-1 text-[11px] text-muted">{requirement.draftDescription}</div>
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {requirement.relatedStageCodes.map(stageCode => (
+                            <span
+                              key={`${requirement.requirementId}-${stageCode}`}
+                              className="rounded-full border border-white/10 bg-black/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-subtle"
+                            >
+                              {stageCode}
+                            </span>
+                          ))}
+                        </div>
+                        <div className="mt-2 text-[10px] text-subtle">
+                          {requirement.requirementType.replaceAll('_', ' ')} · {requirement.appliesToMunicipalities.join(', ')}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-white/8 bg-black/10 px-3 py-3">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-subtle">
+                    Activation Blockers
+                  </div>
+                  <ul className="mt-2 grid gap-1.5">
+                    {data.dormantOntarioEvidenceDocumentRequirementsFoundation.activationBlockers.map(blocker => (
+                      <li key={blocker} className="flex items-start gap-1.5 text-[10px] text-muted">
+                        <AlertTriangle className="mt-0.5 h-2.5 w-2.5 shrink-0 text-flame" />
+                        <span>{blocker}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-3 rounded-lg border border-white/8 bg-white/5 px-3 py-2 text-[10px] text-muted">
+                    Reuses the Ontario checklist catalog, foundation, stage matrix, taxonomy, municipal overlays,
+                    governance, and simulator metadata. No evidence enforcement workflow is created.
                   </div>
                 </div>
               </div>

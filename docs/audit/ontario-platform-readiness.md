@@ -887,6 +887,16 @@ Draft item groups should remain explicitly labeled draft, planned, dormant, not 
 
 Each draft item must preserve the activation blockers: source review, municipal review, professional/AHJ review, production approval, inactive DB template resolution, disabled public routing, disabled dispatch, disabled inspector claiming, and no DB rows or migrations. These item groups are not approved Ontario checklist templates and must remain visible only in Admin Coverage Diagnostic or another internal admin-only preview until later review.
 
+## LOOP 12 Evidence and Document Requirements Foundation Notes
+
+Ontario evidence and document requirements support should remain TypeScript-only internal planning metadata. It may connect planned Ontario checklist item groups to future document/evidence expectations, but it must not create Supabase rows, migrations, active templates, public Ontario routing, builder dispatch, inspector claiming, checklist responses, evidence upload enforcement, or production behavior.
+
+The foundation should reuse the dormant Ontario draft checklist item catalog, template foundation, S01-S15 stage matrix, taxonomy foundation, municipal overlay foundation, governance layer, and intake/routing simulator. It should not create a standalone Ontario evidence workflow, parallel resolver, second app, or separate Ontario product.
+
+Planned requirement groups should remain explicitly labeled draft, planned, dormant, not active, requires review, not publicly enabled, not enforced, and not production approved. The foundation should cover Permit to Construct or Demolish application package, Schedule 1 Designer Information, BCIN/designer information, site plan, architectural drawings, structural drawings/details where applicable, energy efficiency / SB-12 documentation where applicable, plumbing scope documentation, HVAC/mechanical scope documentation, electrical authority boundary documentation, applicable law / zoning / municipal precheck documentation, municipal overlay supplemental forms, inspection photos / field evidence planning placeholder, and final inspection / occupancy readiness documentation.
+
+Each planned requirement must preserve the activation blockers: no evidence upload enforcement, no active production document requirements, source review, municipal review, professional/AHJ review, production approval, inactive DB template resolution, disabled public routing, disabled dispatch, disabled inspector claiming, and no DB rows or migrations. These requirements are not approved Ontario evidence requirements and must remain visible only in Admin Coverage Diagnostic or another internal admin-only preview until later review.
+
 ## Documentation-Only Confirmation
 
 This audit is documentation only.
