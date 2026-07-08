@@ -827,6 +827,25 @@ Source categories remain draft/internal references for OBC 2024 core, municipal 
 
 This governance layer does not approve Ontario content, does not make templates live, and does not change BC/Vancouver resolver behavior, dispatch, inspector claiming, Schedule C-B, Vault/seal behavior, or production settings.
 
+## LOOP 07 Municipal Overlay Foundation Notes
+
+Toronto, Ottawa, and Mississauga municipal overlays should be represented as dormant internal planning metadata only. The overlay foundation should make municipal readiness visible to admins without creating Supabase rows, active templates, dispatch paths, inspector claiming, public Ontario routing, or production behavior.
+
+Each municipal overlay should remain:
+
+- draft, planned, dormant, and not active,
+- not publicly enabled,
+- excluded from active DB template resolution,
+- excluded from Ontario dispatch and inspector claiming,
+- not production approved,
+- blocked by municipal source review,
+- blocked by professional/AHJ review, and
+- connected to the existing dormant Ontario foundation and governance layer rather than a second workflow.
+
+Planned municipal source categories should remain review-only references for municipal permit application requirements, zoning/applicable-law precheck, drawing submission expectations, inspection naming differences, portal/submission process, local forms and supplemental documents, external authority dependencies, and future reviewed checklist overlays.
+
+This municipal overlay foundation must not reuse BC Schedule C-B terminology for Ontario, must not imply municipal approval or compliance, and must not activate Toronto, Ottawa, Mississauga, or `obc_2024` for live checklist resolution.
+
 ## Documentation-Only Confirmation
 
 This audit is documentation only.
