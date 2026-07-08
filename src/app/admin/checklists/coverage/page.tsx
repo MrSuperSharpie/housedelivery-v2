@@ -319,6 +319,52 @@ interface DormantOntarioIntakeRoutingReadinessSimulator {
   }[]
 }
 
+interface DormantOntarioDraftChecklistItemCatalog {
+  family: 'ontario'
+  statusLabel: string
+  catalogStatus: string
+  isActive: boolean
+  activeTemplatesCreated: boolean
+  databaseRowsCreated: boolean
+  databaseMigrationCreated: boolean
+  publicRoutingEnabled: boolean
+  dispatchEnabled: boolean
+  inspectorClaimingEnabled: boolean
+  activeTemplateResolutionEnabled: boolean
+  checklistResponsesExpected: boolean
+  sourceReviewStatus: string
+  municipalReviewStatus: string
+  professionalReviewStatus: string
+  productionApprovalStatus: string
+  referencesExistingOntarioFoundation: boolean
+  referencesExistingOntarioStageMatrix: boolean
+  referencesExistingOntarioTaxonomy: boolean
+  referencesExistingOntarioMunicipalOverlays: boolean
+  referencesExistingOntarioGovernance: boolean
+  referencesExistingOntarioSimulator: boolean
+  standaloneWorkflowCreated: boolean
+  note: string
+  activationBlockers: string[]
+  items: {
+    itemId: string
+    title: string
+    draftDescription: string
+    stageCodes: string[]
+    foundationCategoryId: string
+    templateCategory: string
+    appliesToMunicipalities: string[]
+    sourceReviewStatus: string
+    municipalReviewStatus: string
+    professionalReviewStatus: string
+    productionApprovalStatus: string
+    activeTemplateResolutionEnabled: boolean
+    publicEnabled: boolean
+    dispatchEnabled: boolean
+    inspectorClaimingEnabled: boolean
+    activationBlockers: string[]
+  }[]
+}
+
 interface CoveragePayload {
   ok: boolean
   totals: Totals
@@ -338,6 +384,7 @@ interface CoveragePayload {
   dormantOntarioAdminResolverDryRun: DormantOntarioAdminResolverDryRun
   dormantOntarioProjectTaxonomyFoundation: DormantOntarioProjectTaxonomyFoundation
   dormantOntarioIntakeRoutingReadinessSimulator: DormantOntarioIntakeRoutingReadinessSimulator
+  dormantOntarioDraftChecklistItemCatalog: DormantOntarioDraftChecklistItemCatalog
 }
 
 // ─── Small presentational helpers ───────────────────────────────────────────────
@@ -1087,6 +1134,88 @@ export default function ChecklistCoveragePage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+            <div className="mt-4 rounded-lg border border-white/8 bg-surface/40 px-4 py-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="text-sm font-black text-ink">Ontario Draft Checklist Item Catalog</div>
+                <span className="rounded-full border border-flame/25 bg-flame/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-flame">
+                  {data.dormantOntarioDraftChecklistItemCatalog.statusLabel}
+                </span>
+              </div>
+              <p className="mt-2 text-xs text-muted">{data.dormantOntarioDraftChecklistItemCatalog.note}</p>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {[
+                  ['Active templates', data.dormantOntarioDraftChecklistItemCatalog.activeTemplatesCreated ? 'Created' : 'Not created'],
+                  ['DB rows / migrations', data.dormantOntarioDraftChecklistItemCatalog.databaseRowsCreated || data.dormantOntarioDraftChecklistItemCatalog.databaseMigrationCreated ? 'Created' : 'None'],
+                  ['Active DB template resolution', data.dormantOntarioDraftChecklistItemCatalog.activeTemplateResolutionEnabled ? 'Enabled' : 'Disabled'],
+                  ['Public Ontario routing', data.dormantOntarioDraftChecklistItemCatalog.publicRoutingEnabled ? 'Enabled' : 'Disabled'],
+                  ['Dispatch', data.dormantOntarioDraftChecklistItemCatalog.dispatchEnabled ? 'Enabled' : 'Disabled'],
+                  ['Inspector claiming', data.dormantOntarioDraftChecklistItemCatalog.inspectorClaimingEnabled ? 'Enabled' : 'Disabled'],
+                  ['Checklist responses expected', data.dormantOntarioDraftChecklistItemCatalog.checklistResponsesExpected ? 'Yes' : 'No'],
+                  ['Source review', data.dormantOntarioDraftChecklistItemCatalog.sourceReviewStatus.replaceAll('_', ' ')],
+                  ['Municipal review', data.dormantOntarioDraftChecklistItemCatalog.municipalReviewStatus.replaceAll('_', ' ')],
+                  ['Professional/AHJ review', data.dormantOntarioDraftChecklistItemCatalog.professionalReviewStatus.replaceAll('_', ' ')],
+                  ['Production approval', data.dormantOntarioDraftChecklistItemCatalog.productionApprovalStatus.replaceAll('_', ' ')],
+                  ['Standalone workflow', data.dormantOntarioDraftChecklistItemCatalog.standaloneWorkflowCreated ? 'Created' : 'No'],
+                ].map(([label, value]) => (
+                  <div key={label} className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-black/10 px-3 py-2">
+                    <MinusCircle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                    <span className="text-xs text-ink">{label}</span>
+                    <span className="ml-auto text-right text-[10px] font-bold uppercase tracking-wide text-flame">
+                      {value}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 grid gap-3 lg:grid-cols-[1.15fr_0.85fr]">
+                <div className="rounded-lg border border-white/8 bg-black/10 px-3 py-3">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-subtle">
+                    Draft/Internal Item Groups
+                  </div>
+                  <div className="mt-2 grid gap-2 md:grid-cols-2">
+                    {data.dormantOntarioDraftChecklistItemCatalog.items.map(item => (
+                      <div key={item.itemId} className="rounded-lg border border-white/8 bg-white/5 px-3 py-2.5">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <div className="text-xs font-bold text-ink">{item.title}</div>
+                          <span className="rounded-full border border-flame/20 bg-flame/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-flame">
+                            Draft only
+                          </span>
+                        </div>
+                        <div className="mt-1 text-[11px] text-muted">{item.draftDescription}</div>
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {item.stageCodes.map(stageCode => (
+                            <span
+                              key={`${item.itemId}-${stageCode}`}
+                              className="rounded-full border border-white/10 bg-black/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-subtle"
+                            >
+                              {stageCode}
+                            </span>
+                          ))}
+                        </div>
+                        <div className="mt-2 text-[10px] text-subtle">
+                          {item.templateCategory} · {item.appliesToMunicipalities.join(', ')}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-white/8 bg-black/10 px-3 py-3">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-subtle">
+                    Activation Blockers
+                  </div>
+                  <ul className="mt-2 grid gap-1.5">
+                    {data.dormantOntarioDraftChecklistItemCatalog.activationBlockers.map(blocker => (
+                      <li key={blocker} className="flex items-start gap-1.5 text-[10px] text-muted">
+                        <AlertTriangle className="mt-0.5 h-2.5 w-2.5 shrink-0 text-flame" />
+                        <span>{blocker}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-3 rounded-lg border border-white/8 bg-white/5 px-3 py-2 text-[10px] text-muted">
+                    Reuses existing Ontario foundation, stage matrix, taxonomy, municipal overlays, governance, and simulator metadata. No second workflow is created.
+                  </div>
+                </div>
               </div>
             </div>
             <div className="mt-4 rounded-lg border border-white/8 bg-surface/40 px-4 py-3">

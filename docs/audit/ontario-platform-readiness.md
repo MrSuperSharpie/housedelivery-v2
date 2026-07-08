@@ -877,6 +877,16 @@ The simulator should include draft scenarios for province-level small residentia
 
 The simulator is not a resolver, not a builder intake path, and not an Ontario product launch surface. Source review, municipal review, professional/AHJ review, and production approval remain required before any activation.
 
+## LOOP 11 Draft Checklist Item Catalog Notes
+
+Ontario draft checklist item catalog support should remain TypeScript-only internal planning metadata. It may preview future small-residential item groups for admin review, but it must not create Supabase rows, migrations, active templates, public Ontario routing, builder dispatch, inspector claiming, checklist responses, or production behavior.
+
+The draft catalog should reuse the existing dormant Ontario foundation, S01-S15 stage matrix, taxonomy foundation, municipal overlay foundation, governance layer, and intake/routing simulator. It should not create a standalone Ontario workflow, parallel resolver, second app, or separate Ontario product.
+
+Draft item groups should remain explicitly labeled draft, planned, dormant, not active, requires review, not publicly enabled, and not production approved. The catalog should cover OBC 2024 small residential core readiness, Permit to Construct or Demolish readiness, Schedule 1 Designer Information readiness, BCIN/designer information readiness, site plan readiness, architectural drawing readiness, structural drawing/detail readiness where applicable, energy efficiency / SB-12 readiness where applicable, plumbing scope readiness, HVAC/mechanical scope readiness, electrical authority boundary readiness, applicable law / zoning / municipal precheck readiness, municipal overlay review readiness, and final inspection / occupancy readiness.
+
+Each draft item must preserve the activation blockers: source review, municipal review, professional/AHJ review, production approval, inactive DB template resolution, disabled public routing, disabled dispatch, disabled inspector claiming, and no DB rows or migrations. These item groups are not approved Ontario checklist templates and must remain visible only in Admin Coverage Diagnostic or another internal admin-only preview until later review.
+
 ## Documentation-Only Confirmation
 
 This audit is documentation only.
