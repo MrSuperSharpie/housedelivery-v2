@@ -266,6 +266,59 @@ interface DormantOntarioProjectTaxonomyFoundation {
   }[]
 }
 
+interface DormantOntarioIntakeRoutingReadinessSimulator {
+  family: 'ontario'
+  status: string
+  statusLabel: string
+  intakeEnabled: boolean
+  publicRoutingEnabled: boolean
+  dispatchEnabled: boolean
+  inspectorClaimingEnabled: boolean
+  activeDbTemplateResolutionEnabled: boolean
+  checklistResponsesExpected: boolean
+  sourceReviewRequired: boolean
+  municipalReviewRequired: boolean
+  professionalAhjReviewRequired: boolean
+  productionApprovalGranted: boolean
+  usesExistingOntarioFoundation: boolean
+  usesExistingOntarioTaxonomy: boolean
+  usesExistingOntarioStageMatrix: boolean
+  usesExistingOntarioGovernance: boolean
+  standaloneWorkflowCreated: boolean
+  note: string
+  activationBlockers: string[]
+  scenarios: {
+    id: string
+    scenarioName: string
+    province: string
+    municipality: string
+    plannedJurisdictionSlug: string
+    plannedMunicipalOverlaySlug: string | null
+    projectArchetype: string
+    smallResidentialCategory: string
+    workType: string
+    expectedDormantTemplateCategories: string[]
+    stagePlanningCoverage: {
+      stageId: string
+      stageTitle: string
+      draftOntarioCoverage: string
+    }[]
+    schedule1DesignerInformationPlanning: boolean
+    bcinDesignerInformationPlanning: boolean
+    applicableLawZoningMunicipalPrecheckPlanning: boolean
+    energySb12Planning: boolean
+    plumbingScopePlanning: boolean
+    hvacMechanicalScopePlanning: boolean
+    electricalAuthorityBoundaryPlanning: boolean
+    sourceReviewRequired: boolean
+    municipalReviewRequired: boolean
+    professionalAhjReviewRequired: boolean
+    productionApprovalGranted: boolean
+    statusLabel: string
+    activationBlockers: string[]
+  }[]
+}
+
 interface CoveragePayload {
   ok: boolean
   totals: Totals
@@ -284,6 +337,7 @@ interface CoveragePayload {
   dormantOntarioMunicipalOverlayFoundation: DormantOntarioMunicipalOverlayFoundation
   dormantOntarioAdminResolverDryRun: DormantOntarioAdminResolverDryRun
   dormantOntarioProjectTaxonomyFoundation: DormantOntarioProjectTaxonomyFoundation
+  dormantOntarioIntakeRoutingReadinessSimulator: DormantOntarioIntakeRoutingReadinessSimulator
 }
 
 // ─── Small presentational helpers ───────────────────────────────────────────────
@@ -887,6 +941,149 @@ export default function ChecklistCoveragePage() {
                           {field.label} · Draft · Requires review
                         </span>
                       ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="mt-4 rounded-lg border border-white/8 bg-surface/40 px-4 py-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="text-sm font-black text-ink">Ontario Intake &amp; Routing Readiness Simulator</div>
+                <span className="rounded-full border border-flame/25 bg-flame/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-flame">
+                  {data.dormantOntarioIntakeRoutingReadinessSimulator.statusLabel}
+                </span>
+              </div>
+              <p className="mt-2 text-xs text-muted">{data.dormantOntarioIntakeRoutingReadinessSimulator.note}</p>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-black/10 px-3 py-2">
+                  <MinusCircle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                  <span className="text-xs text-ink">Ontario intake</span>
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-flame">
+                    {data.dormantOntarioIntakeRoutingReadinessSimulator.intakeEnabled ? 'Enabled' : 'No'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-black/10 px-3 py-2">
+                  <MinusCircle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                  <span className="text-xs text-ink">Ontario routing</span>
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-flame">
+                    {data.dormantOntarioIntakeRoutingReadinessSimulator.publicRoutingEnabled ? 'Enabled' : 'No'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-black/10 px-3 py-2">
+                  <MinusCircle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                  <span className="text-xs text-ink">Dispatch / inspector claiming</span>
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-flame">
+                    {data.dormantOntarioIntakeRoutingReadinessSimulator.dispatchEnabled || data.dormantOntarioIntakeRoutingReadinessSimulator.inspectorClaimingEnabled ? 'Enabled' : 'No'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-black/10 px-3 py-2">
+                  <MinusCircle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                  <span className="text-xs text-ink">Active DB template resolution</span>
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-flame">
+                    {data.dormantOntarioIntakeRoutingReadinessSimulator.activeDbTemplateResolutionEnabled ? 'Enabled' : 'No'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-black/10 px-3 py-2">
+                  <MinusCircle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                  <span className="text-xs text-ink">Ontario checklist responses expected</span>
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-flame">
+                    {data.dormantOntarioIntakeRoutingReadinessSimulator.checklistResponsesExpected ? 'Yes' : 'No'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-black/10 px-3 py-2">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                  <span className="text-xs text-ink">Review / approval</span>
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-flame">
+                    {data.dormantOntarioIntakeRoutingReadinessSimulator.productionApprovalGranted ? 'Granted' : 'Required'}
+                  </span>
+                </div>
+              </div>
+              <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                {data.dormantOntarioIntakeRoutingReadinessSimulator.scenarios.map(scenario => (
+                  <div key={scenario.id} className="rounded-lg border border-white/8 bg-black/10 px-3 py-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className="text-xs font-black text-ink">{scenario.scenarioName}</div>
+                      <span className="rounded-full border border-flame/20 bg-flame/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-flame">
+                        Draft internal only
+                      </span>
+                    </div>
+                    <div className="mt-2 grid gap-1.5 text-[11px]">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-muted">Municipality</span>
+                        <span className="font-bold text-ink">{scenario.municipality}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-muted">Planned slug</span>
+                        <span className="font-bold text-ink">{scenario.plannedJurisdictionSlug}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-muted">Overlay slug</span>
+                        <span className="font-bold text-ink">{scenario.plannedMunicipalOverlaySlug ?? 'Province-level only'}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-muted">Archetype</span>
+                        <span className="font-bold text-ink">{scenario.projectArchetype}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-muted">Work type</span>
+                        <span className="font-bold text-ink">{scenario.workType}</span>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      {[
+                        ['Schedule 1', scenario.schedule1DesignerInformationPlanning],
+                        ['BCIN/designer', scenario.bcinDesignerInformationPlanning],
+                        ['Applicable law/zoning', scenario.applicableLawZoningMunicipalPrecheckPlanning],
+                        ['Energy/SB-12', scenario.energySb12Planning],
+                        ['Plumbing', scenario.plumbingScopePlanning],
+                        ['HVAC/mechanical', scenario.hvacMechanicalScopePlanning],
+                        ['Electrical boundary', scenario.electricalAuthorityBoundaryPlanning],
+                      ].map(([label, active]) => (
+                        <span
+                          key={`${scenario.id}-${label}`}
+                          className={`rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-wide ${
+                            active
+                              ? 'border-flame/20 bg-flame/10 text-flame'
+                              : 'border-white/10 bg-white/5 text-subtle'
+                          }`}
+                        >
+                          {label}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="mt-3">
+                      <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-subtle">Dormant Template Categories</div>
+                      <div className="mt-1.5 flex flex-wrap gap-1.5">
+                        {scenario.expectedDormantTemplateCategories.map(category => (
+                          <span key={`${scenario.id}-${category}`} className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-bold text-ink/75">
+                            {category}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="mt-3">
+                      <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-subtle">Stage Planning Coverage</div>
+                      <div className="mt-1.5 grid gap-1.5">
+                        {scenario.stagePlanningCoverage.map(stage => (
+                          <div key={`${scenario.id}-${stage.stageId}`} className="rounded-md border border-white/8 bg-white/5 px-2 py-1.5">
+                            <div className="text-[10px] font-black text-ink">
+                              {stage.stageId} · {stage.stageTitle}
+                            </div>
+                            <div className="mt-0.5 text-[10px] text-muted">{stage.draftOntarioCoverage}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="mt-3">
+                      <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-subtle">Activation blockers</div>
+                      <ul className="mt-1.5 grid gap-1 sm:grid-cols-2">
+                        {scenario.activationBlockers.map(blocker => (
+                          <li key={`${scenario.id}-${blocker}`} className="flex items-start gap-1.5 text-[10px] text-muted">
+                            <AlertTriangle className="mt-0.5 h-2.5 w-2.5 shrink-0 text-flame" />
+                            <span>{blocker}</span>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   </div>
                 ))}

@@ -869,6 +869,14 @@ The dormant taxonomy should cover jurisdiction fields, project archetype, work t
 
 Every taxonomy field remains draft, planned, dormant, not active, requires review, not publicly enabled, and not production approved. No database migration has been created, Ontario project intake is not enabled, and the taxonomy does not participate in active DB template resolution.
 
+## LOOP 10 Intake and Routing Readiness Simulator Notes
+
+Ontario intake/routing simulation should remain admin-only internal planning metadata. It may compose the dormant Ontario taxonomy, municipal overlay foundation, resolver dry-run, template foundation, stage matrix, and governance blockers into sample scenarios, but it must not enable live intake, routing, dispatch, claiming, active templates, checklist responses, or production behavior.
+
+The simulator should include draft scenarios for province-level small residential readiness, Toronto additional residential unit / garden suite readiness, Ottawa small residential permit readiness, and Mississauga detached/semi-detached residential readiness. Each scenario should show planned dormant slugs, expected dormant template categories, S01-S15 planning coverage, designer/BCIN/Schedule 1 planning flags, applicable law / zoning / municipal precheck planning, energy / SB-12 planning, trade-scope planning, review requirements, and activation blockers.
+
+The simulator is not a resolver, not a builder intake path, and not an Ontario product launch surface. Source review, municipal review, professional/AHJ review, and production approval remain required before any activation.
+
 ## Documentation-Only Confirmation
 
 This audit is documentation only.

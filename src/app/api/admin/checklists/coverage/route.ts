@@ -12,6 +12,7 @@ import { getDormantOntarioTemplateGovernance } from '@/lib/inspections/ontarioTe
 import { getDormantOntarioMunicipalOverlayFoundation } from '@/lib/inspections/ontarioMunicipalOverlayFoundation'
 import { getDormantOntarioAdminResolverDryRun } from '@/lib/inspections/ontarioAdminResolverDryRun'
 import { getDormantOntarioProjectTaxonomyFoundation } from '@/lib/inspections/ontarioProjectTaxonomyFoundation'
+import { getDormantOntarioIntakeRoutingReadinessSimulator } from '@/lib/inspections/ontarioIntakeRoutingReadinessSimulator'
 
 /**
  * Read-only admin diagnostic: reports current checklist/template coverage and
@@ -212,6 +213,7 @@ export async function GET() {
   const dormantOntarioMunicipalOverlayFoundation = getDormantOntarioMunicipalOverlayFoundation()
   const dormantOntarioAdminResolverDryRun = getDormantOntarioAdminResolverDryRun()
   const dormantOntarioProjectTaxonomyFoundation = getDormantOntarioProjectTaxonomyFoundation()
+  const dormantOntarioIntakeRoutingReadinessSimulator = getDormantOntarioIntakeRoutingReadinessSimulator()
 
   const totals = {
     jurisdictions: allJurisdictions.length,
@@ -248,5 +250,6 @@ export async function GET() {
     dormantOntarioMunicipalOverlayFoundation,
     dormantOntarioAdminResolverDryRun,
     dormantOntarioProjectTaxonomyFoundation,
+    dormantOntarioIntakeRoutingReadinessSimulator,
   })
 }
