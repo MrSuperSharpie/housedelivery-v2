@@ -197,6 +197,45 @@ interface DormantOntarioMunicipalOverlayFoundation {
   }[]
 }
 
+interface DormantOntarioAdminResolverDryRun {
+  family: 'ontario'
+  status: string
+  statusLabel: string
+  publicRoutingEnabled: boolean
+  dispatchEnabled: boolean
+  inspectorClaimingEnabled: boolean
+  activeDbTemplateResolutionEnabled: boolean
+  checklistResponsesExpected: boolean
+  sourceReviewRequired: boolean
+  professionalAhjReviewRequired: boolean
+  productionApprovalGranted: boolean
+  usesExistingOntarioMetadata: boolean
+  standaloneWorkflowCreated: boolean
+  note: string
+  cases: {
+    id: string
+    label: string
+    sampleInput: {
+      city?: string | null
+      province?: string | null
+      context?: string | null
+    }
+    plannedDormantJurisdictionSlug: string
+    resolverStatus: string
+    activeDbTemplateResolutionEnabled: boolean
+    publicRoutingEnabled: boolean
+    dispatchEnabled: boolean
+    inspectorClaimingEnabled: boolean
+    checklistResponsesExpected: boolean
+    sourceReviewRequired: boolean
+    professionalAhjReviewRequired: boolean
+    productionApprovalGranted: boolean
+    fallbackToBcbcBlocked: boolean
+    activationBlockers: string[]
+    note: string
+  }[]
+}
+
 interface CoveragePayload {
   ok: boolean
   totals: Totals
@@ -213,6 +252,7 @@ interface CoveragePayload {
   dormantOntarioStageMatrix: DormantOntarioStageMatrix
   dormantOntarioTemplateGovernance: DormantOntarioTemplateGovernance
   dormantOntarioMunicipalOverlayFoundation: DormantOntarioMunicipalOverlayFoundation
+  dormantOntarioAdminResolverDryRun: DormantOntarioAdminResolverDryRun
 }
 
 // ─── Small presentational helpers ───────────────────────────────────────────────
@@ -614,6 +654,115 @@ export default function ChecklistCoveragePage() {
                           {category.label} · Requires review
                         </span>
                       ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="mt-4 rounded-lg border border-white/8 bg-surface/40 px-4 py-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="text-sm font-black text-ink">Ontario Admin Resolver Dry-Run</div>
+                <span className="rounded-full border border-flame/25 bg-flame/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-flame">
+                  {data.dormantOntarioAdminResolverDryRun.statusLabel}
+                </span>
+              </div>
+              <p className="mt-2 text-xs text-muted">{data.dormantOntarioAdminResolverDryRun.note}</p>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-black/10 px-3 py-2">
+                  <MinusCircle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                  <span className="text-xs text-ink">Active DB template resolution</span>
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-flame">
+                    {data.dormantOntarioAdminResolverDryRun.activeDbTemplateResolutionEnabled ? 'Enabled' : 'No'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-black/10 px-3 py-2">
+                  <MinusCircle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                  <span className="text-xs text-ink">Public routing</span>
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-flame">
+                    {data.dormantOntarioAdminResolverDryRun.publicRoutingEnabled ? 'Enabled' : 'No'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-black/10 px-3 py-2">
+                  <MinusCircle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                  <span className="text-xs text-ink">Dispatch</span>
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-flame">
+                    {data.dormantOntarioAdminResolverDryRun.dispatchEnabled ? 'Enabled' : 'No'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-black/10 px-3 py-2">
+                  <MinusCircle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                  <span className="text-xs text-ink">Inspector claiming</span>
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-flame">
+                    {data.dormantOntarioAdminResolverDryRun.inspectorClaimingEnabled ? 'Enabled' : 'No'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-black/10 px-3 py-2">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                  <span className="text-xs text-ink">Source review</span>
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-flame">
+                    {data.dormantOntarioAdminResolverDryRun.sourceReviewRequired ? 'Required' : 'Not required'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-black/10 px-3 py-2">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                  <span className="text-xs text-ink">Professional/AHJ review</span>
+                  <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-flame">
+                    {data.dormantOntarioAdminResolverDryRun.professionalAhjReviewRequired ? 'Required' : 'Not required'}
+                  </span>
+                </div>
+              </div>
+              <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                {data.dormantOntarioAdminResolverDryRun.cases.map(dryRunCase => (
+                  <div key={dryRunCase.id} className="rounded-lg border border-white/8 bg-black/10 px-3 py-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className="text-xs font-black text-ink">{dryRunCase.label}</div>
+                      <span className="rounded-full border border-flame/20 bg-flame/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-flame">
+                        Internal planning only
+                      </span>
+                    </div>
+                    <div className="mt-2 grid gap-1.5 text-[11px]">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-muted">Sample input</span>
+                        <span className="font-bold text-ink">
+                          {[dryRunCase.sampleInput.city, dryRunCase.sampleInput.province, dryRunCase.sampleInput.context]
+                            .filter(Boolean)
+                            .join(' / ')}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-muted">Planned dormant slug</span>
+                        <span className="font-bold text-ink">{dryRunCase.plannedDormantJurisdictionSlug}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-muted">Active DB resolution</span>
+                        <span className="font-bold uppercase tracking-wide text-flame">
+                          {dryRunCase.activeDbTemplateResolutionEnabled ? 'Enabled' : 'No'}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-muted">BCBC fallback</span>
+                        <span className="font-bold uppercase tracking-wide text-success-green">
+                          {dryRunCase.fallbackToBcbcBlocked ? 'Blocked' : 'Allowed'}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-muted">Responses expected</span>
+                        <span className="font-bold uppercase tracking-wide text-flame">
+                          {dryRunCase.checklistResponsesExpected ? 'Yes' : 'No'}
+                        </span>
+                      </div>
+                    </div>
+                    <p className="mt-2 text-[11px] text-muted">{dryRunCase.note}</p>
+                    <div className="mt-3">
+                      <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-subtle">Activation blockers</div>
+                      <ul className="mt-1.5 grid gap-1 sm:grid-cols-2">
+                        {dryRunCase.activationBlockers.map(blocker => (
+                          <li key={`${dryRunCase.id}-${blocker}`} className="flex items-start gap-1.5 text-[10px] text-muted">
+                            <AlertTriangle className="mt-0.5 h-2.5 w-2.5 shrink-0 text-flame" />
+                            <span>{blocker}</span>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   </div>
                 ))}

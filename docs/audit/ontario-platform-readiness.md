@@ -846,6 +846,21 @@ Planned municipal source categories should remain review-only references for mun
 
 This municipal overlay foundation must not reuse BC Schedule C-B terminology for Ontario, must not imply municipal approval or compliance, and must not activate Toronto, Ottawa, Mississauga, or `obc_2024` for live checklist resolution.
 
+## LOOP 08 Admin Resolver Dry-Run Notes
+
+Ontario resolver dry-run support should remain admin-only internal planning metadata. It can show how future Ontario inputs would be classified without participating in active DB template resolution or public workflows.
+
+The dry-run should report sample outcomes for:
+
+- Ontario province-level / OBC 2024 -> `obc_2024`,
+- Toronto -> `toronto_obc_2024`,
+- Ottawa -> `ottawa_obc_2024`, and
+- Mississauga -> `mississauga_obc_2024`.
+
+Each dry-run result must remain dormant and must state that public routing, dispatch, inspector claiming, active DB template resolution, and checklist responses are disabled. Source review, professional/AHJ review, and production approval remain activation blockers.
+
+The dry-run is not a resolver activation path. Explicit Ontario context must continue to block silent fallback to `bcbc_2024`, and BC/Vancouver behavior must remain unchanged.
+
 ## Documentation-Only Confirmation
 
 This audit is documentation only.
