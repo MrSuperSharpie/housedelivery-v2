@@ -445,6 +445,41 @@ interface DormantOntarioAuthorityPackageWordingSpec {
   activationBlockers: string[]
 }
 
+interface DormantOntarioReadinessGateSummary {
+  family: 'ontario'
+  statusLabel: string
+  overallStatus: string
+  isActive: boolean
+  publicAvailabilityEnabled: boolean
+  publicRoutingEnabled: boolean
+  builderDispatchEnabled: boolean
+  inspectorClaimingEnabled: boolean
+  activeDbTemplateResolutionEnabled: boolean
+  evidenceEnforcementEnabled: boolean
+  authorityPackageGenerationEnabled: boolean
+  productionApprovalStatus: string
+  checklistResponsesExpected: boolean
+  supabaseDatabaseActivationPresent: boolean
+  ontarioActivationMigrationPresent: boolean
+  scheduleCbReusedForOntario: boolean
+  scheduleCbReuseStatus: string
+  scheduleCbGenerationChanged: boolean
+  vaultSealCompletionChanges: boolean
+  vaultSealCompletionSecurityChanged: boolean
+  referencesExistingOntarioMetadata: boolean
+  standaloneWorkflowCreated: boolean
+  plannedSlugs: string[]
+  completedDormantComponents: {
+    id: string
+    label: string
+    status: string
+    note: string
+  }[]
+  activationBlockers: string[]
+  futureReviewsRequired: string[]
+  publicAvailabilityStatement: string
+}
+
 interface CoveragePayload {
   ok: boolean
   totals: Totals
@@ -467,6 +502,7 @@ interface CoveragePayload {
   dormantOntarioDraftChecklistItemCatalog: DormantOntarioDraftChecklistItemCatalog
   dormantOntarioEvidenceDocumentRequirementsFoundation: DormantOntarioEvidenceDocumentRequirementsFoundation
   dormantOntarioAuthorityPackageWordingSpec: DormantOntarioAuthorityPackageWordingSpec
+  dormantOntarioReadinessGateSummary: DormantOntarioReadinessGateSummary
 }
 
 // ─── Small presentational helpers ───────────────────────────────────────────────
@@ -686,6 +722,72 @@ export default function ChecklistCoveragePage() {
                 <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-success-green">
                   {data.dormantOntarioCoverage.resolverFallbackToBcbcBlocked ? 'Blocked' : 'Allowed'}
                 </span>
+              </div>
+            </div>
+            <div className="mt-4 rounded-lg border border-flame/20 bg-black/10 px-4 py-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="text-sm font-black text-ink">Ontario Readiness Gate Summary</div>
+                <span className="rounded-full border border-flame/25 bg-flame/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-flame">
+                  {data.dormantOntarioReadinessGateSummary.statusLabel}
+                </span>
+              </div>
+              <p className="mt-2 text-xs text-muted">{data.dormantOntarioReadinessGateSummary.publicAvailabilityStatement}</p>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {[
+                  ['Public availability', data.dormantOntarioReadinessGateSummary.publicAvailabilityEnabled ? 'Enabled' : 'Not enabled'],
+                  ['Builder dispatch', data.dormantOntarioReadinessGateSummary.builderDispatchEnabled ? 'Enabled' : 'Disabled'],
+                  ['Inspector claiming', data.dormantOntarioReadinessGateSummary.inspectorClaimingEnabled ? 'Enabled' : 'Disabled'],
+                  ['Active DB template resolution', data.dormantOntarioReadinessGateSummary.activeDbTemplateResolutionEnabled ? 'Enabled' : 'Disabled'],
+                  ['Evidence enforcement', data.dormantOntarioReadinessGateSummary.evidenceEnforcementEnabled ? 'Enabled' : 'Disabled'],
+                  ['Authority package generation', data.dormantOntarioReadinessGateSummary.authorityPackageGenerationEnabled ? 'Generated' : 'Not generated'],
+                  ['Production approval', data.dormantOntarioReadinessGateSummary.productionApprovalStatus.replaceAll('_', ' ')],
+                  ['Checklist responses', data.dormantOntarioReadinessGateSummary.checklistResponsesExpected ? 'Expected' : 'None expected'],
+                  ['Supabase/database activation', data.dormantOntarioReadinessGateSummary.supabaseDatabaseActivationPresent ? 'Present' : 'Not present'],
+                  ['Migration status', data.dormantOntarioReadinessGateSummary.ontarioActivationMigrationPresent ? 'Activation migration present' : 'No Ontario activation migration'],
+                  ['Schedule C-B reuse', data.dormantOntarioReadinessGateSummary.scheduleCbReuseStatus.replaceAll('_', ' ')],
+                  ['Vault/seal/completion changes', data.dormantOntarioReadinessGateSummary.vaultSealCompletionChanges || data.dormantOntarioReadinessGateSummary.vaultSealCompletionSecurityChanged ? 'Changed' : 'None'],
+                ].map(([label, value]) => (
+                  <div key={label} className="flex items-center gap-2.5 rounded-lg border border-white/8 bg-surface/40 px-3 py-2">
+                    <MinusCircle className="h-3.5 w-3.5 shrink-0 text-flame" />
+                    <span className="text-xs text-ink">{label}</span>
+                    <span className="ml-auto text-right text-[10px] font-bold uppercase tracking-wide text-flame">
+                      {value}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 grid gap-3 lg:grid-cols-3">
+                <div className="rounded-lg border border-white/8 bg-surface/40 px-3 py-3 lg:col-span-2">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-subtle">
+                    Completed Dormant Components
+                  </div>
+                  <div className="mt-2 grid gap-2 md:grid-cols-2">
+                    {data.dormantOntarioReadinessGateSummary.completedDormantComponents.map(component => (
+                      <div key={component.id} className="rounded-lg border border-white/8 bg-black/10 px-3 py-2.5">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <div className="text-xs font-bold text-ink">{component.label}</div>
+                          <span className="rounded-full border border-flame/20 bg-flame/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-flame">
+                            Dormant
+                          </span>
+                        </div>
+                        <div className="mt-1 text-[11px] text-muted">{component.note}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-white/8 bg-surface/40 px-3 py-3">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-subtle">
+                    Activation Blockers
+                  </div>
+                  <ul className="mt-2 grid gap-1.5">
+                    {data.dormantOntarioReadinessGateSummary.activationBlockers.map(blocker => (
+                      <li key={blocker} className="flex items-start gap-1.5 text-[10px] text-muted">
+                        <AlertTriangle className="mt-0.5 h-2.5 w-2.5 shrink-0 text-flame" />
+                        <span>{blocker}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             </div>
             <div className="mt-4 rounded-lg border border-white/8 bg-surface/40 px-4 py-3">

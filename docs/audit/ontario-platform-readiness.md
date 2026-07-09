@@ -903,6 +903,12 @@ Ontario authority package wording should use the Pro-generated wording specifica
 
 This loop adds only an internal reference to the wording spec. Ontario authority package generation remains disabled, not publicly enabled, not production approved, and blocked by Ontario legal, municipal-process, and professional-practice review. Schedule C-B generation, Vault/seal/completion behavior, inspector workflow, dispatch, templates, Supabase state, and production behavior remain unchanged.
 
+## LOOP 14 Readiness Gate Summary Notes
+
+Ontario readiness gate summary support should remain TypeScript-only internal planning metadata. It consolidates the dormant Ontario jurisdiction scaffold, planned slugs, municipal overlays, template foundation, S01-S15 stage matrix, governance/source review, resolver dry-run, project taxonomy, intake/routing simulator, draft checklist catalog, evidence/document requirements, and authority wording spec into one admin-only readiness view.
+
+The gate must report Ontario as dormant/internal planning only. Public availability, builder dispatch, inspector claiming, active DB template resolution, evidence enforcement, authority package generation, checklist responses, database activation, Ontario activation migrations, Schedule C-B reuse, and Vault/seal/completion changes remain disabled, absent, blocked, or unchanged. Future activation remains blocked by Ontario source review, municipal source review, professional/AHJ review, production approval, DB/migration planning, template governance/publish workflow, inspector eligibility/credential review, authority package generation review, evidence enforcement review, public routing/dispatch decision, and production promotion decision.
+
 ## Documentation-Only Confirmation
 
 This audit is documentation only.
