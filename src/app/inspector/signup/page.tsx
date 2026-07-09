@@ -319,7 +319,7 @@ function Field({ label, children, required }: {
   return (
     <div className="space-y-1.5">
       <label className="block text-xs font-bold text-gray-600 uppercase tracking-wide">
-        {label}{required && <span className="text-[#FF5F15] ml-0.5">*</span>}
+        {label}{required && <span className="text-flame ml-0.5">*</span>}
       </label>
       {children}
     </div>
@@ -330,7 +330,7 @@ function Input({ ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
-      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#FF5F15] focus:outline-none text-sm font-medium text-gray-900 transition-colors"
+      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-flame focus:outline-none text-sm font-medium text-gray-900 transition-colors"
     />
   )
 }
@@ -393,7 +393,7 @@ function DocUpload({
             ? 'border-[#10B981] bg-green-50'
             : uploadError
               ? 'border-red-300 bg-red-50'
-              : 'border-gray-200 hover:border-[#FF5F15] hover:bg-orange-50'
+              : 'border-gray-200 hover:border-flame hover:bg-flame/10'
         }`}
       >
         <div className="flex items-center gap-3">
@@ -401,7 +401,7 @@ function DocUpload({
             uploaded ? 'bg-[#10B981]' : uploadError ? 'bg-red-100' : 'bg-gray-100'
           }`}>
             {uploading
-              ? <div className="w-5 h-5 border-2 border-gray-300 border-t-[#FF5F15] rounded-full animate-spin" />
+              ? <div className="w-5 h-5 border-2 border-gray-300 border-t-flame rounded-full animate-spin" />
               : uploaded
                 ? <CheckCircle2 className="w-5 h-5 text-white" />
                 : uploadError
@@ -862,8 +862,8 @@ export default function InspectorSignup() {
     const dashboardPath  = blockedRole === 'admin' ? '/admin' : '/builder'
     const dashboardLabel = blockedRole === 'admin' ? 'Admin Dashboard' : 'Builder Dashboard'
     return (
-      <div className="min-h-screen bg-[#0A192F] flex flex-col items-center justify-center p-6 text-center">
-        <Shield className="w-16 h-16 text-[#FF5F15] mb-4" />
+      <div className="app-theme-scope min-h-screen bg-[#0A192F] flex flex-col items-center justify-center p-6 text-center">
+        <Shield className="w-16 h-16 text-flame mb-4" />
         <h1 className="text-3xl font-black text-white mb-2">Access Restricted</h1>
         <p className="text-blue-300 mb-2 max-w-sm">
           You are signed in as a{blockedRole === 'admin' ? 'n' : ''} <span className="text-white font-bold">{blockedRole}</span> account.
@@ -873,7 +873,7 @@ export default function InspectorSignup() {
         </p>
         <Link
           href={dashboardPath}
-          className="inline-flex items-center gap-2 bg-[#FF5F15] text-white font-bold px-6 py-3 rounded-xl hover:bg-orange-600 transition-colors"
+          className="inline-flex items-center gap-2 bg-flame text-white font-bold px-6 py-3 rounded-xl hover:bg-flame-light transition-colors"
         >
           Go to {dashboardLabel}
         </Link>
@@ -885,7 +885,7 @@ export default function InspectorSignup() {
 
   if (step === 'submitted') {
     return (
-      <div className="min-h-screen bg-[#0A192F] flex flex-col items-center justify-center p-6 text-center">
+      <div className="app-theme-scope min-h-screen bg-[#0A192F] flex flex-col items-center justify-center p-6 text-center">
         <CheckCircle2 className="w-16 h-16 text-[#10B981] mb-4" />
         <h1 className="text-3xl font-black text-white mb-2">Application Submitted</h1>
         <p className="text-blue-400 mb-2">
@@ -901,7 +901,7 @@ export default function InspectorSignup() {
   // ── Form shell ────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="app-theme-scope min-h-screen bg-gray-50 flex flex-col">
       {/* Mobile-only top bar */}
       <div className="lg:hidden bg-[#0A192F] border-b border-blue-900/60 px-4 sm:px-6 py-4 flex items-center">
         <BrandWordmark height={32} priority theme="dark" />
@@ -950,7 +950,7 @@ export default function InspectorSignup() {
         {/* Step progress */}
         <div className="flex gap-2 mb-8">
           {STEPS.map((s, i) => (
-            <div key={s.id} className={`h-1.5 flex-1 rounded-full ${i <= stepIdx ? 'bg-[#FF5F15]' : 'bg-gray-200'}`} />
+            <div key={s.id} className={`h-1.5 flex-1 rounded-full ${i <= stepIdx ? 'bg-flame' : 'bg-gray-200'}`} />
           ))}
         </div>
 
@@ -963,7 +963,7 @@ export default function InspectorSignup() {
                 <h2 className="text-2xl font-black text-[#0A192F]">Join the Network</h2>
                 <p className="mt-2 text-sm font-semibold text-gray-700">
                   Already have an account?{' '}
-                  <Link href="/sign-in?role=inspector" className="text-[#0A192F] underline decoration-[#FF5F15] decoration-2 underline-offset-4 hover:text-[#FF5F15]">
+                  <Link href="/sign-in?role=inspector" className="text-[#0A192F] underline decoration-flame decoration-2 underline-offset-4 hover:text-flame">
                     Sign in to continue
                   </Link>
                 </p>
@@ -986,7 +986,7 @@ export default function InspectorSignup() {
               <label className="flex items-start gap-3 cursor-pointer rounded-xl border border-gray-200 bg-gray-50 p-3">
                 <input
                   type="checkbox"
-                  className="w-5 h-5 accent-[#FF5F15] mt-0.5 shrink-0"
+                  className="w-5 h-5 accent-flame mt-0.5 shrink-0"
                   checked={form.smsConsent}
                   onChange={() => set('smsConsent', !form.smsConsent)}
                 />
@@ -1048,7 +1048,7 @@ export default function InspectorSignup() {
                             onClick={() => toggleCredentialType(ct.id)}
                             className={`w-full rounded-xl border-2 px-4 py-3 text-left transition-all ${
                               form.credentialTypes.includes(ct.id)
-                                ? 'border-[#FF5F15] bg-orange-50'
+                                ? 'border-flame bg-flame/10'
                                 : 'border-gray-100 text-gray-700'
                             }`}
                           >
@@ -1071,7 +1071,7 @@ export default function InspectorSignup() {
                       <button key={d.id} type="button" onClick={() => toggleDisciplineScope(d.id)}
                         className={`p-4 rounded-xl border-2 text-sm font-bold transition-all ${
                           form.disciplineScope.includes(d.id)
-                            ? 'border-[#FF5F15] bg-orange-50 text-[#FF5F15]'
+                            ? 'border-flame bg-flame/10 text-flame'
                             : 'border-gray-100 text-gray-600'
                         }`}>
                         {d.label}
@@ -1092,7 +1092,7 @@ export default function InspectorSignup() {
                   <button key={r} type="button" onClick={() => toggleArr('regions', r)}
                     className={`p-4 rounded-xl border-2 text-sm font-bold transition-all ${
                       form.regions.includes(r)
-                        ? 'border-[#FF5F15] bg-orange-50 text-[#FF5F15]'
+                        ? 'border-flame bg-flame/10 text-flame'
                         : 'border-gray-100 text-gray-600'
                     }`}>
                     {r}
@@ -1242,7 +1242,7 @@ export default function InspectorSignup() {
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
-                  className="w-5 h-5 accent-[#FF5F15]"
+                  className="w-5 h-5 accent-flame"
                   checked={form.agreeTerms}
                   onChange={() => set('agreeTerms', !form.agreeTerms)}
                 />

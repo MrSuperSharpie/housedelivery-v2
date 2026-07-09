@@ -51,7 +51,7 @@ export default function InspectorOnboardingStatusPage() {
               Live Board →
             </Link>
           ) : (
-            <Link href="/sign-in?role=inspector" className="text-xs text-[#FF5F15] font-semibold hover:underline">
+            <Link href="/sign-in?role=inspector" className="text-xs text-[#D97706] font-semibold hover:underline">
               Sign in
             </Link>
           )}
@@ -76,15 +76,15 @@ export default function InspectorOnboardingStatusPage() {
           <div className="text-xs font-bold text-blue-500 uppercase tracking-widest mb-3">How it works</div>
           <ul className="space-y-2.5 text-sm text-blue-300">
             <li className="flex items-start gap-2">
-              <span className="text-[#FF5F15] font-bold shrink-0">1.</span>
+              <span className="text-[#D97706] font-bold shrink-0">1.</span>
               Vero reviews your credentials and documents first (not the builder).
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-[#FF5F15] font-bold shrink-0">2.</span>
+              <span className="text-[#D97706] font-bold shrink-0">2.</span>
               Once approved, you get access to the Live Board and can apply to jobs.
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-[#FF5F15] font-bold shrink-0">3.</span>
+              <span className="text-[#D97706] font-bold shrink-0">3.</span>
               Builders only see and review applicants after you apply to their specific job.
             </li>
           </ul>
@@ -93,14 +93,14 @@ export default function InspectorOnboardingStatusPage() {
         {status === 'approved' ? (
           <Link
             href="/inspector"
-            className="w-full flex items-center justify-center gap-2 bg-[#FF5F15] text-white font-bold py-4 rounded-xl hover:opacity-90 transition-opacity"
+            className="w-full flex items-center justify-center gap-2 bg-[#D97706] text-white font-bold py-4 rounded-xl hover:opacity-90 transition-opacity"
           >
             <HardHat className="w-5 h-5" /> Go to Live Board
           </Link>
         ) : user?.role === 'inspector' && status === 'needs_info' ? (
           <Link
             href="/inspector/profile"
-            className="w-full flex items-center justify-center gap-2 bg-[#FF5F15] text-white font-bold py-4 rounded-xl hover:opacity-90 transition-opacity"
+            className="w-full flex items-center justify-center gap-2 bg-[#D97706] text-white font-bold py-4 rounded-xl hover:opacity-90 transition-opacity"
           >
             <FileText className="w-5 h-5" /> Upload requested documents
           </Link>
