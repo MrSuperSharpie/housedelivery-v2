@@ -1294,7 +1294,7 @@ export default function BuilderOnboardingPage() {
               <button
                 type="button"
                 onClick={() => setStep(STEP_ORDER[stepIdx + 1])}
-                className="flex-1 flex items-center justify-center gap-1.5 bg-flame hover:opacity-90 text-white font-bold py-3 rounded-xl text-sm transition-opacity"
+                className="flex-1 flex items-center justify-center gap-1.5 bg-flame hover:bg-flame-light text-[#1B1508] font-bold py-3 rounded-xl text-sm transition-colors"
               >
                 Continue <ChevronRight className="w-4 h-4" />
               </button>
@@ -1303,10 +1303,10 @@ export default function BuilderOnboardingPage() {
                 type="button"
                 disabled={!form.agreeTerms || !form.agreeAccuracy || !allDocsComplete || isSubmitting}
                 onClick={handleSubmit}
-                className="flex-1 flex items-center justify-center gap-2 bg-flame hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl text-sm transition-opacity"
+                className="flex-1 flex items-center justify-center gap-2 bg-flame hover:bg-flame-light disabled:opacity-40 disabled:cursor-not-allowed text-[#1B1508] font-bold py-3 rounded-xl text-sm transition-colors"
               >
                 {isSubmitting
-                  ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Submitting…</>
+                  ? <><div className="w-4 h-4 border-2 border-[#1B1508] border-t-transparent rounded-full animate-spin" /> Submitting…</>
                   : <><Shield className="w-4 h-4" /> Submit for verification</>
                 }
               </button>
