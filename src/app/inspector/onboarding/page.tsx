@@ -183,7 +183,7 @@ function InspectorOnboardingEntryInner() {
             {status === 'needs_info' ? (
               <Link
                 href="/inspector/profile"
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-flame px-5 py-4 text-sm font-black text-white hover:bg-flame-light"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#C6A15B] px-5 py-4 text-sm font-black text-[#1B1508] hover:bg-[#D8B871]"
               >
                 <FileText className="h-4 w-4" />
                 Upload requested documents
@@ -191,7 +191,7 @@ function InspectorOnboardingEntryInner() {
             ) : status === 'draft' ? (
               <Link
                 href="/inspector/signup"
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-flame px-5 py-4 text-sm font-black text-white hover:bg-flame-light"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#C6A15B] px-5 py-4 text-sm font-black text-[#1B1508] hover:bg-[#D8B871]"
               >
                 <FileText className="h-4 w-4" />
                 Return to onboarding

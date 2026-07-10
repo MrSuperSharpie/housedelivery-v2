@@ -172,7 +172,7 @@ function DocUpload({ label, required, conditional, hint, uploaded, onUpload }: {
         type="button"
         onClick={() => inputRef.current?.click()}
         className={`w-full border-2 border-dashed rounded-xl p-4 text-left transition-all ${
-          uploaded ? 'border-success-green bg-green-50' : 'border-gray-200 hover:border-flame hover:bg-orange-50'
+          uploaded ? 'border-success-green bg-green-50' : 'border-gray-200 hover:border-flame hover:bg-flame/10'
         }`}
       >
         <div className="flex items-center gap-3">
@@ -631,7 +631,7 @@ export default function BuilderOnboardingPage() {
   // ── Loading ──────────────────────────────────────────────────────────────
   if (status === null) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="app-theme-scope min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="w-6 h-6 rounded-full border-2 border-flame border-t-transparent animate-spin" />
       </div>
     )
@@ -640,7 +640,7 @@ export default function BuilderOnboardingPage() {
   // ── Post-submission status display ───────────────────────────────────────
   if (status !== 'draft') {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="app-theme-scope min-h-screen bg-gray-50 flex flex-col">
         <nav className="bg-white border-b border-gray-100 px-4 py-4">
           <div className="max-w-xl mx-auto flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2">
@@ -662,7 +662,7 @@ export default function BuilderOnboardingPage() {
 
   // ── Multi-step verification form ─────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="app-theme-scope min-h-screen bg-gray-50">
 
       {/* Top bar */}
       <div className="bg-white border-b border-gray-100 px-4 py-4">
@@ -753,7 +753,7 @@ export default function BuilderOnboardingPage() {
                     return (
                       <button key={bt.id} type="button" onClick={() => set('builderType', bt.id)}
                         className={`w-full text-left flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${
-                          active ? 'border-flame bg-orange-50' : 'border-gray-200 hover:border-gray-300'
+                          active ? 'border-flame bg-flame/10' : 'border-gray-200 hover:border-gray-300'
                         }`}>
                         <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
                           active ? 'bg-flame' : 'bg-gray-100'
@@ -853,7 +853,7 @@ export default function BuilderOnboardingPage() {
                     return (
                       <button key={r} type="button" onClick={() => toggleArr('regions', r)}
                         className={`flex items-center justify-between px-3 py-2.5 rounded-xl border-2 transition-all text-sm ${
-                          active ? 'border-flame bg-orange-50 font-bold text-gray-900' : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                          active ? 'border-flame bg-flame/10 font-bold text-gray-900' : 'border-gray-200 hover:border-gray-300 text-gray-700'
                         }`}>
                         <span>{r}</span>
                         {active && <CheckCircle2 className="w-4 h-4 text-flame shrink-0" />}
@@ -1031,7 +1031,7 @@ export default function BuilderOnboardingPage() {
                   ].map(opt => (
                     <button key={opt.id} type="button" onClick={() => set('worksafeMode', opt.id)}
                       className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
-                        form.worksafeMode === opt.id ? 'border-flame bg-orange-50' : 'border-gray-200 hover:border-gray-300'
+                        form.worksafeMode === opt.id ? 'border-flame bg-flame/10' : 'border-gray-200 hover:border-gray-300'
                       }`}>
                       <div className="flex items-start gap-3">
                         <div className={`w-5 h-5 rounded-full border-2 mt-0.5 flex items-center justify-center shrink-0 ${
@@ -1294,7 +1294,7 @@ export default function BuilderOnboardingPage() {
               <button
                 type="button"
                 onClick={() => setStep(STEP_ORDER[stepIdx + 1])}
-                className="flex-1 flex items-center justify-center gap-1.5 bg-flame hover:opacity-90 text-white font-bold py-3 rounded-xl text-sm transition-opacity"
+                className="flex-1 flex items-center justify-center gap-1.5 bg-flame hover:bg-flame-light text-[#1B1508] font-bold py-3 rounded-xl text-sm transition-colors"
               >
                 Continue <ChevronRight className="w-4 h-4" />
               </button>
@@ -1303,10 +1303,10 @@ export default function BuilderOnboardingPage() {
                 type="button"
                 disabled={!form.agreeTerms || !form.agreeAccuracy || !allDocsComplete || isSubmitting}
                 onClick={handleSubmit}
-                className="flex-1 flex items-center justify-center gap-2 bg-flame hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl text-sm transition-opacity"
+                className="flex-1 flex items-center justify-center gap-2 bg-flame hover:bg-flame-light disabled:opacity-40 disabled:cursor-not-allowed text-[#1B1508] font-bold py-3 rounded-xl text-sm transition-colors"
               >
                 {isSubmitting
-                  ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Submitting…</>
+                  ? <><div className="w-4 h-4 border-2 border-[#1B1508] border-t-transparent rounded-full animate-spin" /> Submitting…</>
                   : <><Shield className="w-4 h-4" /> Submit for verification</>
                 }
               </button>
