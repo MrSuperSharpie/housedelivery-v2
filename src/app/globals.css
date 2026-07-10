@@ -52,9 +52,9 @@
 }
 
 html[data-theme='light'] .admin-theme-scope {
-  --color-flame:         #B0893B;
-  --color-flame-light:   #C29A45;
-  --color-flame-dim:     rgba(176,137,59,0.14);
+  --color-flame:         #BFA266;
+  --color-flame-light:   #D8B871;
+  --color-flame-dim:     rgba(191,162,102,0.14);
   --color-safety-orange: #D97706;
   --color-blueprint-blue:#FFFFFF;
   --color-success-green: #2F8F5B;
@@ -78,9 +78,9 @@ html[data-theme='light'] .admin-theme-scope {
 }
 
 html[data-theme='light'] .app-theme-scope {
-  --color-flame:         #B0893B;
-  --color-flame-light:   #C29A45;
-  --color-flame-dim:     rgba(176,137,59,0.14);
+  --color-flame:         #BFA266;
+  --color-flame-light:   #D8B871;
+  --color-flame-dim:     rgba(191,162,102,0.14);
   --color-safety-orange: #D97706;
   --color-blueprint-blue:#FFFFFF;
   --color-success-green: #2F8F5B;
