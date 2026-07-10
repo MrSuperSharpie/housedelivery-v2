@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase/client'
 
 const supabase = createClient()
 
-const inputCls = 'w-full bg-panel border border-white/10 focus:border-flame text-ink text-sm rounded-xl px-4 py-3 placeholder-subtle focus:outline-none transition-colors'
+const inputCls = 'w-full bg-panel border border-white/10 focus:border-[#C6A15B] text-ink text-sm rounded-xl px-4 py-3 placeholder-subtle focus:outline-none transition-colors'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail]         = useState('')
@@ -78,7 +78,7 @@ export default function ForgotPasswordPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-black text-sm transition-all mt-2 bg-flame hover:bg-flame-light text-white disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-black text-sm transition-all mt-2 bg-[#C6A15B] hover:bg-[#D8B871] text-[#1B1508] disabled:opacity-50"
               >
                 {loading
                   ? <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
