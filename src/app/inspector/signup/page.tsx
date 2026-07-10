@@ -862,8 +862,8 @@ export default function InspectorSignup() {
     const dashboardPath  = blockedRole === 'admin' ? '/admin' : '/builder'
     const dashboardLabel = blockedRole === 'admin' ? 'Admin Dashboard' : 'Builder Dashboard'
     return (
-      <div className="app-theme-scope min-h-screen bg-[#0A192F] flex flex-col items-center justify-center p-6 text-center">
-        <Shield className="w-16 h-16 text-flame mb-4" />
+      <div className="min-h-screen bg-[#0A192F] flex flex-col items-center justify-center p-6 text-center">
+        <Shield className="w-16 h-16 text-[#C6A15B] mb-4" />
         <h1 className="text-3xl font-black text-white mb-2">Access Restricted</h1>
         <p className="text-blue-300 mb-2 max-w-sm">
           You are signed in as a{blockedRole === 'admin' ? 'n' : ''} <span className="text-white font-bold">{blockedRole}</span> account.
@@ -873,7 +873,7 @@ export default function InspectorSignup() {
         </p>
         <Link
           href={dashboardPath}
-          className="inline-flex items-center gap-2 bg-flame text-white font-bold px-6 py-3 rounded-xl hover:bg-flame-light transition-colors"
+          className="inline-flex items-center gap-2 bg-[#C6A15B] text-[#1B1508] font-bold px-6 py-3 rounded-xl hover:bg-[#D8B871] transition-colors"
         >
           Go to {dashboardLabel}
         </Link>
@@ -885,7 +885,7 @@ export default function InspectorSignup() {
 
   if (step === 'submitted') {
     return (
-      <div className="app-theme-scope min-h-screen bg-[#0A192F] flex flex-col items-center justify-center p-6 text-center">
+      <div className="min-h-screen bg-[#0A192F] flex flex-col items-center justify-center p-6 text-center">
         <CheckCircle2 className="w-16 h-16 text-[#10B981] mb-4" />
         <h1 className="text-3xl font-black text-white mb-2">Application Submitted</h1>
         <p className="text-blue-400 mb-2">
