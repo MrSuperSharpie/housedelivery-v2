@@ -1278,6 +1278,7 @@ export default function InspectorSignup() {
               <Button
                 variant="primary"
                 fullWidth
+                className="bg-[#C6A15B] text-[#1B1508] hover:bg-[#D8B871] shadow-none focus:ring-[#C6A15B]"
                 disabled={
                   (step === 'personal' && form.password.length < 8)
                   || (step === 'credentials' && (form.credentialTypes.length === 0 || (hasGeneralistCredential && form.disciplineScope.length === 0)))
@@ -1291,6 +1292,7 @@ export default function InspectorSignup() {
               <Button
                 variant="primary"
                 fullWidth
+                className="bg-[#C6A15B] text-[#1B1508] hover:bg-[#D8B871] shadow-none focus:ring-[#C6A15B]"
                 loading={isSubmitting}
                 disabled={!form.agreeTerms || !allDocsSelected}
                 onClick={handleSubmit}
