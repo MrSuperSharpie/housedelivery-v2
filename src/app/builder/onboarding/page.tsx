@@ -8,6 +8,7 @@ import {
   Clock, AlertCircle, FileText, Shield, Briefcase, Home, Store,
   LayoutGrid,
 } from 'lucide-react'
+import { BrandWordmark } from '@/components/shared/Navbar'
 import { useAuth } from '@/lib/auth'
 import {
   getBuilderOnboardingStatus,
@@ -647,14 +648,7 @@ export default function BuilderOnboardingPage() {
       <div className="app-theme-scope min-h-screen bg-gray-50 flex flex-col">
         <nav className="bg-white border-b border-gray-100 px-4 py-4">
           <div className="max-w-xl mx-auto flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-[#B8872F] flex items-center justify-center">
-                <Building2 className="w-3.5 h-3.5 text-white" />
-              </div>
-              <span className="text-sm font-black text-gray-900 tracking-tight">
-                Vero<span className="text-[#8A641B]"> Permit</span>
-              </span>
-            </Link>
+            <BrandWordmark className="max-w-[132px]" height={32} priority theme="light" />
           </div>
         </nav>
         <div className="flex-1 flex items-center justify-center px-4 py-12">
@@ -671,14 +665,7 @@ export default function BuilderOnboardingPage() {
       {/* Top bar */}
       <div className="bg-white border-b border-gray-100 px-4 py-4">
         <div className="max-w-xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-[#B8872F] flex items-center justify-center">
-              <Building2 className="w-3.5 h-3.5 text-white" />
-            </div>
-            <span className="text-sm font-black text-gray-900 tracking-tight">
-              Vero<span className="text-[#8A641B]"> Permit</span>
-            </span>
-          </Link>
+          <BrandWordmark className="max-w-[132px]" height={32} priority theme="light" />
           <span className="text-xs text-gray-400">Builder verification</span>
         </div>
       </div>
