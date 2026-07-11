@@ -123,6 +123,12 @@ const PROFESSIONAL_TYPES = new Set([
 
 const GENERALIST_TYPES = new Set(['asct', 'ctech', 'qa_field_verifier'])
 const ACCOUNT_EXISTS_MESSAGE = 'This email already has an account. Please sign in to continue your inspector application.'
+const LIGHT_GOLD_TEXT = 'text-[#8A641B] hover:text-[#6F4B10]'
+const LIGHT_GOLD_FOCUS = 'focus:border-[#A87824] focus:ring-2 focus:ring-[#EAD9B6]'
+const LIGHT_GOLD_SELECTED = 'border-[#A87824] bg-[#F8EEDB]'
+const LIGHT_GOLD_SELECTED_TEXT = 'text-[#7A5617]'
+const LIGHT_GOLD_BUTTON = 'bg-[#B8872F] text-[#120D05] hover:bg-[#C99A3C] focus:ring-[#B8872F] disabled:bg-[#E6D8B8] disabled:text-[#5F4B21] disabled:opacity-100 shadow-none'
+const DARK_GOLD_BUTTON = 'bg-[#C6A15B] text-[#1B1508] hover:bg-[#D8B871] focus-visible:ring-[#C6A15B]'
 
 function notifyAccountLifecycleEmail(eventKey: string) {
   void fetch('/api/mail/account-lifecycle', {
@@ -319,7 +325,7 @@ function Field({ label, children, required }: {
   return (
     <div className="space-y-1.5">
       <label className="block text-xs font-bold text-gray-600 uppercase tracking-wide">
-        {label}{required && <span className="text-flame ml-0.5">*</span>}
+        {label}{required && <span className="text-[#A87824] ml-0.5">*</span>}
       </label>
       {children}
     </div>
@@ -330,7 +336,7 @@ function Input({ ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
-      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-flame focus:outline-none text-sm font-medium text-gray-900 transition-colors"
+      className={`w-full px-4 py-3 rounded-xl border-2 border-gray-200 ${LIGHT_GOLD_FOCUS} focus:outline-none text-sm font-medium text-gray-900 transition-colors`}
     />
   )
 }
@@ -393,7 +399,7 @@ function DocUpload({
             ? 'border-[#10B981] bg-green-50'
             : uploadError
               ? 'border-red-300 bg-red-50'
-              : 'border-gray-200 hover:border-flame hover:bg-flame/10'
+              : 'border-gray-200 hover:border-[#A87824] hover:bg-[#F8EEDB]'
         }`}
       >
         <div className="flex items-center gap-3">
@@ -401,7 +407,7 @@ function DocUpload({
             uploaded ? 'bg-[#10B981]' : uploadError ? 'bg-red-100' : 'bg-gray-100'
           }`}>
             {uploading
-              ? <div className="w-5 h-5 border-2 border-gray-300 border-t-flame rounded-full animate-spin" />
+              ? <div className="w-5 h-5 border-2 border-gray-300 border-t-[#A87824] rounded-full animate-spin" />
               : uploaded
                 ? <CheckCircle2 className="w-5 h-5 text-white" />
                 : uploadError
@@ -873,7 +879,7 @@ export default function InspectorSignup() {
         </p>
         <Link
           href={dashboardPath}
-          className="inline-flex items-center gap-2 bg-[#C6A15B] text-[#1B1508] font-bold px-6 py-3 rounded-xl hover:bg-[#D8B871] transition-colors"
+          className={`inline-flex items-center gap-2 font-bold px-6 py-3 rounded-xl transition-colors ${DARK_GOLD_BUTTON}`}
         >
           Go to {dashboardLabel}
         </Link>
@@ -916,7 +922,7 @@ export default function InspectorSignup() {
               <h2 className="text-3xl font-black leading-tight">
                 BC&apos;s professional inspection network
               </h2>
-              <p className="mt-4 text-blue-300 text-sm leading-relaxed">
+              <p className="mt-4 text-blue-200 text-sm leading-relaxed">
                 Vero connects licensed engineers, architects, and certified professionals with builders across Metro Vancouver. Earn on your schedule, on your terms.
               </p>
             </div>
@@ -932,14 +938,14 @@ export default function InspectorSignup() {
                   <span className="text-xl shrink-0 mt-0.5">{item.icon}</span>
                   <div>
                     <div className="text-sm font-bold text-white">{item.title}</div>
-                    <div className="text-xs text-blue-400 mt-0.5 leading-relaxed">{item.body}</div>
+                    <div className="text-xs text-blue-200/85 mt-0.5 leading-relaxed">{item.body}</div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="text-[11px] text-blue-700 mt-10">
+          <div className="text-[11px] text-blue-200/70 mt-10">
             Vero Permit Inc. · BC only · All credentials verified against EGBC, AIBC &amp; Technical Safety BC
           </div>
         </aside>
@@ -950,7 +956,7 @@ export default function InspectorSignup() {
         {/* Step progress */}
         <div className="flex gap-2 mb-8">
           {STEPS.map((s, i) => (
-            <div key={s.id} className={`h-1.5 flex-1 rounded-full ${i <= stepIdx ? 'bg-flame' : 'bg-gray-200'}`} />
+            <div key={s.id} className={`h-1.5 flex-1 rounded-full ${i <= stepIdx ? 'bg-[#B8872F]' : 'bg-gray-200'}`} />
           ))}
         </div>
 
@@ -963,7 +969,7 @@ export default function InspectorSignup() {
                 <h2 className="text-2xl font-black text-[#0A192F]">Join the Network</h2>
                 <p className="mt-2 text-sm font-semibold text-gray-700">
                   Already have an account?{' '}
-                  <Link href="/sign-in?role=inspector" className="text-[#0A192F] underline decoration-flame decoration-2 underline-offset-4 hover:text-flame">
+                  <Link href="/sign-in?role=inspector" className={`underline decoration-[#B8872F] decoration-2 underline-offset-4 ${LIGHT_GOLD_TEXT}`}>
                     Sign in to continue
                   </Link>
                 </p>
@@ -986,7 +992,7 @@ export default function InspectorSignup() {
               <label className="flex items-start gap-3 cursor-pointer rounded-xl border border-gray-200 bg-gray-50 p-3">
                 <input
                   type="checkbox"
-                  className="w-5 h-5 accent-flame mt-0.5 shrink-0"
+                  className="w-5 h-5 accent-[#B8872F] mt-0.5 shrink-0"
                   checked={form.smsConsent}
                   onChange={() => set('smsConsent', !form.smsConsent)}
                 />
@@ -995,7 +1001,7 @@ export default function InspectorSignup() {
                   inspection scheduling, appointment reminders, project updates, correction notices,
                   re-verification updates, and inspection workflow notifications. Message frequency varies.
                   Message and data rates may apply. Reply STOP to unsubscribe or HELP for help.{' '}
-                  <Link href="/sms-consent" target="_blank" className="font-semibold text-flame hover:underline">
+                  <Link href="/sms-consent" target="_blank" className={`font-semibold hover:underline ${LIGHT_GOLD_TEXT}`}>
                     SMS Consent
                   </Link>
                 </span>
@@ -1048,7 +1054,7 @@ export default function InspectorSignup() {
                             onClick={() => toggleCredentialType(ct.id)}
                             className={`w-full rounded-xl border-2 px-4 py-3 text-left transition-all ${
                               form.credentialTypes.includes(ct.id)
-                                ? 'border-flame bg-flame/10'
+                                ? LIGHT_GOLD_SELECTED
                                 : 'border-gray-100 text-gray-700'
                             }`}
                           >
@@ -1071,7 +1077,7 @@ export default function InspectorSignup() {
                       <button key={d.id} type="button" onClick={() => toggleDisciplineScope(d.id)}
                         className={`p-4 rounded-xl border-2 text-sm font-bold transition-all ${
                           form.disciplineScope.includes(d.id)
-                            ? 'border-flame bg-flame/10 text-flame'
+                            ? `${LIGHT_GOLD_SELECTED} ${LIGHT_GOLD_SELECTED_TEXT}`
                             : 'border-gray-100 text-gray-600'
                         }`}>
                         {d.label}
@@ -1092,7 +1098,7 @@ export default function InspectorSignup() {
                   <button key={r} type="button" onClick={() => toggleArr('regions', r)}
                     className={`p-4 rounded-xl border-2 text-sm font-bold transition-all ${
                       form.regions.includes(r)
-                        ? 'border-flame bg-flame/10 text-flame'
+                        ? `${LIGHT_GOLD_SELECTED} ${LIGHT_GOLD_SELECTED_TEXT}`
                         : 'border-gray-100 text-gray-600'
                     }`}>
                     {r}
@@ -1242,7 +1248,7 @@ export default function InspectorSignup() {
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
-                  className="w-5 h-5 accent-flame"
+                  className="w-5 h-5 accent-[#B8872F]"
                   checked={form.agreeTerms}
                   onChange={() => set('agreeTerms', !form.agreeTerms)}
                 />
@@ -1278,7 +1284,7 @@ export default function InspectorSignup() {
               <Button
                 variant="primary"
                 fullWidth
-                className="bg-flame text-[#1B1508] hover:bg-flame-light shadow-none focus:ring-flame"
+                className={LIGHT_GOLD_BUTTON}
                 disabled={
                   (step === 'personal' && form.password.length < 8)
                   || (step === 'credentials' && (form.credentialTypes.length === 0 || (hasGeneralistCredential && form.disciplineScope.length === 0)))
@@ -1292,7 +1298,7 @@ export default function InspectorSignup() {
               <Button
                 variant="primary"
                 fullWidth
-                className="bg-flame text-[#1B1508] hover:bg-flame-light shadow-none focus:ring-flame"
+                className={LIGHT_GOLD_BUTTON}
                 loading={isSubmitting}
                 disabled={!form.agreeTerms || !allDocsSelected}
                 onClick={handleSubmit}
