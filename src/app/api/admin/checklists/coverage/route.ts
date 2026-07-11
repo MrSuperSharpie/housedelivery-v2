@@ -1,6 +1,22 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { requireAdminApi } from '@/lib/adminApiGuard'
+import {
+  ACTIVE_BC_TEMPLATE_JURISDICTIONS,
+  DORMANT_ONTARIO_JURISDICTION_FAMILY,
+  getDormantOntarioCoverageReadiness,
+} from '@/lib/inspections/jurisdictionResolver'
+import { getDormantOntarioSmallResidentialTemplateFoundation } from '@/lib/inspections/ontarioSmallResidentialTemplateFoundation'
+import { getDormantOntarioStageAlignedTemplateMatrix } from '@/lib/inspections/ontarioStageAlignedTemplateMatrix'
+import { getDormantOntarioTemplateGovernance } from '@/lib/inspections/ontarioTemplateGovernance'
+import { getDormantOntarioMunicipalOverlayFoundation } from '@/lib/inspections/ontarioMunicipalOverlayFoundation'
+import { getDormantOntarioAdminResolverDryRun } from '@/lib/inspections/ontarioAdminResolverDryRun'
+import { getDormantOntarioProjectTaxonomyFoundation } from '@/lib/inspections/ontarioProjectTaxonomyFoundation'
+import { getDormantOntarioIntakeRoutingReadinessSimulator } from '@/lib/inspections/ontarioIntakeRoutingReadinessSimulator'
+import { getDormantOntarioDraftChecklistItemCatalog } from '@/lib/inspections/ontarioDraftChecklistItemCatalog'
+import { getDormantOntarioEvidenceDocumentRequirementsFoundation } from '@/lib/inspections/ontarioEvidenceDocumentRequirementsFoundation'
+import { getDormantOntarioAuthorityPackageWordingSpec } from '@/lib/inspections/ontarioAuthorityPackageWordingSpec'
+import { getDormantOntarioReadinessGateSummary } from '@/lib/inspections/ontarioReadinessGateSummary'
 
 /**
  * Read-only admin diagnostic: reports current checklist/template coverage and
@@ -172,7 +188,7 @@ export async function GET() {
     {
       dimension: 'Jurisdiction',
       used: true,
-      note: 'City maps to a jurisdiction (Vancouver → VBBL 2025, otherwise BCBC 2024).',
+      note: `City maps to a jurisdiction (Vancouver → ${ACTIVE_BC_TEMPLATE_JURISDICTIONS.vancouver}, otherwise ${ACTIVE_BC_TEMPLATE_JURISDICTIONS.provinceBase}). Dormant Ontario scaffold (${DORMANT_ONTARIO_JURISDICTION_FAMILY.baseSlug}) is not active and is not used for live resolution.`,
     },
   ]
 
@@ -193,6 +209,19 @@ export async function GET() {
     hasReviewPublishWorkflow: false,
     note: 'Templates carry only an active flag and a version number — no draft, review, or publish governance field exists.',
   }
+
+  const dormantOntarioCoverage = getDormantOntarioCoverageReadiness()
+  const dormantOntarioTemplateFoundation = getDormantOntarioSmallResidentialTemplateFoundation()
+  const dormantOntarioStageMatrix = getDormantOntarioStageAlignedTemplateMatrix()
+  const dormantOntarioTemplateGovernance = getDormantOntarioTemplateGovernance()
+  const dormantOntarioMunicipalOverlayFoundation = getDormantOntarioMunicipalOverlayFoundation()
+  const dormantOntarioAdminResolverDryRun = getDormantOntarioAdminResolverDryRun()
+  const dormantOntarioProjectTaxonomyFoundation = getDormantOntarioProjectTaxonomyFoundation()
+  const dormantOntarioIntakeRoutingReadinessSimulator = getDormantOntarioIntakeRoutingReadinessSimulator()
+  const dormantOntarioDraftChecklistItemCatalog = getDormantOntarioDraftChecklistItemCatalog()
+  const dormantOntarioEvidenceDocumentRequirementsFoundation = getDormantOntarioEvidenceDocumentRequirementsFoundation()
+  const dormantOntarioAuthorityPackageWordingSpec = getDormantOntarioAuthorityPackageWordingSpec()
+  const dormantOntarioReadinessGateSummary = getDormantOntarioReadinessGateSummary()
 
   const totals = {
     jurisdictions: allJurisdictions.length,
@@ -222,5 +251,17 @@ export async function GET() {
     resolverBasis,
     largerProjectGaps,
     templateGovernance,
+    dormantOntarioCoverage,
+    dormantOntarioTemplateFoundation,
+    dormantOntarioStageMatrix,
+    dormantOntarioTemplateGovernance,
+    dormantOntarioMunicipalOverlayFoundation,
+    dormantOntarioAdminResolverDryRun,
+    dormantOntarioProjectTaxonomyFoundation,
+    dormantOntarioIntakeRoutingReadinessSimulator,
+    dormantOntarioDraftChecklistItemCatalog,
+    dormantOntarioEvidenceDocumentRequirementsFoundation,
+    dormantOntarioAuthorityPackageWordingSpec,
+    dormantOntarioReadinessGateSummary,
   })
 }

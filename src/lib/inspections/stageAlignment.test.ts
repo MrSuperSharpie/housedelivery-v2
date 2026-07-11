@@ -19,6 +19,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { resolveTemplateJurisdiction } from './jurisdictionResolver'
 
 const migrations = join(process.cwd(), 'supabase', 'migrations')
 const mig = (f: string) => readFileSync(join(migrations, f), 'utf8')
@@ -114,14 +115,12 @@ test('renamed stage titles stay synchronised with the runtime (System C) model',
   }
 })
 
-// Jurisdiction resolution: source-derived assertion on resolveActiveTemplate's
-// city → jurisdiction mapping (Vancouver → vbbl_2025; everything else → bcbc_2024).
+// Jurisdiction resolution: assertion on the shared helper used by
+// resolveActiveTemplate and the inspector stage reference page.
 test('resolver maps Vancouver to vbbl_2025 and non-Vancouver to bcbc_2024', () => {
-  const resolver = src('src/lib/inspections/resolveActiveTemplate.ts')
-  assert.match(resolver, /=== 'vancouver'\s*\?\s*'vbbl_2025'\s*:\s*'bcbc_2024'/,
-    'Vancouver → vbbl_2025 / else → bcbc_2024 mapping not found in resolveActiveTemplate.ts')
-  assert.match(resolver, /if \(!city\) return 'bcbc_2024'/,
-    'null-city default → bcbc_2024 not found in resolveActiveTemplate.ts')
+  assert.equal(resolveTemplateJurisdiction({ city: 'Vancouver' }).slug, 'vbbl_2025')
+  assert.equal(resolveTemplateJurisdiction({ city: 'Burnaby' }).slug, 'bcbc_2024')
+  assert.equal(resolveTemplateJurisdiction({ city: null }).slug, 'bcbc_2024')
 })
 
 // Specific proof of the S10–S13 alignment migration: each stage's active
