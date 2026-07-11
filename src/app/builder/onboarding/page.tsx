@@ -8,6 +8,7 @@ import {
   Clock, AlertCircle, FileText, Shield, Briefcase, Home, Store,
   LayoutGrid,
 } from 'lucide-react'
+import { BrandWordmark } from '@/components/shared/Navbar'
 import { useAuth } from '@/lib/auth'
 import {
   getBuilderOnboardingStatus,
@@ -67,6 +68,10 @@ const PERMIT_FAMILY_LABELS: Record<string, string> = {
 }
 
 const DEFAULT_BUILDER_PERMIT_FAMILIES = ['building', 'electrical', 'plumbing', 'mechanical', 'occupancy']
+const LIGHT_GOLD_TEXT = 'text-[#8A641B] hover:text-[#6F4B10]'
+const LIGHT_GOLD_FOCUS = 'focus:border-[#A87824] focus:ring-2 focus:ring-[#EAD9B6]'
+const LIGHT_GOLD_SELECTED = 'border-[#A87824] bg-[#F8EEDB]'
+const LIGHT_GOLD_BUTTON = 'bg-[#B8872F] text-[#120D05] hover:bg-[#C99A3C] focus:ring-2 focus:ring-[#B8872F] disabled:bg-[#E6D8B8] disabled:text-[#5F4B21] disabled:opacity-100 disabled:cursor-not-allowed'
 
 const ENTITY_TYPES = [
   'Corporation (Ltd. / Inc.)',
@@ -107,7 +112,7 @@ function Field({ label, children, hint, required, conditional }: {
     <div>
       <label className="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1.5">
         {label}
-        {required && <span className="text-flame ml-0.5">*</span>}
+        {required && <span className="text-[#A87824] ml-0.5">*</span>}
         {conditional && <span className="text-gray-400 ml-1.5 font-normal normal-case tracking-normal text-[10px]">if applicable</span>}
       </label>
       {children}
@@ -120,7 +125,7 @@ function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
-      className={`w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-flame focus:outline-none text-sm font-medium text-gray-900 transition-colors ${props.className ?? ''}`}
+      className={`w-full px-4 py-3 rounded-xl border-2 border-gray-200 ${LIGHT_GOLD_FOCUS} focus:outline-none text-sm font-medium text-gray-900 transition-colors ${props.className ?? ''}`}
     />
   )
 }
@@ -129,7 +134,7 @@ function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <select
       {...props}
-      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-flame focus:outline-none text-sm font-medium text-gray-900 transition-colors bg-white"
+      className={`w-full px-4 py-3 rounded-xl border-2 border-gray-200 ${LIGHT_GOLD_FOCUS} focus:outline-none text-sm font-medium text-gray-900 transition-colors bg-white`}
     />
   )
 }
@@ -139,7 +144,7 @@ function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
     <textarea
       rows={3}
       {...props}
-      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-flame focus:outline-none text-sm font-medium text-gray-900 transition-colors resize-none"
+      className={`w-full px-4 py-3 rounded-xl border-2 border-gray-200 ${LIGHT_GOLD_FOCUS} focus:outline-none text-sm font-medium text-gray-900 transition-colors resize-none`}
     />
   )
 }
@@ -172,7 +177,7 @@ function DocUpload({ label, required, conditional, hint, uploaded, onUpload }: {
         type="button"
         onClick={() => inputRef.current?.click()}
         className={`w-full border-2 border-dashed rounded-xl p-4 text-left transition-all ${
-          uploaded ? 'border-success-green bg-green-50' : 'border-gray-200 hover:border-flame hover:bg-flame/10'
+          uploaded ? 'border-success-green bg-green-50' : 'border-gray-200 hover:border-[#A87824] hover:bg-[#F8EEDB]'
         }`}
       >
         <div className="flex items-center gap-3">
@@ -187,7 +192,7 @@ function DocUpload({ label, required, conditional, hint, uploaded, onUpload }: {
           <div className="flex-1 min-w-0">
             <div className="font-semibold text-sm text-gray-900 flex items-center gap-2 flex-wrap">
               {label}
-              {required && <span className="text-flame">*</span>}
+              {required && <span className="text-[#A87824]">*</span>}
               {conditional && !required && (
                 <span className="text-[10px] font-semibold bg-gray-100 text-gray-500 rounded px-1.5 py-0.5">if applicable</span>
               )}
@@ -294,7 +299,7 @@ function StatusPage({ status, userEmail }: { status: BuilderOnboardingStatus; us
             { n: '03', title: 'Approval & live posting access', desc: 'Once approved, you\'ll receive an email and can post live inspection requests.', eta: 'Day 3–5' },
           ].map(item => (
             <div key={item.n} className="flex gap-3 mb-4 last:mb-0">
-              <div className="w-8 h-8 bg-flame rounded-lg flex items-center justify-center text-white font-black text-xs shrink-0 mt-0.5">
+              <div className="w-8 h-8 bg-[#B8872F] rounded-lg flex items-center justify-center text-white font-black text-xs shrink-0 mt-0.5">
                 {item.n}
               </div>
               <div>
@@ -632,7 +637,7 @@ export default function BuilderOnboardingPage() {
   if (status === null) {
     return (
       <div className="app-theme-scope min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-6 h-6 rounded-full border-2 border-flame border-t-transparent animate-spin" />
+        <div className="w-6 h-6 rounded-full border-2 border-[#A87824] border-t-transparent animate-spin" />
       </div>
     )
   }
@@ -643,14 +648,7 @@ export default function BuilderOnboardingPage() {
       <div className="app-theme-scope min-h-screen bg-gray-50 flex flex-col">
         <nav className="bg-white border-b border-gray-100 px-4 py-4">
           <div className="max-w-xl mx-auto flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-flame flex items-center justify-center">
-                <Building2 className="w-3.5 h-3.5 text-white" />
-              </div>
-              <span className="text-sm font-black text-gray-900 tracking-tight">
-                Vero<span className="text-flame"> Permit</span>
-              </span>
-            </Link>
+            <BrandWordmark className="max-w-[132px]" height={32} priority theme="light" />
           </div>
         </nav>
         <div className="flex-1 flex items-center justify-center px-4 py-12">
@@ -667,14 +665,7 @@ export default function BuilderOnboardingPage() {
       {/* Top bar */}
       <div className="bg-white border-b border-gray-100 px-4 py-4">
         <div className="max-w-xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-flame flex items-center justify-center">
-              <Building2 className="w-3.5 h-3.5 text-white" />
-            </div>
-            <span className="text-sm font-black text-gray-900 tracking-tight">
-              Vero<span className="text-flame"> Permit</span>
-            </span>
-          </Link>
+          <BrandWordmark className="max-w-[132px]" height={32} priority theme="light" />
           <span className="text-xs text-gray-400">Builder verification</span>
         </div>
       </div>
@@ -683,14 +674,14 @@ export default function BuilderOnboardingPage() {
 
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 bg-flame/10 border border-flame/20 rounded-full px-4 py-1.5 mb-4">
-            <Building2 className="w-4 h-4 text-flame" />
-            <span className="text-sm font-bold text-flame">Builder verification</span>
+          <div className="inline-flex items-center gap-2 bg-[#F8EEDB] border border-[#D8C18A] rounded-full px-4 py-1.5 mb-4">
+            <Building2 className="w-4 h-4 text-[#8A641B]" />
+            <span className="text-sm font-bold text-[#8A641B]">Builder verification</span>
           </div>
           <h1 className="text-2xl font-black text-gray-900 mb-2">Complete your builder verification</h1>
           <p className="mb-3 text-sm font-semibold text-gray-700">
             Already have an account?{' '}
-            <Link href="/sign-in?role=builder" className="text-gray-950 underline decoration-flame decoration-2 underline-offset-4 hover:text-flame">
+            <Link href="/sign-in?role=builder" className={`underline decoration-[#B8872F] decoration-2 underline-offset-4 ${LIGHT_GOLD_TEXT}`}>
               Sign in to continue
             </Link>
           </p>
@@ -710,7 +701,7 @@ export default function BuilderOnboardingPage() {
                 <div className="flex flex-col items-center gap-1 shrink-0">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
                     isDone   ? 'bg-success-green' :
-                    isActive ? 'bg-flame' : 'bg-gray-200'
+                    isActive ? 'bg-[#B8872F]' : 'bg-gray-200'
                   }`}>
                     {isDone
                       ? <CheckCircle2 className="w-4 h-4 text-white" />
@@ -718,7 +709,7 @@ export default function BuilderOnboardingPage() {
                     }
                   </div>
                   <span className={`text-[10px] font-semibold ${
-                    isActive ? 'text-flame' : isDone ? 'text-success-green' : 'text-gray-400'
+                    isActive ? 'text-[#8A641B]' : isDone ? 'text-success-green' : 'text-gray-400'
                   }`}>{s.label}</span>
                 </div>
                 {i < STEPS.length - 1 && (
@@ -753,10 +744,10 @@ export default function BuilderOnboardingPage() {
                     return (
                       <button key={bt.id} type="button" onClick={() => set('builderType', bt.id)}
                         className={`w-full text-left flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${
-                          active ? 'border-flame bg-flame/10' : 'border-gray-200 hover:border-gray-300'
+                          active ? LIGHT_GOLD_SELECTED : 'border-gray-200 hover:border-gray-300'
                         }`}>
                         <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                          active ? 'bg-flame' : 'bg-gray-100'
+                          active ? 'bg-[#B8872F]' : 'bg-gray-100'
                         }`}>
                           <Icon className={`w-4.5 h-4.5 ${active ? 'text-white' : 'text-gray-500'}`} />
                         </div>
@@ -764,7 +755,7 @@ export default function BuilderOnboardingPage() {
                           <div className="font-bold text-sm text-gray-900">{bt.label}</div>
                           <div className="text-xs text-gray-400 mt-0.5">{bt.sub}</div>
                         </div>
-                        {active && <CheckCircle2 className="w-5 h-5 text-flame shrink-0" />}
+                        {active && <CheckCircle2 className="w-5 h-5 text-[#8A641B] shrink-0" />}
                       </button>
                     )
                   })}
@@ -825,7 +816,7 @@ export default function BuilderOnboardingPage() {
                 <div
                   onClick={() => set('smsConsent', !form.smsConsent)}
                   className={`w-5 h-5 rounded border-2 flex items-center justify-center mt-0.5 shrink-0 transition-all ${
-                    form.smsConsent ? 'bg-flame border-flame' : 'border-gray-300 bg-white'
+                    form.smsConsent ? 'bg-[#B8872F] border-[#B8872F]' : 'border-gray-300 bg-white'
                   }`}
                 >
                   {form.smsConsent && <CheckCircle2 className="w-3 h-3 text-white" />}
@@ -839,7 +830,7 @@ export default function BuilderOnboardingPage() {
                     href="/sms-consent"
                     target="_blank"
                     onClick={e => e.stopPropagation()}
-                    className="font-semibold text-flame hover:underline"
+                    className={`font-semibold hover:underline ${LIGHT_GOLD_TEXT}`}
                   >
                     SMS Consent
                   </Link>
@@ -853,10 +844,10 @@ export default function BuilderOnboardingPage() {
                     return (
                       <button key={r} type="button" onClick={() => toggleArr('regions', r)}
                         className={`flex items-center justify-between px-3 py-2.5 rounded-xl border-2 transition-all text-sm ${
-                          active ? 'border-flame bg-flame/10 font-bold text-gray-900' : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                          active ? `${LIGHT_GOLD_SELECTED} font-bold text-gray-900` : 'border-gray-200 hover:border-gray-300 text-gray-700'
                         }`}>
                         <span>{r}</span>
-                        {active && <CheckCircle2 className="w-4 h-4 text-flame shrink-0" />}
+                        {active && <CheckCircle2 className="w-4 h-4 text-[#8A641B] shrink-0" />}
                       </button>
                     )
                   })}
@@ -941,7 +932,7 @@ export default function BuilderOnboardingPage() {
               {needsBcHousing && (
                 <div className="pt-2 border-t border-gray-100 space-y-4">
                   <div className="flex items-center gap-2">
-                    <Home className="w-4 h-4 text-flame" />
+                    <Home className="w-4 h-4 text-[#8A641B]" />
                     <span className="text-sm font-bold text-gray-900">BC Housing — Residential Builder Licensing</span>
                   </div>
 
@@ -966,7 +957,7 @@ export default function BuilderOnboardingPage() {
                       <div
                         onClick={() => set('newResidentialConstruction', !form.newResidentialConstruction)}
                         className={`w-5 h-5 rounded border-2 flex items-center justify-center mt-0.5 shrink-0 transition-all ${
-                          form.newResidentialConstruction ? 'bg-flame border-flame' : 'border-gray-300 bg-white'
+                          form.newResidentialConstruction ? 'bg-[#B8872F] border-[#B8872F]' : 'border-gray-300 bg-white'
                         }`}
                       >
                         {form.newResidentialConstruction && <CheckCircle2 className="w-3 h-3 text-white" />}
@@ -1031,13 +1022,13 @@ export default function BuilderOnboardingPage() {
                   ].map(opt => (
                     <button key={opt.id} type="button" onClick={() => set('worksafeMode', opt.id)}
                       className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
-                        form.worksafeMode === opt.id ? 'border-flame bg-flame/10' : 'border-gray-200 hover:border-gray-300'
+                        form.worksafeMode === opt.id ? LIGHT_GOLD_SELECTED : 'border-gray-200 hover:border-gray-300'
                       }`}>
                       <div className="flex items-start gap-3">
                         <div className={`w-5 h-5 rounded-full border-2 mt-0.5 flex items-center justify-center shrink-0 ${
-                          form.worksafeMode === opt.id ? 'border-flame' : 'border-gray-300'
+                          form.worksafeMode === opt.id ? 'border-[#A87824]' : 'border-gray-300'
                         }`}>
-                          {form.worksafeMode === opt.id && <div className="w-2.5 h-2.5 bg-flame rounded-full" />}
+                          {form.worksafeMode === opt.id && <div className="w-2.5 h-2.5 bg-[#B8872F] rounded-full" />}
                         </div>
                         <div>
                           <div className="font-semibold text-sm text-gray-900">{opt.label}</div>
@@ -1072,7 +1063,7 @@ export default function BuilderOnboardingPage() {
               {needsBcHousing && (
                 <div className="space-y-3">
                   <div className="text-xs font-bold text-gray-500 uppercase tracking-wide flex items-center gap-1.5">
-                    <Home className="w-3.5 h-3.5 text-flame" /> BC Housing — Required for residential builders
+                    <Home className="w-3.5 h-3.5 text-[#8A641B]" /> BC Housing — Required for residential builders
                   </div>
                   <DocUpload
                     label="BC Housing Residential Builder Licence"
@@ -1259,7 +1250,7 @@ export default function BuilderOnboardingPage() {
                     <div
                       onClick={() => set(key, !form[key])}
                       className={`w-5 h-5 rounded border-2 flex items-center justify-center mt-0.5 shrink-0 transition-all ${
-                        form[key] ? 'bg-flame border-flame' : 'border-gray-300'
+                        form[key] ? 'bg-[#B8872F] border-[#B8872F]' : 'border-gray-300'
                       }`}
                     >
                       {form[key] && <CheckCircle2 className="w-3 h-3 text-white" />}
@@ -1294,7 +1285,7 @@ export default function BuilderOnboardingPage() {
               <button
                 type="button"
                 onClick={() => setStep(STEP_ORDER[stepIdx + 1])}
-                className="flex-1 flex items-center justify-center gap-1.5 bg-flame hover:bg-flame-light text-[#1B1508] font-bold py-3 rounded-xl text-sm transition-colors"
+                className={`flex-1 flex items-center justify-center gap-1.5 font-bold py-3 rounded-xl text-sm transition-colors ${LIGHT_GOLD_BUTTON}`}
               >
                 Continue <ChevronRight className="w-4 h-4" />
               </button>
@@ -1303,7 +1294,7 @@ export default function BuilderOnboardingPage() {
                 type="button"
                 disabled={!form.agreeTerms || !form.agreeAccuracy || !allDocsComplete || isSubmitting}
                 onClick={handleSubmit}
-                className="flex-1 flex items-center justify-center gap-2 bg-flame hover:bg-flame-light disabled:opacity-40 disabled:cursor-not-allowed text-[#1B1508] font-bold py-3 rounded-xl text-sm transition-colors"
+                className={`flex-1 flex items-center justify-center gap-2 font-bold py-3 rounded-xl text-sm transition-colors ${LIGHT_GOLD_BUTTON}`}
               >
                 {isSubmitting
                   ? <><div className="w-4 h-4 border-2 border-[#1B1508] border-t-transparent rounded-full animate-spin" /> Submitting…</>
@@ -1316,7 +1307,7 @@ export default function BuilderOnboardingPage() {
 
         <p className="text-center text-xs text-gray-400 mt-6">
           Need help?{' '}
-          <a href="mailto:admin@veropermit.com" className="text-flame font-semibold hover:underline">
+          <a href="mailto:admin@veropermit.com" className={`font-semibold hover:underline ${LIGHT_GOLD_TEXT}`}>
             Contact admin@veropermit.com
           </a>
         </p>
