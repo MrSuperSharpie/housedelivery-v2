@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import {
   Camera,
   FileText,
+  Image as ImageIcon,
   Loader2,
   MapPin,
   Mic,
@@ -12,6 +13,7 @@ import {
   Video,
   X,
 } from 'lucide-react'
+import { recordOfflineEvidenceDiagnostic } from '@/lib/offline-evidence/captureDiagnostics'
 
 export type FieldMediaExpectedType = 'camera' | 'video' | 'audio' | 'text' | 'document'
 
@@ -21,6 +23,7 @@ export interface FieldMediaCapturePayload {
   latitude: number | null
   longitude: number | null
   source: FieldMediaExpectedType
+  inputAction?: FieldMediaInputAction
   /** Blob URL for immediate media preview (valid for current session only). */
   previewUrl?: string
   /** Speech-to-text transcript for audio captures (when browser supports it). */
@@ -44,11 +47,135 @@ const GEOLOCATION_OPTIONS: PositionOptions = {
 }
 
 const MAX_VIDEO_UPLOAD_BYTES = 50 * 1024 * 1024
+const GEOLOCATION_WATCHDOG_TIMEOUT_MS = 12_000
+const CAPTURE_CALLBACK_TIMEOUT_MS = 10_000
+
+export type FieldMediaInputAction =
+  | 'take_photo'
+  | 'choose_photo_library'
+  | 'record_video'
+  | 'choose_existing_video'
+  | 'pinned_text_note'
+  | 'attach_document'
+
+export interface FieldMediaInputOption {
+  id: FieldMediaInputAction
+  label: string
+  accept: string | undefined
+  capture: 'environment' | undefined
+  source: FieldMediaExpectedType
+  icon: 'camera' | 'image' | 'video' | 'paperclip'
+}
+
+export type FieldMediaGpsStatus =
+  | 'success'
+  | 'permission_denied'
+  | 'position_unavailable'
+  | 'timeout'
+  | 'unsupported'
+  | 'error'
+
+export interface FieldMediaGpsResult {
+  status: FieldMediaGpsStatus
+  latitude: number | null
+  longitude: number | null
+  accuracy: number | null
+  timestamp: string
+  elapsedMs: number
+  permissionState: PermissionState | 'unknown'
+  errorCode?: number
+  errorMessage?: string
+}
+
+interface PendingRetryCapture {
+  file: File
+  source: FieldMediaExpectedType
+  inputAction?: FieldMediaInputAction
+  transcript?: string
+}
+
+export function withCaptureCallbackTimeout<T>(
+  promise: Promise<T> | T,
+  timeoutMs = CAPTURE_CALLBACK_TIMEOUT_MS,
+): Promise<T> {
+  let timeout: ReturnType<typeof setTimeout> | null = null
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeout = setTimeout(() => {
+      reject(new Error('Could not save this evidence on this device. Try again.'))
+    }, timeoutMs)
+  })
+  return Promise.race([Promise.resolve(promise), timeoutPromise]).finally(() => {
+    if (timeout) clearTimeout(timeout)
+  })
+}
 
 function captureAcceptForExpectedType(expectedType: FieldMediaExpectedType): string | undefined {
   if (expectedType === 'camera') return 'image/*'
   if (expectedType === 'video') return 'video/mp4,video/x-m4v,video/*'
   return undefined
+}
+
+export function fieldMediaInputOptionsForExpectedType(
+  expectedType: FieldMediaExpectedType,
+): FieldMediaInputOption[] {
+  if (expectedType === 'camera') {
+    return [
+      {
+        id: 'take_photo',
+        label: 'Take Photo',
+        accept: 'image/*',
+        capture: 'environment',
+        source: 'camera',
+        icon: 'camera',
+      },
+      {
+        id: 'choose_photo_library',
+        label: 'Photo Library',
+        accept: 'image/*',
+        capture: undefined,
+        source: 'camera',
+        icon: 'image',
+      },
+    ]
+  }
+  if (expectedType === 'video') {
+    return [
+      {
+        id: 'record_video',
+        label: 'Record Video',
+        accept: 'video/mp4,video/x-m4v,video/*',
+        capture: 'environment',
+        source: 'video',
+        icon: 'video',
+      },
+      {
+        id: 'choose_existing_video',
+        label: 'Existing Video',
+        accept: 'video/mp4,video/x-m4v,video/*',
+        capture: undefined,
+        source: 'video',
+        icon: 'paperclip',
+      },
+    ]
+  }
+  return [
+    {
+      id: 'attach_document',
+      label: 'Attach Evidence',
+      accept: captureAcceptForExpectedType(expectedType),
+      capture: undefined,
+      source: expectedType,
+      icon: 'paperclip',
+    },
+  ]
+}
+
+export function isLiveFieldMediaCaptureAction(action?: FieldMediaInputAction): boolean {
+  return action === 'take_photo' || action === 'record_video'
+}
+
+export function isDeferredFieldMediaGpsAction(action?: FieldMediaInputAction): boolean {
+  return isLiveFieldMediaCaptureAction(action) || action === 'pinned_text_note'
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -64,6 +191,16 @@ function isGeolocationError(value: unknown): value is GeolocationPositionError {
     && value !== null
     && 'code' in value
     && typeof (value as { code?: unknown }).code === 'number'
+}
+
+async function getGeolocationPermissionState(): Promise<PermissionState | 'unknown'> {
+  if (typeof navigator === 'undefined' || !navigator.permissions?.query) return 'unknown'
+  try {
+    const status = await navigator.permissions.query({ name: 'geolocation' as PermissionName })
+    return status.state
+  } catch {
+    return 'unknown'
+  }
 }
 
 /**
@@ -183,6 +320,127 @@ async function getGeolocation(): Promise<{
   }
 }
 
+export function withGeolocationWatchdog<T>(
+  promise: Promise<T>,
+  timeoutMs = GEOLOCATION_WATCHDOG_TIMEOUT_MS,
+): Promise<T | {
+  latitude: null
+  longitude: null
+  error: string
+}> {
+  let timeout: ReturnType<typeof setTimeout> | null = null
+  const timeoutPromise = new Promise<{
+    latitude: null
+    longitude: null
+    error: string
+  }>(resolve => {
+    timeout = setTimeout(() => {
+      resolve({
+        latitude: null,
+        longitude: null,
+        error: 'Location lookup timed out. Evidence was captured without GPS coordinates.',
+      })
+    }, timeoutMs)
+  })
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    if (timeout) clearTimeout(timeout)
+  })
+}
+
+export async function requestFieldMediaGpsResult(
+  timeoutMs = GEOLOCATION_WATCHDOG_TIMEOUT_MS,
+): Promise<FieldMediaGpsResult> {
+  const startedAt = Date.now()
+  const startedTimestamp = new Date().toISOString()
+  const permissionState = await getGeolocationPermissionState()
+
+  recordOfflineEvidenceDiagnostic('gps_request_started', {
+    elapsedMs: 0,
+    status: permissionState,
+  })
+
+  if (typeof navigator === 'undefined' || !navigator.geolocation) {
+    return {
+      status: 'unsupported',
+      latitude: null,
+      longitude: null,
+      accuracy: null,
+      timestamp: startedTimestamp,
+      elapsedMs: Date.now() - startedAt,
+      permissionState,
+      errorMessage: 'Geolocation is not supported on this device.',
+    }
+  }
+
+  return new Promise<FieldMediaGpsResult>(resolve => {
+    let settled = false
+    const finish = (result: FieldMediaGpsResult) => {
+      if (settled) return
+      settled = true
+      recordOfflineEvidenceDiagnostic('gps_request_finished', {
+        status: result.status,
+        elapsedMs: result.elapsedMs,
+        reason: result.errorCode != null ? `code:${result.errorCode}` : undefined,
+      })
+      resolve(result)
+    }
+
+    const timeout = setTimeout(() => {
+      finish({
+        status: 'timeout',
+        latitude: null,
+        longitude: null,
+        accuracy: null,
+        timestamp: new Date().toISOString(),
+        elapsedMs: Date.now() - startedAt,
+        permissionState,
+        errorCode: 3,
+        errorMessage: 'Location lookup timed out after local evidence save.',
+      })
+    }, timeoutMs)
+
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        clearTimeout(timeout)
+        finish({
+          status: 'success',
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+          timestamp: new Date(position.timestamp || Date.now()).toISOString(),
+          elapsedMs: Date.now() - startedAt,
+          permissionState,
+        })
+      },
+      error => {
+        clearTimeout(timeout)
+        const status: FieldMediaGpsStatus = error.code === error.PERMISSION_DENIED
+          ? 'permission_denied'
+          : error.code === error.POSITION_UNAVAILABLE
+            ? 'position_unavailable'
+            : error.code === error.TIMEOUT
+              ? 'timeout'
+              : 'error'
+        finish({
+          status,
+          latitude: null,
+          longitude: null,
+          accuracy: null,
+          timestamp: new Date().toISOString(),
+          elapsedMs: Date.now() - startedAt,
+          permissionState,
+          errorCode: error.code,
+          errorMessage: error.message,
+        })
+      },
+      {
+        ...GEOLOCATION_OPTIONS,
+        timeout: timeoutMs,
+      },
+    )
+  })
+}
+
 export function FieldMediaUploader({
   expectedType,
   onCapture,
@@ -193,7 +451,7 @@ export function FieldMediaUploader({
   variant = 'card',
 }: FieldMediaUploaderProps) {
   const copy = buttonCopy(expectedType)
-  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const fileInputRefs = useRef<Partial<Record<FieldMediaInputAction, HTMLInputElement | null>>>({})
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const mediaStreamRef = useRef<MediaStream | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
@@ -212,6 +470,8 @@ export function FieldMediaUploader({
   const [textValue, setTextValue] = useState('')
   const [textComposerOpen, setTextComposerOpen] = useState(false)
   const [speechRecognitionSupported, setSpeechRecognitionSupported] = useState(false)
+  const [pendingRetryCapture, setPendingRetryCapture] = useState<PendingRetryCapture | null>(null)
+  const fileInputOptions = fieldMediaInputOptionsForExpectedType(expectedType)
 
   useEffect(() => {
     setSpeechRecognitionSupported(getSpeechRecognitionCtor() !== null)
@@ -363,19 +623,27 @@ export function FieldMediaUploader({
     }
   }
 
-  async function finalizeCapture(file: File, source: FieldMediaExpectedType, transcript?: string) {
+  async function finalizeCapture(
+    file: File,
+    source: FieldMediaExpectedType,
+    transcript?: string,
+    inputAction?: FieldMediaInputAction,
+  ) {
+    const startedAt = Date.now()
     setIsBusy(true)
-    setStatus(source === 'text' ? 'Saving note…' : 'Pinning location and timestamp…')
+    const deferGps = isDeferredFieldMediaGpsAction(inputAction)
+    setStatus(source === 'text' || deferGps ? 'Saving evidence on this device…' : 'Pinning location and timestamp…')
     setError(null)
     setWarning(null)
+    setPendingRetryCapture(null)
 
     try {
       const capturedAt = new Date().toISOString()
-      // Text notes are annotations — skip the blocking GPS lookup so notes save instantly.
-      // Camera, video, and audio captures retain full GPS tagging.
-      const location = source === 'text'
+      // Pinned text notes and live camera/video captures save first; GPS runs after the
+      // local row exists so mobile geolocation can never block the input button.
+      const location = source === 'text' || deferGps
         ? { latitude: null, longitude: null, error: null }
-        : await getGeolocation()
+        : await withGeolocationWatchdog(getGeolocation())
 
       if (location.error) {
         setError(location.error)
@@ -384,42 +652,76 @@ export function FieldMediaUploader({
       const previewUrl = file.type.startsWith('image/') || file.type.startsWith('video/')
         ? URL.createObjectURL(file)
         : undefined
-      await onCapture({
+      setStatus('Saving evidence on this device…')
+      await withCaptureCallbackTimeout(onCapture({
         file,
         capturedAt,
         latitude: location.latitude,
         longitude: location.longitude,
         source,
+        inputAction,
         previewUrl,
         transcript,
+      }))
+      recordOfflineEvidenceDiagnostic('capture_callback_resolved', {
+        source,
+        byteSize: file.size,
+        elapsedMs: Date.now() - startedAt,
       })
 
-      setStatus(location.latitude !== null && location.longitude !== null
-        ? 'Capture saved with GPS coordinates.'
-        : 'Capture saved without GPS coordinates.')
+      setStatus(deferGps
+        ? null
+        : location.latitude !== null && location.longitude !== null
+        ? 'Saved on this device with GPS coordinates.'
+        : 'Saved on this device without GPS coordinates.')
       if (source === 'text') {
         setTextComposerOpen(false)
       }
-    } catch {
-      setError('Capture could not be handed back to the app.')
+    } catch (captureError) {
+      setPendingRetryCapture({ file, source, inputAction, transcript })
+      setError(captureError instanceof Error
+        ? captureError.message
+        : 'Could not save this evidence on this device. Try again.')
       setStatus(null)
     } finally {
       setIsBusy(false)
+      recordOfflineEvidenceDiagnostic('busy_state_cleared', {
+        source,
+        byteSize: file.size,
+        elapsedMs: Date.now() - startedAt,
+      })
     }
   }
 
-  async function handleFileSelection(event: React.ChangeEvent<HTMLInputElement>) {
+  function retryPendingCapture() {
+    if (!pendingRetryCapture || isBusy) return
+    void finalizeCapture(
+      pendingRetryCapture.file,
+      pendingRetryCapture.source,
+      pendingRetryCapture.transcript,
+      pendingRetryCapture.inputAction,
+    )
+  }
+
+  async function handleFileSelection(
+    event: React.ChangeEvent<HTMLInputElement>,
+    option: FieldMediaInputOption,
+  ) {
     const file = event.target.files?.[0]
     event.target.value = ''
     if (!file) return
     setError(null)
     setWarning(null)
-    if (expectedType === 'video' && file.size > MAX_VIDEO_UPLOAD_BYTES) {
+    recordOfflineEvidenceDiagnostic('file_input_change_received', {
+      source: option.source,
+      byteSize: file.size,
+    })
+    if (option.source === 'video' && file.size > MAX_VIDEO_UPLOAD_BYTES) {
       setStatus(null)
       setWarning('Video uploads must be under 50MB. Keep videos under 30 seconds for field evidence.')
       return
     }
-    await finalizeCapture(file, expectedType)
+    await finalizeCapture(file, option.source, undefined, option.id)
   }
 
   async function startAudioRecording() {
@@ -548,7 +850,7 @@ export function FieldMediaUploader({
       type: 'text/plain',
     })
 
-    await finalizeCapture(file, 'text')
+    await finalizeCapture(file, 'text', undefined, 'pinned_text_note')
     setTextValue('')
   }
 
@@ -568,6 +870,21 @@ export function FieldMediaUploader({
     expectedType === 'audio' ? <Mic className="h-4 w-4" /> :
     expectedType === 'text' ? <FileText className="h-4 w-4" /> :
     <Paperclip className="h-4 w-4" />
+
+  function optionIcon(option: FieldMediaInputOption) {
+    if (option.icon === 'camera') return <Camera className="h-4 w-4" />
+    if (option.icon === 'image') return <ImageIcon className="h-4 w-4" />
+    if (option.icon === 'video') return <Video className="h-4 w-4" />
+    return <Paperclip className="h-4 w-4" />
+  }
+
+  function setFileInputRef(option: FieldMediaInputOption) {
+    return (node: HTMLInputElement | null) => {
+      fileInputRefs.current[option.id] = node
+    }
+  }
+
+  const mediaChoiceButtonClass = `${buttonClassName ?? compactButtonClass} min-w-[112px] gap-2 px-3`
 
   if (variant === 'icon') {
     return (
@@ -678,49 +995,60 @@ export function FieldMediaUploader({
           </>
         ) : (
           <>
-            <button
-              type="button"
-              disabled={disabled || isBusy}
-              onClick={() => fileInputRef.current?.click()}
-              className={compactButtonClass}
-            >
-              {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : icon}
-              <span className="sr-only">{label ?? copy.idleLabel}</span>
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              className="hidden"
-              accept={
-                captureAcceptForExpectedType(expectedType)
-              }
-              capture={
-                expectedType === 'camera' || expectedType === 'video'
-                  ? 'environment'
-                  : undefined
-              }
-              onChange={event => void handleFileSelection(event)}
-            />
+            <div className="flex flex-wrap items-center gap-2">
+              {fileInputOptions.map(option => (
+                <React.Fragment key={option.id}>
+                  <button
+                    type="button"
+                    disabled={disabled || isBusy}
+                    onClick={() => fileInputRefs.current[option.id]?.click()}
+                    className={mediaChoiceButtonClass}
+                    title={option.label}
+                  >
+                    {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : optionIcon(option)}
+                    <span className="text-[11px] font-black leading-none">{option.label}</span>
+                  </button>
+                  <input
+                    ref={setFileInputRef(option)}
+                    type="file"
+                    className="hidden"
+                    accept={option.accept}
+                    capture={option.capture}
+                    onChange={event => void handleFileSelection(event, option)}
+                  />
+                </React.Fragment>
+              ))}
+            </div>
           </>
         )}
 
         {(warning || status || error) && (
-          <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-2xl border border-white/10 bg-[#091022] px-3 py-2 shadow-2xl">
+          <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-2xl border border-slate-700 bg-[#091022] px-3 py-2 shadow-2xl">
             {warning && (
               <div className="rounded-xl border border-amber-200 bg-amber-100 px-3 py-2 text-xs font-medium text-amber-900">
                 {warning}
               </div>
             )}
             {status && (
-              <div className={`${warning ? 'mt-2 ' : ''}flex items-center gap-2 text-xs text-zinc-300`}>
-                <MapPin className="h-3.5 w-3.5 text-cyan-300" />
+              <div className={`${warning ? 'mt-2 ' : ''}flex items-center gap-2 text-xs font-semibold text-slate-50`}>
+                <MapPin className="h-3.5 w-3.5 text-cyan-200" />
                 <span>{status}</span>
               </div>
             )}
             {error && (
-              <div className={`${status ? 'mt-2 ' : ''}text-xs text-amber-200`}>
+              <div className={`${status ? 'mt-2 ' : ''}text-xs font-semibold text-amber-100`}>
                 {error}
               </div>
+            )}
+            {pendingRetryCapture && (
+              <button
+                type="button"
+                disabled={isBusy}
+                onClick={retryPendingCapture}
+                className="mt-2 w-full rounded-xl border border-amber-300/30 bg-amber-300/10 px-3 py-2 text-xs font-black text-amber-100 hover:bg-amber-300/15 disabled:opacity-50"
+              >
+                Try Saving Again
+              </button>
             )}
           </div>
         )}
@@ -828,30 +1156,28 @@ export function FieldMediaUploader({
           </div>
         </div>
       ) : (
-        <div className="mt-4">
-          <button
-            type="button"
-            disabled={disabled || isBusy}
-            onClick={() => fileInputRef.current?.click()}
-            className={`${sharedButtonClass} w-full`}
-          >
-            {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : icon}
-            {label ?? (isBusy ? copy.loadingLabel : copy.idleLabel)}
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            className="hidden"
-            accept={
-              captureAcceptForExpectedType(expectedType)
-            }
-            capture={
-              expectedType === 'camera' || expectedType === 'video'
-                ? 'environment'
-                : undefined
-            }
-            onChange={event => void handleFileSelection(event)}
-          />
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+          {fileInputOptions.map(option => (
+            <React.Fragment key={option.id}>
+              <button
+                type="button"
+                disabled={disabled || isBusy}
+                onClick={() => fileInputRefs.current[option.id]?.click()}
+                className={`${sharedButtonClass} w-full`}
+              >
+                {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : optionIcon(option)}
+                {option.label}
+              </button>
+              <input
+                ref={setFileInputRef(option)}
+                type="file"
+                className="hidden"
+                accept={option.accept}
+                capture={option.capture}
+                onChange={event => void handleFileSelection(event, option)}
+              />
+            </React.Fragment>
+          ))}
         </div>
       )}
 
@@ -870,7 +1196,17 @@ export function FieldMediaUploader({
 
       {error && (
         <div className="mt-3 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-3 py-3 text-xs text-amber-100/90">
-          {error}
+          <div>{error}</div>
+          {pendingRetryCapture && (
+            <button
+              type="button"
+              disabled={isBusy}
+              onClick={retryPendingCapture}
+              className="mt-3 rounded-xl border border-amber-300/30 bg-amber-300/10 px-3 py-2 text-xs font-black text-amber-100 hover:bg-amber-300/15 disabled:opacity-50"
+            >
+              Try Saving Again
+            </button>
+          )}
         </div>
       )}
 

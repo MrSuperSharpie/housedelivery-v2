@@ -31,7 +31,11 @@ import {
 } from 'lucide-react'
 import {
   FieldMediaUploader,
+  isDeferredFieldMediaGpsAction,
+  isLiveFieldMediaCaptureAction,
+  requestFieldMediaGpsResult,
   type FieldMediaCapturePayload,
+  type FieldMediaGpsResult,
 } from '@/components/inspector/FieldMediaUploader'
 import { StageCodeReferences } from '@/components/inspector/StageCodeReferences'
 import { Navbar } from '@/components/shared/Navbar'
@@ -63,11 +67,25 @@ import {
   createFieldGeoAnomaly,
   type InspectorCompletionDocumentRow,
   type InspectorCompletionReportRow,
-  uploadInspectorCompletionDocument,
   updateInspectorCompletionDocumentManualLocationNote,
   upsertInspectorCompletionItems,
   upsertInspectorCompletionReport,
 } from '@/lib/supabase/inspectorCompletion'
+import {
+  createLocalDocumentFromEvidence,
+  deleteLocalInspectorEvidence,
+  isOfflineEvidenceStoragePath,
+  listPendingInspectorEvidenceDocuments,
+  localEvidenceIdFromStoragePath,
+  offlineEvidenceStatusLabel,
+  optimizeAndSyncInspectorEvidence,
+  registerInspectorEvidenceResumeHandlers,
+  stageInspectorEvidenceForUpload,
+  syncInspectorEvidenceQueue,
+  updateOfflineEvidenceGpsResult,
+} from '@/lib/offline-evidence'
+import { recordOfflineEvidenceDiagnostic } from '@/lib/offline-evidence/captureDiagnostics'
+import { getEvidenceGpsNotice } from '@/lib/offline-evidence/gpsNotice'
 import type { EvidenceItem, EvidenceKind, EvidenceValidationState, GeoCoord } from '@/lib/domain/types'
 import { evaluateGeofence } from '@/lib/geofence'
 import { isHoldOpenStatus } from '@/lib/holds/workflow'
@@ -130,6 +148,14 @@ interface PreSealEvidenceLocationIssue {
   itemLabel: string
   doc: InspectorCompletionDocumentRow
   reason: string
+}
+
+interface LiveCaptureGpsDiagnostic {
+  status: 'started' | FieldMediaGpsResult['status']
+  startedAt: string
+  elapsedMs?: number
+  permissionState?: FieldMediaGpsResult['permissionState']
+  errorCode?: number
 }
 
 function createRuntimeId(prefix: string): string {
@@ -195,13 +221,27 @@ function DocRow({
   doc,
   onClick,
   onDelete,
+  gpsDiagnostic,
+  showGpsDiagnostic = false,
 }: {
   doc: InspectorCompletionDocumentRow
   onClick: () => void
   onDelete: () => void
+  gpsDiagnostic?: LiveCaptureGpsDiagnostic
+  showGpsDiagnostic?: boolean
 }) {
   const isPdf = doc.mimeType === 'application/pdf' || doc.fileName.toLowerCase().endsWith('.pdf')
   const isVideo = doc.mediaType === 'video' || doc.mimeType?.startsWith('video/') === true
+  const isLocalEvidence = doc.storagePath.startsWith('local://')
+  const gpsNotice = getEvidenceGpsNotice(doc.captureGeo)
+  const syncLabel = isLocalEvidence ? (gpsNotice?.message ?? doc.offlineSyncMessage ?? offlineEvidenceStatusLabel(doc.offlineSyncStatus)) : null
+  const syncLabelClassName = gpsNotice?.className ?? (
+    doc.offlineSyncStatus === 'needs_attention'
+      ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-300/30 dark:bg-red-950 dark:text-red-100'
+      : doc.offlineSyncStatus === 'retry_scheduled'
+        ? 'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-300/30 dark:bg-amber-950 dark:text-amber-100'
+        : 'border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-300/30 dark:bg-emerald-950 dark:text-emerald-100'
+  )
 
   return (
     <div className="group flex w-full items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm transition-all hover:border-zinc-300">
@@ -255,7 +295,14 @@ function DocRow({
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-semibold text-zinc-900">{doc.fileName}</div>
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <div className="truncate text-sm font-semibold text-zinc-900">{doc.fileName}</div>
+            {syncLabel && (
+              <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.12em] ${syncLabelClassName}`}>
+                {syncLabel}
+              </span>
+            )}
+          </div>
           <div className="mt-0.5 flex items-center gap-2 text-[11px] text-zinc-500 font-medium">
             {isVideo && <span className="text-sky-700">Video</span>}
             {isVideo && <span className="opacity-50">•</span>}
@@ -270,6 +317,14 @@ function DocRow({
               })}
             </span>
           </div>
+          {showGpsDiagnostic && gpsDiagnostic && (
+            <div className="mt-1 rounded-lg border border-cyan-100 bg-cyan-50 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-cyan-900">
+              GPS {gpsDiagnostic.status}
+              {typeof gpsDiagnostic.elapsedMs === 'number' ? ` • ${gpsDiagnostic.elapsedMs}ms` : ''}
+              {gpsDiagnostic.permissionState ? ` • permission ${gpsDiagnostic.permissionState}` : ''}
+              {typeof gpsDiagnostic.errorCode === 'number' ? ` • code ${gpsDiagnostic.errorCode}` : ''}
+            </div>
+          )}
         </div>
       </button>
       
@@ -1211,6 +1266,8 @@ export function InspectorCompletionWorkspace() {
   const [highlightedEvidenceItemCode, setHighlightedEvidenceItemCode] = useState<string | null>(null)
   const [manualLocationDrafts, setManualLocationDrafts] = useState<Record<string, string>>({})
   const [manualLocationSavingDocId, setManualLocationSavingDocId] = useState<string | null>(null)
+  const [liveCaptureGpsDiagnostics, setLiveCaptureGpsDiagnostics] = useState<Record<string, LiveCaptureGpsDiagnostic>>({})
+  const [showOfflineEvidenceDiagnostics, setShowOfflineEvidenceDiagnostics] = useState(process.env.NODE_ENV === 'development')
 
   const hydratedRef = useRef(false)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -1227,6 +1284,31 @@ export function InspectorCompletionWorkspace() {
   const scopedCompletionPanelRef = useRef<HTMLDivElement | null>(null)
   const previewMode = isInspectorDevPreviewAssignment(assignmentId)
   const activeUser = user
+
+  function applyOfflineEvidenceSyncResults(results: Awaited<ReturnType<typeof syncInspectorEvidenceQueue>>) {
+    if (results.length === 0) return
+    setItems(currentItems => currentItems.map(item => {
+      let changed = false
+      const nextDocuments = item.documents.map(doc => {
+        const match = results.find(result => result.localEvidenceId === doc.id)
+        if (!match) return doc
+        if (match.status === 'uploaded' && match.serverDocument) {
+          changed = true
+          return doc.previewUrl ? { ...match.serverDocument, previewUrl: doc.previewUrl } : match.serverDocument
+        }
+        changed = true
+        return {
+          ...doc,
+          offlineSyncStatus: match.status,
+          offlineSyncMessage: offlineEvidenceStatusLabel(match.status),
+        }
+      })
+      return changed ? { ...item, documents: nextDocuments } : item
+    }))
+    if (results.some(result => result.status === 'uploaded')) {
+      setLastSavedLabel('Offline evidence synced')
+    }
+  }
 
   function reportPersistenceFailure(message: string, details?: unknown, options?: { alert?: boolean }) {
     console.error(message, details)
@@ -1706,6 +1788,20 @@ export function InspectorCompletionWorkspace() {
   }, [])
 
   useEffect(() => {
+    if (previewMode) return undefined
+    return registerInspectorEvidenceResumeHandlers(applyOfflineEvidenceSyncResults)
+  }, [previewMode])
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') return
+    try {
+      setShowOfflineEvidenceDiagnostics(window.localStorage.getItem('vero:offline-evidence-debug') === '1')
+    } catch {
+      setShowOfflineEvidenceDiagnostics(false)
+    }
+  }, [])
+
+  useEffect(() => {
     if (!assignmentScopeComplete || isFinalOccupancyStage) return
 
     const panel = scopedCompletionPanelRef.current
@@ -1985,7 +2081,15 @@ export function InspectorCompletionWorkspace() {
         Boolean(ensuredStageSignOffs[String(requestedChecklistStage)]) && assignmentRow.status === 'completed'
       )
       setCurrentStage(requestedChecklistStage)
-      setItems(mergeItems(definitionSet.stages, ensuredReport.id, assignmentId, bundle.items, bundle.documents))
+      const pendingLocalDocuments = await listPendingInspectorEvidenceDocuments(assignmentId)
+      setItems(mergeItems(
+        definitionSet.stages,
+        ensuredReport.id,
+        assignmentId,
+        bundle.items,
+        [...bundle.documents, ...pendingLocalDocuments],
+      ))
+      void syncInspectorEvidenceQueue({ assignmentId }).then(applyOfflineEvidenceSyncResults)
       if (ensuredReport.sealApplied) setSealed(true)
       setLastSavedLabel(
         ensuredReport.lastSavedAt
@@ -2250,6 +2354,10 @@ export function InspectorCompletionWorkspace() {
 
   async function handleDeleteDocument(itemCode: string, doc: InspectorCompletionDocumentRow) {
     if (previewMode || doc.storagePath.startsWith('local://') || doc.storagePath.startsWith('preview://')) {
+      const localEvidenceId = localEvidenceIdFromStoragePath(doc.storagePath)
+      if (localEvidenceId) {
+        await deleteLocalInspectorEvidence(localEvidenceId)
+      }
       removeDocumentReferences(itemCode, doc.id, doc.storagePath)
       if (doc.previewUrl?.startsWith('blob:')) {
         URL.revokeObjectURL(doc.previewUrl)
@@ -2404,62 +2512,85 @@ export function InspectorCompletionWorkspace() {
       return docWithPreview
     }
 
-    const sessionInspector = await getAuthenticatedInspectorIdentity({ alertOnFailure: false })
-
-    if (!sessionInspector) {
-      // No valid Supabase session (demo account or expired token). Rather than silently failing
-      // and leaving the document list empty, create a local-only doc so the UI still reflects
-      // what the inspector attached. The storagePath prefix local:// distinguishes these from
-      // server-persisted docs. They are session-only and will be lost on page reload.
-      console.warn('[Vero] handleDocumentUpload — no session, creating local-only doc for UI')
-      const localDoc = createInspectorDevPreviewDocument({
-        reportId: report.id,
-        assignmentId: assignment.id,
-        itemCode,
-        fileName: file.name,
-        mimeType: file.type,
-        mediaType: capture?.source ?? (file.type.startsWith('video/') ? 'video' : undefined),
-        fileSize: file.size,
-        uploadedBy: activeUser.supabaseId ?? activeUser.id,
-      })
-      const localDocWithPreview: InspectorCompletionDocumentRow = {
-        ...localDoc,
-        storagePath: `local://${file.name}`,
-        ...(effectivePreviewUrl ? { previewUrl: effectivePreviewUrl } : {}),
-      }
-      updateItem(itemCode, item => ({ ...item, documents: [...item.documents, localDocWithPreview] }))
-      setLastSavedLabel('Saved locally — sign in to sync')
-      return localDocWithPreview
-    }
-
-    const doc = await uploadInspectorCompletionDocument(
-      report.id,
-      assignment.id,
-      itemCode,
-      sessionInspector.id,
+    setLastSavedLabel('Saving evidence on this device…')
+    const staged = await stageInspectorEvidenceForUpload({
+      reportId: report.id,
+      assignmentId: assignment.id,
+      projectId: job?.projectId,
+      stageId: String(currentStage),
+      checklistItemId: itemCode,
+      inspectorUserId: activeUser.supabaseId ?? activeUser.id,
+      uploadedBy: activeUser.supabaseId ?? activeUser.id,
       file,
-      {
-        jobId: job?.id,
-        capturedAt: capture?.capturedAt,
-        captureLatitude: capture?.latitude ?? null,
-        captureLongitude: capture?.longitude ?? null,
-        projectLatitude: projectReferencePoint?.latitude ?? null,
-        projectLongitude: projectReferencePoint?.longitude ?? null,
-        anomalyExplanation,
-        source: capture?.source,
+      capture,
+      jobId: job?.id,
+      projectLatitude: projectReferencePoint?.latitude ?? null,
+      projectLongitude: projectReferencePoint?.longitude ?? null,
+      anomalyExplanation,
+    })
+
+    const localDoc = createLocalDocumentFromEvidence(staged.record, effectivePreviewUrl)
+    updateItem(itemCode, item => ({ ...item, documents: [...item.documents, localDoc] }))
+    recordOfflineEvidenceDiagnostic('react_evidence_row_inserted', {
+      localEvidenceId: staged.record.localEvidenceId,
+      mediaType: staged.record.mediaType,
+      source: staged.record.source,
+      status: staged.record.status,
+    })
+    setLastSavedLabel('Saved on this device')
+
+    void optimizeAndSyncInspectorEvidence({
+      assignmentId: assignment.id,
+      localEvidenceId: staged.record.localEvidenceId,
+    }).then(applyOfflineEvidenceSyncResults)
+    return localDoc
+  }
+
+  async function requestLiveCaptureGpsAfterLocalSave(
+    itemCode: string,
+    doc: InspectorCompletionDocumentRow,
+  ) {
+    const localEvidenceId = localEvidenceIdFromStoragePath(doc.storagePath)
+    const startedAt = new Date().toISOString()
+    setLiveCaptureGpsDiagnostics(current => ({
+      ...current,
+      [doc.id]: {
+        status: 'started',
+        startedAt,
       },
-    )
+    }))
 
-    if (!doc) {
-      console.warn('[Vero] handleDocumentUpload — uploadInspectorCompletionDocument returned null (check Supabase storage logs)')
-      return null
-    }
+    const result = await requestFieldMediaGpsResult()
+    setLiveCaptureGpsDiagnostics(current => ({
+      ...current,
+      [doc.id]: {
+        status: result.status,
+        startedAt,
+        elapsedMs: result.elapsedMs,
+        permissionState: result.permissionState,
+        errorCode: result.errorCode,
+      },
+    }))
 
-    const docWithPreview: InspectorCompletionDocumentRow = effectivePreviewUrl
-      ? { ...doc, previewUrl: effectivePreviewUrl }
-      : doc
-    updateItem(itemCode, item => ({ ...item, documents: [...item.documents, docWithPreview] }))
-    return docWithPreview
+    if (!localEvidenceId) return
+
+    const updatedRecord = await updateOfflineEvidenceGpsResult(localEvidenceId, result)
+    if (!updatedRecord) return
+
+    updateItem(itemCode, item => ({
+      ...item,
+      documents: item.documents.map(currentDoc =>
+        currentDoc.id === doc.id
+          ? {
+              ...currentDoc,
+              captureGeo: updatedRecord.captureGeo,
+              offlineSyncStatus: updatedRecord.status,
+              offlineSyncMessage: getEvidenceGpsNotice(updatedRecord.captureGeo)?.message
+                ?? offlineEvidenceStatusLabel(updatedRecord.status),
+            }
+          : currentDoc
+      ),
+    }))
   }
 
   async function handleFieldEvidenceCapture(
@@ -2483,7 +2614,7 @@ export function InspectorCompletionWorkspace() {
     })
 
     let anomalyExplanation: string | undefined
-    if (geofence.state === 'anomalous') {
+    if (!isDeferredFieldMediaGpsAction(payload.inputAction) && geofence.state === 'anomalous') {
       const response = window.prompt(
         'This capture is outside the expected site geofence. Add a short explanation so Vero can flag it for review.',
         '',
@@ -2495,7 +2626,11 @@ export function InspectorCompletionWorkspace() {
       anomalyExplanation = response.trim()
     }
 
-    return handleDocumentUpload(itemCode, payload.file, payload, anomalyExplanation)
+    const document = await handleDocumentUpload(itemCode, payload.file, payload, anomalyExplanation)
+    if (document && isDeferredFieldMediaGpsAction(payload.inputAction)) {
+      void requestLiveCaptureGpsAfterLocalSave(itemCode, document)
+    }
+    return document
   }
 
   async function handleChecklistCapture(
@@ -2559,7 +2694,10 @@ export function InspectorCompletionWorkspace() {
 
   async function openDocument(doc: InspectorCompletionDocumentRow) {
     if (doc.storagePath.startsWith('local://')) {
-      window.alert(`${doc.fileName} was saved locally.\nSign in to your account to sync evidence to the server.`)
+      const status = isOfflineEvidenceStoragePath(doc.storagePath)
+        ? doc.offlineSyncMessage ?? offlineEvidenceStatusLabel(doc.offlineSyncStatus)
+        : 'Saved locally'
+      window.alert(`${doc.fileName} is saved on this device.\nStatus: ${status}\nIt must upload before final sealing.`)
       return
     }
     if (previewMode || doc.storagePath.startsWith('preview://')) {
@@ -4338,6 +4476,8 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                             doc={doc}
                                             onClick={() => void openDocument(doc)}
                                             onDelete={() => void handleDeleteDocument(item.item_code, doc)}
+                                            gpsDiagnostic={liveCaptureGpsDiagnostics[doc.id]}
+                                            showGpsDiagnostic={showOfflineEvidenceDiagnostics}
                                           />
                                         )
                                       }
@@ -4697,6 +4837,11 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                 <div className="mt-1 text-xs text-zinc-400">
                                   Attach only photos, video, notes, or documents that support {item.item_label}. Attachment confirms a file exists, not that it is substantively correct.
                                 </div>
+                                {item.documents.some(doc => doc.storagePath.startsWith('local://')) && (
+                                  <div className="mt-2 text-xs font-semibold text-amber-200">
+                                    {item.documents.filter(doc => doc.storagePath.startsWith('local://')).length} saved on this device, pending server upload.
+                                  </div>
+                                )}
                             </div>
                               <div className="flex flex-wrap items-center gap-2">
                                 <FieldMediaUploader
@@ -4741,6 +4886,8 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                     doc={doc}
                                     onClick={() => void openDocument(doc)}
                                     onDelete={() => void handleDeleteDocument(item.item_code, doc)}
+                                    gpsDiagnostic={liveCaptureGpsDiagnostics[doc.id]}
+                                    showGpsDiagnostic={showOfflineEvidenceDiagnostics}
                                   />
                                 ))
                               )}
@@ -5131,6 +5278,11 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                               <div className="mt-1 text-xs text-zinc-400">
                                 Attach only photos, video, notes, or documents that support {item.item_label}. Attachment confirms a file exists, not that it is substantively correct.
                               </div>
+                              {item.documents.some(doc => doc.storagePath.startsWith('local://')) && (
+                                <div className="mt-2 text-xs font-semibold text-amber-200">
+                                  {item.documents.filter(doc => doc.storagePath.startsWith('local://')).length} saved on this device, pending server upload.
+                                </div>
+                              )}
                             </div>
                             <div className="flex flex-wrap items-center gap-2">
                               <FieldMediaUploader
@@ -5179,6 +5331,8 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                   doc={doc}
                                   onClick={() => void openDocument(doc)}
                                   onDelete={() => void handleDeleteDocument(item.item_code, doc)}
+                                  gpsDiagnostic={liveCaptureGpsDiagnostics[doc.id]}
+                                  showGpsDiagnostic={showOfflineEvidenceDiagnostics}
                                 />
                               ))
                             )}
