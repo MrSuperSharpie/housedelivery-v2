@@ -85,6 +85,7 @@ Files:
 The inspector evidence workflow now:
 
 - stages the original captured file locally before optimization or server upload
+- exposes separate mobile media choices for Take Photo, Photo Library, Record Video, and Existing Video instead of relying on a single `capture="environment"` input to offer both camera and library access
 - shows local evidence rows with statuses such as "Saved on this device", "Waiting for connection", "Upload paused - will retry", and "Upload needs attention"
 - shows a pending local-upload count in the evidence surface
 - restores pending local evidence after page reload
@@ -100,7 +101,9 @@ The exact foreground sequence is:
 5. Optimization and upload continue in the background.
 6. The local row is replaced only after server storage and document metadata are acknowledged.
 
-The camera/file input component also has a 10-second callback watchdog. If the local staging callback stalls, rejects, or is abandoned by the browser, the camera button exits its busy state and shows "Could not save this evidence on this device. Try again." A retry button keeps the selected file available while the page remains open.
+The camera/file input component also has a 12-second geolocation watchdog and a 10-second callback watchdog. If iOS Chrome/WebKit never resolves the location request, Vero proceeds without GPS rather than blocking local staging. If the local staging callback stalls, rejects, or is abandoned by the browser, the camera button exits its busy state and shows "Could not save this evidence on this device. Try again." A retry button keeps the selected file available while the page remains open.
+
+Preview/development diagnostics log non-sensitive capture milestones for mobile QA: file input received, Blob normalized, IndexedDB open/commit, React row insertion, callback resolution, busy cleanup, optimization, and upload result. Production users do not see a diagnostic UI.
 
 Preview/demo behavior remains unchanged.
 

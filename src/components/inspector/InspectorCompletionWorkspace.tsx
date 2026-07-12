@@ -79,6 +79,7 @@ import {
   stageInspectorEvidenceForUpload,
   syncInspectorEvidenceQueue,
 } from '@/lib/offline-evidence'
+import { recordOfflineEvidenceDiagnostic } from '@/lib/offline-evidence/captureDiagnostics'
 import type { EvidenceItem, EvidenceKind, EvidenceValidationState, GeoCoord } from '@/lib/domain/types'
 import { evaluateGeofence } from '@/lib/geofence'
 import { isHoldOpenStatus } from '@/lib/holds/workflow'
@@ -2491,6 +2492,12 @@ export function InspectorCompletionWorkspace() {
 
     const localDoc = createLocalDocumentFromEvidence(staged.record, effectivePreviewUrl)
     updateItem(itemCode, item => ({ ...item, documents: [...item.documents, localDoc] }))
+    recordOfflineEvidenceDiagnostic('react_evidence_row_inserted', {
+      localEvidenceId: staged.record.localEvidenceId,
+      mediaType: staged.record.mediaType,
+      source: staged.record.source,
+      status: staged.record.status,
+    })
     setLastSavedLabel('Saved on this device')
 
     void optimizeAndSyncInspectorEvidence({
