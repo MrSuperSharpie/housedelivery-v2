@@ -16,10 +16,15 @@ import {
   withLocalEvidenceTimeout,
 } from './offline-evidence/localEvidenceRepository'
 import {
+  createLocalDocumentFromEvidence,
   optimizeAndSyncInspectorEvidence,
   stageInspectorEvidenceForUpload,
   updateOfflineEvidenceGpsResult,
 } from './offline-evidence/inspectorEvidenceSync'
+import {
+  EVIDENCE_GPS_NOTICE_STYLES,
+  getEvidenceGpsNotice,
+} from './offline-evidence/gpsNotice'
 import type { EvidenceUploadTransport, OfflineEvidenceRecord } from './offline-evidence/types'
 import {
   fieldMediaInputOptionsForExpectedType,
@@ -403,6 +408,121 @@ test('GPS success updates pinned note local metadata', async () => {
   assert.equal(updated?.uploadOptions.captureLatitude, 49.2827)
   assert.equal(updated?.uploadOptions.captureLongitude, -123.1207)
   assert.equal(updated?.uploadOptions.captureAccuracy, 6)
+})
+
+test('pending GPS notice is replaced by success for a local evidence item', async () => {
+  const repository = new MemoryLocalEvidenceRepository()
+  const file = makeFile('live-photo-before-gps.jpg', 2048, 'image/jpeg')
+  const staged = await stageInspectorEvidenceForUpload({
+    reportId: 'report-1',
+    assignmentId: 'assignment-1',
+    checklistItemId: 'S05-01',
+    uploadedBy: 'inspector-1',
+    file,
+    capture: {
+      file,
+      capturedAt: '2026-07-12T12:00:00.000Z',
+      latitude: null,
+      longitude: null,
+      source: 'camera',
+      inputAction: 'take_photo',
+    },
+  }, repository)
+
+  const pendingDocument = createLocalDocumentFromEvidence(staged.record)
+  assert.equal(pendingDocument.offlineSyncMessage, 'Saved on this device. Checking GPS in the background.')
+
+  const updated = await updateOfflineEvidenceGpsResult(staged.record.localEvidenceId, {
+    status: 'success',
+    latitude: 49.2827,
+    longitude: -123.1207,
+    accuracy: 6,
+    timestamp: '2026-07-12T12:00:05.000Z',
+    elapsedMs: 321,
+    permissionState: 'granted',
+  }, repository)
+
+  assert.ok(updated)
+  const successDocument = createLocalDocumentFromEvidence(updated)
+  assert.equal(successDocument.offlineSyncMessage, 'Saved on this device with GPS coordinates.')
+  assert.notEqual(successDocument.offlineSyncMessage, pendingDocument.offlineSyncMessage)
+})
+
+test('pending GPS notice is replaced by failure for a local evidence item', async () => {
+  const repository = new MemoryLocalEvidenceRepository()
+  const file = new File(['Pinned note with failed GPS.'], 'field-note.txt', { type: 'text/plain' })
+  const staged = await stageInspectorEvidenceForUpload({
+    reportId: 'report-1',
+    assignmentId: 'assignment-1',
+    checklistItemId: 'S05-01',
+    uploadedBy: 'inspector-1',
+    file,
+    capture: {
+      file,
+      capturedAt: '2026-07-12T12:00:00.000Z',
+      latitude: null,
+      longitude: null,
+      source: 'text',
+      inputAction: 'pinned_text_note',
+    },
+  }, repository)
+
+  assert.equal(createLocalDocumentFromEvidence(staged.record).offlineSyncMessage, 'Saved on this device. Checking GPS in the background.')
+
+  const updated = await updateOfflineEvidenceGpsResult(staged.record.localEvidenceId, {
+    status: 'permission_denied',
+    latitude: null,
+    longitude: null,
+    accuracy: null,
+    timestamp: '2026-07-12T12:00:05.000Z',
+    elapsedMs: 100,
+    permissionState: 'denied',
+    errorCode: 1,
+    errorMessage: 'User denied Geolocation',
+  }, repository)
+
+  assert.ok(updated)
+  const failureDocument = createLocalDocumentFromEvidence(updated)
+  assert.equal(failureDocument.offlineSyncMessage, 'Location permission was denied. Evidence saved without GPS coordinates.')
+})
+
+test('GPS notice helper returns one deterministic notice per evidence item rerender', () => {
+  const notice = getEvidenceGpsNotice({
+    gpsStatus: 'success',
+    latitude: 49.2827,
+    longitude: -123.1207,
+    accuracy: 6,
+  })
+  const rerenderedNotice = getEvidenceGpsNotice({
+    gpsStatus: 'success',
+    latitude: 49.2827,
+    longitude: -123.1207,
+    accuracy: 6,
+  })
+
+  assert.deepEqual(rerenderedNotice, notice)
+  assert.equal(Array.isArray(notice), false)
+  assert.equal(notice?.message, 'Saved on this device with GPS coordinates.')
+})
+
+test('GPS notice helper never marks success without coordinates as verified', () => {
+  const notice = getEvidenceGpsNotice({
+    gpsStatus: 'success',
+    latitude: null,
+    longitude: null,
+  })
+
+  assert.equal(notice?.tone, 'warning')
+  assert.equal(notice?.message, 'Location could not be determined. Evidence saved without GPS coordinates.')
+})
+
+test('GPS notice styles use readable light-mode and dark-mode foregrounds', () => {
+  assert.match(EVIDENCE_GPS_NOTICE_STYLES.pending, /text-sky-900/)
+  assert.match(EVIDENCE_GPS_NOTICE_STYLES.pending, /dark:text-sky-100/)
+  assert.match(EVIDENCE_GPS_NOTICE_STYLES.success, /text-emerald-900/)
+  assert.match(EVIDENCE_GPS_NOTICE_STYLES.success, /dark:text-emerald-100/)
+  assert.match(EVIDENCE_GPS_NOTICE_STYLES.warning, /text-amber-900/)
+  assert.match(EVIDENCE_GPS_NOTICE_STYLES.warning, /dark:text-amber-100/)
 })
 
 test('post-save GPS timeout returns a structured result and does not block evidence', async () => {

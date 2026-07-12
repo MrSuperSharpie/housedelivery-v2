@@ -85,6 +85,7 @@ import {
   updateOfflineEvidenceGpsResult,
 } from '@/lib/offline-evidence'
 import { recordOfflineEvidenceDiagnostic } from '@/lib/offline-evidence/captureDiagnostics'
+import { getEvidenceGpsNotice } from '@/lib/offline-evidence/gpsNotice'
 import type { EvidenceItem, EvidenceKind, EvidenceValidationState, GeoCoord } from '@/lib/domain/types'
 import { evaluateGeofence } from '@/lib/geofence'
 import { isHoldOpenStatus } from '@/lib/holds/workflow'
@@ -232,7 +233,15 @@ function DocRow({
   const isPdf = doc.mimeType === 'application/pdf' || doc.fileName.toLowerCase().endsWith('.pdf')
   const isVideo = doc.mediaType === 'video' || doc.mimeType?.startsWith('video/') === true
   const isLocalEvidence = doc.storagePath.startsWith('local://')
-  const syncLabel = isLocalEvidence ? (doc.offlineSyncMessage ?? offlineEvidenceStatusLabel(doc.offlineSyncStatus)) : null
+  const gpsNotice = getEvidenceGpsNotice(doc.captureGeo)
+  const syncLabel = isLocalEvidence ? (gpsNotice?.message ?? doc.offlineSyncMessage ?? offlineEvidenceStatusLabel(doc.offlineSyncStatus)) : null
+  const syncLabelClassName = gpsNotice?.className ?? (
+    doc.offlineSyncStatus === 'needs_attention'
+      ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-300/30 dark:bg-red-950 dark:text-red-100'
+      : doc.offlineSyncStatus === 'retry_scheduled'
+        ? 'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-300/30 dark:bg-amber-950 dark:text-amber-100'
+        : 'border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-300/30 dark:bg-emerald-950 dark:text-emerald-100'
+  )
 
   return (
     <div className="group flex w-full items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm transition-all hover:border-zinc-300">
@@ -289,13 +298,7 @@ function DocRow({
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <div className="truncate text-sm font-semibold text-zinc-900">{doc.fileName}</div>
             {syncLabel && (
-              <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.12em] ${
-                doc.offlineSyncStatus === 'needs_attention'
-                  ? 'border-red-200 bg-red-50 text-red-700'
-                  : doc.offlineSyncStatus === 'retry_scheduled'
-                    ? 'border-amber-200 bg-amber-50 text-amber-800'
-                    : 'border-emerald-200 bg-emerald-50 text-emerald-800'
-              }`}>
+              <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.12em] ${syncLabelClassName}`}>
                 {syncLabel}
               </span>
             )}
@@ -2571,9 +2574,8 @@ export function InspectorCompletionWorkspace() {
 
     if (!localEvidenceId) return
 
-    if (!await updateOfflineEvidenceGpsResult(localEvidenceId, result)) return
-
-    if (result.status !== 'success') return
+    const updatedRecord = await updateOfflineEvidenceGpsResult(localEvidenceId, result)
+    if (!updatedRecord) return
 
     updateItem(itemCode, item => ({
       ...item,
@@ -2581,11 +2583,10 @@ export function InspectorCompletionWorkspace() {
         currentDoc.id === doc.id
           ? {
               ...currentDoc,
-              captureGeo: {
-                latitude: result.latitude,
-                longitude: result.longitude,
-                accuracy: result.accuracy,
-              },
+              captureGeo: updatedRecord.captureGeo,
+              offlineSyncStatus: updatedRecord.status,
+              offlineSyncMessage: getEvidenceGpsNotice(updatedRecord.captureGeo)?.message
+                ?? offlineEvidenceStatusLabel(updatedRecord.status),
             }
           : currentDoc
       ),

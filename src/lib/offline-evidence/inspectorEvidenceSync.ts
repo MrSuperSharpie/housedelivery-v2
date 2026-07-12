@@ -17,6 +17,7 @@ import type {
   OfflineEvidenceStatus,
 } from './types'
 import { recordOfflineEvidenceDiagnostic } from './captureDiagnostics'
+import { getEvidenceGpsNotice } from './gpsNotice'
 
 const LOCAL_PATH_PREFIX = 'local://offline-evidence/'
 
@@ -93,7 +94,7 @@ export function createLocalDocumentFromEvidence(
     createdAt: record.createdAt,
     previewUrl,
     offlineSyncStatus: record.status,
-    offlineSyncMessage: offlineEvidenceStatusLabel(record.status),
+    offlineSyncMessage: getEvidenceGpsNotice(record.captureGeo)?.message ?? offlineEvidenceStatusLabel(record.status),
   }
 }
 

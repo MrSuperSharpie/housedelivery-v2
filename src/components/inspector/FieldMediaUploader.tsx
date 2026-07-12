@@ -670,7 +670,7 @@ export function FieldMediaUploader({
       })
 
       setStatus(deferGps
-        ? 'Saved on this device. Checking GPS in the background.'
+        ? null
         : location.latitude !== null && location.longitude !== null
         ? 'Saved on this device with GPS coordinates.'
         : 'Saved on this device without GPS coordinates.')
@@ -1023,20 +1023,20 @@ export function FieldMediaUploader({
         )}
 
         {(warning || status || error) && (
-          <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-2xl border border-white/10 bg-[#091022] px-3 py-2 shadow-2xl">
+          <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-2xl border border-slate-700 bg-[#091022] px-3 py-2 shadow-2xl">
             {warning && (
               <div className="rounded-xl border border-amber-200 bg-amber-100 px-3 py-2 text-xs font-medium text-amber-900">
                 {warning}
               </div>
             )}
             {status && (
-              <div className={`${warning ? 'mt-2 ' : ''}flex items-center gap-2 text-xs text-zinc-300`}>
-                <MapPin className="h-3.5 w-3.5 text-cyan-300" />
+              <div className={`${warning ? 'mt-2 ' : ''}flex items-center gap-2 text-xs font-semibold text-slate-50`}>
+                <MapPin className="h-3.5 w-3.5 text-cyan-200" />
                 <span>{status}</span>
               </div>
             )}
             {error && (
-              <div className={`${status ? 'mt-2 ' : ''}text-xs text-amber-200`}>
+              <div className={`${status ? 'mt-2 ' : ''}text-xs font-semibold text-amber-100`}>
                 {error}
               </div>
             )}

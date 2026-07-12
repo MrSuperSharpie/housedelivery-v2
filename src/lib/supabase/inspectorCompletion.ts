@@ -101,6 +101,12 @@ export interface DocumentCaptureGeo {
   latitude?: number | null
   longitude?: number | null
   accuracy?: number | null
+  capturedAt?: string
+  gpsStatus?: 'not_requested' | 'started' | 'success' | 'permission_denied' | 'position_unavailable' | 'timeout' | 'unsupported' | 'error'
+  gpsElapsedMs?: number
+  gpsPermissionState?: PermissionState | 'unknown'
+  gpsErrorCode?: number
+  gpsErrorMessage?: string
 }
 
 export type DocumentIntegrityStatus = 'recorded' | 'verified' | 'disputed' | 'quarantined' | string
