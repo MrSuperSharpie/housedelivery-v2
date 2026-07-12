@@ -8,6 +8,8 @@ export type OfflineEvidenceDiagnosticEvent =
   | 'react_evidence_row_inserted'
   | 'capture_callback_resolved'
   | 'busy_state_cleared'
+  | 'gps_request_started'
+  | 'gps_request_finished'
   | 'optimization_started'
   | 'upload_started'
   | 'upload_completed'

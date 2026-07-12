@@ -184,6 +184,9 @@ export async function stageInspectorEvidenceForUpload(
     captureGeo: {
       latitude: input.capture?.latitude ?? null,
       longitude: input.capture?.longitude ?? null,
+      gpsStatus: input.capture?.inputAction === 'take_photo' || input.capture?.inputAction === 'record_video'
+        ? 'not_requested'
+        : undefined,
     },
     transcript: input.capture?.transcript,
     status: 'saved_local',

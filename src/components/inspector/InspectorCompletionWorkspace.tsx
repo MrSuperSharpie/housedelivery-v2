@@ -31,7 +31,10 @@ import {
 } from 'lucide-react'
 import {
   FieldMediaUploader,
+  isLiveFieldMediaCaptureAction,
+  requestFieldMediaGpsResult,
   type FieldMediaCapturePayload,
+  type FieldMediaGpsResult,
 } from '@/components/inspector/FieldMediaUploader'
 import { StageCodeReferences } from '@/components/inspector/StageCodeReferences'
 import { Navbar } from '@/components/shared/Navbar'
@@ -70,6 +73,7 @@ import {
 import {
   createLocalDocumentFromEvidence,
   deleteLocalInspectorEvidence,
+  getLocalEvidenceRepository,
   isOfflineEvidenceStoragePath,
   listPendingInspectorEvidenceDocuments,
   localEvidenceIdFromStoragePath,
@@ -144,6 +148,14 @@ interface PreSealEvidenceLocationIssue {
   reason: string
 }
 
+interface LiveCaptureGpsDiagnostic {
+  status: 'started' | FieldMediaGpsResult['status']
+  startedAt: string
+  elapsedMs?: number
+  permissionState?: FieldMediaGpsResult['permissionState']
+  errorCode?: number
+}
+
 function createRuntimeId(prefix: string): string {
   return `${prefix}-${crypto.randomUUID()}`
 }
@@ -207,10 +219,14 @@ function DocRow({
   doc,
   onClick,
   onDelete,
+  gpsDiagnostic,
+  showGpsDiagnostic = false,
 }: {
   doc: InspectorCompletionDocumentRow
   onClick: () => void
   onDelete: () => void
+  gpsDiagnostic?: LiveCaptureGpsDiagnostic
+  showGpsDiagnostic?: boolean
 }) {
   const isPdf = doc.mimeType === 'application/pdf' || doc.fileName.toLowerCase().endsWith('.pdf')
   const isVideo = doc.mediaType === 'video' || doc.mimeType?.startsWith('video/') === true
@@ -297,6 +313,14 @@ function DocRow({
               })}
             </span>
           </div>
+          {showGpsDiagnostic && gpsDiagnostic && (
+            <div className="mt-1 rounded-lg border border-cyan-100 bg-cyan-50 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-cyan-900">
+              GPS {gpsDiagnostic.status}
+              {typeof gpsDiagnostic.elapsedMs === 'number' ? ` • ${gpsDiagnostic.elapsedMs}ms` : ''}
+              {gpsDiagnostic.permissionState ? ` • permission ${gpsDiagnostic.permissionState}` : ''}
+              {typeof gpsDiagnostic.errorCode === 'number' ? ` • code ${gpsDiagnostic.errorCode}` : ''}
+            </div>
+          )}
         </div>
       </button>
       
@@ -1238,6 +1262,8 @@ export function InspectorCompletionWorkspace() {
   const [highlightedEvidenceItemCode, setHighlightedEvidenceItemCode] = useState<string | null>(null)
   const [manualLocationDrafts, setManualLocationDrafts] = useState<Record<string, string>>({})
   const [manualLocationSavingDocId, setManualLocationSavingDocId] = useState<string | null>(null)
+  const [liveCaptureGpsDiagnostics, setLiveCaptureGpsDiagnostics] = useState<Record<string, LiveCaptureGpsDiagnostic>>({})
+  const [showOfflineEvidenceDiagnostics, setShowOfflineEvidenceDiagnostics] = useState(process.env.NODE_ENV === 'development')
 
   const hydratedRef = useRef(false)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -1761,6 +1787,15 @@ export function InspectorCompletionWorkspace() {
     if (previewMode) return undefined
     return registerInspectorEvidenceResumeHandlers(applyOfflineEvidenceSyncResults)
   }, [previewMode])
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') return
+    try {
+      setShowOfflineEvidenceDiagnostics(window.localStorage.getItem('vero:offline-evidence-debug') === '1')
+    } catch {
+      setShowOfflineEvidenceDiagnostics(false)
+    }
+  }, [])
 
   useEffect(() => {
     if (!assignmentScopeComplete || isFinalOccupancyStage) return
@@ -2507,6 +2542,81 @@ export function InspectorCompletionWorkspace() {
     return localDoc
   }
 
+  async function requestLiveCaptureGpsAfterLocalSave(
+    itemCode: string,
+    doc: InspectorCompletionDocumentRow,
+  ) {
+    const localEvidenceId = localEvidenceIdFromStoragePath(doc.storagePath)
+    const startedAt = new Date().toISOString()
+    setLiveCaptureGpsDiagnostics(current => ({
+      ...current,
+      [doc.id]: {
+        status: 'started',
+        startedAt,
+      },
+    }))
+
+    const result = await requestFieldMediaGpsResult()
+    setLiveCaptureGpsDiagnostics(current => ({
+      ...current,
+      [doc.id]: {
+        status: result.status,
+        startedAt,
+        elapsedMs: result.elapsedMs,
+        permissionState: result.permissionState,
+        errorCode: result.errorCode,
+      },
+    }))
+
+    if (!localEvidenceId) return
+
+    const repository = getLocalEvidenceRepository()
+    const currentRecord = await repository.get(localEvidenceId)
+    if (!currentRecord) return
+
+    const nextCaptureGeo = {
+      ...currentRecord.captureGeo,
+      latitude: result.latitude,
+      longitude: result.longitude,
+      accuracy: result.accuracy,
+      capturedAt: result.timestamp,
+      gpsStatus: result.status,
+      gpsElapsedMs: result.elapsedMs,
+      gpsPermissionState: result.permissionState,
+      gpsErrorCode: result.errorCode,
+      gpsErrorMessage: result.errorMessage,
+    }
+
+    await repository.update(localEvidenceId, {
+      captureGeo: nextCaptureGeo,
+      uploadOptions: {
+        ...currentRecord.uploadOptions,
+        captureLatitude: result.latitude,
+        captureLongitude: result.longitude,
+        captureAccuracy: result.accuracy,
+        capturePositionedAt: result.timestamp,
+      },
+    })
+
+    if (result.status !== 'success') return
+
+    updateItem(itemCode, item => ({
+      ...item,
+      documents: item.documents.map(currentDoc =>
+        currentDoc.id === doc.id
+          ? {
+              ...currentDoc,
+              captureGeo: {
+                latitude: result.latitude,
+                longitude: result.longitude,
+                accuracy: result.accuracy,
+              },
+            }
+          : currentDoc
+      ),
+    }))
+  }
+
   async function handleFieldEvidenceCapture(
     itemCode: string,
     payload: FieldMediaCapturePayload,
@@ -2528,7 +2638,7 @@ export function InspectorCompletionWorkspace() {
     })
 
     let anomalyExplanation: string | undefined
-    if (geofence.state === 'anomalous') {
+    if (!isLiveFieldMediaCaptureAction(payload.inputAction) && geofence.state === 'anomalous') {
       const response = window.prompt(
         'This capture is outside the expected site geofence. Add a short explanation so Vero can flag it for review.',
         '',
@@ -2540,7 +2650,11 @@ export function InspectorCompletionWorkspace() {
       anomalyExplanation = response.trim()
     }
 
-    return handleDocumentUpload(itemCode, payload.file, payload, anomalyExplanation)
+    const document = await handleDocumentUpload(itemCode, payload.file, payload, anomalyExplanation)
+    if (document && isLiveFieldMediaCaptureAction(payload.inputAction)) {
+      void requestLiveCaptureGpsAfterLocalSave(itemCode, document)
+    }
+    return document
   }
 
   async function handleChecklistCapture(
@@ -4386,6 +4500,8 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                             doc={doc}
                                             onClick={() => void openDocument(doc)}
                                             onDelete={() => void handleDeleteDocument(item.item_code, doc)}
+                                            gpsDiagnostic={liveCaptureGpsDiagnostics[doc.id]}
+                                            showGpsDiagnostic={showOfflineEvidenceDiagnostics}
                                           />
                                         )
                                       }
@@ -4794,6 +4910,8 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                     doc={doc}
                                     onClick={() => void openDocument(doc)}
                                     onDelete={() => void handleDeleteDocument(item.item_code, doc)}
+                                    gpsDiagnostic={liveCaptureGpsDiagnostics[doc.id]}
+                                    showGpsDiagnostic={showOfflineEvidenceDiagnostics}
                                   />
                                 ))
                               )}
@@ -5237,6 +5355,8 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                   doc={doc}
                                   onClick={() => void openDocument(doc)}
                                   onDelete={() => void handleDeleteDocument(item.item_code, doc)}
+                                  gpsDiagnostic={liveCaptureGpsDiagnostics[doc.id]}
+                                  showGpsDiagnostic={showOfflineEvidenceDiagnostics}
                                 />
                               ))
                             )}
