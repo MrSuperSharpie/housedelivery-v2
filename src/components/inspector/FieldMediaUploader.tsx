@@ -23,6 +23,7 @@ export interface FieldMediaCapturePayload {
   latitude: number | null
   longitude: number | null
   source: FieldMediaExpectedType
+  inputAction?: FieldMediaInputAction
   /** Blob URL for immediate media preview (valid for current session only). */
   previewUrl?: string
   /** Speech-to-text transcript for audio captures (when browser supports it). */
@@ -54,6 +55,7 @@ export type FieldMediaInputAction =
   | 'choose_photo_library'
   | 'record_video'
   | 'choose_existing_video'
+  | 'pinned_text_note'
   | 'attach_document'
 
 export interface FieldMediaInputOption {
@@ -65,9 +67,30 @@ export interface FieldMediaInputOption {
   icon: 'camera' | 'image' | 'video' | 'paperclip'
 }
 
+export type FieldMediaGpsStatus =
+  | 'success'
+  | 'permission_denied'
+  | 'position_unavailable'
+  | 'timeout'
+  | 'unsupported'
+  | 'error'
+
+export interface FieldMediaGpsResult {
+  status: FieldMediaGpsStatus
+  latitude: number | null
+  longitude: number | null
+  accuracy: number | null
+  timestamp: string
+  elapsedMs: number
+  permissionState: PermissionState | 'unknown'
+  errorCode?: number
+  errorMessage?: string
+}
+
 interface PendingRetryCapture {
   file: File
   source: FieldMediaExpectedType
+  inputAction?: FieldMediaInputAction
   transcript?: string
 }
 
@@ -147,6 +170,14 @@ export function fieldMediaInputOptionsForExpectedType(
   ]
 }
 
+export function isLiveFieldMediaCaptureAction(action?: FieldMediaInputAction): boolean {
+  return action === 'take_photo' || action === 'record_video'
+}
+
+export function isDeferredFieldMediaGpsAction(action?: FieldMediaInputAction): boolean {
+  return isLiveFieldMediaCaptureAction(action) || action === 'pinned_text_note'
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getSpeechRecognitionCtor(): (new () => any) | null {
   if (typeof window === 'undefined') return null
@@ -160,6 +191,16 @@ function isGeolocationError(value: unknown): value is GeolocationPositionError {
     && value !== null
     && 'code' in value
     && typeof (value as { code?: unknown }).code === 'number'
+}
+
+async function getGeolocationPermissionState(): Promise<PermissionState | 'unknown'> {
+  if (typeof navigator === 'undefined' || !navigator.permissions?.query) return 'unknown'
+  try {
+    const status = await navigator.permissions.query({ name: 'geolocation' as PermissionName })
+    return status.state
+  } catch {
+    return 'unknown'
+  }
 }
 
 /**
@@ -303,6 +344,100 @@ export function withGeolocationWatchdog<T>(
   })
   return Promise.race([promise, timeoutPromise]).finally(() => {
     if (timeout) clearTimeout(timeout)
+  })
+}
+
+export async function requestFieldMediaGpsResult(
+  timeoutMs = GEOLOCATION_WATCHDOG_TIMEOUT_MS,
+): Promise<FieldMediaGpsResult> {
+  const startedAt = Date.now()
+  const startedTimestamp = new Date().toISOString()
+  const permissionState = await getGeolocationPermissionState()
+
+  recordOfflineEvidenceDiagnostic('gps_request_started', {
+    elapsedMs: 0,
+    status: permissionState,
+  })
+
+  if (typeof navigator === 'undefined' || !navigator.geolocation) {
+    return {
+      status: 'unsupported',
+      latitude: null,
+      longitude: null,
+      accuracy: null,
+      timestamp: startedTimestamp,
+      elapsedMs: Date.now() - startedAt,
+      permissionState,
+      errorMessage: 'Geolocation is not supported on this device.',
+    }
+  }
+
+  return new Promise<FieldMediaGpsResult>(resolve => {
+    let settled = false
+    const finish = (result: FieldMediaGpsResult) => {
+      if (settled) return
+      settled = true
+      recordOfflineEvidenceDiagnostic('gps_request_finished', {
+        status: result.status,
+        elapsedMs: result.elapsedMs,
+        reason: result.errorCode != null ? `code:${result.errorCode}` : undefined,
+      })
+      resolve(result)
+    }
+
+    const timeout = setTimeout(() => {
+      finish({
+        status: 'timeout',
+        latitude: null,
+        longitude: null,
+        accuracy: null,
+        timestamp: new Date().toISOString(),
+        elapsedMs: Date.now() - startedAt,
+        permissionState,
+        errorCode: 3,
+        errorMessage: 'Location lookup timed out after local evidence save.',
+      })
+    }, timeoutMs)
+
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        clearTimeout(timeout)
+        finish({
+          status: 'success',
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+          timestamp: new Date(position.timestamp || Date.now()).toISOString(),
+          elapsedMs: Date.now() - startedAt,
+          permissionState,
+        })
+      },
+      error => {
+        clearTimeout(timeout)
+        const status: FieldMediaGpsStatus = error.code === error.PERMISSION_DENIED
+          ? 'permission_denied'
+          : error.code === error.POSITION_UNAVAILABLE
+            ? 'position_unavailable'
+            : error.code === error.TIMEOUT
+              ? 'timeout'
+              : 'error'
+        finish({
+          status,
+          latitude: null,
+          longitude: null,
+          accuracy: null,
+          timestamp: new Date().toISOString(),
+          elapsedMs: Date.now() - startedAt,
+          permissionState,
+          errorCode: error.code,
+          errorMessage: error.message,
+        })
+      },
+      {
+        ...GEOLOCATION_OPTIONS,
+        timeout: timeoutMs,
+      },
+    )
   })
 }
 
@@ -488,19 +623,25 @@ export function FieldMediaUploader({
     }
   }
 
-  async function finalizeCapture(file: File, source: FieldMediaExpectedType, transcript?: string) {
+  async function finalizeCapture(
+    file: File,
+    source: FieldMediaExpectedType,
+    transcript?: string,
+    inputAction?: FieldMediaInputAction,
+  ) {
     const startedAt = Date.now()
     setIsBusy(true)
-    setStatus(source === 'text' ? 'Saving note…' : 'Pinning location and timestamp…')
+    const deferGps = isDeferredFieldMediaGpsAction(inputAction)
+    setStatus(source === 'text' || deferGps ? 'Saving evidence on this device…' : 'Pinning location and timestamp…')
     setError(null)
     setWarning(null)
     setPendingRetryCapture(null)
 
     try {
       const capturedAt = new Date().toISOString()
-      // Text notes are annotations — skip the blocking GPS lookup so notes save instantly.
-      // Camera, video, and audio captures retain full GPS tagging.
-      const location = source === 'text'
+      // Pinned text notes and live camera/video captures save first; GPS runs after the
+      // local row exists so mobile geolocation can never block the input button.
+      const location = source === 'text' || deferGps
         ? { latitude: null, longitude: null, error: null }
         : await withGeolocationWatchdog(getGeolocation())
 
@@ -518,6 +659,7 @@ export function FieldMediaUploader({
         latitude: location.latitude,
         longitude: location.longitude,
         source,
+        inputAction,
         previewUrl,
         transcript,
       }))
@@ -527,14 +669,16 @@ export function FieldMediaUploader({
         elapsedMs: Date.now() - startedAt,
       })
 
-      setStatus(location.latitude !== null && location.longitude !== null
+      setStatus(deferGps
+        ? null
+        : location.latitude !== null && location.longitude !== null
         ? 'Saved on this device with GPS coordinates.'
         : 'Saved on this device without GPS coordinates.')
       if (source === 'text') {
         setTextComposerOpen(false)
       }
     } catch (captureError) {
-      setPendingRetryCapture({ file, source, transcript })
+      setPendingRetryCapture({ file, source, inputAction, transcript })
       setError(captureError instanceof Error
         ? captureError.message
         : 'Could not save this evidence on this device. Try again.')
@@ -555,6 +699,7 @@ export function FieldMediaUploader({
       pendingRetryCapture.file,
       pendingRetryCapture.source,
       pendingRetryCapture.transcript,
+      pendingRetryCapture.inputAction,
     )
   }
 
@@ -576,7 +721,7 @@ export function FieldMediaUploader({
       setWarning('Video uploads must be under 50MB. Keep videos under 30 seconds for field evidence.')
       return
     }
-    await finalizeCapture(file, option.source)
+    await finalizeCapture(file, option.source, undefined, option.id)
   }
 
   async function startAudioRecording() {
@@ -705,7 +850,7 @@ export function FieldMediaUploader({
       type: 'text/plain',
     })
 
-    await finalizeCapture(file, 'text')
+    await finalizeCapture(file, 'text', undefined, 'pinned_text_note')
     setTextValue('')
   }
 
@@ -878,20 +1023,20 @@ export function FieldMediaUploader({
         )}
 
         {(warning || status || error) && (
-          <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-2xl border border-white/10 bg-[#091022] px-3 py-2 shadow-2xl">
+          <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-2xl border border-slate-700 bg-[#091022] px-3 py-2 shadow-2xl">
             {warning && (
               <div className="rounded-xl border border-amber-200 bg-amber-100 px-3 py-2 text-xs font-medium text-amber-900">
                 {warning}
               </div>
             )}
             {status && (
-              <div className={`${warning ? 'mt-2 ' : ''}flex items-center gap-2 text-xs text-zinc-300`}>
-                <MapPin className="h-3.5 w-3.5 text-cyan-300" />
+              <div className={`${warning ? 'mt-2 ' : ''}flex items-center gap-2 text-xs font-semibold text-slate-50`}>
+                <MapPin className="h-3.5 w-3.5 text-cyan-200" />
                 <span>{status}</span>
               </div>
             )}
             {error && (
-              <div className={`${status ? 'mt-2 ' : ''}text-xs text-amber-200`}>
+              <div className={`${status ? 'mt-2 ' : ''}text-xs font-semibold text-amber-100`}>
                 {error}
               </div>
             )}

@@ -31,7 +31,11 @@ import {
 } from 'lucide-react'
 import {
   FieldMediaUploader,
+  isDeferredFieldMediaGpsAction,
+  isLiveFieldMediaCaptureAction,
+  requestFieldMediaGpsResult,
   type FieldMediaCapturePayload,
+  type FieldMediaGpsResult,
 } from '@/components/inspector/FieldMediaUploader'
 import { StageCodeReferences } from '@/components/inspector/StageCodeReferences'
 import { Navbar } from '@/components/shared/Navbar'
@@ -78,8 +82,10 @@ import {
   registerInspectorEvidenceResumeHandlers,
   stageInspectorEvidenceForUpload,
   syncInspectorEvidenceQueue,
+  updateOfflineEvidenceGpsResult,
 } from '@/lib/offline-evidence'
 import { recordOfflineEvidenceDiagnostic } from '@/lib/offline-evidence/captureDiagnostics'
+import { getEvidenceGpsNotice } from '@/lib/offline-evidence/gpsNotice'
 import type { EvidenceItem, EvidenceKind, EvidenceValidationState, GeoCoord } from '@/lib/domain/types'
 import { evaluateGeofence } from '@/lib/geofence'
 import { isHoldOpenStatus } from '@/lib/holds/workflow'
@@ -142,6 +148,14 @@ interface PreSealEvidenceLocationIssue {
   itemLabel: string
   doc: InspectorCompletionDocumentRow
   reason: string
+}
+
+interface LiveCaptureGpsDiagnostic {
+  status: 'started' | FieldMediaGpsResult['status']
+  startedAt: string
+  elapsedMs?: number
+  permissionState?: FieldMediaGpsResult['permissionState']
+  errorCode?: number
 }
 
 function createRuntimeId(prefix: string): string {
@@ -207,15 +221,27 @@ function DocRow({
   doc,
   onClick,
   onDelete,
+  gpsDiagnostic,
+  showGpsDiagnostic = false,
 }: {
   doc: InspectorCompletionDocumentRow
   onClick: () => void
   onDelete: () => void
+  gpsDiagnostic?: LiveCaptureGpsDiagnostic
+  showGpsDiagnostic?: boolean
 }) {
   const isPdf = doc.mimeType === 'application/pdf' || doc.fileName.toLowerCase().endsWith('.pdf')
   const isVideo = doc.mediaType === 'video' || doc.mimeType?.startsWith('video/') === true
   const isLocalEvidence = doc.storagePath.startsWith('local://')
-  const syncLabel = isLocalEvidence ? (doc.offlineSyncMessage ?? offlineEvidenceStatusLabel(doc.offlineSyncStatus)) : null
+  const gpsNotice = getEvidenceGpsNotice(doc.captureGeo)
+  const syncLabel = isLocalEvidence ? (gpsNotice?.message ?? doc.offlineSyncMessage ?? offlineEvidenceStatusLabel(doc.offlineSyncStatus)) : null
+  const syncLabelClassName = gpsNotice?.className ?? (
+    doc.offlineSyncStatus === 'needs_attention'
+      ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-300/30 dark:bg-red-950 dark:text-red-100'
+      : doc.offlineSyncStatus === 'retry_scheduled'
+        ? 'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-300/30 dark:bg-amber-950 dark:text-amber-100'
+        : 'border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-300/30 dark:bg-emerald-950 dark:text-emerald-100'
+  )
 
   return (
     <div className="group flex w-full items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm transition-all hover:border-zinc-300">
@@ -272,13 +298,7 @@ function DocRow({
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <div className="truncate text-sm font-semibold text-zinc-900">{doc.fileName}</div>
             {syncLabel && (
-              <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.12em] ${
-                doc.offlineSyncStatus === 'needs_attention'
-                  ? 'border-red-200 bg-red-50 text-red-700'
-                  : doc.offlineSyncStatus === 'retry_scheduled'
-                    ? 'border-amber-200 bg-amber-50 text-amber-800'
-                    : 'border-emerald-200 bg-emerald-50 text-emerald-800'
-              }`}>
+              <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.12em] ${syncLabelClassName}`}>
                 {syncLabel}
               </span>
             )}
@@ -297,6 +317,14 @@ function DocRow({
               })}
             </span>
           </div>
+          {showGpsDiagnostic && gpsDiagnostic && (
+            <div className="mt-1 rounded-lg border border-cyan-100 bg-cyan-50 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-cyan-900">
+              GPS {gpsDiagnostic.status}
+              {typeof gpsDiagnostic.elapsedMs === 'number' ? ` • ${gpsDiagnostic.elapsedMs}ms` : ''}
+              {gpsDiagnostic.permissionState ? ` • permission ${gpsDiagnostic.permissionState}` : ''}
+              {typeof gpsDiagnostic.errorCode === 'number' ? ` • code ${gpsDiagnostic.errorCode}` : ''}
+            </div>
+          )}
         </div>
       </button>
       
@@ -1238,6 +1266,8 @@ export function InspectorCompletionWorkspace() {
   const [highlightedEvidenceItemCode, setHighlightedEvidenceItemCode] = useState<string | null>(null)
   const [manualLocationDrafts, setManualLocationDrafts] = useState<Record<string, string>>({})
   const [manualLocationSavingDocId, setManualLocationSavingDocId] = useState<string | null>(null)
+  const [liveCaptureGpsDiagnostics, setLiveCaptureGpsDiagnostics] = useState<Record<string, LiveCaptureGpsDiagnostic>>({})
+  const [showOfflineEvidenceDiagnostics, setShowOfflineEvidenceDiagnostics] = useState(process.env.NODE_ENV === 'development')
 
   const hydratedRef = useRef(false)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -1761,6 +1791,15 @@ export function InspectorCompletionWorkspace() {
     if (previewMode) return undefined
     return registerInspectorEvidenceResumeHandlers(applyOfflineEvidenceSyncResults)
   }, [previewMode])
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') return
+    try {
+      setShowOfflineEvidenceDiagnostics(window.localStorage.getItem('vero:offline-evidence-debug') === '1')
+    } catch {
+      setShowOfflineEvidenceDiagnostics(false)
+    }
+  }, [])
 
   useEffect(() => {
     if (!assignmentScopeComplete || isFinalOccupancyStage) return
@@ -2507,6 +2546,53 @@ export function InspectorCompletionWorkspace() {
     return localDoc
   }
 
+  async function requestLiveCaptureGpsAfterLocalSave(
+    itemCode: string,
+    doc: InspectorCompletionDocumentRow,
+  ) {
+    const localEvidenceId = localEvidenceIdFromStoragePath(doc.storagePath)
+    const startedAt = new Date().toISOString()
+    setLiveCaptureGpsDiagnostics(current => ({
+      ...current,
+      [doc.id]: {
+        status: 'started',
+        startedAt,
+      },
+    }))
+
+    const result = await requestFieldMediaGpsResult()
+    setLiveCaptureGpsDiagnostics(current => ({
+      ...current,
+      [doc.id]: {
+        status: result.status,
+        startedAt,
+        elapsedMs: result.elapsedMs,
+        permissionState: result.permissionState,
+        errorCode: result.errorCode,
+      },
+    }))
+
+    if (!localEvidenceId) return
+
+    const updatedRecord = await updateOfflineEvidenceGpsResult(localEvidenceId, result)
+    if (!updatedRecord) return
+
+    updateItem(itemCode, item => ({
+      ...item,
+      documents: item.documents.map(currentDoc =>
+        currentDoc.id === doc.id
+          ? {
+              ...currentDoc,
+              captureGeo: updatedRecord.captureGeo,
+              offlineSyncStatus: updatedRecord.status,
+              offlineSyncMessage: getEvidenceGpsNotice(updatedRecord.captureGeo)?.message
+                ?? offlineEvidenceStatusLabel(updatedRecord.status),
+            }
+          : currentDoc
+      ),
+    }))
+  }
+
   async function handleFieldEvidenceCapture(
     itemCode: string,
     payload: FieldMediaCapturePayload,
@@ -2528,7 +2614,7 @@ export function InspectorCompletionWorkspace() {
     })
 
     let anomalyExplanation: string | undefined
-    if (geofence.state === 'anomalous') {
+    if (!isDeferredFieldMediaGpsAction(payload.inputAction) && geofence.state === 'anomalous') {
       const response = window.prompt(
         'This capture is outside the expected site geofence. Add a short explanation so Vero can flag it for review.',
         '',
@@ -2540,7 +2626,11 @@ export function InspectorCompletionWorkspace() {
       anomalyExplanation = response.trim()
     }
 
-    return handleDocumentUpload(itemCode, payload.file, payload, anomalyExplanation)
+    const document = await handleDocumentUpload(itemCode, payload.file, payload, anomalyExplanation)
+    if (document && isDeferredFieldMediaGpsAction(payload.inputAction)) {
+      void requestLiveCaptureGpsAfterLocalSave(itemCode, document)
+    }
+    return document
   }
 
   async function handleChecklistCapture(
@@ -4386,6 +4476,8 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                             doc={doc}
                                             onClick={() => void openDocument(doc)}
                                             onDelete={() => void handleDeleteDocument(item.item_code, doc)}
+                                            gpsDiagnostic={liveCaptureGpsDiagnostics[doc.id]}
+                                            showGpsDiagnostic={showOfflineEvidenceDiagnostics}
                                           />
                                         )
                                       }
@@ -4794,6 +4886,8 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                     doc={doc}
                                     onClick={() => void openDocument(doc)}
                                     onDelete={() => void handleDeleteDocument(item.item_code, doc)}
+                                    gpsDiagnostic={liveCaptureGpsDiagnostics[doc.id]}
+                                    showGpsDiagnostic={showOfflineEvidenceDiagnostics}
                                   />
                                 ))
                               )}
@@ -5237,6 +5331,8 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                   doc={doc}
                                   onClick={() => void openDocument(doc)}
                                   onDelete={() => void handleDeleteDocument(item.item_code, doc)}
+                                  gpsDiagnostic={liveCaptureGpsDiagnostics[doc.id]}
+                                  showGpsDiagnostic={showOfflineEvidenceDiagnostics}
                                 />
                               ))
                             )}

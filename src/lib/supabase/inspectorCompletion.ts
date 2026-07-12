@@ -101,6 +101,12 @@ export interface DocumentCaptureGeo {
   latitude?: number | null
   longitude?: number | null
   accuracy?: number | null
+  capturedAt?: string
+  gpsStatus?: 'not_requested' | 'started' | 'success' | 'permission_denied' | 'position_unavailable' | 'timeout' | 'unsupported' | 'error'
+  gpsElapsedMs?: number
+  gpsPermissionState?: PermissionState | 'unknown'
+  gpsErrorCode?: number
+  gpsErrorMessage?: string
 }
 
 export type DocumentIntegrityStatus = 'recorded' | 'verified' | 'disputed' | 'quarantined' | string
@@ -496,6 +502,7 @@ export async function uploadInspectorCompletionDocument(
     capturedAt?: string
     captureLatitude?: number | null
     captureLongitude?: number | null
+    captureAccuracy?: number | null
     projectLatitude?: number | null
     projectLongitude?: number | null
     anomalyExplanation?: string
@@ -530,6 +537,7 @@ export async function uploadInspectorCompletionDocument(
   const captureGeo = {
     latitude: options?.captureLatitude ?? null,
     longitude: options?.captureLongitude ?? null,
+    accuracy: options?.captureAccuracy ?? null,
   }
   const geofence = evaluateGeofence({
     projectPoint: options?.projectLatitude != null && options?.projectLongitude != null
