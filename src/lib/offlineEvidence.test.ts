@@ -9,12 +9,18 @@ import {
   shouldAttemptUpload,
   isRetryableUploadError,
 } from './offline-evidence/evidenceSyncQueue'
-import { MemoryLocalEvidenceRepository } from './offline-evidence/localEvidenceRepository'
+import {
+  fileToStoredBlob,
+  MemoryLocalEvidenceRepository,
+  storedBlobToFile,
+  withLocalEvidenceTimeout,
+} from './offline-evidence/localEvidenceRepository'
 import {
   optimizeAndSyncInspectorEvidence,
   stageInspectorEvidenceForUpload,
 } from './offline-evidence/inspectorEvidenceSync'
 import type { EvidenceUploadTransport, OfflineEvidenceRecord } from './offline-evidence/types'
+import { withCaptureCallbackTimeout } from '@/components/inspector/FieldMediaUploader'
 
 function makeFile(name = 'evidence.jpg', size = 1024, type = 'image/jpeg'): File {
   return new File([new Uint8Array(size)], name, { type })
@@ -33,8 +39,10 @@ function makeRecord(overrides: Partial<OfflineEvidenceRecord> = {}): OfflineEvid
     inspectorUserId: 'inspector-1',
     uploadedBy: 'inspector-1',
     originalFilename: 'evidence.jpg',
+    originalLastModified: 123,
     storedLocalFilename: 'evidence.jpg',
     uploadFilename: 'evidence.jpg',
+    uploadLastModified: 123,
     mimeType: 'image/jpeg',
     uploadMimeType: 'image/jpeg',
     mediaType: 'camera',
@@ -109,6 +117,79 @@ test('Camera Roll File uses the same local-first staging coordinator', async () 
 
   assert.equal(staged.record.status, 'saved_local')
   assert.equal(staged.record.mediaType, 'camera')
+  assert.equal(await repository.getOriginalFile(staged.record.localEvidenceId), file)
+})
+
+test('captured File is normalized to Blob plus metadata for IndexedDB storage', async () => {
+  const file = new File([new Uint8Array([1, 2, 3])], 'iphone-capture.jpg', {
+    type: 'image/jpeg',
+    lastModified: 12345,
+  })
+  const stored = fileToStoredBlob(file)
+  assert.equal(stored.blob instanceof Blob, true)
+  assert.equal(stored.blob instanceof File, false)
+  assert.equal(stored.name, 'iphone-capture.jpg')
+  assert.equal(stored.type, 'image/jpeg')
+  assert.equal(stored.lastModified, 12345)
+
+  const reconstructed = storedBlobToFile(stored)
+  assert.equal(reconstructed?.name, 'iphone-capture.jpg')
+  assert.equal(reconstructed?.type, 'image/jpeg')
+  assert.equal(reconstructed?.lastModified, 12345)
+  assert.deepEqual(new Uint8Array(await reconstructed!.arrayBuffer()), new Uint8Array([1, 2, 3]))
+})
+
+test('FieldMediaUploader busy watchdog resolves after local save while optimization remains pending', async () => {
+  let optimizationStillPending = true
+  const localSave = Promise.resolve('saved').then(result => {
+    void new Promise(() => {
+      optimizationStillPending = true
+    })
+    return result
+  })
+  const result = await withCaptureCallbackTimeout(localSave, 25)
+  assert.equal(result, 'saved')
+  assert.equal(optimizationStillPending, true)
+})
+
+test('FieldMediaUploader busy watchdog clears when local save rejects', async () => {
+  await assert.rejects(
+    withCaptureCallbackTimeout(Promise.reject(new Error('Could not save this evidence on this device. Try again.')), 25),
+    /Could not save this evidence/,
+  )
+})
+
+test('FieldMediaUploader busy watchdog clears when IndexedDB open stalls', async () => {
+  await assert.rejects(
+    withCaptureCallbackTimeout(new Promise(() => {
+      // Simulates a stalled local staging callback.
+    }), 5),
+    /Could not save this evidence/,
+  )
+})
+
+test('local evidence timeout rejects stalled IndexedDB open or transaction work', async () => {
+  await assert.rejects(
+    withLocalEvidenceTimeout(new Promise(() => {
+      // Simulates stalled IndexedDB open/transaction completion.
+    }), 'Could not save this evidence on this device. Try again.', 5),
+    /Could not save this evidence/,
+  )
+})
+
+test('local staging coordinator does not await optimization checksum upload or queue flush', async () => {
+  const repository = new MemoryLocalEvidenceRepository()
+  const file = makeFile('local-first.jpg', 1024, 'image/jpeg')
+  const staged = await stageInspectorEvidenceForUpload({
+    reportId: 'report-1',
+    assignmentId: 'assignment-1',
+    checklistItemId: 'S05-01',
+    uploadedBy: 'inspector-1',
+    file,
+  }, repository)
+  assert.equal(staged.record.status, 'saved_local')
+  assert.equal(staged.record.optimizationStatus, 'not_started')
+  assert.equal(staged.record.checksum, undefined)
   assert.equal(await repository.getOriginalFile(staged.record.localEvidenceId), file)
 })
 

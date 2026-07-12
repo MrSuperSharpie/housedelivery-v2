@@ -8,9 +8,55 @@ const DB_NAME = 'vero-offline-evidence'
 const DB_VERSION = 1
 const RECORD_STORE = 'records'
 const BLOB_STORE = 'blobs'
+const LOCAL_EVIDENCE_TIMEOUT_MS = 8_000
+
+interface StoredEvidenceBlob {
+  blob: Blob
+  name: string
+  type: string
+  lastModified?: number
+}
+
+interface StoredEvidenceBlobEntry {
+  localEvidenceId: string
+  original: StoredEvidenceBlob
+  upload: StoredEvidenceBlob
+}
 
 function hasIndexedDb(): boolean {
   return typeof indexedDB !== 'undefined'
+}
+
+export function withLocalEvidenceTimeout<T>(
+  promise: Promise<T>,
+  message = 'Could not save this evidence on this device. Try again.',
+  timeoutMs = LOCAL_EVIDENCE_TIMEOUT_MS,
+): Promise<T> {
+  let timeout: ReturnType<typeof setTimeout> | null = null
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeout = setTimeout(() => reject(new Error(message)), timeoutMs)
+  })
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    if (timeout) clearTimeout(timeout)
+  })
+}
+
+export function fileToStoredBlob(file: File): StoredEvidenceBlob {
+  return {
+    blob: file.slice(0, file.size, file.type || 'application/octet-stream'),
+    name: file.name,
+    type: file.type || 'application/octet-stream',
+    lastModified: file.lastModified,
+  }
+}
+
+export function storedBlobToFile(value?: StoredEvidenceBlob | File): File | null {
+  if (!value) return null
+  if (value instanceof File) return value
+  return new File([value.blob], value.name, {
+    type: value.type || value.blob.type || 'application/octet-stream',
+    lastModified: value.lastModified,
+  })
 }
 
 function requestToPromise<T>(request: IDBRequest<T>): Promise<T> {
@@ -54,16 +100,16 @@ function transactionComplete(tx: IDBTransaction): Promise<void> {
 
 export class IndexedDbLocalEvidenceRepository implements LocalEvidenceRepository {
   async save(record: OfflineEvidenceRecord, file: File): Promise<OfflineEvidenceRecord> {
-    const db = await openDatabase()
+    const db = await withLocalEvidenceTimeout(openDatabase())
     try {
       const tx = db.transaction([RECORD_STORE, BLOB_STORE], 'readwrite')
       tx.objectStore(RECORD_STORE).put(record)
       tx.objectStore(BLOB_STORE).put({
         localEvidenceId: record.localEvidenceId,
-        originalFile: file,
-        uploadFile: file,
+        original: fileToStoredBlob(file),
+        upload: fileToStoredBlob(file),
       })
-      await transactionComplete(tx)
+      await withLocalEvidenceTimeout(transactionComplete(tx))
       return record
     } finally {
       db.close()
@@ -71,12 +117,12 @@ export class IndexedDbLocalEvidenceRepository implements LocalEvidenceRepository
   }
 
   async get(localEvidenceId: string): Promise<OfflineEvidenceRecord | null> {
-    const db = await openDatabase()
+    const db = await withLocalEvidenceTimeout(openDatabase())
     try {
       const tx = db.transaction(RECORD_STORE, 'readonly')
-      const record = await requestToPromise<OfflineEvidenceRecord | undefined>(
+      const record = await withLocalEvidenceTimeout(requestToPromise<OfflineEvidenceRecord | undefined>(
         tx.objectStore(RECORD_STORE).get(localEvidenceId),
-      )
+      ))
       return record ?? null
     } finally {
       db.close()
@@ -84,26 +130,44 @@ export class IndexedDbLocalEvidenceRepository implements LocalEvidenceRepository
   }
 
   async getFile(localEvidenceId: string): Promise<File | null> {
-    const db = await openDatabase()
+    const db = await withLocalEvidenceTimeout(openDatabase())
     try {
       const tx = db.transaction(BLOB_STORE, 'readonly')
-      const entry = await requestToPromise<{ localEvidenceId: string; file?: File; originalFile?: File; uploadFile?: File } | undefined>(
+      const entry = await withLocalEvidenceTimeout(requestToPromise<(StoredEvidenceBlobEntry & {
+        file?: File
+        originalFile?: File
+        uploadFile?: File
+      }) | undefined>(
         tx.objectStore(BLOB_STORE).get(localEvidenceId),
-      )
-      return entry?.uploadFile ?? entry?.file ?? entry?.originalFile ?? null
+      ))
+      return storedBlobToFile(entry?.upload)
+        ?? entry?.uploadFile
+        ?? entry?.file
+        ?? storedBlobToFile(entry?.original)
+        ?? entry?.originalFile
+        ?? null
     } finally {
       db.close()
     }
   }
 
   async getOriginalFile(localEvidenceId: string): Promise<File | null> {
-    const db = await openDatabase()
+    const db = await withLocalEvidenceTimeout(openDatabase())
     try {
       const tx = db.transaction(BLOB_STORE, 'readonly')
-      const entry = await requestToPromise<{ localEvidenceId: string; file?: File; originalFile?: File; uploadFile?: File } | undefined>(
+      const entry = await withLocalEvidenceTimeout(requestToPromise<(StoredEvidenceBlobEntry & {
+        file?: File
+        originalFile?: File
+        uploadFile?: File
+      }) | undefined>(
         tx.objectStore(BLOB_STORE).get(localEvidenceId),
-      )
-      return entry?.originalFile ?? entry?.file ?? entry?.uploadFile ?? null
+      ))
+      return storedBlobToFile(entry?.original)
+        ?? entry?.originalFile
+        ?? entry?.file
+        ?? storedBlobToFile(entry?.upload)
+        ?? entry?.uploadFile
+        ?? null
     } finally {
       db.close()
     }
@@ -114,7 +178,7 @@ export class IndexedDbLocalEvidenceRepository implements LocalEvidenceRepository
     file: File,
     patch?: Partial<OfflineEvidenceRecord>,
   ): Promise<OfflineEvidenceRecord | null> {
-    const db = await openDatabase()
+    const db = await withLocalEvidenceTimeout(openDatabase())
     try {
       const currentRecord = await this.get(localEvidenceId)
       if (!currentRecord) return null
@@ -131,10 +195,10 @@ export class IndexedDbLocalEvidenceRepository implements LocalEvidenceRepository
       tx.objectStore(RECORD_STORE).put(nextRecord)
       tx.objectStore(BLOB_STORE).put({
         localEvidenceId,
-        originalFile: currentOriginal,
-        uploadFile: file,
+        original: fileToStoredBlob(currentOriginal),
+        upload: fileToStoredBlob(file),
       })
-      await transactionComplete(tx)
+      await withLocalEvidenceTimeout(transactionComplete(tx))
       return nextRecord
     } finally {
       db.close()
@@ -142,12 +206,12 @@ export class IndexedDbLocalEvidenceRepository implements LocalEvidenceRepository
   }
 
   async list(filter?: { assignmentId?: string; statuses?: OfflineEvidenceStatus[] }): Promise<OfflineEvidenceRecord[]> {
-    const db = await openDatabase()
+    const db = await withLocalEvidenceTimeout(openDatabase())
     try {
       const tx = db.transaction(RECORD_STORE, 'readonly')
-      const records = await requestToPromise<OfflineEvidenceRecord[]>(
+      const records = await withLocalEvidenceTimeout(requestToPromise<OfflineEvidenceRecord[]>(
         tx.objectStore(RECORD_STORE).getAll(),
-      )
+      ))
       return records.filter(record => {
         if (filter?.assignmentId && record.assignmentId !== filter.assignmentId) return false
         if (filter?.statuses && !filter.statuses.includes(record.status)) return false
@@ -168,11 +232,11 @@ export class IndexedDbLocalEvidenceRepository implements LocalEvidenceRepository
       idempotencyKey: current.idempotencyKey,
       updatedAt: new Date().toISOString(),
     }
-    const db = await openDatabase()
+    const db = await withLocalEvidenceTimeout(openDatabase())
     try {
       const tx = db.transaction(RECORD_STORE, 'readwrite')
       tx.objectStore(RECORD_STORE).put(next)
-      await transactionComplete(tx)
+      await withLocalEvidenceTimeout(transactionComplete(tx))
       return next
     } finally {
       db.close()
@@ -180,12 +244,12 @@ export class IndexedDbLocalEvidenceRepository implements LocalEvidenceRepository
   }
 
   async delete(localEvidenceId: string): Promise<void> {
-    const db = await openDatabase()
+    const db = await withLocalEvidenceTimeout(openDatabase())
     try {
       const tx = db.transaction([RECORD_STORE, BLOB_STORE], 'readwrite')
       tx.objectStore(RECORD_STORE).delete(localEvidenceId)
       tx.objectStore(BLOB_STORE).delete(localEvidenceId)
-      await transactionComplete(tx)
+      await withLocalEvidenceTimeout(transactionComplete(tx))
     } finally {
       db.close()
     }

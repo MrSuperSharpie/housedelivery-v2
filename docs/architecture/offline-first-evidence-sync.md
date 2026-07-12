@@ -8,7 +8,7 @@ Branch: `feat/offline-first-evidence-sync`
 
 Inspector evidence capture is now designed as a local-first browser pipeline for the inspector completion workspace. The first durable milestone is no longer "network upload started" or "optimized evidence saved"; it is "the original captured file is saved on this device." Server upload still uses the existing Supabase Storage and inspector completion document helper. No schema, RLS, storage bucket, Vault, seal, completion, or evidence requirement policy is changed.
 
-The pipeline is intentionally browser/PWA-compatible. It uses IndexedDB for local evidence records and files, retries on online/focus/visibility/page reload, and registers Background Sync only as a best-effort enhancement when a service worker registration and browser support exist. It does not promise uploads after iOS or mobile browsers have fully terminated the web app.
+The pipeline is intentionally browser/PWA-compatible. It uses IndexedDB for local evidence records and Blob-backed files, retries on online/focus/visibility/page reload, and registers Background Sync only as a best-effort enhancement when a service worker registration and browser support exist. It does not promise uploads after iOS or mobile browsers have fully terminated the web app.
 
 ## Layers
 
@@ -42,7 +42,7 @@ The repository stores metadata and file blobs in IndexedDB. Each staged record i
 - `checklistItemId`
 - inspector/user identifiers already available in the workspace
 - original and stored filenames
-- original file and upload-candidate file
+- original file and upload-candidate file, persisted as plain `Blob` values plus filename, MIME type, and `lastModified` metadata for iOS WebKit compatibility
 - MIME/media type
 - captured timestamp
 - original and optimized byte sizes
@@ -53,6 +53,8 @@ The repository stores metadata and file blobs in IndexedDB. Each staged record i
 - confirmed server document/path after acknowledgement
 
 The in-memory repository is used only as a test or unsupported-browser fallback.
+
+IndexedDB open, record reads/writes, and transaction completion are bounded by an 8-second local evidence timeout. If local persistence does not complete, the UI does not claim the evidence was saved.
 
 ### 3. Evidence Sync Queue
 
@@ -97,6 +99,8 @@ The exact foreground sequence is:
 4. The UI shows "Saved on this device" and exits the camera/upload spinner.
 5. Optimization and upload continue in the background.
 6. The local row is replaced only after server storage and document metadata are acknowledged.
+
+The camera/file input component also has a 10-second callback watchdog. If the local staging callback stalls, rejects, or is abandoned by the browser, the camera button exits its busy state and shows "Could not save this evidence on this device. Try again." A retry button keeps the selected file available while the page remains open.
 
 Preview/demo behavior remains unchanged.
 

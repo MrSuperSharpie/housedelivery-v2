@@ -40,8 +40,10 @@ export interface OfflineEvidenceRecord {
   inspectorUserId?: string
   uploadedBy?: string
   originalFilename: string
+  originalLastModified?: number
   storedLocalFilename: string
   uploadFilename: string
+  uploadLastModified?: number
   mimeType: string
   uploadMimeType: string
   mediaType: InspectorCompletionDocumentMediaType

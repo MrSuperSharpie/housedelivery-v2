@@ -44,6 +44,28 @@ const GEOLOCATION_OPTIONS: PositionOptions = {
 }
 
 const MAX_VIDEO_UPLOAD_BYTES = 50 * 1024 * 1024
+const CAPTURE_CALLBACK_TIMEOUT_MS = 10_000
+
+interface PendingRetryCapture {
+  file: File
+  source: FieldMediaExpectedType
+  transcript?: string
+}
+
+export function withCaptureCallbackTimeout<T>(
+  promise: Promise<T> | T,
+  timeoutMs = CAPTURE_CALLBACK_TIMEOUT_MS,
+): Promise<T> {
+  let timeout: ReturnType<typeof setTimeout> | null = null
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeout = setTimeout(() => {
+      reject(new Error('Could not save this evidence on this device. Try again.'))
+    }, timeoutMs)
+  })
+  return Promise.race([Promise.resolve(promise), timeoutPromise]).finally(() => {
+    if (timeout) clearTimeout(timeout)
+  })
+}
 
 function captureAcceptForExpectedType(expectedType: FieldMediaExpectedType): string | undefined {
   if (expectedType === 'camera') return 'image/*'
@@ -212,6 +234,7 @@ export function FieldMediaUploader({
   const [textValue, setTextValue] = useState('')
   const [textComposerOpen, setTextComposerOpen] = useState(false)
   const [speechRecognitionSupported, setSpeechRecognitionSupported] = useState(false)
+  const [pendingRetryCapture, setPendingRetryCapture] = useState<PendingRetryCapture | null>(null)
 
   useEffect(() => {
     setSpeechRecognitionSupported(getSpeechRecognitionCtor() !== null)
@@ -368,6 +391,7 @@ export function FieldMediaUploader({
     setStatus(source === 'text' ? 'Saving note…' : 'Pinning location and timestamp…')
     setError(null)
     setWarning(null)
+    setPendingRetryCapture(null)
 
     try {
       const capturedAt = new Date().toISOString()
@@ -384,7 +408,8 @@ export function FieldMediaUploader({
       const previewUrl = file.type.startsWith('image/') || file.type.startsWith('video/')
         ? URL.createObjectURL(file)
         : undefined
-      await onCapture({
+      setStatus('Saving evidence on this device…')
+      await withCaptureCallbackTimeout(onCapture({
         file,
         capturedAt,
         latitude: location.latitude,
@@ -392,7 +417,7 @@ export function FieldMediaUploader({
         source,
         previewUrl,
         transcript,
-      })
+      }))
 
       setStatus(location.latitude !== null && location.longitude !== null
         ? 'Saved on this device with GPS coordinates.'
@@ -400,12 +425,24 @@ export function FieldMediaUploader({
       if (source === 'text') {
         setTextComposerOpen(false)
       }
-    } catch {
-      setError('Capture could not be handed back to the app.')
+    } catch (captureError) {
+      setPendingRetryCapture({ file, source, transcript })
+      setError(captureError instanceof Error
+        ? captureError.message
+        : 'Could not save this evidence on this device. Try again.')
       setStatus(null)
     } finally {
       setIsBusy(false)
     }
+  }
+
+  function retryPendingCapture() {
+    if (!pendingRetryCapture || isBusy) return
+    void finalizeCapture(
+      pendingRetryCapture.file,
+      pendingRetryCapture.source,
+      pendingRetryCapture.transcript,
+    )
   }
 
   async function handleFileSelection(event: React.ChangeEvent<HTMLInputElement>) {
@@ -722,6 +759,16 @@ export function FieldMediaUploader({
                 {error}
               </div>
             )}
+            {pendingRetryCapture && (
+              <button
+                type="button"
+                disabled={isBusy}
+                onClick={retryPendingCapture}
+                className="mt-2 w-full rounded-xl border border-amber-300/30 bg-amber-300/10 px-3 py-2 text-xs font-black text-amber-100 hover:bg-amber-300/15 disabled:opacity-50"
+              >
+                Try Saving Again
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -870,7 +917,17 @@ export function FieldMediaUploader({
 
       {error && (
         <div className="mt-3 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-3 py-3 text-xs text-amber-100/90">
-          {error}
+          <div>{error}</div>
+          {pendingRetryCapture && (
+            <button
+              type="button"
+              disabled={isBusy}
+              onClick={retryPendingCapture}
+              className="mt-3 rounded-xl border border-amber-300/30 bg-amber-300/10 px-3 py-2 text-xs font-black text-amber-100 hover:bg-amber-300/15 disabled:opacity-50"
+            >
+              Try Saving Again
+            </button>
+          )}
         </div>
       )}
 
