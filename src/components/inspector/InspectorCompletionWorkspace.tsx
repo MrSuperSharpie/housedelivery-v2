@@ -31,6 +31,7 @@ import {
 } from 'lucide-react'
 import {
   FieldMediaUploader,
+  isDeferredFieldMediaGpsAction,
   isLiveFieldMediaCaptureAction,
   requestFieldMediaGpsResult,
   type FieldMediaCapturePayload,
@@ -73,7 +74,6 @@ import {
 import {
   createLocalDocumentFromEvidence,
   deleteLocalInspectorEvidence,
-  getLocalEvidenceRepository,
   isOfflineEvidenceStoragePath,
   listPendingInspectorEvidenceDocuments,
   localEvidenceIdFromStoragePath,
@@ -82,6 +82,7 @@ import {
   registerInspectorEvidenceResumeHandlers,
   stageInspectorEvidenceForUpload,
   syncInspectorEvidenceQueue,
+  updateOfflineEvidenceGpsResult,
 } from '@/lib/offline-evidence'
 import { recordOfflineEvidenceDiagnostic } from '@/lib/offline-evidence/captureDiagnostics'
 import type { EvidenceItem, EvidenceKind, EvidenceValidationState, GeoCoord } from '@/lib/domain/types'
@@ -2570,33 +2571,7 @@ export function InspectorCompletionWorkspace() {
 
     if (!localEvidenceId) return
 
-    const repository = getLocalEvidenceRepository()
-    const currentRecord = await repository.get(localEvidenceId)
-    if (!currentRecord) return
-
-    const nextCaptureGeo = {
-      ...currentRecord.captureGeo,
-      latitude: result.latitude,
-      longitude: result.longitude,
-      accuracy: result.accuracy,
-      capturedAt: result.timestamp,
-      gpsStatus: result.status,
-      gpsElapsedMs: result.elapsedMs,
-      gpsPermissionState: result.permissionState,
-      gpsErrorCode: result.errorCode,
-      gpsErrorMessage: result.errorMessage,
-    }
-
-    await repository.update(localEvidenceId, {
-      captureGeo: nextCaptureGeo,
-      uploadOptions: {
-        ...currentRecord.uploadOptions,
-        captureLatitude: result.latitude,
-        captureLongitude: result.longitude,
-        captureAccuracy: result.accuracy,
-        capturePositionedAt: result.timestamp,
-      },
-    })
+    if (!await updateOfflineEvidenceGpsResult(localEvidenceId, result)) return
 
     if (result.status !== 'success') return
 
@@ -2638,7 +2613,7 @@ export function InspectorCompletionWorkspace() {
     })
 
     let anomalyExplanation: string | undefined
-    if (!isLiveFieldMediaCaptureAction(payload.inputAction) && geofence.state === 'anomalous') {
+    if (!isDeferredFieldMediaGpsAction(payload.inputAction) && geofence.state === 'anomalous') {
       const response = window.prompt(
         'This capture is outside the expected site geofence. Add a short explanation so Vero can flag it for review.',
         '',
@@ -2651,7 +2626,7 @@ export function InspectorCompletionWorkspace() {
     }
 
     const document = await handleDocumentUpload(itemCode, payload.file, payload, anomalyExplanation)
-    if (document && isLiveFieldMediaCaptureAction(payload.inputAction)) {
+    if (document && isDeferredFieldMediaGpsAction(payload.inputAction)) {
       void requestLiveCaptureGpsAfterLocalSave(itemCode, document)
     }
     return document

@@ -1,4 +1,4 @@
-import type { FieldMediaCapturePayload } from '@/components/inspector/FieldMediaUploader'
+import type { FieldMediaCapturePayload, FieldMediaGpsResult } from '@/components/inspector/FieldMediaUploader'
 import {
   type InspectorCompletionDocumentMediaType,
   type InspectorCompletionDocumentRow,
@@ -184,7 +184,9 @@ export async function stageInspectorEvidenceForUpload(
     captureGeo: {
       latitude: input.capture?.latitude ?? null,
       longitude: input.capture?.longitude ?? null,
-      gpsStatus: input.capture?.inputAction === 'take_photo' || input.capture?.inputAction === 'record_video'
+      gpsStatus: input.capture?.inputAction === 'take_photo'
+        || input.capture?.inputAction === 'record_video'
+        || input.capture?.inputAction === 'pinned_text_note'
         ? 'not_requested'
         : undefined,
     },
@@ -281,6 +283,37 @@ export async function optimizeAndSyncInspectorEvidence(options: {
     localEvidenceId: options.localEvidenceId,
     repository,
     transport: options.transport,
+  })
+}
+
+export async function updateOfflineEvidenceGpsResult(
+  localEvidenceId: string,
+  result: FieldMediaGpsResult,
+  repository: LocalEvidenceRepository = getLocalEvidenceRepository(),
+): Promise<OfflineEvidenceRecord | null> {
+  const currentRecord = await repository.get(localEvidenceId)
+  if (!currentRecord) return null
+
+  return repository.update(localEvidenceId, {
+    captureGeo: {
+      ...currentRecord.captureGeo,
+      latitude: result.latitude,
+      longitude: result.longitude,
+      accuracy: result.accuracy,
+      capturedAt: result.timestamp,
+      gpsStatus: result.status,
+      gpsElapsedMs: result.elapsedMs,
+      gpsPermissionState: result.permissionState,
+      gpsErrorCode: result.errorCode,
+      gpsErrorMessage: result.errorMessage,
+    },
+    uploadOptions: {
+      ...currentRecord.uploadOptions,
+      captureLatitude: result.latitude,
+      captureLongitude: result.longitude,
+      captureAccuracy: result.accuracy,
+      capturePositionedAt: result.timestamp,
+    },
   })
 }
 

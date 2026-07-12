@@ -28,6 +28,7 @@ export {
   registerInspectorEvidenceResumeHandlers,
   stageInspectorEvidenceForUpload,
   syncInspectorEvidenceQueue,
+  updateOfflineEvidenceGpsResult,
 } from './inspectorEvidenceSync'
 export type {
   EvidenceQueueFlushResult,

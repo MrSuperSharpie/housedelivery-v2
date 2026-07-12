@@ -55,6 +55,7 @@ export type FieldMediaInputAction =
   | 'choose_photo_library'
   | 'record_video'
   | 'choose_existing_video'
+  | 'pinned_text_note'
   | 'attach_document'
 
 export interface FieldMediaInputOption {
@@ -171,6 +172,10 @@ export function fieldMediaInputOptionsForExpectedType(
 
 export function isLiveFieldMediaCaptureAction(action?: FieldMediaInputAction): boolean {
   return action === 'take_photo' || action === 'record_video'
+}
+
+export function isDeferredFieldMediaGpsAction(action?: FieldMediaInputAction): boolean {
+  return isLiveFieldMediaCaptureAction(action) || action === 'pinned_text_note'
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -626,17 +631,17 @@ export function FieldMediaUploader({
   ) {
     const startedAt = Date.now()
     setIsBusy(true)
-    const deferLiveGps = isLiveFieldMediaCaptureAction(inputAction)
-    setStatus(source === 'text' || deferLiveGps ? 'Saving evidence on this device…' : 'Pinning location and timestamp…')
+    const deferGps = isDeferredFieldMediaGpsAction(inputAction)
+    setStatus(source === 'text' || deferGps ? 'Saving evidence on this device…' : 'Pinning location and timestamp…')
     setError(null)
     setWarning(null)
     setPendingRetryCapture(null)
 
     try {
       const capturedAt = new Date().toISOString()
-      // Text notes skip GPS. Live camera/video captures save first; GPS runs after the
-      // local row exists so mobile geolocation can never block the camera button.
-      const location = source === 'text' || deferLiveGps
+      // Pinned text notes and live camera/video captures save first; GPS runs after the
+      // local row exists so mobile geolocation can never block the input button.
+      const location = source === 'text' || deferGps
         ? { latitude: null, longitude: null, error: null }
         : await withGeolocationWatchdog(getGeolocation())
 
@@ -664,7 +669,7 @@ export function FieldMediaUploader({
         elapsedMs: Date.now() - startedAt,
       })
 
-      setStatus(deferLiveGps
+      setStatus(deferGps
         ? 'Saved on this device. Checking GPS in the background.'
         : location.latitude !== null && location.longitude !== null
         ? 'Saved on this device with GPS coordinates.'
@@ -845,7 +850,7 @@ export function FieldMediaUploader({
       type: 'text/plain',
     })
 
-    await finalizeCapture(file, 'text')
+    await finalizeCapture(file, 'text', undefined, 'pinned_text_note')
     setTextValue('')
   }
 

@@ -18,10 +18,13 @@ import {
 import {
   optimizeAndSyncInspectorEvidence,
   stageInspectorEvidenceForUpload,
+  updateOfflineEvidenceGpsResult,
 } from './offline-evidence/inspectorEvidenceSync'
 import type { EvidenceUploadTransport, OfflineEvidenceRecord } from './offline-evidence/types'
 import {
   fieldMediaInputOptionsForExpectedType,
+  isDeferredFieldMediaGpsAction,
+  isLiveFieldMediaCaptureAction,
   requestFieldMediaGpsResult,
   withCaptureCallbackTimeout,
   withGeolocationWatchdog,
@@ -199,6 +202,42 @@ test('live photo local save completes before any GPS result is required', async 
   assert.equal((await repository.list()).length, 1)
 })
 
+test('pinned text note saves locally before any GPS result is required', async () => {
+  const repository = new MemoryLocalEvidenceRepository()
+  const file = new File(['Pinned correction note.'], 'field-note.txt', { type: 'text/plain' })
+  const staged = await stageInspectorEvidenceForUpload({
+    reportId: 'report-1',
+    assignmentId: 'assignment-1',
+    checklistItemId: 'S05-01',
+    uploadedBy: 'inspector-1',
+    file,
+    capture: {
+      file,
+      capturedAt: '2026-07-12T12:00:00.000Z',
+      latitude: null,
+      longitude: null,
+      source: 'text',
+      inputAction: 'pinned_text_note',
+    },
+  }, repository)
+
+  assert.equal(staged.record.status, 'saved_local')
+  assert.equal(staged.record.mediaType, 'text')
+  assert.equal(staged.record.captureGeo.gpsStatus, 'not_requested')
+  assert.equal(staged.record.captureGeo.latitude, null)
+  assert.equal(staged.record.captureGeo.longitude, null)
+  assert.equal(await repository.getOriginalFile(staged.record.localEvidenceId), file)
+})
+
+test('pinned text note uses deferred GPS lifecycle without changing photo/video live actions', () => {
+  assert.equal(isDeferredFieldMediaGpsAction('pinned_text_note'), true)
+  assert.equal(isLiveFieldMediaCaptureAction('pinned_text_note'), false)
+  assert.equal(isDeferredFieldMediaGpsAction('take_photo'), true)
+  assert.equal(isDeferredFieldMediaGpsAction('record_video'), true)
+  assert.equal(isLiveFieldMediaCaptureAction('take_photo'), true)
+  assert.equal(isLiveFieldMediaCaptureAction('record_video'), true)
+})
+
 test('video capture and existing-video inputs use the same staging coordinator source', async () => {
   const options = fieldMediaInputOptionsForExpectedType('video')
   assert.deepEqual(options.map(option => option.id), ['record_video', 'choose_existing_video'])
@@ -327,6 +366,45 @@ test('post-save GPS success records coordinates accuracy timestamp and permissio
   }
 })
 
+test('GPS success updates pinned note local metadata', async () => {
+  const repository = new MemoryLocalEvidenceRepository()
+  const file = new File(['Pinned note with later GPS.'], 'field-note.txt', { type: 'text/plain' })
+  const staged = await stageInspectorEvidenceForUpload({
+    reportId: 'report-1',
+    assignmentId: 'assignment-1',
+    checklistItemId: 'S05-01',
+    uploadedBy: 'inspector-1',
+    file,
+    capture: {
+      file,
+      capturedAt: '2026-07-12T12:00:00.000Z',
+      latitude: null,
+      longitude: null,
+      source: 'text',
+      inputAction: 'pinned_text_note',
+    },
+  }, repository)
+
+  const updated = await updateOfflineEvidenceGpsResult(staged.record.localEvidenceId, {
+    status: 'success',
+    latitude: 49.2827,
+    longitude: -123.1207,
+    accuracy: 6,
+    timestamp: '2026-07-12T12:00:05.000Z',
+    elapsedMs: 321,
+    permissionState: 'granted',
+  }, repository)
+
+  assert.equal(updated?.captureGeo.latitude, 49.2827)
+  assert.equal(updated?.captureGeo.longitude, -123.1207)
+  assert.equal(updated?.captureGeo.accuracy, 6)
+  assert.equal(updated?.captureGeo.capturedAt, '2026-07-12T12:00:05.000Z')
+  assert.equal(updated?.captureGeo.gpsStatus, 'success')
+  assert.equal(updated?.uploadOptions.captureLatitude, 49.2827)
+  assert.equal(updated?.uploadOptions.captureLongitude, -123.1207)
+  assert.equal(updated?.uploadOptions.captureAccuracy, 6)
+})
+
 test('post-save GPS timeout returns a structured result and does not block evidence', async () => {
   mockNavigator({
     permissions: {
@@ -379,6 +457,57 @@ test('post-save GPS permission denial returns a structured result without warnin
   } finally {
     restoreNavigator()
   }
+})
+
+test('GPS timeout or permission denial updates pinned note metadata without blocking save', async () => {
+  const repository = new MemoryLocalEvidenceRepository()
+  const file = new File(['Pinned note without GPS.'], 'field-note.txt', { type: 'text/plain' })
+  const staged = await stageInspectorEvidenceForUpload({
+    reportId: 'report-1',
+    assignmentId: 'assignment-1',
+    checklistItemId: 'S05-01',
+    uploadedBy: 'inspector-1',
+    file,
+    capture: {
+      file,
+      capturedAt: '2026-07-12T12:00:00.000Z',
+      latitude: null,
+      longitude: null,
+      source: 'text',
+      inputAction: 'pinned_text_note',
+    },
+  }, repository)
+
+  const denied = await updateOfflineEvidenceGpsResult(staged.record.localEvidenceId, {
+    status: 'permission_denied',
+    latitude: null,
+    longitude: null,
+    accuracy: null,
+    timestamp: '2026-07-12T12:00:06.000Z',
+    elapsedMs: 120,
+    permissionState: 'denied',
+    errorCode: 1,
+    errorMessage: 'User denied Geolocation',
+  }, repository)
+  assert.equal(denied?.status, 'saved_local')
+  assert.equal(denied?.captureGeo.gpsStatus, 'permission_denied')
+  assert.equal(denied?.captureGeo.latitude, null)
+  assert.equal(denied?.captureGeo.gpsErrorCode, 1)
+
+  const timedOut = await updateOfflineEvidenceGpsResult(staged.record.localEvidenceId, {
+    status: 'timeout',
+    latitude: null,
+    longitude: null,
+    accuracy: null,
+    timestamp: '2026-07-12T12:00:07.000Z',
+    elapsedMs: 12_000,
+    permissionState: 'prompt',
+    errorCode: 3,
+    errorMessage: 'Location lookup timed out after local evidence save.',
+  }, repository)
+  assert.equal(timedOut?.status, 'saved_local')
+  assert.equal(timedOut?.captureGeo.gpsStatus, 'timeout')
+  assert.equal(timedOut?.captureGeo.gpsErrorCode, 3)
 })
 
 test('local evidence timeout rejects stalled IndexedDB open or transaction work', async () => {
