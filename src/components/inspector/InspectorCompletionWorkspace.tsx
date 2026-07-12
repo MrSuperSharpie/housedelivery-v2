@@ -63,11 +63,21 @@ import {
   createFieldGeoAnomaly,
   type InspectorCompletionDocumentRow,
   type InspectorCompletionReportRow,
-  uploadInspectorCompletionDocument,
   updateInspectorCompletionDocumentManualLocationNote,
   upsertInspectorCompletionItems,
   upsertInspectorCompletionReport,
 } from '@/lib/supabase/inspectorCompletion'
+import {
+  createLocalDocumentFromEvidence,
+  deleteLocalInspectorEvidence,
+  isOfflineEvidenceStoragePath,
+  listPendingInspectorEvidenceDocuments,
+  localEvidenceIdFromStoragePath,
+  offlineEvidenceStatusLabel,
+  registerInspectorEvidenceResumeHandlers,
+  stageInspectorEvidenceForUpload,
+  syncInspectorEvidenceQueue,
+} from '@/lib/offline-evidence'
 import type { EvidenceItem, EvidenceKind, EvidenceValidationState, GeoCoord } from '@/lib/domain/types'
 import { evaluateGeofence } from '@/lib/geofence'
 import { isHoldOpenStatus } from '@/lib/holds/workflow'
@@ -202,6 +212,8 @@ function DocRow({
 }) {
   const isPdf = doc.mimeType === 'application/pdf' || doc.fileName.toLowerCase().endsWith('.pdf')
   const isVideo = doc.mediaType === 'video' || doc.mimeType?.startsWith('video/') === true
+  const isLocalEvidence = doc.storagePath.startsWith('local://')
+  const syncLabel = isLocalEvidence ? (doc.offlineSyncMessage ?? offlineEvidenceStatusLabel(doc.offlineSyncStatus)) : null
 
   return (
     <div className="group flex w-full items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm transition-all hover:border-zinc-300">
@@ -255,7 +267,20 @@ function DocRow({
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-semibold text-zinc-900">{doc.fileName}</div>
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <div className="truncate text-sm font-semibold text-zinc-900">{doc.fileName}</div>
+            {syncLabel && (
+              <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.12em] ${
+                doc.offlineSyncStatus === 'needs_attention'
+                  ? 'border-red-200 bg-red-50 text-red-700'
+                  : doc.offlineSyncStatus === 'retry_scheduled'
+                    ? 'border-amber-200 bg-amber-50 text-amber-800'
+                    : 'border-emerald-200 bg-emerald-50 text-emerald-800'
+              }`}>
+                {syncLabel}
+              </span>
+            )}
+          </div>
           <div className="mt-0.5 flex items-center gap-2 text-[11px] text-zinc-500 font-medium">
             {isVideo && <span className="text-sky-700">Video</span>}
             {isVideo && <span className="opacity-50">•</span>}
@@ -1228,6 +1253,23 @@ export function InspectorCompletionWorkspace() {
   const previewMode = isInspectorDevPreviewAssignment(assignmentId)
   const activeUser = user
 
+  function applyOfflineEvidenceSyncResults(results: Awaited<ReturnType<typeof syncInspectorEvidenceQueue>>) {
+    const uploaded = results.filter(result => result.status === 'uploaded' && result.serverDocument)
+    if (uploaded.length === 0) return
+
+    setItems(currentItems => currentItems.map(item => {
+      let changed = false
+      const nextDocuments = item.documents.map(doc => {
+        const match = uploaded.find(result => result.localEvidenceId === doc.id)
+        if (!match?.serverDocument) return doc
+        changed = true
+        return doc.previewUrl ? { ...match.serverDocument, previewUrl: doc.previewUrl } : match.serverDocument
+      })
+      return changed ? { ...item, documents: nextDocuments } : item
+    }))
+    setLastSavedLabel('Offline evidence synced')
+  }
+
   function reportPersistenceFailure(message: string, details?: unknown, options?: { alert?: boolean }) {
     console.error(message, details)
     if (options?.alert && typeof window !== 'undefined') {
@@ -1706,6 +1748,11 @@ export function InspectorCompletionWorkspace() {
   }, [])
 
   useEffect(() => {
+    if (previewMode) return undefined
+    return registerInspectorEvidenceResumeHandlers(applyOfflineEvidenceSyncResults)
+  }, [previewMode])
+
+  useEffect(() => {
     if (!assignmentScopeComplete || isFinalOccupancyStage) return
 
     const panel = scopedCompletionPanelRef.current
@@ -1985,7 +2032,15 @@ export function InspectorCompletionWorkspace() {
         Boolean(ensuredStageSignOffs[String(requestedChecklistStage)]) && assignmentRow.status === 'completed'
       )
       setCurrentStage(requestedChecklistStage)
-      setItems(mergeItems(definitionSet.stages, ensuredReport.id, assignmentId, bundle.items, bundle.documents))
+      const pendingLocalDocuments = await listPendingInspectorEvidenceDocuments(assignmentId)
+      setItems(mergeItems(
+        definitionSet.stages,
+        ensuredReport.id,
+        assignmentId,
+        bundle.items,
+        [...bundle.documents, ...pendingLocalDocuments],
+      ))
+      void syncInspectorEvidenceQueue({ assignmentId }).then(applyOfflineEvidenceSyncResults)
       if (ensuredReport.sealApplied) setSealed(true)
       setLastSavedLabel(
         ensuredReport.lastSavedAt
@@ -2250,6 +2305,10 @@ export function InspectorCompletionWorkspace() {
 
   async function handleDeleteDocument(itemCode: string, doc: InspectorCompletionDocumentRow) {
     if (previewMode || doc.storagePath.startsWith('local://') || doc.storagePath.startsWith('preview://')) {
+      const localEvidenceId = localEvidenceIdFromStoragePath(doc.storagePath)
+      if (localEvidenceId) {
+        await deleteLocalInspectorEvidence(localEvidenceId)
+      }
       removeDocumentReferences(itemCode, doc.id, doc.storagePath)
       if (doc.previewUrl?.startsWith('blob:')) {
         URL.revokeObjectURL(doc.previewUrl)
@@ -2404,61 +2463,67 @@ export function InspectorCompletionWorkspace() {
       return docWithPreview
     }
 
+    setLastSavedLabel('Optimizing evidence…')
     const sessionInspector = await getAuthenticatedInspectorIdentity({ alertOnFailure: false })
+    const staged = await stageInspectorEvidenceForUpload({
+      reportId: report.id,
+      assignmentId: assignment.id,
+      projectId: job?.projectId,
+      stageId: String(currentStage),
+      checklistItemId: itemCode,
+      inspectorUserId: activeUser.supabaseId ?? activeUser.id,
+      uploadedBy: sessionInspector?.id,
+      file,
+      capture,
+      jobId: job?.id,
+      projectLatitude: projectReferencePoint?.latitude ?? null,
+      projectLongitude: projectReferencePoint?.longitude ?? null,
+      anomalyExplanation,
+    })
+
+    const localDoc = createLocalDocumentFromEvidence(staged.record, effectivePreviewUrl)
+    updateItem(itemCode, item => ({ ...item, documents: [...item.documents, localDoc] }))
 
     if (!sessionInspector) {
-      // No valid Supabase session (demo account or expired token). Rather than silently failing
-      // and leaving the document list empty, create a local-only doc so the UI still reflects
-      // what the inspector attached. The storagePath prefix local:// distinguishes these from
-      // server-persisted docs. They are session-only and will be lost on page reload.
-      console.warn('[Vero] handleDocumentUpload — no session, creating local-only doc for UI')
-      const localDoc = createInspectorDevPreviewDocument({
-        reportId: report.id,
-        assignmentId: assignment.id,
-        itemCode,
-        fileName: file.name,
-        mimeType: file.type,
-        mediaType: capture?.source ?? (file.type.startsWith('video/') ? 'video' : undefined),
-        fileSize: file.size,
-        uploadedBy: activeUser.supabaseId ?? activeUser.id,
-      })
-      const localDocWithPreview: InspectorCompletionDocumentRow = {
-        ...localDoc,
-        storagePath: `local://${file.name}`,
-        ...(effectivePreviewUrl ? { previewUrl: effectivePreviewUrl } : {}),
-      }
-      updateItem(itemCode, item => ({ ...item, documents: [...item.documents, localDocWithPreview] }))
-      setLastSavedLabel('Saved locally — sign in to sync')
-      return localDocWithPreview
+      console.warn('[Vero] handleDocumentUpload — no session, evidence saved locally and marked needs-attention')
+      setLastSavedLabel('Saved on this device — sign in to sync')
+      return localDoc
     }
 
-    const doc = await uploadInspectorCompletionDocument(
-      report.id,
-      assignment.id,
-      itemCode,
-      sessionInspector.id,
-      file,
-      {
-        jobId: job?.id,
-        capturedAt: capture?.capturedAt,
-        captureLatitude: capture?.latitude ?? null,
-        captureLongitude: capture?.longitude ?? null,
-        projectLatitude: projectReferencePoint?.latitude ?? null,
-        projectLongitude: projectReferencePoint?.longitude ?? null,
-        anomalyExplanation,
-        source: capture?.source,
-      },
-    )
-
-    if (!doc) {
-      console.warn('[Vero] handleDocumentUpload — uploadInspectorCompletionDocument returned null (check Supabase storage logs)')
-      return null
+    setLastSavedLabel('Saved on this device — syncing')
+    const results = await syncInspectorEvidenceQueue({
+      assignmentId: assignment.id,
+      localEvidenceId: staged.record.localEvidenceId,
+    })
+    const uploaded = results.find(result => result.localEvidenceId === staged.record.localEvidenceId && result.serverDocument)
+    if (!uploaded?.serverDocument) {
+      const nextStatus = results.find(result => result.localEvidenceId === staged.record.localEvidenceId)?.status
+      updateItem(itemCode, item => ({
+        ...item,
+        documents: item.documents.map(doc =>
+          doc.id === localDoc.id
+            ? {
+                ...doc,
+                offlineSyncStatus: nextStatus ?? 'retry_scheduled',
+                offlineSyncMessage: offlineEvidenceStatusLabel(nextStatus ?? 'retry_scheduled'),
+              }
+            : doc
+        ),
+      }))
+      setLastSavedLabel(nextStatus === 'waiting_for_connection'
+        ? 'Saved on this device — waiting for connection'
+        : 'Saved on this device — upload will retry')
+      return localDoc
     }
 
     const docWithPreview: InspectorCompletionDocumentRow = effectivePreviewUrl
-      ? { ...doc, previewUrl: effectivePreviewUrl }
-      : doc
-    updateItem(itemCode, item => ({ ...item, documents: [...item.documents, docWithPreview] }))
+      ? { ...uploaded.serverDocument, previewUrl: effectivePreviewUrl }
+      : uploaded.serverDocument
+    updateItem(itemCode, item => ({
+      ...item,
+      documents: item.documents.map(doc => doc.id === localDoc.id ? docWithPreview : doc),
+    }))
+    setLastSavedLabel('Evidence uploaded')
     return docWithPreview
   }
 
@@ -2559,7 +2624,10 @@ export function InspectorCompletionWorkspace() {
 
   async function openDocument(doc: InspectorCompletionDocumentRow) {
     if (doc.storagePath.startsWith('local://')) {
-      window.alert(`${doc.fileName} was saved locally.\nSign in to your account to sync evidence to the server.`)
+      const status = isOfflineEvidenceStoragePath(doc.storagePath)
+        ? doc.offlineSyncMessage ?? offlineEvidenceStatusLabel(doc.offlineSyncStatus)
+        : 'Saved locally'
+      window.alert(`${doc.fileName} is saved on this device.\nStatus: ${status}\nIt must upload before final sealing.`)
       return
     }
     if (previewMode || doc.storagePath.startsWith('preview://')) {
@@ -4697,6 +4765,11 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                                 <div className="mt-1 text-xs text-zinc-400">
                                   Attach only photos, video, notes, or documents that support {item.item_label}. Attachment confirms a file exists, not that it is substantively correct.
                                 </div>
+                                {item.documents.some(doc => doc.storagePath.startsWith('local://')) && (
+                                  <div className="mt-2 text-xs font-semibold text-amber-200">
+                                    {item.documents.filter(doc => doc.storagePath.startsWith('local://')).length} saved on this device, pending server upload.
+                                  </div>
+                                )}
                             </div>
                               <div className="flex flex-wrap items-center gap-2">
                                 <FieldMediaUploader
@@ -5131,6 +5204,11 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                               <div className="mt-1 text-xs text-zinc-400">
                                 Attach only photos, video, notes, or documents that support {item.item_label}. Attachment confirms a file exists, not that it is substantively correct.
                               </div>
+                              {item.documents.some(doc => doc.storagePath.startsWith('local://')) && (
+                                <div className="mt-2 text-xs font-semibold text-amber-200">
+                                  {item.documents.filter(doc => doc.storagePath.startsWith('local://')).length} saved on this device, pending server upload.
+                                </div>
+                              )}
                             </div>
                             <div className="flex flex-wrap items-center gap-2">
                               <FieldMediaUploader
