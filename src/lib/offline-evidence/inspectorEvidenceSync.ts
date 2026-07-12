@@ -16,6 +16,7 @@ import type {
   OfflineEvidenceRecord,
   OfflineEvidenceStatus,
 } from './types'
+import { recordOfflineEvidenceDiagnostic } from './captureDiagnostics'
 
 const LOCAL_PATH_PREFIX = 'local://offline-evidence/'
 
@@ -220,6 +221,12 @@ export async function optimizeAndSyncInspectorEvidence(options: {
   await repository.update(record.localEvidenceId, {
     status: 'optimizing',
     optimizationNote: 'Optimizing evidence after local save.',
+  })
+  recordOfflineEvidenceDiagnostic('optimization_started', {
+    localEvidenceId: record.localEvidenceId,
+    mediaType: record.mediaType,
+    source: record.source,
+    byteSize: record.originalByteSize,
   })
 
   const originalFile = await repository.getOriginalFile(record.localEvidenceId)

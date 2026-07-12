@@ -5,6 +5,7 @@ import type {
   OfflineEvidenceRecord,
   OfflineEvidenceStatus,
 } from './types'
+import { recordOfflineEvidenceDiagnostic } from './captureDiagnostics'
 
 const BASE_RETRY_DELAY_MS = 5_000
 const MAX_RETRY_DELAY_MS = 5 * 60_000
@@ -125,6 +126,12 @@ export class EvidenceSyncQueue {
           uploadProgress: 1,
           lastError: undefined,
         }))
+        recordOfflineEvidenceDiagnostic('upload_started', {
+          localEvidenceId: record.localEvidenceId,
+          mediaType: record.mediaType,
+          source: record.source,
+          byteSize: record.optimizedByteSize || record.originalByteSize,
+        })
 
         try {
           const controller = new AbortController()
@@ -137,12 +144,24 @@ export class EvidenceSyncQueue {
             lastError: undefined,
           }))
           await this.repository.delete(record.localEvidenceId)
+          recordOfflineEvidenceDiagnostic('upload_completed', {
+            localEvidenceId: record.localEvidenceId,
+            mediaType: record.mediaType,
+            source: record.source,
+            status: 'uploaded',
+          })
           results.push({
             localEvidenceId: record.localEvidenceId,
             status: 'uploaded',
             serverDocument: ack.serverDocument,
           })
         } catch (error) {
+          recordOfflineEvidenceDiagnostic('upload_failed', {
+            localEvidenceId: record.localEvidenceId,
+            mediaType: record.mediaType,
+            source: record.source,
+            reason: String((error as { message?: unknown })?.message ?? 'Upload failed.'),
+          })
           if (!this.connectivity() || isRetryableUploadError(error)) {
             const retryCount = record.retryCount + 1
             const nextRetryAt = new Date(Date.now() + calculateRetryDelayMs(retryCount)).toISOString()

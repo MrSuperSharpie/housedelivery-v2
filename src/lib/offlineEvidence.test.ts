@@ -20,7 +20,11 @@ import {
   stageInspectorEvidenceForUpload,
 } from './offline-evidence/inspectorEvidenceSync'
 import type { EvidenceUploadTransport, OfflineEvidenceRecord } from './offline-evidence/types'
-import { withCaptureCallbackTimeout } from '@/components/inspector/FieldMediaUploader'
+import {
+  fieldMediaInputOptionsForExpectedType,
+  withCaptureCallbackTimeout,
+  withGeolocationWatchdog,
+} from '@/components/inspector/FieldMediaUploader'
 
 function makeFile(name = 'evidence.jpg', size = 1024, type = 'image/jpeg'): File {
   return new File([new Uint8Array(size)], name, { type })
@@ -120,6 +124,75 @@ test('Camera Roll File uses the same local-first staging coordinator', async () 
   assert.equal(await repository.getOriginalFile(staged.record.localEvidenceId), file)
 })
 
+test('photo capture and Photo Library inputs use the same staging coordinator source', async () => {
+  const options = fieldMediaInputOptionsForExpectedType('camera')
+  assert.deepEqual(options.map(option => option.id), ['take_photo', 'choose_photo_library'])
+  assert.equal(options[0].accept, 'image/*')
+  assert.equal(options[0].capture, 'environment')
+  assert.equal(options[0].source, 'camera')
+  assert.equal(options[1].accept, 'image/*')
+  assert.equal(options[1].capture, undefined)
+  assert.equal(options[1].source, 'camera')
+
+  for (const option of options) {
+    const repository = new MemoryLocalEvidenceRepository()
+    const file = makeFile(`${option.id}.jpg`, 2048, 'image/jpeg')
+    const staged = await stageInspectorEvidenceForUpload({
+      reportId: 'report-1',
+      assignmentId: 'assignment-1',
+      checklistItemId: 'S05-01',
+      uploadedBy: 'inspector-1',
+      file,
+      capture: {
+        file,
+        capturedAt: '2026-07-12T12:00:00.000Z',
+        latitude: null,
+        longitude: null,
+        source: option.source,
+      },
+    }, repository)
+    assert.equal(staged.record.status, 'saved_local')
+    assert.equal(staged.record.mediaType, 'camera')
+  }
+})
+
+test('video capture and existing-video inputs use the same staging coordinator source', async () => {
+  const options = fieldMediaInputOptionsForExpectedType('video')
+  assert.deepEqual(options.map(option => option.id), ['record_video', 'choose_existing_video'])
+  assert.equal(options[0].capture, 'environment')
+  assert.equal(options[0].source, 'video')
+  assert.equal(options[1].capture, undefined)
+  assert.equal(options[1].source, 'video')
+
+  for (const option of options) {
+    const repository = new MemoryLocalEvidenceRepository()
+    const file = makeFile(`${option.id}.mp4`, 4096, 'video/mp4')
+    const staged = await stageInspectorEvidenceForUpload({
+      reportId: 'report-1',
+      assignmentId: 'assignment-1',
+      checklistItemId: 'S05-01',
+      uploadedBy: 'inspector-1',
+      file,
+      capture: {
+        file,
+        capturedAt: '2026-07-12T12:00:00.000Z',
+        latitude: null,
+        longitude: null,
+        source: option.source,
+      },
+    }, repository)
+    assert.equal(staged.record.status, 'saved_local')
+    assert.equal(staged.record.mediaType, 'video')
+  }
+})
+
+test('general Attach Evidence remains a non-capture input path', () => {
+  const [option] = fieldMediaInputOptionsForExpectedType('document')
+  assert.equal(option.id, 'attach_document')
+  assert.equal(option.capture, undefined)
+  assert.equal(option.source, 'document')
+})
+
 test('captured File is normalized to Blob plus metadata for IndexedDB storage', async () => {
   const file = new File([new Uint8Array([1, 2, 3])], 'iphone-capture.jpg', {
     type: 'image/jpeg',
@@ -166,6 +239,17 @@ test('FieldMediaUploader busy watchdog clears when IndexedDB open stalls', async
     }), 5),
     /Could not save this evidence/,
   )
+})
+
+test('FieldMediaUploader geolocation watchdog cannot block local camera staging indefinitely', async () => {
+  const location = await withGeolocationWatchdog(new Promise(() => {
+    // Simulates iOS Chrome geolocation never resolving after camera capture.
+  }), 5)
+  assert.deepEqual(location, {
+    latitude: null,
+    longitude: null,
+    error: 'Location lookup timed out. Evidence was captured without GPS coordinates.',
+  })
 })
 
 test('local evidence timeout rejects stalled IndexedDB open or transaction work', async () => {

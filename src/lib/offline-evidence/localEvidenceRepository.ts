@@ -3,6 +3,7 @@ import type {
   OfflineEvidenceRecord,
   OfflineEvidenceStatus,
 } from './types'
+import { recordOfflineEvidenceDiagnostic } from './captureDiagnostics'
 
 const DB_NAME = 'vero-offline-evidence'
 const DB_VERSION = 1
@@ -42,6 +43,10 @@ export function withLocalEvidenceTimeout<T>(
 }
 
 export function fileToStoredBlob(file: File): StoredEvidenceBlob {
+  recordOfflineEvidenceDiagnostic('file_blob_normalized', {
+    byteSize: file.size,
+    mediaType: file.type || 'application/octet-stream',
+  })
   return {
     blob: file.slice(0, file.size, file.type || 'application/octet-stream'),
     name: file.name,
@@ -100,8 +105,26 @@ function transactionComplete(tx: IDBTransaction): Promise<void> {
 
 export class IndexedDbLocalEvidenceRepository implements LocalEvidenceRepository {
   async save(record: OfflineEvidenceRecord, file: File): Promise<OfflineEvidenceRecord> {
+    recordOfflineEvidenceDiagnostic('indexeddb_open_started', {
+      localEvidenceId: record.localEvidenceId,
+      mediaType: record.mediaType,
+      source: record.source,
+      byteSize: file.size,
+    })
     const db = await withLocalEvidenceTimeout(openDatabase())
+    recordOfflineEvidenceDiagnostic('indexeddb_open_completed', {
+      localEvidenceId: record.localEvidenceId,
+      mediaType: record.mediaType,
+      source: record.source,
+      byteSize: file.size,
+    })
     try {
+      recordOfflineEvidenceDiagnostic('indexeddb_transaction_started', {
+        localEvidenceId: record.localEvidenceId,
+        mediaType: record.mediaType,
+        source: record.source,
+        byteSize: file.size,
+      })
       const tx = db.transaction([RECORD_STORE, BLOB_STORE], 'readwrite')
       tx.objectStore(RECORD_STORE).put(record)
       tx.objectStore(BLOB_STORE).put({
@@ -110,6 +133,12 @@ export class IndexedDbLocalEvidenceRepository implements LocalEvidenceRepository
         upload: fileToStoredBlob(file),
       })
       await withLocalEvidenceTimeout(transactionComplete(tx))
+      recordOfflineEvidenceDiagnostic('indexeddb_transaction_committed', {
+        localEvidenceId: record.localEvidenceId,
+        mediaType: record.mediaType,
+        source: record.source,
+        byteSize: file.size,
+      })
       return record
     } finally {
       db.close()
