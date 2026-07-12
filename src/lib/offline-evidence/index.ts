@@ -24,6 +24,7 @@ export {
   listPendingInspectorEvidenceDocuments,
   localEvidenceStoragePath,
   offlineEvidenceStatusLabel,
+  optimizeAndSyncInspectorEvidence,
   registerInspectorEvidenceResumeHandlers,
   stageInspectorEvidenceForUpload,
   syncInspectorEvidenceQueue,

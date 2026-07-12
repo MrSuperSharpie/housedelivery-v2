@@ -2,6 +2,7 @@ import type { OptimizedEvidenceFile } from './types'
 
 const DEFAULT_LONGEST_EDGE = 3200
 const DEFAULT_TARGET_BYTES = 2 * 1024 * 1024
+const DEFAULT_OPTIMIZATION_TIMEOUT_MS = 20_000
 const MIN_JPEG_QUALITY = 0.62
 const QUALITY_STEP = 0.08
 
@@ -211,4 +212,35 @@ export async function optimizeEvidenceFile(file: File, options?: {
   } finally {
     if (decoded) closeDecodedImage(decoded)
   }
+}
+
+let optimizationChain: Promise<unknown> = Promise.resolve()
+
+function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+  let timeout: ReturnType<typeof setTimeout> | null = null
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeout = globalThis.setTimeout(() => reject(new Error(message)), ms)
+  })
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    if (timeout) clearTimeout(timeout)
+  })
+}
+
+export function optimizeEvidenceFileSequentially(
+  file: File,
+  options?: {
+    maxLongestEdge?: number
+    targetBytes?: number
+    timeoutMs?: number
+  },
+): Promise<OptimizedEvidenceFile> {
+  const task = optimizationChain
+    .catch(() => undefined)
+    .then(() => withTimeout(
+      optimizeEvidenceFile(file, options),
+        options?.timeoutMs ?? DEFAULT_OPTIMIZATION_TIMEOUT_MS,
+        'Image optimization timed out; original evidence preserved.',
+    ))
+  optimizationChain = task.catch(() => undefined)
+  return task
 }

@@ -58,7 +58,11 @@ export class IndexedDbLocalEvidenceRepository implements LocalEvidenceRepository
     try {
       const tx = db.transaction([RECORD_STORE, BLOB_STORE], 'readwrite')
       tx.objectStore(RECORD_STORE).put(record)
-      tx.objectStore(BLOB_STORE).put({ localEvidenceId: record.localEvidenceId, file })
+      tx.objectStore(BLOB_STORE).put({
+        localEvidenceId: record.localEvidenceId,
+        originalFile: file,
+        uploadFile: file,
+      })
       await transactionComplete(tx)
       return record
     } finally {
@@ -83,10 +87,55 @@ export class IndexedDbLocalEvidenceRepository implements LocalEvidenceRepository
     const db = await openDatabase()
     try {
       const tx = db.transaction(BLOB_STORE, 'readonly')
-      const entry = await requestToPromise<{ localEvidenceId: string; file: File } | undefined>(
+      const entry = await requestToPromise<{ localEvidenceId: string; file?: File; originalFile?: File; uploadFile?: File } | undefined>(
         tx.objectStore(BLOB_STORE).get(localEvidenceId),
       )
-      return entry?.file ?? null
+      return entry?.uploadFile ?? entry?.file ?? entry?.originalFile ?? null
+    } finally {
+      db.close()
+    }
+  }
+
+  async getOriginalFile(localEvidenceId: string): Promise<File | null> {
+    const db = await openDatabase()
+    try {
+      const tx = db.transaction(BLOB_STORE, 'readonly')
+      const entry = await requestToPromise<{ localEvidenceId: string; file?: File; originalFile?: File; uploadFile?: File } | undefined>(
+        tx.objectStore(BLOB_STORE).get(localEvidenceId),
+      )
+      return entry?.originalFile ?? entry?.file ?? entry?.uploadFile ?? null
+    } finally {
+      db.close()
+    }
+  }
+
+  async saveUploadFile(
+    localEvidenceId: string,
+    file: File,
+    patch?: Partial<OfflineEvidenceRecord>,
+  ): Promise<OfflineEvidenceRecord | null> {
+    const db = await openDatabase()
+    try {
+      const currentRecord = await this.get(localEvidenceId)
+      if (!currentRecord) return null
+      const currentOriginal = await this.getOriginalFile(localEvidenceId)
+      if (!currentOriginal) return null
+      const nextRecord: OfflineEvidenceRecord = {
+        ...currentRecord,
+        ...patch,
+        localEvidenceId: currentRecord.localEvidenceId,
+        idempotencyKey: currentRecord.idempotencyKey,
+        updatedAt: new Date().toISOString(),
+      }
+      const tx = db.transaction([RECORD_STORE, BLOB_STORE], 'readwrite')
+      tx.objectStore(RECORD_STORE).put(nextRecord)
+      tx.objectStore(BLOB_STORE).put({
+        localEvidenceId,
+        originalFile: currentOriginal,
+        uploadFile: file,
+      })
+      await transactionComplete(tx)
+      return nextRecord
     } finally {
       db.close()
     }
@@ -119,10 +168,15 @@ export class IndexedDbLocalEvidenceRepository implements LocalEvidenceRepository
       idempotencyKey: current.idempotencyKey,
       updatedAt: new Date().toISOString(),
     }
-    const file = await this.getFile(localEvidenceId)
-    if (!file) return null
-    await this.save(next, file)
-    return next
+    const db = await openDatabase()
+    try {
+      const tx = db.transaction(RECORD_STORE, 'readwrite')
+      tx.objectStore(RECORD_STORE).put(next)
+      await transactionComplete(tx)
+      return next
+    } finally {
+      db.close()
+    }
   }
 
   async delete(localEvidenceId: string): Promise<void> {
@@ -140,7 +194,8 @@ export class IndexedDbLocalEvidenceRepository implements LocalEvidenceRepository
 
 export class MemoryLocalEvidenceRepository implements LocalEvidenceRepository {
   private records = new Map<string, OfflineEvidenceRecord>()
-  private files = new Map<string, File>()
+  private originalFiles = new Map<string, File>()
+  private uploadFiles = new Map<string, File>()
 
   async save(record: OfflineEvidenceRecord, file: File): Promise<OfflineEvidenceRecord> {
     const existingDuplicate = [...this.records.values()].find(
@@ -152,7 +207,8 @@ export class MemoryLocalEvidenceRepository implements LocalEvidenceRepository {
     }
 
     this.records.set(record.localEvidenceId, record)
-    this.files.set(record.localEvidenceId, file)
+    this.originalFiles.set(record.localEvidenceId, file)
+    this.uploadFiles.set(record.localEvidenceId, file)
     return record
   }
 
@@ -161,7 +217,30 @@ export class MemoryLocalEvidenceRepository implements LocalEvidenceRepository {
   }
 
   async getFile(localEvidenceId: string): Promise<File | null> {
-    return this.files.get(localEvidenceId) ?? null
+    return this.uploadFiles.get(localEvidenceId) ?? this.originalFiles.get(localEvidenceId) ?? null
+  }
+
+  async getOriginalFile(localEvidenceId: string): Promise<File | null> {
+    return this.originalFiles.get(localEvidenceId) ?? this.uploadFiles.get(localEvidenceId) ?? null
+  }
+
+  async saveUploadFile(
+    localEvidenceId: string,
+    file: File,
+    patch?: Partial<OfflineEvidenceRecord>,
+  ): Promise<OfflineEvidenceRecord | null> {
+    const current = this.records.get(localEvidenceId)
+    if (!current) return null
+    const next: OfflineEvidenceRecord = {
+      ...current,
+      ...patch,
+      localEvidenceId: current.localEvidenceId,
+      idempotencyKey: current.idempotencyKey,
+      updatedAt: new Date().toISOString(),
+    }
+    this.records.set(localEvidenceId, next)
+    this.uploadFiles.set(localEvidenceId, file)
+    return next
   }
 
   async list(filter?: { assignmentId?: string; statuses?: OfflineEvidenceStatus[] }): Promise<OfflineEvidenceRecord[]> {
@@ -188,7 +267,8 @@ export class MemoryLocalEvidenceRepository implements LocalEvidenceRepository {
 
   async delete(localEvidenceId: string): Promise<void> {
     this.records.delete(localEvidenceId)
-    this.files.delete(localEvidenceId)
+    this.originalFiles.delete(localEvidenceId)
+    this.uploadFiles.delete(localEvidenceId)
   }
 }
 

@@ -2,11 +2,13 @@ import type { FieldMediaCapturePayload } from '@/components/inspector/FieldMedia
 import {
   type InspectorCompletionDocumentMediaType,
   type InspectorCompletionDocumentRow,
-  uploadInspectorCompletionDocument,
 } from '@/lib/supabase/inspectorCompletion'
 import { EvidenceSyncQueue } from './evidenceSyncQueue'
 import { getLocalEvidenceRepository } from './localEvidenceRepository'
-import { optimizeEvidenceFile } from './mediaOptimizationService'
+import {
+  calculateSha256Hex,
+  optimizeEvidenceFileSequentially,
+} from './mediaOptimizationService'
 import type {
   EvidenceQueueFlushResult,
   EvidenceUploadTransport,
@@ -47,6 +49,8 @@ export function localEvidenceIdFromStoragePath(storagePath: string): string | nu
 
 export function offlineEvidenceStatusLabel(status?: OfflineEvidenceStatus): string {
   switch (status) {
+    case 'saving_local':
+      return 'Saving evidence on this device...'
     case 'optimizing':
       return 'Optimizing evidence...'
     case 'saved_local':
@@ -77,9 +81,9 @@ export function createLocalDocumentFromEvidence(
     itemCode: record.checklistItemId,
     fileName: record.storedLocalFilename,
     storagePath: localEvidenceStoragePath(record.localEvidenceId),
-    mimeType: record.mimeType,
+    mimeType: record.uploadMimeType || record.mimeType,
     mediaType: record.mediaType,
-    fileSize: record.optimizedByteSize,
+    fileSize: record.optimizedByteSize || record.originalByteSize,
     uploadedBy: record.uploadedBy ?? record.inspectorUserId,
     evidenceChecksum: record.checksum,
     originalCapturedAt: record.capturedAt,
@@ -94,10 +98,14 @@ export function createLocalDocumentFromEvidence(
 
 export function createInspectorEvidenceUploadTransport(): EvidenceUploadTransport {
   return {
-    async upload(record, file) {
+    async upload(record, file, options) {
       if (!record.uploadedBy) {
         throw new Error('Sign in is required before evidence can sync.')
       }
+      if (options?.signal?.aborted) {
+        throw new Error('Upload paused before network transfer.')
+      }
+      const { uploadInspectorCompletionDocument } = await import('@/lib/supabase/inspectorCompletion')
       const doc = await uploadInspectorCompletionDocument(
         record.reportId,
         record.assignmentId,
@@ -138,16 +146,16 @@ export async function stageInspectorEvidenceForUpload(
   input: StageInspectorEvidenceInput,
   repository: LocalEvidenceRepository = getLocalEvidenceRepository(),
 ): Promise<{ record: OfflineEvidenceRecord; file: File }> {
-  const optimized = await optimizeEvidenceFile(input.file)
   const now = new Date().toISOString()
-  const mediaType = inferMediaType(optimized.file, input.capture?.source)
+  const mediaType = inferMediaType(input.file, input.capture?.source)
   const localEvidenceId = safeRandomId()
   const idempotencyKey = [
     input.assignmentId,
     input.checklistItemId,
     input.capture?.capturedAt ?? now,
-    optimized.checksum ?? optimized.file.name,
-    optimized.optimizedByteSize,
+    input.file.name,
+    input.file.size,
+    input.file.lastModified,
   ].join(':')
 
   const record: OfflineEvidenceRecord = {
@@ -161,20 +169,23 @@ export async function stageInspectorEvidenceForUpload(
     inspectorUserId: input.inspectorUserId,
     uploadedBy: input.uploadedBy,
     originalFilename: input.file.name,
-    storedLocalFilename: optimized.file.name,
-    mimeType: optimized.file.type || input.file.type || 'application/octet-stream',
+    storedLocalFilename: input.file.name,
+    uploadFilename: input.file.name,
+    mimeType: input.file.type || 'application/octet-stream',
+    uploadMimeType: input.file.type || 'application/octet-stream',
     mediaType,
     source: mediaType,
     capturedAt: input.capture?.capturedAt ?? now,
-    originalByteSize: optimized.originalByteSize,
-    optimizedByteSize: optimized.optimizedByteSize,
-    checksum: optimized.checksum,
+    originalByteSize: input.file.size,
+    optimizedByteSize: input.file.size,
+    optimizationStatus: 'not_started',
+    optimizationNote: 'Original evidence saved before optimization.',
     captureGeo: {
       latitude: input.capture?.latitude ?? null,
       longitude: input.capture?.longitude ?? null,
     },
     transcript: input.capture?.transcript,
-    status: input.uploadedBy ? 'saved_local' : 'needs_attention',
+    status: 'saved_local',
     uploadProgress: 0,
     retryCount: 0,
     lastError: input.uploadedBy ? undefined : 'Sign in is required before this evidence can sync.',
@@ -192,17 +203,85 @@ export async function stageInspectorEvidenceForUpload(
     },
   }
 
-  await repository.save(record, optimized.file)
-  return { record, file: optimized.file }
+  const savedRecord = await repository.save(record, input.file)
+  return { record: savedRecord, file: input.file }
+}
+
+export async function optimizeAndSyncInspectorEvidence(options: {
+  localEvidenceId: string
+  assignmentId?: string
+  repository?: LocalEvidenceRepository
+  transport?: EvidenceUploadTransport
+}): Promise<EvidenceQueueFlushResult[]> {
+  const repository = options.repository ?? getLocalEvidenceRepository()
+  const record = await repository.get(options.localEvidenceId)
+  if (!record) return []
+
+  await repository.update(record.localEvidenceId, {
+    status: 'optimizing',
+    optimizationNote: 'Optimizing evidence after local save.',
+  })
+
+  const originalFile = await repository.getOriginalFile(record.localEvidenceId)
+  if (!originalFile) {
+    await repository.update(record.localEvidenceId, {
+      status: 'needs_attention',
+      lastError: 'Original local evidence file is no longer available on this device.',
+    })
+    return [{
+      localEvidenceId: record.localEvidenceId,
+      status: 'needs_attention',
+      error: 'Original local evidence file is no longer available on this device.',
+    }]
+  }
+
+  try {
+    const optimized = await optimizeEvidenceFileSequentially(originalFile)
+    await repository.saveUploadFile(record.localEvidenceId, optimized.file, {
+      status: 'saved_local',
+      storedLocalFilename: optimized.file.name,
+      uploadFilename: optimized.file.name,
+      mimeType: optimized.file.type || record.mimeType,
+      uploadMimeType: optimized.file.type || record.uploadMimeType,
+      optimizedByteSize: optimized.optimizedByteSize,
+      checksum: optimized.checksum,
+      optimizationStatus: optimized.didOptimize ? 'completed' : 'not_required',
+      optimizationNote: optimized.note,
+      lastError: undefined,
+    })
+  } catch (error) {
+    await repository.saveUploadFile(record.localEvidenceId, originalFile, {
+      status: 'saved_local',
+      uploadFilename: originalFile.name,
+      uploadMimeType: originalFile.type || record.mimeType,
+      optimizedByteSize: originalFile.size,
+      checksum: await calculateSha256Hex(originalFile),
+      optimizationStatus: String((error as { message?: unknown })?.message ?? '').includes('timed out')
+        ? 'timed_out'
+        : 'failed',
+      optimizationNote: error instanceof Error
+        ? error.message
+        : 'Image optimization failed; original evidence preserved.',
+      lastError: 'Optimization skipped; original evidence preserved for upload.',
+    })
+  }
+
+  return syncInspectorEvidenceQueue({
+    assignmentId: options.assignmentId,
+    localEvidenceId: options.localEvidenceId,
+    repository,
+    transport: options.transport,
+  })
 }
 
 export async function syncInspectorEvidenceQueue(options?: {
   assignmentId?: string
   localEvidenceId?: string
   repository?: LocalEvidenceRepository
+  transport?: EvidenceUploadTransport
 }): Promise<EvidenceQueueFlushResult[]> {
   const repository = options?.repository ?? getLocalEvidenceRepository()
-  const queue = new EvidenceSyncQueue(repository, createInspectorEvidenceUploadTransport())
+  const queue = new EvidenceSyncQueue(repository, options?.transport ?? createInspectorEvidenceUploadTransport())
   return queue.flush({
     assignmentId: options?.assignmentId,
     localEvidenceId: options?.localEvidenceId,
@@ -215,7 +294,7 @@ export async function listPendingInspectorEvidenceDocuments(
 ): Promise<InspectorCompletionDocumentRow[]> {
   const records = await repository.list({
     assignmentId,
-    statuses: ['saved_local', 'waiting_for_connection', 'uploading', 'retry_scheduled', 'needs_attention'],
+    statuses: ['saving_local', 'optimizing', 'saved_local', 'waiting_for_connection', 'uploading', 'retry_scheduled', 'needs_attention'],
   })
   return records.map(record => createLocalDocumentFromEvidence(record))
 }

@@ -10,6 +10,10 @@ import {
   isRetryableUploadError,
 } from './offline-evidence/evidenceSyncQueue'
 import { MemoryLocalEvidenceRepository } from './offline-evidence/localEvidenceRepository'
+import {
+  optimizeAndSyncInspectorEvidence,
+  stageInspectorEvidenceForUpload,
+} from './offline-evidence/inspectorEvidenceSync'
 import type { EvidenceUploadTransport, OfflineEvidenceRecord } from './offline-evidence/types'
 
 function makeFile(name = 'evidence.jpg', size = 1024, type = 'image/jpeg'): File {
@@ -30,12 +34,16 @@ function makeRecord(overrides: Partial<OfflineEvidenceRecord> = {}): OfflineEvid
     uploadedBy: 'inspector-1',
     originalFilename: 'evidence.jpg',
     storedLocalFilename: 'evidence.jpg',
+    uploadFilename: 'evidence.jpg',
     mimeType: 'image/jpeg',
+    uploadMimeType: 'image/jpeg',
     mediaType: 'camera',
     source: 'camera',
     capturedAt: now,
     originalByteSize: 4_000_000,
     optimizedByteSize: 1_800_000,
+    optimizationStatus: 'not_required',
+    optimizationNote: 'Test fixture.',
     checksum: 'abc123',
     captureGeo: { latitude: 49.2827, longitude: -123.1207 },
     status: 'saved_local',
@@ -62,6 +70,46 @@ test('offline evidence dimensions downscale only oversized photos', () => {
     calculateImageResizeDimensions({ width: 1200, height: 900, maxLongestEdge: 3000 }),
     { width: 1200, height: 900, scale: 1 },
   )
+})
+
+test('direct camera File is staged locally before any upload is attempted', async () => {
+  const repository = new MemoryLocalEvidenceRepository()
+  const file = makeFile('iphone-camera.jpg', 4096, 'image/jpeg')
+  const staged = await stageInspectorEvidenceForUpload({
+    reportId: 'report-1',
+    assignmentId: 'assignment-1',
+    checklistItemId: 'S05-01',
+    uploadedBy: 'inspector-1',
+    file,
+    capture: {
+      file,
+      capturedAt: '2026-07-12T12:00:00.000Z',
+      latitude: 49.2827,
+      longitude: -123.1207,
+      source: 'camera',
+    },
+  }, repository)
+
+  assert.equal(staged.record.status, 'saved_local')
+  assert.equal((await repository.list()).length, 1)
+  assert.equal(await repository.getOriginalFile(staged.record.localEvidenceId), file)
+  assert.equal(await repository.getFile(staged.record.localEvidenceId), file)
+})
+
+test('Camera Roll File uses the same local-first staging coordinator', async () => {
+  const repository = new MemoryLocalEvidenceRepository()
+  const file = makeFile('camera-roll.jpg', 2048, 'image/jpeg')
+  const staged = await stageInspectorEvidenceForUpload({
+    reportId: 'report-1',
+    assignmentId: 'assignment-1',
+    checklistItemId: 'S05-01',
+    uploadedBy: 'inspector-1',
+    file,
+  }, repository)
+
+  assert.equal(staged.record.status, 'saved_local')
+  assert.equal(staged.record.mediaType, 'camera')
+  assert.equal(await repository.getOriginalFile(staged.record.localEvidenceId), file)
 })
 
 test('offline evidence image optimization plan compresses large or oversized images', () => {
@@ -155,6 +203,60 @@ test('offline evidence queue schedules retry for network interruption and preser
   assert.ok(await repository.getFile('local-1'))
 })
 
+test('offline evidence queue exits uploading state after mobile upload timeout', async () => {
+  const repository = new MemoryLocalEvidenceRepository()
+  const queue = new EvidenceSyncQueue(repository, {
+    upload: async () => new Promise(() => {
+      // Simulates a mobile browser/network request that never resolves.
+    }),
+  }, () => true, 5)
+  await queue.enqueue(makeRecord(), makeFile())
+  const results = await queue.flush()
+  assert.equal(results[0].status, 'retry_scheduled')
+  const record = await repository.get('local-1')
+  assert.equal(record?.status, 'retry_scheduled')
+  assert.match(record?.lastError ?? '', /timed out/i)
+})
+
+test('offline event/connectivity loss changes queued upload to waiting_for_connection', async () => {
+  const repository = new MemoryLocalEvidenceRepository()
+  let online = true
+  const queue = new EvidenceSyncQueue(repository, {
+    upload: async () => {
+      online = false
+      throw new Error('offline')
+    },
+  }, () => online)
+  await queue.enqueue(makeRecord(), makeFile())
+  const results = await queue.flush()
+  assert.equal(results[0].status, 'waiting_for_connection')
+  const record = await repository.get('local-1')
+  assert.equal(record?.status, 'waiting_for_connection')
+})
+
+test('connectivity restoration retries waiting evidence', async () => {
+  const repository = new MemoryLocalEvidenceRepository()
+  await repository.save(makeRecord({ status: 'waiting_for_connection' }), makeFile())
+  const queue = new EvidenceSyncQueue(repository, {
+    upload: async record => ({
+      serverDocumentId: 'server-restored',
+      serverStoragePath: 'inspector_documents/server-restored.jpg',
+      serverDocument: {
+        id: 'server-restored',
+        reportId: record.reportId,
+        assignmentId: record.assignmentId,
+        itemCode: record.checklistItemId,
+        fileName: record.storedLocalFilename,
+        storagePath: 'inspector_documents/server-restored.jpg',
+        createdAt: record.createdAt,
+      },
+    }),
+  }, () => true)
+  const results = await queue.flush()
+  assert.equal(results[0].status, 'uploaded')
+  assert.equal(await repository.get('local-1'), null)
+})
+
 test('offline evidence queue blocks future attempts until retry time arrives', () => {
   const future = new Date('2026-07-12T12:10:00.000Z').toISOString()
   const record = makeRecord({ status: 'retry_scheduled', nextRetryAt: future })
@@ -208,4 +310,57 @@ test('offline evidence queue restores persisted records across queue instances',
   const results = await secondQueue.flush()
   assert.equal(results[0].status, 'uploaded')
   assert.equal(await repository.get('local-1'), null)
+})
+
+test('stale uploading state is recovered after reload', async () => {
+  const repository = new MemoryLocalEvidenceRepository()
+  await repository.save(makeRecord({ status: 'uploading', uploadProgress: 42 }), makeFile())
+  const queue = new EvidenceSyncQueue(repository, {
+    upload: async record => ({
+      serverDocumentId: 'server-stale-uploading',
+      serverStoragePath: 'inspector_documents/server-stale-uploading.jpg',
+      serverDocument: {
+        id: 'server-stale-uploading',
+        reportId: record.reportId,
+        assignmentId: record.assignmentId,
+        itemCode: record.checklistItemId,
+        fileName: record.storedLocalFilename,
+        storagePath: 'inspector_documents/server-stale-uploading.jpg',
+        createdAt: record.createdAt,
+      },
+    }),
+  }, () => true)
+  const results = await queue.flush()
+  assert.equal(results[0].status, 'uploaded')
+  assert.equal(await repository.get('local-1'), null)
+})
+
+test('optimization failure preserves original File and uploads it', async () => {
+  const repository = new MemoryLocalEvidenceRepository()
+  const original = makeFile('iphone-original.jpg', 2048, 'image/jpeg')
+  const staged = await stageInspectorEvidenceForUpload({
+    reportId: 'report-1',
+    assignmentId: 'assignment-1',
+    checklistItemId: 'S05-01',
+    uploadedBy: 'inspector-1',
+    file: original,
+  }, repository)
+  const results = await optimizeAndSyncInspectorEvidence({
+    assignmentId: 'assignment-1',
+    localEvidenceId: staged.record.localEvidenceId,
+    repository,
+    transport: {
+      upload: async () => {
+        throw new Error('network timeout')
+      },
+    },
+  })
+  assert.equal(results[0].status, 'retry_scheduled')
+  const preservedOriginal = await repository.getOriginalFile(staged.record.localEvidenceId)
+  const uploadCandidate = await repository.getFile(staged.record.localEvidenceId)
+  const record = await repository.get(staged.record.localEvidenceId)
+  assert.equal(preservedOriginal, original)
+  assert.equal(uploadCandidate, original)
+  assert.equal(record?.optimizationStatus, 'failed')
+  assert.equal(record?.optimizedByteSize, original.size)
 })

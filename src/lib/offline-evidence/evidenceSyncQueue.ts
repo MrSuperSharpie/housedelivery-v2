@@ -8,6 +8,7 @@ import type {
 
 const BASE_RETRY_DELAY_MS = 5_000
 const MAX_RETRY_DELAY_MS = 5 * 60_000
+const DEFAULT_UPLOAD_TIMEOUT_MS = 60_000
 
 export function isBrowserOnline(): boolean {
   if (typeof navigator === 'undefined') return true
@@ -55,6 +56,7 @@ export class EvidenceSyncQueue {
     private readonly repository: LocalEvidenceRepository,
     private readonly transport: EvidenceUploadTransport,
     private readonly connectivity: () => boolean = isBrowserOnline,
+    private readonly uploadTimeoutMs = DEFAULT_UPLOAD_TIMEOUT_MS,
   ) {}
 
   async enqueue(record: OfflineEvidenceRecord, file: File): Promise<OfflineEvidenceRecord> {
@@ -75,7 +77,7 @@ export class EvidenceSyncQueue {
         ? (await this.repository.get(filter.localEvidenceId) ? [await this.repository.get(filter.localEvidenceId)] : [])
         : await this.repository.list({
             assignmentId: filter?.assignmentId,
-            statuses: ['saved_local', 'waiting_for_connection', 'retry_scheduled', 'uploading'],
+            statuses: ['optimizing', 'saved_local', 'waiting_for_connection', 'retry_scheduled', 'uploading'],
           })
       const compactRecords = records.filter((record): record is OfflineEvidenceRecord => !!record)
       const results: EvidenceQueueFlushResult[] = []
@@ -125,7 +127,9 @@ export class EvidenceSyncQueue {
         }))
 
         try {
-          const ack = await this.transport.upload(record, file)
+          const controller = new AbortController()
+          const uploadPromise = this.transport.upload(record, file, { signal: controller.signal })
+          const ack = await this.withUploadTimeout(record, uploadPromise, controller)
           await this.repository.update(record.localEvidenceId, nextRecordPatch('uploaded', {
             uploadProgress: 100,
             confirmedServerDocumentId: ack.serverDocumentId,
@@ -175,6 +179,66 @@ export class EvidenceSyncQueue {
       return results
     } finally {
       this.flushing = false
+    }
+  }
+
+  private async withUploadTimeout(
+    record: OfflineEvidenceRecord,
+    uploadPromise: ReturnType<EvidenceUploadTransport['upload']>,
+    controller: AbortController,
+  ) {
+    let settled = false
+    let timeout: ReturnType<typeof setTimeout> | null = null
+    let removeOfflineListener: (() => void) | null = null
+
+    const abortForOffline = () => {
+      if (!settled) controller.abort('offline')
+    }
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('offline', abortForOffline, { once: true })
+      removeOfflineListener = () => window.removeEventListener('offline', abortForOffline)
+    }
+
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeout = setTimeout(() => {
+        if (!settled) {
+          controller.abort('timeout')
+          reject(new Error('Upload timed out on a mobile network; it will retry.'))
+        }
+      }, this.uploadTimeoutMs)
+    })
+
+    const abortPromise = new Promise<never>((_, reject) => {
+      controller.signal.addEventListener('abort', () => {
+        reject(new Error(controller.signal.reason === 'offline'
+          ? 'Upload paused because the browser went offline.'
+          : 'Upload timed out on a mobile network; it will retry.'))
+      }, { once: true })
+    })
+
+    uploadPromise
+      .then(async ack => {
+        if (settled) {
+          await this.repository.update(record.localEvidenceId, nextRecordPatch('uploaded', {
+            uploadProgress: 100,
+            confirmedServerDocumentId: ack.serverDocumentId,
+            confirmedServerStoragePath: ack.serverStoragePath,
+            lastError: undefined,
+          }))
+          await this.repository.delete(record.localEvidenceId)
+        }
+      })
+      .catch(() => {
+        // The foreground race owns retry state. Late failures need no extra mutation.
+      })
+
+    try {
+      return await Promise.race([uploadPromise, timeoutPromise, abortPromise])
+    } finally {
+      settled = true
+      if (timeout) clearTimeout(timeout)
+      removeOfflineListener?.()
     }
   }
 

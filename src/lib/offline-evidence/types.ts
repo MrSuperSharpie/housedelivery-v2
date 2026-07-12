@@ -4,6 +4,7 @@ import type {
 } from '@/lib/supabase/inspectorCompletion'
 
 export type OfflineEvidenceStatus =
+  | 'saving_local'
   | 'optimizing'
   | 'saved_local'
   | 'waiting_for_connection'
@@ -40,12 +41,16 @@ export interface OfflineEvidenceRecord {
   uploadedBy?: string
   originalFilename: string
   storedLocalFilename: string
+  uploadFilename: string
   mimeType: string
+  uploadMimeType: string
   mediaType: InspectorCompletionDocumentMediaType
   source: InspectorCompletionDocumentMediaType
   capturedAt: string
   originalByteSize: number
   optimizedByteSize: number
+  optimizationStatus: 'not_started' | 'completed' | 'failed' | 'timed_out' | 'not_required'
+  optimizationNote?: string
   checksum?: string
   captureGeo: OfflineEvidenceCaptureGeo
   transcript?: string
@@ -77,13 +82,19 @@ export interface EvidenceUploadAck {
 }
 
 export interface EvidenceUploadTransport {
-  upload: (record: OfflineEvidenceRecord, file: File) => Promise<EvidenceUploadAck>
+  upload: (
+    record: OfflineEvidenceRecord,
+    file: File,
+    options?: { signal?: AbortSignal },
+  ) => Promise<EvidenceUploadAck>
 }
 
 export interface LocalEvidenceRepository {
   save(record: OfflineEvidenceRecord, file: File): Promise<OfflineEvidenceRecord>
   get(localEvidenceId: string): Promise<OfflineEvidenceRecord | null>
   getFile(localEvidenceId: string): Promise<File | null>
+  getOriginalFile(localEvidenceId: string): Promise<File | null>
+  saveUploadFile(localEvidenceId: string, file: File, patch?: Partial<OfflineEvidenceRecord>): Promise<OfflineEvidenceRecord | null>
   list(filter?: { assignmentId?: string; statuses?: OfflineEvidenceStatus[] }): Promise<OfflineEvidenceRecord[]>
   update(localEvidenceId: string, patch: Partial<OfflineEvidenceRecord>): Promise<OfflineEvidenceRecord | null>
   delete(localEvidenceId: string): Promise<void>

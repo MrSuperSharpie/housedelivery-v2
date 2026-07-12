@@ -6,7 +6,7 @@ Branch: `feat/offline-first-evidence-sync`
 
 ## Executive Summary
 
-Inspector evidence capture is now designed as a local-first browser pipeline for the inspector completion workspace. The first durable milestone is no longer "network upload started"; it is "optimized evidence saved on this device." Server upload still uses the existing Supabase Storage and inspector completion document helper. No schema, RLS, storage bucket, Vault, seal, completion, or evidence requirement policy is changed.
+Inspector evidence capture is now designed as a local-first browser pipeline for the inspector completion workspace. The first durable milestone is no longer "network upload started" or "optimized evidence saved"; it is "the original captured file is saved on this device." Server upload still uses the existing Supabase Storage and inspector completion document helper. No schema, RLS, storage bucket, Vault, seal, completion, or evidence requirement policy is changed.
 
 The pipeline is intentionally browser/PWA-compatible. It uses IndexedDB for local evidence records and files, retries on online/focus/visibility/page reload, and registers Background Sync only as a best-effort enhancement when a service worker registration and browser support exist. It does not promise uploads after iOS or mobile browsers have fully terminated the web app.
 
@@ -22,6 +22,7 @@ File: `src/lib/offline-evidence/mediaOptimizationService.ts`
 - Original and optimized byte sizes are recorded.
 - SHA-256 is generated for the optimized upload bytes where `crypto.subtle` is available.
 - Video, audio, text, and documents are preserved without browser-side transcoding.
+- Optimization runs after original-file IndexedDB persistence, one image at a time, with a finite timeout. If image decode/canvas work fails or times out on iPhone Safari, the original file remains staged and becomes the upload candidate.
 
 ### 2. Local Evidence Repository
 
@@ -41,6 +42,7 @@ The repository stores metadata and file blobs in IndexedDB. Each staged record i
 - `checklistItemId`
 - inspector/user identifiers already available in the workspace
 - original and stored filenames
+- original file and upload-candidate file
 - MIME/media type
 - captured timestamp
 - original and optimized byte sizes
@@ -58,14 +60,16 @@ File: `src/lib/offline-evidence/evidenceSyncQueue.ts`
 
 The queue is a small state machine with low concurrency. It supports:
 
+- `saving_local`
 - `saved_local`
+- `optimizing`
 - `waiting_for_connection`
 - `uploading`
 - `uploaded`
 - `retry_scheduled`
 - `needs_attention`
 
-It distinguishes retryable network/storage interruptions from permanent validation failures, uses exponential backoff with jitter, and never deletes local staged evidence until the existing upload transport returns a server document acknowledgement.
+It distinguishes retryable network/storage interruptions from permanent validation failures, uses exponential backoff with jitter, exits stale `uploading` states after timeout/reload, and never deletes local staged evidence until the existing upload transport returns a server document acknowledgement.
 
 Chunked/resumable upload is not enabled in this loop because the current upload transport uses Supabase Storage `.upload(...)` and document-row insertion. Adding true resumable upload would require a reviewed transport/server-storage decision and is outside this safe loop.
 
@@ -78,12 +82,21 @@ Files:
 
 The inspector evidence workflow now:
 
-- stages optimized evidence locally before attempting server upload
+- stages the original captured file locally before optimization or server upload
 - shows local evidence rows with statuses such as "Saved on this device", "Waiting for connection", "Upload paused - will retry", and "Upload needs attention"
 - shows a pending local-upload count in the evidence surface
 - restores pending local evidence after page reload
 - retries queued evidence on app load, `online`, `focus`, and `visibilitychange`
 - replaces the local `local://offline-evidence/...` row with the persisted server document after acknowledgement
+
+The exact foreground sequence is:
+
+1. Browser returns a camera or Camera Roll `File`.
+2. Vero creates `localEvidenceId` and an idempotency key.
+3. Vero saves the original `File` and metadata to IndexedDB.
+4. The UI shows "Saved on this device" and exits the camera/upload spinner.
+5. Optimization and upload continue in the background.
+6. The local row is replaced only after server storage and document metadata are acknowledged.
 
 Preview/demo behavior remains unchanged.
 

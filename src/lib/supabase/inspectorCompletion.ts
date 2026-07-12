@@ -140,7 +140,7 @@ export interface InspectorCompletionDocumentRow {
   /** Blob URL for inline preview — client-only, never persisted to DB. */
   previewUrl?: string
   /** Client-only offline queue status for locally staged inspector evidence. */
-  offlineSyncStatus?: 'optimizing' | 'saved_local' | 'waiting_for_connection' | 'uploading' | 'uploaded' | 'retry_scheduled' | 'needs_attention'
+  offlineSyncStatus?: 'saving_local' | 'optimizing' | 'saved_local' | 'waiting_for_connection' | 'uploading' | 'uploaded' | 'retry_scheduled' | 'needs_attention'
   /** Client-only sync status label for locally staged inspector evidence. */
   offlineSyncMessage?: string
 }

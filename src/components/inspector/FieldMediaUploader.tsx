@@ -395,8 +395,8 @@ export function FieldMediaUploader({
       })
 
       setStatus(location.latitude !== null && location.longitude !== null
-        ? 'Capture saved with GPS coordinates.'
-        : 'Capture saved without GPS coordinates.')
+        ? 'Saved on this device with GPS coordinates.'
+        : 'Saved on this device without GPS coordinates.')
       if (source === 'text') {
         setTextComposerOpen(false)
       }

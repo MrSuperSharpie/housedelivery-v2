@@ -74,6 +74,7 @@ import {
   listPendingInspectorEvidenceDocuments,
   localEvidenceIdFromStoragePath,
   offlineEvidenceStatusLabel,
+  optimizeAndSyncInspectorEvidence,
   registerInspectorEvidenceResumeHandlers,
   stageInspectorEvidenceForUpload,
   syncInspectorEvidenceQueue,
@@ -1254,20 +1255,28 @@ export function InspectorCompletionWorkspace() {
   const activeUser = user
 
   function applyOfflineEvidenceSyncResults(results: Awaited<ReturnType<typeof syncInspectorEvidenceQueue>>) {
-    const uploaded = results.filter(result => result.status === 'uploaded' && result.serverDocument)
-    if (uploaded.length === 0) return
-
+    if (results.length === 0) return
     setItems(currentItems => currentItems.map(item => {
       let changed = false
       const nextDocuments = item.documents.map(doc => {
-        const match = uploaded.find(result => result.localEvidenceId === doc.id)
-        if (!match?.serverDocument) return doc
+        const match = results.find(result => result.localEvidenceId === doc.id)
+        if (!match) return doc
+        if (match.status === 'uploaded' && match.serverDocument) {
+          changed = true
+          return doc.previewUrl ? { ...match.serverDocument, previewUrl: doc.previewUrl } : match.serverDocument
+        }
         changed = true
-        return doc.previewUrl ? { ...match.serverDocument, previewUrl: doc.previewUrl } : match.serverDocument
+        return {
+          ...doc,
+          offlineSyncStatus: match.status,
+          offlineSyncMessage: offlineEvidenceStatusLabel(match.status),
+        }
       })
       return changed ? { ...item, documents: nextDocuments } : item
     }))
-    setLastSavedLabel('Offline evidence synced')
+    if (results.some(result => result.status === 'uploaded')) {
+      setLastSavedLabel('Offline evidence synced')
+    }
   }
 
   function reportPersistenceFailure(message: string, details?: unknown, options?: { alert?: boolean }) {
@@ -2463,8 +2472,7 @@ export function InspectorCompletionWorkspace() {
       return docWithPreview
     }
 
-    setLastSavedLabel('Optimizing evidence…')
-    const sessionInspector = await getAuthenticatedInspectorIdentity({ alertOnFailure: false })
+    setLastSavedLabel('Saving evidence on this device…')
     const staged = await stageInspectorEvidenceForUpload({
       reportId: report.id,
       assignmentId: assignment.id,
@@ -2472,7 +2480,7 @@ export function InspectorCompletionWorkspace() {
       stageId: String(currentStage),
       checklistItemId: itemCode,
       inspectorUserId: activeUser.supabaseId ?? activeUser.id,
-      uploadedBy: sessionInspector?.id,
+      uploadedBy: activeUser.supabaseId ?? activeUser.id,
       file,
       capture,
       jobId: job?.id,
@@ -2483,48 +2491,13 @@ export function InspectorCompletionWorkspace() {
 
     const localDoc = createLocalDocumentFromEvidence(staged.record, effectivePreviewUrl)
     updateItem(itemCode, item => ({ ...item, documents: [...item.documents, localDoc] }))
+    setLastSavedLabel('Saved on this device')
 
-    if (!sessionInspector) {
-      console.warn('[Vero] handleDocumentUpload — no session, evidence saved locally and marked needs-attention')
-      setLastSavedLabel('Saved on this device — sign in to sync')
-      return localDoc
-    }
-
-    setLastSavedLabel('Saved on this device — syncing')
-    const results = await syncInspectorEvidenceQueue({
+    void optimizeAndSyncInspectorEvidence({
       assignmentId: assignment.id,
       localEvidenceId: staged.record.localEvidenceId,
-    })
-    const uploaded = results.find(result => result.localEvidenceId === staged.record.localEvidenceId && result.serverDocument)
-    if (!uploaded?.serverDocument) {
-      const nextStatus = results.find(result => result.localEvidenceId === staged.record.localEvidenceId)?.status
-      updateItem(itemCode, item => ({
-        ...item,
-        documents: item.documents.map(doc =>
-          doc.id === localDoc.id
-            ? {
-                ...doc,
-                offlineSyncStatus: nextStatus ?? 'retry_scheduled',
-                offlineSyncMessage: offlineEvidenceStatusLabel(nextStatus ?? 'retry_scheduled'),
-              }
-            : doc
-        ),
-      }))
-      setLastSavedLabel(nextStatus === 'waiting_for_connection'
-        ? 'Saved on this device — waiting for connection'
-        : 'Saved on this device — upload will retry')
-      return localDoc
-    }
-
-    const docWithPreview: InspectorCompletionDocumentRow = effectivePreviewUrl
-      ? { ...uploaded.serverDocument, previewUrl: effectivePreviewUrl }
-      : uploaded.serverDocument
-    updateItem(itemCode, item => ({
-      ...item,
-      documents: item.documents.map(doc => doc.id === localDoc.id ? docWithPreview : doc),
-    }))
-    setLastSavedLabel('Evidence uploaded')
-    return docWithPreview
+    }).then(applyOfflineEvidenceSyncResults)
+    return localDoc
   }
 
   async function handleFieldEvidenceCapture(
