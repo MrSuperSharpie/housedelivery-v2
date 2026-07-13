@@ -6,10 +6,13 @@ const WORKSPACE = readFileSync(
   new URL('../components/inspector/InspectorCompletionWorkspace.tsx', import.meta.url),
   'utf8',
 )
+const GLOBALS = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8')
 
 test('tablet inspection workspace does not reserve a sidebar column when guide is closed', () => {
   assert.match(WORKSPACE, /flex flex-col gap-6 xl:flex-row xl:items-start/)
   assert.match(WORKSPACE, /block md:hidden xl:block/)
+  assert.match(WORKSPACE, /completion-shell/)
+  assert.match(WORKSPACE, /completion-main-workspace/)
   assert.doesNotMatch(WORKSPACE, /flex flex-col gap-6 lg:flex-row lg:items-start/)
   assert.doesNotMatch(WORKSPACE, /lg:w-\[300px\] lg:flex-none/)
 })
@@ -21,19 +24,36 @@ test('tablet inspection guide can open and close as a drawer', () => {
   assert.match(WORKSPACE, /onClick=\{\(\) => setTabletGuideOpen\(false\)\}/)
   assert.match(WORKSPACE, /aria-label="Close inspection guide"/)
   assert.match(WORKSPACE, /fixed inset-0 z-40 hidden bg-slate-950\/70/)
+  assert.match(WORKSPACE, /completion-guide-drawer-open/)
 })
 
 test('main inspection workspace expands on tablet while desktop sidebar remains sticky', () => {
-  assert.match(WORKSPACE, /<section className="space-y-5 xl:min-w-0 xl:flex-1">/)
+  assert.match(WORKSPACE, /<section className="completion-main-workspace space-y-5 xl:min-w-0 xl:flex-1">/)
   assert.match(WORKSPACE, /xl:w-\[300px\] xl:flex-none/)
   assert.match(WORKSPACE, /xl:sticky xl:top-4 xl:self-start/)
   assert.doesNotMatch(WORKSPACE, /<section className="space-y-5 lg:min-w-0 lg:flex-1">/)
 })
 
+test('wide touch-capable iPad uses drawer layout instead of xl sticky sidebar', () => {
+  assert.match(GLOBALS, /@media \(min-width: 768px\) and \(pointer: coarse\), \(min-width: 768px\) and \(hover: none\)/)
+  assert.match(GLOBALS, /\.completion-workspace \.completion-shell[\s\S]*flex-direction: column !important/)
+  assert.match(GLOBALS, /\.completion-workspace \.completion-tablet-guide-trigger[\s\S]*display: flex !important/)
+  assert.match(GLOBALS, /\.completion-workspace \.completion-sidebar:not\(\.completion-guide-drawer-open\)[\s\S]*display: none !important/)
+  assert.match(GLOBALS, /\.completion-workspace \.completion-sidebar\.completion-guide-drawer-open[\s\S]*position: fixed !important/)
+  assert.match(GLOBALS, /\.completion-workspace \.completion-main-workspace[\s\S]*width: 100% !important/)
+})
+
+test('wide fine-pointer desktop keeps the sticky sidebar contract', () => {
+  assert.match(WORKSPACE, /xl:flex-row xl:items-start/)
+  assert.match(WORKSPACE, /xl:w-\[300px\] xl:flex-none/)
+  assert.match(WORKSPACE, /xl:sticky xl:top-4 xl:self-start/)
+  assert.doesNotMatch(GLOBALS, /@media \(min-width: 768px\) and \(\(pointer: fine\), \(hover: hover\)\)[\s\S]*completion-sidebar[\s\S]*display: none/)
+})
+
 test('tablet guide toggle does not key or conditionally mount the inspection section', () => {
   assert.doesNotMatch(WORKSPACE, /key=\{tabletGuideOpen\}/)
   assert.doesNotMatch(WORKSPACE, /tabletGuideOpen \? <section/)
-  assert.match(WORKSPACE, /<section className="space-y-5 xl:min-w-0 xl:flex-1">/)
+  assert.match(WORKSPACE, /<section className="completion-main-workspace space-y-5 xl:min-w-0 xl:flex-1">/)
 })
 
 test('phone layout keeps the inline inspection guide and is not intentionally targeted', () => {

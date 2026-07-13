@@ -3743,12 +3743,12 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
             </div>
           </div>
         )}
-        <div className="flex flex-col gap-6 xl:flex-row xl:items-start">
+        <div className="completion-shell flex flex-col gap-6 xl:flex-row xl:items-start">
           <button
             type="button"
             onClick={() => setTabletGuideOpen(true)}
             aria-expanded={tabletGuideOpen}
-            className="hidden min-h-[48px] w-full items-center justify-between gap-3 rounded-2xl border border-rim/70 bg-[var(--color-panel)] px-4 py-3 text-left text-sm font-black text-[color:var(--color-ink)] shadow-sm md:flex xl:hidden"
+            className="completion-tablet-guide-trigger hidden min-h-[48px] w-full items-center justify-between gap-3 rounded-2xl border border-rim/70 bg-[var(--color-panel)] px-4 py-3 text-left text-sm font-black text-[color:var(--color-ink)] shadow-sm md:flex xl:hidden"
           >
             <span className="inline-flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-electric" />
@@ -3761,15 +3761,15 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
               type="button"
               aria-label="Close inspection guide"
               onClick={() => setTabletGuideOpen(false)}
-              className="fixed inset-0 z-40 hidden bg-slate-950/70 backdrop-blur-sm md:block xl:hidden"
+              className="completion-tablet-guide-backdrop fixed inset-0 z-40 hidden bg-slate-950/70 backdrop-blur-sm md:block xl:hidden"
             />
           )}
           <aside className={`completion-sidebar ${
             tabletGuideOpen
-              ? 'fixed inset-y-0 left-0 z-50 block w-[min(420px,calc(100vw-1rem))] overflow-y-auto rounded-r-[2rem] md:block xl:static xl:z-auto xl:w-[300px] xl:overflow-visible xl:rounded-[2rem]'
+              ? 'completion-guide-drawer-open fixed inset-y-0 left-0 z-50 block w-[min(420px,calc(100vw-1rem))] overflow-y-auto rounded-r-[2rem] md:block xl:static xl:z-auto xl:w-[300px] xl:overflow-visible xl:rounded-[2rem]'
               : 'block md:hidden xl:block'
           } rounded-[2rem] border border-white/10 bg-[var(--color-panel)] p-4 xl:w-[300px] xl:flex-none xl:h-auto xl:min-h-full xl:sticky xl:top-4 xl:self-start xl:max-h-none xl:overflow-visible ${FLOATING_PANEL_CLASS}`}>
-            <div className="mb-4 hidden items-center justify-between gap-3 md:flex xl:hidden">
+            <div className="completion-tablet-guide-header mb-4 hidden items-center justify-between gap-3 md:flex xl:hidden">
               <div>
                 <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-electric">Inspection guide</div>
                 <div className="mt-1 text-xs text-muted">Project details and phase map</div>
@@ -3960,7 +3960,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
             </div>
           </aside>
 
-          <section className="space-y-5 xl:min-w-0 xl:flex-1">
+          <section className="completion-main-workspace space-y-5 xl:min-w-0 xl:flex-1">
             <div className={`rounded-[2rem] border border-white/10 bg-[var(--color-panel)] p-5 ${FLOATING_PANEL_CLASS}`}>
               <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                 <div>
