@@ -928,33 +928,41 @@ html[data-theme='light'] .app-theme-scope {
 
   @media (min-width: 768px) and (pointer: coarse), (min-width: 768px) and (hover: none) {
     :is(.admin-theme-scope, .app-theme-scope) .completion-workspace .completion-shell {
-      align-items: stretch !important;
-      flex-direction: column !important;
+      align-items: flex-start !important;
+      flex-direction: row !important;
+      gap: 0.75rem !important;
+      overflow-x: clip !important;
     }
 
-    :is(.admin-theme-scope, .app-theme-scope) .completion-workspace .completion-tablet-guide-trigger {
+    :is(.admin-theme-scope, .app-theme-scope) .completion-workspace .completion-tablet-guide-rail {
       display: flex !important;
+      flex: 0 0 3rem !important;
+      position: sticky !important;
+      top: 1rem !important;
+      width: 3rem !important;
     }
 
-    :is(.admin-theme-scope, .app-theme-scope) .completion-workspace .completion-sidebar:not(.completion-guide-drawer-open) {
+    :is(.admin-theme-scope, .app-theme-scope) .completion-workspace .completion-tablet-guide-rail[aria-expanded='true'] {
       display: none !important;
     }
 
-    :is(.admin-theme-scope, .app-theme-scope) .completion-workspace .completion-sidebar.completion-guide-drawer-open {
-      border-radius: 0 2rem 2rem 0 !important;
-      bottom: 0 !important;
-      display: block !important;
-      left: 0 !important;
-      max-height: none !important;
-      overflow-y: auto !important;
-      position: fixed !important;
-      top: 0 !important;
-      width: min(420px, calc(100vw - 1rem)) !important;
-      z-index: 50 !important;
+    :is(.admin-theme-scope, .app-theme-scope) .completion-workspace .completion-sidebar:not(.completion-guide-panel-open) {
+      display: none !important;
     }
 
-    :is(.admin-theme-scope, .app-theme-scope) .completion-workspace .completion-tablet-guide-backdrop {
+    :is(.admin-theme-scope, .app-theme-scope) .completion-workspace .completion-sidebar.completion-guide-panel-open {
+      align-self: flex-start !important;
+      border-radius: 2rem !important;
       display: block !important;
+      flex: 0 0 clamp(280px, 34vw, 360px) !important;
+      max-height: calc(100dvh - 2rem) !important;
+      max-width: 360px !important;
+      min-width: 0 !important;
+      overflow-y: auto !important;
+      position: sticky !important;
+      top: 1rem !important;
+      width: clamp(280px, 34vw, 360px) !important;
+      z-index: auto !important;
     }
 
     :is(.admin-theme-scope, .app-theme-scope) .completion-workspace .completion-tablet-guide-header {
@@ -963,8 +971,22 @@ html[data-theme='light'] .app-theme-scope {
 
     :is(.admin-theme-scope, .app-theme-scope) .completion-workspace .completion-main-workspace {
       flex: 1 1 auto !important;
+      max-width: 100% !important;
       min-width: 0 !important;
-      width: 100% !important;
+      width: auto !important;
+    }
+  }
+
+  @media (min-width: 768px) and (max-width: 900px) and (pointer: coarse), (min-width: 768px) and (max-width: 900px) and (hover: none) {
+    :is(.admin-theme-scope, .app-theme-scope) .completion-workspace .completion-tablet-guide-rail {
+      flex-basis: 2.75rem !important;
+      width: 2.75rem !important;
+    }
+
+    :is(.admin-theme-scope, .app-theme-scope) .completion-workspace .completion-sidebar.completion-guide-panel-open {
+      flex-basis: min(42vw, 320px) !important;
+      max-width: 320px !important;
+      width: min(42vw, 320px) !important;
     }
   }
 
