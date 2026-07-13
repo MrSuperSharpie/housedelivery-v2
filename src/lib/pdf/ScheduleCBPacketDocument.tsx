@@ -359,6 +359,21 @@ const PRINT_CSS = `
     color: #14532d;
   }
 
+  .status-badge-result-label {
+    margin-top: 8px;
+    font-size: 9px;
+    line-height: 1.2;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #14532d;
+  }
+
+  .status-badge-result-label + .status-badge-outcome {
+    margin-top: 3px;
+    font-size: 20px;
+  }
+
   .status-badge.review-required .status-badge-outcome {
     color: #7f1d1d;
   }
@@ -628,6 +643,7 @@ function formatItemCountLabel(count: number): string {
 function buildCoverStatusBadge(data: ScheduleCBPacketData): {
   tone: 'passed' | 'review-required' | 'incomplete' | 'neutral'
   kicker: string
+  resultLabel?: string
   outcome: string
   detail: string
 } {
@@ -649,6 +665,16 @@ function buildCoverStatusBadge(data: ScheduleCBPacketData): {
     summary.pendingCount === 0 &&
     summary.naCount === 0
   ) {
+    if (data.usesNamedInspectorPassWording) {
+      return {
+        tone: 'passed',
+        kicker: '',
+        resultLabel: 'NAMED INSPECTOR RESULT',
+        outcome: 'PASS',
+        detail: `${summary.passCount} OF ${summary.totalCount} VERO CHECKLIST ITEMS MARKED PASS`,
+      }
+    }
+
     return {
       tone: 'passed',
       kicker: 'STAGE COMPLETE',
@@ -814,7 +840,12 @@ function CoverPage({ data }: { data: ScheduleCBPacketData }) {
                   ) : null}
                 </div>
                 <div className={statusBadgeClassName} aria-label="Platform inspection outcome">
-                  <div className="status-badge-kicker">{statusBadge.kicker}</div>
+                  {statusBadge.kicker ? (
+                    <div className="status-badge-kicker">{statusBadge.kicker}</div>
+                  ) : null}
+                  {statusBadge.resultLabel ? (
+                    <div className="status-badge-result-label">{statusBadge.resultLabel}</div>
+                  ) : null}
                   <div className="status-badge-outcome">{statusBadge.outcome}</div>
                   <div className="status-badge-detail">{statusBadge.detail}</div>
                 </div>

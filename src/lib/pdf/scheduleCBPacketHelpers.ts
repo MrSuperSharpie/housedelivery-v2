@@ -11,6 +11,7 @@ import type {
 } from './scheduleCBPacketTypes'
 
 export const APPENDIX_PAGE_SIZE = 4
+const FINAL_OCCUPANCY_STAGE_NUMBER = 15
 
 interface StageSignOffPayload {
   stageNumber?: number
@@ -352,6 +353,7 @@ export function buildScheduleCBPacketData(source: ScheduleCBPacketSource): Sched
   const report = source.report
   const exportMode = source.exportMode ?? 'platform_preview'
   const isAuthority = exportMode === 'authority_facing'
+  const packetScopeMode = source.packetScope?.mode ?? 'stage_level'
 
   const rawHoldHistory = Array.isArray(report.sealPayload.holdHistory)
     ? (report.sealPayload.holdHistory as unknown[])
@@ -382,21 +384,33 @@ export function buildScheduleCBPacketData(source: ScheduleCBPacketSource): Sched
   // items (all Pending, or no items at all). A 'pass' outcome is only valid
   // when at least one item was explicitly reviewed and none failed.
   const rawResult = String(report.sealPayload.overallResult ?? 'pass')
-  const reviewedCount = checklistSummary.passCount + checklistSummary.failCount + checklistSummary.naCount
   const overallResult: string = (() => {
     if (rawResult !== 'pass') return rawResult
     // Only downgrade a 'pass' claim when explicit failures exist.
-    // reviewedCount === 0 alone does not justify a 'fail' — a sealed inspection
+    // Zero reviewed items alone does not justify a 'fail' — a sealed inspection
     // with all-Pending items (e.g. status not persisted before sealing) should not
     // produce a misleading 'fail' outcome on a legitimate sealed record.
     if (checklistSummary.failCount > 0) return 'fail'
     return 'pass'
   })()
 
+  const usesNamedInspectorPassWording =
+    exportMode === 'platform_preview' &&
+    packetScopeMode === 'stage_level' &&
+    report.currentStage < FINAL_OCCUPANCY_STAGE_NUMBER &&
+    overallResult === 'pass' &&
+    checklistSummary.hasData &&
+    checklistSummary.passCount === checklistSummary.totalCount &&
+    checklistSummary.failCount === 0 &&
+    checklistSummary.pendingCount === 0 &&
+    checklistSummary.naCount === 0
+
   const complianceTone = overallResult === 'fail' ? 'review_required' : 'compliant'
   const complianceBlockLabel = isAuthority
     ? (complianceTone === 'compliant' ? 'SEALED & COMPLIANT' : 'SEALED & REVIEW REQUIRED')
-    : (complianceTone === 'compliant' ? 'STAGE COMPLETE' : 'STAGE REVIEW REQUIRED')
+    : (complianceTone === 'compliant'
+        ? (usesNamedInspectorPassWording ? 'FIELD REVIEW COMPLETE' : 'STAGE COMPLETE')
+        : 'STAGE REVIEW REQUIRED')
 
   // ─── Mode-switched display labels ──────────────────────────────────────────
   const coverEyebrow = isAuthority ? 'Vero Permit · Municipal Audit Packet' : 'Vero Permit · Platform Record'
@@ -498,6 +512,8 @@ export function buildScheduleCBPacketData(source: ScheduleCBPacketSource): Sched
     complianceBlockLabel,
     complianceTone,
     exportMode,
+    packetScopeMode,
+    usesNamedInspectorPassWording,
     documentCount: scopedDocuments.length,
     checklistSummary,
     coverEyebrow,
