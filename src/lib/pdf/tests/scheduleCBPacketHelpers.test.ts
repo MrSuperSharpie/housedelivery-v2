@@ -18,6 +18,7 @@ import {
   toDisplayFileKind,
 } from '../scheduleCBPacketHelpers'
 import { SAMPLE_SCHEDULE_CB_PACKET_SOURCE } from '../scheduleCBPacketFixtures'
+import type { ScheduleCBPacketSource } from '../scheduleCBPacketTypes'
 
 // ─── Hold history test fixtures ───────────────────────────────────────────────
 
@@ -26,6 +27,50 @@ function renderPacketSection(
   section: 'cover' | 'trail',
 ): string {
   return renderToStaticMarkup(React.createElement(ScheduleCBPacketDocument, { data, section }))
+}
+
+function makePassingPreS15Source(
+  exportMode: 'platform_preview' | 'authority_facing' = 'platform_preview',
+  packetScopeMode: 'stage_level' | 'full_project' = 'stage_level',
+): ScheduleCBPacketSource {
+  return {
+    ...SAMPLE_SCHEDULE_CB_PACKET_SOURCE,
+    exportMode,
+    report: {
+      ...SAMPLE_SCHEDULE_CB_PACKET_SOURCE.report,
+      currentStage: 5,
+      status: 'submitted',
+      sealPayload: {
+        ...SAMPLE_SCHEDULE_CB_PACKET_SOURCE.report.sealPayload,
+        overallResult: 'pass',
+        stageSignOffs: {
+          '5': {
+            stageNumber: 5,
+            signedAt: '2026-04-11T16:21:00.000Z',
+            latitude: 49.282732,
+            longitude: -123.110471,
+          },
+        },
+      },
+    },
+    packetScope: {
+      mode: packetScopeMode,
+      stageNumbers: [5],
+    },
+    builderStage: {
+      number: 2,
+      label: 'Foundation Pour',
+      total: 7,
+    },
+    items: Array.from({ length: 4 }, (_, index) => ({
+      itemCode: `S05-0${index + 1}`,
+      itemLabel: `Foundation checklist item ${index + 1}`,
+      stageNumber: 5,
+      stageName: 'Footings, Foundation, and Slab',
+      inspectionStatus: 'Passed' as const,
+    })),
+    documents: [],
+  }
 }
 
 const SAMPLE_HOLD_PAYLOAD = {
@@ -289,7 +334,7 @@ test('full project packet scope can include multiple signed stages without dupli
   assert.equal(packet.summary.checklistScopeLabel, 'Checklist Scope: Signed stages S01, S05, S15')
 })
 
-test('Stage 2/S05 packet displays builder Stage 2 and checklist S05 while keeping S05 item scope', () => {
+test('authority-facing Stage 2/S05 packet keeps its existing cover wording and S05 item scope', () => {
   const source = {
     ...SAMPLE_SCHEDULE_CB_PACKET_SOURCE,
     report: {
@@ -368,6 +413,8 @@ test('Stage 2/S05 packet displays builder Stage 2 and checklist S05 while keepin
 
   const packet = buildScheduleCBPacketData(source)
 
+  assert.equal(packet.exportMode, 'authority_facing')
+  assert.equal(packet.packetScopeMode, 'stage_level')
   assert.equal(packet.summary.stageStatusLabel, 'Builder Stage 2 of 7 — Foundation Pour')
   assert.equal(packet.summary.checklistScopeLabel, 'Checklist Scope: S05 — Footings, Foundation, and Slab')
   assert.equal(packet.auditTrail.coordinatesSource, 'Checklist S05 sign-off')
@@ -391,6 +438,68 @@ test('Stage 2/S05 packet displays builder Stage 2 and checklist S05 while keepin
     !packet.appendixEntries[0]?.requirementReference.includes('Stage 5'),
     'S05 evidence appendix requirement labels must not use ambiguous Stage 5 wording',
   )
+})
+
+test('passing pre-S15 platform stage record attributes Pass to the named inspector', () => {
+  const packet = buildScheduleCBPacketData(makePassingPreS15Source())
+  const coverHtml = renderPacketSection(packet, 'cover')
+
+  assert.equal(packet.exportMode, 'platform_preview')
+  assert.equal(packet.packetScopeMode, 'stage_level')
+  assert.equal(packet.summary.currentStage, 5)
+  assert.equal(packet.complianceBlockLabel, 'FIELD REVIEW COMPLETE')
+  assert.equal(packet.usesNamedInspectorPassWording, true)
+  assert.match(coverHtml, /FIELD REVIEW COMPLETE/)
+  assert.equal(coverHtml.match(/FIELD REVIEW COMPLETE/g)?.length, 1)
+  assert.match(coverHtml, /NAMED INSPECTOR RESULT/)
+  assert.match(coverHtml, /<div class="status-badge-outcome">PASS<\/div>/)
+  assert.match(coverHtml, /4 OF 4 VERO CHECKLIST ITEMS MARKED PASS/)
+  assert.doesNotMatch(coverHtml, /INSPECTION PASSED/)
+  assert.match(coverHtml, /not a building permit, occupancy authorization, authority decision/)
+  assert.match(coverHtml, /not a professionally sealed document/)
+})
+
+test('S15 platform record keeps the existing final-package cover wording', () => {
+  const source: ScheduleCBPacketSource = {
+    ...SAMPLE_SCHEDULE_CB_PACKET_SOURCE,
+    exportMode: 'platform_preview',
+    packetScope: {
+      mode: 'stage_level',
+      stageNumbers: [15],
+    },
+  }
+  const packet = buildScheduleCBPacketData(source)
+  const coverHtml = renderPacketSection(packet, 'cover')
+
+  assert.equal(packet.summary.currentStage, 15)
+  assert.match(coverHtml, /STAGE COMPLETE/)
+  assert.match(coverHtml, /INSPECTION PASSED/)
+  assert.match(coverHtml, /2 OF 2 ITEMS PASSED/)
+  assert.doesNotMatch(coverHtml, /FIELD REVIEW COMPLETE|NAMED INSPECTOR RESULT/)
+})
+
+test('full-project platform packet keeps the existing final-package cover wording', () => {
+  const packet = buildScheduleCBPacketData(makePassingPreS15Source('platform_preview', 'full_project'))
+  const coverHtml = renderPacketSection(packet, 'cover')
+
+  assert.equal(packet.packetScopeMode, 'full_project')
+  assert.match(coverHtml, /STAGE COMPLETE/)
+  assert.match(coverHtml, /INSPECTION PASSED/)
+  assert.match(coverHtml, /4 OF 4 ITEMS PASSED/)
+  assert.doesNotMatch(coverHtml, /FIELD REVIEW COMPLETE|NAMED INSPECTOR RESULT/)
+})
+
+test('authority-facing passing packet keeps its existing assurance cover wording', () => {
+  const packet = buildScheduleCBPacketData(makePassingPreS15Source('authority_facing'))
+  const coverHtml = renderPacketSection(packet, 'cover')
+
+  assert.equal(packet.documentTitle, 'Schedule C-B Assurance of Professional Field Review')
+  assert.equal(packet.certificationStatusLabel, 'Certification Status')
+  assert.equal(packet.complianceBlockLabel, 'SEALED & COMPLIANT')
+  assert.match(coverHtml, /STAGE COMPLETE/)
+  assert.match(coverHtml, /INSPECTION PASSED/)
+  assert.match(coverHtml, /4 OF 4 ITEMS PASSED/)
+  assert.doesNotMatch(coverHtml, /FIELD REVIEW COMPLETE|NAMED INSPECTOR RESULT/)
 })
 
 test('cover status badge does not claim Inspection Passed for failed or mixed results', () => {
@@ -446,15 +555,62 @@ test('cover status badge does not claim Inspection Passed for failed or mixed re
   assert.match(coverHtml, /1 PASSED · 1 FAILED \(2 ITEMS\)/)
 })
 
+test('failed, mixed, pending, and hold records never show the named-inspector Pass outcome', () => {
+  const cases: Array<{
+    name: string
+    overallResult: string
+    statuses: Array<'Passed' | 'Failed' | 'Pending'>
+  }> = [
+    { name: 'failed', overallResult: 'fail', statuses: ['Failed', 'Failed'] },
+    { name: 'mixed', overallResult: 'pass', statuses: ['Passed', 'Failed'] },
+    { name: 'pending', overallResult: 'pass', statuses: ['Pending', 'Pending'] },
+    { name: 'hold', overallResult: 'hold', statuses: ['Passed', 'Passed'] },
+  ]
+
+  for (const testCase of cases) {
+    const base = makePassingPreS15Source()
+    const source: ScheduleCBPacketSource = {
+      ...base,
+      report: {
+        ...base.report,
+        sealPayload: {
+          ...base.report.sealPayload,
+          overallResult: testCase.overallResult,
+        },
+      },
+      items: testCase.statuses.map((inspectionStatus, index) => ({
+        itemCode: `S05-0${index + 1}`,
+        itemLabel: `${testCase.name} checklist item ${index + 1}`,
+        stageNumber: 5,
+        stageName: 'Footings, Foundation, and Slab',
+        inspectionStatus,
+      })),
+    }
+    const coverHtml = renderPacketSection(buildScheduleCBPacketData(source), 'cover')
+
+    assert.doesNotMatch(coverHtml, /NAMED INSPECTOR RESULT/, `${testCase.name} must not show the Pass result label`)
+    assert.doesNotMatch(
+      coverHtml,
+      /<div class="status-badge-outcome">PASS<\/div>/,
+      `${testCase.name} must not show Pass as the prominent outcome`,
+    )
+    assert.doesNotMatch(coverHtml, /INSPECTION PASSED/, `${testCase.name} must not claim inspection passed`)
+  }
+})
+
 test('platform status badge is confined to the cover wrapper, not the audit trail or statutory form generator', () => {
   const packet = buildScheduleCBPacketData(SAMPLE_SCHEDULE_CB_PACKET_SOURCE)
   const trailHtml = renderPacketSection(packet, 'trail')
   const statutoryGeneratorSource = readFileSync('src/lib/pdf/scheduleCBGenerator.ts', 'utf8')
 
   assert.doesNotMatch(trailHtml, /INSPECTION PASSED/)
+  assert.doesNotMatch(trailHtml, /FIELD REVIEW COMPLETE|NAMED INSPECTOR RESULT/)
   assert.doesNotMatch(trailHtml, /Platform inspection outcome/)
   assert.doesNotMatch(trailHtml, /STAGE COMPLETE/)
-  assert.doesNotMatch(statutoryGeneratorSource, /INSPECTION PASSED|STAGE COMPLETE|status-badge/)
+  assert.doesNotMatch(
+    statutoryGeneratorSource,
+    /INSPECTION PASSED|STAGE COMPLETE|FIELD REVIEW COMPLETE|NAMED INSPECTOR RESULT|VERO CHECKLIST ITEMS MARKED PASS|status-badge/,
+  )
 })
 
 test('Stage 3 discipline override packet preserves internal checklist code while showing builder Stage 3', () => {

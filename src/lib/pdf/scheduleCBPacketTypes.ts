@@ -140,6 +140,8 @@ export interface ScheduleCBPacketData {
   complianceTone: 'compliant' | 'review_required'
   // Export mode and mode-switched display strings (all computed in buildScheduleCBPacketData)
   exportMode: 'platform_preview' | 'authority_facing'
+  packetScopeMode: 'stage_level' | 'full_project'
+  usesNamedInspectorPassWording: boolean
   documentCount: number
   checklistSummary: ChecklistSummary
   coverEyebrow: string
