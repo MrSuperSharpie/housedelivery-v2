@@ -1259,6 +1259,7 @@ export function InspectorCompletionWorkspace() {
   const [assignmentCloseRetrying, setAssignmentCloseRetrying] = useState(false)
   const [stageSignOffError, setStageSignOffError] = useState<string | null>(null)
   const [projectOverviewOpen, setProjectOverviewOpen] = useState(true)
+  const [tabletGuideOpen, setTabletGuideOpen] = useState(false)
   const [stageTransitionHandshake, setStageTransitionHandshake] = useState<StageTransitionHandshake | null>(null)
   const [pendingStageTransitionHandshake, setPendingStageTransitionHandshake] = useState<StageTransitionHandshake | null>(null)
   const [showStageSuccessBanner, setShowStageSuccessBanner] = useState(false)
@@ -1810,6 +1811,17 @@ export function InspectorCompletionWorkspace() {
     panel.scrollIntoView({ behavior: 'smooth', block: 'start' })
     panel.focus({ preventScroll: true })
   }, [assignmentScopeComplete, isFinalOccupancyStage])
+
+  useEffect(() => {
+    if (!tabletGuideOpen) return
+
+    function closeTabletGuideOnEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') setTabletGuideOpen(false)
+    }
+
+    window.addEventListener('keydown', closeTabletGuideOnEscape)
+    return () => window.removeEventListener('keydown', closeTabletGuideOnEscape)
+  }, [tabletGuideOpen])
 
   useEffect(() => {
     async function loadWorkspace() {
@@ -3731,8 +3743,40 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
             </div>
           </div>
         )}
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-          <aside className={`completion-sidebar rounded-[2rem] border border-white/10 bg-[var(--color-panel)] p-4 lg:w-[300px] lg:flex-none lg:h-auto lg:min-h-full lg:sticky lg:top-4 lg:self-start lg:max-h-none lg:overflow-visible ${FLOATING_PANEL_CLASS}`}>
+        <div className="completion-shell flex flex-col gap-6 xl:flex-row xl:items-start">
+          <button
+            type="button"
+            onClick={() => setTabletGuideOpen((open) => !open)}
+            aria-expanded={tabletGuideOpen}
+            aria-controls="inspection-guide-panel"
+            className="completion-tablet-guide-rail hidden min-h-[64px] w-12 shrink-0 flex-col items-center justify-center gap-2 rounded-2xl border border-rim/70 bg-[var(--color-panel)] px-2 py-3 text-center text-[10px] font-black uppercase tracking-[0.14em] text-[color:var(--color-ink)] shadow-sm md:flex xl:hidden"
+            title="Open inspection guide"
+          >
+            <ShieldCheck className="h-4 w-4 text-electric" aria-hidden="true" />
+            <span className="sr-only">Open inspection guide</span>
+            <span aria-hidden="true" className="[writing-mode:vertical-rl] rotate-180">
+              Inspection Guide
+            </span>
+          </button>
+          <aside id="inspection-guide-panel" aria-label="Inspection guide" className={`completion-sidebar ${
+            tabletGuideOpen
+              ? 'completion-guide-panel-open block w-full md:block md:w-[min(34vw,360px)] md:min-w-[280px] md:max-w-[360px] md:flex-none xl:w-[300px] xl:min-w-0 xl:max-w-none'
+              : 'block md:hidden xl:block'
+          } rounded-[2rem] border border-white/10 bg-[var(--color-panel)] p-4 xl:w-[300px] xl:flex-none xl:h-auto xl:min-h-full xl:sticky xl:top-4 xl:self-start xl:max-h-none xl:overflow-visible ${FLOATING_PANEL_CLASS}`}>
+            <div className="completion-tablet-guide-header mb-4 hidden items-center justify-between gap-3 md:flex xl:hidden">
+              <div>
+                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-electric">Inspection guide</div>
+                <div className="mt-1 text-xs text-muted">Project details and phase map</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setTabletGuideOpen(false)}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-rim/70 bg-white/5 text-zinc-200 transition-colors hover:bg-white/10"
+                aria-label="Close inspection guide"
+              >
+                <XCircle className="h-5 w-5" />
+              </button>
+            </div>
             {previewMode && (
               <div className="mb-4 rounded-2xl border border-slate-500/40 bg-[repeating-linear-gradient(135deg,rgba(51,65,85,0.9)_0,rgba(51,65,85,0.9)_12px,rgba(71,85,105,0.88)_12px,rgba(71,85,105,0.88)_24px)] px-4 py-3 text-xs font-bold uppercase tracking-[0.18em] text-slate-100 shadow-[0_10px_20px_rgba(15,23,42,0.2)]">
                 Dev Preview Only
@@ -3857,7 +3901,10 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                               type="button"
                               disabled={!isClickable}
                               onClick={() => {
-                                if (isClickable) navigateToStage(stage.stage_number)
+                                if (isClickable) {
+                                  navigateToStage(stage.stage_number)
+                                  setTabletGuideOpen(false)
+                                }
                               }}
                               className={`w-full rounded-2xl border p-3 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${containerClass} ${isCurrent ? 'ring-1 ring-[#C6A15B]/60' : ''}`}
                             >
@@ -3907,7 +3954,7 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
             </div>
           </aside>
 
-          <section className="space-y-5 lg:min-w-0 lg:flex-1">
+          <section className="completion-main-workspace space-y-5 xl:min-w-0 xl:flex-1">
             <div className={`rounded-[2rem] border border-white/10 bg-[var(--color-panel)] p-5 ${FLOATING_PANEL_CLASS}`}>
               <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                 <div>
