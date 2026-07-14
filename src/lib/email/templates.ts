@@ -9,6 +9,10 @@ import type {
 const footerText =
   'This is an operational notification from Vero Permit about your account, inspection request, or project record. If you believe you received this in error, contact admin@veropermit.com.'
 
+export const VERO_EMAIL_LOGO_URL = 'https://veropermit.com/vero-permit-dark.png'
+export const VERO_EMAIL_LOGO_WIDTH = 176
+export const VERO_EMAIL_LOGO_HEIGHT = 88
+
 const templates: Record<VeroEmailEventKey, (context: VeroEmailTemplateContext) => VeroEmailTemplateContent> = {
   'inspector.application_submitted': context => ({
     subject: 'Your Vero Permit inspector application was received',
@@ -347,8 +351,19 @@ function renderHtml(
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#ffffff;border-radius:14px;overflow:hidden;border:1px solid #dbe3ef;">
             <tr>
               <td style="background:#0a192f;padding:26px 30px;">
-                <p style="margin:0;color:#f97316;font-size:13px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;">Vero Permit</p>
-                <p style="margin:8px 0 0;color:#cbd5e1;font-size:13px;line-height:1.5;">Operational project and account notification</p>
+                <table role="presentation" cellspacing="0" cellpadding="0">
+                  <tr>
+                    <td>
+                      <img src="${VERO_EMAIL_LOGO_URL}" width="${VERO_EMAIL_LOGO_WIDTH}" height="${VERO_EMAIL_LOGO_HEIGHT}" alt="Vero Permit" style="display:block;width:${VERO_EMAIL_LOGO_WIDTH}px;max-width:100%;height:auto;border:0;outline:none;text-decoration:none;color:#ffffff;font-size:15px;font-weight:700;line-height:1.3;">
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding-top:10px;">
+                      <p style="margin:0;color:#f97316;font-size:13px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;">Vero Permit</p>
+                      <p style="margin:6px 0 0;color:#cbd5e1;font-size:13px;line-height:1.5;">Operational project and account notification</p>
+                    </td>
+                  </tr>
+                </table>
               </td>
             </tr>
             <tr>
