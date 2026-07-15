@@ -1,4 +1,5 @@
 import type { Region } from '@/lib/types'
+import type { CompletionRegulatoryProfileBridge } from '@/lib/regulatory/types'
 
 export type CompletionResponsibleParty = 'Builder' | 'Inspector' | 'Auditor' | 'AHJ'
 export type CompletionInspectionStatus = 'Pending' | 'Passed' | 'Failed' | 'N/A'
@@ -18,6 +19,8 @@ export interface CompletionProjectContext {
   projectType?: string
   notes?: string
   region?: string
+  /** Reserved for a future governed resolver; intentionally unused by Phase 1A. */
+  regulatoryProfile?: CompletionRegulatoryProfileBridge
 }
 
 export interface AhjOverlayContext {

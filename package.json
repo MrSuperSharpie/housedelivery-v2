@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx --test src/lib/*.test.ts src/lib/claim/*.test.ts src/lib/governance/*.test.ts src/lib/holds/*.test.ts src/lib/inspections/*.test.ts src/lib/pdf/tests/*.test.ts",
+    "test": "tsx --test src/lib/*.test.ts src/lib/claim/*.test.ts src/lib/governance/*.test.ts src/lib/holds/*.test.ts src/lib/inspections/*.test.ts src/lib/regulatory/*.test.ts src/lib/pdf/tests/*.test.ts",
     "check:imports": "rg -n \"from ['\\\"][^'\\\"]+\\.(ts|tsx)['\\\"]|import\\(['\\\"][^'\\\"]+\\.(ts|tsx)['\\\"]\\)|export .* from ['\\\"][^'\\\"]+\\.(ts|tsx)['\\\"]\" src",
     "pdf:install-browser": "playwright install chromium",
     "types:supabase": "npx supabase gen types typescript --project-id llbcoqdtuvbwamptzipo > src/types/supabase.ts"

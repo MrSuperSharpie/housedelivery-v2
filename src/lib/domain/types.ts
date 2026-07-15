@@ -1,3 +1,5 @@
+import type { ProjectRegulatoryProfile } from '@/lib/regulatory/types'
+
 /**
  * Vero Domain Model — Phase 1
  * Permit compliance operating system: doers, verifiers, authorities.
@@ -176,6 +178,8 @@ export interface Project {
   status: ProjectStatus
   createdAt: string
   updatedAt: string
+  /** Optional resolved legal context; Phase 1A does not change runtime routing. */
+  regulatoryProfile?: ProjectRegulatoryProfile
   metadata?: Record<string, unknown>
 }
 
