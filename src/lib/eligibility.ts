@@ -78,6 +78,23 @@ export function resolveClaimEligibleDisciplines(
 }
 
 /**
+ * Returns true if the inspector's resolved disciplines cover the job's required
+ * discipline. This is the single, shared discipline-coverage check used by both
+ * the claim flow and the Live Board — so approved Building Official / Plumbing
+ * Official / AHJ authority and Red Seal Plumber credentials (which resolve to
+ * `plumbing`) are recognised in one place, with no duplicate mapping.
+ */
+export function coversRequiredDiscipline(
+  requiredDiscipline: InspectorDiscipline,
+  inspectorDisciplines: readonly string[],
+  approvedRoleLanes: readonly InspectorRoleLane[] = [],
+): boolean {
+  const normalizedRequired = normalizeDiscipline(requiredDiscipline) ?? requiredDiscipline
+  return resolveClaimEligibleDisciplines(inspectorDisciplines, approvedRoleLanes)
+    .includes(normalizedRequired)
+}
+
+/**
  * Validates whether an inspector can be assigned to a job.
  *
  * Rules:

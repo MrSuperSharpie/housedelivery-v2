@@ -9,7 +9,7 @@ import type { DashboardNavGroup } from '@/components/shared/DashboardSidebar'
 import { JobCard } from '@/components/inspector/JobCard'
 import { HardPingProvider } from '@/components/inspector/HardPingProvider'
 import { ReliabilityTierDashboard } from '@/components/inspector/ReliabilityTierDashboard'
-import { checkInspectorEligibility, resolveClaimEligibleDisciplines } from '@/lib/eligibility'
+import { checkInspectorEligibility, coversRequiredDiscipline, resolveClaimEligibleDisciplines } from '@/lib/eligibility'
 import { formatCurrency } from '@/lib/utils'
 import { useAuth } from '@/lib/auth'
 import { useStore } from '@/lib/store'
@@ -983,10 +983,18 @@ export default function InspectorDashboard() {
         inspectorEligibility.credentialExpiryDate,
         inspectorEligibility.status as InspectorEligibilityProfile['status'] | null,
       )
+      // The authority list (RPC-backed inspector_verified_disciplines) is a
+      // fail-closed DB gate, but it must defer to the shared eligibility helper
+      // for discipline coverage. Approved Building Official / Plumbing Official /
+      // AHJ authority and Red Seal Plumber credentials resolve to `plumbing`
+      // there, so they stay eligible even when the RPC list omits the job.
+      // Unrelated credentials remain rejected because the shared helper already
+      // marks them ineligible above.
       if (
         user?.supabaseId &&
         authorityEligibleJobIds &&
-        !authorityEligibleJobIds.has(job.id)
+        !authorityEligibleJobIds.has(job.id) &&
+        !coversRequiredDiscipline(job.requiredDiscipline, inspectorEligibility.disciplines)
       ) {
         eligibility.eligible = false
         if (eligibility.reasons.length === 0) {
