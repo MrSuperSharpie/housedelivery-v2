@@ -3,30 +3,14 @@ import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
 import { isAdminLikeRole } from '@/lib/adminAccess'
 import { normalizeInspectorRoleLanes } from '@/lib/inspectorRoleLanes'
-import type { InspectorRoleLane } from '@/lib/types'
+import {
+  CLAIM_AUTHORITY_LANES,
+  matchesApprovedLane,
+  type CredentialTypeRow,
+  type HeldCredentialRow,
+} from '@/lib/credentialAuthoritySync'
 
 export const runtime = 'nodejs'
-
-type HeldCredentialRow = {
-  id: string
-  credential_type_id: string
-  verification_status: string
-}
-
-type CredentialTypeRow = {
-  id: string
-  authority_level: string
-  disciplines: string[]
-}
-
-const ELECTRICAL_FSR_CREDENTIALS = new Set(['fsr_class_a', 'fsr_class_b'])
-const CLAIM_AUTHORITY_LANES = new Set<InspectorRoleLane>([
-  'architect',
-  'engineer',
-  'certified_professional',
-  'electrical_fsr',
-  'official_authority',
-])
 
 function getServiceClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -40,22 +24,6 @@ function getServiceClient() {
       persistSession: false,
     },
   })
-}
-
-function matchesApprovedLane(
-  credential: HeldCredentialRow,
-  credentialType: CredentialTypeRow | undefined,
-  approvedLanes: InspectorRoleLane[],
-): boolean {
-  if (!credentialType) return false
-
-  return (
-    (approvedLanes.includes('architect') && credentialType.authority_level === 'architect') ||
-    (approvedLanes.includes('engineer') && credentialType.authority_level === 'professional_engineer') ||
-    (approvedLanes.includes('certified_professional') && credentialType.authority_level === 'certified_professional') ||
-    (approvedLanes.includes('electrical_fsr') && ELECTRICAL_FSR_CREDENTIALS.has(credential.credential_type_id)) ||
-    (approvedLanes.includes('official_authority') && credentialType.authority_level === 'municipal_official')
-  )
 }
 
 export async function POST(req: NextRequest) {
