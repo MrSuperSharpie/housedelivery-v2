@@ -18,7 +18,7 @@ import type {
   InspectorOnboardingStatus,
 } from './types'
 import type { TimeSlot } from '@/components/builder/SchedulingPicker'
-import { checkInspectorEligibility, type EligibilityResult } from './eligibility'
+import { checkInspectorEligibility, resolveClaimEligibleDisciplines, type EligibilityResult } from './eligibility'
 import { createClient } from '@/lib/supabase/client'
 const supabase = createClient()
 import { claimLiveJobIfEligible, insertJobOpportunity, listOpenJobOpportunities, updateApplicationStatus, updateJobStatus } from '@/lib/supabase/jobs'
@@ -790,7 +790,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       return { ok: false, error: 'Inspector eligibility profile not found. Complete onboarding or contact Vero.' }
     }
 
-    const inspectorDisciplines = persistedEligibility?.disciplines ?? input.inspectorDisciplines
+    const inspectorDisciplines = resolveClaimEligibleDisciplines(
+      persistedEligibility?.disciplines ?? input.inspectorDisciplines,
+      persistedEligibility?.approvedRoleLanes,
+    )
     const inspectorRegions = persistedEligibility?.regions ?? input.inspectorRegions
     const credentialExpiryDate = persistedEligibility?.credentialExpiresAt ?? input.credentialExpiryDate
     const inspectorLicense = persistedEligibility?.licenseNumber ?? input.inspectorLicense

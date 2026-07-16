@@ -9,7 +9,7 @@ import type { DashboardNavGroup } from '@/components/shared/DashboardSidebar'
 import { JobCard } from '@/components/inspector/JobCard'
 import { HardPingProvider } from '@/components/inspector/HardPingProvider'
 import { ReliabilityTierDashboard } from '@/components/inspector/ReliabilityTierDashboard'
-import { checkInspectorEligibility } from '@/lib/eligibility'
+import { checkInspectorEligibility, resolveClaimEligibleDisciplines } from '@/lib/eligibility'
 import { formatCurrency } from '@/lib/utils'
 import { useAuth } from '@/lib/auth'
 import { useStore } from '@/lib/store'
@@ -923,7 +923,7 @@ export default function InspectorDashboard() {
     if (user?.supabaseId) {
       const approvedLanes = eligibilityProfile?.approvedRoleLanes ?? []
       const baseDisciplines = eligibilityProfile?.disciplines ?? []
-      const derived = [...baseDisciplines]
+      const derived = resolveClaimEligibleDisciplines(baseDisciplines, approvedLanes)
       if (approvedLanes.includes('electrical_fsr') && !derived.includes('electrical')) {
         derived.push('electrical')
       }

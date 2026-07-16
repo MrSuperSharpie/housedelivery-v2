@@ -1,4 +1,4 @@
-import type { InspectorDiscipline, InspectorOnboardingStatus, Region } from './types'
+import type { InspectorDiscipline, InspectorOnboardingStatus, InspectorRoleLane, Region } from './types'
 
 // ─── Permit family → allowed disciplines ─────────────────────────────────────
 // Building permit disciplines: structural/geotech/mechanical/architectural.
@@ -25,7 +25,9 @@ export interface EligibilityResult {
 }
 
 function normalizeDiscipline(value: string): InspectorDiscipline | null {
-  const normalized = value.trim().toLowerCase().replace(/[\s-]+/g, '_')
+  const normalized = value.trim().toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
 
   switch (normalized) {
     case 'structural':
@@ -39,6 +41,12 @@ function normalizeDiscipline(value: string): InspectorDiscipline | null {
     case 'mechanical':
       return 'mechanical'
     case 'plumbing':
+    case 'red_seal_plumber':
+    case 'building_official':
+    case 'plumbing_official':
+    case 'ahj_authority':
+    case 'official_authority':
+    case 'building_official_plumbing_official_ahj_authority':
       return 'plumbing'
     case 'architectural':
     case 'architecture':
@@ -49,6 +57,24 @@ function normalizeDiscipline(value: string): InspectorDiscipline | null {
     default:
       return null
   }
+}
+
+/** Resolves the credential and approved-lane labels that may claim each discipline. */
+export function resolveClaimEligibleDisciplines(
+  inspectorDisciplines: readonly string[],
+  approvedRoleLanes: readonly InspectorRoleLane[] = [],
+): InspectorDiscipline[] {
+  const resolved = new Set(
+    inspectorDisciplines
+      .map(value => normalizeDiscipline(value))
+      .filter((value): value is InspectorDiscipline => value !== null),
+  )
+
+  if (approvedRoleLanes.includes('official_authority')) {
+    resolved.add('plumbing')
+  }
+
+  return [...resolved]
 }
 
 /**
@@ -70,9 +96,7 @@ export function checkInspectorEligibility(
 ): EligibilityResult {
   const reasons: string[] = []
   const normalizedRequiredDiscipline = normalizeDiscipline(requiredDiscipline) ?? requiredDiscipline
-  const normalizedInspectorDisciplines = inspectorDisciplines
-    .map(value => normalizeDiscipline(value))
-    .filter((value): value is InspectorDiscipline => value !== null)
+  const normalizedInspectorDisciplines = resolveClaimEligibleDisciplines(inspectorDisciplines)
 
   if (onboardingStatus !== 'approved') {
     reasons.push('Onboarding not approved')
