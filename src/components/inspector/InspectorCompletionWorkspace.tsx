@@ -6,6 +6,7 @@ import {
   AlertCircle,
   AlertTriangle,
   ArrowLeft,
+  ArrowUp,
   Building2,
   Camera,
   CheckCircle2,
@@ -95,6 +96,7 @@ import {
 } from '@/lib/pricing/config'
 import type { HoldCategory, HoldEvidenceType, HoldRecord } from '@/lib/types'
 import { calculateBaseHoldServiceFee } from '@/utils/pricing'
+import { getActiveInspectorSectionCode } from '@/lib/inspectorSectionContext'
 
 const supabase = createClient()
 
@@ -1269,6 +1271,7 @@ export function InspectorCompletionWorkspace() {
   const [manualLocationSavingDocId, setManualLocationSavingDocId] = useState<string | null>(null)
   const [liveCaptureGpsDiagnostics, setLiveCaptureGpsDiagnostics] = useState<Record<string, LiveCaptureGpsDiagnostic>>({})
   const [showOfflineEvidenceDiagnostics, setShowOfflineEvidenceDiagnostics] = useState(process.env.NODE_ENV === 'development')
+  const [activeSectionCode, setActiveSectionCode] = useState<string | null>(null)
 
   const hydratedRef = useRef(false)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -1361,6 +1364,43 @@ export function InspectorCompletionWorkspace() {
     () => items.filter(item => item.stage_number === currentStage),
     [items, currentStage]
   )
+  const stageItemCodeKey = useMemo(
+    () => stageItems.map(item => item.item_code).join('|'),
+    [stageItems]
+  )
+
+  useEffect(() => {
+    const itemCodes = stageItemCodeKey ? stageItemCodeKey.split('|') : []
+    if (itemCodes.length === 0) {
+      setActiveSectionCode(null)
+      return undefined
+    }
+
+    setActiveSectionCode(current => current && itemCodes.includes(current) ? current : itemCodes[0])
+
+    let frameId: number | null = null
+    const updateActiveSection = () => {
+      if (frameId !== null) window.cancelAnimationFrame(frameId)
+      frameId = window.requestAnimationFrame(() => {
+        const positions = itemCodes.flatMap(code => {
+          const node = stageItemRefs.current[code]
+          return node ? [{ code, top: node.getBoundingClientRect().top }] : []
+        })
+        const nextCode = getActiveInspectorSectionCode(positions)
+        if (nextCode) setActiveSectionCode(current => current === nextCode ? current : nextCode)
+      })
+    }
+
+    updateActiveSection()
+    window.addEventListener('scroll', updateActiveSection, { passive: true })
+    window.addEventListener('resize', updateActiveSection)
+
+    return () => {
+      if (frameId !== null) window.cancelAnimationFrame(frameId)
+      window.removeEventListener('scroll', updateActiveSection)
+      window.removeEventListener('resize', updateActiveSection)
+    }
+  }, [stageItemCodeKey])
 
   const stageProgress = useMemo(() => {
     return stages.map(stage => {
@@ -3611,10 +3651,44 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
   }
 
   const currentProgress = stageProgress.find(stage => stage.stage.stage_number === currentStage)
+  const activeSectionIndex = Math.max(0, stageItems.findIndex(item => item.item_code === activeSectionCode))
+  const activeSection = stageItems[activeSectionIndex]
+
+  function scrollToActiveSectionTop() {
+    if (!activeSection) return
+    stageItemRefs.current[activeSection.item_code]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 
   return (
     <div className="completion-workspace min-h-screen bg-[var(--color-surface)] text-[color:var(--color-ink)] pb-40 [&_.text-zinc-100]:text-[color:var(--color-ink)] [&_.text-zinc-200]:text-[color:var(--color-ink)] [&_.text-zinc-300]:text-[color:var(--color-muted)] [&_.text-zinc-400]:text-[color:var(--color-subtle)] [&_.text-zinc-500]:text-[color:var(--color-subtle)]">
       <Navbar role="inspector" dark />
+      {activeSection && (
+        <div
+          aria-label="Current checklist section"
+          className="sticky top-14 z-30 border-b border-rim/70 bg-[color:var(--color-surface)]/95 px-4 py-2 shadow-sm backdrop-blur-xl"
+        >
+          <div className="mx-auto flex max-w-7xl items-center gap-3 sm:gap-4">
+            <div className="shrink-0 rounded-full border border-[#C6A15B]/35 bg-[#C6A15B]/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-[#C6A15B]">
+              {activeSection.item_code}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-xs font-black text-ink sm:text-sm">{activeSection.item_label}</div>
+              <div className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-subtle">
+                Item {activeSectionIndex + 1} of {stageItems.length}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={scrollToActiveSectionTop}
+              className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-xl border border-rim/70 bg-white/5 px-2.5 py-2 text-[10px] font-bold text-muted transition-colors hover:bg-white/10 hover:text-ink sm:px-3 sm:text-xs"
+            >
+              <ArrowUp className="h-3.5 w-3.5" aria-hidden="true" />
+              <span className="hidden sm:inline">Back to section top</span>
+              <span className="sm:hidden">Section top</span>
+            </button>
+          </div>
+        </div>
+      )}
       <main className="mx-auto max-w-7xl px-4 py-6">
         {sealSuccessMessage && (
           <div className={`mb-6 rounded-[1.75rem] border border-rim/70 border-l-2 border-l-success-green bg-white/5 px-5 py-4 text-ink ${FLOATING_PANEL_CLASS}`}>
@@ -4325,11 +4399,12 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                   return (
                     <article
                       key={item.item_code}
+                      data-checklist-section={item.item_code}
                       ref={node => {
                         stageItemRefs.current[item.item_code] = node
                       }}
                       tabIndex={-1}
-                      className={`relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-[var(--color-panel)] p-4 sm:p-5 outline-none ${FLOATING_PANEL_CLASS} ${
+                      className={`relative scroll-mt-32 overflow-hidden rounded-[1.75rem] border border-white/10 bg-[var(--color-panel)] p-4 sm:p-5 outline-none ${FLOATING_PANEL_CLASS} ${
                         stageTransitionHandshake?.targetItemCode === item.item_code ? 'ring-2 ring-emerald-400/45 ring-offset-2 ring-offset-[#050816]' : ''
                       }`}
                     >
@@ -4949,11 +5024,12 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                 return (
                   <article
                     key={item.item_code}
+                    data-checklist-section={item.item_code}
                     ref={node => {
                       stageItemRefs.current[item.item_code] = node
                     }}
                     tabIndex={-1}
-                    className={`relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-[var(--color-panel)] p-4 sm:p-5 outline-none ${FLOATING_PANEL_CLASS} ${
+                    className={`relative scroll-mt-32 overflow-hidden rounded-[1.75rem] border border-white/10 bg-[var(--color-panel)] p-4 sm:p-5 outline-none ${FLOATING_PANEL_CLASS} ${
                       stageTransitionHandshake?.targetItemCode === item.item_code ? 'ring-2 ring-emerald-400/45 ring-offset-2 ring-offset-[#050816]' : ''
                     }`}
                   >
