@@ -9,6 +9,7 @@ import type {
   ScheduleCBPacketItemRecord,
   ScheduleCBPacketSource,
 } from './scheduleCBPacketTypes'
+import { normalizeInspectorFirmName } from '@/lib/inspectorFirm'
 
 export const APPENDIX_PAGE_SIZE = 4
 const FINAL_OCCUPANCY_STAGE_NUMBER = 15
@@ -537,7 +538,7 @@ export function buildScheduleCBPacketData(source: ScheduleCBPacketSource): Sched
       name: source.officialFormOptions.inspectorName ?? 'Inspector of Record',
       license: source.officialFormOptions.inspectorLicense,
       discipline: source.officialFormOptions.discipline,
-      firmName: source.officialFormOptions.firmName,
+      firmName: normalizeInspectorFirmName(source.officialFormOptions.firmName),
       contact: source.officialFormOptions.inspectorContact,
       addressLine1: source.officialFormOptions.inspectorAddress,
       addressLine2: source.officialFormOptions.inspectorAddressCont,
@@ -555,7 +556,7 @@ export function buildScheduleCBPacketData(source: ScheduleCBPacketSource): Sched
       inspectorName: source.officialFormOptions.inspectorName ?? 'Inspector of Record',
       inspectorLicense: source.officialFormOptions.inspectorLicense,
       discipline: source.officialFormOptions.discipline,
-      firmName: source.officialFormOptions.firmName,
+      firmName: normalizeInspectorFirmName(source.officialFormOptions.firmName),
       exactTimestampIso: formatForensicTimestamp(certificationTimestamp),
       exactTimestampDisplay: formatDisplayTimestamp(certificationTimestamp),
       generatedAtIso,

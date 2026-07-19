@@ -97,6 +97,7 @@ import {
 import type { HoldCategory, HoldEvidenceType, HoldRecord } from '@/lib/types'
 import { calculateBaseHoldServiceFee } from '@/utils/pricing'
 import { getActiveInspectorSectionCode } from '@/lib/inspectorSectionContext'
+import { normalizeInspectorFirmName } from '@/lib/inspectorFirm'
 
 const supabase = createClient()
 
@@ -1288,6 +1289,7 @@ export function InspectorCompletionWorkspace() {
   const scopedCompletionPanelRef = useRef<HTMLDivElement | null>(null)
   const previewMode = isInspectorDevPreviewAssignment(assignmentId)
   const activeUser = user
+  const inspectorFirmName = normalizeInspectorFirmName(activeUser?.company)
 
   function applyOfflineEvidenceSyncResults(results: Awaited<ReturnType<typeof syncInspectorEvidenceQueue>>) {
     if (results.length === 0) return
@@ -3894,6 +3896,13 @@ const overallResult = (failedCount > 0 ? 'fail' : 'pass') as 'pass' | 'fail' | '
                   <Stamp className="mt-0.5 h-4 w-4 text-cyan-300" />
                   <span>{overlay.label}</span>
                 </div>
+              </div>
+              <div className="mt-4 border-t border-rim/70 pt-4">
+                <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">Inspector</div>
+                <div className="mt-1 text-sm font-bold text-zinc-100">{activeUser?.name ?? 'Inspector'}</div>
+                {inspectorFirmName ? (
+                  <div data-inspector-firm className="mt-0.5 text-xs text-zinc-400">{inspectorFirmName}</div>
+                ) : null}
               </div>
             </div>
 

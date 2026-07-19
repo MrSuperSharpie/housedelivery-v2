@@ -7,6 +7,7 @@ import { generateScheduleCB, type ScheduleCBOptions } from '@/lib/pdf/scheduleCB
 import { generateScheduleCBPacket } from '@/lib/pdf/scheduleCBPacketGenerator'
 import type { InspectorCompletionReportRow } from '@/lib/supabase/inspectorCompletion'
 import type { AhjOverlayContext } from '@/lib/inspectorCompletion'
+import { normalizeInspectorFirmName } from '@/lib/inspectorFirm'
 import type {
   ScheduleCBPacketDocumentRecord,
   ScheduleCBPacketItemRecord,
@@ -519,7 +520,7 @@ export async function GET(req: NextRequest) {
     try {
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('first_name, last_name, inspector_license_no')
+        .select('first_name, last_name, inspector_license_no, firm_name')
         .eq('id', user.id)
         .maybeSingle()
       profileRow = (profileData as Record<string, unknown> | null) ?? null
@@ -552,7 +553,8 @@ export async function GET(req: NextRequest) {
 
     discipline = pickMeta(meta, 'designation')
       ?? (Array.isArray(meta.disciplines) && meta.disciplines.length > 0 ? String(meta.disciplines[0]) : undefined)
-    firmName = pickMeta(meta, 'company', 'firm', 'firm_name')
+    firmName = normalizeInspectorFirmName(profileRow?.firm_name)
+      ?? normalizeInspectorFirmName(pickMeta(meta, 'company', 'firm', 'firm_name'))
     const phone = pickMeta(meta, 'phone')
     const email = user.email ?? undefined
     inspectorContact = phone && email ? `${phone} · ${email}` : phone ?? email
@@ -622,10 +624,7 @@ export async function GET(req: NextRequest) {
       : undefined
 
     // Firm: profiles.firm_name only — no other accessible source, not fabricated.
-    firmName =
-      typeof inspProfileRow?.firm_name === 'string' && inspProfileRow.firm_name.trim()
-        ? inspProfileRow.firm_name.trim()
-        : undefined
+    firmName = normalizeInspectorFirmName(inspProfileRow?.firm_name)
 
     // Contact: onboarding contact fields → profiles email/phone
     const onboardingPhone = typeof onboardingRow?.contact_phone === 'string' && onboardingRow.contact_phone.trim()

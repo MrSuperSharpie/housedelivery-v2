@@ -916,10 +916,12 @@ function AuditTrailPage({ data }: { data: ScheduleCBPacketData }) {
                   <td>Discipline</td>
                   <td>{data.auditTrail.discipline ?? 'Not provided'}</td>
                 </tr>
-                <tr>
-                  <td>Firm</td>
-                  <td>{data.auditTrail.firmName ?? 'Not provided'}</td>
-                </tr>
+                {data.auditTrail.firmName ? (
+                  <tr>
+                    <td>Firm</td>
+                    <td>{data.auditTrail.firmName}</td>
+                  </tr>
+                ) : null}
                 <tr>
                   <td>{data.certifiedAtLabel}</td>
                   <td>
