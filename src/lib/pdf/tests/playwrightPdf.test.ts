@@ -8,8 +8,6 @@ import {
 } from '../playwrightPdf'
 
 const FORBIDDEN_SERVERLESS_FLAGS = [
-  '--single-process',
-  '--no-zygote',
   '--ignore-gpu-blocklist',
   '--in-process-gpu',
   '--use-gl=angle',
@@ -28,6 +26,8 @@ test('serverless launch options use a minimal non-conflicting Chromium configura
   assert.ok(args.includes('--no-sandbox'))
   assert.ok(args.includes('--disable-gpu'))
   assert.ok(args.includes('--disable-webgl'))
+  assert.ok(args.includes('--single-process'))
+  assert.ok(args.includes('--no-zygote'))
   for (const flag of FORBIDDEN_SERVERLESS_FLAGS) {
     assert.ok(!args.includes(flag), `${flag} must not be passed to Chromium`)
   }

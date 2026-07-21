@@ -12,8 +12,10 @@ const MACOS_CHROME_PATH = '/Applications/Google Chrome.app/Contents/MacOS/Google
 
 // Playwright already supplies its own headless, feature, and shared-memory flags.
 // Keep only the serverless additions needed by this HTML-to-PDF workload. In
-// particular, do not merge Sparticuz's single-process, no-zygote, or SwiftShader
-// flags: concurrent packet sections can otherwise exhaust Lambda's thread limit.
+// Keep Sparticuz's serverless process topology, but do not merge its SwiftShader
+// or feature-override flags: concurrent GPU-heavy sections can otherwise exhaust
+// Lambda's thread limit, while removing single-process/no-zygote makes Chromium
+// exit before a context can be created on Vercel.
 const SERVERLESS_CHROMIUM_ARGS = Object.freeze([
   '--disable-domain-reliability',
   '--disable-print-preview',
@@ -23,6 +25,8 @@ const SERVERLESS_CHROMIUM_ARGS = Object.freeze([
   '--disable-webgl',
   '--disable-setuid-sandbox',
   '--no-sandbox',
+  '--single-process',
+  '--no-zygote',
 ])
 
 let serverlessExecutablePathPromise: Promise<string> | null = null
