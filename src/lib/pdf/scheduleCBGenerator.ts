@@ -98,6 +98,7 @@ const FIELD = {
   date:                 'Date',
 
   // Skipped — cannot be filled with setText():
+  seal:                "Professional's Seal and Signature",
   //   'Professional's Seal and Signature'  → PDFButton  (image widget)
   //   'CRP's initials'                     → PDFSignature
 } as const
@@ -167,6 +168,18 @@ export interface ScheduleCBOptions {
    * Example: "BP-2026-48219"
    */
   buildingPermitNumber?: string
+
+  /** Selected professional seal image as a data URI. Packet generation only. */
+  sealImageSrc?: string
+}
+
+function decodeSealImageDataUri(value?: string): { bytes: Uint8Array; mimeType: string } | null {
+  const match = value?.match(/^data:(image\/(?:png|jpe?g));base64,([A-Za-z0-9+/=]+)$/i)
+  if (!match) return null
+  return {
+    mimeType: match[1].toLowerCase(),
+    bytes: new Uint8Array(Buffer.from(match[2], 'base64')),
+  }
 }
 
 /**
@@ -295,6 +308,24 @@ export async function generateScheduleCB(
   fill(FIELD.address,              options.inspectorAddress)
   fill(FIELD.addressCont,          options.inspectorAddressCont)
   fill(FIELD.contact,              options.inspectorContact)
+
+  // The statutory template provides a dedicated image button for the
+  // professional's seal/signature. Leave it untouched when no approved image
+  // was selected; never synthesize or substitute a seal here.
+  const sealImage = decodeSealImageDataUri(options.sealImageSrc)
+  if (sealImage) {
+    try {
+      const embeddedSeal = sealImage.mimeType === 'image/png'
+        ? await pdfDoc.embedPng(sealImage.bytes)
+        : await pdfDoc.embedJpg(sealImage.bytes)
+      form.getButton(FIELD.seal).setImage(embeddedSeal)
+    } catch (error) {
+      console.warn(
+        '[scheduleCBGenerator] Professional seal image could not be embedded — leaving the statutory seal area blank.',
+        error instanceof Error ? error.message : error,
+      )
+    }
+  }
 
   // ── 6. Flatten form ────────────────────────────────────────────────────────
   // Bakes all appearance streams into the page content and removes the

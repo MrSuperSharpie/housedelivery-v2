@@ -1,13 +1,20 @@
 import chromium from '@sparticuz/chromium'
 import { chromium as playwrightChromium } from 'playwright-core'
+import { existsSync } from 'node:fs'
+
+const MACOS_CHROME_PATH = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 
 export async function renderHtmlToPdf(html: string): Promise<Uint8Array> {
   let browser
 
   try {
+    const serverlessExecutablePath = await chromium.executablePath()
+    const executablePath = process.platform === 'darwin' && existsSync(MACOS_CHROME_PATH)
+      ? MACOS_CHROME_PATH
+      : serverlessExecutablePath
     browser = await playwrightChromium.launch({
-      args: chromium.args,
-      executablePath: await chromium.executablePath(),
+      args: executablePath === serverlessExecutablePath ? chromium.args : [],
+      executablePath,
       headless: true,
     })
   } catch (error) {

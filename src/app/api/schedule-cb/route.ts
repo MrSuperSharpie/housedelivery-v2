@@ -8,6 +8,7 @@ import { generateScheduleCBPacket } from '@/lib/pdf/scheduleCBPacketGenerator'
 import type { InspectorCompletionReportRow } from '@/lib/supabase/inspectorCompletion'
 import type { AhjOverlayContext } from '@/lib/inspectorCompletion'
 import { normalizeInspectorFirmName } from '@/lib/inspectorFirm'
+import { makePlaceholderEvidenceDataUri } from '@/lib/pdf/scheduleCBPacketHelpers'
 import type {
   ScheduleCBPacketDocumentRecord,
   ScheduleCBPacketItemRecord,
@@ -278,9 +279,9 @@ const DEV_PREVIEW_OVERLAY: AhjOverlayContext = {
 const DEV_PREVIEW_REPORT: InspectorCompletionReportRow = (() => {
   const ts = '2026-04-12T10:00:00.000Z'
   return {
-    id: 'dev-preview-report',
-    assignmentId: 'dev-preview',
-    jobId: 'dev-preview-job',
+    id: '775cb186-a1a2-4e11-b333-123456789abc',
+    assignmentId: 'a8f37c11-a1a2-4e11-b333-123456789abc',
+    jobId: 'e6d0bf5a-a1a2-4e11-b333-123456789abc',
     inspectorId: 'dev-preview-inspector',
     projectId: 'dev-preview-project',
     projectName: 'West 8th Mixed-Use Podium',
@@ -297,7 +298,7 @@ const DEV_PREVIEW_REPORT: InspectorCompletionReportRow = (() => {
     checklistSnapshot: [],
     status: 'sealed',
     sealApplied: true,
-    sealReference: 'VERO-IC-2026-A3F9B1',
+    sealReference: 'fdb54dcd-a1a2-4e11-b333-123456789abc',
     sealPayload: {
       overallResult: 'pass',
       sealedAt: ts,
@@ -349,14 +350,55 @@ const DEV_PREVIEW_REPORT: InspectorCompletionReportRow = (() => {
 })()
 
 const DEV_PREVIEW_ITEMS: ScheduleCBPacketItemRecord[] = [
-  { itemCode: 'S01-01', itemLabel: 'Site Preparation & Layout',  stageNumber: 1,  stageName: 'Site Preparation',  responseNote: 'Verified on site — compliant.' },
-  { itemCode: 'S02-01', itemLabel: 'Foundation Formwork',        stageNumber: 2,  stageName: 'Foundation',         responseNote: 'Formwork dimensions confirmed.' },
-  { itemCode: 'S15-01', itemLabel: 'Life-Safety Systems Final Verification', stageNumber: 15, stageName: 'Inspections, Final Approval, and Occupancy', responseNote: 'Life-safety systems confirmed operable at reviewed locations.' },
+  { itemCode: 'S01-01', itemLabel: 'Site Preparation & Layout', stageNumber: 1, stageName: 'Site Preparation', inspectionStatus: 'Passed', responseNote: 'Verified on site — compliant. Survey control points, setbacks, and excavation limits were visible at the reviewed locations.', ahjNotes: 'Confirm the issued permit set remains available on site for subsequent municipal reviews.' },
+  { itemCode: 'S02-01', itemLabel: 'Foundation Formwork and Reinforcement Review', stageNumber: 2, stageName: 'Foundation', inspectionStatus: 'Passed', responseNote: 'Formwork dimensions confirmed. Reinforcing placement, cover, hold-down locations, and embedded services were reviewed before concrete placement.\n\nNo unresolved field observations remained at submission.', ahjNotes: 'Jurisdiction review remains subject to the approved drawings and any required registered-professional field-review letters.' },
+  { itemCode: 'S15-01', itemLabel: 'Life-Safety Systems Final Verification', stageNumber: 15, stageName: 'Inspections, Final Approval, and Occupancy', inspectionStatus: 'Passed', responseNote: 'Life-safety systems confirmed operable at reviewed locations. Video evidence records the final walkthrough and visible closeout conditions.', ahjNotes: 'Occupancy authorization remains exclusively with the authority having jurisdiction.' },
+]
+
+const DEV_PREVIEW_PHOTO = makePlaceholderEvidenceDataUri('Photo Evidence · S01-01')
+const DEV_PREVIEW_DOCUMENTS: ScheduleCBPacketDocumentRecord[] = [
+  {
+    id: '91e2ac71-a1a2-4e11-b333-123456789abc',
+    itemCode: 'S01-01',
+    fileName: 'site-layout-control-points.jpg',
+    storagePath: 'fixture://site-layout-control-points.jpg',
+    mimeType: 'image/jpeg',
+    createdAt: '2026-04-12T09:10:00.000Z',
+    capturedAt: '2026-04-12T09:10:00.000Z',
+    latitude: 49.263521,
+    longitude: -123.133812,
+    imageUrl: DEV_PREVIEW_PHOTO,
+    signedUrl: DEV_PREVIEW_PHOTO,
+  },
+  {
+    id: 'b5d53a92-a1a2-4e11-b333-123456789abc',
+    itemCode: 'S02-01',
+    fileName: 'foundation-field-observation.txt',
+    storagePath: 'fixture://foundation-field-observation.txt',
+    mimeType: 'text/plain',
+    createdAt: '2026-04-12T09:25:00.000Z',
+    capturedAt: '2026-04-12T09:25:00.000Z',
+    latitude: 49.263525,
+    longitude: -123.133808,
+    signedUrl: 'data:text/plain;charset=utf-8,Demonstration%20field%20note%20evidence',
+  },
+  {
+    id: 'c702d8f4-a1a2-4e11-b333-123456789abc',
+    itemCode: 'S15-01',
+    fileName: 'final-life-safety-walkthrough.mp4',
+    storagePath: 'fixture://final-life-safety-walkthrough.mp4',
+    mimeType: 'video/mp4',
+    createdAt: '2026-04-12T09:42:00.000Z',
+    capturedAt: '2026-04-12T09:42:00.000Z',
+    latitude: 49.263529,
+    longitude: -123.133803,
+    signedUrl: 'data:text/plain;charset=utf-8,Demonstration%20video%20evidence',
+  },
 ]
 
 const DEV_PREVIEW_OPTIONS: ScheduleCBOptions = {
   inspectorName:        'Dr. Sarah Chen',
-  inspectorLicense:     'BC-ENG-29847',
+  inspectorLicense:     'DEMONSTRATION CREDENTIAL — BC-ENG-29847',
   discipline:           'Structural Engineering',
   firmName:             'Chen Structural Consulting Ltd.',
   inspectorContact:     '604-555-0198  ·  sarah.chen@veropermit.com',
@@ -366,10 +408,11 @@ const DEV_PREVIEW_OPTIONS: ScheduleCBOptions = {
 }
 
 async function handleDevPreview(
+  req: NextRequest,
   variant: 'packet' | 'form-only',
   exportMode: 'platform_preview' | 'authority_facing',
 ): Promise<NextResponse> {
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.VERCEL_ENV === 'production') {
     return NextResponse.json({ error: 'Preview mode is not available in production' }, { status: 403 })
   }
 
@@ -382,13 +425,14 @@ async function handleDevPreview(
       pdfBytes = await generateScheduleCBPacket({
         report: DEV_PREVIEW_REPORT,
         items: DEV_PREVIEW_ITEMS,
-        documents: [],
+        documents: DEV_PREVIEW_DOCUMENTS,
         officialFormOptions: DEV_PREVIEW_OPTIONS,
         brandLogoSrc,
         buildingPermitNumber: 'BP-DEV-48219',
         generatedAtIso: new Date().toISOString(),
-        verificationId: 'VERO-IC-2026-A3F9B1',
+        verificationId: 'fdb54dcd-a1a2-4e11-b333-123456789abc',
         exportMode,
+        appBaseUrl: getAppBaseUrl(req),
         packetScope: {
           mode: 'full_project',
           stageNumbers: [1, 2, 15],
@@ -397,6 +441,9 @@ async function handleDevPreview(
           number: 7,
           label: 'Final Approval and Occupancy',
           total: 7,
+        },
+        seal: {
+          explicitDemo: true,
         },
       })
     }
@@ -428,7 +475,7 @@ export async function GET(req: NextRequest) {
 
   // Dev preview shortcut — no auth, no DB
   if (req.nextUrl.searchParams.get('preview') === 'true') {
-    return handleDevPreview(variant, exportMode)
+    return handleDevPreview(req, variant, exportMode)
   }
 
   const reportId = req.nextUrl.searchParams.get('reportId')
@@ -513,17 +560,30 @@ export async function GET(req: NextRequest) {
   let inspectorContact: string | undefined
   let inspectorAddress: string | undefined
   let inspectorAddressCont: string | undefined
+  let digitalSealPath: string | undefined
 
   if (isInspector) {
     // Requesting user is the inspector — read own profile + user_metadata.
     let profileRow: Record<string, unknown> | null = null
     try {
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('first_name, last_name, inspector_license_no, firm_name')
-        .eq('id', user.id)
-        .maybeSingle()
+      const [profileResult, sealResult] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('first_name, last_name, inspector_license_no, firm_name')
+          .eq('id', user.id)
+          .maybeSingle(),
+        supabase
+          .from('profiles')
+          .select('digital_seal_url')
+          .eq('id', user.id)
+          .maybeSingle(),
+      ])
+      const profileData = profileResult.data
       profileRow = (profileData as Record<string, unknown> | null) ?? null
+      const sealData = sealResult.data as Record<string, unknown> | null
+      if (sealData?.digital_seal_url) {
+        profileRow = { ...(profileRow ?? {}), digital_seal_url: sealData.digital_seal_url }
+      }
     } catch {
       console.warn('[schedule-cb] profiles lookup failed — falling back to user_metadata')
     }
@@ -555,6 +615,9 @@ export async function GET(req: NextRequest) {
       ?? (Array.isArray(meta.disciplines) && meta.disciplines.length > 0 ? String(meta.disciplines[0]) : undefined)
     firmName = normalizeInspectorFirmName(profileRow?.firm_name)
       ?? normalizeInspectorFirmName(pickMeta(meta, 'company', 'firm', 'firm_name'))
+    digitalSealPath = typeof profileRow?.digital_seal_url === 'string' && profileRow.digital_seal_url.trim()
+      ? profileRow.digital_seal_url.trim()
+      : undefined
     const phone = pickMeta(meta, 'phone')
     const email = user.email ?? undefined
     inspectorContact = phone && email ? `${phone} · ${email}` : phone ?? email
@@ -571,7 +634,7 @@ export async function GET(req: NextRequest) {
       const [profileResult, onboardingResult] = await Promise.allSettled([
         svcClient
           .from('profiles')
-          .select('first_name, last_name, inspector_license_no, license_number, firm_name, email, phone')
+          .select('first_name, last_name, inspector_license_no, license_number, firm_name, email, phone, digital_seal_url')
           .eq('id', reportInspectorId)
           .maybeSingle(),
         svcClient
@@ -625,6 +688,9 @@ export async function GET(req: NextRequest) {
 
     // Firm: profiles.firm_name only — no other accessible source, not fabricated.
     firmName = normalizeInspectorFirmName(inspProfileRow?.firm_name)
+    digitalSealPath = typeof inspProfileRow?.digital_seal_url === 'string' && inspProfileRow.digital_seal_url.trim()
+      ? inspProfileRow.digital_seal_url.trim()
+      : undefined
 
     // Contact: onboarding contact fields → profiles email/phone
     const onboardingPhone = typeof onboardingRow?.contact_phone === 'string' && onboardingRow.contact_phone.trim()
@@ -646,6 +712,23 @@ export async function GET(req: NextRequest) {
     inspectorAddressCont = undefined
   }
 
+  let actualSealSrc: string | undefined
+  if (digitalSealPath) {
+    const { data: sealBlob, error: sealDownloadError } = await (svcClient ?? supabase).storage
+      .from(STORAGE_BUCKET)
+      .download(digitalSealPath)
+
+    if (sealDownloadError || !sealBlob) {
+      console.warn('[schedule-cb] Professional seal download failed — statutory seal area will remain blank.')
+    } else if (sealBlob.type === 'image/png' || sealBlob.type === 'image/jpeg' || sealBlob.type === 'image/jpg') {
+      const sealBytes = Buffer.from(await sealBlob.arrayBuffer())
+      const sealMimeType = sealBlob.type === 'image/jpg' ? 'image/jpeg' : sealBlob.type
+      actualSealSrc = `data:${sealMimeType};base64,${sealBytes.toString('base64')}`
+    } else {
+      console.warn('[schedule-cb] Professional seal is not a supported PNG or JPEG image — statutory seal area will remain blank.')
+    }
+  }
+
   const buildingPermitNumber = permitNumberFromQuery ?? ((jobRow?.permit_number as string) ?? undefined)
   const builderStageNumber = typeof jobRow?.stage === 'number' ? jobRow.stage : undefined
   const builderStageLabel = typeof jobRow?.stage_name === 'string' ? jobRow.stage_name : undefined
@@ -659,6 +742,7 @@ export async function GET(req: NextRequest) {
     inspectorAddress,
     inspectorAddressCont,
     buildingPermitNumber,
+    sealImageSrc: actualSealSrc,
   }
 
   // Authority-facing exports require complete professional credentials.
@@ -838,6 +922,9 @@ export async function GET(req: NextRequest) {
               total: 7,
             }
           : undefined,
+        seal: {
+          actualSealSrc,
+        },
       })
     }
 
