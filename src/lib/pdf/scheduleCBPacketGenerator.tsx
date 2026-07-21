@@ -4,7 +4,8 @@ import path from 'node:path'
 import { PDFDocument } from 'pdf-lib'
 import { ScheduleCBPacketDocument } from './ScheduleCBPacketDocument'
 import { buildScheduleCBPacketData } from './scheduleCBPacketHelpers'
-import type { ScheduleCBPacketSource } from './scheduleCBPacketTypes'
+import type { ScheduleCBPacketData, ScheduleCBPacketSource } from './scheduleCBPacketTypes'
+import { paginateAppendixEntries } from './scheduleCBPacketPresentation'
 import { renderHtmlToPdf } from './playwrightPdf'
 import { generateScheduleCB } from './scheduleCBGenerator'
 
@@ -14,12 +15,19 @@ async function loadBrandLogoDataUri(): Promise<string> {
   return `data:image/png;base64,${buffer.toString('base64')}`
 }
 
-async function renderPacketSectionHtml(source: ScheduleCBPacketSource, section: 'cover' | 'trail'): Promise<string> {
+async function loadPngDataUri(relativePath: string): Promise<string> {
+  const buffer = await readFile(path.join(process.cwd(), 'public', relativePath))
+  return `data:image/png;base64,${buffer.toString('base64')}`
+}
+
+async function renderPacketSectionHtml(
+  data: ScheduleCBPacketData,
+  section: 'cover' | 'trail' | 'appendix',
+  appendixPageIndex?: number,
+): Promise<string> {
   const { renderToStaticMarkup } = await import('react-dom/server')
-  const packetData = buildScheduleCBPacketData(source)
-  packetData.brandLogoSrc = source.brandLogoSrc ?? await loadBrandLogoDataUri()
   return `<!DOCTYPE html>${renderToStaticMarkup(
-    <ScheduleCBPacketDocument data={packetData} section={section} />
+    <ScheduleCBPacketDocument data={data} section={section} appendixPageIndex={appendixPageIndex} />
   )}`
 }
 
@@ -36,11 +44,45 @@ async function mergePdfDocuments(parts: Uint8Array[]): Promise<Uint8Array> {
 }
 
 export async function generateScheduleCBPacket(source: ScheduleCBPacketSource): Promise<Uint8Array> {
-  const [coverPdf, statutoryPdf, trailPdf] = await Promise.all([
-    renderPacketSectionHtml(source, 'cover').then(renderHtmlToPdf),
-    generateScheduleCB(source.report, source.officialFormOptions),
-    renderPacketSectionHtml(source, 'trail').then(renderHtmlToPdf),
+  const [brandLogoSrc, fieldNoteImageSrc, videoImageSrc, mockDemoSealSrc] = await Promise.all([
+    source.brandLogoSrc ? Promise.resolve(source.brandLogoSrc) : loadBrandLogoDataUri(),
+    source.presentationAssets?.fieldNoteImageSrc
+      ? Promise.resolve(source.presentationAssets.fieldNoteImageSrc)
+      : loadPngDataUri('pdf-assets/field-note-evidence.png'),
+    source.presentationAssets?.videoImageSrc
+      ? Promise.resolve(source.presentationAssets.videoImageSrc)
+      : loadPngDataUri('pdf-assets/video-evidence.png'),
+    source.presentationAssets?.mockDemoSealSrc
+      ? Promise.resolve(source.presentationAssets.mockDemoSealSrc)
+      : loadPngDataUri('pdf-assets/mock-demo-seal.png'),
+  ])
+  const packetSource: ScheduleCBPacketSource = {
+    ...source,
+    brandLogoSrc,
+    presentationAssets: {
+      ...source.presentationAssets,
+      fieldNoteImageSrc,
+      videoImageSrc,
+      mockDemoSealSrc,
+    },
+  }
+  const packetData = buildScheduleCBPacketData(packetSource)
+  const statutoryOptions = {
+    ...source.officialFormOptions,
+    sealImageSrc: packetData.seal.imageSrc,
+  }
+
+  const appendixPageCount = Math.max(1, paginateAppendixEntries(packetData.appendixEntries).length)
+  const [coverPdf, statutoryPdf, trailPdf, appendixPdfs] = await Promise.all([
+    renderPacketSectionHtml(packetData, 'cover').then(renderHtmlToPdf),
+    generateScheduleCB(source.report, statutoryOptions),
+    renderPacketSectionHtml(packetData, 'trail').then(renderHtmlToPdf),
+    Promise.all(
+      Array.from({ length: appendixPageCount }, (_, pageIndex) =>
+        renderPacketSectionHtml(packetData, 'appendix', pageIndex).then(renderHtmlToPdf),
+      ),
+    ),
   ])
 
-  return mergePdfDocuments([coverPdf, statutoryPdf, trailPdf])
+  return mergePdfDocuments([coverPdf, statutoryPdf, trailPdf, ...appendixPdfs])
 }

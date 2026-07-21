@@ -1,6 +1,10 @@
 /* eslint-disable @next/next/no-head-element, @next/next/no-img-element */
 import React from 'react'
-import { chunkAppendixEntries } from './scheduleCBPacketHelpers'
+import {
+  paginateAppendixEntries,
+  paginateChecklistItems,
+  splitPacketNoteParagraphs,
+} from './scheduleCBPacketPresentation'
 import type { ScheduleCBPacketData } from './scheduleCBPacketTypes'
 
 const PRINT_CSS = `
@@ -53,6 +57,13 @@ const PRINT_CSS = `
     display: flex;
     flex-direction: column;
     background: var(--paper);
+    break-after: page;
+    page-break-after: always;
+  }
+
+  .packet-page:last-child {
+    break-after: auto;
+    page-break-after: auto;
   }
 
   .page-break {
@@ -455,6 +466,111 @@ const PRINT_CSS = `
     page-break-inside: avoid;
   }
 
+  .demo-notice {
+    margin-top: 10px;
+    padding: 9px 12px;
+    border: 2px solid #991b1b;
+    background: #fef2f2;
+    color: #7f1d1d;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 9.5px;
+    line-height: 1.35;
+    letter-spacing: 0.11em;
+    text-align: center;
+    text-transform: uppercase;
+    font-weight: 800;
+  }
+
+  .checklist-results {
+    display: grid;
+    gap: 12px;
+  }
+
+  .checklist-results-heading {
+    padding: 2px 0 8px;
+    border-bottom: 1px solid var(--line-strong);
+  }
+
+  .checklist-record {
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .checklist-record-header {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: start;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ddd8ce;
+  }
+
+  .checklist-record-code,
+  .checklist-record-status {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 9.5px;
+    line-height: 1.25;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .checklist-record-title {
+    font-size: 14px;
+    line-height: 1.28;
+    font-weight: 700;
+    overflow-wrap: break-word;
+    word-break: normal;
+    hyphens: none;
+  }
+
+  .checklist-note-grid {
+    display: grid;
+    gap: 10px;
+    margin-top: 11px;
+  }
+
+  .checklist-note-panel {
+    padding: 11px 12px;
+    border-left: 3px solid #7d776d;
+    background: var(--paper-soft);
+  }
+
+  .checklist-note-panel.guidance {
+    border-left-color: #bdb7ab;
+    background: var(--paper-alt);
+    color: #4b5563;
+  }
+
+  .checklist-note-label {
+    margin-bottom: 6px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 8.5px;
+    line-height: 1.2;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--muted-ink);
+  }
+
+  .checklist-note-paragraph {
+    margin: 0;
+    font-size: 11.5px;
+    line-height: 1.5;
+    overflow-wrap: break-word;
+    word-break: normal;
+    hyphens: none;
+    white-space: normal;
+  }
+
+  .checklist-note-paragraph + .checklist-note-paragraph {
+    margin-top: 7px;
+  }
+
   .signal-list {
     margin: 10px 0 0;
     padding: 0;
@@ -479,12 +595,49 @@ const PRINT_CSS = `
   }
 
   .appendix-header {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 18px;
+    display: block;
+    position: relative;
+    min-height: 82px;
+    padding-right: 200px;
     padding-bottom: 12px;
     border-bottom: 1px solid var(--line-strong);
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .appendix-header > .scope-block {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 180px;
+  }
+
+  .appendix-heading-copy {
+    position: relative;
+  }
+
+  .appendix-page-tag {
+    position: absolute;
+    top: 0;
+    right: -200px;
+    width: 180px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    background: var(--paper-soft);
+  }
+
+  .appendix-shell {
+    position: relative;
+    height: calc(11in - 1.12in);
+    min-height: 0;
+    padding-bottom: 42px;
+  }
+
+  .appendix-shell > .page-footer {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
   }
 
   .appendix-subtitle {
@@ -502,6 +655,12 @@ const PRINT_CSS = `
     align-content: start;
   }
 
+  .appendix-grid.single-entry {
+    grid-template-columns: minmax(0, 1fr);
+    width: min(100%, 520px);
+    margin: 0 auto;
+  }
+
   .appendix-card {
     padding: 10px;
     display: flex;
@@ -514,14 +673,19 @@ const PRINT_CSS = `
 
   .appendix-image-frame {
     width: 100%;
-    height: 168px;
-    max-height: 168px;
+    height: 210px;
+    max-height: 210px;
     border: 1px solid var(--line);
     background: #f2f0eb;
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+
+  .appendix-grid.single-entry .appendix-image-frame {
+    height: 290px;
+    max-height: 290px;
   }
 
   .appendix-image {
@@ -559,7 +723,14 @@ const PRINT_CSS = `
   }
 
   .appendix-id {
-    font-size: 10px;
+    min-width: 0;
+    max-width: 58%;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 9.5px;
+    line-height: 1.3;
+    text-align: right;
+    overflow-wrap: break-word;
+    word-break: normal;
   }
 
   .appendix-link {
@@ -583,7 +754,9 @@ const PRINT_CSS = `
     font-size: 13px;
     line-height: 1.35;
     min-height: 34px;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
+    word-break: normal;
+    hyphens: none;
   }
 
   .value-stack {
@@ -608,29 +781,26 @@ const PRINT_CSS = `
     margin-top: auto;
     padding-top: 12px;
     border-top: 1px solid var(--line);
-    display: flex;
-    justify-content: space-between;
-    gap: 18px;
+    display: block;
+    min-height: 27px;
     font-family: Arial, Helvetica, sans-serif;
-    font-size: 9px;
+    font-size: 9.5px;
     line-height: 1.45;
     color: var(--muted-ink);
   }
 
   .page-footer > div {
     min-width: 0;
-    overflow-wrap: anywhere;
+    white-space: nowrap;
   }
+
 `
 
 function PageFooter({ data, label }: { data: ScheduleCBPacketData; label: string }) {
   return (
     <footer className="page-footer">
       <div>
-        {label} · Verification ID <span className="mono">{data.summary.verificationId ?? 'Not assigned'}</span>
-      </div>
-      <div>
-        Packet generated <span className="mono">{data.auditTrail.generatedAtIso}</span>
+        {label} · <span className="mono">{data.displayIds.verification ?? 'Not assigned'}</span> · Generated {data.auditTrail.generatedAtDisplay}
       </div>
     </footer>
   )
@@ -720,7 +890,7 @@ function CoverPage({ data }: { data: ScheduleCBPacketData }) {
       <div className="packet-shell">
         <header className="page-header">
           <div className="brand-stack">
-            <img className="brand-mark" src={data.brandLogoSrc} alt="Vero Permit" />
+            {data.brandLogoSrc ? <img className="brand-mark" src={data.brandLogoSrc} alt="Vero Permit" /> : null}
             <div className="eyebrow">{data.coverEyebrow}</div>
             <h1 className="document-title">{data.documentTitle}</h1>
             <div className="document-subtitle">{data.coverSubtitle}</div>
@@ -824,18 +994,18 @@ function CoverPage({ data }: { data: ScheduleCBPacketData }) {
                       <div className="formal-panel-meta-row-value">{data.summary.overallResult}</div>
                     </div>
                   ) : null}
-                  {data.exportMode === 'authority_facing' && data.summary.sealReference ? (
+                  {data.exportMode === 'authority_facing' && data.displayIds.verification ? (
                     <div className="formal-panel-meta-row">
                       <div className="formal-panel-meta-row-label">Seal Reference</div>
-                      <div className="formal-panel-meta-row-value mono">{data.summary.sealReference}</div>
+                      <div className="formal-panel-meta-row-value mono">{data.displayIds.verification}</div>
                     </div>
                   ) : null}
-                  {data.summary.verificationId ? (
+                  {data.displayIds.verification ? (
                     <div className="formal-panel-meta-row">
                       <div className="formal-panel-meta-row-label">
                         {data.exportMode === 'authority_facing' ? 'Verification ID' : 'Platform Record ID'}
                       </div>
-                      <div className="formal-panel-meta-row-value mono">{data.summary.verificationId}</div>
+                      <div className="formal-panel-meta-row-value mono">{data.displayIds.verification}</div>
                     </div>
                   ) : null}
                 </div>
@@ -860,6 +1030,9 @@ function CoverPage({ data }: { data: ScheduleCBPacketData }) {
                 This is a platform-generated record, not a professionally sealed document. The named inspector submitted field inputs through the Vero platform; the platform has not independently verified the inspector&apos;s professional credentials or licence status.
               </div>
             ) : null}
+            {data.seal.kind === 'demo' || data.seal.notice ? (
+              <div className="demo-notice">{data.seal.notice}</div>
+            ) : null}
           </aside>
         </div>
 
@@ -878,6 +1051,73 @@ function itemStatusColor(status?: string): string {
   if (status === 'Failed') return '#991b1b'
   if (status === 'N/A') return '#6b7280'
   return '#374151'
+}
+
+function ChecklistRecord({ item }: { item: ScheduleCBPacketData['items'][number] }) {
+  const inspectorParagraphs = splitPacketNoteParagraphs(item.responseNote)
+  const guidanceParagraphs = splitPacketNoteParagraphs(item.ahjNotes)
+  return (
+    <article className="checklist-record">
+      <header className="checklist-record-header">
+        <div className="checklist-record-code">{item.itemCode}</div>
+        <div className="checklist-record-title">{item.itemLabel}</div>
+        <div className="checklist-record-status" style={{ color: itemStatusColor(item.inspectionStatus) }}>
+          {item.inspectionStatus ?? 'Pending'}
+        </div>
+      </header>
+      <div className="checklist-note-grid">
+        <div className="checklist-note-panel">
+          <div className="checklist-note-label">Inspector Observation</div>
+          {inspectorParagraphs.length > 0
+            ? inspectorParagraphs.map((paragraph, index) => (
+                <p key={`${item.itemCode}-observation-${index}`} className="checklist-note-paragraph">{paragraph}</p>
+              ))
+            : <p className="checklist-note-paragraph" style={{ color: '#6b7280' }}>No inspector observation recorded.</p>}
+        </div>
+        {guidanceParagraphs.length > 0 ? (
+          <div className="checklist-note-panel guidance">
+            <div className="checklist-note-label">Jurisdiction Guidance</div>
+            {guidanceParagraphs.map((paragraph, index) => (
+              <p key={`${item.itemCode}-guidance-${index}`} className="checklist-note-paragraph">{paragraph}</p>
+            ))}
+          </div>
+        ) : null}
+      </div>
+    </article>
+  )
+}
+
+function ChecklistResultsPages({ data }: { data: ScheduleCBPacketData }) {
+  const pages = paginateChecklistItems(data.items)
+  if (pages.length === 0) return null
+
+  return (
+    <>
+      {pages.map((items, pageIndex) => (
+        <section key={`checklist-results-${pageIndex}`} className="packet-page page-break">
+          <div className="packet-shell">
+            <header className="appendix-header">
+              <div>
+                <div className="section-kicker">Checklist Results</div>
+                <h2 className="section-title">Section Records</h2>
+                <div className="appendix-subtitle">Inspector observations and jurisdiction guidance are presented as separate record fields.</div>
+              </div>
+              <div className="scope-block">
+                <div className="scope-label">Checklist Page</div>
+                <div className="scope-value">{pageIndex + 1} / {pages.length}</div>
+              </div>
+            </header>
+
+            <div className="checklist-results" aria-label="Per-item checklist inspection results">
+              {items.map(item => <ChecklistRecord key={item.itemCode} item={item} />)}
+            </div>
+
+            <PageFooter data={data} label="Checklist results" />
+          </div>
+        </section>
+      ))}
+    </>
+  )
 }
 
 function AuditTrailPage({ data }: { data: ScheduleCBPacketData }) {
@@ -939,19 +1179,19 @@ function AuditTrailPage({ data }: { data: ScheduleCBPacketData }) {
               <tbody>
                 <tr>
                   <td>Verification ID</td>
-                  <td className="mono">{data.auditTrail.verificationId ?? 'Not assigned'}</td>
+                  <td className="mono">{data.displayIds.verification ?? 'Not assigned'}</td>
                 </tr>
                 <tr>
                   <td>Source Report ID</td>
-                  <td className="mono">{data.auditTrail.sourceReportId}</td>
+                  <td className="mono">{data.displayIds.sourceReport}</td>
                 </tr>
                 <tr>
                   <td>Assignment ID</td>
-                  <td className="mono">{data.auditTrail.assignmentId}</td>
+                  <td className="mono">{data.displayIds.assignment}</td>
                 </tr>
                 <tr>
                   <td>Job ID</td>
-                  <td className="mono">{data.auditTrail.jobId}</td>
+                  <td className="mono">{data.displayIds.job}</td>
                 </tr>
                 <tr>
                   <td>Packet Generated</td>
@@ -1022,44 +1262,6 @@ function AuditTrailPage({ data }: { data: ScheduleCBPacketData }) {
             </div>
           </article>
         </div>
-
-        {data.items.length > 0 ? (
-          <article className="audit-card" style={{ marginTop: '0' }}>
-            <h3 className="audit-card-title">Checklist Results</h3>
-            <table className="ledger-table" aria-label="Per-item checklist inspection results">
-              <thead>
-                <tr>
-                  <td style={{ fontWeight: 700, color: '#111827', whiteSpace: 'nowrap' }}>Stage · Code</td>
-                  <td style={{ fontWeight: 700, color: '#111827' }}>Item</td>
-                  <td style={{ fontWeight: 700, color: '#111827', whiteSpace: 'nowrap' }}>Status</td>
-                  <td style={{ fontWeight: 700, color: '#111827' }}>Inspector Note / AHJ Note</td>
-                </tr>
-              </thead>
-              <tbody>
-                {data.items.map(item => (
-                  <tr key={item.itemCode}>
-                    <td className="mono" style={{ fontSize: '11px', whiteSpace: 'nowrap', verticalAlign: 'top' }}>
-                      {item.stageNumber} · {item.itemCode}
-                    </td>
-                    <td style={{ verticalAlign: 'top' }}>{item.itemLabel}</td>
-                    <td style={{ whiteSpace: 'nowrap', fontWeight: 600, color: itemStatusColor(item.inspectionStatus), verticalAlign: 'top' }}>
-                      {item.inspectionStatus ?? '—'}
-                    </td>
-                    <td style={{ fontSize: '12px', verticalAlign: 'top' }}>
-                      {item.responseNote ? <div>{item.responseNote}</div> : null}
-                      {item.ahjNotes ? (
-                        <div style={{ color: '#6b7280', fontStyle: 'italic', marginTop: item.responseNote ? '3px' : '0' }}>
-                          AHJ: {item.ahjNotes}
-                        </div>
-                      ) : null}
-                      {!item.responseNote && !item.ahjNotes ? <span style={{ color: '#9ca3af' }}>—</span> : null}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </article>
-        ) : null}
 
         <PageFooter data={data} label={data.trailEyebrow} />
       </div>
@@ -1245,22 +1447,22 @@ function HoldHistoryPage({ data }: { data: ScheduleCBPacketData }) {
   )
 }
 
-function AppendixPages({ data }: { data: ScheduleCBPacketData }) {
-  const pages = chunkAppendixEntries(data.appendixEntries)
+function AppendixPages({ data, pageIndex: requestedPageIndex }: { data: ScheduleCBPacketData; pageIndex?: number }) {
+  const pages = paginateAppendixEntries(data.appendixEntries)
 
   if (pages.length === 0) {
     return (
-      <section className="packet-page page-break">
-        <div className="packet-shell">
+      <section className={`packet-page ${requestedPageIndex === undefined ? 'page-break' : ''}`}>
+        <div className="packet-shell appendix-shell">
           <header className="appendix-header">
-            <div>
+            <div className="appendix-heading-copy">
               <div className="section-kicker">Appendix Photo Log</div>
               <h2 className="section-title">Evidence Appendix</h2>
               <div className="appendix-subtitle">No image evidence was available at packet generation time.</div>
-            </div>
-            <div className="scope-block">
-              <div className="scope-label">Appendix Status</div>
-              <div className="scope-value">No appendix entries captured</div>
+              <div className="appendix-page-tag">
+                <div className="scope-label">Appendix Status</div>
+                <div className="scope-value">No entries</div>
+              </div>
             </div>
           </header>
 
@@ -1274,26 +1476,32 @@ function AppendixPages({ data }: { data: ScheduleCBPacketData }) {
     )
   }
 
+  const renderedPages = requestedPageIndex === undefined
+    ? pages.map((entries, pageIndex) => ({ entries, pageIndex }))
+    : pages[requestedPageIndex]
+      ? [{ entries: pages[requestedPageIndex], pageIndex: requestedPageIndex }]
+      : []
+
   return (
     <>
-      {pages.map((pageEntries, pageIndex) => (
-        <section key={`appendix-${pageIndex}`} className="packet-page page-break">
-          <div className="packet-shell">
+      {renderedPages.map(({ entries: pageEntries, pageIndex }) => (
+        <section key={`appendix-${pageIndex}`} className={`packet-page ${requestedPageIndex === undefined ? 'page-break' : ''}`}>
+          <div className="packet-shell appendix-shell">
             <header className="appendix-header">
-              <div>
+              <div className="appendix-heading-copy">
                 <div className="section-kicker">Appendix Photo Log</div>
                 <h2 className="section-title">Evidence Appendix</h2>
                 <div className="appendix-subtitle">
                   Requirement references, timestamps, and coordinates are preserved for municipal review.
                 </div>
-              </div>
-              <div className="scope-block">
-                <div className="scope-label">Appendix Page</div>
-                <div className="scope-value">Page {pageIndex + 1} of {pages.length}</div>
+                <div className="appendix-page-tag">
+                  <div className="scope-label">Appendix Page</div>
+                  <div className="scope-value">{pageIndex + 1} / {pages.length}</div>
+                </div>
               </div>
             </header>
 
-            <div className="appendix-grid">
+            <div className={`appendix-grid ${pageEntries.length === 1 ? 'single-entry' : ''}`}>
               {pageEntries.map(entry => {
                 // Field notes link to the formal in-app Field Note Record;
                 // all other evidence links to its raw signed file.
@@ -1301,17 +1509,17 @@ function AppendixPages({ data }: { data: ScheduleCBPacketData }) {
                 return (
                 <article key={entry.id} className="appendix-card">
                   <div className="appendix-image-frame">
-                    {entry.imageUrl ? (
+                    {entry.previewImageUrl ? (
                       entryLinkHref ? (
                         <a
                           className="appendix-image-link"
                           href={entryLinkHref}
                           aria-label={`Open source file for ${entry.fileName}`}
                         >
-                          <img className="appendix-image" src={entry.imageUrl} alt={entry.caption} />
+                          <img className="appendix-image" src={entry.previewImageUrl} alt={entry.caption} />
                         </a>
                       ) : (
-                        <img className="appendix-image" src={entry.imageUrl} alt={entry.caption} />
+                        <img className="appendix-image" src={entry.previewImageUrl} alt={entry.caption} />
                       )
                     ) : (
                       <div className="appendix-placeholder">{entry.fileKindLabel}</div>
@@ -1327,14 +1535,14 @@ function AppendixPages({ data }: { data: ScheduleCBPacketData }) {
                           href={entryLinkHref}
                           aria-label={
                             entry.recordUrl
-                              ? `Open Field Note Record for evidence ${entry.id}`
-                              : `Open source file for evidence ${entry.id}`
+                              ? `Open field note for ${entry.fileName}`
+                              : `Open evidence for ${entry.fileName}`
                           }
                         >
-                          {entry.id}
+                          {entry.linkLabel}
                         </a>
                       ) : (
-                        entry.id
+                        <span className="secondary">Source link unavailable</span>
                       )}
                     </div>
                   </div>
@@ -1394,13 +1602,17 @@ function AppendixPages({ data }: { data: ScheduleCBPacketData }) {
 export function ScheduleCBPacketDocument({
   data,
   section,
+  appendixPageIndex,
 }: {
   data: ScheduleCBPacketData
-  section: 'cover' | 'trail'
+  section: 'cover' | 'trail' | 'appendix'
+  appendixPageIndex?: number
 }) {
   const title = section === 'cover'
     ? `Schedule C-B Packet Cover — ${data.project.name}`
-    : `Schedule C-B Packet Audit Trail — ${data.project.name}`
+    : section === 'appendix'
+      ? `Schedule C-B Packet Evidence Appendix — ${data.project.name}`
+      : `Schedule C-B Packet Audit Trail — ${data.project.name}`
 
   return (
     <html lang="en">
@@ -1412,13 +1624,13 @@ export function ScheduleCBPacketDocument({
       <body>
         {section === 'cover' ? (
           <CoverPage data={data} />
-        ) : (
+        ) : section === 'trail' ? (
           <>
             <AuditTrailPage data={data} />
+            <ChecklistResultsPages data={data} />
             <HoldHistoryPage data={data} />
-            <AppendixPages data={data} />
           </>
-        )}
+        ) : <AppendixPages data={data} pageIndex={appendixPageIndex} />}
       </body>
     </html>
   )

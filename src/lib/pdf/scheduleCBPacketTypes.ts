@@ -1,6 +1,7 @@
 import type { AhjOverlayContext } from '@/lib/inspectorCompletion'
 import type { InspectorCompletionReportRow } from '@/lib/supabase/inspectorCompletion'
 import type { ScheduleCBOptions } from './scheduleCBGenerator'
+import type { PacketEvidencePreviewAssets, PacketSealPresentation } from './scheduleCBPacketPresentation'
 
 export interface ScheduleCBPacketItemRecord {
   itemCode: string
@@ -58,6 +59,14 @@ export interface ScheduleCBPacketSource {
     label?: string
     total?: number
   }
+  presentationAssets?: PacketEvidencePreviewAssets & {
+    mockDemoSealSrc?: string
+  }
+  seal?: {
+    actualSealSrc?: string
+    explicitDemo?: boolean
+    credentialIsDemonstration?: boolean
+  }
 }
 
 export interface ScheduleCBPacketAppendixEntry {
@@ -70,10 +79,12 @@ export interface ScheduleCBPacketAppendixEntry {
   capturedAtDisplay: string
   coordinatesText: string
   imageUrl?: string
+  previewImageUrl: string
   signedUrl?: string
   // For field-note (text) evidence: the in-app formal Field Note Record URL.
   // When set, the appendix links here instead of the raw signed .txt file.
   recordUrl?: string
+  linkLabel: string
 }
 
 export interface ScheduleCBPacketAuditTrail {
@@ -154,6 +165,13 @@ export interface ScheduleCBPacketData {
   /** null means suppress the row entirely (platform_preview mode) */
   sealOutcomeLabel: string | null
   disclaimerText: string
+  displayIds: {
+    verification?: string
+    sourceReport: string
+    assignment: string
+    job: string
+  }
+  seal: PacketSealPresentation
   project: ScheduleCBPacketProjectSummary
   inspector: {
     name: string

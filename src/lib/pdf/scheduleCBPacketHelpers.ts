@@ -10,8 +10,14 @@ import type {
   ScheduleCBPacketSource,
 } from './scheduleCBPacketTypes'
 import { normalizeInspectorFirmName } from '@/lib/inspectorFirm'
+import {
+  formatPacketDisplayId,
+  getFriendlyEvidenceLinkLabel,
+  resolveEvidencePreviewImage,
+  resolvePacketSealPresentation,
+} from './scheduleCBPacketPresentation'
 
-export const APPENDIX_PAGE_SIZE = 4
+export const APPENDIX_PAGE_SIZE = 2
 const FINAL_OCCUPANCY_STAGE_NUMBER = 15
 
 interface StageSignOffPayload {
@@ -436,6 +442,22 @@ export function buildScheduleCBPacketData(source: ScheduleCBPacketSource): Sched
   const projectAddressParts = [report.address].filter(Boolean)
   const projectLocaleParts = [report.city, report.region].filter(Boolean)
   const auditCoordinates = extractAuditCoordinates(report)
+  const explicitDemoFlag = [
+    report.sealPayload.isDemo,
+    report.sealPayload.demo,
+    report.sealPayload.demonstration,
+    report.sealPayload.isTest,
+    report.sealPayload.testRecord,
+  ].some(value => value === true)
+  const seal = resolvePacketSealPresentation({
+    actualSealSrc: source.seal?.actualSealSrc,
+    mockDemoSealSrc: source.presentationAssets?.mockDemoSealSrc,
+    explicitDemo: source.seal?.explicitDemo || explicitDemoFlag,
+    credentialIsDemonstration: source.seal?.credentialIsDemonstration,
+    credentialText: [source.officialFormOptions.inspectorLicense, source.officialFormOptions.discipline]
+      .filter(Boolean)
+      .join(' '),
+  })
 
   // ─── Evidence filtering: only include real persisted documents ──────────────
   // Documents without a non-empty storagePath are template prompts or capture
@@ -471,19 +493,24 @@ export function buildScheduleCBPacketData(source: ScheduleCBPacketSource): Sched
         ? buildFieldNoteRecordUrl(source.appBaseUrl, document.id)
         : undefined
 
-      return {
+      const fileKindLabel = toDisplayFileKind(document.mimeType, document.fileName)
+      const appendixEntry = {
         id: document.id,
         fileName: document.fileName,
-        fileKindLabel: toDisplayFileKind(document.mimeType, document.fileName),
+        fileKindLabel,
         caption: buildAppendixCaption(document, item),
         requirementReference: buildRequirementReference(item),
         capturedAtIso,
         capturedAtDisplay: formatDisplayTimestamp(capturedAtIso),
         coordinatesText: formatCoordinates(document.latitude, document.longitude),
         imageUrl: document.imageUrl,
+        previewImageUrl: '',
         signedUrl: document.signedUrl,
         recordUrl,
+        linkLabel: getFriendlyEvidenceLinkLabel(fileKindLabel),
       }
+      appendixEntry.previewImageUrl = resolveEvidencePreviewImage(appendixEntry, source.presentationAssets)
+      return appendixEntry
     })
 
   // Note-only entries: scoped items that have an inspector field note but no
@@ -493,16 +520,22 @@ export function buildScheduleCBPacketData(source: ScheduleCBPacketSource): Sched
       !itemCodesWithDocuments.has(item.itemCode) &&
       Boolean(item.responseNote?.trim()),
     )
-    .map(item => ({
-      id: `note-${item.itemCode}`,
-      fileName: `Field observation · ${item.itemCode}`,
-      fileKindLabel: 'Field Observation',
-      caption: item.responseNote?.trim() ?? '',
-      requirementReference: buildRequirementReference(item),
-      capturedAtIso: certificationTimestamp,
-      capturedAtDisplay: formatDisplayTimestamp(certificationTimestamp),
-      coordinatesText: 'Not captured',
-    }))
+    .map(item => {
+      const appendixEntry = {
+        id: `note-${item.itemCode}`,
+        fileName: `Field observation · ${item.itemCode}`,
+        fileKindLabel: 'Field Observation',
+        caption: item.responseNote?.trim() ?? '',
+        requirementReference: buildRequirementReference(item),
+        capturedAtIso: certificationTimestamp,
+        capturedAtDisplay: formatDisplayTimestamp(certificationTimestamp),
+        coordinatesText: 'Not captured',
+        previewImageUrl: '',
+        linkLabel: getFriendlyEvidenceLinkLabel('Field Observation'),
+      }
+      appendixEntry.previewImageUrl = resolveEvidencePreviewImage(appendixEntry, source.presentationAssets)
+      return appendixEntry
+    })
 
   const appendixEntries = [...documentAppendixEntries, ...noteOnlyEntries]
 
@@ -526,6 +559,13 @@ export function buildScheduleCBPacketData(source: ScheduleCBPacketSource): Sched
     certifiedAtLabel,
     sealOutcomeLabel,
     disclaimerText,
+    displayIds: {
+      verification: formatPacketDisplayId(source.verificationId ?? report.sealReference ?? report.id, 'VRF'),
+      sourceReport: formatPacketDisplayId(report.id, 'SRC') ?? 'SRC-UNASSIGNED',
+      assignment: formatPacketDisplayId(report.assignmentId, 'ASN') ?? 'ASN-UNASSIGNED',
+      job: formatPacketDisplayId(report.jobId, 'JOB') ?? 'JOB-UNASSIGNED',
+    },
+    seal,
     project: {
       name: report.projectName,
       addressLine1: projectAddressParts.join(', '),
