@@ -3,17 +3,23 @@ import { chromium as playwrightChromium } from 'playwright-core'
 import { existsSync } from 'node:fs'
 
 const MACOS_CHROME_PATH = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+let serverlessExecutablePathPromise: Promise<string> | null = null
+
+function getServerlessExecutablePath(): Promise<string> {
+  serverlessExecutablePathPromise ??= chromium.executablePath()
+  return serverlessExecutablePathPromise
+}
 
 export async function renderHtmlToPdf(html: string): Promise<Uint8Array> {
   let browser
 
   try {
-    const serverlessExecutablePath = await chromium.executablePath()
-    const executablePath = process.platform === 'darwin' && existsSync(MACOS_CHROME_PATH)
+    const useLocalMacChrome = process.platform === 'darwin' && existsSync(MACOS_CHROME_PATH)
+    const executablePath = useLocalMacChrome
       ? MACOS_CHROME_PATH
-      : serverlessExecutablePath
+      : await getServerlessExecutablePath()
     browser = await playwrightChromium.launch({
-      args: executablePath === serverlessExecutablePath ? chromium.args : [],
+      args: useLocalMacChrome ? [] : chromium.args,
       executablePath,
       headless: true,
     })
