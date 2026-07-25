@@ -62,7 +62,8 @@ select {
   pointer-events: none;
 }
 
-.render-crisp {
+/* Global sharp image rendering */
+img {
   image-rendering: -webkit-optimize-contrast;
   image-rendering: crisp-edges;
 }
