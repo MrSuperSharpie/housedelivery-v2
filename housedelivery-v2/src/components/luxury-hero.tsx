@@ -5,7 +5,7 @@ import { ArrowDown, ArrowUpRight } from "lucide-react";
 import Image from "next/image";
 import { useRef } from "react";
 
-import { RevealText } from "@/components/reveal-text";
+import { HeadlineReveal } from "@/components/headline-reveal";
 
 type LuxuryHeroProps = {
   image: string;
@@ -75,13 +75,13 @@ export function LuxuryHero({ image }: LuxuryHeroProps) {
             >
               Factory precision / A faster path home
             </motion.p>
-            <h1 className="max-w-[1100px] text-[clamp(4rem,10.7vw,10.5rem)] font-medium leading-[0.79] tracking-[-0.075em]">
-              <RevealText text="More home." delay={0.25} />
-              <br />
-              <span className="text-white/62">
-                <RevealText text="Less waiting." delay={0.34} />
-              </span>
-            </h1>
+            <HeadlineReveal>
+              <h1 className="max-w-[1100px] text-[clamp(4rem,10.7vw,10.5rem)] font-medium leading-[0.79] tracking-[-0.075em]">
+                More home.
+                <br />
+                <span className="text-white/62">Less waiting.</span>
+              </h1>
+            </HeadlineReveal>
           </div>
 
           <motion.div

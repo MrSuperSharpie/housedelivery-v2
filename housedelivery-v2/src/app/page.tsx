@@ -10,6 +10,7 @@ import { CmhcFeature } from "@/components/cmhc-feature";
 import { DeliveryTimeline } from "@/components/delivery-timeline";
 import { FinancialCorridors } from "@/components/financial-corridors";
 import { FounderMission } from "@/components/founder-mission";
+import { HeadlineReveal } from "@/components/headline-reveal";
 import { InclusionGrid } from "@/components/inclusion-grid";
 import { LuxuryHero } from "@/components/luxury-hero";
 import { ModelShowcase } from "@/components/model-showcase";
@@ -75,13 +76,18 @@ export default function Home() {
               <p className="eyebrow col-span-12 lg:col-span-3">
                 Why House Delivery Inc.
               </p>
-              <h2 className="col-span-12 max-w-[1250px] text-[clamp(3.5rem,8vw,8.8rem)] font-medium leading-[0.82] tracking-[-0.075em] text-white/90 lg:col-span-9 lg:col-start-4">
-                A remarkable home.
-                <br />
-                <span className="text-white/38">
-                  A more reachable price.
-                </span>
-              </h2>
+              <HeadlineReveal
+                variant="sweep"
+                className="col-span-12 lg:col-span-9 lg:col-start-4"
+              >
+                <h2 className="max-w-[1250px] text-[clamp(3.5rem,8vw,8.8rem)] font-medium leading-[0.82] tracking-[-0.075em] text-white/90">
+                  A remarkable home.
+                  <br />
+                  <span className="text-white/38">
+                    A more reachable price.
+                  </span>
+                </h2>
+              </HeadlineReveal>
               <p className="col-span-10 col-start-3 max-w-xl border-l border-white/10 pl-6 text-lg leading-8 text-white/70 sm:col-span-7 sm:col-start-6 lg:col-span-4 lg:col-start-9">
                 Less waste. Less delay. Less construction markup between you
                 and ownership.
@@ -97,7 +103,7 @@ export default function Home() {
                   quality={100}
                   unoptimized={true}
                   sizes="(min-width: 1024px) 55vw, 100vw"
-                  className="object-cover"
+                  className="object-cover render-crisp"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/10" />
                 <div className="absolute inset-x-0 bottom-0 p-6 sm:p-10">

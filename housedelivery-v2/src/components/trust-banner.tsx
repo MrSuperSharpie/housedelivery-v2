@@ -1,3 +1,5 @@
+import { HeadlineReveal } from "@/components/headline-reveal";
+
 const certifications = [
   {
     mark: "ISO",
@@ -36,13 +38,15 @@ export function TrustBanner() {
         <div className="grid gap-7 border-b border-white/12 pb-9 sm:grid-cols-[1fr_auto] sm:items-end">
           <div>
             <p className="eyebrow">Trust &amp; certifications</p>
-            <h2
-              id="trust-heading"
-              className="mt-5 text-3xl font-medium tracking-[-0.045em] sm:text-4xl"
-            >
-              Trusted Standards.{" "}
-              <span className="text-white/38">Certified Quality.</span>
-            </h2>
+            <HeadlineReveal variant="sweep" className="mt-5">
+              <h2
+                id="trust-heading"
+                className="text-3xl font-medium tracking-[-0.045em] sm:text-4xl"
+              >
+                Trusted Standards.{" "}
+                <span className="text-white/38">Certified Quality.</span>
+              </h2>
+            </HeadlineReveal>
           </div>
           <p className="max-w-sm text-[10px] uppercase leading-5 tracking-[0.17em] text-white/30 sm:text-right">
             Documented systems for quality, safety, environmental performance,

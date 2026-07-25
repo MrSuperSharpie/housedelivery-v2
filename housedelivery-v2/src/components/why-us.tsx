@@ -1,5 +1,7 @@
 import { Clock3, Landmark, Sparkles } from "lucide-react";
 
+import { HeadlineReveal } from "@/components/headline-reveal";
+
 const financingPoints = [
   "Defined project scope",
   "Lender-facing documentation",
@@ -22,14 +24,16 @@ export function WhyUs() {
             </p>
           </div>
           <div>
-            <h2
-              id="why-us-heading"
-              className="max-w-5xl text-[clamp(3rem,6vw,6.8rem)] font-medium leading-[0.9] tracking-[-0.065em]"
-            >
-              Fewer unknowns.
-              <br />
-              <span className="text-white/38">More forward motion.</span>
-            </h2>
+            <HeadlineReveal>
+              <h2
+                id="why-us-heading"
+                className="max-w-5xl text-[clamp(3rem,6vw,6.8rem)] font-medium leading-[0.9] tracking-[-0.065em]"
+              >
+                Fewer unknowns.
+                <br />
+                <span className="text-white/38">More forward motion.</span>
+              </h2>
+            </HeadlineReveal>
           </div>
         </div>
 

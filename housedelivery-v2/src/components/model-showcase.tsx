@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { PortfolioCategoryNav } from "@/components/portfolio-category-nav";
+import { RevealText } from "@/components/reveal-text";
 import type { HomeModel } from "@/data/models";
 import { cn } from "@/lib/cn";
 
@@ -38,6 +39,7 @@ export function ModelShowcase({ models }: ModelShowcaseProps) {
       id="models"
       className="scroll-mt-20 bg-[#0B0C10] px-5 pb-24 pt-28 sm:px-8 lg:px-12 lg:pb-32 lg:pt-40"
     >
+      <span id="homes" className="block scroll-mt-20" aria-hidden="true" />
       <div className="mx-auto max-w-[1504px]">
         <PortfolioCategoryNav active="custom" />
 
@@ -47,9 +49,11 @@ export function ModelShowcase({ models }: ModelShowcaseProps) {
               The collection / {models.length} residences
             </p>
             <h2 className="mt-6 max-w-3xl text-[clamp(3rem,6.2vw,6.8rem)] font-medium leading-[0.92] tracking-[-0.065em]">
-              Find your
+              <RevealText text="Find your" />
               <br />
-              <span className="text-white/42">starting point.</span>
+              <span className="text-white/42">
+                <RevealText text="starting point." delay={0.12} />
+              </span>
             </h2>
           </div>
           <p className="max-w-xl justify-self-end text-base leading-7 text-white/55 lg:text-lg lg:leading-8">
@@ -114,7 +118,11 @@ export function ModelShowcase({ models }: ModelShowcaseProps) {
                 transition={{ duration: 0.45, delay: Math.min(index * 0.035, 0.2) }}
                 className="group flex min-h-[620px] flex-col overflow-hidden border border-white/10 bg-[#0B0C10] p-7 transition-colors duration-500 hover:border-white/25 sm:p-8"
               >
-                <div className="relative -mx-7 -mt-7 aspect-[16/10] overflow-hidden border-b border-white/10 bg-[#13151a] sm:-mx-8 sm:-mt-8">
+                <Link
+                  href={`/homes/${model.slug}`}
+                  aria-label={`Explore ${model.name}`}
+                  className="relative -mx-7 -mt-7 block aspect-[16/10] overflow-hidden border-b border-white/10 bg-[#13151a] sm:-mx-8 sm:-mt-8"
+                >
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={`${model.slug}-${viewMode}`}
@@ -140,7 +148,7 @@ export function ModelShowcase({ models }: ModelShowcaseProps) {
                         unoptimized={true}
                         sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 33vw"
                         className={cn(
-                          "brightness-90 transition-all duration-[2000ms] ease-[cubic-bezier(0.25,1,0.5,1)] hover:scale-[1.04] hover:brightness-100 group-hover:scale-[1.04] group-hover:brightness-100",
+                          "brightness-90 transition-all duration-[2000ms] ease-[cubic-bezier(0.25,1,0.5,1)] hover:scale-[1.04] hover:brightness-100 group-hover:scale-[1.04] group-hover:brightness-100 group-hover:scale-105 transition-transform duration-700 ease-in-out",
                           viewMode === "exterior"
                             ? "object-cover object-center"
                             : "bg-[#e9e7e1] object-contain p-4 sm:p-8",
@@ -152,14 +160,12 @@ export function ModelShowcase({ models }: ModelShowcaseProps) {
                   <span className="absolute left-5 top-5 border border-white/30 bg-black/25 px-3 py-2 text-[9px] uppercase tracking-[0.18em] backdrop-blur-md">
                     {model.locationLabel}
                   </span>
-                  <Link
-                    href={`/homes/${model.slug}`}
-                    aria-label={`Explore ${model.name}`}
+                  <span
                     className="absolute right-5 top-5 grid size-11 place-items-center rounded-full border border-white/35 bg-black/20 text-white backdrop-blur-md transition-colors hover:bg-white hover:text-black"
                   >
                     <ArrowUpRight size={16} />
-                  </Link>
-                </div>
+                  </span>
+                </Link>
 
                 <div className="grid gap-6 pb-8 pt-7 xl:grid-cols-[1fr_auto] xl:items-start">
                   <div>

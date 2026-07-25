@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
+import { RevealText } from "@/components/reveal-text";
 import { cn } from "@/lib/cn";
 
 const stages = [
@@ -72,9 +73,11 @@ export function DeliveryTimeline() {
           <div>
             <p className="eyebrow">The delivery sequence</p>
             <h2 className="mt-6 text-[clamp(3rem,5.4vw,6rem)] font-medium leading-[0.92] tracking-[-0.065em]">
-              One path.
+              <RevealText text="One path." />
               <br />
-              <span className="text-white/40">Six clear stages.</span>
+              <span className="text-white/40">
+                <RevealText text="Six clear stages." delay={0.12} />
+              </span>
             </h2>
           </div>
           <div className="max-w-xl self-end lg:justify-self-end">

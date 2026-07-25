@@ -4,6 +4,7 @@ import { Maximize2, Minus, Plus } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 
+import { HeadlineReveal } from "@/components/headline-reveal";
 import type { HomeModel } from "@/data/models";
 import { cn } from "@/lib/cn";
 
@@ -23,11 +24,15 @@ export function HomeFloorPlanViewer({ model }: HomeFloorPlanViewerProps) {
         <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
           <div>
             <p className="eyebrow">Plan and technical study</p>
-            <h2 className="mt-6 text-[clamp(3rem,5.8vw,6.5rem)] font-medium leading-[0.9] tracking-[-0.065em]">
-              Designed to flow.
-              <br />
-              <span className="text-white/40">Engineered to endure.</span>
-            </h2>
+            <HeadlineReveal variant="sweep" className="mt-6">
+              <h2 className="text-[clamp(3rem,5.8vw,6.5rem)] font-medium leading-[0.9] tracking-[-0.065em]">
+                Designed to flow.
+                <br />
+                <span className="text-white/40">
+                  Engineered to endure.
+                </span>
+              </h2>
+            </HeadlineReveal>
           </div>
           <p className="max-w-xl text-base leading-7 text-white/48 lg:justify-self-end">
             The reference plan establishes room relationships and circulation.

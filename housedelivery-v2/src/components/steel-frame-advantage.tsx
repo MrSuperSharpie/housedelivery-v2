@@ -1,5 +1,7 @@
 import Image from "next/image";
 
+import { HeadlineReveal } from "@/components/headline-reveal";
+
 type Advantage = {
   number: string;
   kicker: string;
@@ -89,11 +91,13 @@ export function SteelFrameAdvantage() {
           <p className="eyebrow col-span-12 lg:col-span-3">
             The structure / Light steel frame
           </p>
-          <h2 className="col-span-12 max-w-[1200px] text-[clamp(3.5rem,8vw,8.8rem)] font-medium leading-[0.82] tracking-[-0.075em] text-white/90 lg:col-span-9 lg:col-start-4">
-            Less construction.
-            <br />
-            <span className="text-white/38">More home.</span>
-          </h2>
+          <HeadlineReveal className="col-span-12 lg:col-span-9 lg:col-start-4">
+            <h2 className="max-w-[1200px] text-[clamp(3.5rem,8vw,8.8rem)] font-medium leading-[0.82] tracking-[-0.075em] text-white/90">
+              Less construction.
+              <br />
+              <span className="text-white/38">More home.</span>
+            </h2>
+          </HeadlineReveal>
           <p className="col-span-10 col-start-3 max-w-xl border-l border-white/10 pl-6 text-lg leading-8 text-white/70 sm:col-span-7 sm:col-start-6 lg:col-span-4 lg:col-start-9">
             Precision is the discount. Speed is the luxury. Quality is the part
             you keep.

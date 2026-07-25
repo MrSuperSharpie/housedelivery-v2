@@ -1,6 +1,11 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
+import {
+  motion,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+} from "framer-motion";
 import { ArrowDown, ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -20,6 +25,7 @@ export function HomeDetailHero({
   modelCount,
 }: HomeDetailHeroProps) {
   const sectionRef = useRef<HTMLElement>(null);
+  const shouldReduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start start", "end start"],
@@ -31,10 +37,10 @@ export function HomeDetailHero({
     <section
       ref={sectionRef}
       id="top"
-      className="relative min-h-[760px] overflow-hidden border-b border-white/10 sm:min-h-[860px] lg:min-h-screen"
+      className="relative h-[100svh] min-h-[760px] overflow-hidden border-b border-white/10 sm:min-h-[860px]"
     >
       <motion.div
-        className="absolute inset-0 -top-[10%] h-[120%]"
+        className="absolute inset-x-0 -top-[10%] -bottom-[10%] bg-[#0b0c10]"
         style={{ y: imageY }}
       >
         <Image
@@ -55,7 +61,7 @@ export function HomeDetailHero({
 
       <motion.div
         style={{ opacity: contentOpacity }}
-        className="relative z-10 mx-auto flex min-h-[760px] max-w-[1600px] flex-col justify-between px-5 pb-8 pt-28 sm:min-h-[860px] sm:px-8 lg:min-h-screen lg:px-12 lg:pb-10"
+        className="relative z-10 mx-auto flex h-full min-h-[760px] max-w-[1600px] flex-col justify-between px-5 pb-8 pt-28 sm:min-h-[860px] sm:px-8 lg:px-12 lg:pb-10"
       >
         <div className="flex items-center justify-between">
           <Link
@@ -82,9 +88,14 @@ export function HomeDetailHero({
           </div>
 
           <motion.h1
-            initial={{ opacity: 0, y: 34 }}
+            initial={
+              shouldReduceMotion ? false : { opacity: 0, y: 40 }
+            }
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, ease: [0.2, 0.7, 0, 1] }}
+            transition={{
+              duration: shouldReduceMotion ? 0 : 1,
+              ease: [0.16, 1, 0.3, 1],
+            }}
             className="max-w-[1300px] text-[clamp(4rem,10vw,10rem)] font-medium leading-[0.82] tracking-[-0.078em]"
           >
             {model.name}

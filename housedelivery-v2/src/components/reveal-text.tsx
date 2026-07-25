@@ -2,6 +2,8 @@
 
 import { motion, useReducedMotion, type Variants } from "framer-motion";
 
+import { cn } from "@/lib/cn";
+
 type RevealTextProps = {
   text: string;
   className?: string;
@@ -11,14 +13,14 @@ type RevealTextProps = {
 const wordVariants: Variants = {
   hidden: {
     opacity: 0,
-    y: 15,
+    y: 40,
   },
   visible: {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.72,
-      ease: [0.25, 1, 0.5, 1],
+      duration: 1,
+      ease: [0.16, 1, 0.3, 1],
     },
   },
 };
@@ -34,15 +36,15 @@ export function RevealText({
   return (
     <motion.span
       aria-label={text}
-      className={className}
+      className={cn("inline-block overflow-hidden align-bottom", className)}
       initial={shouldReduceMotion ? "visible" : "hidden"}
       whileInView="visible"
-      viewport={{ once: true, amount: 0.6 }}
+      viewport={{ once: true, amount: 0.15 }}
       variants={{
         visible: {
           transition: {
             delayChildren: delay,
-            staggerChildren: 0.03,
+            staggerChildren: shouldReduceMotion ? 0 : 0.035,
           },
         },
       }}

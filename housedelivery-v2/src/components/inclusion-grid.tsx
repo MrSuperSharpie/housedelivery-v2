@@ -1,5 +1,8 @@
 import { ArrowUpRight } from "lucide-react";
 
+import { HeadlineReveal } from "@/components/headline-reveal";
+import { RevealText } from "@/components/reveal-text";
+
 type InclusionItem = {
   number: string;
   title: string;
@@ -149,9 +152,11 @@ export function InclusionGrid() {
         </div>
 
         <h2 className="max-w-[1200px] text-[clamp(2.9rem,7vw,7.5rem)] font-medium leading-[0.85] tracking-[-0.07em]">
-          Included with every
+          <RevealText text="Included with every" />
           <br />
-          <span className="text-white/40">delivered home.</span>
+          <span className="text-white/40">
+            <RevealText text="delivered home." delay={0.12} />
+          </span>
         </h2>
 
         <div className="mt-20 grid grid-cols-1 gap-x-12 md:grid-cols-2 lg:mt-28 lg:grid-cols-3">
@@ -194,11 +199,13 @@ export function InclusionGrid() {
             </div>
 
             <div className="col-span-12 lg:col-span-9 lg:col-start-4">
-              <h3 className="max-w-5xl text-[clamp(2.8rem,6vw,6.8rem)] font-medium leading-[0.86] tracking-[-0.07em] text-white/90">
-                The final layer,
-                <br />
-                <span className="text-white/40">made personal.</span>
-              </h3>
+              <HeadlineReveal variant="sweep">
+                <h3 className="max-w-5xl text-[clamp(2.8rem,6vw,6.8rem)] font-medium leading-[0.86] tracking-[-0.07em] text-white/90">
+                  The final layer,
+                  <br />
+                  <span className="text-white/40">made personal.</span>
+                </h3>
+              </HeadlineReveal>
 
               <div className="mt-12 grid grid-cols-12 gap-y-10 border-t border-white/10 pt-8 lg:gap-x-8">
                 <p className="col-span-12 max-w-2xl text-lg leading-8 text-white/70 lg:col-span-7">

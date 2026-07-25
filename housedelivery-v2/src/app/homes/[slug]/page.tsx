@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { HeadlineReveal } from "@/components/headline-reveal";
 import { HomeDetailHero } from "@/components/home-detail-hero";
 import { HomeEditorialGallery } from "@/components/home-editorial-gallery";
 import { HomeFloorPlanViewer } from "@/components/home-floor-plan-viewer";
@@ -169,9 +170,11 @@ export default async function HomeDetailPage({
               <div className="mb-12 grid gap-8 border-t border-white/15 pt-7 sm:grid-cols-2">
                 <div>
                   <p className="eyebrow">Film / Walk through the residence</p>
-                  <h2 className="mt-6 text-4xl font-medium tracking-[-0.055em] sm:text-6xl">
-                    Experience the scale.
-                  </h2>
+                  <HeadlineReveal variant="sweep" className="mt-6">
+                    <h2 className="text-4xl font-medium tracking-[-0.055em] sm:text-6xl">
+                      Experience the scale.
+                    </h2>
+                  </HeadlineReveal>
                 </div>
                 <p className="max-w-lg self-end text-sm leading-7 text-white/45 sm:justify-self-end">
                   Move through the generous arrival, connected family spaces,
@@ -199,11 +202,13 @@ export default async function HomeDetailPage({
           <div className="mx-auto max-w-[1504px]">
             <p className="eyebrow">Your land / Your timeline / Your home</p>
             <div className="mt-8 grid gap-12 lg:grid-cols-[1fr_auto] lg:items-end">
-              <h2 className="max-w-6xl text-[clamp(3.8rem,8.3vw,9rem)] font-medium leading-[0.84] tracking-[-0.075em]">
-                Begin your
-                <br />
-                <span className="text-white/40">project review.</span>
-              </h2>
+              <HeadlineReveal>
+                <h2 className="max-w-6xl text-[clamp(3.8rem,8.3vw,9rem)] font-medium leading-[0.84] tracking-[-0.075em]">
+                  Begin your
+                  <br />
+                  <span className="text-white/40">project review.</span>
+                </h2>
+              </HeadlineReveal>
               <div className="max-w-sm border-l border-white/18 pl-6">
                 <p className="text-sm leading-6 text-white/48">
                   Start with a project review. We’ll map feasibility, local
@@ -242,12 +247,12 @@ export default async function HomeDetailPage({
                 quality={100}
                 unoptimized={true}
                 sizes="95vw"
-                className="object-cover brightness-90 transition-all duration-[2000ms] ease-[cubic-bezier(0.25,1,0.5,1)] hover:scale-[1.04] hover:brightness-100 group-hover:scale-[1.04] group-hover:brightness-100"
+                className="object-cover brightness-90 transition-all duration-[2000ms] ease-[cubic-bezier(0.25,1,0.5,1)] hover:scale-[1.04] hover:brightness-100 group-hover:scale-[1.04] group-hover:brightness-100 render-crisp"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/5 to-transparent" />
               <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-8 p-6 sm:p-10">
                 <h2 className="text-[clamp(2.7rem,6vw,6.5rem)] font-medium leading-none tracking-[-0.065em]">
-                  {nextModel.name}
+                  <RevealText text={nextModel.name} />
                 </h2>
                 <ArrowRight
                   size={24}
@@ -261,9 +266,11 @@ export default async function HomeDetailPage({
         <section className="border-t border-white/12 px-5 py-24 text-center sm:px-8">
           <div className="mx-auto max-w-5xl">
             <p className="eyebrow">Beyond the collection</p>
-            <h2 className="mx-auto mt-7 max-w-4xl text-4xl font-medium leading-tight tracking-[-0.05em] sm:text-6xl">
-              Can’t find your perfect plan? We’ve got hundreds more.
-            </h2>
+            <HeadlineReveal variant="sweep" className="mx-auto mt-7 max-w-4xl">
+              <h2 className="text-4xl font-medium leading-tight tracking-[-0.05em] sm:text-6xl">
+                Can’t find your perfect plan? We’ve got hundreds more.
+              </h2>
+            </HeadlineReveal>
             <Link
               href="/#reserve"
               className="mt-10 inline-flex items-center justify-center border border-white/45 px-7 py-4 text-[10px] font-semibold uppercase tracking-[0.18em] text-white transition-colors hover:bg-white hover:text-[#0b0c10]"

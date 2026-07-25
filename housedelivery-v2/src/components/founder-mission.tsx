@@ -1,5 +1,7 @@
 import Image from "next/image";
 
+import { RevealText } from "@/components/reveal-text";
+
 type Pillar = {
   number: string;
   kicker: string;
@@ -40,9 +42,11 @@ export function FounderMission() {
             Our story / House Delivery Inc.
           </p>
           <h2 className="col-span-12 max-w-[1250px] text-[clamp(3.5rem,8vw,8.8rem)] font-medium leading-[0.82] tracking-[-0.075em] text-white/90 lg:col-span-9 lg:col-start-4">
-            A home is where
+            <RevealText text="A home is where" />
             <br />
-            <span className="text-white/38">belonging begins.</span>
+            <span className="text-white/38">
+              <RevealText text="belonging begins." delay={0.12} />
+            </span>
           </h2>
           <p className="col-span-10 col-start-3 max-w-xl border-l border-white/10 pl-6 text-lg leading-8 text-white/70 sm:col-span-7 sm:col-start-6 lg:col-span-4 lg:col-start-9">
             Not product alone. The beginning of a street. A neighbourhood. A

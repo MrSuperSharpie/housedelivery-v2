@@ -123,56 +123,68 @@ Invalid cancellations and no-shows should trigger clear, auditable, configurable
 <claude-mem-context>
 # Memory Context
 
-# [siteline-clean-claude-local] recent context, 2026-04-29 10:26am PDT
+# [siteline-clean-claude-local] recent context, 2026-07-20 7:07pm PDT
 
 Legend: 🎯session 🔴bugfix 🟣feature 🔄refactor ✅change 🔵discovery ⚖️decision
 Format: ID TIME TYPE TITLE
 Fetch details: get_observations([IDs]) | Search: mem-search skill
 
-Stats: 40 obs (16,812t read) | 864,232t work | 98% savings
+Stats: 50 obs (26,323t read) | 877,516t work | 97% savings
 
-### Apr 22, 2026
-24 1:03p 🔴 Next.js Signup Redirect Fixed: /inspector → /inspector/onboarding
-25 " 🔵 Inspector Signup Routing — Code Archaeology Complete
-26 1:04p 🔴 Fixed post-signup redirect to send new users to onboarding instead of Live Job Board
-27 " 🔵 Inspector signup routing architecture — redirect candidates traced
-28 1:05p 🔴 Post-Signup Redirect Fixed: /inspector → /inspector/onboarding
-29 " 🔴 Next.js Signup Redirect Fixed: /inspector → /inspector/onboarding
-### Apr 23, 2026
-30 9:17p 🔵 Vero Construction Inspection Platform — Supabase Schema Constraints for Middleware
-31 9:23p 🔵 Vero Construction Inspection Platform — Project Context and Schema Constraints
-32 " 🔵 Middleware Location is Root-Level, Not src/ — and Contains No Onboarding Gate
-33 " 🔵 Profiles Table Schema — Confirmed Columns and Onboarding Status Source of Truth
-34 " 🔵 Auth Flow — onboarding_status Read Path and Sign-In Routing Logic
-35 " 🔵 Dual Onboarding Status Storage — inspector_onboarding_status Table + profiles Sync Pattern
-36 9:24p 🟣 Middleware Upgraded to Enforce Inspector Onboarding-Status Routing at Edge
-37 " 🔵 Tech Stack Snapshot — Next.js 16, React 19, Supabase SSR, Resend, pdf-lib
-38 9:28p 🟣 Transactional Email — Application Status Notifications Wired to Admin Approval Flow
-39 " 🟣 Email DNS Verification Utility Added to Health Endpoint
-40 " 🔵 Pre-Deployment Lint and TypeCheck Audit — 10 Errors, 40 Warnings Found
-41 " 🔴 Lint Errors Fixed — Date.now Impurity and setState-in-Effect in Inspector Pages
-42 9:41p 🔵 Vero Construction Inspection Platform — Project Context and Schema Constraints
-43 9:42p 🔵 veropermit.com Email DNS Records — Partial Configuration Found
-44 " 🔴 DKIM Detection Logic Fixed in src/lib/mail.ts
-45 9:43p 🔴 middleware.ts Routing Rewrite — Profiles-First Onboarding Gate
-46 " 🔴 Inspector Signup Page — Race Condition Fix and Credential-Specific Document Collection
-47 " 🔴 auth.tsx and sign-in/page.tsx — Profiles Table Is Now Source of Truth for Identity and Status
-48 " 🟣 Admin Inspectors Page — Status Sync, Email Triggers, Admin Override, Digital Seal Viewer, and Service Regions
-49 " ✅ Inspector Onboarding UX — Copy Updated to "Waiting for Approval" Framing
-50 " 🟣 New Files — Mail API Routes, Mail Utility, Admin Health Route, and Supabase Migrations
-51 9:45p 🔴 Builder Page TypeScript Build Error — listJobsByBuilder Undefined Argument Fixed
-52 9:46p 🔵 Second TypeScript Build Error — InspectorCompletionWorkspace onCapture Return Type Mismatch
-53 9:51p 🔵 Third TypeScript Build Error — store.tsx Assignment Reconstruction Weak Typing
-54 9:53p 🔴 store.tsx — builderApprovalStatus Cast to InspectorOnboardingStatus Type
-55 9:54p 🔵 Fourth TypeScript Build Error — store.tsx addProject builderId Optional vs Required
-58 9:55p 🔵 Fifth TypeScript Build Error — Duplicate InspectorDiscipline Types Out of Sync Between types.ts and governance/index.ts
-59 9:56p 🔴 store.tsx — objectionReason Cast to ObjectionReason Type in objectAssignment
-62 10:01p 🔴 authorityAccess.ts — Missing exportedAt Field Added to recordPackageExport Call
-63 " 🔴 Production Build Passed Clean — All 19 Static Routes Generated Successfully
-64 " 🔵 Seventh TypeScript Error — jobs.ts builderStatus Assigned 'draft' String Fallback Against InspectorOnboardingStatus Union
-67 10:02p 🔴 jobs.ts and projects.ts — GovernanceOnboardingStatus Cast and GovernanceIssue Missing Fields Fixed
-68 10:04p 🔴 projects.ts — ruleSnapshot Fixed to Empty Object and /inspector/onboarding Wrapped in Suspense
-69 " 🔴 Full Production Build Passed — All 38 Routes Generated (Exit Code 0)
+### Jun 7, 2026
+394 8:43p 🔵 S13 and S14 Checklist Definitions Read — Confirmed Zero Inline Evidence Tags Across All 10 Items
+### Jun 23, 2026
+417 10:21a 🔵 Vero Permit — Checklist Template System Architecture Audit (Read-Only)
+418 10:22a 🔵 Vero Permit — Checklist Template System Architecture Audit (Read-Only)
+### Jul 6, 2026
+419 12:35p 🔵 Vero Permit — Pro Audit Remediation Sprint 01 Kickoff Context
+420 " 🔵 Vero Permit — Three Inspection Systems Identified: A (Dead), B (DB Preview), C (Runtime)
+421 " 🔵 Vero Permit — Hosted Migration Ledger Drift: 10 Unledgered Migrations, 1 Seal-Latch Effect Missing
+422 12:38p 🟣 New Remediation Branch — fix/pro-audit-remediation-sprint-01
+423 " ⚖️ Option A — Permit-Centric System C Canonical; Regenerate System B from It
+424 " 🔵 S10–S13 Human Review Packet — Product Acceptance Recorded 2026-07-05
+425 " 🔴 Preview UI QA — S10–S13 Template Content Mismatch Root-Caused and Resolved
+426 " 🔵 Seal-Latch Security Gap — Migration 20260611000000 Absent on Hosted Supabase
+427 12:39p ✅ InspectorCompletionWorkspace — Terminology Overhaul: Remove "Certification/Issuing" Language, Add N/A Scope Guidance
+428 12:40p ✅ Vault Page — getResultLabel Returns "Corrections Required" Instead of "Fail"
+429 12:41p 🟣 Pro Audit Remediation Copy Test Suite Added
+430 " ✅ Vero Permit — Pro Audit Remediation Sprint 01 Documentation Created
+431 12:42p 🔵 Supabase Hold Payment Gate Migration — Code Review Requested
+432 12:43p 🔵 Test Suite — 3 Failures in 1004 Tests After Latest Pass
+433 " ✅ inspectorStagePreview.test.ts — Evidence Lock Message and AHJ Occupancy Copy Corrections
+434 12:45p ✅ Vero Inspector UI — Pro Audit Copy Remediation Sprint 01
+435 12:46p 🟣 Pro-Audit Remediation Sprint 01 — Staged for Commit in siteline-clean
+436 12:48p 🟣 Pro Audit Remediation Sprint 01 — Inspection Outcome Copy Clarified
+437 12:52p 🔵 Pro Audit Remediation Sprint-01 — Branch Review Initiated
+438 1:00p 🔵 fix/pro-audit-remediation-sprint-01 Branch State — AGENTS.md Unstaged Local Change
+439 " 🔵 Holds Reporting Test Fixture — evidenceType 'note' Mapped to kind 'voice_note'
+440 1:01p 🔵 fix/pro-audit-remediation-sprint-01 — Full Test Suite Passes: 1004/1004, TypeScript Clean
+441 1:02p 🔵 HoldDetail Type — holdPaymentStatus Field Added by Hold Payment Gate Migration
+442 " 🔵 siteline-pro Production Build — Next.js 16.1.6 Turbopack, 90 Routes, Zero Errors
+443 3:28p 🔴 Launch QA Sprint 01 — Four UI Bugs Fixed in siteline-pro
+444 " ✅ PR #3 Opened — Launch QA Sprint 01 Branch Pushed and Vercel Preview Succeeded
+445 " 🔵 AGENTS.md Drift Is a Persistent Recurring Gotcha After Every Git Operation
+446 3:29p ✅ PR #3 Merged — Launch QA Sprint 01 Landed into stripe-connect-sandbox-setup
+447 4:24p 🟣 Pro Audit Sprint 02A — Evidence Matrix Reconciliation Sprint Initiated
+448 " 🔵 Vero Permit Evidence Matrix Source — Full S01–S15 Policy Confirmed
+449 4:25p 🔵 Current Active buildCompletionChecklist Rows Inventoried — S01–S15 Stage Names Differ from Pro Matrix
+450 4:30p 🟣 src/lib/inspectionEvidencePolicy.ts — Typed Local Evidence Policy File Created
+451 4:32p 🔵 inspectorCompletion.ts System C Schema Confirmed — Already Has Rich Evidence Semantics
+452 4:33p 🟣 inspectionEvidencePolicy.test.ts — Policy Validation Test Suite Created
+453 4:34p ✅ docs/audit/evidence-matrix-reconciliation.md — Full Sprint 02A Reconciliation Document Created
+### Jul 12, 2026
+476 7:39p ⚖️ Tablet Inspection Guide Split-Panel Architecture — Approach Defined
+477 7:40p 🟣 Tablet Inspection Guide Split-Panel Layout — Autonomous Completion Task
+478 " 🟣 Tablet Inspection Guide Split-Panel — Autonomous Resume on fix/tablet-inspection-guide-split-panel
+479 7:42p 🔵 Tablet Inspection Guide Split-Panel — Task Scope and Constraints Defined
+480 " 🟣 Tablet Inspection Guide Split Panel — Autonomous Branch Continuation Initiated
+481 7:43p ⚖️ Tablet Inspection Guide — Split-Panel Layout Approach Defined
+482 " 🟣 Tablet Inspection Guide — Split Panel Replaces Modal Drawer
+483 7:44p 🟣 Tablet Split-Panel — Commit ae47cca Created and Pushed to GitHub
+484 " 🔵 Vercel Preview Deployment Triggered — Status Pending at Specific URL
+485 7:45p 🟣 Tablet Inspection Guide Split-Panel — Autonomous Loop Resumed
+486 7:46p 🟣 Tablet Inspection Guide Split-Panel — Committed and Pushed
+487 9:07p 🟣 Vero Favicon and App Icons — Replacement Task Initiated
 
-Access 864k tokens of past work via get_observations([IDs]) or mem-search skill.
+Access 878k tokens of past work via get_observations([IDs]) or mem-search skill.
 </claude-mem-context>

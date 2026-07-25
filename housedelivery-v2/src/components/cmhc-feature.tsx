@@ -7,8 +7,11 @@ import {
   MapPinned,
 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
+import { HeadlineReveal } from "@/components/headline-reveal";
 import { PortfolioCategoryNav } from "@/components/portfolio-category-nav";
+import { catalogModels } from "@/data/catalog";
 
 const advantages = [
   {
@@ -34,141 +37,6 @@ const advantages = [
   },
 ] as const;
 
-const drawingPdfPaths = {
-  adu1: "/pdfs/BC_ADU_01_Drawings.pdf",
-  adu2: "/pdfs/BC_ADU_02_Drawings.pdf",
-  duplex: "/pdfs/BC_Duplex_Drawings.pdf",
-  fourplex1: "/pdfs/BC_Fourplex_01_Drawings.pdf",
-  fourplex2: "/pdfs/BC_Fourplex_02_Drawings.pdf",
-  rowhouse: "/pdfs/BC_Rowhouse_Drawings.pdf",
-  sixplex: "/pdfs/BC_Sixplex Courtyard_Drawings.pdf",
-} as const;
-
-const catalogueTypes = [
-  {
-    label: "The Micro (ADU-01)",
-    downloadHref: drawingPdfPaths.adu1,
-  },
-  {
-    label: "The Mini (ADU-02)",
-    downloadHref: drawingPdfPaths.adu2,
-  },
-  {
-    label: "BC Duplex",
-    downloadHref: drawingPdfPaths.duplex,
-  },
-  {
-    label: "BC Fourplex 1",
-    downloadHref: drawingPdfPaths.fourplex1,
-  },
-  {
-    label: "BC Fourplex 2",
-    downloadHref: drawingPdfPaths.fourplex2,
-  },
-  {
-    label: "BC Rowhouse",
-    downloadHref: drawingPdfPaths.rowhouse,
-  },
-  {
-    label: "Sixplex Courtyard",
-    downloadHref: drawingPdfPaths.sixplex,
-  },
-] as const;
-
-const preApprovedModels = [
-  {
-    number: "01",
-    code: "ADU-01",
-    name: "The Micro",
-    squareFootage: "540",
-    purpose: "Smart, Sustainable Living",
-    description:
-      "A compact, high-performance elder suite, rental, or starter home with an adaptable one-bedroom plan.",
-    image:
-      "https://img1.wsimg.com/isteam/ip/f41876f7-372e-4d3e-b5b8-dde5308c52b2/AUD%2001.png",
-    imageAlt: "Exterior rendering of Accessory Dwelling Unit 01",
-    downloadHref: drawingPdfPaths.adu1,
-  },
-  {
-    number: "02",
-    code: "ADU-02",
-    name: "The Mini",
-    squareFootage: "1,010",
-    purpose: "Two-Bedroom Solution for Flexible Living",
-    description:
-      "A flexible two-bedroom home for families, elders, shared living, staff housing, or a standalone dwelling.",
-    image:
-      "https://img1.wsimg.com/isteam/ip/f41876f7-372e-4d3e-b5b8-dde5308c52b2/AUD%2002.png",
-    imageAlt: "Exterior rendering of Accessory Dwelling Unit 02",
-    downloadHref: drawingPdfPaths.adu2,
-  },
-  {
-    number: "03",
-    code: "BC-DUPLEX",
-    name: "BC Duplex",
-    squareFootage: "2,927",
-    purpose: "Two Homes, One Smart Footprint",
-    description:
-      "Two private, two-storey homes within one efficient footprint for families, staff, or intergenerational living.",
-    image:
-      "https://img1.wsimg.com/isteam/ip/f41876f7-372e-4d3e-b5b8-dde5308c52b2/Duplex.png",
-    imageAlt: "Exterior rendering of the BC Duplex",
-    downloadHref: drawingPdfPaths.duplex,
-  },
-  {
-    number: "04",
-    code: "BC-FOURPLEX-01",
-    name: "BC Fourplex 1",
-    squareFootage: "4,027",
-    purpose: "Four Homes. One Considered Footprint.",
-    description:
-      "A flexible four-home design for narrower sites, with one- to three-bedroom plans and optional adaptable units.",
-    image:
-      "https://img1.wsimg.com/isteam/ip/f41876f7-372e-4d3e-b5b8-dde5308c52b2/FourPlex.png",
-    imageAlt: "Exterior rendering of BC Fourplex 1",
-    downloadHref: drawingPdfPaths.fourplex1,
-  },
-  {
-    number: "05",
-    code: "BC-FOURPLEX-02",
-    name: "BC Fourplex 2",
-    squareFootage: "5,985",
-    purpose: "Density, Refined",
-    description:
-      "Four generous three-bedroom homes gathered within a composed three-storey form for efficient neighbourhood density.",
-    image:
-      "https://img1.wsimg.com/isteam/ip/f41876f7-372e-4d3e-b5b8-dde5308c52b2/render-hdc-bc-4_plex-01.jpg",
-    imageAlt: "Exterior rendering of BC Fourplex 2",
-    downloadHref: drawingPdfPaths.fourplex2,
-  },
-  {
-    number: "06",
-    code: "BC-ROWHOUSE",
-    name: "BC Rowhouse",
-    squareFootage: "2,718",
-    purpose: "Connected Living for Modern Communities",
-    description:
-      "Attached multi-storey homes that combine private entries and flexible bedrooms with efficient community land use.",
-    image:
-      "https://img1.wsimg.com/isteam/ip/f41876f7-372e-4d3e-b5b8-dde5308c52b2/Rowhouse2.png",
-    imageAlt: "Exterior rendering of the BC Rowhouse",
-    downloadHref: drawingPdfPaths.rowhouse,
-  },
-  {
-    number: "07",
-    code: "BC-SIXPLEX",
-    name: "Sixplex Courtyard",
-    squareFootage: "6,216",
-    purpose: "Courtyard Living, Built for Connection",
-    description:
-      "Six efficient homes organized around a shared courtyard, balancing private living with a welcoming community space.",
-    image:
-      "https://img1.wsimg.com/isteam/ip/f41876f7-372e-4d3e-b5b8-dde5308c52b2/Six%20Plex.png",
-    imageAlt: "Exterior rendering of the Sixplex Courtyard",
-    downloadHref: drawingPdfPaths.sixplex,
-  },
-] as const;
-
 export function CmhcFeature() {
   return (
     <section
@@ -190,14 +58,18 @@ export function CmhcFeature() {
             </div>
           </div>
           <div>
-            <h2
-              id="cmhc-heading"
-              className="max-w-5xl text-[clamp(3rem,6vw,6.8rem)] font-medium leading-[0.9] tracking-[-0.065em]"
-            >
-              Standardized by design.
-              <br />
-              <span className="text-white/38">Site-ready by adaptation.</span>
-            </h2>
+            <HeadlineReveal variant="sweep">
+              <h2
+                id="cmhc-heading"
+                className="max-w-5xl text-[clamp(3rem,6vw,6.8rem)] font-medium leading-[0.9] tracking-[-0.065em]"
+              >
+                Standardized by design.
+                <br />
+                <span className="text-white/38">
+                  Site-ready by adaptation.
+                </span>
+              </h2>
+            </HeadlineReveal>
             <p className="mt-8 max-w-2xl text-base leading-7 text-white/52 lg:text-lg lg:leading-8">
               Standardized designs can create a faster route to a site-specific
               answer. House Delivery Inc. uses Canada&apos;s Housing Design
@@ -288,11 +160,19 @@ export function CmhcFeature() {
           </div>
 
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-12 lg:grid-cols-3">
-            {preApprovedModels.map((model) => (
+            {catalogModels.map((model) => (
               <article
                 key={model.code}
                 className="group relative flex min-h-[620px] flex-col justify-between overflow-hidden border border-white/10 bg-[#0B0C10] p-7 transition-colors duration-500 hover:border-white/25 sm:p-8"
               >
+                <Link
+                  href={`/catalog/${model.slug}`}
+                  aria-label={`View details for ${model.name}`}
+                  className="absolute inset-0 z-10"
+                >
+                  <span className="sr-only">View {model.name} details</span>
+                </Link>
+
                 <span
                   className="pointer-events-none absolute -right-3 top-0 text-[clamp(8rem,16vw,13rem)] font-medium leading-none tracking-[-0.08em] text-white/[0.025] transition-colors duration-300 group-hover:text-white/[0.045]"
                   aria-hidden="true"
@@ -337,15 +217,22 @@ export function CmhcFeature() {
                   </p>
                 </div>
 
-                <div className="relative mt-14 border-t border-white/10 pt-7">
+                <div className="relative z-20 mt-14 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-white/10 pt-7">
+                  <Link
+                    href={`/catalog/${model.slug}`}
+                    aria-label={`View details for ${model.name}`}
+                    className="inline-flex items-center gap-4 border border-white/28 px-5 py-3 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/72 transition-colors hover:border-white/60 hover:text-white"
+                  >
+                    View Details
+                    <ArrowUpRight size={13} aria-hidden="true" />
+                  </Link>
                   <a
                     href={model.downloadHref}
                     download
                     aria-label={`Download PDF drawings and specifications for ${model.name}`}
-                    className="inline-flex items-center gap-4 border border-white/28 px-5 py-3 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/72 transition-colors hover:border-white/60 hover:text-white"
+                    className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/52 transition-colors hover:text-white"
                   >
-                    Download PDF / Specs
-                    <ArrowUpRight size={13} aria-hidden="true" />
+                    Download PDF
                   </a>
                 </div>
               </article>
@@ -383,15 +270,15 @@ export function CmhcFeature() {
           </div>
 
           <div className="flex flex-wrap gap-2 p-7 sm:p-9">
-            {catalogueTypes.map((type) => (
+            {catalogModels.map((model) => (
               <a
-                key={type.label}
-                href={type.downloadHref}
+                key={model.code}
+                href={model.downloadHref}
                 download
-                aria-label={`Download PDF drawings for ${type.label}`}
+                aria-label={`Download PDF drawings for ${model.name}`}
                 className="border border-white/14 px-4 py-2 text-[9px] font-semibold uppercase tracking-[0.16em] text-white/52 transition-colors hover:border-white/35 hover:text-white/90"
               >
-                {type.label}
+                {model.catalogLabel}
               </a>
             ))}
           </div>

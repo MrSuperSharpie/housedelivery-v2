@@ -1,8 +1,9 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import Image from "next/image";
 
+import { HeadlineReveal } from "@/components/headline-reveal";
 import type { HomeModel } from "@/data/models";
 
 type GalleryImage = {
@@ -88,6 +89,7 @@ export function HomeEditorialGallery({
   floorPlanImage,
   narrative,
 }: HomeEditorialGalleryProps) {
+  const shouldReduceMotion = useReducedMotion();
   const lifestyleImages = images.filter(
     (src) => !isFloorPlanImage(src, floorPlanImage),
   );
@@ -138,13 +140,15 @@ export function HomeEditorialGallery({
                       >
                         <motion.div
                           className="relative size-full overflow-hidden"
-                          initial={{ opacity: 0, y: 30 }}
+                          initial={
+                            shouldReduceMotion ? false : { opacity: 0, y: 40 }
+                          }
                           whileInView={{ opacity: 1, y: 0 }}
                           viewport={{ once: true, margin: "-100px" }}
                           transition={{
-                            duration: 0.8,
-                            ease: [0.25, 1, 0.5, 1],
-                            delay: imageIndex * 0.08,
+                            duration: shouldReduceMotion ? 0 : 1,
+                            ease: [0.16, 1, 0.3, 1],
+                            delay: shouldReduceMotion ? 0 : imageIndex * 0.08,
                           }}
                         >
                           <Image
@@ -189,9 +193,14 @@ export function HomeEditorialGallery({
                       <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/28">
                         Narrative / {String(rowIndex + 1).padStart(2, "0")}
                       </p>
-                      <h3 className="mt-5 max-w-sm text-2xl font-medium leading-tight tracking-[-0.045em] text-white/82 sm:text-3xl">
-                        {narrativeSection.title}
-                      </h3>
+                      <HeadlineReveal
+                        variant={rowIndex % 3 === 2 ? "sweep" : "clip"}
+                        className="mt-5"
+                      >
+                        <h3 className="max-w-sm text-2xl font-medium leading-tight tracking-[-0.045em] text-white/82 sm:text-3xl">
+                          {narrativeSection.title}
+                        </h3>
+                      </HeadlineReveal>
                     </div>
                     <p className="max-w-2xl text-lg leading-relaxed text-neutral-400">
                       {narrativeSection.body}

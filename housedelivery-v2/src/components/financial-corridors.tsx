@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 
+import { HeadlineReveal } from "@/components/headline-reveal";
 import { cn } from "@/lib/cn";
 
 const fundingTracks = {
@@ -247,7 +248,7 @@ export function FinancialCorridors() {
   return (
     <section
       id="financial-corridors"
-      className="scroll-mt-20 bg-[#0B0C10] px-5 py-32 sm:px-8 lg:px-12 lg:py-44"
+      className="scroll-mt-20 bg-[#0B0C10] px-5 py-12 sm:px-8 lg:px-12 lg:py-16"
     >
       <div className="mx-auto max-w-[1504px]">
         <div className="grid grid-cols-12 gap-y-12 border-t border-white/10 pt-7 lg:gap-x-8">
@@ -255,11 +256,16 @@ export function FinancialCorridors() {
             Funding / Financial corridors
           </p>
 
-          <h2 className="col-span-12 max-w-[1250px] text-[clamp(3.5rem,8vw,8.8rem)] font-medium leading-[0.82] tracking-[-0.075em] text-white/90 lg:col-span-9 lg:col-start-4">
-            Capital aligned.
-            <br />
-            <span className="text-white/38">Communities built.</span>
-          </h2>
+          <HeadlineReveal
+            variant="sweep"
+            className="col-span-12 lg:col-span-9 lg:col-start-4"
+          >
+            <h2 className="max-w-[1250px] text-[clamp(3.5rem,8vw,8.8rem)] font-medium leading-[0.82] tracking-[-0.075em] text-white/90">
+              Capital aligned.
+              <br />
+              <span className="text-white/38">Communities built.</span>
+            </h2>
+          </HeadlineReveal>
 
           <p className="col-span-11 max-w-2xl text-lg leading-8 text-white/70 sm:col-span-8 sm:col-start-4 lg:col-span-5 lg:col-start-8">
             Navigating the capital stack shouldn&apos;t stall your project. We
@@ -269,7 +275,7 @@ export function FinancialCorridors() {
           </p>
         </div>
 
-        <div className="mt-28 grid grid-cols-12 gap-y-16 lg:mt-40 lg:gap-x-8">
+        <div className="mt-12 grid grid-cols-12 gap-y-16 lg:mt-16 lg:gap-x-8">
           <div className="col-span-12 lg:col-span-3">
             <div className="lg:sticky lg:top-28">
               <p className="mb-5 text-[9px] uppercase tracking-[0.22em] text-white/30">

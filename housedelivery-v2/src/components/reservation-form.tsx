@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Check, ShieldCheck } from "lucide-react";
 import { FormEvent, useState } from "react";
 
+import { HeadlineReveal } from "@/components/headline-reveal";
 import type { HomeModel } from "@/data/models";
 
 type ReservationFormProps = {
@@ -28,11 +29,13 @@ export function ReservationForm({ models }: ReservationFormProps) {
           <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-black/48">
             Project review / First step
           </p>
-          <h2 className="mt-7 text-[clamp(3.5rem,6.8vw,7.5rem)] font-medium leading-[0.84] tracking-[-0.075em]">
-            Make room
-            <br />
-            for certainty.
-          </h2>
+          <HeadlineReveal variant="sweep" className="mt-7">
+            <h2 className="text-[clamp(3.5rem,6.8vw,7.5rem)] font-medium leading-[0.84] tracking-[-0.075em]">
+              Make room
+              <br />
+              for certainty.
+            </h2>
+          </HeadlineReveal>
           <p className="mt-8 max-w-lg text-base leading-7 text-black/58">
             Tell us where you are in the process. We’ll review your land,
             timeline, financing context, and preferred design, then map the
