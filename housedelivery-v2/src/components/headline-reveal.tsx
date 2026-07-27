@@ -46,7 +46,12 @@ export function HeadlineReveal({
         };
 
   return (
-    <div className={cn("overflow-hidden", className)}>
+    <div
+      className={cn(
+        "mb-[clamp(-1.25rem,-1vw,-0.4rem)] overflow-hidden pb-[clamp(0.4rem,1vw,1.25rem)]",
+        className,
+      )}
+    >
       <motion.div
         initial={shouldReduceMotion ? false : initial}
         whileInView={visible}
@@ -56,7 +61,7 @@ export function HeadlineReveal({
           delay: shouldReduceMotion ? 0 : delay,
           ease: luxuryEase,
         }}
-        className="transform-gpu will-change-[transform,opacity,clip-path]"
+        className="mb-[clamp(-1.25rem,-1vw,-0.4rem)] transform-gpu pb-[clamp(0.4rem,1vw,1.25rem)] will-change-[transform,opacity,clip-path]"
       >
         {children}
       </motion.div>

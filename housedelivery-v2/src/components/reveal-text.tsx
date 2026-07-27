@@ -36,7 +36,10 @@ export function RevealText({
   return (
     <motion.span
       aria-label={text}
-      className={cn("inline-block overflow-hidden align-bottom", className)}
+      className={cn(
+        "mb-[-0.12em] inline-block overflow-hidden pb-[0.12em] align-bottom",
+        className,
+      )}
       initial={shouldReduceMotion ? "visible" : "hidden"}
       whileInView="visible"
       viewport={{ once: true, amount: 0.15 }}
