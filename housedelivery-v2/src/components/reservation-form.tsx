@@ -11,12 +11,65 @@ type ReservationFormProps = {
   models: readonly HomeModel[];
 };
 
+type InquiryFormValues = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  model: string;
+  location: string;
+  timeline: string;
+  notes: string;
+  company: string;
+};
+
+function readFormValue(formData: FormData, name: keyof InquiryFormValues) {
+  const value = formData.get(name);
+  return typeof value === "string" ? value.trim() : "";
+}
+
 export function ReservationForm({ models }: ReservationFormProps) {
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submissionError, setSubmissionError] = useState("");
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSubmitted(true);
+    const formData = new FormData(event.currentTarget);
+    const inquiry: InquiryFormValues = {
+      firstName: readFormValue(formData, "firstName"),
+      lastName: readFormValue(formData, "lastName"),
+      email: readFormValue(formData, "email"),
+      phone: readFormValue(formData, "phone"),
+      model: readFormValue(formData, "model"),
+      location: readFormValue(formData, "location"),
+      timeline: readFormValue(formData, "timeline"),
+      notes: readFormValue(formData, "notes"),
+      company: readFormValue(formData, "company"),
+    };
+
+    setSubmitting(true);
+    setSubmissionError("");
+
+    try {
+      const response = await fetch("/api/inquiries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(inquiry),
+      });
+
+      if (!response.ok) {
+        throw new Error("Inquiry delivery failed.");
+      }
+
+      setSubmitted(true);
+    } catch {
+      setSubmissionError(
+        "We couldn’t submit your project details right now. Please try again shortly.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -65,20 +118,14 @@ export function ReservationForm({ models }: ReservationFormProps) {
                 </div>
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-black/45">
-                    Inquiry prepared
+                    Inquiry received
                   </p>
                   <h3 className="mt-5 max-w-2xl text-4xl font-medium leading-tight tracking-[-0.055em] sm:text-6xl">
                     Your project has a place to begin.
                   </h3>
                   <p className="mt-6 max-w-xl text-base leading-7 text-black/55">
-                    This prototype does not yet connect to a CRM. Email{" "}
-                    <a
-                      className="border-b border-black"
-                      href="mailto:hello@housedelivery.ca"
-                    >
-                      hello@housedelivery.ca
-                    </a>{" "}
-                    to send your project details directly.
+                    Thank you for reaching out. We have received your project
+                    details and our team will follow up shortly.
                   </p>
                 </div>
               </motion.div>
@@ -150,17 +197,37 @@ export function ReservationForm({ models }: ReservationFormProps) {
                     placeholder="Land status, project goals, permit or financing questions…"
                   />
                 </label>
+                <label className="hidden" aria-hidden="true">
+                  <span>Company</span>
+                  <input
+                    name="company"
+                    tabIndex={-1}
+                    autoComplete="off"
+                  />
+                </label>
                 <div className="sm:col-span-2">
                   <button
                     type="submit"
-                    className="group flex w-full items-center justify-between bg-[#0b0c10] px-6 py-5 text-left text-xs font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-[#20232a]"
+                    disabled={submitting}
+                    aria-busy={submitting}
+                    className="group flex w-full items-center justify-between bg-[#0b0c10] px-6 py-5 text-left text-xs font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-[#20232a] disabled:cursor-wait disabled:opacity-70"
                   >
-                    Request a project review
+                    {submitting
+                      ? "Sending inquiry…"
+                      : "Request a project review"}
                     <ArrowRight
                       size={16}
                       className="transition-transform group-hover:translate-x-1"
                     />
                   </button>
+                  {submissionError ? (
+                    <p
+                      role="alert"
+                      className="mt-4 text-xs leading-5 text-black/60"
+                    >
+                      {submissionError}
+                    </p>
+                  ) : null}
                   <p className="mt-4 text-[10px] leading-4 text-black/40">
                     By submitting, you agree to be contacted about your House
                     Delivery project. No payment is collected here.

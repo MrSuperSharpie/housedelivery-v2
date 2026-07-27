@@ -20,6 +20,21 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Project inquiry delivery
+
+Project review submissions are delivered server-side through Resend. Copy
+`.env.example` to `.env.local`, then configure:
+
+```bash
+RESEND_API_KEY=re_...
+INQUIRY_FROM_EMAIL="House Delivery Website <inquiries@housedelivery.ca>"
+```
+
+The sending address must belong to a domain verified in Resend. Inquiry
+messages are delivered to `hello@housedelivery.ca`; provider credentials are
+never exposed to the browser. The form only displays its success confirmation
+after Resend accepts the message for delivery.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
