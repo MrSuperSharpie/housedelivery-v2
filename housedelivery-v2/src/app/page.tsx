@@ -9,7 +9,6 @@ import Image from "next/image";
 import { CmhcFeature } from "@/components/cmhc-feature";
 import { DeliveryTimeline } from "@/components/delivery-timeline";
 import { FinancialCorridors } from "@/components/financial-corridors";
-import { FounderMission } from "@/components/founder-mission";
 import { HeadlineReveal } from "@/components/headline-reveal";
 import { InclusionGrid } from "@/components/inclusion-grid";
 import { LuxuryHero } from "@/components/luxury-hero";
@@ -231,7 +230,6 @@ export default function Home() {
         </section>
 
         <ProjectUnderstandingSection />
-        <FounderMission />
         <ReservationForm models={models} />
       </main>
     </>
