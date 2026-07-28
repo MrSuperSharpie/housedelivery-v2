@@ -9,6 +9,7 @@ type HeadlineRevealProps = {
   children: ReactNode;
   className?: string;
   delay?: number;
+  trigger?: "viewport" | "mount";
   variant?: "clip" | "sweep";
 };
 
@@ -19,6 +20,7 @@ export function HeadlineReveal({
   children,
   className,
   delay = 0,
+  trigger = "viewport",
   variant = "clip",
 }: HeadlineRevealProps) {
   const shouldReduceMotion = useReducedMotion();
@@ -54,7 +56,8 @@ export function HeadlineReveal({
     >
       <motion.div
         initial={shouldReduceMotion ? false : initial}
-        whileInView={visible}
+        animate={trigger === "mount" ? visible : undefined}
+        whileInView={trigger === "viewport" ? visible : undefined}
         viewport={revealViewport}
         transition={{
           duration: shouldReduceMotion ? 0 : 1,

@@ -9,9 +9,13 @@ import { HeadlineReveal } from "@/components/headline-reveal";
 
 type LuxuryHeroProps = {
   image: string;
+  supportingCopy?: string;
 };
 
-export function LuxuryHero({ image }: LuxuryHeroProps) {
+export function LuxuryHero({
+  image,
+  supportingCopy = "Exceptional design. Remarkable value. A faster way into a place that is proudly yours.",
+}: LuxuryHeroProps) {
   const heroRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -91,8 +95,7 @@ export function LuxuryHero({ image }: LuxuryHeroProps) {
             className="col-span-12 border-l border-white/25 pl-6 sm:col-span-8 sm:col-start-5 lg:col-span-3 lg:col-start-10"
           >
             <p className="max-w-sm text-base leading-7 text-white/72">
-              Exceptional design. Remarkable value. A faster way into a place
-              that is proudly yours.
+              {supportingCopy}
             </p>
             <a
               href="#reserve"

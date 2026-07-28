@@ -59,7 +59,19 @@ const stages = [
   },
 ] as const;
 
-export function DeliveryTimeline() {
+type DeliveryTimelineProps = {
+  eyebrow?: string;
+  headlinePrimary?: string;
+  headlineSecondary?: string;
+  introCopy?: string;
+};
+
+export function DeliveryTimeline({
+  eyebrow = "The delivery sequence",
+  headlinePrimary = "One path.",
+  headlineSecondary = "Six clear stages.",
+  introCopy = "Parallel planning replaces the usual stop-start sequence. Engineering, approvals, production, and site work are coordinated around one delivery target.",
+}: DeliveryTimelineProps) {
   const [activeStage, setActiveStage] = useState(0);
   const ActiveIcon = stages[activeStage].icon;
 
@@ -71,21 +83,17 @@ export function DeliveryTimeline() {
       <div className="mx-auto max-w-[1504px]">
         <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr]">
           <div>
-            <p className="eyebrow">The delivery sequence</p>
+            <p className="eyebrow">{eyebrow}</p>
             <h2 className="mt-6 text-[clamp(3rem,5.4vw,6rem)] font-medium leading-[0.92] tracking-[-0.065em]">
-              <RevealText text="One path." />
+              <RevealText text={headlinePrimary} />
               <br />
               <span className="text-white/40">
-                <RevealText text="Six clear stages." delay={0.12} />
+                <RevealText text={headlineSecondary} delay={0.12} />
               </span>
             </h2>
           </div>
           <div className="max-w-xl self-end lg:justify-self-end">
-            <p className="text-lg leading-8 text-white/55">
-              Parallel planning replaces the usual stop-start sequence.
-              Engineering, approvals, production, and site work are coordinated
-              around one delivery target.
-            </p>
+            <p className="text-lg leading-8 text-white/55">{introCopy}</p>
             <p className="mt-5 text-xs leading-5 text-white/30">
               The 120-day target is project-specific. Municipal review, site
               conditions, utility work, and chosen finishes can affect timing.

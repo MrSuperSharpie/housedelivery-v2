@@ -80,7 +80,15 @@ const steelImages: readonly SteelImage[] = [
   },
 ];
 
-export function SteelFrameAdvantage() {
+type SteelFrameAdvantageProps = {
+  supportingCopy?: string;
+  advantageCopy?: Readonly<Partial<Record<string, string>>>;
+};
+
+export function SteelFrameAdvantage({
+  supportingCopy = "Precision is the discount. Speed is the luxury. Quality is the part you keep.",
+  advantageCopy,
+}: SteelFrameAdvantageProps) {
   return (
     <section
       id="steel-frame"
@@ -99,8 +107,7 @@ export function SteelFrameAdvantage() {
             </h2>
           </HeadlineReveal>
           <p className="col-span-10 col-start-3 max-w-xl border-l border-white/10 pl-6 text-lg leading-8 text-white/70 sm:col-span-7 sm:col-start-6 lg:col-span-4 lg:col-start-9">
-            Precision is the discount. Speed is the luxury. Quality is the part
-            you keep.
+            {supportingCopy}
           </p>
         </div>
 
@@ -144,7 +151,7 @@ export function SteelFrameAdvantage() {
                 {advantage.kicker}
               </h3>
               <p className="col-span-10 col-start-3 max-w-xl text-base leading-7 text-white/62 lg:col-span-4 lg:col-start-8 lg:self-end lg:text-lg lg:leading-8">
-                {advantage.body}
+                {advantageCopy?.[advantage.number] ?? advantage.body}
               </p>
             </article>
           ))}

@@ -8,10 +8,12 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
 import { PortfolioCategoryNav } from "@/components/portfolio-category-nav";
 import { catalogModels } from "@/data/catalog";
+import { cn } from "@/lib/cn";
 
 const advantages = [
   {
@@ -37,12 +39,27 @@ const advantages = [
   },
 ] as const;
 
-export function CmhcFeature() {
+type CmhcFeatureProps = {
+  catalogueFollowOn?: ReactNode;
+  headlinePrimary?: string;
+  headlineSecondary?: string;
+  supportingCopy?: string;
+};
+
+export function CmhcFeature({
+  catalogueFollowOn,
+  headlinePrimary = "Standardized by design.",
+  headlineSecondary = "Site-ready by adaptation.",
+  supportingCopy = "Standardized designs can create a faster route to a site-specific answer. House Delivery Inc. uses Canada's Housing Design Catalogue as a proven starting point, then coordinates the site-specific work: zoning, utilities, foundations, engineering, permits, and inspections.",
+}: CmhcFeatureProps) {
   return (
     <section
       id="cmhc"
       aria-labelledby="cmhc-heading"
-      className="scroll-mt-20 bg-[#0B0C10] px-5 pb-28 sm:px-8 lg:px-12 lg:pb-40"
+      className={cn(
+        "scroll-mt-20 bg-[#0B0C10] px-5 sm:px-8 lg:px-12",
+        catalogueFollowOn ? "pb-0" : "pb-28 lg:pb-40",
+      )}
     >
       <div className="mx-auto max-w-[1504px]">
         <PortfolioCategoryNav active="pre-approved" />
@@ -63,19 +80,13 @@ export function CmhcFeature() {
                 id="cmhc-heading"
                 className="max-w-5xl text-[clamp(3rem,6vw,6.8rem)] font-medium leading-[0.9] tracking-[-0.065em]"
               >
-                Standardized by design.
+                {headlinePrimary}
                 <br />
-                <span className="text-white/38">
-                  Site-ready by adaptation.
-                </span>
+                <span className="text-white/38">{headlineSecondary}</span>
               </h2>
             </HeadlineReveal>
             <p className="mt-8 max-w-2xl text-base leading-7 text-white/52 lg:text-lg lg:leading-8">
-              Standardized designs can create a faster route to a site-specific
-              answer. House Delivery Inc. uses Canada&apos;s Housing Design
-              Catalogue as a proven starting point, then coordinates the
-              site-specific work: zoning, utilities, foundations, engineering,
-              permits, and inspections.
+              {supportingCopy}
             </p>
           </div>
         </div>
@@ -291,6 +302,12 @@ export function CmhcFeature() {
             lender approval still apply.
           </p>
         </div>
+
+        {catalogueFollowOn ? (
+          <div className="mt-10 border-t border-white/10 pt-10 lg:mt-12 lg:pt-12">
+            {catalogueFollowOn}
+          </div>
+        ) : null}
       </div>
     </section>
   );

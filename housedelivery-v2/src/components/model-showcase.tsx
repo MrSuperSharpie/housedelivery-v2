@@ -13,6 +13,8 @@ import { cn } from "@/lib/cn";
 
 type ModelShowcaseProps = {
   models: readonly HomeModel[];
+  introCopy?: string;
+  valueCopy?: string;
 };
 
 const filters = [
@@ -27,7 +29,11 @@ const filters = [
 
 type ViewMode = "exterior" | "plan";
 
-export function ModelShowcase({ models }: ModelShowcaseProps) {
+export function ModelShowcase({
+  models,
+  introCopy = "Every model begins as a pre-engineered component system and is adapted to your land, local code, climate loads, and chosen level of finish.",
+  valueCopy,
+}: ModelShowcaseProps) {
   const [activeFilter, setActiveFilter] = useState(0);
   const [viewMode, setViewMode] = useState<ViewMode>("exterior");
   const visibleModels = models.filter((model) =>
@@ -57,9 +63,12 @@ export function ModelShowcase({ models }: ModelShowcaseProps) {
             </h2>
           </div>
           <p className="max-w-xl justify-self-end text-base leading-7 text-white/55 lg:text-lg lg:leading-8">
-            Every model begins as a pre-engineered component system and is
-            adapted to your land, local code, climate loads, and chosen level
-            of finish.
+            {introCopy}
+            {valueCopy ? (
+              <span className="mt-4 block text-sm leading-6 text-white/38 lg:text-base lg:leading-7">
+                {valueCopy}
+              </span>
+            ) : null}
           </p>
         </div>
 

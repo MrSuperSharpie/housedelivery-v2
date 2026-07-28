@@ -123,39 +123,68 @@ const finishTiers = [
     number: "01",
     name: "Entry",
     note: "Essential edit",
+    comingSoon: "Essential finish collection coming soon",
   },
   {
     number: "02",
     name: "Premium",
     note: "Pre-approved standard",
+    comingSoon: "Curated premium collection coming soon",
   },
   {
     number: "03",
     name: "Signature",
     note: "Fully tailored",
+    comingSoon: "Tailored signature collection coming soon",
   },
 ] as const;
 
-export function InclusionGrid() {
+type InclusionGridProps = {
+  eyebrow?: string;
+  finishesVariant?: "default" | "compact";
+  introCopy?: string;
+  headlinePrimary?: string;
+  headlineSecondary?: string;
+  scopeNote?: string;
+};
+
+export function InclusionGrid({
+  eyebrow = "The complete package",
+  finishesVariant = "default",
+  introCopy = "Every House Delivery Inc. home arrives as a coordinated, certified system—documented, engineered, and finished to a single standard.",
+  headlinePrimary = "Included with every",
+  headlineSecondary = "delivered home.",
+  scopeNote,
+}: InclusionGridProps) {
+  const hasCompactFinishes = finishesVariant === "compact";
+
   return (
     <section
       id="inclusions"
-      className="scroll-mt-20 bg-[#0b0c10] px-5 py-24 sm:px-8 lg:px-12 lg:py-32"
+      className={
+        hasCompactFinishes
+          ? "scroll-mt-20 bg-[#0b0c10] px-5 pt-24 pb-16 sm:px-8 sm:pb-20 lg:px-12 lg:pt-32 lg:pb-24"
+          : "scroll-mt-20 bg-[#0b0c10] px-5 py-24 sm:px-8 lg:px-12 lg:py-32"
+      }
     >
       <div className="mx-auto max-w-[1504px]">
         <div className="mb-20 grid gap-8 border-t border-white/15 pt-7 md:grid-cols-2 lg:mb-28">
-          <p className="eyebrow">The complete package</p>
+          <p className="eyebrow">{eyebrow}</p>
           <p className="max-w-lg text-base leading-7 text-white/48 md:justify-self-end">
-            Every House Delivery Inc. home arrives as a coordinated, certified
-            system—documented, engineered, and finished to a single standard.
+            {introCopy}
+            {scopeNote ? (
+              <span className="mt-4 block text-sm leading-6 text-white/34">
+                {scopeNote}
+              </span>
+            ) : null}
           </p>
         </div>
 
         <h2 className="max-w-[1200px] text-[clamp(2.9rem,7vw,7.5rem)] font-medium leading-[0.85] tracking-[-0.07em]">
-          <RevealText text="Included with every" />
+          <RevealText text={headlinePrimary} />
           <br />
           <span className="text-white/40">
-            <RevealText text="delivered home." delay={0.12} />
+            <RevealText text={headlineSecondary} delay={0.12} />
           </span>
         </h2>
 
@@ -189,8 +218,20 @@ export function InclusionGrid() {
           ))}
         </div>
 
-        <div className="mt-24 border-t border-white/10 pt-10 lg:mt-40 lg:pt-14">
-          <div className="grid grid-cols-12 gap-y-12 lg:gap-x-8">
+        <div
+          className={
+            hasCompactFinishes
+              ? "mt-16 border-t border-white/10 pt-8 lg:mt-24 lg:pt-10"
+              : "mt-24 border-t border-white/10 pt-10 lg:mt-40 lg:pt-14"
+          }
+        >
+          <div
+            className={
+              hasCompactFinishes
+                ? "grid grid-cols-12 gap-y-8 lg:gap-x-8"
+                : "grid grid-cols-12 gap-y-12 lg:gap-x-8"
+            }
+          >
             <div className="col-span-12 lg:col-span-3">
               <p className="eyebrow">Finishes / Private folio</p>
               <p className="mt-5 text-[10px] uppercase tracking-[0.2em] text-white/30">
@@ -199,7 +240,10 @@ export function InclusionGrid() {
             </div>
 
             <div className="col-span-12 lg:col-span-9 lg:col-start-4">
-              <HeadlineReveal variant="sweep">
+              <HeadlineReveal
+                variant="sweep"
+                trigger={hasCompactFinishes ? "mount" : "viewport"}
+              >
                 <h3 className="max-w-5xl text-[clamp(2.8rem,6vw,6.8rem)] font-medium leading-[0.86] tracking-[-0.07em] text-white/90">
                   The final layer,
                   <br />
@@ -207,7 +251,13 @@ export function InclusionGrid() {
                 </h3>
               </HeadlineReveal>
 
-              <div className="mt-12 grid grid-cols-12 gap-y-10 border-t border-white/10 pt-8 lg:gap-x-8">
+              <div
+                className={
+                  hasCompactFinishes
+                    ? "mt-8 grid grid-cols-12 gap-y-8 border-t border-white/10 pt-6 lg:gap-x-8"
+                    : "mt-12 grid grid-cols-12 gap-y-10 border-t border-white/10 pt-8 lg:gap-x-8"
+                }
+              >
                 <p className="col-span-12 max-w-2xl text-lg leading-8 text-white/70 lg:col-span-7">
                   Flooring. Glazing. Doors. Cabinetry. Every finish, collected in
                   one private design folio.
@@ -226,23 +276,58 @@ export function InclusionGrid() {
                 </a>
               </div>
 
-              <div className="mt-14 grid grid-cols-12 border-y border-white/10">
-                {finishTiers.map((tier) => (
-                  <div
-                    key={tier.name}
-                    className="col-span-12 flex items-end justify-between border-b border-white/10 py-6 last:border-b-0 sm:col-span-4 sm:block sm:border-r sm:border-b-0 sm:px-6 sm:first:pl-0 sm:last:border-r-0 sm:last:pr-0"
-                  >
-                    <span className="text-[10px] tabular-nums tracking-[0.18em] text-white/30">
-                      {tier.number}
-                    </span>
-                    <p className="mt-7 text-2xl font-medium tracking-[-0.035em] text-white/90">
-                      {tier.name}
-                    </p>
-                    <p className="mt-2 text-[10px] uppercase tracking-[0.16em] text-white/40">
-                      {tier.note}
-                    </p>
-                  </div>
-                ))}
+              <div
+                className={
+                  hasCompactFinishes
+                    ? "mt-10 grid grid-cols-12 border-y border-white/10"
+                    : "mt-14 grid grid-cols-12 border-y border-white/10"
+                }
+              >
+                {finishTiers.map((tier) =>
+                  hasCompactFinishes ? (
+                    <div
+                      key={tier.name}
+                      role="group"
+                      tabIndex={0}
+                      aria-label={`${tier.name} finish tier`}
+                      aria-describedby={`finish-tier-message-${tier.number}`}
+                      className="group col-span-12 grid grid-cols-[32px_minmax(0,1fr)] gap-x-4 border-b border-white/10 py-6 last:border-b-0 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-white/35 sm:col-span-4 sm:block sm:border-r sm:border-b-0 sm:px-6 sm:first:pl-0 sm:last:border-r-0 sm:last:pr-0"
+                    >
+                      <span className="pt-1 text-[10px] tabular-nums tracking-[0.18em] text-white/30 sm:pt-0">
+                        {tier.number}
+                      </span>
+                      <div className="sm:mt-7">
+                        <p className="text-2xl font-medium tracking-[-0.035em] text-white/90">
+                          {tier.name}
+                        </p>
+                        <p className="mt-2 text-[10px] uppercase tracking-[0.16em] text-white/40">
+                          {tier.note}
+                        </p>
+                        <p
+                          id={`finish-tier-message-${tier.number}`}
+                          className="mt-3 translate-y-1 text-[10px] leading-4 tracking-[0.04em] text-white/45 opacity-0 transition-[opacity,transform] duration-500 ease-out motion-reduce:translate-y-0 motion-reduce:transition-none group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100"
+                        >
+                          {tier.comingSoon}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      key={tier.name}
+                      className="col-span-12 flex items-end justify-between border-b border-white/10 py-6 last:border-b-0 sm:col-span-4 sm:block sm:border-r sm:border-b-0 sm:px-6 sm:first:pl-0 sm:last:border-r-0 sm:last:pr-0"
+                    >
+                      <span className="text-[10px] tabular-nums tracking-[0.18em] text-white/30">
+                        {tier.number}
+                      </span>
+                      <p className="mt-7 text-2xl font-medium tracking-[-0.035em] text-white/90">
+                        {tier.name}
+                      </p>
+                      <p className="mt-2 text-[10px] uppercase tracking-[0.16em] text-white/40">
+                        {tier.note}
+                      </p>
+                    </div>
+                  ),
+                )}
               </div>
 
               <p className="mt-6 text-sm leading-6 text-white/50">

@@ -1,12 +1,26 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { ArrowUpRight, ChevronDown } from "lucide-react";
+import Image from "next/image";
+import { useRef, useState, type KeyboardEvent } from "react";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
 import { cn } from "@/lib/cn";
 
-const fundingTracks = {
+type FundingPathway = {
+  title: string;
+  funder: string;
+  supportType: string;
+  status: string;
+  fitNote: string;
+};
+
+const fundingTracks: Readonly<
+  Record<
+    "community" | "developer" | "buyer",
+    readonly FundingPathway[]
+  >
+> = {
   community: [
     {
       title: "Build Canada Homes (BCH)",
@@ -209,222 +223,411 @@ const fundingTracks = {
         "Buyers may qualify for a partial CMHC mortgage loan insurance premium refund for energy-efficient homes.",
     },
   ],
-} as const;
+};
 
-type FundingTrack = keyof typeof fundingTracks;
-
-const trackIndex: ReadonlyArray<{
-  key: FundingTrack;
-  number: string;
-  label: string;
-  audience: string;
-}> = [
+const pathways = [
   {
-    key: "community",
+    id: "homeowners",
     number: "01",
-    label: "Community",
-    audience: "First Nations",
+    label: "Homeowners",
+    heading: "A clearer route from aspiration to ownership.",
+    body: "Begin with your site, budget, or preferred home. House Delivery helps define the component package, project scope, delivery requirements, and financing information needed for more productive conversations with lenders and project partners.",
   },
   {
-    key: "developer",
+    id: "landowners-developers",
     number: "02",
-    label: "Developer",
-    audience: "Project capital",
+    label: "Landowners & Developers",
+    heading: "Turn land into a defined opportunity.",
+    body: "A coordinated design and delivery system can help landowners and developers assess what a site may support, establish a clearer preliminary scope, and prepare stronger conversations with planners, lenders, investors, and delivery partners.",
   },
   {
-    key: "buyer",
+    id: "first-nations",
     number: "03",
-    label: "Buyer",
-    audience: "Home ownership",
+    label: "First Nations",
+    heading: "Build around community priorities.",
+    body: "House Delivery works with First Nations to help shape housing opportunities around local land, community needs, available funding corridors, cultural direction, and long-term ownership objectives.",
   },
+  {
+    id: "municipal-community",
+    number: "04",
+    label: "Municipal & Community Housing",
+    heading: "Move viable housing initiatives toward delivery.",
+    body: "Municipalities and community housing partners can begin with a site, housing need, approved design pathway, or funding opportunity. House Delivery helps organize the design, component, documentation, and delivery pieces into a clearer project record.",
+  },
+] as const;
+
+type PathwayId = (typeof pathways)[number]["id"];
+
+const pathwayImages: Readonly<
+  Record<PathwayId, { src: string; alt: string }>
+> = {
+  homeowners: {
+    src: "/Maplewood-14.avif",
+    alt: "Bright Maplewood kitchen and dining interior with a glass staircase",
+  },
+  "landowners-developers": {
+    src: "/Langley-3.avif",
+    alt: "Langley dining room with sculptural lighting and an open garden terrace",
+  },
+  "first-nations": {
+    src: "/firstnations.webp",
+    alt: "Coastal kitchen featuring First Nations artwork and ocean views",
+  },
+  "municipal-community": {
+    src: "/timberline-2.avif",
+    alt: "Bright Timberline kitchen interior with a glass staircase",
+  },
+};
+
+const municipalCommunityPathways: readonly FundingPathway[] = [
+  fundingTracks.developer[2],
+  fundingTracks.community[7],
+  fundingTracks.developer[4],
+  fundingTracks.developer[0],
+  fundingTracks.developer[1],
+  fundingTracks.developer[6],
+  fundingTracks.developer[5],
 ];
 
+const audiencePathways: Readonly<
+  Record<PathwayId, readonly FundingPathway[]>
+> = {
+  homeowners: fundingTracks.buyer,
+  "landowners-developers": fundingTracks.developer,
+  "first-nations": fundingTracks.community,
+  "municipal-community": municipalCommunityPathways,
+};
+
 export function FinancialCorridors() {
-  const [activeTrack, setActiveTrack] =
-    useState<FundingTrack>("community");
-  const activeEntries = fundingTracks[activeTrack];
-  const activeIndex = trackIndex.find((track) => track.key === activeTrack);
+  const [activePathway, setActivePathway] =
+    useState<PathwayId>("homeowners");
+  const [isExpanded, setIsExpanded] = useState(false);
+  const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const activeImage = pathwayImages[activePathway];
+
+  function activatePathway(pathwayId: PathwayId) {
+    setActivePathway(pathwayId);
+    setIsExpanded(false);
+  }
+
+  function selectTab(index: number) {
+    const pathway = pathways[index];
+    activatePathway(pathway.id);
+    tabRefs.current[index]?.focus();
+  }
+
+  function handleTabKeyDown(
+    event: KeyboardEvent<HTMLButtonElement>,
+    index: number,
+  ) {
+    let nextIndex: number | null = null;
+
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+      nextIndex = (index + 1) % pathways.length;
+    } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+      nextIndex = (index - 1 + pathways.length) % pathways.length;
+    } else if (event.key === "Home") {
+      nextIndex = 0;
+    } else if (event.key === "End") {
+      nextIndex = pathways.length - 1;
+    }
+
+    if (nextIndex === null) return;
+
+    event.preventDefault();
+    selectTab(nextIndex);
+  }
 
   return (
     <section
       id="financial-corridors"
-      className="scroll-mt-20 bg-[#0B0C10] px-5 py-12 sm:px-8 lg:px-12 lg:py-16"
+      aria-labelledby="proposed-funding-heading"
+      className="scroll-mt-20 bg-[#0b0c10] px-5 py-24 sm:px-8 sm:py-28 lg:px-12 lg:py-32"
     >
       <div className="mx-auto max-w-[1504px]">
-        <div className="grid grid-cols-12 gap-y-12 border-t border-white/10 pt-7 lg:gap-x-8">
+        <div className="grid grid-cols-12 gap-y-10 border-t border-white/12 pt-7 lg:gap-x-8">
           <p className="eyebrow col-span-12 lg:col-span-3">
-            Funding / Financial corridors
+            Funding and financial corridors
           </p>
 
-          <HeadlineReveal
-            variant="sweep"
-            className="col-span-12 lg:col-span-9 lg:col-start-4"
-          >
-            <h2 className="max-w-[1250px] text-[clamp(3.5rem,8vw,8.8rem)] font-medium leading-[0.82] tracking-[-0.075em] text-white/90">
-              Capital aligned.
-              <br />
-              <span className="text-white/38">Communities built.</span>
+          <HeadlineReveal className="col-span-12 lg:col-span-9 lg:col-start-4">
+            <h2
+              id="proposed-funding-heading"
+              className="max-w-[1260px] text-[clamp(3rem,6.2vw,6.8rem)] font-medium leading-[0.86] tracking-[-0.068em] text-white/90"
+            >
+              The right pathway can help make the right home possible.
             </h2>
           </HeadlineReveal>
 
-          <p className="col-span-11 max-w-2xl text-lg leading-8 text-white/70 sm:col-span-8 sm:col-start-4 lg:col-span-5 lg:col-start-8">
-            Navigating the capital stack shouldn&apos;t stall your project. We
-            actively guide First Nations, developers, and homebuyers through
-            federal, provincial, and private financial corridors to unlock
-            housing delivery.
+          <p className="col-span-12 max-w-2xl text-base leading-7 text-white/62 sm:col-span-9 sm:col-start-4 sm:text-lg sm:leading-8 lg:col-span-5 lg:col-start-8">
+            Every project begins from a different position—land, financing,
+            funding eligibility, community need, or a development opportunity.
+            House Delivery helps organize those pieces into a clearer path
+            forward.
           </p>
         </div>
 
-        <div className="mt-12 grid grid-cols-12 gap-y-16 lg:mt-16 lg:gap-x-8">
-          <div className="col-span-12 lg:col-span-3">
-            <div className="lg:sticky lg:top-28">
-              <p className="mb-5 text-[9px] uppercase tracking-[0.22em] text-white/30">
-                Select a capital track
-              </p>
+        <div className="mt-16 grid border-y border-white/12 lg:mt-20 lg:grid-cols-12">
+          <figure className="relative aspect-[16/9] overflow-hidden bg-[#13151a] lg:col-span-7 lg:aspect-auto lg:h-full lg:border-r lg:border-white/12">
+            <Image
+              src={activeImage.src}
+              alt={activeImage.alt}
+              fill
+              quality={100}
+              unoptimized={true}
+              sizes="(max-width: 1023px) 100vw, 58vw"
+              className="object-cover object-[52%_center] render-crisp"
+            />
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/[0.03]"
+            />
+          </figure>
 
-              <div
-                className="grid grid-cols-3 border-b border-white/10 lg:block lg:border-b-0"
-                aria-label="Funding audiences"
-              >
-                {trackIndex.map((track) => {
-                  const isActive = activeTrack === track.key;
+          <div className="border-t border-white/12 py-8 lg:col-span-5 lg:border-t-0 lg:px-10 lg:py-10 xl:px-12">
+            <p className="text-[9px] uppercase tracking-[0.22em] text-white/32">
+              Select your pathway
+            </p>
 
-                  return (
-                    <button
-                      key={track.key}
-                      type="button"
-                      onClick={() => setActiveTrack(track.key)}
-                      aria-pressed={isActive}
-                      className={cn(
-                        "group relative min-w-0 border-t px-2 py-5 text-left transition-colors duration-500 first:pl-0 last:pr-0 lg:block lg:w-full lg:px-0 lg:py-7",
-                        isActive
-                          ? "border-white text-white"
-                          : "border-white/10 text-white/38 hover:border-white/30 hover:text-white/70",
-                      )}
-                    >
-                      <span className="block text-[9px] tabular-nums tracking-[0.2em] opacity-55">
-                        {track.number}
-                      </span>
-                      <span className="mt-4 block text-[clamp(1.05rem,1.8vw,1.6rem)] font-medium tracking-[-0.04em]">
-                        {track.label}
-                      </span>
-                      <span
-                        className={cn(
-                          "mt-1 hidden text-[9px] uppercase tracking-[0.18em] transition-colors sm:block",
-                          isActive ? "text-white/50" : "text-white/25",
-                        )}
-                      >
-                        {track.audience}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
+            <div
+              role="tablist"
+              aria-label="Funding and project pathways"
+              className="mt-6 grid grid-cols-2 border-t border-white/10"
+            >
+              {pathways.map((pathway, index) => {
+                const isActive = activePathway === pathway.id;
+                const tabId = `proposed-funding-tab-${pathway.id}`;
+                const panelId = `proposed-funding-panel-${pathway.id}`;
 
-          <div className="col-span-12 lg:col-span-8 lg:col-start-5">
-            <div className="flex items-end justify-between gap-6 border-b border-white/10 pb-5">
-              <div>
-                <p className="text-[9px] uppercase tracking-[0.22em] text-white/30">
-                  Active ledger
-                </p>
-                <p className="mt-2 text-sm text-white/65">
-                  {activeIndex?.audience}
-                </p>
-              </div>
-              <p className="text-[9px] uppercase tracking-[0.2em] text-white/30">
-                {String(activeEntries.length).padStart(2, "0")} corridors
-              </p>
-            </div>
-
-            <div className="hidden grid-cols-12 gap-x-6 py-4 lg:grid">
-              <span className="col-span-1 text-[9px] uppercase tracking-[0.2em] text-white/25">
-                Ref.
-              </span>
-              <span className="col-span-5 text-[9px] uppercase tracking-[0.2em] text-white/25">
-                Corridor
-              </span>
-              <span className="col-span-2 text-[9px] uppercase tracking-[0.2em] text-white/25">
-                Funder
-              </span>
-              <span className="col-span-2 text-[9px] uppercase tracking-[0.2em] text-white/25">
-                Support
-              </span>
-              <span className="col-span-2 text-right text-[9px] uppercase tracking-[0.2em] text-white/25">
-                Status
-              </span>
-            </div>
-
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={activeTrack}
-                initial={{ opacity: 0, y: 14 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.45, ease: [0.25, 1, 0.5, 1] }}
-              >
-                {activeEntries.map((entry, index) => (
-                  <article
-                    key={entry.title}
-                    className="grid grid-cols-12 gap-x-4 gap-y-8 border-t border-white/10 py-9 lg:gap-x-6 lg:py-11"
+                return (
+                  <button
+                    key={pathway.id}
+                    ref={(element) => {
+                      tabRefs.current[index] = element;
+                    }}
+                    id={tabId}
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    aria-controls={panelId}
+                    tabIndex={isActive ? 0 : -1}
+                    onClick={() => activatePathway(pathway.id)}
+                    onKeyDown={(event) => handleTabKeyDown(event, index)}
+                    className={cn(
+                      "group flex min-w-0 flex-col border-b border-white/10 px-3 py-4 text-left transition-colors duration-300 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-white sm:px-4",
+                      index % 2 === 1 && "border-l border-white/10",
+                      isActive
+                        ? "bg-white/[0.05] text-white"
+                        : "text-white/40 hover:bg-white/[0.025] hover:text-white/72",
+                    )}
                   >
-                    <span className="col-span-2 pt-1 text-[9px] tabular-nums tracking-[0.2em] text-white/30 lg:col-span-1">
-                      {String(index + 1).padStart(2, "0")}
+                    <span className="text-[8px] tabular-nums tracking-[0.2em] text-white/28">
+                      {pathway.number}
                     </span>
+                    <span className="mt-3 text-xs font-medium leading-5 tracking-[-0.015em] sm:text-sm">
+                      {pathway.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
 
-                    <div className="col-span-10 lg:col-span-5">
-                      <h3 className="max-w-xl text-xl font-medium leading-tight tracking-[-0.04em] text-white/90 sm:text-2xl">
-                        {entry.title}
-                      </h3>
-                      <p className="mt-4 max-w-xl text-sm leading-6 text-white/70 sm:text-base sm:leading-7">
-                        {entry.fitNote}
-                      </p>
+            {pathways.map((pathway) => {
+              const isActive = activePathway === pathway.id;
+              const programs = audiencePathways[pathway.id];
+              const featuredPrograms = programs.slice(0, 3);
+
+              return (
+                <div
+                  key={pathway.id}
+                  id={`proposed-funding-panel-${pathway.id}`}
+                  role="tabpanel"
+                  aria-labelledby={`proposed-funding-tab-${pathway.id}`}
+                  tabIndex={0}
+                  hidden={!isActive}
+                  className="pt-8 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white"
+                >
+                  <h3 className="max-w-xl text-[clamp(2rem,3vw,3.4rem)] font-medium leading-[0.94] tracking-[-0.055em] text-white/90">
+                    {pathway.heading}
+                  </h3>
+
+                  <p className="mt-6 max-w-xl text-sm leading-7 text-white/55 sm:text-base">
+                    {pathway.body}
+                  </p>
+
+                  <div className="mt-7">
+                    <p className="mb-3 text-[8px] uppercase tracking-[0.2em] text-white/28">
+                      Featured pathways
+                    </p>
+
+                    <div className="border-t border-white/10">
+                      {featuredPrograms.map((program, index) => (
+                        <article
+                          key={`${pathway.id}-${program.title}`}
+                          className="border-b border-white/10 py-5"
+                        >
+                          <div className="flex items-center justify-between gap-4">
+                            <span className="text-[8px] tabular-nums tracking-[0.2em] text-white/24">
+                              {String(index + 1).padStart(2, "0")}
+                            </span>
+                            <span className="inline-flex items-center gap-2 text-[8px] uppercase tracking-[0.16em] text-white/42">
+                              <span
+                                aria-hidden="true"
+                                className="size-1 rounded-full bg-white/60"
+                              />
+                              {program.status}
+                            </span>
+                          </div>
+
+                          <h4 className="mt-3 text-base font-medium leading-6 tracking-[-0.025em] text-white/86 sm:text-lg">
+                            {program.title}
+                          </h4>
+
+                          <p className="mt-2 text-xs leading-5 text-white/48">
+                            {program.fitNote}
+                          </p>
+
+                          <dl className="mt-3 space-y-2 text-[8px] uppercase leading-4 tracking-[0.14em]">
+                            <div className="grid grid-cols-[58px_1fr] gap-3">
+                              <dt className="text-white/24">Funder</dt>
+                              <dd className="text-white/42">
+                                {program.funder}
+                              </dd>
+                            </div>
+                            <div className="grid grid-cols-[58px_1fr] gap-3">
+                              <dt className="text-white/24">Support</dt>
+                              <dd className="text-white/42">
+                                {program.supportType}
+                              </dd>
+                            </div>
+                          </dl>
+                        </article>
+                      ))}
                     </div>
 
-                    <dl className="col-span-10 col-start-3 grid grid-cols-2 gap-x-5 gap-y-6 lg:col-span-6 lg:col-start-auto lg:contents">
-                      <div className="lg:col-span-2">
-                        <dt className="text-[9px] uppercase tracking-[0.2em] text-white/30 lg:sr-only">
-                          Funder
-                        </dt>
-                        <dd className="mt-2 text-[10px] uppercase leading-5 tracking-widest text-white/50 lg:mt-0">
-                          {entry.funder}
-                        </dd>
-                      </div>
+                    <button
+                      type="button"
+                      aria-expanded={isExpanded}
+                      aria-controls={`proposed-funding-all-${pathway.id}`}
+                      onClick={() => setIsExpanded((expanded) => !expanded)}
+                      className="group flex w-full items-center justify-between gap-6 border-b border-white/10 py-4 text-left text-[9px] font-semibold uppercase tracking-[0.17em] text-white/58 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-white"
+                    >
+                      {isExpanded
+                        ? "Show fewer pathways"
+                        : `View all ${programs.length} pathways`}
+                      <ChevronDown
+                        size={14}
+                        strokeWidth={1.4}
+                        aria-hidden="true"
+                        className={cn(
+                          "shrink-0 transition-transform duration-300",
+                          isExpanded && "rotate-180",
+                        )}
+                      />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
 
-                      <div className="lg:col-span-2">
-                        <dt className="text-[9px] uppercase tracking-[0.2em] text-white/30 lg:sr-only">
-                          Support
-                        </dt>
-                        <dd className="mt-2 text-[10px] uppercase leading-5 tracking-widest text-white/50 lg:mt-0">
-                          {entry.supportType}
-                        </dd>
-                      </div>
-
-                      <div className="col-span-2 lg:col-span-2 lg:text-right">
-                        <dt className="text-[9px] uppercase tracking-[0.2em] text-white/30 lg:sr-only">
-                          Status
-                        </dt>
-                        <dd className="mt-2 inline-flex items-center gap-2 text-[10px] uppercase tracking-widest text-white/50 lg:mt-0">
-                          <span
-                            aria-hidden="true"
-                            className="size-1 rounded-full bg-white/70"
-                          />
-                          {entry.status}
-                        </dd>
-                      </div>
-                    </dl>
-                  </article>
-                ))}
-              </motion.div>
-            </AnimatePresence>
-
-            <p className="border-t border-white/10 pt-5 text-xs leading-5 text-white/30">
-              Every corridor moves on its own terms. Eligibility, intake, and
-              approval remain with the issuing organization.
-            </p>
+            <a
+              href="#reserve"
+              className="group mt-8 inline-flex items-center gap-4 border-b border-white/35 pb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/75 transition-colors hover:border-white hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white focus-visible:ring-offset-4 focus-visible:ring-offset-[#0b0c10]"
+            >
+              Explore your pathway
+              <ArrowUpRight
+                size={14}
+                strokeWidth={1.4}
+                aria-hidden="true"
+                className="transition-transform duration-500 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+              />
+            </a>
           </div>
         </div>
+
+        {pathways.map((pathway) => {
+          const isVisible =
+            activePathway === pathway.id && isExpanded;
+          const programs = audiencePathways[pathway.id];
+          const additionalPrograms = programs.slice(3);
+
+          return (
+            <div
+              key={`all-${pathway.id}`}
+              id={`proposed-funding-all-${pathway.id}`}
+              hidden={!isVisible}
+              className="mt-10 border-y border-white/12"
+            >
+              <div className="flex flex-col gap-3 border-b border-white/10 py-5 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-white/30">
+                    Additional pathways
+                  </p>
+                  <p className="mt-2 text-sm text-white/62">
+                    {pathway.label}
+                  </p>
+                </div>
+                <p className="text-[9px] uppercase tracking-[0.18em] text-white/30">
+                  {additionalPrograms.length} additional / {programs.length}{" "}
+                  total
+                </p>
+              </div>
+
+              {additionalPrograms.map((program, index) => (
+                <article
+                  key={`additional-${pathway.id}-${program.title}`}
+                  className="grid grid-cols-12 gap-x-4 gap-y-7 border-b border-white/10 py-7 last:border-b-0 lg:gap-x-6"
+                >
+                  <span className="col-span-2 pt-1 text-[9px] tabular-nums tracking-[0.2em] text-white/28 lg:col-span-1">
+                    {String(index + 4).padStart(2, "0")}
+                  </span>
+
+                  <div className="col-span-10 lg:col-span-5">
+                    <h4 className="max-w-xl text-lg font-medium leading-tight tracking-[-0.035em] text-white/86 sm:text-xl">
+                      {program.title}
+                    </h4>
+                    <p className="mt-3 max-w-xl text-sm leading-6 text-white/50">
+                      {program.fitNote}
+                    </p>
+                  </div>
+
+                  <dl className="col-span-10 col-start-3 grid grid-cols-2 gap-x-5 gap-y-5 lg:col-span-6 lg:col-start-auto lg:contents">
+                    <div className="lg:col-span-2">
+                      <dt className="text-[8px] uppercase tracking-[0.18em] text-white/24 lg:sr-only">
+                        Funder
+                      </dt>
+                      <dd className="mt-2 text-[9px] uppercase leading-5 tracking-[0.14em] text-white/44 lg:mt-0">
+                        {program.funder}
+                      </dd>
+                    </div>
+
+                    <div className="lg:col-span-2">
+                      <dt className="text-[8px] uppercase tracking-[0.18em] text-white/24 lg:sr-only">
+                        Support
+                      </dt>
+                      <dd className="mt-2 text-[9px] uppercase leading-5 tracking-[0.14em] text-white/44 lg:mt-0">
+                        {program.supportType}
+                      </dd>
+                    </div>
+
+                    <div className="col-span-2 lg:col-span-2 lg:text-right">
+                      <dt className="text-[8px] uppercase tracking-[0.18em] text-white/24 lg:sr-only">
+                        Status
+                      </dt>
+                      <dd className="mt-2 inline-flex items-center gap-2 text-[9px] uppercase tracking-[0.14em] text-white/44 lg:mt-0">
+                        <span
+                          aria-hidden="true"
+                          className="size-1 rounded-full bg-white/60"
+                        />
+                        {program.status}
+                      </dd>
+                    </div>
+                  </dl>
+                </article>
+              ))}
+            </div>
+          );
+        })}
       </div>
     </section>
   );

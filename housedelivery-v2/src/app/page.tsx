@@ -14,11 +14,12 @@ import { HeadlineReveal } from "@/components/headline-reveal";
 import { InclusionGrid } from "@/components/inclusion-grid";
 import { LuxuryHero } from "@/components/luxury-hero";
 import { ModelShowcase } from "@/components/model-showcase";
+import { ProjectUnderstandingSection } from "@/components/project-understanding-section";
 import { ReservationForm } from "@/components/reservation-form";
 import { SiteHeader } from "@/components/site-header";
 import { SteelFrameAdvantage } from "@/components/steel-frame-advantage";
 import { TrustBanner } from "@/components/trust-banner";
-import { WhyUs } from "@/components/why-us";
+import { ValuePositioningSection } from "@/components/value-positioning-section";
 import { models } from "@/data/models";
 
 const certaintyPoints = [
@@ -26,46 +27,125 @@ const certaintyPoints = [
     number: "01",
     title: "Cost clarity",
     description:
-      "A defined component package. Fewer variables. A price you can plan a life around.",
+      "A defined component package and a more coordinated procurement path give owners a clearer view of where the project budget is going.",
     icon: CircleDollarSign,
   },
   {
     number: "02",
     title: "Permit coordination",
     description:
-      "Engineering, documentation, and submissions—moving as one.",
+      "Design, engineering, documentation, and site-specific submissions are organized as one connected process.",
     icon: FileStack,
   },
   {
     number: "03",
     title: "Financing pathways",
     description:
-      "A clearer project record for clearer conversations with lenders.",
+      "A clearer scope, documented component package, and defined project pathway can support more productive conversations with lenders, funders, and partners.",
     icon: BadgeCheck,
   },
   {
     number: "04",
     title: "Documented quality",
     description:
-      "Numbered parts. Certified drawings. Quality you can see—and keep.",
+      "Numbered components, coordinated specifications, technical documentation, and traceable selections create quality that can be reviewed, understood, and maintained.",
     icon: ShieldCheck,
   },
 ] as const;
+
+const steelAdvantageCopy = {
+  "01":
+    "Precision-formed, numbered components are prepared for coordinated assembly, helping shorten exposed on-site schedules and reduce avoidable waiting.",
+  "02":
+    "Controlled specifications and precise material use are designed to reduce waste, fragmented purchasing, and site-driven cost uncertainty.",
+  "03":
+    "Galvanized light-steel framing is engineered for project-specific snow, wind, and seismic loads—and designed for durable dimensional stability.",
+  "04":
+    "Recyclable steel and precise material planning can support a quieter site and a lighter construction footprint.",
+  "05":
+    "Longer structural spans support open rooms and flexible planning, helping every square foot work harder.",
+} as const;
 
 export default function Home() {
   return (
     <>
       <SiteHeader />
       <main>
-        <LuxuryHero image={models[0].heroImage} />
+        <LuxuryHero
+          image={models[0].heroImage}
+          supportingCopy="Exceptional design. A smarter path to ownership. A coordinated home system built to reduce delay, waste, and uncertainty—so more of your investment can remain in the home itself."
+        />
         <TrustBanner />
-        <ModelShowcase models={models} />
-        <CmhcFeature />
-        <WhyUs />
-        <InclusionGrid />
-        <SteelFrameAdvantage />
-        <DeliveryTimeline />
+        <ValuePositioningSection />
         <FinancialCorridors />
+        <ModelShowcase
+          models={models}
+          introCopy="Each residence begins as a coordinated architectural system and is adapted to your land, local requirements, climate, priorities, and chosen level of finish."
+          valueCopy="Begin with a proven design. Shape it around the life, land, and budget it needs to serve."
+        />
+        <CmhcFeature
+          catalogueFollowOn={
+            <div className="grid grid-cols-12 gap-y-8 lg:gap-x-8">
+              <p className="eyebrow col-span-12 lg:col-span-3">
+                More ways to begin
+              </p>
+              <div className="col-span-12 lg:col-span-9 lg:col-start-4">
+                <h3 className="max-w-5xl text-[clamp(3rem,5.7vw,6.4rem)] font-medium leading-[0.88] tracking-[-0.065em] text-white/92">
+                  Not seeing your home?
+                </h3>
+                <div className="mt-8 grid gap-6 border-t border-white/10 pt-7 md:grid-cols-2 md:gap-10">
+                  <p className="max-w-xl text-base leading-7 text-white/66">
+                    This collection is only the beginning. We have hundreds of
+                    additional designs available—and your own plans are
+                    welcome.
+                  </p>
+                  <p className="max-w-xl text-sm leading-7 text-white/46">
+                    Already have architectural drawings? Share them with us.
+                    We’ll assess how your design can be translated into the
+                    House Delivery kit-of-parts system and prepare a
+                    project-specific budget range and indicative delivery
+                    timeline.
+                  </p>
+                </div>
+                <div className="mt-8 flex flex-wrap gap-3">
+                  <a
+                    href="#reserve"
+                    className="inline-flex min-h-11 items-center border border-white bg-white px-5 py-3 text-[9px] font-semibold uppercase tracking-[0.18em] text-black transition-colors hover:bg-transparent hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+                  >
+                    Explore more designs
+                  </a>
+                  <a
+                    href="#reserve"
+                    className="inline-flex min-h-11 items-center border border-white/28 px-5 py-3 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/76 transition-colors hover:border-white hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+                  >
+                    Show us your plans
+                  </a>
+                </div>
+              </div>
+            </div>
+          }
+          headlinePrimary="A proven starting point."
+          headlineSecondary="A clearer route forward."
+          supportingCopy="Canada’s Housing Design Catalogue can reduce early-stage repetition and give project teams a stronger starting point. House Delivery then coordinates the site-specific work—land, zoning, utilities, foundations, engineering, permits, and local construction requirements."
+        />
+        <InclusionGrid
+          eyebrow="The coordinated kit of parts"
+          finishesVariant="compact"
+          introCopy="House Delivery organizes the structure, building components, interior elements, documentation, and delivery pathway as one connected system. Fewer disconnected decisions on site. Greater clarity before construction begins."
+          headlinePrimary="One coordinated home."
+          headlineSecondary="Thousands of decisions already resolved."
+          scopeNote="Local foundations, engineering, permitting, installation, weatherproofing, site supervision, and qualified local construction remain essential to the completed home."
+        />
+        <SteelFrameAdvantage
+          supportingCopy="Precision reduces waste. Coordination protects value. Quality is the part you keep."
+          advantageCopy={steelAdvantageCopy}
+        />
+        <DeliveryTimeline
+          eyebrow="Coordination before construction"
+          headlinePrimary="Resolve more before"
+          headlineSecondary="the site is waiting."
+          introCopy="Traditional construction often delays decisions until trades, materials, and schedules are already under pressure. House Delivery moves more of that coordination upstream—before avoidable uncertainty reaches the site."
+        />
 
         <section
           id="certainty"
@@ -78,6 +158,7 @@ export default function Home() {
               </p>
               <HeadlineReveal
                 variant="sweep"
+                trigger="mount"
                 className="col-span-12 lg:col-span-9 lg:col-start-4"
               >
                 <h2 className="max-w-[1250px] text-[clamp(3.5rem,8vw,8.8rem)] font-medium leading-[0.82] tracking-[-0.075em] text-white/90">
@@ -89,12 +170,12 @@ export default function Home() {
                 </h2>
               </HeadlineReveal>
               <p className="col-span-10 col-start-3 max-w-xl border-l border-white/10 pl-6 text-lg leading-8 text-white/70 sm:col-span-7 sm:col-start-6 lg:col-span-4 lg:col-start-9">
-                Less waste. Less delay. Less construction markup between you
-                and ownership.
+                Less waste. Less delay. Fewer disconnected decisions. More of
+                the project investment directed toward the home itself.
               </p>
             </div>
 
-            <div className="mt-28 grid grid-cols-12 gap-y-16 lg:mt-40 lg:gap-x-8">
+            <div className="mt-16 grid grid-cols-12 gap-y-16 lg:mt-24 lg:gap-x-8">
               <div className="relative col-span-12 min-h-[560px] overflow-hidden bg-[#13151a] lg:col-span-7 lg:min-h-[820px]">
                 <Image
                   src={models[1].images[2]}
@@ -149,6 +230,7 @@ export default function Home() {
           </div>
         </section>
 
+        <ProjectUnderstandingSection />
         <FounderMission />
         <ReservationForm models={models} />
       </main>
