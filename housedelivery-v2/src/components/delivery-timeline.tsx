@@ -17,44 +17,44 @@ import { cn } from "@/lib/cn";
 const stages = [
   {
     day: "Day 01",
-    title: "Site & feasibility",
+    title: "Site review + project kickoff",
     description:
-      "We review land, access, zoning context, utilities, budget, and the model best suited to your project.",
+      "We review the site, access, zoning context, utilities, project priorities, and the delivery pathway best suited to the opportunity.",
     icon: Compass,
   },
   {
     day: "Day 15",
-    title: "Adapt & engineer",
+    title: "Design adaptation + engineering",
     description:
-      "The selected design is adapted for local snow, wind, seismic, foundation, and jurisdictional requirements.",
+      "The selected design is adapted for local snow, wind, seismic, foundation, and jurisdictional requirements while key specifications are coordinated.",
     icon: Ruler,
   },
   {
     day: "Day 30",
-    title: "Permit pathway",
+    title: "Permit submission + site preparation begins",
     description:
-      "A coordinated permit package moves through local review while procurement and production planning advance.",
+      "The coordinated permit package enters municipal review as approved site preparation, utility coordination, and local crew planning begin.",
     icon: ClipboardCheck,
   },
   {
-    day: "Day 45",
-    title: "Factory production",
+    day: "Day 30–75",
+    title: "Factory production + site preparation in parallel",
     description:
-      "Numbered structural components are precision-formed in a controlled environment with documented quality checks.",
+      "Numbered structural components are precision-formed and quality checked in the factory while site work advances toward delivery readiness.",
     icon: Factory,
   },
   {
-    day: "Day 90",
-    title: "Deliver & assemble",
+    day: "Day 75–90",
+    title: "Delivery + structural assembly",
     description:
-      "The component system arrives sequenced for efficient on-site installation by the coordinated construction team.",
+      "The component system arrives in sequence for efficient structural assembly by the coordinated local construction team.",
     icon: PackageCheck,
   },
   {
-    day: "Day 120",
-    title: "Finish & handover",
+    day: "Day 90–120",
+    title: "Interior completion, inspections + handover",
     description:
-      "Final systems, finishes, inspections, and closeout turn a component package into a completed, documented home.",
+      "Interior systems and finishes are completed, required inspections are closed out, and the documented home is prepared for handover.",
     icon: Home,
   },
 ] as const;
@@ -96,7 +96,8 @@ export function DeliveryTimeline({
             <p className="text-lg leading-8 text-white/55">{introCopy}</p>
             <p className="mt-5 text-xs leading-5 text-white/30">
               The 120-day target is project-specific. Municipal review, site
-              conditions, utility work, and chosen finishes can affect timing.
+              conditions, utility work, weather, and selected finishes can
+              affect timing.
             </p>
           </div>
         </div>

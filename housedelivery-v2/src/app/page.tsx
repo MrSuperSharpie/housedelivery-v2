@@ -143,7 +143,7 @@ export default function Home() {
           eyebrow="Coordination before construction"
           headlinePrimary="Resolve more before"
           headlineSecondary="the site is waiting."
-          introCopy="Traditional construction often delays decisions until trades, materials, and schedules are already under pressure. House Delivery moves more of that coordination upstream—before avoidable uncertainty reaches the site."
+          introCopy="House Delivery moves design, procurement, factory production, site preparation, logistics, and local crew coordination upstream, with several workstreams advancing at the same time. Factory production and site preparation happen at the same time—not one after the other."
         />
 
         <section
