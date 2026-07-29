@@ -14,10 +14,7 @@ import { InclusionGrid } from "@/components/inclusion-grid";
 import { LuxuryHero } from "@/components/luxury-hero";
 import { ModelShowcase } from "@/components/model-showcase";
 import { PortfolioCategoryNav } from "@/components/portfolio-category-nav";
-import {
-  CommunityHousingShowcase,
-  PreApprovedShowcase,
-} from "@/components/pre-approved-showcase";
+import { PreApprovedShowcase } from "@/components/pre-approved-showcase";
 import { ProjectUnderstandingSection } from "@/components/project-understanding-section";
 import { ReservationForm } from "@/components/reservation-form";
 import { SiteHeader } from "@/components/site-header";
@@ -93,8 +90,7 @@ export default function Home() {
           introCopy="Each residence begins as a coordinated architectural system and is adapted to your land, local requirements, climate, priorities, and chosen level of finish."
           valueCopy="Begin with a proven design. Shape it around the life, land, and budget it needs to serve."
         />
-        <PreApprovedShowcase />
-        <CommunityHousingShowcase
+        <PreApprovedShowcase
           catalogueFollowOn={
             <div className="grid grid-cols-12 gap-y-8 lg:gap-x-8">
               <p className="eyebrow col-span-12 lg:col-span-3">

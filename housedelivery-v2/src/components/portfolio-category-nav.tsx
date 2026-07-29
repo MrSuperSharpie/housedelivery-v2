@@ -1,6 +1,6 @@
 import { cn } from "@/lib/cn";
 
-type PortfolioCollection = "custom" | "pre-approved" | "community";
+type PortfolioCollection = "custom" | "pre-approved";
 
 type PortfolioCategoryNavProps = {
   active?: PortfolioCollection;
@@ -8,22 +8,16 @@ type PortfolioCategoryNavProps = {
 
 const collections = [
   {
-    id: "pre-approved" as const,
-    number: "01",
-    label: "Pre-Approved Homes",
-    href: "#pre-approved-homes",
-  },
-  {
     id: "custom" as const,
-    number: "02",
+    number: "01",
     label: "Custom Homes",
     href: "#models",
   },
   {
-    id: "community" as const,
-    number: "03",
-    label: "Community Housing",
-    href: "#community-housing",
+    id: "pre-approved" as const,
+    number: "02",
+    label: "Pre-Approved Homes",
+    href: "#pre-approved-homes",
   },
 ];
 
@@ -35,7 +29,7 @@ export function PortfolioCategoryNav({
       aria-label="Housing portfolio collections"
       className="border-y border-white/10"
     >
-      <div className="grid grid-cols-3">
+      <div className="grid grid-cols-2">
         {collections.map((collection, index) => {
           const isActive = collection.id === active;
 

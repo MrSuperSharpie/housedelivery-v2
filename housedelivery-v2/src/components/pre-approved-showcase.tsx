@@ -8,9 +8,6 @@ import {
   type CatalogModel,
 } from "@/data/catalog";
 
-const featuredPreApprovedModels = catalogModels.slice(0, 3);
-const communityHousingModels = catalogModels.slice(3);
-
 type CatalogueModelGridProps = {
   models: readonly CatalogModel[];
 };
@@ -99,7 +96,13 @@ function CatalogueModelGrid({ models }: CatalogueModelGridProps) {
   );
 }
 
-export function PreApprovedShowcase() {
+type PreApprovedShowcaseProps = {
+  catalogueFollowOn?: ReactNode;
+};
+
+export function PreApprovedShowcase({
+  catalogueFollowOn,
+}: PreApprovedShowcaseProps) {
   return (
     <section
       id="pre-approved-homes"
@@ -109,9 +112,9 @@ export function PreApprovedShowcase() {
       <div className="mx-auto max-w-[1504px]">
         <div className="mb-12 grid gap-8 border-t border-white/10 pt-7 lg:grid-cols-[0.72fr_1.28fr] lg:items-end lg:gap-20">
           <div>
-            <p className="eyebrow">Featured pre-approved homes</p>
+            <p className="eyebrow">Pre-approved homes</p>
             <p className="mt-5 text-[10px] uppercase tracking-[0.2em] text-white/28">
-              03 proven starting points
+              07 proven starting points
             </p>
           </div>
           <h2
@@ -124,44 +127,7 @@ export function PreApprovedShowcase() {
           </h2>
         </div>
 
-        <CatalogueModelGrid models={featuredPreApprovedModels} />
-      </div>
-    </section>
-  );
-}
-
-type CommunityHousingShowcaseProps = {
-  catalogueFollowOn?: ReactNode;
-};
-
-export function CommunityHousingShowcase({
-  catalogueFollowOn,
-}: CommunityHousingShowcaseProps) {
-  return (
-    <section
-      id="community-housing"
-      aria-labelledby="community-housing-heading"
-      className="scroll-mt-20 bg-[#0B0C10] px-5 pb-28 pt-28 sm:px-8 lg:px-12 lg:pb-40 lg:pt-40"
-    >
-      <div className="mx-auto max-w-[1504px]">
-        <div className="mb-12 grid gap-8 border-t border-white/10 pt-7 lg:grid-cols-[0.72fr_1.28fr] lg:items-end lg:gap-20">
-          <div>
-            <p className="eyebrow">Community housing</p>
-            <p className="mt-5 text-[10px] uppercase tracking-[0.2em] text-white/28">
-              04 multi-home systems
-            </p>
-          </div>
-          <h2
-            id="community-housing-heading"
-            className="max-w-4xl text-[clamp(2.5rem,4.7vw,5.2rem)] font-medium leading-[0.94] tracking-[-0.06em]"
-          >
-            More homes.
-            <br />
-            <span className="text-white/38">One coordinated system.</span>
-          </h2>
-        </div>
-
-        <CatalogueModelGrid models={communityHousingModels} />
+        <CatalogueModelGrid models={catalogModels} />
 
         <div className="mt-3 border border-[#1f2833] bg-[#0e1014]">
           <div className="grid border-b border-[#1f2833] sm:grid-cols-3">
