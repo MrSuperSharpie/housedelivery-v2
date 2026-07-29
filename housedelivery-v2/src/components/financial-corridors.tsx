@@ -252,7 +252,7 @@ const pathways = [
     number: "04",
     label: "Municipal & Community Housing",
     heading: "Move viable housing initiatives toward delivery.",
-    body: "Municipalities and community housing partners can begin with a site, housing need, approved design pathway, or funding opportunity. House Delivery helps organize the design, component, documentation, and delivery pieces into a clearer project record.",
+    body: "Community Housing remains a delivery pathway for First Nations, municipalities, non-profits, developers, and larger housing programs. Projects can begin with a site, housing need, approved design pathway, or funding opportunity; House Delivery helps organize the design, component, documentation, and delivery pieces into a clearer project record.",
   },
 ] as const;
 
