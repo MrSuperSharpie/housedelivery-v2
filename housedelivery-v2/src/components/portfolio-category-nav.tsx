@@ -3,7 +3,7 @@ import { cn } from "@/lib/cn";
 type PortfolioCollection = "custom" | "pre-approved" | "community";
 
 type PortfolioCategoryNavProps = {
-  active: PortfolioCollection;
+  active?: PortfolioCollection;
 };
 
 const collections = [
@@ -11,7 +11,7 @@ const collections = [
     id: "pre-approved" as const,
     number: "01",
     label: "Pre-Approved Homes",
-    href: "#cmhc",
+    href: "#pre-approved-homes",
   },
   {
     id: "custom" as const,
@@ -23,7 +23,7 @@ const collections = [
     id: "community" as const,
     number: "03",
     label: "Community Housing",
-    href: "#financial-corridors",
+    href: "#community-housing",
   },
 ];
 

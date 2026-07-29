@@ -6,7 +6,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
-import { PortfolioCategoryNav } from "@/components/portfolio-category-nav";
 import { RevealText } from "@/components/reveal-text";
 import type { HomeModel } from "@/data/models";
 import { cn } from "@/lib/cn";
@@ -47,12 +46,10 @@ export function ModelShowcase({
     >
       <span id="homes" className="block scroll-mt-20" aria-hidden="true" />
       <div className="mx-auto max-w-[1504px]">
-        <PortfolioCategoryNav active="custom" />
-
-        <div className="mt-16 grid gap-12 border-b border-white/10 pb-12 lg:mt-24 lg:grid-cols-[1fr_1fr] lg:items-end">
+        <div className="grid gap-12 border-b border-white/10 pb-12 lg:grid-cols-[1fr_1fr] lg:items-end">
           <div>
             <p className="eyebrow">
-              The collection / {models.length} residences
+              Featured custom homes / {models.length} residences
             </p>
             <h2 className="mt-6 max-w-3xl text-[clamp(3rem,6.2vw,6.8rem)] font-medium leading-[0.92] tracking-[-0.065em]">
               <RevealText text="Find your" />

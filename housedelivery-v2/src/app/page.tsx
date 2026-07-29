@@ -13,6 +13,11 @@ import { HeadlineReveal } from "@/components/headline-reveal";
 import { InclusionGrid } from "@/components/inclusion-grid";
 import { LuxuryHero } from "@/components/luxury-hero";
 import { ModelShowcase } from "@/components/model-showcase";
+import { PortfolioCategoryNav } from "@/components/portfolio-category-nav";
+import {
+  CommunityHousingShowcase,
+  PreApprovedShowcase,
+} from "@/components/pre-approved-showcase";
 import { ProjectUnderstandingSection } from "@/components/project-understanding-section";
 import { ReservationForm } from "@/components/reservation-form";
 import { SiteHeader } from "@/components/site-header";
@@ -75,15 +80,21 @@ export default function Home() {
           productStatement="Pre-approved and custom homes, delivered as coordinated building systems for communities, developers, and families."
           supportingCopy="Exceptional design. A smarter path to ownership. A coordinated home system built to reduce delay, waste, and uncertainty—so more of your investment can remain in the home itself."
         />
+        <section
+          aria-label="Housing categories"
+          className="bg-[#0B0C10] px-5 sm:px-8 lg:px-12"
+        >
+          <div className="mx-auto max-w-[1504px]">
+            <PortfolioCategoryNav />
+          </div>
+        </section>
+        <PreApprovedShowcase />
         <ModelShowcase
           models={models}
           introCopy="Each residence begins as a coordinated architectural system and is adapted to your land, local requirements, climate, priorities, and chosen level of finish."
           valueCopy="Begin with a proven design. Shape it around the life, land, and budget it needs to serve."
         />
-        <TrustBanner />
-        <ValuePositioningSection />
-        <FinancialCorridors />
-        <CmhcFeature
+        <CommunityHousingShowcase
           catalogueFollowOn={
             <div className="grid grid-cols-12 gap-y-8 lg:gap-x-8">
               <p className="eyebrow col-span-12 lg:col-span-3">
@@ -124,10 +135,15 @@ export default function Home() {
               </div>
             </div>
           }
+        />
+        <TrustBanner />
+        <ValuePositioningSection />
+        <CmhcFeature
           headlinePrimary="A proven starting point."
           headlineSecondary="A clearer route forward."
           supportingCopy="Canada’s Housing Design Catalogue can reduce early-stage repetition and give project teams a stronger starting point. House Delivery then coordinates the site-specific work—land, zoning, utilities, foundations, engineering, permits, and local construction requirements."
         />
+        <FinancialCorridors />
         <InclusionGrid
           eyebrow="The coordinated kit of parts"
           finishesVariant="compact"
