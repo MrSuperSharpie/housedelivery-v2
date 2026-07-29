@@ -1,7 +1,12 @@
+import { createHash, randomUUID } from "node:crypto";
+
 import { models } from "@/data/models";
 
 const inquiryRecipient = "hello@housedelivery.ca";
+const inquiryRoute = "/api/inquiries";
 const maximumRequestBytes = 20_000;
+
+export const runtime = "nodejs";
 
 type InquiryPayload = {
   firstName?: unknown;
@@ -13,6 +18,21 @@ type InquiryPayload = {
   timeline?: unknown;
   notes?: unknown;
   company?: unknown;
+};
+
+type InquiryLogContext = {
+  requestId: string;
+  status: number;
+  durationMs: number;
+  reason?: string;
+  providerStatus?: number;
+  providerError?: string;
+  errorType?: string;
+};
+
+type ResendResponse = {
+  id?: unknown;
+  name?: unknown;
 };
 
 function singleLine(value: unknown, maximumLength: number) {
@@ -39,11 +59,75 @@ function isEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
+function jsonResponse(body: object, status = 200) {
+  return Response.json(body, {
+    status,
+    headers: {
+      "Cache-Control": "no-store",
+    },
+  });
+}
+
+function logInquiryFailure(
+  event: string,
+  {
+    requestId,
+    status,
+    durationMs,
+    reason,
+    providerStatus,
+    providerError,
+    errorType,
+  }: InquiryLogContext,
+) {
+  console.error(
+    JSON.stringify({
+      level: "error",
+      event,
+      route: inquiryRoute,
+      requestId,
+      status,
+      durationMs,
+      ...(reason ? { reason } : {}),
+      ...(providerStatus ? { providerStatus } : {}),
+      ...(providerError ? { providerError } : {}),
+      ...(errorType ? { errorType } : {}),
+    }),
+  );
+}
+
+function providerErrorName(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return "";
+  }
+
+  return singleLine((value as ResendResponse).name, 100);
+}
+
+function providerMessageId(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return "";
+  }
+
+  return singleLine((value as ResendResponse).id, 200);
+}
+
 export async function POST(request: Request) {
+  const startedAt = Date.now();
+  const requestId =
+    request.headers.get("x-vercel-id") ??
+    request.headers.get("x-request-id") ??
+    randomUUID();
   const contentLength = Number(request.headers.get("content-length") ?? 0);
 
   if (contentLength > maximumRequestBytes) {
-    return Response.json({ error: "Inquiry is too large." }, { status: 413 });
+    logInquiryFailure("inquiry_validation_failed", {
+      requestId,
+      status: 413,
+      durationMs: Date.now() - startedAt,
+      reason: "request_too_large",
+    });
+    return jsonResponse({ error: "Inquiry is too large." }, 413);
   }
 
   let parsedPayload: unknown;
@@ -51,7 +135,13 @@ export async function POST(request: Request) {
   try {
     parsedPayload = await request.json();
   } catch {
-    return Response.json({ error: "Invalid inquiry data." }, { status: 400 });
+    logInquiryFailure("inquiry_validation_failed", {
+      requestId,
+      status: 400,
+      durationMs: Date.now() - startedAt,
+      reason: "invalid_json",
+    });
+    return jsonResponse({ error: "Invalid inquiry data." }, 400);
   }
 
   if (
@@ -59,14 +149,20 @@ export async function POST(request: Request) {
     typeof parsedPayload !== "object" ||
     Array.isArray(parsedPayload)
   ) {
-    return Response.json({ error: "Invalid inquiry data." }, { status: 400 });
+    logInquiryFailure("inquiry_validation_failed", {
+      requestId,
+      status: 400,
+      durationMs: Date.now() - startedAt,
+      reason: "invalid_payload",
+    });
+    return jsonResponse({ error: "Invalid inquiry data." }, 400);
   }
 
   const payload = parsedPayload as InquiryPayload;
 
   // Honeypot fields should remain empty for real visitors.
   if (singleLine(payload.company, 200)) {
-    return Response.json({ accepted: true });
+    return jsonResponse({ accepted: true });
   }
 
   const firstName = singleLine(payload.firstName, 80);
@@ -79,9 +175,15 @@ export async function POST(request: Request) {
   const notes = multiline(payload.notes, 4_000);
 
   if (!firstName || !lastName || !isEmail(email)) {
-    return Response.json(
+    logInquiryFailure("inquiry_validation_failed", {
+      requestId,
+      status: 400,
+      durationMs: Date.now() - startedAt,
+      reason: "missing_required_fields",
+    });
+    return jsonResponse(
       { error: "Name and a valid email address are required." },
-      { status: 400 },
+      400,
     );
   }
 
@@ -90,19 +192,30 @@ export async function POST(request: Request) {
     : undefined;
 
   if (modelSlug && !selectedModel) {
-    return Response.json({ error: "Invalid model selection." }, { status: 400 });
+    logInquiryFailure("inquiry_validation_failed", {
+      requestId,
+      status: 400,
+      durationMs: Date.now() - startedAt,
+      reason: "invalid_model",
+    });
+    return jsonResponse({ error: "Invalid model selection." }, 400);
   }
 
   const resendApiKey = process.env.RESEND_API_KEY?.trim();
   const fromEmail =
-    process.env.INQUIRY_FROM_EMAIL?.trim() ??
+    process.env.INQUIRY_FROM_EMAIL?.trim() ||
     "House Delivery Website <inquiries@housedelivery.ca>";
 
   if (!resendApiKey) {
-    console.error("Project inquiry delivery is missing RESEND_API_KEY.");
-    return Response.json(
+    logInquiryFailure("inquiry_configuration_failed", {
+      requestId,
+      status: 503,
+      durationMs: Date.now() - startedAt,
+      reason: "missing_resend_api_key",
+    });
+    return jsonResponse(
       { error: "Inquiry delivery is temporarily unavailable." },
-      { status: 503 },
+      503,
     );
   }
 
@@ -120,12 +233,28 @@ export async function POST(request: Request) {
     notes || "Not provided",
   ].join("\n");
 
+  const idempotencyKey = `project-inquiry-${createHash("sha256")
+    .update(
+      JSON.stringify({
+        firstName,
+        lastName,
+        email,
+        phone,
+        modelSlug,
+        location,
+        timeline,
+        notes,
+      }),
+    )
+    .digest("hex")}`;
+
   try {
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${resendApiKey}`,
         "Content-Type": "application/json",
+        "Idempotency-Key": idempotencyKey,
       },
       body: JSON.stringify({
         from: fromEmail,
@@ -137,22 +266,49 @@ export async function POST(request: Request) {
       signal: AbortSignal.timeout(10_000),
     });
 
+    const providerResponse: unknown = await response.json().catch(() => null);
+
     if (!response.ok) {
-      console.error(
-        `Project inquiry email provider returned status ${response.status}.`,
-      );
-      return Response.json(
-        { error: "Inquiry delivery failed." },
-        { status: 502 },
-      );
+      logInquiryFailure("inquiry_provider_failed", {
+        requestId,
+        status: 502,
+        durationMs: Date.now() - startedAt,
+        providerStatus: response.status,
+        providerError: providerErrorName(providerResponse),
+      });
+      return jsonResponse({ error: "Inquiry delivery failed." }, 502);
     }
-  } catch (error) {
-    console.error("Project inquiry email delivery failed.", error);
-    return Response.json(
-      { error: "Inquiry delivery failed." },
-      { status: 502 },
+
+    if (!providerMessageId(providerResponse)) {
+      logInquiryFailure("inquiry_provider_failed", {
+        requestId,
+        status: 502,
+        durationMs: Date.now() - startedAt,
+        reason: "missing_provider_message_id",
+        providerStatus: response.status,
+      });
+      return jsonResponse({ error: "Inquiry delivery failed." }, 502);
+    }
+
+    console.info(
+      JSON.stringify({
+        level: "info",
+        event: "inquiry_delivery_accepted",
+        route: inquiryRoute,
+        requestId,
+        status: 200,
+        durationMs: Date.now() - startedAt,
+      }),
     );
+  } catch (error) {
+    logInquiryFailure("inquiry_provider_failed", {
+      requestId,
+      status: 502,
+      durationMs: Date.now() - startedAt,
+      errorType: error instanceof Error ? error.name : "UnknownError",
+    });
+    return jsonResponse({ error: "Inquiry delivery failed." }, 502);
   }
 
-  return Response.json({ accepted: true });
+  return jsonResponse({ accepted: true });
 }

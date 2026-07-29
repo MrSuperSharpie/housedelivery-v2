@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Check, ShieldCheck } from "lucide-react";
-import { FormEvent, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
 import type { HomeModel } from "@/data/models";
@@ -28,13 +28,29 @@ function readFormValue(formData: FormData, name: keyof InquiryFormValues) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function isAcceptedInquiryResponse(value: unknown): value is { accepted: true } {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "accepted" in value &&
+    value.accepted === true
+  );
+}
+
 export function ReservationForm({ models }: ReservationFormProps) {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState("");
+  const submissionInFlight = useRef(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (submissionInFlight.current) {
+      return;
+    }
+
+    submissionInFlight.current = true;
     const formData = new FormData(event.currentTarget);
     const inquiry: InquiryFormValues = {
       firstName: readFormValue(formData, "firstName"),
@@ -58,7 +74,9 @@ export function ReservationForm({ models }: ReservationFormProps) {
         body: JSON.stringify(inquiry),
       });
 
-      if (!response.ok) {
+      const result: unknown = await response.json().catch(() => null);
+
+      if (!response.ok || !isAcceptedInquiryResponse(result)) {
         throw new Error("Inquiry delivery failed.");
       }
 
@@ -68,6 +86,7 @@ export function ReservationForm({ models }: ReservationFormProps) {
         "We couldn’t submit your project details right now. Please try again shortly.",
       );
     } finally {
+      submissionInFlight.current = false;
       setSubmitting(false);
     }
   }
