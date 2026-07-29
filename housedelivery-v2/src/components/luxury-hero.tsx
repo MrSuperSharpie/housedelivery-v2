@@ -9,11 +9,13 @@ import { HeadlineReveal } from "@/components/headline-reveal";
 
 type LuxuryHeroProps = {
   image: string;
+  productStatement?: string;
   supportingCopy?: string;
 };
 
 export function LuxuryHero({
   image,
+  productStatement,
   supportingCopy = "Exceptional design. Remarkable value. A faster way into a place that is proudly yours.",
 }: LuxuryHeroProps) {
   const heroRef = useRef<HTMLElement>(null);
@@ -86,6 +88,16 @@ export function LuxuryHero({
                 <span className="text-white/62">Less waiting.</span>
               </h1>
             </HeadlineReveal>
+            {productStatement ? (
+              <motion.p
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.75, delay: 0.5 }}
+                className="mt-8 max-w-3xl text-base leading-7 text-white/78 sm:text-lg sm:leading-8"
+              >
+                {productStatement}
+              </motion.p>
+            ) : null}
           </div>
 
           <motion.div
@@ -97,13 +109,22 @@ export function LuxuryHero({
             <p className="max-w-sm text-base leading-7 text-white/72">
               {supportingCopy}
             </p>
-            <a
-              href="#reserve"
-              className="mt-7 inline-flex items-center gap-5 border-b border-white pb-2 text-xs font-semibold uppercase tracking-[0.16em]"
-            >
-              Begin your project review
-              <ArrowUpRight size={15} />
-            </a>
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row lg:flex-col xl:flex-row">
+              <a
+                href="#models"
+                className="inline-flex min-h-12 items-center justify-between gap-5 border border-white bg-white px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#0b0c10] transition-colors hover:bg-transparent hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+              >
+                Explore the Homes
+                <ArrowDown size={14} />
+              </a>
+              <a
+                href="#reserve"
+                className="inline-flex min-h-12 items-center justify-between gap-5 border border-white/40 px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:border-white hover:bg-white hover:text-[#0b0c10] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+              >
+                Start a Project
+                <ArrowUpRight size={14} />
+              </a>
+            </div>
           </motion.div>
         </div>
 

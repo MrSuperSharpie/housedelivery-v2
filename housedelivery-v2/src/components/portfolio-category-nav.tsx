@@ -1,6 +1,6 @@
 import { cn } from "@/lib/cn";
 
-type PortfolioCollection = "custom" | "pre-approved";
+type PortfolioCollection = "custom" | "pre-approved" | "community";
 
 type PortfolioCategoryNavProps = {
   active: PortfolioCollection;
@@ -8,16 +8,22 @@ type PortfolioCategoryNavProps = {
 
 const collections = [
   {
-    id: "custom" as const,
+    id: "pre-approved" as const,
     number: "01",
-    label: "Custom Collection",
+    label: "Pre-Approved Homes",
+    href: "#cmhc",
+  },
+  {
+    id: "custom" as const,
+    number: "02",
+    label: "Custom Homes",
     href: "#models",
   },
   {
-    id: "pre-approved" as const,
-    number: "02",
-    label: "Pre-Approved Catalogue",
-    href: "#cmhc",
+    id: "community" as const,
+    number: "03",
+    label: "Community Housing",
+    href: "#financial-corridors",
   },
 ];
 
@@ -29,7 +35,7 @@ export function PortfolioCategoryNav({
       aria-label="Housing portfolio collections"
       className="border-y border-white/10"
     >
-      <div className="grid grid-cols-2">
+      <div className="grid grid-cols-3">
         {collections.map((collection, index) => {
           const isActive = collection.id === active;
 
@@ -39,8 +45,9 @@ export function PortfolioCategoryNav({
               href={collection.href}
               aria-current={isActive ? "location" : undefined}
               className={cn(
-                "group flex min-h-20 items-center justify-between gap-4 px-4 py-5 transition-colors duration-500 sm:px-6",
-                index === 0 && "border-r border-white/10",
+                "group flex min-h-20 flex-col justify-between gap-3 px-3 py-4 transition-colors duration-500 sm:flex-row sm:items-center sm:px-6 sm:py-5",
+                index < collections.length - 1 &&
+                  "border-r border-white/10",
                 isActive
                   ? "bg-white/[0.04] text-white"
                   : "text-white/45 hover:bg-white/[0.025] hover:text-white/90",
@@ -49,7 +56,7 @@ export function PortfolioCategoryNav({
               <span className="text-[10px] tracking-[0.24em] text-white/35">
                 {collection.number}
               </span>
-              <span className="text-right text-[10px] font-medium uppercase tracking-[0.18em] sm:text-xs sm:tracking-[0.24em]">
+              <span className="text-left text-[9px] font-medium uppercase leading-4 tracking-[0.14em] sm:text-right sm:text-xs sm:tracking-[0.2em]">
                 {collection.label}
               </span>
             </a>

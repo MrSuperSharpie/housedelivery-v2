@@ -72,16 +72,17 @@ export default function Home() {
       <main>
         <LuxuryHero
           image={models[0].heroImage}
+          productStatement="Pre-approved and custom homes, delivered as coordinated building systems for communities, developers, and families."
           supportingCopy="Exceptional design. A smarter path to ownership. A coordinated home system built to reduce delay, waste, and uncertainty—so more of your investment can remain in the home itself."
         />
-        <TrustBanner />
-        <ValuePositioningSection />
-        <FinancialCorridors />
         <ModelShowcase
           models={models}
           introCopy="Each residence begins as a coordinated architectural system and is adapted to your land, local requirements, climate, priorities, and chosen level of finish."
           valueCopy="Begin with a proven design. Shape it around the life, land, and budget it needs to serve."
         />
+        <TrustBanner />
+        <ValuePositioningSection />
+        <FinancialCorridors />
         <CmhcFeature
           catalogueFollowOn={
             <div className="grid grid-cols-12 gap-y-8 lg:gap-x-8">
