@@ -8,10 +8,10 @@ type PortfolioCategoryNavProps = {
 
 const collections = [
   {
-    id: "pre-approved" as const,
+    id: "custom" as const,
     number: "01",
-    label: "Pre-Approved Homes",
-    href: "#pre-approved-homes",
+    label: "Custom Homes",
+    href: "#models",
   },
   {
     id: "carriage" as const,
@@ -20,10 +20,10 @@ const collections = [
     href: "#carriage-homes",
   },
   {
-    id: "custom" as const,
+    id: "pre-approved" as const,
     number: "03",
-    label: "Custom Homes",
-    href: "#models",
+    label: "Pre-Approved Homes",
+    href: "#pre-approved-homes",
   },
 ];
 

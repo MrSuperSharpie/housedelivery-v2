@@ -86,6 +86,12 @@ export default function Home() {
             <PortfolioCategoryNav />
           </div>
         </section>
+        <ModelShowcase
+          models={models}
+          introCopy="Each residence begins as a coordinated architectural system and is adapted to your land, local requirements, climate, priorities, and chosen level of finish."
+          valueCopy="Begin with a proven design. Shape it around the life, land, and budget it needs to serve."
+        />
+        <CarriageHomeShowcase />
         <PreApprovedShowcase
           catalogueFollowOn={
             <div className="grid grid-cols-12 gap-y-8 lg:gap-x-8">
@@ -127,12 +133,6 @@ export default function Home() {
               </div>
             </div>
           }
-        />
-        <CarriageHomeShowcase />
-        <ModelShowcase
-          models={models}
-          introCopy="Each residence begins as a coordinated architectural system and is adapted to your land, local requirements, climate, priorities, and chosen level of finish."
-          valueCopy="Begin with a proven design. Shape it around the life, land, and budget it needs to serve."
         />
         <TrustBanner />
         <ValuePositioningSection />

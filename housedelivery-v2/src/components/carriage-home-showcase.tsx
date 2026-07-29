@@ -99,7 +99,7 @@ export function CarriageHomeShowcase() {
           <div className="grid gap-12 border-t border-white/10 pt-7 lg:grid-cols-[0.72fr_1.28fr] lg:items-end lg:gap-20">
             <div>
               <p className="eyebrow">
-                Laneway &amp; Carriage Homes / 04 residences
+                Laneway &amp; Carriage Homes / 06 residences
               </p>
               <p className="mt-8 max-w-md text-sm leading-7 text-white/46">
                 Compact, self-contained homes designed for laneways, backyards,

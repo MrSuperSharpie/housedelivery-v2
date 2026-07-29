@@ -162,4 +162,77 @@ export const carriageHomes: readonly CarriageHome[] = [
       },
     ],
   },
+  {
+    slug: "limetree-house",
+    name: "Limetree House",
+    description:
+      "A thoughtfully planned 60.1 m² home designed for compact family living. Limetree includes two bedrooms, a comfortable living area, kitchen, bathroom, and dedicated study space, balancing everyday practicality with an efficient use of space.",
+    images: [
+      {
+        src: `${imageRoot}/Limetree-1.jpeg`,
+        alt: "Limetree House front exterior with a landscaped deck",
+        label: "Exterior perspective",
+      },
+      {
+        src: `${imageRoot}/Limetree-2.jpeg`,
+        alt: "Limetree House side exterior in a garden setting",
+        label: "Garden perspective",
+      },
+      {
+        src: `${imageRoot}/Limetree-3.jpeg`,
+        alt: "Limetree House kitchen, dining, and living interior",
+        label: "Living interior",
+      },
+      {
+        src: `${imageRoot}/Limetree-4.jpeg`,
+        alt: "Limetree House living area with garden access",
+        label: "Living perspective",
+      },
+      {
+        src: `${imageRoot}/Limetree-5.jpeg`,
+        alt: "Limetree House kitchen and dining interior",
+        label: "Kitchen study",
+      },
+      {
+        src: `${imageRoot}/Limetree-6.jpeg`,
+        alt: "Limetree House two-bedroom floor plan with dedicated study",
+        label: "Floor plan",
+        fit: "contain",
+      },
+    ],
+  },
+  {
+    slug: "moonlight-house",
+    name: "Moonlight House",
+    description:
+      "A compact 57.2 m² two-bedroom home designed around comfort, privacy, and indoor-outdoor living. A welcoming front deck opens into an airy living area and kitchen, while each bedroom includes its own private bathroom.",
+    images: [
+      {
+        src: `${imageRoot}/Moonlight-House-1.jpeg`,
+        alt: "Moonlight House exterior with illuminated front deck at dusk",
+        label: "Exterior perspective",
+      },
+      {
+        src: `${imageRoot}/Moonlight-House-2.jpeg`,
+        alt: "Moonlight House front exterior and covered deck at dusk",
+        label: "Arrival perspective",
+      },
+      {
+        src: `${imageRoot}/Moonlight-House-3.jpeg`,
+        alt: "Moonlight House structural frame during factory production",
+        label: "Factory study",
+      },
+      {
+        src: `${imageRoot}/Moonlight-House-4.jpeg`,
+        alt: "Moonlight House deck and exterior during factory production",
+        label: "Assembly study",
+      },
+      {
+        src: `${imageRoot}/Moonlight-House-5.jpeg`,
+        alt: "Moonlight House two-bedroom floor plan with two private bathrooms",
+        label: "Floor plan",
+        fit: "contain",
+      },
+    ],
+  },
 ];
