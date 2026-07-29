@@ -1,6 +1,11 @@
 "use client";
 
-import { ArrowUpRight, ChevronDown } from "lucide-react";
+import {
+  ArrowUpRight,
+  BadgeCheck,
+  ChevronDown,
+  MapPinned,
+} from "lucide-react";
 import Image from "next/image";
 import { useRef, useState, type KeyboardEvent } from "react";
 
@@ -279,6 +284,24 @@ const pathwayImages: Readonly<
   },
 };
 
+const cmhcContext = [
+  {
+    number: "01",
+    title: "Catalogue baseline",
+    copy: "A coordinated reference can reduce early-stage repetition and make the project record more legible.",
+  },
+  {
+    number: "02",
+    title: "Site adaptation",
+    copy: "House Delivery organizes the project-specific design, documentation, and local delivery requirements.",
+  },
+  {
+    number: "03",
+    title: "Funding context",
+    copy: "Financing and program eligibility depend on the borrower, land, project, lender, and applicable pathway.",
+  },
+] as const;
+
 const municipalCommunityPathways: readonly FundingPathway[] = [
   fundingTracks.developer[2],
   fundingTracks.community[7],
@@ -340,14 +363,19 @@ export function FinancialCorridors() {
 
   return (
     <section
-      id="financial-corridors"
+      id="cmhc"
       aria-labelledby="proposed-funding-heading"
       className="scroll-mt-20 bg-[#0b0c10] px-5 py-24 sm:px-8 sm:py-28 lg:px-12 lg:py-32"
     >
       <div className="mx-auto max-w-[1504px]">
+        <span
+          id="financial-corridors"
+          className="block scroll-mt-20"
+          aria-hidden="true"
+        />
         <div className="grid grid-cols-12 gap-y-10 border-t border-white/12 pt-7 lg:gap-x-8">
           <p className="eyebrow col-span-12 lg:col-span-3">
-            Funding and financial corridors
+            CMHC, funding &amp; community pathways
           </p>
 
           <HeadlineReveal className="col-span-12 lg:col-span-9 lg:col-start-4">
@@ -355,19 +383,102 @@ export function FinancialCorridors() {
               id="proposed-funding-heading"
               className="max-w-[1260px] text-[clamp(3rem,6.2vw,6.8rem)] font-medium leading-[0.86] tracking-[-0.068em] text-white/90"
             >
-              The right pathway can help make the right home possible.
+              A proven starting point.
+              <br />
+              <span className="text-white/38">
+                A clearer route forward.
+              </span>
             </h2>
           </HeadlineReveal>
 
           <p className="col-span-12 max-w-2xl text-base leading-7 text-white/62 sm:col-span-9 sm:col-start-4 sm:text-lg sm:leading-8 lg:col-span-5 lg:col-start-8">
-            Every project begins from a different position—land, financing,
-            funding eligibility, community need, or a development opportunity.
-            House Delivery helps organize those pieces into a clearer path
-            forward.
+            Canada’s Housing Design Catalogue can reduce early-stage repetition
+            and give project teams a stronger baseline. Every design still
+            requires site-specific adaptation for land, zoning, utilities,
+            foundations, engineering, permits, climate, and local construction
+            requirements.
           </p>
         </div>
 
-        <div className="mt-16 grid border-y border-white/12 lg:mt-20 lg:grid-cols-12">
+        <div className="mt-14 grid border-y border-white/12 lg:mt-16 lg:grid-cols-12">
+          <article className="relative flex min-h-[390px] flex-col justify-between overflow-hidden border-b border-white/12 bg-[#0e1014] p-7 sm:p-8 lg:col-span-5 lg:min-h-[460px] lg:border-r lg:border-b-0">
+            <div
+              className="absolute -right-16 -top-14 size-72 rounded-full border border-white/10 sm:size-96"
+              aria-hidden="true"
+            />
+            <div className="relative flex items-start justify-between gap-8">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/48">
+                Canada Housing Design Catalogue
+              </p>
+              <BadgeCheck size={23} strokeWidth={1.25} aria-hidden="true" />
+            </div>
+            <div className="relative">
+              <p className="text-[clamp(5rem,10vw,9rem)] font-medium leading-[0.74] tracking-[-0.085em]">
+                CMHC
+              </p>
+              <p className="mt-9 max-w-md border-t border-white/10 pt-7 text-2xl font-medium leading-[1.02] tracking-[-0.05em] sm:text-3xl">
+                A consistent design reference. A locally coordinated project.
+              </p>
+            </div>
+          </article>
+
+          <div className="grid sm:grid-cols-3 lg:col-span-7">
+            {cmhcContext.map((item, index) => (
+              <article
+                key={item.number}
+                className={`flex min-h-0 flex-col justify-between p-6 sm:min-h-52 sm:p-7 lg:p-8 ${
+                  index > 0
+                    ? "border-t border-white/12 sm:border-t-0 sm:border-l"
+                    : ""
+                }`}
+              >
+                <div className="flex items-center justify-between gap-6">
+                  <span className="text-[9px] tracking-[0.2em] text-white/28">
+                    {item.number}
+                  </span>
+                  {index === 0 ? (
+                    <MapPinned
+                      size={18}
+                      strokeWidth={1.25}
+                      className="text-white/35"
+                      aria-hidden="true"
+                    />
+                  ) : null}
+                </div>
+                <div className="mt-12">
+                  <h3 className="text-xl font-medium tracking-[-0.04em] text-white/86">
+                    {item.title}
+                  </h3>
+                  <p className="mt-3 text-sm leading-6 text-white/46">
+                    {item.copy}
+                  </p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-20 grid grid-cols-12 gap-y-8 border-t border-white/12 pt-7 lg:gap-x-8">
+          <p className="eyebrow col-span-12 lg:col-span-3">
+            Funding and financial corridors
+          </p>
+          <HeadlineReveal
+            className="col-span-12 lg:col-span-9 lg:col-start-4"
+          >
+            <h3 className="max-w-[1100px] text-[clamp(2.8rem,5vw,5.8rem)] font-medium leading-[0.88] tracking-[-0.065em] text-white/90">
+              The right pathway can help make the right home possible.
+            </h3>
+          </HeadlineReveal>
+          <p className="col-span-12 max-w-2xl text-base leading-7 text-white/58 sm:col-span-9 sm:col-start-4 lg:col-span-5 lg:col-start-8">
+            Homeowners, First Nations, municipalities, non-profits, landowners,
+            and developers begin from different positions. House Delivery
+            helps organize the project pathway and supporting documentation;
+            funding and approvals remain subject to the applicable program and
+            project review.
+          </p>
+        </div>
+
+        <div className="mt-14 grid border-y border-white/12 lg:mt-16 lg:grid-cols-12">
           <figure className="relative aspect-[16/9] overflow-hidden bg-[#13151a] lg:col-span-7 lg:aspect-auto lg:h-full lg:border-r lg:border-white/12">
             <Image
               src={activeImage.src}

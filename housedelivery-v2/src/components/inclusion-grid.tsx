@@ -1,4 +1,5 @@
 import { ArrowUpRight } from "lucide-react";
+import Image from "next/image";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
 import { RevealText } from "@/components/reveal-text";
@@ -139,6 +140,37 @@ const finishTiers = [
   },
 ] as const;
 
+const systemImages = [
+  {
+    number: "01",
+    label: "Structure, multiplied",
+    src: "/Row Housing.jpg",
+    alt: "Light steel framing rising across a multi-home row housing project",
+    ratio: "aspect-[16/9]",
+  },
+  {
+    number: "02",
+    label: "Form, completed",
+    src: "/Row Housing 2.jpg",
+    alt: "Completed contemporary row homes built with light steel framing",
+    ratio: "aspect-[16/9]",
+  },
+  {
+    number: "03",
+    label: "Architecture, realized",
+    src: "/Cedar View 1.jpg",
+    alt: "Completed Cedar View residence with expansive glazing and sheltered outdoor space",
+    ratio: "aspect-[16/9]",
+  },
+  {
+    number: "04",
+    label: "Precision beneath",
+    src: "/Cedar View Steel Frame.jpg",
+    alt: "Cedar View residence revealed as a precision light steel frame",
+    ratio: "aspect-[2/1]",
+  },
+] as const;
+
 type InclusionGridProps = {
   eyebrow?: string;
   finishesVariant?: "default" | "compact";
@@ -188,19 +220,39 @@ export function InclusionGrid({
           </span>
         </h2>
 
-        <div className="mt-20 grid grid-cols-1 gap-x-12 md:grid-cols-2 lg:mt-28 lg:grid-cols-3">
+        <div
+          className={
+            hasCompactFinishes
+              ? "mt-16 grid grid-cols-1 gap-x-12 md:grid-cols-2 lg:mt-24 lg:grid-cols-3"
+              : "mt-20 grid grid-cols-1 gap-x-12 md:grid-cols-2 lg:mt-28 lg:grid-cols-3"
+          }
+        >
           {inclusions.map((item) => (
             <article
               key={item.number}
-              className="border-t border-white/10 pt-7 pb-12"
+              className={
+                hasCompactFinishes
+                  ? "border-t border-white/10 pt-5 pb-8"
+                  : "border-t border-white/10 pt-7 pb-12"
+              }
             >
               <span className="text-[10px] tracking-[0.2em] text-white/30">
                 {item.number}
               </span>
-              <h3 className="mt-6 max-w-xs text-xl font-medium leading-tight tracking-[-0.035em] text-white/85">
+              <h3
+                className={`max-w-xs text-xl font-medium leading-tight tracking-[-0.035em] text-white/85 ${
+                  hasCompactFinishes ? "mt-4" : "mt-6"
+                }`}
+              >
                 {item.title}
               </h3>
-              <ul className="mt-6 space-y-3">
+              <ul
+                className={
+                  hasCompactFinishes
+                    ? "mt-4 space-y-2"
+                    : "mt-6 space-y-3"
+                }
+              >
                 {item.points.map((point) => (
                   <li
                     key={point}
@@ -216,6 +268,32 @@ export function InclusionGrid({
               </ul>
             </article>
           ))}
+        </div>
+
+        <div className="mt-10 border-t border-white/10 pt-8 lg:mt-16 lg:pt-10">
+          <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:gap-8">
+            {systemImages.map((image) => (
+              <figure key={image.number} className="group">
+                <div
+                  className={`relative ${image.ratio} overflow-hidden border border-white/10 bg-white/[0.035]`}
+                >
+                  <Image
+                    src={image.src}
+                    alt={image.alt}
+                    fill
+                    quality={100}
+                    unoptimized={true}
+                    sizes="(min-width: 768px) 50vw, 100vw"
+                    className="object-contain brightness-90 grayscale transition-all duration-[2000ms] ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-[1.025] group-hover:brightness-100 group-hover:grayscale-0"
+                  />
+                </div>
+                <figcaption className="mt-3 flex items-start justify-between gap-3 border-t border-white/10 pt-3 text-[8px] uppercase leading-4 tracking-[0.16em] text-white/35 sm:mt-4 sm:text-[9px] sm:tracking-[0.2em]">
+                  <span>{image.label}</span>
+                  <span>{image.number} / 04</span>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
         </div>
 
         <div

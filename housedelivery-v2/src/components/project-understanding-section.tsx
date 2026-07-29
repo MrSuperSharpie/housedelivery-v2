@@ -7,7 +7,7 @@ export function ProjectUnderstandingSection() {
     <section
       id="project-understanding"
       aria-labelledby="project-understanding-heading"
-      className="scroll-mt-20 border-y border-white/10 bg-[#0e1014] px-5 py-28 sm:px-8 lg:px-12 lg:py-40"
+      className="scroll-mt-20 border-y border-white/10 bg-[#0e1014] px-5 py-24 sm:px-8 lg:px-12 lg:py-32"
     >
       <div className="mx-auto max-w-[1504px]">
         <div className="grid grid-cols-12 gap-y-12 border-t border-white/12 pt-7 lg:gap-x-8">
@@ -19,7 +19,6 @@ export function ProjectUnderstandingSection() {
           </div>
 
           <HeadlineReveal
-            variant="sweep"
             className="col-span-12 lg:col-span-9 lg:col-start-4"
           >
             <h2
@@ -33,19 +32,19 @@ export function ProjectUnderstandingSection() {
           </HeadlineReveal>
         </div>
 
-        <div className="mt-14 grid grid-cols-12 gap-y-12 border-y border-white/12 py-10 lg:mt-20 lg:gap-x-8 lg:py-14">
+        <div className="mt-12 grid grid-cols-12 gap-y-10 border-y border-white/12 py-10 lg:mt-16 lg:gap-x-8 lg:py-12">
           <p className="col-span-12 max-w-2xl text-lg leading-8 text-white/70 lg:col-span-5 lg:col-start-4">
-            For larger residential, community, municipal, First Nations, and
-            development opportunities, a non-binding Letter of Understanding
-            can record the preliminary scope, shared intent, responsibilities,
-            and next steps needed to begin advancing the project.
+            Larger residential, First Nations, municipal, community, and
+            development projects may begin with a structured project
+            conversation or non-binding Letter of Understanding to define the
+            preliminary site, scope, responsibilities, project pathway, and
+            next steps.
           </p>
           <div className="col-span-12 lg:col-span-4 lg:col-start-9">
             <p className="text-sm leading-7 text-white/50">
-              It creates a practical foundation for site review, funding
-              conversations, supplier coordination, design adaptation,
-              municipal engagement, and future agreements—without requiring
-              either party to enter a construction contract prematurely.
+              It bridges early interest to site review, funding conversations,
+              supplier coordination, and a future project agreement—without
+              requiring a construction contract prematurely.
             </p>
             <a
               href="#reserve"
