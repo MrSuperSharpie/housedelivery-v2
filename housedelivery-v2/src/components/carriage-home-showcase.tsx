@@ -174,9 +174,9 @@ export function CarriageHomeShowcase() {
                       src={mainImage.src}
                       alt={mainImage.alt}
                       fill
-                      quality={100}
-                      unoptimized={true}
-                      sizes="(max-width: 767px) 100vw, (max-width: 1535px) 50vw, 720px"
+                      quality={90}
+                      sizes="(max-width: 767px) 100vw, (max-width: 1535px) 50vw, 728px"
+                      style={{ imageRendering: "auto" }}
                       className="object-cover brightness-90 transition-all duration-[2000ms] ease-[cubic-bezier(0.25,1,0.5,1)] group-hover/image:scale-[1.04] group-hover/image:brightness-100 group-focus-visible/image:scale-[1.04] group-focus-visible/image:brightness-100"
                     />
                     <span className="absolute right-5 top-5 grid size-11 place-items-center rounded-full border border-white/35 bg-black/25 text-white backdrop-blur-md transition-colors group-hover/image:bg-white group-hover/image:text-black">
@@ -259,9 +259,9 @@ export function CarriageHomeShowcase() {
                 src={activeImage.src}
                 alt={activeImage.alt}
                 fill
-                quality={100}
-                unoptimized={true}
+                quality={90}
                 sizes="(max-width: 1024px) calc(100vw - 2rem), 1024px"
+                style={{ imageRendering: "auto" }}
                 className={cn(
                   activeImage.fit === "contain"
                     ? "bg-[#e7e5df] object-contain p-4 sm:p-8"
@@ -324,9 +324,9 @@ export function CarriageHomeShowcase() {
                     src={image.src}
                     alt=""
                     fill
-                    quality={100}
-                    unoptimized={true}
+                    quality={90}
                     sizes="(max-width: 639px) 30vw, 180px"
+                    style={{ imageRendering: "auto" }}
                     className={cn(
                       image.fit === "contain"
                         ? "bg-[#e7e5df] object-contain p-1"

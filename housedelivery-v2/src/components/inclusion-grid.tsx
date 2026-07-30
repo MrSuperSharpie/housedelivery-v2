@@ -281,9 +281,9 @@ export function InclusionGrid({
                     src={image.src}
                     alt={image.alt}
                     fill
-                    quality={100}
-                    unoptimized={true}
-                    sizes="(min-width: 768px) 50vw, 100vw"
+                    quality={90}
+                    sizes="(max-width: 639px) calc(50vw - 1.625rem), (max-width: 1023px) calc(50vw - 2.75rem), (max-width: 1599px) calc(50vw - 4rem), 736px"
+                    style={{ imageRendering: "auto" }}
                     className="object-contain brightness-90 grayscale transition-all duration-[2000ms] ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-[1.025] group-hover:brightness-100 group-hover:grayscale-0"
                   />
                 </div>

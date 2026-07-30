@@ -484,9 +484,9 @@ export function FinancialCorridors() {
               src={activeImage.src}
               alt={activeImage.alt}
               fill
-              quality={100}
-              unoptimized={true}
-              sizes="(max-width: 1023px) 100vw, 58vw"
+              quality={90}
+              sizes="(max-width: 1023px) 100vw, (max-width: 1599px) 58vw, 878px"
+              style={{ imageRendering: "auto" }}
               className="object-cover object-[52%_center] render-crisp"
             />
             <div
