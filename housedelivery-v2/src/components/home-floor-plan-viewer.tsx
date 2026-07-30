@@ -5,15 +5,27 @@ import Image from "next/image";
 import { useState } from "react";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
-import type { HomeModel } from "@/data/models";
 import { cn } from "@/lib/cn";
 
 type HomeFloorPlanViewerProps = {
-  model: HomeModel;
+  model: {
+    name: string;
+    floorPlanImage: string;
+    planCallouts?: readonly string[];
+  };
+  imageAlt?: string;
+  imageQuality?: number;
+  unoptimized?: boolean;
 };
 
-export function HomeFloorPlanViewer({ model }: HomeFloorPlanViewerProps) {
+export function HomeFloorPlanViewer({
+  model,
+  imageAlt = `${model.name} floor plan drawing`,
+  imageQuality = 100,
+  unoptimized = true,
+}: HomeFloorPlanViewerProps) {
   const [isZoomed, setIsZoomed] = useState(false);
+  const planCallouts = model.planCallouts ?? [];
 
   return (
     <section
@@ -69,10 +81,10 @@ export function HomeFloorPlanViewer({ model }: HomeFloorPlanViewerProps) {
             >
               <Image
                 src={model.floorPlanImage}
-                alt={`${model.name} floor plan drawing`}
+                alt={imageAlt}
                 fill
-                quality={100}
-                unoptimized={true}
+                quality={imageQuality}
+                unoptimized={unoptimized}
                 sizes={isZoomed ? "140vw" : "95vw"}
                 className="object-contain p-5 sm:p-9"
               />
@@ -80,19 +92,21 @@ export function HomeFloorPlanViewer({ model }: HomeFloorPlanViewerProps) {
           </div>
         </div>
 
-        <div className="mt-10 grid border-t border-white/14 sm:grid-cols-2 lg:grid-cols-4">
-          {model.planCallouts.map((callout, index) => (
-            <div
-              key={callout}
-              className="grid grid-cols-[36px_1fr] border-b border-white/12 py-5 sm:border-r sm:px-5 sm:first:pl-0 sm:last:border-r-0 lg:border-b-0"
-            >
-              <span className="text-[9px] tracking-[0.18em] text-white/28">
-                {String(index + 1).padStart(2, "0")}
-              </span>
-              <span className="text-xs text-white/62">{callout}</span>
-            </div>
-          ))}
-        </div>
+        {planCallouts.length > 0 ? (
+          <div className="mt-10 grid border-t border-white/14 sm:grid-cols-2 lg:grid-cols-4">
+            {planCallouts.map((callout, index) => (
+              <div
+                key={callout}
+                className="grid grid-cols-[36px_1fr] border-b border-white/12 py-5 sm:border-r sm:px-5 sm:first:pl-0 sm:last:border-r-0 lg:border-b-0"
+              >
+                <span className="text-[9px] tracking-[0.18em] text-white/28">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <span className="text-xs text-white/62">{callout}</span>
+              </div>
+            ))}
+          </div>
+        ) : null}
       </div>
     </section>
   );

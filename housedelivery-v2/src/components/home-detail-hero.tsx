@@ -11,18 +11,38 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
 
-import type { HomeModel } from "@/data/models";
-
 type HomeDetailHeroProps = {
-  model: HomeModel;
+  model: {
+    name: string;
+    heroImage: string;
+    summary: string;
+    locationLabel: string;
+    squareFeet?: number;
+  };
   modelNumber: number;
   modelCount: number;
+  collectionHref?: string;
+  collectionLabel?: string;
+  modelLabel?: string;
+  secondaryBadge?: string;
+  titleSuffix?: string | null;
+  imageAlt?: string;
+  imageQuality?: number;
+  unoptimized?: boolean;
 };
 
 export function HomeDetailHero({
   model,
   modelNumber,
   modelCount,
+  collectionHref = "/#models",
+  collectionLabel = "Collection",
+  modelLabel = "Model",
+  secondaryBadge = "Pre-engineered residence",
+  titleSuffix = "House",
+  imageAlt = `${model.name} House exterior`,
+  imageQuality = 100,
+  unoptimized = true,
 }: HomeDetailHeroProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const shouldReduceMotion = useReducedMotion();
@@ -45,10 +65,10 @@ export function HomeDetailHero({
       >
         <Image
           src={model.heroImage}
-          alt={`${model.name} House exterior`}
+          alt={imageAlt}
           fill
-          quality={100}
-          unoptimized={true}
+          quality={imageQuality}
+          unoptimized={unoptimized}
           loading="eager"
           fetchPriority="high"
           sizes="100vw"
@@ -65,14 +85,14 @@ export function HomeDetailHero({
       >
         <div className="flex items-center justify-between">
           <Link
-            href="/#models"
+            href={collectionHref}
             className="inline-flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/65 transition-colors hover:text-white"
           >
             <ArrowLeft size={14} />
-            Collection
+            {collectionLabel}
           </Link>
           <p className="text-[9px] uppercase tracking-[0.2em] text-white/55">
-            Model {String(modelNumber).padStart(2, "0")} /{" "}
+            {modelLabel} {String(modelNumber).padStart(2, "0")} /{" "}
             {String(modelCount).padStart(2, "0")}
           </p>
         </div>
@@ -83,7 +103,7 @@ export function HomeDetailHero({
               {model.locationLabel}
             </span>
             <span className="border border-white/30 bg-black/15 px-3 py-2 text-[9px] font-semibold uppercase tracking-[0.18em] backdrop-blur-md">
-              Pre-engineered residence
+              {secondaryBadge}
             </span>
           </div>
 
@@ -99,24 +119,34 @@ export function HomeDetailHero({
             className="max-w-[1300px] text-[clamp(4rem,10vw,10rem)] font-medium leading-[0.82] tracking-[-0.078em]"
           >
             {model.name}
-            <br />
-            <span className="text-white/58">House</span>
+            {titleSuffix ? (
+              <>
+                <br />
+                <span className="text-white/58">{titleSuffix}</span>
+              </>
+            ) : null}
           </motion.h1>
 
-          <div className="mt-10 grid items-end gap-8 border-t border-white/30 pt-6 sm:grid-cols-[1fr_auto]">
+          <div
+            className={`mt-10 grid items-end gap-8 border-t border-white/30 pt-6 ${
+              model.squareFeet === undefined ? "" : "sm:grid-cols-[1fr_auto]"
+            }`}
+          >
             <p className="max-w-xl text-sm leading-6 text-white/66 sm:text-base sm:leading-7">
               {model.summary}
             </p>
-            <div className="flex items-end gap-3 sm:text-right">
-              <span className="text-5xl font-light tracking-[-0.07em] sm:text-7xl">
-                {model.squareFeet.toLocaleString()}
-              </span>
-              <span className="pb-2 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/50">
-                Sq. ft.
-                <br />
-                total area
-              </span>
-            </div>
+            {model.squareFeet === undefined ? null : (
+              <div className="flex items-end gap-3 sm:text-right">
+                <span className="text-5xl font-light tracking-[-0.07em] sm:text-7xl">
+                  {model.squareFeet.toLocaleString()}
+                </span>
+                <span className="pb-2 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/50">
+                  Sq. ft.
+                  <br />
+                  total area
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </motion.div>

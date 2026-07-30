@@ -6,10 +6,21 @@ import Image from "next/image";
 import { HeadlineReveal } from "@/components/headline-reveal";
 import type { HomeModel } from "@/data/models";
 
+type GallerySource =
+  | string
+  | {
+      src: string;
+      alt: string;
+      label: string;
+      fit?: "cover" | "contain";
+    };
+
 type GalleryImage = {
   src: string;
+  alt: string;
   label: string;
   number: number;
+  fit: "cover" | "contain";
 };
 
 type GalleryRow =
@@ -18,9 +29,11 @@ type GalleryRow =
 
 type HomeEditorialGalleryProps = {
   modelName: string;
-  images: readonly string[];
+  images: readonly GallerySource[];
   floorPlanImage: string;
-  narrative: HomeModel["narrative"];
+  narrative?: HomeModel["narrative"];
+  imageQuality?: number;
+  unoptimized?: boolean;
 };
 
 // Floor plan / footprint assets must never appear in the lifestyle gallery —
@@ -52,12 +65,31 @@ const galleryLabels = [
   "Interior perspective",
 ] as const;
 
-function buildGalleryRows(images: readonly string[]): GalleryRow[] {
-  const items = images.map((src, index) => ({
-    src,
-    label: galleryLabels[index % galleryLabels.length],
-    number: index + 1,
-  }));
+function getImageSrc(image: GallerySource): string {
+  return typeof image === "string" ? image : image.src;
+}
+
+function buildGalleryRows(
+  images: readonly GallerySource[],
+  modelName: string,
+): GalleryRow[] {
+  const items = images.map((image, index) => {
+    const fallbackLabel = galleryLabels[index % galleryLabels.length];
+
+    return {
+      src: getImageSrc(image),
+      alt:
+        typeof image === "string"
+          ? `${modelName} — ${fallbackLabel}`
+          : image.alt,
+      label: typeof image === "string" ? fallbackLabel : image.label,
+      number: index + 1,
+      fit:
+        typeof image === "string"
+          ? ("cover" as const)
+          : (image.fit ?? "cover"),
+    };
+  });
   const rows: GalleryRow[] = [];
   let cursor = 0;
   let isFullWidth = true;
@@ -87,13 +119,15 @@ export function HomeEditorialGallery({
   modelName,
   images,
   floorPlanImage,
-  narrative,
+  narrative = [],
+  imageQuality = 100,
+  unoptimized = true,
 }: HomeEditorialGalleryProps) {
   const shouldReduceMotion = useReducedMotion();
   const lifestyleImages = images.filter(
-    (src) => !isFloorPlanImage(src, floorPlanImage),
+    (image) => !isFloorPlanImage(getImageSrc(image), floorPlanImage),
   );
-  const rows = buildGalleryRows(lifestyleImages);
+  const rows = buildGalleryRows(lifestyleImages, modelName);
 
   return (
     <section className="px-5 py-28 sm:px-8 lg:px-12 lg:py-40">
@@ -153,16 +187,20 @@ export function HomeEditorialGallery({
                         >
                           <Image
                             src={image.src}
-                            alt={`${modelName} — ${image.label}`}
+                            alt={image.alt}
                             fill
-                            quality={100}
-                            unoptimized={true}
+                            quality={imageQuality}
+                            unoptimized={unoptimized}
                             sizes={
                               row.kind === "full"
                                 ? "(min-width: 768px) 95vw, 100vw"
                                 : "(min-width: 768px) 48vw, 100vw"
                             }
-                            className="object-cover brightness-90 transition-all duration-[2000ms] ease-[cubic-bezier(0.25,1,0.5,1)] hover:scale-[1.04] hover:brightness-100"
+                            className={
+                              image.fit === "contain"
+                                ? "bg-[#e7e5df] object-contain p-4 sm:p-8"
+                                : "object-cover brightness-90 transition-all duration-[2000ms] ease-[cubic-bezier(0.25,1,0.5,1)] hover:scale-[1.04] hover:brightness-100"
+                            }
                           />
                         </motion.div>
                       </div>
