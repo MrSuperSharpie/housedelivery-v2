@@ -4,11 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { CarriageEditorialGallery } from "@/components/carriage-editorial-gallery";
+import { CarriageHomeDetailHero } from "@/components/carriage-home-detail-hero";
 import { HeadlineReveal } from "@/components/headline-reveal";
-import { HomeDetailHero } from "@/components/home-detail-hero";
-import { HomeEditorialGallery } from "@/components/home-editorial-gallery";
 import { HomeFloorPlanViewer } from "@/components/home-floor-plan-viewer";
-import { RevealText } from "@/components/reveal-text";
 import { SiteHeader } from "@/components/site-header";
 import {
   carriageHomes,
@@ -139,73 +138,44 @@ export default async function CarriageHomeDetailPage({
       (modelIndex - 1 + carriageHomes.length) % carriageHomes.length
     ];
   const nextModel = carriageHomes[(modelIndex + 1) % carriageHomes.length];
-  const heroImage = model.images[0];
 
   return (
     <>
       <SiteHeader />
       <main className="bg-[#0b0c10] text-white">
-        <HomeDetailHero
-          model={{
-            name: model.name,
-            heroImage: heroImage.src,
-            summary: model.description,
-            locationLabel: "Laneway / Carriage",
-          }}
+        <CarriageHomeDetailHero
+          model={model}
           modelNumber={modelIndex + 1}
           modelCount={carriageHomes.length}
-          modelLabel="Residence"
-          collectionHref="/#carriage-homes"
-          collectionLabel="Laneway & Carriage homes"
-          secondaryBadge="Compact residence"
-          titleSuffix={null}
-          imageAlt={heroImage.alt}
-          imageQuality={90}
-          unoptimized={false}
-          imagePresentation="contained"
         />
 
         <section
           id="overview"
-          className="scroll-mt-20 px-5 py-28 sm:px-8 lg:px-12 lg:py-40"
+          className="scroll-mt-20 px-5 py-24 sm:px-8 sm:py-28 lg:px-12 lg:py-36"
         >
           <div className="mx-auto max-w-[1504px]">
-            <div className="grid gap-16 lg:grid-cols-[1.1fr_0.9fr] lg:gap-24">
+            <div className="grid gap-12 border-t border-white/14 pt-7 lg:grid-cols-[0.82fr_1.18fr] lg:gap-24">
               <div>
-                <p className="eyebrow">Overview / Laneway &amp; Carriage</p>
-                <h2 className="mt-7 max-w-4xl text-5xl font-medium leading-[0.92] tracking-[-0.06em] md:text-7xl">
-                  <RevealText text="Compact living," />
-                  <br />
-                  <span className="text-white/40">
-                    <RevealText text="considered in full." delay={0.12} />
-                  </span>
-                </h2>
+                <p className="eyebrow">Introduction / {model.name}</p>
+                <HeadlineReveal variant="sweep" className="mt-7">
+                  <h2 className="max-w-xl text-[clamp(2.7rem,5vw,5.6rem)] font-medium leading-[0.92] tracking-[-0.06em] text-white/88">
+                    {model.themes[0]}
+                  </h2>
+                </HeadlineReveal>
               </div>
 
-              <div className="lg:pt-20">
-                <p className="max-w-prose text-lg leading-relaxed text-neutral-400">
-                  {model.description}
+              <div className="lg:pt-16">
+                <p className="max-w-3xl text-xl leading-9 text-white/68 lg:text-2xl lg:leading-10">
+                  {model.supportingCopy}
                 </p>
               </div>
-            </div>
-
-            <div className="mt-20 grid gap-6 border-t border-white/12 pt-7 lg:grid-cols-[0.72fr_1.28fr] lg:gap-20">
-              <p className="eyebrow">Planning note</p>
-              <p className="max-w-3xl text-sm leading-7 text-white/42">
-                Each home must be adapted to the property, local zoning,
-                setbacks, servicing, access, climate conditions, and applicable
-                building-code requirements.
-              </p>
             </div>
           </div>
         </section>
 
-        <HomeEditorialGallery
-          modelName={model.name}
-          images={model.images}
+        <CarriageEditorialGallery
+          model={model}
           floorPlanImage={floorPlan.src}
-          imageQuality={90}
-          unoptimized={false}
         />
 
         <HomeFloorPlanViewer
@@ -216,7 +186,19 @@ export default async function CarriageHomeDetailPage({
           imageAlt={floorPlan.alt}
           imageQuality={90}
           unoptimized={false}
+          constrainImage
         />
+
+        <section className="px-5 py-20 sm:px-8 sm:py-24 lg:px-12 lg:py-28">
+          <div className="mx-auto grid max-w-[1504px] gap-6 border-t border-white/12 pt-7 lg:grid-cols-[0.72fr_1.28fr] lg:gap-20">
+            <p className="eyebrow">Project-specific planning note</p>
+            <p className="max-w-3xl text-sm leading-7 text-white/44">
+              Each design must be adapted to the property, zoning, setbacks,
+              servicing, access, climate conditions, and applicable
+              building-code requirements.
+            </p>
+          </div>
+        </section>
 
         <section
           id="inquire"

@@ -16,6 +16,7 @@ type HomeFloorPlanViewerProps = {
   imageAlt?: string;
   imageQuality?: number;
   unoptimized?: boolean;
+  constrainImage?: boolean;
 };
 
 export function HomeFloorPlanViewer({
@@ -23,6 +24,7 @@ export function HomeFloorPlanViewer({
   imageAlt = `${model.name} floor plan drawing`,
   imageQuality = 100,
   unoptimized = true,
+  constrainImage = false,
 }: HomeFloorPlanViewerProps) {
   const [isZoomed, setIsZoomed] = useState(false);
   const planCallouts = model.planCallouts ?? [];
@@ -53,7 +55,12 @@ export function HomeFloorPlanViewer({
           </p>
         </div>
 
-        <div className="mt-16 overflow-hidden border border-white/14 bg-[#090a0d]">
+        <div
+          className={cn(
+            "mt-16 overflow-hidden border border-white/14 bg-[#090a0d]",
+            constrainImage && "mx-auto max-w-[980px]",
+          )}
+        >
           <div className="flex items-center justify-between border-b border-white/12 px-4 py-4 sm:px-6">
             <div className="flex items-center gap-3">
               <Maximize2 size={14} className="text-white/42" />
@@ -76,7 +83,13 @@ export function HomeFloorPlanViewer({
             <div
               className={cn(
                 "relative mx-auto aspect-[1.42/1] min-w-[680px] bg-[#e9e7e1] transition-[width] duration-500",
-                isZoomed ? "w-[145%]" : "w-full",
+                constrainImage
+                  ? isZoomed
+                    ? "w-[980px]"
+                    : "w-full max-w-[980px]"
+                  : isZoomed
+                    ? "w-[145%]"
+                    : "w-full",
               )}
             >
               <Image
@@ -85,7 +98,15 @@ export function HomeFloorPlanViewer({
                 fill
                 quality={imageQuality}
                 unoptimized={unoptimized}
-                sizes={isZoomed ? "140vw" : "95vw"}
+                sizes={
+                  constrainImage
+                    ? isZoomed
+                      ? "980px"
+                      : "(max-width: 767px) 680px, 900px"
+                    : isZoomed
+                      ? "140vw"
+                      : "95vw"
+                }
                 className="object-contain p-5 sm:p-9"
               />
             </div>

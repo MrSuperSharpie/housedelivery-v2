@@ -9,6 +9,9 @@ export type CarriageHome = {
   slug: string;
   name: string;
   description: string;
+  heroStatement: string;
+  supportingCopy: string;
+  themes: readonly string[];
   images: readonly CarriageHomeImage[];
 };
 
@@ -20,6 +23,15 @@ export const carriageHomes: readonly CarriageHome[] = [
     name: "The Willow Nook",
     description:
       "A compact approximately 40.2 m² home with an efficient one-bedroom layout, central kitchen, living area, bathroom, and practical washing or preparation area.",
+    heroStatement: "Everything needed. Nothing wasted.",
+    supportingCopy:
+      "A compact approximately 40.2 m² residence organized around clear daily routines. A private bedroom and living area sit on opposite sides of a central kitchen, with the bathroom and practical preparation space close at hand.",
+    themes: [
+      "Compact one-bedroom living",
+      "Efficient separation of private and shared space",
+      "Central kitchen",
+      "Organized, functional daily use",
+    ],
     images: [
       {
         src: `${imageRoot}/The-Willow-Nook-1.jpg`,
@@ -64,6 +76,15 @@ export const carriageHomes: readonly CarriageHome[] = [
     name: "The Lantern House",
     description:
       "A practical two-bedroom home with a generous shared living area, kitchen, centrally positioned bathroom, and clear separation between common and private spaces.",
+    heroStatement: "Shared space. Private retreat.",
+    supportingCopy:
+      "A practical two-bedroom home with a generous living room, everyday kitchen, and private bedrooms arranged toward the rear. A centrally positioned bathroom creates an efficient balance between shared life and personal space.",
+    themes: [
+      "Two-bedroom layout",
+      "Spacious shared living area",
+      "Central bathroom",
+      "Clear separation between common and private rooms",
+    ],
     images: [
       {
         src: `${imageRoot}/The-Lantern-House-2.jpg`,
@@ -98,6 +119,15 @@ export const carriageHomes: readonly CarriageHome[] = [
     name: "The Courtyard Cottage",
     description:
       "A flexible compact housing model designed around efficient daily living, adaptable room configurations, and practical use for backyard, cottage, carriage, and small residential settings.",
+    heroStatement: "Small footprint. Flexible possibilities.",
+    supportingCopy:
+      "A compact housing model shaped around efficient daily living. Its adaptable arrangement can accommodate practical living, kitchen, bedroom, and bathroom spaces while responding to the requirements of the property and project.",
+    themes: [
+      "Adaptable compact layout",
+      "Efficient use of space",
+      "Flexible room configuration",
+      "Site and project adaptation required",
+    ],
     images: [
       {
         src: `${imageRoot}/The-Courtyard-Cottage-1.jpg`,
@@ -132,6 +162,15 @@ export const carriageHomes: readonly CarriageHome[] = [
     name: "The Heritage Mews",
     description:
       "A compact one-bedroom home with a front deck, central living area, integrated kitchen, private bedroom, and ensuite bathroom.",
+    heroStatement: "A quieter way to live.",
+    supportingCopy:
+      "A compact one-bedroom home with a welcoming front deck, central living area, integrated kitchen, and private ensuite bedroom. The layout places the essentials within a clear and comfortable footprint.",
+    themes: [
+      "One bedroom with ensuite",
+      "Integrated kitchen and living space",
+      "Transitional front deck",
+      "Compact residential, guest, or backyard use",
+    ],
     images: [
       {
         src: `${imageRoot}/Heritage-Mews-1.jpg`,
@@ -167,6 +206,15 @@ export const carriageHomes: readonly CarriageHome[] = [
     name: "Limetree House",
     description:
       "A thoughtfully planned 60.1 m² home designed for compact family living. Limetree includes two bedrooms, a comfortable living area, kitchen, bathroom, and dedicated study space, balancing everyday practicality with an efficient use of space.",
+    heroStatement: "Room for life to unfold.",
+    supportingCopy:
+      "A thoughtfully planned 60.1 m² home for compact family living. Two bedrooms, a comfortable living room, kitchen, bathroom, and dedicated study create a balanced home for approximately three to four occupants.",
+    themes: [
+      "Two bedrooms",
+      "Dedicated study",
+      "Approximately 54.74 m² internal area",
+      "Efficient family living",
+    ],
     images: [
       {
         src: `${imageRoot}/Limetree-1.jpeg`,
@@ -206,6 +254,15 @@ export const carriageHomes: readonly CarriageHome[] = [
     name: "Moonlight House",
     description:
       "A compact 57.2 m² two-bedroom home designed around comfort, privacy, and indoor-outdoor living. A welcoming front deck opens into an airy living area and kitchen, while each bedroom includes its own private bathroom.",
+    heroStatement: "Privacy, gathered around light.",
+    supportingCopy:
+      "A compact approximately 57.2 m² home with two bedrooms, each with its own private bathroom. A two-metre front deck leads into an open living room and kitchen, creating an easy relationship between indoor comfort and outdoor space.",
+    themes: [
+      "Two bedrooms",
+      "Two private bathrooms",
+      "Open living room and kitchen",
+      "Approximately two-metre front deck",
+    ],
     images: [
       {
         src: `${imageRoot}/Moonlight-House-1.jpeg`,
