@@ -162,6 +162,7 @@ export default async function CarriageHomeDetailPage({
           imageAlt={heroImage.alt}
           imageQuality={90}
           unoptimized={false}
+          imagePresentation="contained"
         />
 
         <section

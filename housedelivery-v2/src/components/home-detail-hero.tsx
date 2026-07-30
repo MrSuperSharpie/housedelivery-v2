@@ -29,6 +29,7 @@ type HomeDetailHeroProps = {
   imageAlt?: string;
   imageQuality?: number;
   unoptimized?: boolean;
+  imagePresentation?: "full-bleed" | "contained";
 };
 
 export function HomeDetailHero({
@@ -43,6 +44,7 @@ export function HomeDetailHero({
   imageAlt = `${model.name} House exterior`,
   imageQuality = 100,
   unoptimized = true,
+  imagePresentation = "full-bleed",
 }: HomeDetailHeroProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const shouldReduceMotion = useReducedMotion();
@@ -59,22 +61,46 @@ export function HomeDetailHero({
       id="top"
       className="relative h-[100svh] min-h-[760px] overflow-hidden border-b border-white/10 sm:min-h-[860px]"
     >
-      <motion.div
-        className="absolute inset-x-0 -top-[10%] -bottom-[10%] bg-[#0b0c10]"
-        style={{ y: imageY }}
-      >
-        <Image
-          src={model.heroImage}
-          alt={imageAlt}
-          fill
-          quality={imageQuality}
-          unoptimized={unoptimized}
-          loading="eager"
-          fetchPriority="high"
-          sizes="100vw"
-          className="object-cover"
-        />
-      </motion.div>
+      {imagePresentation === "contained" ? (
+        <motion.div
+          className="absolute inset-0 flex items-center justify-center bg-[#0b0c10]"
+          style={{ y: imageY }}
+        >
+          <div
+            data-hero-image-frame="contained"
+            className="relative h-[70svh] max-h-[700px] w-[calc(100%-1rem)] max-w-[980px] sm:w-[88vw] lg:h-[70vh] lg:w-[70vw]"
+          >
+            <Image
+              src={model.heroImage}
+              alt={imageAlt}
+              fill
+              quality={imageQuality}
+              unoptimized={unoptimized}
+              loading="eager"
+              fetchPriority="high"
+              sizes="(max-width: 639px) calc(100vw - 16px), (max-width: 1023px) 88vw, (max-width: 1400px) 70vw, 980px"
+              className="object-contain"
+            />
+          </div>
+        </motion.div>
+      ) : (
+        <motion.div
+          className="absolute inset-x-0 -top-[10%] -bottom-[10%] bg-[#0b0c10]"
+          style={{ y: imageY }}
+        >
+          <Image
+            src={model.heroImage}
+            alt={imageAlt}
+            fill
+            quality={imageQuality}
+            unoptimized={unoptimized}
+            loading="eager"
+            fetchPriority="high"
+            sizes="100vw"
+            className="object-cover"
+          />
+        </motion.div>
+      )}
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(11,12,16,.52)_0%,rgba(11,12,16,.08)_40%,rgba(11,12,16,.92)_100%)]" />
       <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(11,12,16,.46)_0%,transparent_65%)]" />
       <div className="noise absolute inset-0 opacity-[0.075]" />
