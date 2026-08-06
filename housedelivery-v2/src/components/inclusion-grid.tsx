@@ -1,8 +1,10 @@
 import { ArrowUpRight } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
 import { RevealText } from "@/components/reveal-text";
+import { inclusionPackages } from "@/data/inclusions";
 
 type InclusionItem = {
   number: string;
@@ -118,27 +120,6 @@ const inclusions: readonly InclusionItem[] = [
     ],
   },
 ];
-
-const finishTiers = [
-  {
-    number: "01",
-    name: "Entry",
-    note: "Essential edit",
-    comingSoon: "Essential finish collection coming soon",
-  },
-  {
-    number: "02",
-    name: "Premium",
-    note: "Pre-approved standard",
-    comingSoon: "Curated premium collection coming soon",
-  },
-  {
-    number: "03",
-    name: "Signature",
-    note: "Fully tailored",
-    comingSoon: "Tailored signature collection coming soon",
-  },
-] as const;
 
 const systemImages = [
   {
@@ -311,7 +292,7 @@ export function InclusionGrid({
             }
           >
             <div className="col-span-12 lg:col-span-3">
-              <p className="eyebrow">Finishes / Private folio</p>
+              <p className="eyebrow">Finishes / Inclusions Library</p>
               <p className="mt-5 text-[10px] uppercase tracking-[0.2em] text-white/30">
                 Three considered expressions
               </p>
@@ -337,21 +318,21 @@ export function InclusionGrid({
                 }
               >
                 <p className="col-span-12 max-w-2xl text-lg leading-8 text-white/70 lg:col-span-7">
-                  Flooring. Glazing. Doors. Cabinetry. Every finish, collected in
-                  one private design folio.
+                  Flooring. Glazing. Doors. Cabinetry. Every finish, organized
+                  through one coordinated package structure.
                 </p>
 
-                <a
-                  href="#reserve"
+                <Link
+                  href="/inclusions"
                   className="group col-span-12 inline-flex w-fit items-center gap-4 self-start border-b border-white/35 pb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/80 transition-colors duration-500 hover:border-white hover:text-white lg:col-span-4 lg:col-start-9"
                 >
-                  Request the finishes folio
+                  Explore the Inclusions Library
                   <ArrowUpRight
                     aria-hidden="true"
                     className="size-3.5 transition-transform duration-500 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
                     strokeWidth={1.5}
                   />
-                </a>
+                </Link>
               </div>
 
               <div
@@ -361,14 +342,14 @@ export function InclusionGrid({
                     : "mt-14 grid grid-cols-12 border-y border-white/10"
                 }
               >
-                {finishTiers.map((tier) =>
+                {inclusionPackages.map((tier) =>
                   hasCompactFinishes ? (
                     <div
-                      key={tier.name}
+                      key={tier.id}
                       role="group"
                       tabIndex={0}
                       aria-label={`${tier.name} finish tier`}
-                      aria-describedby={`finish-tier-message-${tier.number}`}
+                      aria-describedby={`finish-tier-message-${tier.id}`}
                       className="group col-span-12 grid grid-cols-[32px_minmax(0,1fr)] gap-x-4 border-b border-white/10 py-6 last:border-b-0 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-white/35 sm:col-span-4 sm:block sm:border-r sm:border-b-0 sm:px-6 sm:first:pl-0 sm:last:border-r-0 sm:last:pr-0"
                     >
                       <span className="pt-1 text-[10px] tabular-nums tracking-[0.18em] text-white/30 sm:pt-0">
@@ -379,19 +360,19 @@ export function InclusionGrid({
                           {tier.name}
                         </p>
                         <p className="mt-2 text-[10px] uppercase tracking-[0.16em] text-white/40">
-                          {tier.note}
+                          {tier.positioning}
                         </p>
                         <p
-                          id={`finish-tier-message-${tier.number}`}
+                          id={`finish-tier-message-${tier.id}`}
                           className="mt-3 translate-y-1 text-[10px] leading-4 tracking-[0.04em] text-white/45 opacity-0 transition-[opacity,transform] duration-500 ease-out motion-reduce:translate-y-0 motion-reduce:transition-none group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100"
                         >
-                          {tier.comingSoon}
+                          {tier.description}
                         </p>
                       </div>
                     </div>
                   ) : (
                     <div
-                      key={tier.name}
+                      key={tier.id}
                       className="col-span-12 flex items-end justify-between border-b border-white/10 py-6 last:border-b-0 sm:col-span-4 sm:block sm:border-r sm:border-b-0 sm:px-6 sm:first:pl-0 sm:last:border-r-0 sm:last:pr-0"
                     >
                       <span className="text-[10px] tabular-nums tracking-[0.18em] text-white/30">
@@ -401,7 +382,7 @@ export function InclusionGrid({
                         {tier.name}
                       </p>
                       <p className="mt-2 text-[10px] uppercase tracking-[0.16em] text-white/40">
-                        {tier.note}
+                        {tier.positioning}
                       </p>
                     </div>
                   ),

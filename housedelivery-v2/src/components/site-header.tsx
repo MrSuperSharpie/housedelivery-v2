@@ -9,6 +9,7 @@ import { cn } from "@/lib/cn";
 
 const links = [
   { label: "Homes", href: "/#models" },
+  { label: "Inclusions", href: "/inclusions" },
   { label: "How it works", href: "/#timeline" },
   { label: "First Nations", href: "/first-nations-inspired" },
   { label: "CMHC", href: "/#cmhc" },
@@ -55,12 +56,12 @@ export function SiteHeader() {
           >
             hello@housedelivery.ca
           </a>
-          <a
-            href="#reserve"
+          <Link
+            href="/#reserve"
             className="border border-white bg-white px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#0b0c10] transition-colors hover:bg-transparent hover:text-white"
           >
             Begin project review
-          </a>
+          </Link>
         </div>
 
         <button
@@ -97,13 +98,13 @@ export function SiteHeader() {
               {link.label}
             </Link>
           ))}
-          <a
-            href="#reserve"
+          <Link
+            href="/#reserve"
             className="mt-5 block bg-white px-5 py-4 text-center text-xs font-semibold uppercase tracking-[0.14em] text-[#0b0c10]"
             onClick={() => setIsOpen(false)}
           >
             Begin project review
-          </a>
+          </Link>
         </div>
       </nav>
     </header>
