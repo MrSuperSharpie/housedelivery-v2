@@ -23,6 +23,10 @@ html {
   background: var(--background);
 }
 
+html:has([data-inclusions-library]) {
+  scroll-behavior: auto;
+}
+
 body {
   min-width: 320px;
   background: var(--background);

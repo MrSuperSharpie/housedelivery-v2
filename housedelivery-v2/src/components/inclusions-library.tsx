@@ -5,8 +5,9 @@ import Link from "next/link";
 import { HeadlineReveal } from "@/components/headline-reveal";
 import {
   getInclusionPackage,
+  inclusionCategories,
   inclusionPackages,
-  inclusionProducts,
+  type InclusionCategory,
   type InclusionProduct,
 } from "@/data/inclusions";
 
@@ -34,7 +35,9 @@ function ProductImage({ product }: { product: InclusionProduct }) {
         fill
         quality={90}
         sizes="(max-width: 767px) 100vw, (max-width: 1279px) 50vw, 33vw"
-        className="object-cover"
+        className={
+          product.image.fit === "contain" ? "object-contain" : "object-cover"
+        }
       />
     </div>
   );
@@ -152,9 +155,186 @@ function ProductCard({ product }: { product: InclusionProduct }) {
   );
 }
 
+function CategoryHeroImage({ category }: { category: InclusionCategory }) {
+  if (!category.heroImage) {
+    return (
+      <div className="flex size-full min-h-[14rem] items-end bg-[#121419] p-6 sm:min-h-[24rem] sm:p-8 lg:min-h-[34rem] lg:p-10">
+        <div>
+          <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/60">
+            Controlled category imagery
+          </p>
+          <p className="mt-3 text-xl font-medium tracking-[-0.03em] text-white/55 sm:text-2xl">
+            Category imagery pending
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative size-full min-h-[14rem] overflow-hidden bg-[#121419] sm:min-h-[24rem] lg:min-h-[34rem]">
+      <Image
+        src={category.heroImage.src}
+        alt={category.heroImage.alt}
+        fill
+        quality={90}
+        sizes="(max-width: 1023px) 100vw, 58vw"
+        className={
+          category.heroImage.fit === "contain"
+            ? "object-contain"
+            : "object-cover"
+        }
+      />
+    </div>
+  );
+}
+
+function BrowseInclusions() {
+  return (
+    <section
+      aria-labelledby="browse-inclusions-heading"
+      className="border-t border-white/10 px-5 py-24 sm:px-8 lg:px-12 lg:py-32"
+    >
+      <div className="mx-auto max-w-[1504px]">
+        <div className="grid gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:items-end lg:gap-20">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/60">
+              Catalogue index
+            </p>
+            <h2
+              id="browse-inclusions-heading"
+              className="mt-7 max-w-3xl text-[clamp(3.25rem,7vw,7.5rem)] font-medium leading-[0.86] tracking-[-0.07em]"
+            >
+              Browse
+              <br />
+              <span className="text-white/38">Inclusions</span>
+            </h2>
+          </div>
+          <p className="max-w-2xl text-base leading-7 text-white/52 lg:justify-self-end lg:text-lg lg:leading-8">
+            Move directly to a category. Controlled products will be introduced
+            as selections, imagery and technical information are approved.
+          </p>
+        </div>
+
+        <nav aria-label="Browse inclusion categories" className="mt-14 lg:mt-20">
+          <ol className="grid border-l border-t border-white/12 sm:grid-cols-2 lg:grid-cols-3">
+            {inclusionCategories.map((category) => (
+              <li key={category.id}>
+                <a
+                  href={`#inclusion-${category.id}`}
+                  className="group flex min-h-24 items-center justify-between gap-6 border-b border-r border-white/12 px-5 py-5 transition-colors hover:bg-white/[0.035] focus-visible:bg-white/[0.035] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-white sm:min-h-28 sm:px-6"
+                >
+                  <span className="text-sm font-medium tracking-[-0.02em] text-white/76 transition-colors group-hover:text-white group-focus-visible:text-white">
+                    {category.shortName}
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className="font-mono text-[9px] tracking-[0.18em] text-white/32"
+                  >
+                    {category.number}
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ol>
+        </nav>
+      </div>
+    </section>
+  );
+}
+
+function CategorySection({
+  category,
+  index,
+}: {
+  category: InclusionCategory;
+  index: number;
+}) {
+  const headingId = `inclusion-${category.id}-heading`;
+  const hasProducts = category.products.length > 0;
+
+  return (
+    <section
+      id={`inclusion-${category.id}`}
+      aria-labelledby={headingId}
+      className={`scroll-mt-24 border-t border-white/10 px-5 py-16 sm:px-8 sm:py-24 lg:px-12 lg:py-36 ${
+        index % 2 === 1 ? "bg-[#0d0f13]" : "bg-[#0b0c10]"
+      }`}
+    >
+      <div className="mx-auto max-w-[1504px]">
+        <div className="grid overflow-hidden border border-white/12 lg:grid-cols-12">
+          <div className="border-b border-white/12 lg:col-span-7 lg:border-b-0 lg:border-r">
+            <CategoryHeroImage category={category} />
+          </div>
+
+          <div className="flex min-h-[22rem] flex-col p-6 sm:min-h-[25rem] sm:p-9 lg:col-span-5 lg:min-h-[34rem] lg:p-10 xl:p-12">
+            <div className="flex items-start justify-between gap-6">
+              <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/60">
+                {category.eyebrow}
+              </p>
+              <span
+                aria-hidden="true"
+                className="font-mono text-[9px] tracking-[0.18em] text-white/30"
+              >
+                {category.number} / {String(inclusionCategories.length).padStart(2, "0")}
+              </span>
+            </div>
+
+            <div className="mt-auto pt-20">
+              <h2
+                id={headingId}
+                className="max-w-3xl text-[clamp(2.75rem,5.5vw,5.8rem)] font-medium leading-[0.88] tracking-[-0.065em] text-white/92"
+              >
+                {category.name}
+              </h2>
+              <p className="mt-7 max-w-xl text-base leading-7 text-white/56 lg:text-lg lg:leading-8">
+                {category.description}
+              </p>
+              {category.packageContext ? (
+                <p className="mt-7 border-t border-white/10 pt-5 text-xs leading-6 text-white/50">
+                  {category.packageContext}
+                </p>
+              ) : null}
+            </div>
+          </div>
+        </div>
+
+        {hasProducts ? (
+          <div className="mt-12 grid gap-6 md:grid-cols-2 xl:mt-16 xl:grid-cols-3 xl:gap-8">
+            {category.products.map((product) => (
+              <ProductCard key={product.sku} product={product} />
+            ))}
+          </div>
+        ) : (
+          <div className="mt-6 grid min-h-32 border border-white/12 bg-[#0e1014] sm:mt-8 sm:grid-cols-[0.7fr_1.3fr] lg:mt-10">
+            <div className="flex items-end border-b border-white/10 p-6 sm:border-b-0 sm:border-r sm:p-8">
+              <div>
+                <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/60">
+                  Controlled selection area
+                </p>
+                <p className="mt-3 text-xl font-medium tracking-[-0.03em] text-white/72">
+                  Selections in development
+                </p>
+              </div>
+            </div>
+            <p className="max-w-2xl self-center p-6 text-sm leading-7 text-white/52 sm:p-8">
+              No products are displayed until House Delivery names, package
+              assignments, descriptions and supporting information are ready
+              for customer review.
+            </p>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
 export function InclusionsLibrary() {
   return (
-    <main className="overflow-hidden bg-[#0b0c10] text-white">
+    <main
+      data-inclusions-library
+      className="overflow-hidden bg-[#0b0c10] text-white"
+    >
       <section className="border-b border-white/10 px-5 pb-24 pt-36 sm:px-8 sm:pb-32 sm:pt-44 lg:px-12 lg:pb-40 lg:pt-52">
         <div className="mx-auto max-w-[1504px]">
           <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/60">
@@ -170,7 +350,7 @@ export function InclusionsLibrary() {
 
           <div className="mt-16 grid gap-8 border-t border-white/16 pt-7 lg:grid-cols-[0.72fr_1.28fr] lg:gap-20">
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/60">
-              Phase 01 / Flooring
+              Catalogue framework / 15 categories
             </p>
             <p className="max-w-3xl text-lg leading-8 text-white/62 lg:text-xl lg:leading-9">
               A controlled collection of finishes and systems organized into
@@ -276,37 +456,11 @@ export function InclusionsLibrary() {
         </div>
       </section>
 
-      <section
-        aria-labelledby="flooring-heading"
-        className="border-t border-white/10 px-5 py-24 sm:px-8 lg:px-12 lg:py-36"
-      >
-        <div className="mx-auto max-w-[1504px]">
-          <div className="grid gap-12 lg:grid-cols-[0.72fr_1.28fr] lg:items-end lg:gap-20">
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/60">
-                Inclusions pilot / 01
-              </p>
-              <h2
-                id="flooring-heading"
-                className="mt-7 text-[clamp(3.8rem,8vw,8rem)] font-medium leading-[0.84] tracking-[-0.072em]"
-              >
-                Flooring
-              </h2>
-            </div>
-            <p className="max-w-2xl text-base leading-7 text-white/52 lg:justify-self-end lg:text-lg lg:leading-8">
-              Three coordinated preliminary selections demonstrate how the
-              package structure will work as the wider inclusions library is
-              developed.
-            </p>
-          </div>
+      <BrowseInclusions />
 
-          <div className="mt-16 grid gap-6 md:grid-cols-2 xl:grid-cols-3 xl:gap-8">
-            {inclusionProducts.map((product) => (
-              <ProductCard key={product.sku} product={product} />
-            ))}
-          </div>
-        </div>
-      </section>
+      {inclusionCategories.map((category, index) => (
+        <CategorySection key={category.id} category={category} index={index} />
+      ))}
 
       <section className="border-t border-white/10 px-5 py-24 sm:px-8 lg:px-12 lg:py-36">
         <div className="mx-auto max-w-[1504px]">
