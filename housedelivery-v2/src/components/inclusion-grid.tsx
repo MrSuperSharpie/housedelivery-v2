@@ -366,7 +366,7 @@ export function InclusionGrid({
                         </p>
                         <p
                           id={`finish-tier-message-${tier.id}`}
-                          className="mt-3 text-[10px] leading-4 tracking-[0.04em] text-white/45 opacity-100 transition-opacity duration-500 ease-out motion-reduce:transition-none [@media(hover:hover)_and_(pointer:fine)]:opacity-0 [@media(hover:hover)_and_(pointer:fine)]:group-hover:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:group-focus-visible:opacity-100"
+                          className="mt-3 text-[10px] leading-4 tracking-[0.04em] text-white/45 opacity-100 transition-opacity duration-500 ease-out motion-reduce:transition-none [@media(min-width:640px)_and_(hover:hover)_and_(pointer:fine)]:opacity-0 [@media(min-width:640px)_and_(hover:hover)_and_(pointer:fine)]:group-hover:opacity-100 [@media(min-width:640px)_and_(hover:hover)_and_(pointer:fine)]:group-focus-visible:opacity-100"
                         >
                           {tier.description}
                         </p>
