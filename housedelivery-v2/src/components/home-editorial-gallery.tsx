@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import Image from "next/image";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
+import { ContextualInclusionsLink } from "@/components/inclusions-journey-links";
 import type { HomeModel } from "@/data/models";
 
 type GallerySource =
@@ -204,12 +205,15 @@ export function HomeEditorialGallery({
                           />
                         </motion.div>
                       </div>
-                      <figcaption className="mt-4 flex items-center justify-between border-t border-white/12 pt-3 text-[9px] uppercase tracking-[0.18em] text-white/36">
-                        <span>{image.label}</span>
-                        <span>
-                          {String(image.number).padStart(2, "0")} /{" "}
-                          {String(lifestyleImages.length).padStart(2, "0")}
-                        </span>
+                      <figcaption className="mt-4 border-t border-white/12 pt-3">
+                        <div className="flex items-center justify-between text-[9px] uppercase tracking-[0.18em] text-white/36">
+                          <span>{image.label}</span>
+                          <span>
+                            {String(image.number).padStart(2, "0")} /{" "}
+                            {String(lifestyleImages.length).padStart(2, "0")}
+                          </span>
+                        </div>
+                        <ContextualInclusionsLink sourceLabel={image.label} />
                       </figcaption>
                     </figure>
                   ))}

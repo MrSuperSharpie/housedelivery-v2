@@ -8,6 +8,7 @@ import { CarriageEditorialGallery } from "@/components/carriage-editorial-galler
 import { CarriageHomeDetailHero } from "@/components/carriage-home-detail-hero";
 import { HeadlineReveal } from "@/components/headline-reveal";
 import { HomeFloorPlanViewer } from "@/components/home-floor-plan-viewer";
+import { ExploreAllInclusionsLink } from "@/components/inclusions-journey-links";
 import { SiteHeader } from "@/components/site-header";
 import {
   carriageHomes,
@@ -220,9 +221,10 @@ export default async function CarriageHomeDetailPage({
                   local requirements, site adaptation, and a realistic delivery
                   sequence for the {model.name}.
                 </p>
+                <ExploreAllInclusionsLink className="mt-7" />
                 <Link
                   href="/#reserve"
-                  className="group mt-8 flex items-center justify-between bg-white px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.17em] text-[#0b0c10]"
+                  className="group mt-5 flex items-center justify-between bg-white px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.17em] text-[#0b0c10]"
                 >
                   Start your project review
                   <ArrowRight

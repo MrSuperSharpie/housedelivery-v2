@@ -3,6 +3,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import Image from "next/image";
 
+import { ContextualInclusionsLink } from "@/components/inclusions-journey-links";
 import type { CarriageHome } from "@/data/carriage-homes";
 
 type CarriageEditorialGalleryProps = {
@@ -119,6 +120,7 @@ export function CarriageEditorialGallery({
                   <p className="mt-5 text-xl font-medium leading-snug tracking-[-0.035em] text-white/72 sm:text-2xl">
                     {theme}
                   </p>
+                  <ContextualInclusionsLink sourceLabel={image.label} />
                 </motion.div>
               </article>
             );

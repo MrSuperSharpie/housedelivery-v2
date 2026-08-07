@@ -229,7 +229,7 @@ function BrowseInclusions() {
             {inclusionCategories.map((category) => (
               <li key={category.id}>
                 <a
-                  href={`#inclusion-${category.id}`}
+                  href={`#${category.id}`}
                   className="group flex min-h-24 items-center justify-between gap-6 border-b border-r border-white/12 px-5 py-5 transition-colors hover:bg-white/[0.035] focus-visible:bg-white/[0.035] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-white sm:min-h-28 sm:px-6"
                 >
                   <span className="text-sm font-medium tracking-[-0.02em] text-white/76 transition-colors group-hover:text-white group-focus-visible:text-white">
@@ -263,12 +263,17 @@ function CategorySection({
 
   return (
     <section
-      id={`inclusion-${category.id}`}
+      id={category.id}
       aria-labelledby={headingId}
-      className={`scroll-mt-24 border-t border-white/10 px-5 py-16 sm:px-8 sm:py-24 lg:px-12 lg:py-36 ${
+      className={`relative scroll-mt-24 border-t border-white/10 px-5 py-16 sm:px-8 sm:py-24 lg:px-12 lg:py-36 ${
         index % 2 === 1 ? "bg-[#0d0f13]" : "bg-[#0b0c10]"
       }`}
     >
+      <span
+        id={`inclusion-${category.id}`}
+        aria-hidden="true"
+        className="pointer-events-none absolute left-0 top-0 scroll-mt-24"
+      />
       <div className="mx-auto max-w-[1504px]">
         <div className="grid overflow-hidden border border-white/12 lg:grid-cols-12">
           <div className="border-b border-white/12 lg:col-span-7 lg:border-b-0 lg:border-r">
