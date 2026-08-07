@@ -11,6 +11,9 @@ import {
   type InclusionProduct,
 } from "@/data/inclusions";
 
+const curationMessage =
+  "We’re curating the House Delivery inclusion collection. Essential, Premium and Signature selections will be expanded as products, specifications and technical information are confirmed.";
+
 function ProductImage({ product }: { product: InclusionProduct }) {
   if (!product.image) {
     return (
@@ -156,35 +159,40 @@ function ProductCard({ product }: { product: InclusionProduct }) {
 }
 
 function CategoryHeroImage({ category }: { category: InclusionCategory }) {
-  if (!category.heroImage) {
-    return (
-      <div className="flex size-full min-h-[14rem] items-end bg-[#121419] p-6 sm:min-h-[24rem] sm:p-8 lg:min-h-[34rem] lg:p-10">
-        <div>
-          <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/60">
-            Controlled category imagery
-          </p>
-          <p className="mt-3 text-xl font-medium tracking-[-0.03em] text-white/55 sm:text-2xl">
-            Category imagery pending
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="relative size-full min-h-[14rem] overflow-hidden bg-[#121419] sm:min-h-[24rem] lg:min-h-[34rem]">
-      <Image
-        src={category.heroImage.src}
-        alt={category.heroImage.alt}
-        fill
-        quality={90}
-        sizes="(max-width: 1023px) 100vw, 58vw"
-        className={
-          category.heroImage.fit === "contain"
-            ? "object-contain"
-            : "object-cover"
-        }
-      />
+    <div className="flex size-full flex-col bg-[#121419]">
+      <div className="relative aspect-[3/2] w-full overflow-hidden">
+        {category.heroImage ? (
+          <Image
+            src={category.heroImage.src}
+            alt={category.heroImage.alt}
+            fill
+            quality={90}
+            sizes="(max-width: 1023px) 100vw, 58vw"
+            className="object-cover"
+          />
+        ) : (
+          <div className="flex size-full items-end p-6 sm:p-8 lg:p-10">
+            <div>
+              <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/60">
+                Controlled category imagery
+              </p>
+              <p className="mt-3 text-xl font-medium tracking-[-0.03em] text-white/55 sm:text-2xl">
+                Category imagery pending
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="border-t border-white/12 bg-[#0e1014] px-6 py-5 sm:px-8 sm:py-6 lg:px-10">
+        <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/60">
+          CURATING THE COLLECTION
+        </p>
+        <p className="mt-3 max-w-2xl text-xs leading-5 text-white/52 sm:text-sm sm:leading-6">
+          {curationMessage}
+        </p>
+      </div>
     </div>
   );
 }

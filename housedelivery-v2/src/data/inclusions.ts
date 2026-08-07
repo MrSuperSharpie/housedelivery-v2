@@ -183,6 +183,10 @@ export const inclusionCategories: readonly InclusionCategory[] = [
       "Three coordinated preliminary selections demonstrate how the package structure will work as the wider inclusions library is developed.",
     packageContext:
       "Essential, Premium and Signature selections are represented in this category.",
+    heroImage: {
+      src: "/images/inclusions/flooring/hero.webp",
+      alt: "Dark herringbone flooring in a warm contemporary interior.",
+    },
     products: inclusionProducts,
   },
   {
@@ -194,6 +198,10 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     description:
       "Coordinated cabinetry systems designed to support repeatable layouts, durable finishes and controlled upgrade pathways across House Delivery projects.",
     packageContext: selectionsPending,
+    heroImage: {
+      src: "/images/inclusions/kitchen-cabinetry/hero.webp",
+      alt: "Wood cabinetry in a bright kitchen with a central island.",
+    },
     products: [],
   },
   {
@@ -205,6 +213,10 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     description:
       "Wardrobe systems organized to support practical storage planning and a consistent interior finish language across House Delivery homes.",
     packageContext: selectionsPending,
+    heroImage: {
+      src: "/images/inclusions/wardrobes/hero.webp",
+      alt: "Open fitted wardrobe with shelves, drawers and hanging rails.",
+    },
     products: [],
   },
   {
@@ -216,6 +228,10 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     description:
       "A coordinated range of interior door styles intended to align with flooring, cabinetry and the overall House Delivery finish language.",
     packageContext: selectionsPending,
+    heroImage: {
+      src: "/images/inclusions/interior-doors/hero.webp",
+      alt: "Light wood interior door with black hardware beside a panelled wall.",
+    },
     products: [],
   },
   {
@@ -227,6 +243,10 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     description:
       "Exterior entry door pathways organized around architectural coordination, project character and project-specific technical confirmation.",
     packageContext: selectionsPending,
+    heroImage: {
+      src: "/images/inclusions/exterior-doors/hero.webp",
+      alt: "Black glazed entry door set into a light masonry exterior.",
+    },
     products: [],
   },
   {
@@ -238,6 +258,10 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     description:
       "Window and exterior opening systems selected for design coordination, daylight, performance review and project-specific technical confirmation.",
     packageContext: selectionsPending,
+    heroImage: {
+      src: "/images/inclusions/windows-patio-doors/hero.webp",
+      alt: "Open glazed patio doors connecting a home to a timber deck.",
+    },
     products: [],
   },
   {
@@ -249,6 +273,10 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     description:
       "Coordinated bathroom components and finish packages designed to simplify product selection and project procurement.",
     packageContext: selectionsPending,
+    heroImage: {
+      src: "/images/inclusions/bathroom-systems/hero.webp",
+      alt: "Bright bathroom with a glass shower, tub and double vanity.",
+    },
     products: [],
   },
   {
@@ -260,6 +288,10 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     description:
       "Vanity selections coordinated with bathroom layouts, storage priorities and the wider House Delivery finish language.",
     packageContext: selectionsPending,
+    heroImage: {
+      src: "/images/inclusions/bathroom-vanities/hero.webp",
+      alt: "Double bathroom vanity with arched mirrors and dark fixtures.",
+    },
     products: [],
   },
   {
@@ -271,6 +303,10 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     description:
       "A controlled fixture selection pathway intended to coordinate bathrooms, kitchens and project-specific technical review.",
     packageContext: selectionsPending,
+    heroImage: {
+      src: "/images/inclusions/plumbing-fixtures/hero.webp",
+      alt: "Close view of a sculptural dark faucet and basin.",
+    },
     products: [],
   },
   {
@@ -282,6 +318,10 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     description:
       "Curated surface directions intended to coordinate wet areas, feature zones and durable finish transitions throughout the home.",
     packageContext: selectionsPending,
+    heroImage: {
+      src: "/images/inclusions/tile-surfaces/hero.webp",
+      alt: "Stone-look wall surfaces surrounding a dark shower system.",
+    },
     products: [],
   },
   {
@@ -293,6 +333,10 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     description:
       "Countertop selections organized to coordinate kitchen and vanity applications through a controlled finish pathway.",
     packageContext: selectionsPending,
+    heroImage: {
+      src: "/images/inclusions/countertops/hero.webp",
+      alt: "Light stone kitchen countertops with a matching full-height backsplash.",
+    },
     products: [],
   },
   {
@@ -304,6 +348,10 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     description:
       "Interior wall-panel directions developed for selected feature areas and coordinated with the broader material palette.",
     packageContext: selectionsPending,
+    heroImage: {
+      src: "/images/inclusions/wall-panels/hero.webp",
+      alt: "Warm wood wall panels with integrated vertical lighting.",
+    },
     products: [],
   },
   {
@@ -315,6 +363,10 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     description:
       "Coordinated lighting pathways intended to support everyday use, architectural emphasis and a consistent interior atmosphere.",
     packageContext: selectionsPending,
+    heroImage: {
+      src: "/images/inclusions/lighting/hero.webp",
+      alt: "Woven pendant lights in a bright contemporary living room.",
+    },
     products: [],
   },
   {
@@ -326,6 +378,10 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     description:
       "Appliance packages organized for coordinated kitchen planning, project review and a clear selection process.",
     packageContext: selectionsPending,
+    heroImage: {
+      src: "/images/inclusions/appliances/hero.webp",
+      alt: "Built-in stainless steel cooking appliances within wood cabinetry.",
+    },
     products: [],
   },
   {
@@ -337,6 +393,10 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     description:
       "Window-covering pathways intended to coordinate privacy, daylight control and the interior finish direction of each project.",
     packageContext: selectionsPending,
+    heroImage: {
+      src: "/images/inclusions/window-coverings/hero.webp",
+      alt: "Light roller blind partially lowered over a dark-framed window.",
+    },
     products: [],
   },
 ];
