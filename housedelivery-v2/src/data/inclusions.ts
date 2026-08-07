@@ -230,7 +230,7 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     packageContext: selectionsPending,
     heroImage: {
       src: "/images/inclusions/interior-doors/hero.webp",
-      alt: "Light wood interior door with black hardware beside a panelled wall.",
+      alt: "Contemporary interior with black-framed glazed doors, clerestory windows and an open-riser staircase.",
     },
     products: [],
   },
