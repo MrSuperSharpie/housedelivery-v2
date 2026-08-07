@@ -185,7 +185,7 @@ export const inclusionCategories: readonly InclusionCategory[] = [
       "Essential, Premium and Signature selections are represented in this category.",
     heroImage: {
       src: "/images/inclusions/flooring/hero.webp",
-      alt: "Dark herringbone flooring in a warm contemporary interior.",
+      alt: "Light wide-plank wood flooring in a bright contemporary interior with an open-riser staircase.",
     },
     products: inclusionProducts,
   },
@@ -245,7 +245,7 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     packageContext: selectionsPending,
     heroImage: {
       src: "/images/inclusions/exterior-doors/hero.webp",
-      alt: "Black glazed entry door set into a light masonry exterior.",
+      alt: "Open contemporary pivot entry door framed by glazing and light brickwork.",
     },
     products: [],
   },
@@ -290,7 +290,7 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     packageContext: selectionsPending,
     heroImage: {
       src: "/images/inclusions/bathroom-vanities/hero.webp",
-      alt: "Double bathroom vanity with arched mirrors and dark fixtures.",
+      alt: "Wood bathroom vanity with a stone vessel sink, mirrored cabinet and dark wall-mounted faucet.",
     },
     products: [],
   },
@@ -350,7 +350,7 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     packageContext: selectionsPending,
     heroImage: {
       src: "/images/inclusions/wall-panels/hero.webp",
-      alt: "Warm wood wall panels with integrated vertical lighting.",
+      alt: "Dark geometric wood wall panels behind a light sofa and built-in shelving.",
     },
     products: [],
   },
