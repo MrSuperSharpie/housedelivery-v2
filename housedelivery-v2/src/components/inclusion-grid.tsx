@@ -292,8 +292,10 @@ export function InclusionGrid({
             }
           >
             <div className="col-span-12 lg:col-span-3">
-              <p className="eyebrow">Finishes / Inclusions Library</p>
-              <p className="mt-5 text-[10px] uppercase tracking-[0.2em] text-white/30">
+              <p className="eyebrow !text-white/45">
+                Finishes / Inclusions Library
+              </p>
+              <p className="mt-5 text-[10px] uppercase tracking-[0.2em] text-white/45">
                 Three considered expressions
               </p>
             </div>
@@ -359,12 +361,12 @@ export function InclusionGrid({
                         <p className="text-2xl font-medium tracking-[-0.035em] text-white/90">
                           {tier.name}
                         </p>
-                        <p className="mt-2 text-[10px] uppercase tracking-[0.16em] text-white/40">
+                        <p className="mt-2 text-[10px] uppercase tracking-[0.16em] text-white/45">
                           {tier.positioning}
                         </p>
                         <p
                           id={`finish-tier-message-${tier.id}`}
-                          className="mt-3 translate-y-1 text-[10px] leading-4 tracking-[0.04em] text-white/45 opacity-0 transition-[opacity,transform] duration-500 ease-out motion-reduce:translate-y-0 motion-reduce:transition-none group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100"
+                          className="mt-3 text-[10px] leading-4 tracking-[0.04em] text-white/45 opacity-100 transition-opacity duration-500 ease-out motion-reduce:transition-none [@media(hover:hover)_and_(pointer:fine)]:opacity-0 [@media(hover:hover)_and_(pointer:fine)]:group-hover:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:group-focus-visible:opacity-100"
                         >
                           {tier.description}
                         </p>
@@ -381,7 +383,7 @@ export function InclusionGrid({
                       <p className="mt-7 text-2xl font-medium tracking-[-0.035em] text-white/90">
                         {tier.name}
                       </p>
-                      <p className="mt-2 text-[10px] uppercase tracking-[0.16em] text-white/40">
+                      <p className="mt-2 text-[10px] uppercase tracking-[0.16em] text-white/45">
                         {tier.positioning}
                       </p>
                     </div>

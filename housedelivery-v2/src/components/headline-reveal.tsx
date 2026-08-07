@@ -27,13 +27,13 @@ export function HeadlineReveal({
   const initial =
     variant === "sweep"
       ? {
-          opacity: 0,
-          x: -20,
-          clipPath: "inset(0 100% 0 0)",
+          opacity: 0.94,
+          x: 0,
+          clipPath: "inset(0 0% 0 0)",
         }
       : {
-          opacity: 0,
-          y: 40,
+          opacity: 0.94,
+          y: 0,
         };
   const visible =
     variant === "sweep"
