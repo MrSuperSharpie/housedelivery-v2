@@ -169,6 +169,102 @@ export const inclusionProducts: readonly InclusionProduct[] = [
   },
 ];
 
+const kitchenCabinetryProducts: readonly InclusionProduct[] = [
+  {
+    sku: "HD-KIT-001",
+    name: "Modern Modular Cabinetry",
+    packageTier: "essential",
+    category: "Kitchen Cabinetry",
+    customerDescription:
+      "A clean, practical cabinetry system designed around repeatable layouts, efficient storage and a restrained contemporary finish. Modular configurations support both compact and larger kitchens while keeping the overall interior language simple and coordinated.",
+    specifications: [
+      "Modular cabinetry system",
+      "Slab and simplified door-front options",
+      "Adjustable interior storage",
+      "Neutral and woodgrain finish options",
+      "Integrated storage accessories available",
+      "Final hardware and material specification subject to confirmation",
+    ],
+    selectionStatus: preliminarySelection,
+    sampleRequired: true,
+    technicalReviewRequired: true,
+    projectSpecificApprovalRequired: true,
+    availability: projectAvailability,
+    gallery: [
+      {
+        src: "/images/inclusions/kitchen-cabinetry/products/hd-kit-001-01.webp",
+        alt: "White slab-front cabinetry with stone-clad island panels and a dining extension.",
+      },
+    ],
+  },
+  {
+    sku: "HD-KIT-003",
+    name: "Refined Integrated Cabinetry",
+    packageTier: "premium",
+    category: "Kitchen Cabinetry",
+    customerDescription:
+      "A more refined cabinetry package combining warm material tones, cleaner detailing and expanded storage options. Designed to coordinate naturally with upgraded countertops, appliances and lighting while maintaining a disciplined, architectural appearance.",
+    specifications: [
+      "Modular cabinetry system",
+      "Upgraded finish combinations",
+      "Integrated storage configurations",
+      "Slab and contemporary front styles",
+      "Interior organizer options",
+      "Final hardware and material specification subject to confirmation",
+    ],
+    selectionStatus: preliminarySelection,
+    sampleRequired: true,
+    technicalReviewRequired: true,
+    projectSpecificApprovalRequired: true,
+    availability: projectAvailability,
+    gallery: [
+      {
+        src: "/images/inclusions/kitchen-cabinetry/products/hd-kit-003-01.webp",
+        alt: "Dark slab-front cabinetry with woodgrain tall units, stone backsplash and a central island.",
+      },
+      {
+        src: "/images/inclusions/kitchen-cabinetry/products/hd-kit-003-02.webp",
+        alt: "Light gray cabinetry with illuminated display shelves, stone worktops and a window-side sink.",
+      },
+    ],
+  },
+  {
+    sku: "HD-KIT-005",
+    name: "Architectural Kitchen Cabinetry",
+    packageTier: "signature",
+    category: "Kitchen Cabinetry",
+    customerDescription:
+      "A higher-touch cabinetry expression with stronger material contrast, integrated detailing and a more bespoke visual character. Intended for kitchens where cabinetry becomes part of the architectural composition rather than simply a storage system.",
+    specifications: [
+      "Architectural cabinetry composition",
+      "Layered material and finish options",
+      "Integrated storage solutions",
+      "Contemporary door-front configurations",
+      "Coordinated island and full-height cabinetry options",
+      "Final materials, hardware and configuration subject to project review",
+    ],
+    selectionStatus: preliminarySelection,
+    sampleRequired: true,
+    technicalReviewRequired: true,
+    projectSpecificApprovalRequired: true,
+    availability: projectAvailability,
+    gallery: [
+      {
+        src: "/images/inclusions/kitchen-cabinetry/products/hd-kit-005-01.webp",
+        alt: "Layered gray and woodgrain cabinetry with illuminated display cabinets and integrated appliances.",
+      },
+      {
+        src: "/images/inclusions/kitchen-cabinetry/products/hd-kit-005-02.webp",
+        alt: "Woodgrain and white cabinetry with illuminated glass storage and two contrasting islands.",
+      },
+      {
+        src: "/images/inclusions/kitchen-cabinetry/products/hd-kit-005-03.webp",
+        alt: "Dark full-height cabinetry with a dramatic stone backsplash and coordinated dining island.",
+      },
+    ],
+  },
+];
+
 const selectionsPending =
   "Controlled product selections will be introduced as category information is approved.";
 
@@ -197,12 +293,13 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     eyebrow: "Kitchen systems",
     description:
       "Coordinated cabinetry systems designed to support repeatable layouts, durable finishes and controlled upgrade pathways across House Delivery projects.",
-    packageContext: selectionsPending,
+    packageContext:
+      "Essential, Premium and Signature selections are represented in this category.",
     heroImage: {
       src: "/images/inclusions/kitchen-cabinetry/hero.webp",
       alt: "Wood cabinetry in a bright kitchen with a central island.",
     },
-    products: [],
+    products: kitchenCabinetryProducts,
   },
   {
     id: "wardrobes",
