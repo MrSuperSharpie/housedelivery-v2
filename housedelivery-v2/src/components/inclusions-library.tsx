@@ -384,7 +384,7 @@ export function InclusionsLibrary() {
             <div className="relative aspect-[4/3] overflow-hidden border border-white/12 bg-[#121419] sm:aspect-[3/2] lg:aspect-[16/9]">
               <Image
                 src="/images/inclusions/inclusions-hero.webp"
-                alt="Warm contemporary living room with timber ceilings, framed mountain views and coordinated interior finishes."
+                alt="Contemporary living room with dark built-in cabinetry, central black-and-white artwork and curved neutral seating."
                 fill
                 quality={90}
                 loading="eager"
