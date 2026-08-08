@@ -348,7 +348,7 @@ export function InclusionsLibrary() {
       data-inclusions-library
       className="overflow-hidden bg-[#0b0c10] text-white"
     >
-      <section className="border-b border-white/10 px-5 pb-24 pt-36 sm:px-8 sm:pb-32 sm:pt-44 lg:px-12 lg:pb-40 lg:pt-52">
+      <section className="border-b border-white/10 px-5 pb-16 pt-36 sm:px-8 sm:pb-20 sm:pt-44 lg:px-12 lg:pb-24 lg:pt-52">
         <div className="mx-auto max-w-[1504px]">
           <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/60">
             House Delivery Kit of Parts
@@ -365,14 +365,38 @@ export function InclusionsLibrary() {
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/60">
               Catalogue framework / 15 categories
             </p>
-            <p className="max-w-3xl text-lg leading-8 text-white/62 lg:text-xl lg:leading-9">
-              A controlled collection of finishes and systems organized into
-              Essential, Premium and Signature packages. House Delivery
-              coordinates selected products into repeatable project packages
-              while retaining the flexibility required for site, design and
-              project conditions.
-            </p>
+            <div className="max-w-3xl">
+              <p className="text-xl leading-8 tracking-[-0.025em] text-white/76 sm:text-2xl sm:leading-9">
+                Curated finishes. Coordinated systems. One House Delivery
+                approach.
+              </p>
+              <p className="mt-5 text-sm leading-7 text-white/54 sm:text-base sm:leading-8">
+                A controlled collection of finishes and systems organized into
+                Essential, Premium and Signature packages. House Delivery
+                coordinates selected products into repeatable project packages
+                while retaining the flexibility required for site, design and
+                project conditions.
+              </p>
+            </div>
           </div>
+
+          <figure className="mt-14 sm:mt-20 lg:mt-24">
+            <div className="relative aspect-[4/3] overflow-hidden border border-white/12 bg-[#121419] sm:aspect-[3/2] lg:aspect-[16/9]">
+              <Image
+                src="/images/inclusions/inclusions-hero.webp"
+                alt="Warm contemporary living room with timber ceilings, framed mountain views and coordinated interior finishes."
+                fill
+                quality={90}
+                loading="eager"
+                sizes="(max-width: 639px) calc(100vw - 40px), (max-width: 1023px) calc(100vw - 64px), (max-width: 1599px) calc(100vw - 96px), 1504px"
+                className="object-cover object-center"
+              />
+            </div>
+            <figcaption className="mt-4 max-w-2xl border-l border-white/20 pl-4 text-xs leading-5 text-white/48">
+              Illustrative design inspiration. Final selections vary by package
+              and project.
+            </figcaption>
+          </figure>
         </div>
       </section>
 
