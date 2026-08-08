@@ -112,60 +112,101 @@ const projectAvailability =
 export const inclusionProducts: readonly InclusionProduct[] = [
   {
     sku: "HD-FLR-001",
-    name: "Light Neutral Oak SPC",
+    name: "High-Density Laminate Flooring",
     packageTier: "essential",
     category: "Flooring",
     customerDescription:
-      "A restrained light-oak floor intended to brighten compact and open-plan homes while maintaining a warm, natural appearance.",
+      "A durable, versatile flooring option built around a 12 mm composite core and printed decorative surface. Offered in strip and parquet formats, it provides a clean, repeatable finish suited to everyday interior applications.",
     specifications: [
-      "SPC flooring",
-      "4.0 mm listed product thickness",
-      "1220 × 180 mm listed plank dimensions",
+      "Laminate flooring",
+      "12 mm listed thickness",
+      "Medium- or high-density fibreboard composite core",
+      "Strip and parquet formats",
+      "Printed decorative surface",
     ],
     selectionStatus: preliminarySelection,
     sampleRequired: true,
     technicalReviewRequired: true,
     projectSpecificApprovalRequired: true,
     availability: projectAvailability,
+    gallery: [
+      {
+        src: "/images/inclusions/flooring/products/hd-flr-001-01.webp",
+        alt: "Warm wood-look plank flooring in an open-plan living room and kitchen.",
+      },
+      {
+        src: "/images/inclusions/flooring/products/hd-flr-001-02.webp",
+        alt: "Pale wood-look plank flooring in a bright living room with a home workspace.",
+      },
+      {
+        src: "/images/inclusions/flooring/products/hd-flr-001-03.webp",
+        alt: "Natural wood-look plank flooring across a bedroom and adjoining sitting area.",
+      },
+    ],
   },
   {
     sku: "HD-FLR-003",
-    name: "Long-Plank Pale Oak Engineered Wood",
+    name: "Comfort-Focused WPC Flooring",
     packageTier: "premium",
     category: "Flooring",
     customerDescription:
-      "A long-plank engineered floor with calm grain and a pale natural character suited to contemporary West Coast interiors.",
+      "A softer-feel WPC flooring option combining a wood-plastic composite construction with a printed decorative surface. Strip and herringbone formats provide greater design flexibility while maintaining a warm, residential character.",
     specifications: [
-      "Engineered wood",
-      "Full birch core",
-      "AB-grade veneer",
-      "2420 × 192 × 14 mm listed dimensions",
+      "Wood-plastic composite flooring",
+      "10 / 12 mm listed thickness options",
+      "Strip and herringbone formats",
+      "Printed decorative surface",
+      "Intended for interior residential applications",
     ],
     selectionStatus: preliminarySelection,
     sampleRequired: true,
     technicalReviewRequired: true,
     projectSpecificApprovalRequired: true,
     availability: projectAvailability,
+    gallery: [
+      {
+        src: "/images/inclusions/flooring/products/hd-flr-003-01.webp",
+        alt: "Warm wood-look plank flooring in a light living room with leather armchairs.",
+      },
+      {
+        src: "/images/inclusions/flooring/products/hd-flr-003-02.webp",
+        alt: "Medium-tone wood-look plank flooring in a dark-walled living and dining room.",
+      },
+    ],
   },
   {
     sku: "HD-FLR-005",
-    name: "Warm Pale Herringbone Engineered Wood",
+    name: "Solid Wood Flooring",
     packageTier: "signature",
     category: "Flooring",
     customerDescription:
-      "A controlled feature flooring option intended for selected entries, living areas or other spaces where added pattern and material character are appropriate.",
+      "A natural solid-wood flooring option with an 18 mm listed thickness and a finish intended to emphasize the character of the material. Strip, herringbone and chevron formats allow the flooring to become a more deliberate architectural feature.",
     specifications: [
-      "Engineered wood",
-      "Full birch core",
-      "AB-grade veneer",
-      "600 × 125 × 14 mm listed dimensions",
-      "Herringbone format",
+      "Solid wood flooring",
+      "18 mm listed thickness",
+      "Strip, herringbone and chevron formats",
+      "Painted finish",
+      "Supplier-listed underfloor-heating compatibility; technical review required",
     ],
     selectionStatus: preliminarySelection,
     sampleRequired: true,
     technicalReviewRequired: true,
     projectSpecificApprovalRequired: true,
     availability: projectAvailability,
+    gallery: [
+      {
+        src: "/images/inclusions/flooring/products/hd-flr-005-01.webp",
+        alt: "Natural wood flooring beside a stone fireplace and wood coffee table.",
+      },
+      {
+        src: "/images/inclusions/flooring/products/hd-flr-005-02.webp",
+        alt: "Wide natural wood planks in a bright open kitchen and stair hall.",
+      },
+      {
+        src: "/images/inclusions/flooring/products/hd-flr-005-03.webp",
+        alt: "Rich wood plank flooring in a large white kitchen with a central island.",
+      },
+    ],
   },
 ];
 

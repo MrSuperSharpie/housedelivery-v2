@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
+import { ProductImageGallery } from "@/components/product-image-gallery";
 import {
   getInclusionPackage,
   inclusionCategories,
@@ -15,7 +16,9 @@ const curationMessage =
   "We’re curating the House Delivery inclusion collection. Essential, Premium and Signature selections will be expanded as products, specifications and technical information are confirmed.";
 
 function ProductImage({ product }: { product: InclusionProduct }) {
-  if (!product.image) {
+  const images = product.gallery ?? (product.image ? [product.image] : []);
+
+  if (images.length === 0) {
     return (
       <div className="flex aspect-[4/3] items-end border-b border-white/10 bg-[#121419] p-6 sm:p-8">
         <div>
@@ -31,18 +34,11 @@ function ProductImage({ product }: { product: InclusionProduct }) {
   }
 
   return (
-    <div className="relative aspect-[4/3] overflow-hidden border-b border-white/10 bg-[#121419]">
-      <Image
-        src={product.image.src}
-        alt={product.image.alt}
-        fill
-        quality={90}
-        sizes="(max-width: 767px) 100vw, (max-width: 1279px) 50vw, 33vw"
-        className={
-          product.image.fit === "contain" ? "object-contain" : "object-cover"
-        }
-      />
-    </div>
+    <ProductImageGallery
+      images={images}
+      productName={product.name}
+      productSku={product.sku}
+    />
   );
 }
 
