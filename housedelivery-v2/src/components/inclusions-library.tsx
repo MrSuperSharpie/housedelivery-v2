@@ -90,7 +90,7 @@ function ProductCard({ product }: { product: InclusionProduct }) {
 
         <div className="mt-10 border-t border-white/10 pt-6">
           <h4 className="text-[9px] font-semibold uppercase tracking-[0.19em] text-white/60">
-            Listed specification
+            {product.specificationsHeading ?? "Listed specification"}
           </h4>
           <ul className="mt-5 space-y-3">
             {product.specifications.map((specification) => (

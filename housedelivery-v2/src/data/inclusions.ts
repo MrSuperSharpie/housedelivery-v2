@@ -56,6 +56,7 @@ export type InclusionProduct = {
   packageTier: PackageTier;
   category: InclusionCategoryName;
   customerDescription: string;
+  specificationsHeading?: string;
   specifications: readonly string[];
   selectionStatus: SelectionStatus;
   sampleRequired: boolean;
@@ -112,17 +113,18 @@ const projectAvailability =
 export const inclusionProducts: readonly InclusionProduct[] = [
   {
     sku: "HD-FLR-001",
-    name: "High-Density Laminate Flooring",
+    name: "Light Natural Flooring",
     packageTier: "essential",
     category: "Flooring",
     customerDescription:
-      "A durable, versatile flooring option built around a 12 mm composite core and printed decorative surface. Offered in strip and parquet formats, it provides a clean, repeatable finish suited to everyday interior applications.",
+      "A light, natural flooring direction selected to keep interiors bright, warm and easy to coordinate across open-plan spaces. Its restrained tone creates a versatile foundation for cabinetry, stone and other interior finishes.",
+    specificationsHeading: "Preliminary characteristics",
     specifications: [
-      "Laminate flooring",
-      "12 mm listed thickness",
-      "Medium- or high-density fibreboard composite core",
-      "Strip and parquet formats",
-      "Printed decorative surface",
+      "Light natural wood appearance",
+      "Straight-plank visual direction",
+      "Warm neutral palette",
+      "Designed for broad interior coordination",
+      "Final construction and thickness to be confirmed",
     ],
     selectionStatus: preliminarySelection,
     sampleRequired: true,
@@ -146,17 +148,18 @@ export const inclusionProducts: readonly InclusionProduct[] = [
   },
   {
     sku: "HD-FLR-003",
-    name: "Comfort-Focused WPC Flooring",
+    name: "Warm Natural Flooring",
     packageTier: "premium",
     category: "Flooring",
     customerDescription:
-      "A softer-feel WPC flooring option combining a wood-plastic composite construction with a printed decorative surface. Strip and herringbone formats provide greater design flexibility while maintaining a warm, residential character.",
+      "A warmer flooring expression with greater tonal depth and character. Designed to complement upgraded cabinetry, stone and interior finishes while maintaining a calm, contemporary residential feel.",
+    specificationsHeading: "Preliminary characteristics",
     specifications: [
-      "Wood-plastic composite flooring",
-      "10 / 12 mm listed thickness options",
-      "Strip and herringbone formats",
-      "Printed decorative surface",
-      "Intended for interior residential applications",
+      "Warm natural wood appearance",
+      "Straight-plank visual direction",
+      "Increased tonal variation and character",
+      "Coordinated with upgraded interior finishes",
+      "Final material, construction and thickness to be confirmed",
     ],
     selectionStatus: preliminarySelection,
     sampleRequired: true,
@@ -176,17 +179,18 @@ export const inclusionProducts: readonly InclusionProduct[] = [
   },
   {
     sku: "HD-FLR-005",
-    name: "Solid Wood Flooring",
+    name: "Character Wood Flooring",
     packageTier: "signature",
     category: "Flooring",
     customerDescription:
-      "A natural solid-wood flooring option with an 18 mm listed thickness and a finish intended to emphasize the character of the material. Strip, herringbone and chevron formats allow the flooring to become a more deliberate architectural feature.",
+      "A more expressive flooring direction with stronger grain, warmth and material presence. Intended for homes where the floor contributes more deliberately to the overall architectural character.",
+    specificationsHeading: "Preliminary characteristics",
     specifications: [
-      "Solid wood flooring",
-      "18 mm listed thickness",
-      "Strip, herringbone and chevron formats",
-      "Painted finish",
-      "Supplier-listed underfloor-heating compatibility; technical review required",
+      "Natural wood-inspired appearance",
+      "Stronger grain and tonal character",
+      "Plank-format visual direction",
+      "Intended as a more prominent interior finish",
+      "Final material, finish and construction to be confirmed",
     ],
     selectionStatus: preliminarySelection,
     sampleRequired: true,
