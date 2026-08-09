@@ -109,6 +109,31 @@ export const inclusionPackages: readonly InclusionPackage[] = [
 const preliminarySelection: SelectionStatus = "Preliminary Selection";
 const projectAvailability =
   "Final availability is subject to project confirmation.";
+const preliminaryCharacteristics = "Preliminary characteristics";
+
+type PreliminaryProductInput = Omit<
+  InclusionProduct,
+  | "specificationsHeading"
+  | "selectionStatus"
+  | "sampleRequired"
+  | "technicalReviewRequired"
+  | "projectSpecificApprovalRequired"
+  | "availability"
+>;
+
+function preliminaryProduct(
+  product: PreliminaryProductInput,
+): InclusionProduct {
+  return {
+    ...product,
+    specificationsHeading: preliminaryCharacteristics,
+    selectionStatus: preliminarySelection,
+    sampleRequired: true,
+    technicalReviewRequired: true,
+    projectSpecificApprovalRequired: true,
+    availability: projectAvailability,
+  };
+}
 
 export const inclusionProducts: readonly InclusionProduct[] = [
   {
@@ -310,8 +335,866 @@ const kitchenCabinetryProducts: readonly InclusionProduct[] = [
   },
 ];
 
-const selectionsPending =
-  "Controlled product selections will be introduced as category information is approved.";
+const wardrobeProducts: readonly InclusionProduct[] = [
+  preliminaryProduct({
+    sku: "HD-WRD-001",
+    name: "Light Integrated Wardrobe",
+    packageTier: "essential",
+    category: "Wardrobes",
+    customerDescription:
+      "A practical wardrobe direction organized around everyday hanging, shelving and drawer storage. Its light, restrained expression is intended to coordinate easily with the wider interior finish palette.",
+    specifications: [
+      "Balanced hanging, shelf and drawer arrangement",
+      "Light neutral finish direction",
+      "Modular storage planning",
+      "Designed for broad interior coordination",
+      "Final dimensions, materials and hardware to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/wardrobes/products/hd-wrd-001-01.webp",
+        alt: "Light open wardrobe with hanging rails, shelves and organized drawers.",
+      },
+    ],
+  }),
+  preliminaryProduct({
+    sku: "HD-WRD-003",
+    name: "Warm Architectural Wardrobe",
+    packageTier: "premium",
+    category: "Wardrobes",
+    customerDescription:
+      "A more integrated wardrobe expression with enclosed fronts, illuminated display areas and a warmer sense of depth. Intended to support upgraded bedrooms while maintaining a calm architectural character.",
+    specifications: [
+      "Integrated open and enclosed storage direction",
+      "Layered neutral finish palette",
+      "Display and hanging zones",
+      "Coordinated lighting provision subject to review",
+      "Final configuration, finishes and hardware to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/wardrobes/products/hd-wrd-003-01.webp",
+        alt: "Contemporary bedroom wardrobe with dark doors and illuminated open storage.",
+      },
+    ],
+  }),
+  preliminaryProduct({
+    sku: "HD-WRD-005",
+    name: "Gallery Wardrobe System",
+    packageTier: "signature",
+    category: "Wardrobes",
+    customerDescription:
+      "A higher-touch dressing-room direction where storage becomes part of the room’s architectural composition. Layered cabinetry, display zones and a central planning element create a more deliberate interior experience.",
+    specifications: [
+      "Room-scale wardrobe planning direction",
+      "Layered hanging, display and drawer zones",
+      "Feature lighting provision subject to review",
+      "Stronger material and finish presence",
+      "Final layout, materials and detailing to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/wardrobes/products/hd-wrd-005-01.webp",
+        alt: "Warm wood walk-in dressing room with illuminated storage and a central bench.",
+      },
+    ],
+  }),
+];
+
+const interiorDoorProducts: readonly InclusionProduct[] = [
+  preliminaryProduct({
+    sku: "HD-IDR-001",
+    name: "Quiet Flush Interior Door",
+    packageTier: "essential",
+    category: "Interior Doors",
+    customerDescription:
+      "A quiet, minimal interior-door direction in a warm white or greige expression. It provides a restrained baseline that coordinates easily with flooring, trim and wall finishes.",
+    specifications: [
+      "Warm white or greige visual direction",
+      "Minimal-profile appearance",
+      "Quiet frame and trim coordination",
+      "Designed for broad interior coordination",
+      "Final material, configuration and performance specifications to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/interior-doors/products/hd-idr-001-01.webp",
+        alt: "Quiet greige interior door with minimal dark detailing.",
+      },
+    ],
+  }),
+  preliminaryProduct({
+    sku: "HD-IDR-003",
+    name: "Natural Wood Interior Door",
+    packageTier: "premium",
+    category: "Interior Doors",
+    customerDescription:
+      "A natural wood interior-door direction with restrained detailing and a warmer material presence. It adds depth while remaining calm enough to coordinate with upgraded interior finishes.",
+    specifications: [
+      "Light natural wood appearance",
+      "Restrained panel detail direction",
+      "Warm tonal coordination",
+      "Coordinated frame and hardware approach",
+      "Final material, configuration and performance specifications to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/interior-doors/products/hd-idr-003-01.webp",
+        alt: "Natural wood interior door coordinated with warm built-in cabinetry.",
+      },
+    ],
+  }),
+  preliminaryProduct({
+    sku: "HD-IDR-005",
+    name: "Dark Feature Interior Door",
+    packageTier: "signature",
+    category: "Interior Doors",
+    customerDescription:
+      "A darker feature-door direction intended to contribute more deliberately to the interior composition. The deeper tone and framed profile create a controlled architectural accent.",
+    specifications: [
+      "Dark feature finish direction",
+      "Stronger framed profile",
+      "Architectural focal-point expression",
+      "Project-specific frame and hardware review",
+      "Final material, configuration and performance specifications to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/interior-doors/products/hd-idr-005-01.webp",
+        alt: "Dark feature interior door set within a quiet contemporary wall.",
+      },
+    ],
+  }),
+];
+
+const exteriorDoorProducts: readonly InclusionProduct[] = [
+  preliminaryProduct({
+    sku: "HD-EDR-001",
+    name: "Warm Minimal Entry Door",
+    packageTier: "essential",
+    category: "Exterior Entry Doors",
+    customerDescription:
+      "A warm, minimal entry-door direction with a quiet slab-like expression and natural accent. It creates an approachable arrival while coordinating broadly with House Delivery exterior palettes.",
+    specifications: [
+      "Warm natural visual direction",
+      "Minimal entry composition",
+      "Restrained exterior detailing",
+      "Project-specific threshold and hardware review",
+      "Final material, configuration and performance specifications to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/exterior-doors/products/hd-edr-001-01.webp",
+        alt: "Warm wood entry door framed by pale siding and clipped greenery.",
+      },
+    ],
+  }),
+  preliminaryProduct({
+    sku: "HD-EDR-003",
+    name: "Architectural Entry Door",
+    packageTier: "premium",
+    category: "Exterior Entry Doors",
+    customerDescription:
+      "A refined panelled-entry direction with a stronger architectural frame and coordinated sidelights. Designed to give the home a composed, contemporary arrival.",
+    specifications: [
+      "Panelled entry-door appearance",
+      "Coordinated sidelight direction",
+      "Dark neutral exterior palette",
+      "Hardware and access requirements subject to review",
+      "Final construction, glazing and performance requirements to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/exterior-doors/products/hd-edr-003-01.webp",
+        alt: "Dark panelled front door with glazed sidelights in a light brick facade.",
+      },
+    ],
+  }),
+  preliminaryProduct({
+    sku: "HD-EDR-005",
+    name: "Statement Entry Door",
+    packageTier: "signature",
+    category: "Exterior Entry Doors",
+    customerDescription:
+      "A more expressive entry-door direction where pattern, glazing and hardware contribute deliberately to the home’s exterior character.",
+    specifications: [
+      "Decorative double-door expression",
+      "Feature glazing and panel detail direction",
+      "Stronger arrival and facade presence",
+      "Project-specific hardware and access review",
+      "Final construction, finish and performance requirements to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/exterior-doors/products/hd-edr-005-01.webp",
+        alt: "Decorative dark double entry doors framed by stone and traditional wall lights.",
+      },
+    ],
+  }),
+];
+
+const windowProducts: readonly InclusionProduct[] = [
+  preliminaryProduct({
+    sku: "HD-WIN-001",
+    name: "Slim-Framed Window Direction",
+    packageTier: "essential",
+    category: "Windows & Patio Doors",
+    customerDescription:
+      "A clean window direction intended to support daylight, straightforward operation and broad coordination with House Delivery exterior palettes.",
+    specifications: [
+      "Simple horizontal window composition",
+      "Dark neutral frame direction",
+      "Straightforward opening configuration",
+      "Project-specific opening and screen review",
+      "Final frame, glazing and performance requirements to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/windows-patio-doors/products/hd-win-001-01.webp",
+        alt: "Dark-framed sliding window overlooking a planted courtyard.",
+      },
+    ],
+  }),
+  preliminaryProduct({
+    sku: "HD-WIN-003",
+    name: "Expanded Glazing Direction",
+    packageTier: "premium",
+    category: "Windows & Patio Doors",
+    customerDescription:
+      "A larger glazed-opening direction that brings more daylight and a stronger visual connection to exterior spaces while retaining a disciplined frame expression.",
+    specifications: [
+      "Expanded multi-panel glazing direction",
+      "Larger daylight opening concept",
+      "Coordinated frame finish",
+      "Operation and screen requirements subject to review",
+      "Final configuration, glazing and performance requirements to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/windows-patio-doors/products/hd-win-003-01.webp",
+        alt: "Wide four-panel glazed opening facing a coastal terrace.",
+      },
+    ],
+  }),
+  preliminaryProduct({
+    sku: "HD-WIN-005",
+    name: "Large-Opening Glazing Direction",
+    packageTier: "signature",
+    category: "Windows & Patio Doors",
+    customerDescription:
+      "A broad patio-door direction intended to make the exterior connection a more prominent part of the home’s architecture and everyday living experience.",
+    specifications: [
+      "Wide multi-panel patio-door expression",
+      "Slim dark-frame visual direction",
+      "Strong indoor-outdoor connection",
+      "Threshold and operation subject to project review",
+      "Final system, glazing and performance requirements to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/windows-patio-doors/products/hd-win-005-01.webp",
+        alt: "Wide dark-framed patio doors opening to a landscaped terrace.",
+      },
+    ],
+  }),
+];
+
+const bathroomSystemProducts: readonly InclusionProduct[] = [
+  preliminaryProduct({
+    sku: "HD-BTH-001",
+    name: "Coordinated Bathroom",
+    packageTier: "essential",
+    category: "Bathroom Systems",
+    customerDescription:
+      "A bright, warm-neutral bathroom direction with a simple vanity and clean shower composition. The coordinated room expression creates a practical baseline without implying one fixed fixture package.",
+    specifications: [
+      "Bright warm-neutral room palette",
+      "Simple vanity and shower composition",
+      "Clean coordinated fixture direction",
+      "Restrained surface variation",
+      "Final material, configuration and performance specifications to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/bathroom-systems/products/hd-bth-001-01.webp",
+        alt: "Bright compact bathroom with a floating vanity, glazed shower and warm terrazzo accents.",
+      },
+    ],
+  }),
+  preliminaryProduct({
+    sku: "HD-BTH-003",
+    name: "Refined Bathroom",
+    packageTier: "premium",
+    category: "Bathroom Systems",
+    customerDescription:
+      "A refined bathroom direction with floating cabinetry, layered warm materials and stronger mirror and lighting coordination. It gives the room greater depth while retaining a calm residential character.",
+    specifications: [
+      "Floating double-vanity direction",
+      "Layered wood and neutral surface palette",
+      "Integrated mirror and lighting concept",
+      "Coordinated bath and shower planning",
+      "Final material, configuration and performance specifications to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/bathroom-systems/products/hd-bth-003-01.webp",
+        alt: "Warm contemporary bathroom with a double vanity, mirrored storage and integrated lighting.",
+      },
+    ],
+  }),
+  preliminaryProduct({
+    sku: "HD-BTH-005",
+    name: "Architectural Bathroom",
+    packageTier: "signature",
+    category: "Bathroom Systems",
+    customerDescription:
+      "An architectural bathroom direction organized around a sculptural bath, restrained feature surfaces and selective integrated lighting. The room is intended to feel composed as a complete interior rather than a collection of fixtures.",
+    specifications: [
+      "Sculptural bath and vanity composition",
+      "Large-format feature-surface direction",
+      "Dark coordinated fixture accents",
+      "Integrated lighting and service review required",
+      "Final material, configuration and performance specifications to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/bathroom-systems/products/hd-bth-005-01.webp",
+        alt: "Architectural white bathroom with a sculptural freestanding bath and dark fixtures.",
+      },
+    ],
+  }),
+];
+
+const bathroomVanityProducts: readonly InclusionProduct[] = [
+  preliminaryProduct({
+    sku: "HD-VAN-001",
+    name: "Compact Floating Vanity",
+    packageTier: "essential",
+    category: "Bathroom Vanities",
+    customerDescription:
+      "A wall-mounted vanity direction with practical storage and a light visual footprint. Designed to coordinate broadly with neutral bathroom finishes and everyday layouts.",
+    specifications: [
+      "Wall-mounted vanity appearance",
+      "Warm neutral cabinet direction",
+      "Integrated storage provision",
+      "Coordinated mirror and basin planning",
+      "Final dimensions, materials and plumbing coordination to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/bathroom-vanities/products/hd-van-001-01.webp",
+        alt: "Warm wood floating bathroom vanity with two illuminated mirrors.",
+      },
+    ],
+  }),
+  preliminaryProduct({
+    sku: "HD-VAN-003",
+    name: "Warm Integrated Vanity",
+    packageTier: "premium",
+    category: "Bathroom Vanities",
+    customerDescription:
+      "A more refined double-vanity direction with balanced storage, paired mirrors and a stronger material presence for primary and shared bathrooms.",
+    specifications: [
+      "Double-vanity planning direction",
+      "Paired illuminated mirror concept",
+      "Warm cabinet and light surface palette",
+      "Expanded drawer and countertop provision",
+      "Final dimensions, materials and plumbing coordination to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/bathroom-vanities/products/hd-van-003-01.webp",
+        alt: "Double bathroom vanity with arched illuminated mirrors and light stone-look wall panels.",
+      },
+    ],
+  }),
+  preliminaryProduct({
+    sku: "HD-VAN-005",
+    name: "Feature Double Vanity",
+    packageTier: "signature",
+    category: "Bathroom Vanities",
+    customerDescription:
+      "A room-scale vanity direction where cabinetry, mirrors and surrounding storage are composed as an integrated bathroom feature.",
+    specifications: [
+      "Integrated vanity and storage composition",
+      "Layered light neutral finish direction",
+      "Expanded mirror and counter planning",
+      "Coordinated lighting provision subject to review",
+      "Final layout, materials and plumbing coordination to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/bathroom-vanities/products/hd-van-005-01.webp",
+        alt: "Bright bathroom with a long floating vanity, mirrored storage and a freestanding bath.",
+      },
+    ],
+  }),
+];
+
+const plumbingFixtureProducts: readonly InclusionProduct[] = [
+  preliminaryProduct({
+    sku: "HD-PLM-001",
+    name: "Bright Metal Fixture Set",
+    packageTier: "essential",
+    category: "Plumbing Fixtures",
+    customerDescription:
+      "A bright-metal fixture direction selected as a clean, versatile baseline for everyday bathrooms. Its restrained appearance coordinates easily with light surfaces and neutral cabinetry.",
+    specifications: [
+      "Bright neutral-metal visual direction",
+      "Minimal wall-mounted faucet appearance",
+      "Clean basin and counter coordination",
+      "Coordinated fixture-family approach",
+      "Final fixture, finish and compatibility requirements to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/plumbing-fixtures/products/hd-plm-001-01.webp",
+        alt: "Minimal bright-metal wall-mounted faucet above a white basin.",
+      },
+    ],
+  }),
+  preliminaryProduct({
+    sku: "HD-PLM-003",
+    name: "Dark Metal Fixture Set",
+    packageTier: "premium",
+    category: "Plumbing Fixtures",
+    customerDescription:
+      "A dark-metal fixture direction that gives upgraded bathrooms a stronger graphic presence. The controlled finish is intended to remain consistent across the visible fixture family.",
+    specifications: [
+      "Dark metal visual direction",
+      "Coordinated shower-fixture expression",
+      "Stronger contrast with light surfaces",
+      "Service and control coordination required",
+      "Final fixture, finish and compatibility requirements to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/plumbing-fixtures/products/hd-plm-003-01.webp",
+        alt: "Dark shower fixture set with overhead and handheld fittings.",
+      },
+    ],
+  }),
+  preliminaryProduct({
+    sku: "HD-PLM-005",
+    name: "Warm Metal Fixture Set",
+    packageTier: "signature",
+    category: "Plumbing Fixtures",
+    customerDescription:
+      "A restrained warm-metal fixture direction for bathrooms where fittings contribute more deliberately to the material palette. The warmer tone is intended to coordinate across basin, bath and shower selections.",
+    specifications: [
+      "Warm brushed-metal visual direction",
+      "Coordinated basin-fixture expression",
+      "Stronger material presence",
+      "Consistent finish-family planning",
+      "Final fixture, finish and compatibility requirements to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/plumbing-fixtures/products/hd-plm-005-01.webp",
+        alt: "Warm-metal faucet paired with a clear textured countertop basin.",
+      },
+    ],
+  }),
+];
+
+const tileSurfaceProducts: readonly InclusionProduct[] = [
+  preliminaryProduct({
+    sku: "HD-TIL-001",
+    name: "Warm Quiet Surface",
+    packageTier: "essential",
+    category: "Tile & Surfaces",
+    customerDescription:
+      "A warm, quiet stone-look surface direction intended to keep interiors calm and easy to coordinate. The soft taupe palette provides a versatile baseline for cabinetry and metal finishes.",
+    specifications: [
+      "Warm taupe stone-look appearance",
+      "Quiet matte visual direction",
+      "Subtle tonal variation",
+      "Broad interior coordination",
+      "Final material, dimensions and application to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/tile-surfaces/products/hd-til-001-01.webp",
+        alt: "Warm taupe stone-look surfaces in a contemporary kitchen and dining interior.",
+      },
+    ],
+  }),
+  preliminaryProduct({
+    sku: "HD-TIL-003",
+    name: "Textured Neutral Surface",
+    packageTier: "premium",
+    category: "Tile & Surfaces",
+    customerDescription:
+      "A pale neutral surface direction with subtle texture and softly varied character. It adds depth to upgraded interiors while remaining restrained enough for broad coordination.",
+    specifications: [
+      "Warm ivory and pale greige palette",
+      "Subtle textured visual character",
+      "Large-format room expression",
+      "Coordinated wall and floor direction",
+      "Final material, format and application to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/tile-surfaces/products/hd-til-003-01.webp",
+        alt: "Pale neutral large-format surfaces in a bright contemporary living room.",
+      },
+    ],
+  }),
+  preliminaryProduct({
+    sku: "HD-TIL-005",
+    name: "Feature Stone-Look Surface",
+    packageTier: "signature",
+    category: "Tile & Surfaces",
+    customerDescription:
+      "A stronger stone-look surface direction with pronounced texture and shadow. Intended for selected feature applications where the surface contributes deliberately to the architectural composition.",
+    specifications: [
+      "Textured stone-look appearance",
+      "Stronger depth and shadow variation",
+      "Feature-surface visual direction",
+      "Intended for selected feature applications",
+      "Final material, format and application to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/tile-surfaces/products/hd-til-005-01.webp",
+        alt: "Textured gray stone-look feature surface on a contemporary residence.",
+      },
+    ],
+  }),
+];
+
+const countertopProducts: readonly InclusionProduct[] = [
+  preliminaryProduct({
+    sku: "HD-CTR-001",
+    name: "Quiet Light Surface",
+    packageTier: "essential",
+    category: "Countertops",
+    customerDescription:
+      "A light countertop direction selected to keep kitchens bright and easy to coordinate with neutral cabinetry, metalwork and surrounding finishes.",
+    specifications: [
+      "Light stone-inspired appearance",
+      "Subtle movement and tonal variation",
+      "Coordinated counter and island direction",
+      "Edge and backsplash approach subject to review",
+      "Final material, finish and fabrication requirements to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/countertops/products/hd-ctr-001-01.webp",
+        alt: "Light stone-look kitchen countertop with an integrated sink and broad island surface.",
+      },
+    ],
+  }),
+  preliminaryProduct({
+    sku: "HD-CTR-003",
+    name: "Soft Vein Surface",
+    packageTier: "premium",
+    category: "Countertops",
+    customerDescription:
+      "A warmer countertop direction with greater variation and visual depth. Intended to complement upgraded cabinetry and create a more layered kitchen composition.",
+    specifications: [
+      "Warm stone-inspired appearance",
+      "Increased pattern and tonal movement",
+      "Expanded island surface direction",
+      "Coordinated backsplash concept",
+      "Final material, finish and fabrication requirements to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/countertops/products/hd-ctr-003-01.webp",
+        alt: "Warm light stone countertop across a large island in a dark wood kitchen.",
+      },
+    ],
+  }),
+  preliminaryProduct({
+    sku: "HD-CTR-005",
+    name: "Character Vein Surface",
+    packageTier: "signature",
+    category: "Countertops",
+    customerDescription:
+      "A more expressive countertop direction where stronger veining and material presence make the work surface a deliberate part of the architectural palette.",
+    specifications: [
+      "Expressive stone-inspired appearance",
+      "Stronger veining and visual movement",
+      "Feature island and counter application concept",
+      "Bookmatching or slab layout subject to review",
+      "Final material, finish and fabrication requirements to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/countertops/products/hd-ctr-005-01.webp",
+        alt: "White kitchen island and counters with bold gray stone veining.",
+      },
+    ],
+  }),
+];
+
+const wallPanelProducts: readonly InclusionProduct[] = [
+  preliminaryProduct({
+    sku: "HD-WAL-001",
+    name: "Warm Flat Wall Panel",
+    packageTier: "essential",
+    category: "Interior Wall Panels",
+    customerDescription:
+      "A restrained light wall-panel direction that adds warmth and quiet order to entries, halls and selected living areas. Its lower-profile expression is intended to sit comfortably within a broad neutral palette.",
+    specifications: [
+      "Light warm panel-field direction",
+      "Restrained rectangular rhythm",
+      "Quiet lower-wall application shown",
+      "Coordinated trim and wall colour planning",
+      "Final profile, material and installation layout to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/wall-panels/products/hd-wal-001-01.webp",
+        alt: "Warm light wall paneling with a restrained rectangular rhythm in a hallway.",
+      },
+    ],
+  }),
+  preliminaryProduct({
+    sku: "HD-WAL-003",
+    name: "Vertical Slat Wall Panel",
+    packageTier: "premium",
+    category: "Interior Wall Panels",
+    customerDescription:
+      "A warmer vertical panel direction with a measured rhythm and greater material presence. The repeated lines add controlled texture without overwhelming the surrounding architecture.",
+    specifications: [
+      "Warm wood visual direction",
+      "Vertical repeating rhythm",
+      "Controlled texture and shadow",
+      "Selected wall application",
+      "Final profile, material and site layout to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/wall-panels/products/hd-wal-003-01.webp",
+        alt: "Warm vertical wood wall panels with integrated display details.",
+      },
+    ],
+  }),
+  preliminaryProduct({
+    sku: "HD-WAL-005",
+    name: "Architectural Feature Panel",
+    packageTier: "signature",
+    category: "Interior Wall Panels",
+    customerDescription:
+      "A deeper architectural panel direction intended to give selected rooms or circulation areas a deliberate sense of proportion, depth and shadow. The full-height composition makes the wall a more prominent interior element.",
+    specifications: [
+      "Full-height feature-panel composition",
+      "Deeper tonal direction",
+      "Stronger architectural rhythm and shadow",
+      "Selected focal-wall application",
+      "Final profile, material and installation layout to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/wall-panels/products/hd-wal-005-01.webp",
+        alt: "Dark full-height wall paneling creating a strong architectural hallway feature.",
+      },
+    ],
+  }),
+];
+
+const lightingProducts: readonly InclusionProduct[] = [
+  preliminaryProduct({
+    sku: "HD-LGT-001",
+    name: "Quiet Lighting Direction",
+    packageTier: "essential",
+    category: "Lighting",
+    customerDescription:
+      "A quiet lighting direction that keeps ceilings and living areas visually uncluttered. Soft ambient light supports the room without competing with the wider interior palette.",
+    specifications: [
+      "Simple ambient-light expression",
+      "Uncluttered ceiling direction",
+      "Soft illumination across living areas",
+      "Location and controls subject to project review",
+      "Final fixture and electrical coordination to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/lighting/products/hd-lgt-001-01.webp",
+        alt: "Quiet white living room with soft daylight and a restrained feature floor light.",
+      },
+    ],
+  }),
+  preliminaryProduct({
+    sku: "HD-LGT-003",
+    name: "Layered Lighting Direction",
+    packageTier: "premium",
+    category: "Lighting",
+    customerDescription:
+      "A layered lighting direction combining ambient and accent effects to support furniture, surfaces and circulation. The added depth gives upgraded interiors a more composed evening character.",
+    specifications: [
+      "Ambient and accent-lighting concept",
+      "Selective wall and floor illumination",
+      "Lighting coordinated with materials and furniture",
+      "Locations and controls subject to project review",
+      "Final fixture and electrical coordination to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/lighting/products/hd-lgt-003-01.webp",
+        alt: "Contemporary lounge with layered wall, floor and ambient lighting.",
+      },
+    ],
+  }),
+  preliminaryProduct({
+    sku: "HD-LGT-005",
+    name: "Architectural Lighting Direction",
+    packageTier: "signature",
+    category: "Lighting",
+    customerDescription:
+      "An architectural lighting direction using integrated and feature illumination selectively to shape the room. Stronger linear and suspended elements create a deliberate focal composition.",
+    specifications: [
+      "Integrated linear-lighting direction",
+      "Selective suspended feature elements",
+      "Layered architectural illumination",
+      "Locations, controls and support subject to review",
+      "Final fixture and electrical coordination to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/lighting/products/hd-lgt-005-01.webp",
+        alt: "Architectural interior with integrated linear lighting and sculptural suspended fixtures.",
+      },
+    ],
+  }),
+];
+
+const applianceProducts: readonly InclusionProduct[] = [
+  preliminaryProduct({
+    sku: "HD-APP-001",
+    name: "Coordinated Appliance Direction",
+    packageTier: "essential",
+    category: "Appliances",
+    customerDescription:
+      "A coordinated appliance direction organized around core cooking, cooling and cleaning needs within a practical kitchen layout. Final appliance manufacturer, model, electrical requirements, configuration and availability are project-specific.",
+    specifications: [
+      "Core kitchen appliance planning direction",
+      "Integrated and freestanding appearance options",
+      "Neutral metallic and dark finish palette",
+      "Cabinet and service coordination required",
+      "Final models, dimensions and utility requirements to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/appliances/products/hd-app-001-01.webp",
+        alt: "Bright white kitchen with coordinated wall oven, cooktop and refrigeration.",
+      },
+    ],
+  }),
+  preliminaryProduct({
+    sku: "HD-APP-003",
+    name: "Integrated Appliance Direction",
+    packageTier: "premium",
+    category: "Appliances",
+    customerDescription:
+      "A more integrated appliance direction designed to align key equipment with upgraded cabinetry, storage and work-surface planning. Final appliance manufacturer, model, electrical requirements, configuration and availability are project-specific.",
+    specifications: [
+      "Expanded cooking and cooling package direction",
+      "Integrated cabinetry coordination",
+      "Layered metallic and dark finish palette",
+      "Ventilation and service planning required",
+      "Final models, dimensions and utility requirements to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/appliances/products/hd-app-003-01.webp",
+        alt: "Dark wood kitchen with coordinated refrigeration, range and wall appliances.",
+      },
+    ],
+  }),
+  preliminaryProduct({
+    sku: "HD-APP-005",
+    name: "Architectural Appliance Integration",
+    packageTier: "signature",
+    category: "Appliances",
+    customerDescription:
+      "A higher-touch appliance direction where equipment is composed deliberately within full-height cabinetry and the wider architectural kitchen concept. Final appliance manufacturer, model, electrical requirements, configuration and availability are project-specific.",
+    specifications: [
+      "Architecturally integrated appliance direction",
+      "Full-height cabinet coordination",
+      "Expanded cooking and refrigeration planning",
+      "Dedicated ventilation and utility review required",
+      "Final models, dimensions and installation requirements to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/appliances/products/hd-app-005-01.webp",
+        alt: "Black kitchen with built-in wall ovens, concealed cooling and a central cooktop island.",
+      },
+    ],
+  }),
+];
+
+const windowCoveringProducts: readonly InclusionProduct[] = [
+  preliminaryProduct({
+    sku: "HD-WCV-001",
+    name: "Warm Neutral Roller",
+    packageTier: "essential",
+    category: "Roller Blinds / Window Coverings",
+    customerDescription:
+      "A warm-neutral roller direction intended to give everyday rooms a quiet, coordinated window treatment. Its restrained tone supports privacy and light control without dominating the interior.",
+    specifications: [
+      "Warm neutral roller appearance",
+      "Quiet textile visual direction",
+      "Coordinated window-by-window planning",
+      "Manual or powered operation subject to review",
+      "Final fabric, opacity, dimensions and controls to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/window-coverings/products/hd-wcv-001-01.webp",
+        alt: "Warm neutral roller shades across the windows of a contemporary living room.",
+      },
+    ],
+  }),
+  preliminaryProduct({
+    sku: "HD-WCV-003",
+    name: "Soft Light-Filtering Roller",
+    packageTier: "premium",
+    category: "Roller Blinds / Window Coverings",
+    customerDescription:
+      "A soft light-filtering roller direction that maintains daylight while giving bedrooms and living areas a more finished, integrated appearance. Its pale neutral expression keeps the room calm and bright.",
+    specifications: [
+      "Pale light-filtering roller appearance",
+      "Soft neutral textile direction",
+      "Daylight and privacy coordination",
+      "Manual or powered operation subject to review",
+      "Final fabric, opacity, dimensions and controls to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/window-coverings/products/hd-wcv-003-01.webp",
+        alt: "Soft white light-filtering roller shades in a bright neutral bedroom.",
+      },
+    ],
+  }),
+  preliminaryProduct({
+    sku: "HD-WCV-005",
+    name: "Textured Roller",
+    packageTier: "signature",
+    category: "Roller Blinds / Window Coverings",
+    customerDescription:
+      "A textured roller direction with greater textile character and a warmer residential presence. It is intended for rooms where the window treatment contributes more deliberately to the material palette.",
+    specifications: [
+      "Textured roller appearance",
+      "Warmer textile character",
+      "Stronger material presence",
+      "Manual or powered operation subject to review",
+      "Final fabric, opacity, dimensions and controls to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/window-coverings/products/hd-wcv-005-01.webp",
+        alt: "Textured gray roller shades across full-height dining-room windows.",
+      },
+    ],
+  }),
+];
+
+const representedPackageContext =
+  "Essential, Premium and Signature selections are represented in this category.";
 
 export const inclusionCategories: readonly InclusionCategory[] = [
   {
@@ -354,12 +1237,12 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     eyebrow: "Interior storage",
     description:
       "Wardrobe systems organized to support practical storage planning and a consistent interior finish language across House Delivery homes.",
-    packageContext: selectionsPending,
+    packageContext: representedPackageContext,
     heroImage: {
       src: "/images/inclusions/wardrobes/hero.webp",
       alt: "Open fitted wardrobe with shelves, drawers and hanging rails.",
     },
-    products: [],
+    products: wardrobeProducts,
   },
   {
     id: "interior-doors",
@@ -369,12 +1252,12 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     eyebrow: "Interior openings",
     description:
       "A coordinated range of interior door styles intended to align with flooring, cabinetry and the overall House Delivery finish language.",
-    packageContext: selectionsPending,
+    packageContext: representedPackageContext,
     heroImage: {
       src: "/images/inclusions/interior-doors/hero.webp",
       alt: "Contemporary interior with black-framed glazed doors, clerestory windows and an open-riser staircase.",
     },
-    products: [],
+    products: interiorDoorProducts,
   },
   {
     id: "exterior-doors",
@@ -384,12 +1267,12 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     eyebrow: "Arrival and entry",
     description:
       "Exterior entry door pathways organized around architectural coordination, project character and project-specific technical confirmation.",
-    packageContext: selectionsPending,
+    packageContext: representedPackageContext,
     heroImage: {
       src: "/images/inclusions/exterior-doors/hero.webp",
       alt: "Open contemporary pivot entry door framed by glazing and light brickwork.",
     },
-    products: [],
+    products: exteriorDoorProducts,
   },
   {
     id: "windows-patio-doors",
@@ -399,12 +1282,12 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     eyebrow: "Exterior openings",
     description:
       "Window and exterior opening systems selected for design coordination, daylight, performance review and project-specific technical confirmation.",
-    packageContext: selectionsPending,
+    packageContext: representedPackageContext,
     heroImage: {
       src: "/images/inclusions/windows-patio-doors/hero.webp",
       alt: "Open glazed patio doors connecting a home to a timber deck.",
     },
-    products: [],
+    products: windowProducts,
   },
   {
     id: "bathroom-systems",
@@ -414,12 +1297,12 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     eyebrow: "Coordinated wet areas",
     description:
       "Coordinated bathroom components and finish packages designed to simplify product selection and project procurement.",
-    packageContext: selectionsPending,
+    packageContext: representedPackageContext,
     heroImage: {
       src: "/images/inclusions/bathroom-systems/hero.webp",
       alt: "Bright bathroom with a glass shower, tub and double vanity.",
     },
-    products: [],
+    products: bathroomSystemProducts,
   },
   {
     id: "bathroom-vanities",
@@ -429,12 +1312,12 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     eyebrow: "Vanity systems",
     description:
       "Vanity selections coordinated with bathroom layouts, storage priorities and the wider House Delivery finish language.",
-    packageContext: selectionsPending,
+    packageContext: representedPackageContext,
     heroImage: {
       src: "/images/inclusions/bathroom-vanities/hero.webp",
       alt: "Wood bathroom vanity with a stone vessel sink, mirrored cabinet and dark wall-mounted faucet.",
     },
-    products: [],
+    products: bathroomVanityProducts,
   },
   {
     id: "plumbing-fixtures",
@@ -444,12 +1327,12 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     eyebrow: "Fixture selections",
     description:
       "A controlled fixture selection pathway intended to coordinate bathrooms, kitchens and project-specific technical review.",
-    packageContext: selectionsPending,
+    packageContext: representedPackageContext,
     heroImage: {
       src: "/images/inclusions/plumbing-fixtures/hero.webp",
       alt: "Close view of a sculptural dark faucet and basin.",
     },
-    products: [],
+    products: plumbingFixtureProducts,
   },
   {
     id: "tile-surfaces",
@@ -459,12 +1342,12 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     eyebrow: "Applied finishes",
     description:
       "Curated surface directions intended to coordinate wet areas, feature zones and durable finish transitions throughout the home.",
-    packageContext: selectionsPending,
+    packageContext: representedPackageContext,
     heroImage: {
       src: "/images/inclusions/tile-surfaces/hero.webp",
       alt: "Stone-look wall surfaces surrounding a dark shower system.",
     },
-    products: [],
+    products: tileSurfaceProducts,
   },
   {
     id: "countertops",
@@ -474,12 +1357,12 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     eyebrow: "Work surfaces",
     description:
       "Countertop selections organized to coordinate kitchen and vanity applications through a controlled finish pathway.",
-    packageContext: selectionsPending,
+    packageContext: representedPackageContext,
     heroImage: {
       src: "/images/inclusions/countertops/hero.webp",
       alt: "Light stone kitchen countertops with a matching full-height backsplash.",
     },
-    products: [],
+    products: countertopProducts,
   },
   {
     id: "wall-panels",
@@ -489,12 +1372,12 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     eyebrow: "Interior surfaces",
     description:
       "Interior wall-panel directions developed for selected feature areas and coordinated with the broader material palette.",
-    packageContext: selectionsPending,
+    packageContext: representedPackageContext,
     heroImage: {
       src: "/images/inclusions/wall-panels/hero.webp",
       alt: "Dark geometric wood wall panels behind a light sofa and built-in shelving.",
     },
-    products: [],
+    products: wallPanelProducts,
   },
   {
     id: "lighting",
@@ -504,12 +1387,12 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     eyebrow: "Lighting systems",
     description:
       "Coordinated lighting pathways intended to support everyday use, architectural emphasis and a consistent interior atmosphere.",
-    packageContext: selectionsPending,
+    packageContext: representedPackageContext,
     heroImage: {
       src: "/images/inclusions/lighting/hero.webp",
       alt: "Woven pendant lights in a bright contemporary living room.",
     },
-    products: [],
+    products: lightingProducts,
   },
   {
     id: "appliances",
@@ -519,12 +1402,12 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     eyebrow: "Appliance packages",
     description:
       "Appliance packages organized for coordinated kitchen planning, project review and a clear selection process.",
-    packageContext: selectionsPending,
+    packageContext: representedPackageContext,
     heroImage: {
       src: "/images/inclusions/appliances/hero.webp",
       alt: "Built-in stainless steel cooking appliances within wood cabinetry.",
     },
-    products: [],
+    products: applianceProducts,
   },
   {
     id: "window-coverings",
@@ -534,12 +1417,12 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     eyebrow: "Interior shading",
     description:
       "Window-covering pathways intended to coordinate privacy, daylight control and the interior finish direction of each project.",
-    packageContext: selectionsPending,
+    packageContext: representedPackageContext,
     heroImage: {
       src: "/images/inclusions/window-coverings/hero.webp",
       alt: "Light roller blind partially lowered over a dark-framed window.",
     },
-    products: [],
+    products: windowCoveringProducts,
   },
 ];
 
