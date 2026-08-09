@@ -353,7 +353,15 @@ const wardrobeProducts: readonly InclusionProduct[] = [
     gallery: [
       {
         src: "/images/inclusions/wardrobes/products/hd-wrd-001-01.webp",
-        alt: "Light open wardrobe with hanging rails, shelves and organized drawers.",
+        alt: "Reach-in wardrobe with light oak cabinets, hanging space and drawers.",
+      },
+      {
+        src: "/images/inclusions/wardrobes/products/hd-wrd-001-02.webp",
+        alt: "Small bedroom reach-in wardrobe with open shelving and drawers.",
+      },
+      {
+        src: "/images/inclusions/wardrobes/products/hd-wrd-001-03.webp",
+        alt: "Compact white wardrobe with mirrored doors and organized shelving.",
       },
     ],
   }),
@@ -374,7 +382,15 @@ const wardrobeProducts: readonly InclusionProduct[] = [
     gallery: [
       {
         src: "/images/inclusions/wardrobes/products/hd-wrd-003-01.webp",
-        alt: "Contemporary bedroom wardrobe with dark doors and illuminated open storage.",
+        alt: "Natural wood bedroom wardrobe with panelled doors and coordinated drawers.",
+      },
+      {
+        src: "/images/inclusions/wardrobes/products/hd-wrd-003-02.webp",
+        alt: "Matte white walk-in wardrobe with illuminated open storage.",
+      },
+      {
+        src: "/images/inclusions/wardrobes/products/hd-wrd-003-03.webp",
+        alt: "Wall-to-wall matte grey wardrobe with concealed and open storage.",
       },
     ],
   }),
@@ -395,7 +411,15 @@ const wardrobeProducts: readonly InclusionProduct[] = [
     gallery: [
       {
         src: "/images/inclusions/wardrobes/products/hd-wrd-005-01.webp",
-        alt: "Warm wood walk-in dressing room with illuminated storage and a central bench.",
+        alt: "Dark walk-in dressing room with illuminated custom storage and a central island.",
+      },
+      {
+        src: "/images/inclusions/wardrobes/products/hd-wrd-005-02.webp",
+        alt: "Contemporary wardrobe with black tinted glass doors and integrated lighting.",
+      },
+      {
+        src: "/images/inclusions/wardrobes/products/hd-wrd-005-03.webp",
+        alt: "Dark walnut walk-in wardrobe with glazed doors and a central storage island.",
       },
     ],
   }),
@@ -419,7 +443,15 @@ const interiorDoorProducts: readonly InclusionProduct[] = [
     gallery: [
       {
         src: "/images/inclusions/interior-doors/products/hd-idr-001-01.webp",
-        alt: "Quiet greige interior door with minimal dark detailing.",
+        alt: "Greige panelled interior door coordinated with matching wall cabinetry.",
+      },
+      {
+        src: "/images/inclusions/interior-doors/products/hd-idr-001-02.webp",
+        alt: "Dark wood interior door in a bright minimal room.",
+      },
+      {
+        src: "/images/inclusions/interior-doors/products/hd-idr-001-03.webp",
+        alt: "Warm wood interior door in a softly lit living space.",
       },
     ],
   }),
@@ -440,7 +472,11 @@ const interiorDoorProducts: readonly InclusionProduct[] = [
     gallery: [
       {
         src: "/images/inclusions/interior-doors/products/hd-idr-003-01.webp",
-        alt: "Natural wood interior door coordinated with warm built-in cabinetry.",
+        alt: "Dark flush interior door with restrained panel detailing.",
+      },
+      {
+        src: "/images/inclusions/interior-doors/products/hd-idr-003-02.webp",
+        alt: "White panelled interior door in a refined neutral room.",
       },
     ],
   }),
@@ -461,7 +497,15 @@ const interiorDoorProducts: readonly InclusionProduct[] = [
     gallery: [
       {
         src: "/images/inclusions/interior-doors/products/hd-idr-005-01.webp",
-        alt: "Dark feature interior door set within a quiet contemporary wall.",
+        alt: "Minimal pivot door set into a pale architectural wall.",
+      },
+      {
+        src: "/images/inclusions/interior-doors/products/hd-idr-005-02.webp",
+        alt: "Dark stone-look feature door in a contemporary interior.",
+      },
+      {
+        src: "/images/inclusions/interior-doors/products/hd-idr-005-03.webp",
+        alt: "Full-height warm wood feature doors across an architectural wall.",
       },
     ],
   }),
@@ -506,7 +550,15 @@ const exteriorDoorProducts: readonly InclusionProduct[] = [
     gallery: [
       {
         src: "/images/inclusions/exterior-doors/products/hd-edr-003-01.webp",
-        alt: "Dark panelled front door with glazed sidelights in a light brick facade.",
+        alt: "Ornate dark double entry doors framed by pale stone and traditional wall lights.",
+      },
+      {
+        src: "/images/inclusions/exterior-doors/products/hd-edr-003-02.webp",
+        alt: "Dark glazed entry door with geometric detailing in a brick facade.",
+      },
+      {
+        src: "/images/inclusions/exterior-doors/products/hd-edr-003-03.webp",
+        alt: "Minimal dark entry door with horizontal glazed accents.",
       },
     ],
   }),
@@ -523,12 +575,6 @@ const exteriorDoorProducts: readonly InclusionProduct[] = [
       "Stronger arrival and facade presence",
       "Project-specific hardware and access review",
       "Final construction, finish and performance requirements to be confirmed",
-    ],
-    gallery: [
-      {
-        src: "/images/inclusions/exterior-doors/products/hd-edr-005-01.webp",
-        alt: "Decorative dark double entry doors framed by stone and traditional wall lights.",
-      },
     ],
   }),
 ];
@@ -553,6 +599,14 @@ const windowProducts: readonly InclusionProduct[] = [
         src: "/images/inclusions/windows-patio-doors/products/hd-win-001-01.webp",
         alt: "Dark-framed sliding window overlooking a planted courtyard.",
       },
+      {
+        src: "/images/inclusions/windows-patio-doors/products/hd-win-001-02.webp",
+        alt: "Dark-framed corner windows opening toward a landscaped garden.",
+      },
+      {
+        src: "/images/inclusions/windows-patio-doors/products/hd-win-001-03.webp",
+        alt: "Wide dark-framed sliding doors connecting a bright interior to a terrace.",
+      },
     ],
   }),
   preliminaryProduct({
@@ -572,7 +626,15 @@ const windowProducts: readonly InclusionProduct[] = [
     gallery: [
       {
         src: "/images/inclusions/windows-patio-doors/products/hd-win-003-01.webp",
-        alt: "Wide four-panel glazed opening facing a coastal terrace.",
+        alt: "Slim-framed multi-panel glazed doors opening to a bright terrace.",
+      },
+      {
+        src: "/images/inclusions/windows-patio-doors/products/hd-win-003-02.webp",
+        alt: "Dark-framed windows opened toward a garden from a bright living room.",
+      },
+      {
+        src: "/images/inclusions/windows-patio-doors/products/hd-win-003-03.webp",
+        alt: "Multi-panel glazed doors opening to a sheltered patio.",
       },
     ],
   }),
@@ -594,6 +656,14 @@ const windowProducts: readonly InclusionProduct[] = [
       {
         src: "/images/inclusions/windows-patio-doors/products/hd-win-005-01.webp",
         alt: "Wide dark-framed patio doors opening to a landscaped terrace.",
+      },
+      {
+        src: "/images/inclusions/windows-patio-doors/products/hd-win-005-02.webp",
+        alt: "Full-height glazed folding doors opening an interior to a stone terrace.",
+      },
+      {
+        src: "/images/inclusions/windows-patio-doors/products/hd-win-005-03.webp",
+        alt: "Bright kitchen with large patio doors and architectural skylights.",
       },
     ],
   }),
@@ -617,7 +687,11 @@ const bathroomSystemProducts: readonly InclusionProduct[] = [
     gallery: [
       {
         src: "/images/inclusions/bathroom-systems/products/hd-bth-001-01.webp",
-        alt: "Bright compact bathroom with a floating vanity, glazed shower and warm terrazzo accents.",
+        alt: "Bright contemporary bathroom with pale surfaces, a freestanding bath and double vanity.",
+      },
+      {
+        src: "/images/inclusions/bathroom-systems/products/hd-bth-001-02.webp",
+        alt: "Compact grey bathroom with a simple basin, mirrored cabinet and toilet.",
       },
     ],
   }),
@@ -637,8 +711,12 @@ const bathroomSystemProducts: readonly InclusionProduct[] = [
     ],
     gallery: [
       {
-        src: "/images/inclusions/bathroom-systems/products/hd-bth-003-01.webp",
-        alt: "Warm contemporary bathroom with a double vanity, mirrored storage and integrated lighting.",
+        src: "/images/inclusions/bathroom-systems/products/hd-bth-003-02.webp",
+        alt: "Warm wood bathroom with a double vanity, freestanding bath and integrated mirror lighting.",
+      },
+      {
+        src: "/images/inclusions/bathroom-systems/products/hd-bth-003-03.webp",
+        alt: "Bright coordinated bathroom with a floating vanity, freestanding bath and glazed shower.",
       },
     ],
   }),
@@ -659,7 +737,11 @@ const bathroomSystemProducts: readonly InclusionProduct[] = [
     gallery: [
       {
         src: "/images/inclusions/bathroom-systems/products/hd-bth-005-01.webp",
-        alt: "Architectural white bathroom with a sculptural freestanding bath and dark fixtures.",
+        alt: "Layered resort bathroom with warm timber, stone surfaces and a sculptural basin.",
+      },
+      {
+        src: "/images/inclusions/bathroom-systems/products/hd-bth-005-02.webp",
+        alt: "Open resort bathroom with a sculptural stone bath, timber detailing and warm metal fixtures.",
       },
     ],
   }),
@@ -721,12 +803,6 @@ const bathroomVanityProducts: readonly InclusionProduct[] = [
       "Expanded mirror and counter planning",
       "Coordinated lighting provision subject to review",
       "Final layout, materials and plumbing coordination to be confirmed",
-    ],
-    gallery: [
-      {
-        src: "/images/inclusions/bathroom-vanities/products/hd-van-005-01.webp",
-        alt: "Bright bathroom with a long floating vanity, mirrored storage and a freestanding bath.",
-      },
     ],
   }),
 ];
@@ -815,7 +891,11 @@ const tileSurfaceProducts: readonly InclusionProduct[] = [
     gallery: [
       {
         src: "/images/inclusions/tile-surfaces/products/hd-til-001-01.webp",
-        alt: "Warm taupe stone-look surfaces in a contemporary kitchen and dining interior.",
+        alt: "Large pale porcelain-look floor tiles in a contemporary living room.",
+      },
+      {
+        src: "/images/inclusions/tile-surfaces/products/hd-til-001-02.webp",
+        alt: "Warm wood-look floor tiles across a bright residential entry.",
       },
     ],
   }),
@@ -836,7 +916,7 @@ const tileSurfaceProducts: readonly InclusionProduct[] = [
     gallery: [
       {
         src: "/images/inclusions/tile-surfaces/products/hd-til-003-01.webp",
-        alt: "Pale neutral large-format surfaces in a bright contemporary living room.",
+        alt: "Warm neutral stone-look surfaces across a refined kitchen and dining room.",
       },
     ],
   }),
@@ -857,7 +937,11 @@ const tileSurfaceProducts: readonly InclusionProduct[] = [
     gallery: [
       {
         src: "/images/inclusions/tile-surfaces/products/hd-til-005-01.webp",
-        alt: "Textured gray stone-look feature surface on a contemporary residence.",
+        alt: "Dark marble-look floor tiles with expressive pale veining.",
+      },
+      {
+        src: "/images/inclusions/tile-surfaces/products/hd-til-005-02.webp",
+        alt: "Handmade-look green feature tiles with subtle tonal variation.",
       },
     ],
   }),
@@ -881,7 +965,11 @@ const countertopProducts: readonly InclusionProduct[] = [
     gallery: [
       {
         src: "/images/inclusions/countertops/products/hd-ctr-001-01.webp",
-        alt: "Light stone-look kitchen countertop with an integrated sink and broad island surface.",
+        alt: "Aerial view of pale stone slabs arranged for selection and fabrication.",
+      },
+      {
+        src: "/images/inclusions/countertops/products/hd-ctr-001-03.webp",
+        alt: "Light stone surface with restrained warm movement in an interior application.",
       },
     ],
   }),
@@ -902,7 +990,15 @@ const countertopProducts: readonly InclusionProduct[] = [
     gallery: [
       {
         src: "/images/inclusions/countertops/products/hd-ctr-003-01.webp",
-        alt: "Warm light stone countertop across a large island in a dark wood kitchen.",
+        alt: "Softly veined light stone slab shown for countertop direction.",
+      },
+      {
+        src: "/images/inclusions/countertops/products/hd-ctr-003-02.webp",
+        alt: "Warm light stone countertop across a residential kitchen island.",
+      },
+      {
+        src: "/images/inclusions/countertops/products/hd-ctr-003-03.webp",
+        alt: "Warm translucent stone countertop paired with dark wood cabinetry.",
       },
     ],
   }),
@@ -923,7 +1019,15 @@ const countertopProducts: readonly InclusionProduct[] = [
     gallery: [
       {
         src: "/images/inclusions/countertops/products/hd-ctr-005-01.webp",
-        alt: "White kitchen island and counters with bold gray stone veining.",
+        alt: "Expressive pale stone slab with layered grey movement.",
+      },
+      {
+        src: "/images/inclusions/countertops/products/hd-ctr-005-02.webp",
+        alt: "Bright kitchen with a pale character stone countertop and integrated sink.",
+      },
+      {
+        src: "/images/inclusions/countertops/products/hd-ctr-005-03.webp",
+        alt: "Architectural kitchen with a character stone island and coordinated backsplash.",
       },
     ],
   }),
@@ -947,7 +1051,15 @@ const wallPanelProducts: readonly InclusionProduct[] = [
     gallery: [
       {
         src: "/images/inclusions/wall-panels/products/hd-wal-001-01.webp",
-        alt: "Warm light wall paneling with a restrained rectangular rhythm in a hallway.",
+        alt: "Dark painted wall paneling with a restrained rectangular rhythm in a hallway.",
+      },
+      {
+        src: "/images/inclusions/wall-panels/products/hd-wal-001-02.webp",
+        alt: "Pale hallway wall paneling with softly layered trim details.",
+      },
+      {
+        src: "/images/inclusions/wall-panels/products/hd-wal-001-03.webp",
+        alt: "White hallway wall paneling coordinated with dark flooring and doors.",
       },
     ],
   }),
@@ -989,7 +1101,15 @@ const wallPanelProducts: readonly InclusionProduct[] = [
     gallery: [
       {
         src: "/images/inclusions/wall-panels/products/hd-wal-005-01.webp",
-        alt: "Dark full-height wall paneling creating a strong architectural hallway feature.",
+        alt: "Layered full-height wall panels framing a refined bedroom composition.",
+      },
+      {
+        src: "/images/inclusions/wall-panels/products/hd-wal-005-02.webp",
+        alt: "Full-height warm wood wall panels across an architectural dining room.",
+      },
+      {
+        src: "/images/inclusions/wall-panels/products/hd-wal-005-03.webp",
+        alt: "Dark architectural wall panels with integrated doors and display lighting.",
       },
     ],
   }),
@@ -1015,6 +1135,14 @@ const lightingProducts: readonly InclusionProduct[] = [
         src: "/images/inclusions/lighting/products/hd-lgt-001-01.webp",
         alt: "Quiet white living room with soft daylight and a restrained feature floor light.",
       },
+      {
+        src: "/images/inclusions/lighting/products/hd-lgt-001-02.webp",
+        alt: "Neutral lounge with restrained ceiling lighting and soft ambient illumination.",
+      },
+      {
+        src: "/images/inclusions/lighting/products/hd-lgt-001-03.webp",
+        alt: "Contemporary residence showing a quiet exterior lighting direction.",
+      },
     ],
   }),
   preliminaryProduct({
@@ -1034,7 +1162,15 @@ const lightingProducts: readonly InclusionProduct[] = [
     gallery: [
       {
         src: "/images/inclusions/lighting/products/hd-lgt-003-01.webp",
-        alt: "Contemporary lounge with layered wall, floor and ambient lighting.",
+        alt: "Architectural residence with restrained facade and pathway lighting.",
+      },
+      {
+        src: "/images/inclusions/lighting/products/hd-lgt-003-02.webp",
+        alt: "Modern residence framed by soft landscape and architectural lighting.",
+      },
+      {
+        src: "/images/inclusions/lighting/products/hd-lgt-003-03.webp",
+        alt: "Refined living room with layered ceiling and sculptural feature lighting.",
       },
     ],
   }),
@@ -1055,7 +1191,15 @@ const lightingProducts: readonly InclusionProduct[] = [
     gallery: [
       {
         src: "/images/inclusions/lighting/products/hd-lgt-005-01.webp",
-        alt: "Architectural interior with integrated linear lighting and sculptural suspended fixtures.",
+        alt: "Architectural lounge with integrated wall lighting and sculptural feature fixtures.",
+      },
+      {
+        src: "/images/inclusions/lighting/products/hd-lgt-005-02.webp",
+        alt: "Layered hospitality interior with decorative pendants and wall lighting.",
+      },
+      {
+        src: "/images/inclusions/lighting/products/hd-lgt-005-03.webp",
+        alt: "Dramatic lounge with integrated vertical lighting and refined table lamps.",
       },
     ],
   }),
@@ -1081,6 +1225,14 @@ const applianceProducts: readonly InclusionProduct[] = [
         src: "/images/inclusions/appliances/products/hd-app-001-01.webp",
         alt: "Bright white kitchen with coordinated wall oven, cooktop and refrigeration.",
       },
+      {
+        src: "/images/inclusions/appliances/products/hd-app-001-02.webp",
+        alt: "Light wood kitchen with a restrained integrated appliance direction.",
+      },
+      {
+        src: "/images/inclusions/appliances/products/hd-app-001-03.webp",
+        alt: "Grey and white kitchen with coordinated cooking and cooling appliances.",
+      },
     ],
   }),
   preliminaryProduct({
@@ -1100,7 +1252,15 @@ const applianceProducts: readonly InclusionProduct[] = [
     gallery: [
       {
         src: "/images/inclusions/appliances/products/hd-app-003-01.webp",
-        alt: "Dark wood kitchen with coordinated refrigeration, range and wall appliances.",
+        alt: "White and walnut kitchen with coordinated built-in appliances.",
+      },
+      {
+        src: "/images/inclusions/appliances/products/hd-app-003-02.webp",
+        alt: "Soft beige kitchen with integrated cooking appliances and a broad island.",
+      },
+      {
+        src: "/images/inclusions/appliances/products/hd-app-003-03.webp",
+        alt: "Dark kitchen with integrated wall ovens, cooking surface and refrigeration.",
       },
     ],
   }),
@@ -1121,7 +1281,15 @@ const applianceProducts: readonly InclusionProduct[] = [
     gallery: [
       {
         src: "/images/inclusions/appliances/products/hd-app-005-01.webp",
-        alt: "Black kitchen with built-in wall ovens, concealed cooling and a central cooktop island.",
+        alt: "Architectural glass-fronted kitchen with fully integrated appliance planning.",
+      },
+      {
+        src: "/images/inclusions/appliances/products/hd-app-005-02.webp",
+        alt: "Dark open-plan kitchen with integrated appliances and a sculptural island.",
+      },
+      {
+        src: "/images/inclusions/appliances/products/hd-app-005-03.webp",
+        alt: "Full-height architectural kitchen with concealed appliances and an oversized island.",
       },
     ],
   }),
