@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
 import { ProductImageGallery } from "@/components/product-image-gallery";
+import { SelectableInclusionCard } from "@/components/selectable-inclusion-card";
 import {
   getInclusionPackage,
   inclusionCategories,
@@ -312,9 +313,19 @@ function CategorySection({
 
         {hasProducts ? (
           <div className="mt-12 grid gap-6 md:grid-cols-2 xl:mt-16 xl:grid-cols-3 xl:gap-8">
-            {category.products.map((product) => (
-              <ProductCard key={product.sku} product={product} />
-            ))}
+            {category.products.map((product) => {
+              if (product.choices?.length) {
+                return (
+                  <SelectableInclusionCard
+                    key={product.sku}
+                    product={product}
+                    inclusionPackage={getInclusionPackage(product.packageTier)}
+                  />
+                );
+              }
+
+              return <ProductCard key={product.sku} product={product} />;
+            })}
           </div>
         ) : (
           <div className="mt-6 grid min-h-32 border border-white/12 bg-[#0e1014] sm:mt-8 sm:grid-cols-[0.7fr_1.3fr] lg:mt-10">

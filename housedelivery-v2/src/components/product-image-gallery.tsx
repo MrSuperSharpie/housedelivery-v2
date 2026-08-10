@@ -10,27 +10,35 @@ type ProductImageGalleryProps = {
   images: readonly InclusionImage[];
   productName: string;
   productSku: string;
+  activeIndex?: number;
+  onActiveIndexChange?: (index: number) => void;
+  selectionLabels?: readonly string[];
 };
 
 export function ProductImageGallery({
   images,
   productName,
   productSku,
+  activeIndex: controlledActiveIndex,
+  onActiveIndexChange,
+  selectionLabels,
 }: ProductImageGalleryProps) {
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [internalActiveIndex, setInternalActiveIndex] = useState(0);
+  const activeIndex = controlledActiveIndex ?? internalActiveIndex;
   const activeImage = images[activeIndex] ?? images[0];
   const imageCount = images.length;
 
+  const selectImage = (index: number) => {
+    setInternalActiveIndex(index);
+    onActiveIndexChange?.(index);
+  };
+
   const showPreviousImage = () => {
-    setActiveIndex((currentIndex) =>
-      currentIndex === 0 ? imageCount - 1 : currentIndex - 1,
-    );
+    selectImage(activeIndex === 0 ? imageCount - 1 : activeIndex - 1);
   };
 
   const showNextImage = () => {
-    setActiveIndex((currentIndex) =>
-      currentIndex === imageCount - 1 ? 0 : currentIndex + 1,
-    );
+    selectImage(activeIndex === imageCount - 1 ? 0 : activeIndex + 1);
   };
 
   return (
@@ -79,9 +87,13 @@ export function ProductImageGallery({
               <button
                 key={image.src}
                 type="button"
-                onClick={() => setActiveIndex(index)}
+                onClick={() => selectImage(index)}
                 aria-current={index === activeIndex ? "true" : undefined}
-                aria-label={`Show image ${index + 1} of ${imageCount} for ${productName}`}
+                aria-label={
+                  selectionLabels?.[index]
+                    ? `Select ${selectionLabels[index]}`
+                    : `Show image ${index + 1} of ${imageCount} for ${productName}`
+                }
                 className="group flex size-11 items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-white"
               >
                 <span
