@@ -88,26 +88,28 @@ function ProductCard({ product }: { product: InclusionProduct }) {
           </p>
         </div>
 
-        <div className="mt-10 border-t border-white/10 pt-6">
-          <h4 className="text-[9px] font-semibold uppercase tracking-[0.19em] text-white/60">
-            {product.specificationsHeading ?? "Listed specification"}
-          </h4>
-          <ul className="mt-5 space-y-3">
-            {product.specifications.map((specification) => (
-              <li
-                key={specification}
-                className="flex gap-3 text-sm leading-6 text-white/58"
-              >
-                <Check
-                  aria-hidden="true"
-                  className="mt-1 size-3.5 shrink-0 text-white/38"
-                  strokeWidth={1.5}
-                />
-                <span>{specification}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+        {product.specifications.length > 0 ? (
+          <div className="mt-10 border-t border-white/10 pt-6">
+            <h4 className="text-[9px] font-semibold uppercase tracking-[0.19em] text-white/60">
+              {product.specificationsHeading ?? "Listed specification"}
+            </h4>
+            <ul className="mt-5 space-y-3">
+              {product.specifications.map((specification) => (
+                <li
+                  key={specification}
+                  className="flex gap-3 text-sm leading-6 text-white/58"
+                >
+                  <Check
+                    aria-hidden="true"
+                    className="mt-1 size-3.5 shrink-0 text-white/38"
+                    strokeWidth={1.5}
+                  />
+                  <span>{specification}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
 
         <dl className="mt-10 grid grid-cols-2 border-l border-t border-white/10 text-sm">
           <div className="min-h-28 border-b border-r border-white/10 p-4">

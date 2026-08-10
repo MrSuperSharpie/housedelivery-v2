@@ -1035,83 +1035,123 @@ const countertopProducts: readonly InclusionProduct[] = [
 
 const wallPanelProducts: readonly InclusionProduct[] = [
   preliminaryProduct({
-    sku: "HD-WAL-001",
-    name: "Warm Flat Wall Panel",
+    sku: "HD-WAL-001-01",
+    name: "Light Oak Linear",
     packageTier: "essential",
     category: "Interior Wall Panels",
     customerDescription:
-      "A restrained light wall-panel direction that adds warmth and quiet order to entries, halls and selected living areas. Its lower-profile expression is intended to sit comfortably within a broad neutral palette.",
-    specifications: [
-      "Light warm panel-field direction",
-      "Restrained rectangular rhythm",
-      "Quiet lower-wall application shown",
-      "Coordinated trim and wall colour planning",
-      "Final profile, material and installation layout to be confirmed",
-    ],
-    gallery: [
-      {
-        src: "/images/inclusions/wall-panels/products/hd-wal-001-01.webp",
-        alt: "Dark painted wall paneling with a restrained rectangular rhythm in a hallway.",
-      },
-      {
-        src: "/images/inclusions/wall-panels/products/hd-wal-001-02.webp",
-        alt: "Pale hallway wall paneling with softly layered trim details.",
-      },
-      {
-        src: "/images/inclusions/wall-panels/products/hd-wal-001-03.webp",
-        alt: "White hallway wall paneling coordinated with dark flooring and doors.",
-      },
-    ],
+      "A clean light-oak and white wall-panel composition with integrated display and media storage.",
+    specifications: [],
+    image: {
+      src: "/images/inclusions/wall-panels/products/hd-interior-wall-panel-essential-01-modern-series.jpg",
+      alt: "Light Oak Linear interior wall-panel design",
+    },
   }),
   preliminaryProduct({
-    sku: "HD-WAL-003",
-    name: "Vertical Slat Wall Panel",
+    sku: "HD-WAL-001-02",
+    name: "Graphite Ribbon",
+    packageTier: "essential",
+    category: "Interior Wall Panels",
+    customerDescription:
+      "A modern composition of dark linear woodgrain, light cabinetry and a restrained colour accent.",
+    specifications: [],
+    image: {
+      src: "/images/inclusions/wall-panels/products/hd-interior-wall-panel-essential-02-moss-series.png",
+      alt: "Graphite Ribbon interior wall-panel design",
+    },
+  }),
+  preliminaryProduct({
+    sku: "HD-WAL-001-03",
+    name: "Warm Oak Calm",
+    packageTier: "essential",
+    category: "Interior Wall Panels",
+    customerDescription:
+      "Warm vertical woodgrain panels that create a calm, continuous bedroom backdrop.",
+    specifications: [],
+    image: {
+      src: "/images/inclusions/wall-panels/products/hd-interior-wall-panel-essential-03-quiet-home-series.png",
+      alt: "Warm Oak Calm interior wall-panel design",
+    },
+  }),
+  preliminaryProduct({
+    sku: "HD-WAL-003-01",
+    name: "Soft Arch",
     packageTier: "premium",
     category: "Interior Wall Panels",
     customerDescription:
-      "A warmer vertical panel direction with a measured rhythm and greater material presence. The repeated lines add controlled texture without overwhelming the surrounding architecture.",
-    specifications: [
-      "Warm wood visual direction",
-      "Vertical repeating rhythm",
-      "Controlled texture and shadow",
-      "Selected wall application",
-      "Final profile, material and site layout to be confirmed",
-    ],
-    gallery: [
-      {
-        src: "/images/inclusions/wall-panels/products/hd-wal-003-01.webp",
-        alt: "Warm vertical wood wall panels with integrated display details.",
-      },
-    ],
+      "A soft-toned panel composition with arched detailing and integrated shelving.",
+    specifications: [],
+    image: {
+      src: "/images/inclusions/wall-panels/products/hd-interior-wall-panel-premium-01-antei-series.jpg",
+      alt: "Soft Arch interior wall-panel design",
+    },
   }),
   preliminaryProduct({
-    sku: "HD-WAL-005",
-    name: "Architectural Feature Panel",
+    sku: "HD-WAL-003-02",
+    name: "Sage Classic",
+    packageTier: "premium",
+    category: "Interior Wall Panels",
+    customerDescription:
+      "A refined painted-panel composition with moulding, glazed display elements and built-in storage.",
+    specifications: [],
+    image: {
+      src: "/images/inclusions/wall-panels/products/hd-interior-wall-panel-premium-02-libo-series.jpg",
+      alt: "Sage Classic interior wall-panel design",
+    },
+  }),
+  preliminaryProduct({
+    sku: "HD-WAL-003-03",
+    name: "Walnut Heritage",
+    packageTier: "premium",
+    category: "Interior Wall Panels",
+    customerDescription:
+      "Rich walnut-style wall panels with traditional detailing and integrated media cabinetry.",
+    specifications: [],
+    image: {
+      src: "/images/inclusions/wall-panels/products/hd-interior-wall-panel-premium-03-downton-series.png",
+      alt: "Walnut Heritage interior wall-panel design",
+    },
+  }),
+  preliminaryProduct({
+    sku: "HD-WAL-005-01",
+    name: "Stone Gallery",
     packageTier: "signature",
     category: "Interior Wall Panels",
     customerDescription:
-      "A deeper architectural panel direction intended to give selected rooms or circulation areas a deliberate sense of proportion, depth and shadow. The full-height composition makes the wall a more prominent interior element.",
-    specifications: [
-      "Full-height feature-panel composition",
-      "Deeper tonal direction",
-      "Stronger architectural rhythm and shadow",
-      "Selected focal-wall application",
-      "Final profile, material and installation layout to be confirmed",
-    ],
-    gallery: [
-      {
-        src: "/images/inclusions/wall-panels/products/hd-wal-005-01.webp",
-        alt: "Layered full-height wall panels framing a refined bedroom composition.",
-      },
-      {
-        src: "/images/inclusions/wall-panels/products/hd-wal-005-02.webp",
-        alt: "Full-height warm wood wall panels across an architectural dining room.",
-      },
-      {
-        src: "/images/inclusions/wall-panels/products/hd-wal-005-03.webp",
-        alt: "Dark architectural wall panels with integrated doors and display lighting.",
-      },
-    ],
+      "A layered veneer-style composition with dark display towers and a stone-look media feature.",
+    specifications: [],
+    image: {
+      src: "/images/inclusions/wall-panels/products/hd-interior-wall-panel-signature-01-mulan-series.png",
+      alt: "Stone Gallery interior wall-panel design",
+    },
+  }),
+  preliminaryProduct({
+    sku: "HD-WAL-005-02",
+    name: "Architectural Walnut",
+    packageTier: "signature",
+    category: "Interior Wall Panels",
+    customerDescription:
+      "An architectural veneer-style wall system with full-height storage, integrated shelving and warm accent lighting.",
+    specifications: [],
+    image: {
+      src: "/images/inclusions/wall-panels/products/hd-interior-wall-panel-signature-02-cloud-series.png",
+      alt: "Architectural Walnut interior wall-panel design",
+      fit: "contain",
+    },
+  }),
+  preliminaryProduct({
+    sku: "HD-WAL-005-03",
+    name: "Grand Walnut",
+    packageTier: "signature",
+    category: "Interior Wall Panels",
+    customerDescription:
+      "A large-format natural-wood statement wall with coordinated storage and architectural lighting.",
+    specifications: [],
+    image: {
+      src: "/images/inclusions/wall-panels/products/hd-interior-wall-panel-signature-03-classic-series.png",
+      alt: "Grand Walnut interior wall-panel design",
+      fit: "contain",
+    },
   }),
 ];
 
