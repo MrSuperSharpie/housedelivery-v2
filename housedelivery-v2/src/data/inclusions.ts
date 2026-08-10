@@ -457,84 +457,115 @@ const wardrobeProducts: readonly InclusionProduct[] = [
 const interiorDoorProducts: readonly InclusionProduct[] = [
   preliminaryProduct({
     sku: "HD-IDR-001",
-    name: "Quiet Flush Interior Door",
+    name: "Linear White",
     packageTier: "essential",
     category: "Interior Doors",
     customerDescription:
-      "A quiet, minimal interior-door direction in a warm white or greige expression. It provides a restrained baseline that coordinates easily with flooring, trim and wall finishes.",
-    specifications: [
-      "Warm white or greige visual direction",
-      "Minimal-profile appearance",
-      "Quiet frame and trim coordination",
-      "Designed for broad interior coordination",
-      "Final material, configuration and performance specifications to be confirmed",
-    ],
-    gallery: [
+      "A crisp white interior door with restrained linear detailing for a clean contemporary finish.",
+    specifications: [],
+    choices: [
       {
-        src: "/images/inclusions/interior-doors/products/hd-idr-001-01.webp",
-        alt: "Greige panelled interior door coordinated with matching wall cabinetry.",
+        name: "Linear White",
+        customerDescription:
+          "A crisp white interior door with restrained linear detailing for a clean contemporary finish.",
+        image: {
+          src: "/images/inclusions/interior-doors/products/hd-interior-door-essential-01-linear-white.jpg",
+          alt: "Linear White contemporary interior door",
+        },
       },
       {
-        src: "/images/inclusions/interior-doors/products/hd-idr-001-02.webp",
-        alt: "Dark wood interior door in a bright minimal room.",
+        name: "Quiet Frame",
+        customerDescription:
+          "A white interior door with a slim inset frame and understated profile for calm modern spaces.",
+        image: {
+          src: "/images/inclusions/interior-doors/products/hd-interior-door-essential-02-quiet-frame.jpg",
+          alt: "Quiet Frame white interior door with slim inset detail",
+        },
       },
       {
-        src: "/images/inclusions/interior-doors/products/hd-idr-001-03.webp",
-        alt: "Warm wood interior door in a softly lit living space.",
+        name: "Offset Line",
+        customerDescription:
+          "A white interior door with asymmetric linear detailing that adds subtle architectural character.",
+        image: {
+          src: "/images/inclusions/interior-doors/products/hd-interior-door-essential-03-offset-line.jpg",
+          alt: "Offset Line white interior door with asymmetric detailing",
+        },
       },
     ],
   }),
   preliminaryProduct({
     sku: "HD-IDR-003",
-    name: "Natural Wood Interior Door",
+    name: "Soft Panel",
     packageTier: "premium",
     category: "Interior Doors",
     customerDescription:
-      "A natural wood interior-door direction with restrained detailing and a warmer material presence. It adds depth while remaining calm enough to coordinate with upgraded interior finishes.",
-    specifications: [
-      "Light natural wood appearance",
-      "Restrained panel detail direction",
-      "Warm tonal coordination",
-      "Coordinated frame and hardware approach",
-      "Final material, configuration and performance specifications to be confirmed",
-    ],
-    gallery: [
+      "A softly profiled white interior door with a refined perimeter detail and understated transitional character.",
+    specifications: [],
+    choices: [
       {
-        src: "/images/inclusions/interior-doors/products/hd-idr-003-01.webp",
-        alt: "Dark flush interior door with restrained panel detailing.",
+        name: "Soft Panel",
+        customerDescription:
+          "A softly profiled white interior door with a refined perimeter detail and understated transitional character.",
+        image: {
+          src: "/images/inclusions/interior-doors/products/hd-interior-door-premium-01-soft-panel.jpg",
+          alt: "Soft Panel white transitional interior door",
+        },
       },
       {
-        src: "/images/inclusions/interior-doors/products/hd-idr-003-02.webp",
-        alt: "White panelled interior door in a refined neutral room.",
+        name: "Natural Oak Line",
+        customerDescription:
+          "A warm oak-look interior door with vertical grain and slim linear accents for a tailored contemporary appearance.",
+        image: {
+          src: "/images/inclusions/interior-doors/products/hd-interior-door-premium-02-natural-oak-line.jpg",
+          alt: "Natural Oak Line contemporary interior door",
+        },
+      },
+      {
+        name: "Reeded Oak",
+        customerDescription:
+          "A warm wood-look interior door with fine vertical texture and a composed architectural profile.",
+        image: {
+          src: "/images/inclusions/interior-doors/products/hd-interior-door-premium-03-reeded-oak.jpg",
+          alt: "Reeded Oak interior door with vertical texture",
+        },
       },
     ],
   }),
   preliminaryProduct({
     sku: "HD-IDR-005",
-    name: "Dark Feature Interior Door",
+    name: "Classic White Panel",
     packageTier: "signature",
     category: "Interior Doors",
     customerDescription:
-      "A darker feature-door direction intended to contribute more deliberately to the interior composition. The deeper tone and framed profile create a controlled architectural accent.",
-    specifications: [
-      "Dark feature finish direction",
-      "Stronger framed profile",
-      "Architectural focal-point expression",
-      "Project-specific frame and hardware review",
-      "Final material, configuration and performance specifications to be confirmed",
-    ],
-    gallery: [
+      "A painted white interior door with layered raised-panel detailing for a confident traditional statement.",
+    specifications: [],
+    choices: [
       {
-        src: "/images/inclusions/interior-doors/products/hd-idr-005-01.webp",
-        alt: "Minimal pivot door set into a pale architectural wall.",
+        name: "Classic White Panel",
+        customerDescription:
+          "A painted white interior door with layered raised-panel detailing for a confident traditional statement.",
+        image: {
+          src: "/images/inclusions/interior-doors/products/hd-interior-door-signature-01-classic-white-panel.jpg",
+          alt: "Classic White Panel traditional interior door",
+        },
       },
       {
-        src: "/images/inclusions/interior-doors/products/hd-idr-005-02.webp",
-        alt: "Dark stone-look feature door in a contemporary interior.",
+        name: "Heritage Arch",
+        customerDescription:
+          "A painted interior door with an arched glazed-look centre panel and layered lower-panel detailing.",
+        image: {
+          src: "/images/inclusions/interior-doors/products/hd-interior-door-signature-02-heritage-arch.jpg",
+          alt: "Heritage Arch interior door with arched centre panel",
+        },
       },
       {
-        src: "/images/inclusions/interior-doors/products/hd-idr-005-03.webp",
-        alt: "Full-height warm wood feature doors across an architectural wall.",
+        name: "Gallery Taupe",
+        customerDescription:
+          "A warm taupe interior door with sculpted panel detailing for a quiet, elevated architectural finish.",
+        image: {
+          src: "/images/inclusions/interior-doors/products/hd-interior-door-signature-03-gallery-taupe.jpg",
+          alt: "Gallery Taupe interior door with sculpted panel detailing",
+        },
       },
     ],
   }),
