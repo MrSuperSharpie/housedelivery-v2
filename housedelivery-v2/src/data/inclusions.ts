@@ -247,99 +247,121 @@ export const inclusionProducts: readonly InclusionProduct[] = [
 ];
 
 const kitchenCabinetryProducts: readonly InclusionProduct[] = [
-  {
+  preliminaryProduct({
     sku: "HD-KIT-001",
-    name: "Modern Modular Cabinetry",
+    name: "Light Oak Studio",
     packageTier: "essential",
     category: "Kitchen Cabinetry",
     customerDescription:
-      "A clean, practical cabinetry system designed around repeatable layouts, efficient storage and a restrained contemporary finish. Modular configurations support both compact and larger kitchens while keeping the overall interior language simple and coordinated.",
-    specifications: [
-      "Modular cabinetry system",
-      "Slab and simplified door-front options",
-      "Adjustable interior storage",
-      "Neutral and woodgrain finish options",
-      "Integrated storage accessories available",
-      "Final hardware and material specification subject to confirmation",
-    ],
-    selectionStatus: preliminarySelection,
-    sampleRequired: true,
-    technicalReviewRequired: true,
-    projectSpecificApprovalRequired: true,
-    availability: projectAvailability,
-    gallery: [
+      "Clean flat-panel cabinetry in white and light oak tones, coordinated with open display shelving for a warm contemporary kitchen.",
+    specifications: [],
+    choices: [
       {
-        src: "/images/inclusions/kitchen-cabinetry/products/hd-kit-001-01.webp",
-        alt: "White slab-front cabinetry with stone-clad island panels and a dining extension.",
+        name: "Light Oak Studio",
+        customerDescription:
+          "Clean flat-panel cabinetry in white and light oak tones, coordinated with open display shelving for a warm contemporary kitchen.",
+        image: {
+          src: "/images/inclusions/kitchen-cabinetry/products/hd-kitchen-cabinetry-essential-01-light-oak-studio.jpg",
+          alt: "Light Oak Studio kitchen cabinetry composition",
+        },
+      },
+      {
+        name: "Coastal Blue",
+        customerDescription:
+          "White flat-panel base cabinetry with blue overhead fronts, light wood accents and open shelving for a crisp modern composition.",
+        image: {
+          src: "/images/inclusions/kitchen-cabinetry/products/hd-kitchen-cabinetry-essential-02-coastal-blue.jpg",
+          alt: "Coastal Blue kitchen cabinetry composition",
+        },
+      },
+      {
+        name: "Natural Oak Loft",
+        customerDescription:
+          "Pale oak cabinetry, quiet neutral storage walls and an island with open display space for a calm, architectural look.",
+        image: {
+          src: "/images/inclusions/kitchen-cabinetry/products/hd-kitchen-cabinetry-essential-03-natural-oak-loft.jpg",
+          alt: "Natural Oak Loft kitchen cabinetry composition",
+        },
       },
     ],
-  },
-  {
+  }),
+  preliminaryProduct({
     sku: "HD-KIT-003",
-    name: "Refined Integrated Cabinetry",
+    name: "Soft Ivory Classic",
     packageTier: "premium",
     category: "Kitchen Cabinetry",
     customerDescription:
-      "A more refined cabinetry package combining warm material tones, cleaner detailing and expanded storage options. Designed to coordinate naturally with upgraded countertops, appliances and lighting while maintaining a disciplined, architectural appearance.",
-    specifications: [
-      "Modular cabinetry system",
-      "Upgraded finish combinations",
-      "Integrated storage configurations",
-      "Slab and contemporary front styles",
-      "Interior organizer options",
-      "Final hardware and material specification subject to confirmation",
-    ],
-    selectionStatus: preliminarySelection,
-    sampleRequired: true,
-    technicalReviewRequired: true,
-    projectSpecificApprovalRequired: true,
-    availability: projectAvailability,
-    gallery: [
+      "Soft ivory framed cabinetry with arched glazed displays and refined decorative detailing for a light transitional kitchen.",
+    specifications: [],
+    choices: [
       {
-        src: "/images/inclusions/kitchen-cabinetry/products/hd-kit-003-01.webp",
-        alt: "Dark slab-front cabinetry with woodgrain tall units, stone backsplash and a central island.",
+        name: "Soft Ivory Classic",
+        customerDescription:
+          "Soft ivory framed cabinetry with arched glazed displays and refined decorative detailing for a light transitional kitchen.",
+        image: {
+          src: "/images/inclusions/kitchen-cabinetry/products/hd-kitchen-cabinetry-premium-01-soft-ivory-classic.jpg",
+          alt: "Soft Ivory Classic kitchen cabinetry composition",
+        },
       },
       {
-        src: "/images/inclusions/kitchen-cabinetry/products/hd-kit-003-02.webp",
-        alt: "Light gray cabinetry with illuminated display shelves, stone worktops and a window-side sink.",
+        name: "Sage Arch",
+        customerDescription:
+          "A balanced composition of soft neutral cabinetry, muted sage feature fronts, arched glazing and a coordinated island.",
+        image: {
+          src: "/images/inclusions/kitchen-cabinetry/products/hd-kitchen-cabinetry-premium-02-sage-arch.jpg",
+          alt: "Sage Arch kitchen cabinetry composition",
+        },
+      },
+      {
+        name: "Heritage Walnut",
+        customerDescription:
+          "Deep walnut-toned framed cabinetry with glazed display elements and layered traditional detailing.",
+        image: {
+          src: "/images/inclusions/kitchen-cabinetry/products/hd-kitchen-cabinetry-premium-03-heritage-walnut.jpg",
+          alt: "Heritage Walnut kitchen cabinetry composition",
+        },
       },
     ],
-  },
-  {
+  }),
+  preliminaryProduct({
     sku: "HD-KIT-005",
-    name: "Architectural Kitchen Cabinetry",
+    name: "Smoked Oak Atelier",
     packageTier: "signature",
     category: "Kitchen Cabinetry",
     customerDescription:
-      "A higher-touch cabinetry expression with stronger material contrast, integrated detailing and a more bespoke visual character. Intended for kitchens where cabinetry becomes part of the architectural composition rather than simply a storage system.",
-    specifications: [
-      "Architectural cabinetry composition",
-      "Layered material and finish options",
-      "Integrated storage solutions",
-      "Contemporary door-front configurations",
-      "Coordinated island and full-height cabinetry options",
-      "Final materials, hardware and configuration subject to project review",
+      "A full-height dark and smoked-oak cabinetry composition with open display shelving and a dramatic stone-look feature surface.",
+    specifications: [],
+    choices: [
+      {
+        name: "Smoked Oak Atelier",
+        customerDescription:
+          "A full-height dark and smoked-oak cabinetry composition with open display shelving and a dramatic stone-look feature surface.",
+        image: {
+          src: "/images/inclusions/kitchen-cabinetry/products/hd-kitchen-cabinetry-signature-01-smoked-oak-atelier.jpg",
+          alt: "Smoked Oak Atelier kitchen cabinetry composition",
+        },
+      },
+      {
+        name: "Luminous Oak Gallery",
+        customerDescription:
+          "Pale oak cabinetry with glass-front display storage, warm feature lighting and a coordinated central island.",
+        image: {
+          src: "/images/inclusions/kitchen-cabinetry/products/hd-kitchen-cabinetry-signature-02-luminous-oak-gallery.jpg",
+          alt: "Luminous Oak Gallery kitchen cabinetry composition",
+        },
+      },
+      {
+        name: "Walnut Social Kitchen",
+        customerDescription:
+          "A large-format walnut cabinetry wall with full-height storage, an open preparation niche and an integrated dining zone.",
+        image: {
+          src: "/images/inclusions/kitchen-cabinetry/products/hd-kitchen-cabinetry-signature-03-walnut-social-kitchen.png",
+          alt: "Walnut Social Kitchen kitchen cabinetry composition",
+          fit: "contain",
+        },
+      },
     ],
-    selectionStatus: preliminarySelection,
-    sampleRequired: true,
-    technicalReviewRequired: true,
-    projectSpecificApprovalRequired: true,
-    availability: projectAvailability,
-    gallery: [
-      {
-        src: "/images/inclusions/kitchen-cabinetry/products/hd-kit-005-01.webp",
-        alt: "Layered gray and woodgrain cabinetry with illuminated display cabinets and integrated appliances.",
-      },
-      {
-        src: "/images/inclusions/kitchen-cabinetry/products/hd-kit-005-02.webp",
-        alt: "Woodgrain and white cabinetry with illuminated glass storage and two contrasting islands.",
-      },
-      {
-        src: "/images/inclusions/kitchen-cabinetry/products/hd-kit-005-03.webp",
-        alt: "Dark full-height cabinetry with a dramatic stone backsplash and coordinated dining island.",
-      },
-    ],
-  },
+  }),
 ];
 
 const wardrobeProducts: readonly InclusionProduct[] = [
