@@ -1042,12 +1042,20 @@ const countertopProducts: readonly InclusionProduct[] = [
     ],
     gallery: [
       {
-        src: "/images/inclusions/countertops/products/hd-ctr-001-01.webp",
-        alt: "Aerial view of pale stone slabs arranged for selection and fabrication.",
+        src: "/images/inclusions/countertops/products/hd-countertops-essential-01.jpg",
+        alt: "Warm-toned quartz countertop in a compact modern kitchen",
       },
       {
-        src: "/images/inclusions/countertops/products/hd-ctr-001-03.webp",
-        alt: "Light stone surface with restrained warm movement in an interior application.",
+        src: "/images/inclusions/countertops/products/hd-countertops-essential-02.jpg",
+        alt: "Warm-toned quartz countertop shown from a second kitchen angle",
+      },
+      {
+        src: "/images/inclusions/countertops/products/hd-countertops-essential-03.jpg",
+        alt: "Grey quartz countertop in a wood-finish kitchen",
+      },
+      {
+        src: "/images/inclusions/countertops/products/hd-countertops-essential-04.jpg",
+        alt: "Light grey quartz countertop in a compact kitchen",
       },
     ],
   }),
@@ -1067,16 +1075,16 @@ const countertopProducts: readonly InclusionProduct[] = [
     ],
     gallery: [
       {
-        src: "/images/inclusions/countertops/products/hd-ctr-003-01.webp",
-        alt: "Softly veined light stone slab shown for countertop direction.",
+        src: "/images/inclusions/countertops/products/hd-countertops-premium-01.jpg",
+        alt: "White quartz island countertop in a classic kitchen",
       },
       {
-        src: "/images/inclusions/countertops/products/hd-ctr-003-02.webp",
-        alt: "Warm light stone countertop across a residential kitchen island.",
+        src: "/images/inclusions/countertops/products/hd-countertops-premium-02.jpg",
+        alt: "Veined white quartz island countertop in a traditional kitchen",
       },
       {
-        src: "/images/inclusions/countertops/products/hd-ctr-003-03.webp",
-        alt: "Warm translucent stone countertop paired with dark wood cabinetry.",
+        src: "/images/inclusions/countertops/products/hd-countertops-premium-03.jpg",
+        alt: "Close view of a veined white quartz countertop and sink",
       },
     ],
   }),
@@ -1096,16 +1104,16 @@ const countertopProducts: readonly InclusionProduct[] = [
     ],
     gallery: [
       {
-        src: "/images/inclusions/countertops/products/hd-ctr-005-01.webp",
-        alt: "Expressive pale stone slab with layered grey movement.",
+        src: "/images/inclusions/countertops/products/hd-countertops-signature-01.jpg",
+        alt: "Veined white quartz island countertop in a dark contemporary kitchen",
       },
       {
-        src: "/images/inclusions/countertops/products/hd-ctr-005-02.webp",
-        alt: "Bright kitchen with a pale character stone countertop and integrated sink.",
+        src: "/images/inclusions/countertops/products/hd-countertops-signature-02.jpg",
+        alt: "Veined white quartz island countertop shown from a second angle",
       },
       {
-        src: "/images/inclusions/countertops/products/hd-ctr-005-03.webp",
-        alt: "Architectural kitchen with a character stone island and coordinated backsplash.",
+        src: "/images/inclusions/countertops/products/hd-countertops-signature-03.jpg",
+        alt: "White quartz countertops wrapping a contemporary kitchen",
       },
     ],
   }),
