@@ -367,59 +367,77 @@ const kitchenCabinetryProducts: readonly InclusionProduct[] = [
 const wardrobeProducts: readonly InclusionProduct[] = [
   preliminaryProduct({
     sku: "HD-WRD-001",
-    name: "Light Integrated Wardrobe",
+    name: "Seamless White Suite",
     packageTier: "essential",
     category: "Wardrobes",
     customerDescription:
-      "A practical wardrobe direction organized around everyday hanging, shelving and drawer storage. Its light, restrained expression is intended to coordinate easily with the wider interior finish palette.",
-    specifications: [
-      "Balanced hanging, shelf and drawer arrangement",
-      "Light neutral finish direction",
-      "Modular storage planning",
-      "Designed for broad interior coordination",
-      "Final dimensions, materials and hardware to be confirmed",
-    ],
-    gallery: [
+      "A full-height white wardrobe composition with flush fronts and concealed storage for a calm, integrated bedroom.",
+    specifications: [],
+    choices: [
       {
-        src: "/images/inclusions/wardrobes/products/hd-wrd-001-01.webp",
-        alt: "Reach-in wardrobe with light oak cabinets, hanging space and drawers.",
+        name: "Seamless White Suite",
+        customerDescription:
+          "A full-height white wardrobe composition with flush fronts and concealed storage for a calm, integrated bedroom.",
+        image: {
+          src: "/images/inclusions/wardrobes/products/hd-wardrobe-essential-01-seamless-white-suite.jpg",
+          alt: "Seamless White Suite full-height fitted wardrobe in a bright bedroom",
+        },
       },
       {
-        src: "/images/inclusions/wardrobes/products/hd-wrd-001-02.webp",
-        alt: "Small bedroom reach-in wardrobe with open shelving and drawers.",
+        name: "Gallery White",
+        customerDescription:
+          "A clean white wardrobe composition with open display shelving, dark accents and a central glass-fronted storage tower.",
+        image: {
+          src: "/images/inclusions/wardrobes/products/hd-wardrobe-essential-02-gallery-white.jpg",
+          alt: "Gallery White wardrobe with display shelving and central glass-fronted storage",
+        },
       },
       {
-        src: "/images/inclusions/wardrobes/products/hd-wrd-001-03.webp",
-        alt: "Compact white wardrobe with mirrored doors and organized shelving.",
+        name: "Open Frame Studio",
+        customerDescription:
+          "An open wardrobe system with warm wood tones, illuminated rails, shelving and dedicated accessory storage.",
+        image: {
+          src: "/images/inclusions/wardrobes/products/hd-wardrobe-essential-03-open-frame-studio.jpg",
+          alt: "Open Frame Studio wardrobe with rails, shelving and accessory storage",
+        },
       },
     ],
   }),
   preliminaryProduct({
     sku: "HD-WRD-003",
-    name: "Warm Architectural Wardrobe",
+    name: "Ivory Framed Suite",
     packageTier: "premium",
     category: "Wardrobes",
     customerDescription:
-      "A more integrated wardrobe expression with enclosed fronts, illuminated display areas and a warmer sense of depth. Intended to support upgraded bedrooms while maintaining a calm architectural character.",
-    specifications: [
-      "Integrated open and enclosed storage direction",
-      "Layered neutral finish palette",
-      "Display and hanging zones",
-      "Coordinated lighting provision subject to review",
-      "Final configuration, finishes and hardware to be confirmed",
-    ],
-    gallery: [
+      "A full-height ivory wardrobe with framed doors, integrated drawers, display niches and softly lit glass-fronted sections.",
+    specifications: [],
+    choices: [
       {
-        src: "/images/inclusions/wardrobes/products/hd-wrd-003-01.webp",
-        alt: "Natural wood bedroom wardrobe with panelled doors and coordinated drawers.",
+        name: "Ivory Framed Suite",
+        customerDescription:
+          "A full-height ivory wardrobe with framed doors, integrated drawers, display niches and softly lit glass-fronted sections.",
+        image: {
+          src: "/images/inclusions/wardrobes/products/hd-wardrobe-premium-01-ivory-framed-suite.jpg",
+          alt: "Ivory Framed Suite wardrobe with drawers, display niches and glass-fronted sections",
+        },
       },
       {
-        src: "/images/inclusions/wardrobes/products/hd-wrd-003-02.webp",
-        alt: "Matte white walk-in wardrobe with illuminated open storage.",
+        name: "Reeded Glass Gallery",
+        customerDescription:
+          "A refined pale wardrobe composition combining framed doors, reeded-glass display sections and integrated bedside storage.",
+        image: {
+          src: "/images/inclusions/wardrobes/products/hd-wardrobe-premium-02-reeded-glass-gallery.jpg",
+          alt: "Reeded Glass Gallery pale wardrobe with framed doors and integrated bedside storage",
+        },
       },
       {
-        src: "/images/inclusions/wardrobes/products/hd-wrd-003-03.webp",
-        alt: "Wall-to-wall matte grey wardrobe with concealed and open storage.",
+        name: "Heritage Walnut",
+        customerDescription:
+          "A deep walnut-toned wardrobe wall with traditional panel detailing, illuminated display storage and an integrated bedroom composition.",
+        image: {
+          src: "/images/inclusions/wardrobes/products/hd-wardrobe-premium-03-heritage-walnut.jpg",
+          alt: "Heritage Walnut traditional wardrobe wall with illuminated display storage",
+        },
       },
     ],
   }),
