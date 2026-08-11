@@ -842,8 +842,16 @@ const bathroomVanityProducts: readonly InclusionProduct[] = [
     ],
     gallery: [
       {
-        src: "/images/inclusions/bathroom-vanities/products/hd-van-001-01.webp",
-        alt: "Warm wood floating bathroom vanity with two illuminated mirrors.",
+        src: "/images/inclusions/bathroom-vanities/products/hd-bathroom-vanity-essential-01.png",
+        alt: "Essential bathroom vanity option 1",
+      },
+      {
+        src: "/images/inclusions/bathroom-vanities/products/hd-bathroom-vanity-essential-02.png",
+        alt: "Essential bathroom vanity option 2",
+      },
+      {
+        src: "/images/inclusions/bathroom-vanities/products/hd-bathroom-vanity-essential-03.png",
+        alt: "Essential bathroom vanity option 3",
       },
     ],
   }),
@@ -863,8 +871,16 @@ const bathroomVanityProducts: readonly InclusionProduct[] = [
     ],
     gallery: [
       {
-        src: "/images/inclusions/bathroom-vanities/products/hd-van-003-01.webp",
-        alt: "Double bathroom vanity with arched illuminated mirrors and light stone-look wall panels.",
+        src: "/images/inclusions/bathroom-vanities/products/hd-bathroom-vanity-premium-01.png",
+        alt: "Premium bathroom vanity option 1",
+      },
+      {
+        src: "/images/inclusions/bathroom-vanities/products/hd-bathroom-vanity-premium-02.png",
+        alt: "Premium bathroom vanity option 2",
+      },
+      {
+        src: "/images/inclusions/bathroom-vanities/products/hd-bathroom-vanity-premium-03.png",
+        alt: "Premium bathroom vanity option 3",
       },
     ],
   }),
@@ -881,6 +897,20 @@ const bathroomVanityProducts: readonly InclusionProduct[] = [
       "Expanded mirror and counter planning",
       "Coordinated lighting provision subject to review",
       "Final layout, materials and plumbing coordination to be confirmed",
+    ],
+    gallery: [
+      {
+        src: "/images/inclusions/bathroom-vanities/products/hd-bathroom-vanity-signature-01.png",
+        alt: "Signature bathroom vanity option 1",
+      },
+      {
+        src: "/images/inclusions/bathroom-vanities/products/hd-bathroom-vanity-signature-02.png",
+        alt: "Signature bathroom vanity option 2",
+      },
+      {
+        src: "/images/inclusions/bathroom-vanities/products/hd-bathroom-vanity-signature-03.png",
+        alt: "Signature bathroom vanity option 3",
+      },
     ],
   }),
 ];
