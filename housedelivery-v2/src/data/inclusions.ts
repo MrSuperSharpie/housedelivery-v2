@@ -802,16 +802,8 @@ const kitchenBathFixtureProducts: readonly InclusionProduct[] = [
         alt: "White smart toilet with a dark control panel in a neutral bathroom.",
       },
       {
-        src: "/images/inclusions/kitchen-bath-fixtures/products/05_sink_basic_matte_black.webp",
-        alt: "Matte-black undermount kitchen sink with a coordinating pull-out faucet.",
-      },
-      {
-        src: "/images/inclusions/kitchen-bath-fixtures/products/10_shower_matte_black.webp",
+        src: "/images/inclusions/kitchen-bath-fixtures/products/10_shower_matte_black copy.png",
         alt: "Matte-black shower system with overhead and handheld fixtures against a gray wall.",
-      },
-      {
-        src: "/images/inclusions/kitchen-bath-fixtures/products/10_shower_matte_black-controls.webp",
-        alt: "Matte-black overhead and handheld shower system in a gray bathroom.",
       },
     ],
   }),
