@@ -769,12 +769,12 @@ const kitchenBathFixtureProducts: readonly InclusionProduct[] = [
         alt: "Bright contemporary bathroom with pale surfaces, a freestanding bath and double vanity.",
       },
       {
-        src: "/images/inclusions/bathroom-systems/products/hd-bth-001-02.webp",
-        alt: "Compact grey bathroom with a simple basin, mirrored cabinet and toilet.",
+        src: "/images/inclusions/kitchen-bath-fixtures/products/01_toilet_essential_a.webp",
+        alt: "White toilet in a warm, light-filled bathroom.",
       },
       {
-        src: "/images/inclusions/plumbing-fixtures/products/hd-plm-001-01.webp",
-        alt: "Minimal bright-metal wall-mounted faucet above a white basin.",
+        src: "/images/inclusions/kitchen-bath-fixtures/products/02_toilet_essential_b.webp",
+        alt: "White toilet against a pale wall with warm wood flooring.",
       },
     ],
   }),
@@ -798,12 +798,20 @@ const kitchenBathFixtureProducts: readonly InclusionProduct[] = [
         alt: "Warm wood bathroom with a double vanity, freestanding bath and integrated mirror lighting.",
       },
       {
-        src: "/images/inclusions/bathroom-systems/products/hd-bth-003-03.webp",
-        alt: "Bright coordinated bathroom with a floating vanity, freestanding bath and glazed shower.",
+        src: "/images/inclusions/kitchen-bath-fixtures/products/03_smart_toilet_premium.webp",
+        alt: "White smart toilet with a dark control panel in a neutral bathroom.",
       },
       {
-        src: "/images/inclusions/plumbing-fixtures/products/hd-plm-003-01.webp",
-        alt: "Dark shower fixture set with overhead and handheld fittings.",
+        src: "/images/inclusions/kitchen-bath-fixtures/products/05_sink_basic_matte_black.webp",
+        alt: "Matte-black undermount kitchen sink with a coordinating pull-out faucet.",
+      },
+      {
+        src: "/images/inclusions/kitchen-bath-fixtures/products/10_shower_matte_black.webp",
+        alt: "Matte-black shower system with overhead and handheld fixtures against a gray wall.",
+      },
+      {
+        src: "/images/inclusions/kitchen-bath-fixtures/products/10_shower_matte_black-controls.webp",
+        alt: "Matte-black overhead and handheld shower system in a gray bathroom.",
       },
     ],
   }),
@@ -823,16 +831,16 @@ const kitchenBathFixtureProducts: readonly InclusionProduct[] = [
     ],
     gallery: [
       {
-        src: "/images/inclusions/bathroom-systems/products/hd-bth-005-01.webp",
-        alt: "Layered resort bathroom with warm timber, stone surfaces and a sculptural basin.",
+        src: "/images/inclusions/kitchen-bath-fixtures/products/13_bathroom_cabinet_signature.webp",
+        alt: "Long white bathroom vanity with twin basins, round mirrors and brushed-gold faucets.",
       },
       {
-        src: "/images/inclusions/bathroom-systems/products/hd-bth-005-02.webp",
-        alt: "Open resort bathroom with a sculptural stone bath, timber detailing and warm metal fixtures.",
+        src: "/images/inclusions/kitchen-bath-fixtures/products/08_faucet_brushed_gold.webp",
+        alt: "Brushed-gold high-arc faucet against a pale neutral background.",
       },
       {
-        src: "/images/inclusions/plumbing-fixtures/products/hd-plm-005-01.webp",
-        alt: "Warm-metal faucet paired with a clear textured countertop basin.",
+        src: "/images/inclusions/kitchen-bath-fixtures/products/08_faucet_brushed_gold_2.webp",
+        alt: "Brushed-gold high-arc faucet running above a light kitchen sink.",
       },
     ],
   }),
