@@ -1686,6 +1686,10 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     eyebrow: "Garage access systems",
     description:
       "Garage-door and operator selections are in development. Exact systems, finishes, controls and electrically operated equipment will require project-specific technical review before confirmation.",
+    heroImage: {
+      src: "/images/inclusions/garage-doors-operators/hero.webp",
+      alt: "Contemporary home exterior with two black garage doors featuring rectangular glazed panels.",
+    },
     products: [],
   },
 ];
