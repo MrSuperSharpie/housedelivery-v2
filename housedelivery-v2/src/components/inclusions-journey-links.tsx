@@ -15,7 +15,7 @@ function getInclusionDestination(
 
   if (label.includes("bath")) {
     return {
-      href: "/inclusions#bathroom-systems",
+      href: "/inclusions#kitchen-bath-fixtures",
       label: "Explore Bath & Finish Options",
     };
   }

@@ -9,15 +9,15 @@ export type InclusionCategoryId =
   | "interior-doors"
   | "exterior-doors"
   | "windows-patio-doors"
-  | "bathroom-systems"
+  | "kitchen-bath-fixtures"
   | "bathroom-vanities"
-  | "plumbing-fixtures"
   | "tile-surfaces"
   | "countertops"
   | "wall-panels"
   | "lighting"
   | "appliances"
-  | "window-coverings";
+  | "window-coverings"
+  | "garage-doors-operators";
 
 export type InclusionCategoryName =
   | "Flooring"
@@ -26,15 +26,15 @@ export type InclusionCategoryName =
   | "Interior Doors"
   | "Exterior Entry Doors"
   | "Windows & Patio Doors"
-  | "Bathroom Systems"
+  | "Kitchen & Bath Fixtures"
   | "Bathroom Vanities"
-  | "Plumbing Fixtures"
   | "Tile & Surfaces"
   | "Countertops"
   | "Interior Wall Panels"
   | "Lighting"
   | "Appliances"
-  | "Roller Blinds / Window Coverings";
+  | "Roller Blinds / Window Coverings"
+  | "Garage Doors & Operators";
 
 export type InclusionImage = {
   src: string;
@@ -82,6 +82,7 @@ export type InclusionCategory = {
   eyebrow: string;
   description: string;
   packageContext?: string;
+  legacyIds?: readonly string[];
   heroImage?: InclusionImage;
   products: readonly InclusionProduct[];
 };
@@ -747,20 +748,20 @@ const windowProducts: readonly InclusionProduct[] = [
   }),
 ];
 
-const bathroomSystemProducts: readonly InclusionProduct[] = [
+const kitchenBathFixtureProducts: readonly InclusionProduct[] = [
   preliminaryProduct({
-    sku: "HD-BTH-001",
-    name: "Coordinated Bathroom",
+    sku: "HD-PLM-001",
+    name: "Bright Metal Fixture Package",
     packageTier: "essential",
-    category: "Bathroom Systems",
+    category: "Kitchen & Bath Fixtures",
     customerDescription:
-      "A bright, warm-neutral bathroom direction with a simple vanity and clean shower composition. The coordinated room expression creates a practical baseline without implying one fixed fixture package.",
+      "A bright-metal finished-fixture direction selected as a clean, versatile baseline across kitchens and bathrooms. Its restrained appearance coordinates easily with light surfaces and neutral cabinetry while exact components respond to the selected home and project configuration.",
     specifications: [
-      "Bright warm-neutral room palette",
-      "Simple vanity and shower composition",
-      "Clean coordinated fixture direction",
-      "Restrained surface variation",
-      "Final material, configuration and performance specifications to be confirmed",
+      "Bright neutral-metal visual direction",
+      "Coordinated kitchen sink and kitchen faucet direction",
+      "Bathroom basin, faucet and toilet direction",
+      "Shower fittings, enclosure, bathtub, finished drains and accessories included where applicable",
+      "Final fixture, finish and compatibility requirements to be confirmed",
     ],
     gallery: [
       {
@@ -771,21 +772,25 @@ const bathroomSystemProducts: readonly InclusionProduct[] = [
         src: "/images/inclusions/bathroom-systems/products/hd-bth-001-02.webp",
         alt: "Compact grey bathroom with a simple basin, mirrored cabinet and toilet.",
       },
+      {
+        src: "/images/inclusions/plumbing-fixtures/products/hd-plm-001-01.webp",
+        alt: "Minimal bright-metal wall-mounted faucet above a white basin.",
+      },
     ],
   }),
   preliminaryProduct({
-    sku: "HD-BTH-003",
-    name: "Refined Bathroom",
+    sku: "HD-PLM-003",
+    name: "Dark Metal Fixture Package",
     packageTier: "premium",
-    category: "Bathroom Systems",
+    category: "Kitchen & Bath Fixtures",
     customerDescription:
-      "A refined bathroom direction with floating cabinetry, layered warm materials and stronger mirror and lighting coordination. It gives the room greater depth while retaining a calm residential character.",
+      "A dark-metal finished-fixture direction that gives kitchens and bathrooms a stronger graphic presence. The controlled finish is intended to remain consistent across the visible fixture family while exact components respond to the selected home and project configuration.",
     specifications: [
-      "Floating double-vanity direction",
-      "Layered wood and neutral surface palette",
-      "Integrated mirror and lighting concept",
-      "Coordinated bath and shower planning",
-      "Final material, configuration and performance specifications to be confirmed",
+      "Dark metal visual direction",
+      "Coordinated kitchen sink and kitchen faucet direction",
+      "Bathroom basin, faucet and toilet direction",
+      "Enclosure, bathtub, finished drains and accessories included where applicable",
+      "Final fixture, finish and compatibility requirements to be confirmed",
     ],
     gallery: [
       {
@@ -796,21 +801,25 @@ const bathroomSystemProducts: readonly InclusionProduct[] = [
         src: "/images/inclusions/bathroom-systems/products/hd-bth-003-03.webp",
         alt: "Bright coordinated bathroom with a floating vanity, freestanding bath and glazed shower.",
       },
+      {
+        src: "/images/inclusions/plumbing-fixtures/products/hd-plm-003-01.webp",
+        alt: "Dark shower fixture set with overhead and handheld fittings.",
+      },
     ],
   }),
   preliminaryProduct({
-    sku: "HD-BTH-005",
-    name: "Architectural Bathroom",
+    sku: "HD-PLM-005",
+    name: "Warm Metal Fixture Package",
     packageTier: "signature",
-    category: "Bathroom Systems",
+    category: "Kitchen & Bath Fixtures",
     customerDescription:
-      "An architectural bathroom direction organized around a sculptural bath, restrained feature surfaces and selective integrated lighting. The room is intended to feel composed as a complete interior rather than a collection of fixtures.",
+      "A restrained warm-metal finished-fixture direction for kitchens and bathrooms where fittings contribute more deliberately to the material palette. The warmer tone is intended to coordinate across the visible fixture family while exact components respond to the selected home and project configuration.",
     specifications: [
-      "Sculptural bath and vanity composition",
-      "Large-format feature-surface direction",
-      "Dark coordinated fixture accents",
-      "Integrated lighting and service review required",
-      "Final material, configuration and performance specifications to be confirmed",
+      "Warm brushed-metal visual direction",
+      "Coordinated kitchen sink and kitchen faucet direction",
+      "Bathroom basin, faucet and toilet direction",
+      "Enclosure, bathtub, finished drains and accessories included where applicable",
+      "Final fixture, finish and compatibility requirements to be confirmed",
     ],
     gallery: [
       {
@@ -820,6 +829,10 @@ const bathroomSystemProducts: readonly InclusionProduct[] = [
       {
         src: "/images/inclusions/bathroom-systems/products/hd-bth-005-02.webp",
         alt: "Open resort bathroom with a sculptural stone bath, timber detailing and warm metal fixtures.",
+      },
+      {
+        src: "/images/inclusions/plumbing-fixtures/products/hd-plm-005-01.webp",
+        alt: "Warm-metal faucet paired with a clear textured countertop basin.",
       },
     ],
   }),
@@ -910,72 +923,6 @@ const bathroomVanityProducts: readonly InclusionProduct[] = [
       {
         src: "/images/inclusions/bathroom-vanities/products/hd-bathroom-vanity-signature-03.webp",
         alt: "Signature bathroom vanity option 3",
-      },
-    ],
-  }),
-];
-
-const plumbingFixtureProducts: readonly InclusionProduct[] = [
-  preliminaryProduct({
-    sku: "HD-PLM-001",
-    name: "Bright Metal Fixture Set",
-    packageTier: "essential",
-    category: "Plumbing Fixtures",
-    customerDescription:
-      "A bright-metal fixture direction selected as a clean, versatile baseline for everyday bathrooms. Its restrained appearance coordinates easily with light surfaces and neutral cabinetry.",
-    specifications: [
-      "Bright neutral-metal visual direction",
-      "Minimal wall-mounted faucet appearance",
-      "Clean basin and counter coordination",
-      "Coordinated fixture-family approach",
-      "Final fixture, finish and compatibility requirements to be confirmed",
-    ],
-    gallery: [
-      {
-        src: "/images/inclusions/plumbing-fixtures/products/hd-plm-001-01.webp",
-        alt: "Minimal bright-metal wall-mounted faucet above a white basin.",
-      },
-    ],
-  }),
-  preliminaryProduct({
-    sku: "HD-PLM-003",
-    name: "Dark Metal Fixture Set",
-    packageTier: "premium",
-    category: "Plumbing Fixtures",
-    customerDescription:
-      "A dark-metal fixture direction that gives upgraded bathrooms a stronger graphic presence. The controlled finish is intended to remain consistent across the visible fixture family.",
-    specifications: [
-      "Dark metal visual direction",
-      "Coordinated shower-fixture expression",
-      "Stronger contrast with light surfaces",
-      "Service and control coordination required",
-      "Final fixture, finish and compatibility requirements to be confirmed",
-    ],
-    gallery: [
-      {
-        src: "/images/inclusions/plumbing-fixtures/products/hd-plm-003-01.webp",
-        alt: "Dark shower fixture set with overhead and handheld fittings.",
-      },
-    ],
-  }),
-  preliminaryProduct({
-    sku: "HD-PLM-005",
-    name: "Warm Metal Fixture Set",
-    packageTier: "signature",
-    category: "Plumbing Fixtures",
-    customerDescription:
-      "A restrained warm-metal fixture direction for bathrooms where fittings contribute more deliberately to the material palette. The warmer tone is intended to coordinate across basin, bath and shower selections.",
-    specifications: [
-      "Warm brushed-metal visual direction",
-      "Coordinated basin-fixture expression",
-      "Stronger material presence",
-      "Consistent finish-family planning",
-      "Final fixture, finish and compatibility requirements to be confirmed",
-    ],
-    gallery: [
-      {
-        src: "/images/inclusions/plumbing-fixtures/products/hd-plm-005-01.webp",
-        alt: "Warm-metal faucet paired with a clear textured countertop basin.",
       },
     ],
   }),
@@ -1611,19 +1558,20 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     products: windowProducts,
   },
   {
-    id: "bathroom-systems",
+    id: "kitchen-bath-fixtures",
     number: "07",
-    name: "Bathroom Systems",
-    shortName: "Bathroom Systems",
-    eyebrow: "Coordinated wet areas",
+    name: "Kitchen & Bath Fixtures",
+    shortName: "Kitchen & Bath Fixtures",
+    eyebrow: "Coordinated fixtures",
     description:
-      "Coordinated bathroom components and finish packages designed to simplify product selection and project procurement.",
+      "Coordinated finished-fixture packages for kitchens and bathrooms, including sinks, faucets and related bath components where applicable to the selected home and project configuration.",
     packageContext: representedPackageContext,
+    legacyIds: ["bathroom-systems", "plumbing-fixtures"],
     heroImage: {
       src: "/images/inclusions/bathroom-systems/hero.webp",
       alt: "Bright bathroom with a glass shower, tub and double vanity.",
     },
-    products: bathroomSystemProducts,
+    products: kitchenBathFixtureProducts,
   },
   {
     id: "bathroom-vanities",
@@ -1641,23 +1589,8 @@ export const inclusionCategories: readonly InclusionCategory[] = [
     products: bathroomVanityProducts,
   },
   {
-    id: "plumbing-fixtures",
-    number: "09",
-    name: "Plumbing Fixtures",
-    shortName: "Plumbing Fixtures",
-    eyebrow: "Fixture selections",
-    description:
-      "A controlled fixture selection pathway intended to coordinate bathrooms, kitchens and project-specific technical review.",
-    packageContext: representedPackageContext,
-    heroImage: {
-      src: "/images/inclusions/plumbing-fixtures/hero.webp",
-      alt: "Close view of a sculptural dark faucet and basin.",
-    },
-    products: plumbingFixtureProducts,
-  },
-  {
     id: "tile-surfaces",
-    number: "10",
+    number: "09",
     name: "Tile & Surfaces",
     shortName: "Tile & Surfaces",
     eyebrow: "Applied finishes",
@@ -1672,7 +1605,7 @@ export const inclusionCategories: readonly InclusionCategory[] = [
   },
   {
     id: "countertops",
-    number: "11",
+    number: "10",
     name: "Countertops",
     shortName: "Countertops",
     eyebrow: "Work surfaces",
@@ -1687,7 +1620,7 @@ export const inclusionCategories: readonly InclusionCategory[] = [
   },
   {
     id: "wall-panels",
-    number: "12",
+    number: "11",
     name: "Interior Wall Panels",
     shortName: "Wall Panels",
     eyebrow: "Interior surfaces",
@@ -1702,7 +1635,7 @@ export const inclusionCategories: readonly InclusionCategory[] = [
   },
   {
     id: "lighting",
-    number: "13",
+    number: "12",
     name: "Lighting",
     shortName: "Lighting",
     eyebrow: "Lighting systems",
@@ -1717,7 +1650,7 @@ export const inclusionCategories: readonly InclusionCategory[] = [
   },
   {
     id: "appliances",
-    number: "14",
+    number: "13",
     name: "Appliances",
     shortName: "Appliances",
     eyebrow: "Appliance packages",
@@ -1732,7 +1665,7 @@ export const inclusionCategories: readonly InclusionCategory[] = [
   },
   {
     id: "window-coverings",
-    number: "15",
+    number: "14",
     name: "Roller Blinds / Window Coverings",
     shortName: "Window Coverings",
     eyebrow: "Interior shading",
@@ -1744,6 +1677,16 @@ export const inclusionCategories: readonly InclusionCategory[] = [
       alt: "Light roller blind partially lowered over a dark-framed window.",
     },
     products: windowCoveringProducts,
+  },
+  {
+    id: "garage-doors-operators",
+    number: "15",
+    name: "Garage Doors & Operators",
+    shortName: "Garage Doors & Operators",
+    eyebrow: "Garage access systems",
+    description:
+      "Garage-door and operator selections are in development. Exact systems, finishes, controls and electrically operated equipment will require project-specific technical review before confirmation.",
+    products: [],
   },
 ];
 

@@ -268,6 +268,14 @@ function CategorySection({
         index % 2 === 1 ? "bg-[#0d0f13]" : "bg-[#0b0c10]"
       }`}
     >
+      {category.legacyIds?.map((legacyId) => (
+        <span
+          key={legacyId}
+          id={legacyId}
+          aria-hidden="true"
+          className="pointer-events-none absolute left-0 top-0 scroll-mt-24"
+        />
+      ))}
       <span
         id={`inclusion-${category.id}`}
         aria-hidden="true"
