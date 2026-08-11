@@ -372,7 +372,13 @@ const wardrobeProducts: readonly InclusionProduct[] = [
     category: "Wardrobes",
     customerDescription:
       "A full-height white wardrobe composition with flush fronts and concealed storage for a calm, integrated bedroom.",
-    specifications: [],
+    specifications: [
+      "Full-height wardrobe planning direction",
+      "Flush-front storage composition",
+      "Integrated hanging and drawer zones",
+      "Concealed storage suited to compact bedrooms",
+      "Final layout and internal configuration to be confirmed",
+    ],
     choices: [
       {
         name: "Seamless White Suite",
@@ -410,7 +416,13 @@ const wardrobeProducts: readonly InclusionProduct[] = [
     category: "Wardrobes",
     customerDescription:
       "A full-height ivory wardrobe with framed doors, integrated drawers, display niches and softly lit glass-fronted sections.",
-    specifications: [],
+    specifications: [
+      "Full-height framed wardrobe system",
+      "Integrated drawers and open display niches",
+      "Glass-fronted sections as shown",
+      "Layered storage with more architectural detailing",
+      "Final materials, hardware and layout to be confirmed",
+    ],
     choices: [
       {
         name: "Ivory Framed Suite",
