@@ -900,15 +900,15 @@ const bathroomVanityProducts: readonly InclusionProduct[] = [
     ],
     gallery: [
       {
-        src: "/images/inclusions/bathroom-vanities/products/hd-bathroom-vanity-signature-01.png",
+        src: "/images/inclusions/bathroom-vanities/products/hd-bathroom-vanity-signature-01.jpg",
         alt: "Signature bathroom vanity option 1",
       },
       {
-        src: "/images/inclusions/bathroom-vanities/products/hd-bathroom-vanity-signature-02.png",
+        src: "/images/inclusions/bathroom-vanities/products/hd-bathroom-vanity-signature-02.jpg",
         alt: "Signature bathroom vanity option 2",
       },
       {
-        src: "/images/inclusions/bathroom-vanities/products/hd-bathroom-vanity-signature-03.png",
+        src: "/images/inclusions/bathroom-vanities/products/hd-bathroom-vanity-signature-03.webp",
         alt: "Signature bathroom vanity option 3",
       },
     ],
