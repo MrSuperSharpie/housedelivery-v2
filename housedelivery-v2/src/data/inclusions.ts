@@ -769,12 +769,12 @@ const kitchenBathFixtureProducts: readonly InclusionProduct[] = [
         alt: "Bright contemporary bathroom with pale surfaces, a freestanding bath and double vanity.",
       },
       {
-        src: "/images/inclusions/kitchen-bath-fixtures/products/01_toilet_essential_a.webp",
-        alt: "White toilet in a warm, light-filled bathroom.",
+        src: "/images/inclusions/kitchen-bath-fixtures/products/01_bathtu_-essiential.webp",
+        alt: "White freestanding bathtub in a warm bathroom with wood-slat and stone-look walls.",
       },
       {
-        src: "/images/inclusions/kitchen-bath-fixtures/products/02_toilet_essential_b.webp",
-        alt: "White toilet against a pale wall with warm wood flooring.",
+        src: "/images/inclusions/kitchen-bath-fixtures/products/01_faucet_essiential.webp",
+        alt: "Matte-black bathroom faucet beside an illuminated round mirror.",
       },
     ],
   }),
@@ -827,12 +827,12 @@ const kitchenBathFixtureProducts: readonly InclusionProduct[] = [
         alt: "Long white bathroom vanity with twin basins, round mirrors and brushed-gold faucets.",
       },
       {
-        src: "/images/inclusions/kitchen-bath-fixtures/products/08_faucet_brushed_gold.webp",
-        alt: "Brushed-gold high-arc faucet against a pale neutral background.",
+        src: "/images/inclusions/kitchen-bath-fixtures/products/15_bathroom_tub_signature.webp",
+        alt: "Dark freestanding bathtub in a bright bathroom framed by tall windows.",
       },
       {
-        src: "/images/inclusions/kitchen-bath-fixtures/products/08_faucet_brushed_gold_2.webp",
-        alt: "Brushed-gold high-arc faucet running above a light kitchen sink.",
+        src: "/images/inclusions/kitchen-bath-fixtures/products/14_bathroom_showheads_signature.webp",
+        alt: "Display of wall-mounted shower panels in black and polished metal finishes.",
       },
     ],
   }),
