@@ -2,29 +2,29 @@ import { HeadlineReveal } from "@/components/headline-reveal";
 
 const certifications = [
   {
-    mark: "ISO",
-    name: "ISO 9001:2015",
-    discipline: "Quality management",
+    mark: "BUILDING CODE",
+    name: "NBC / Provincial Codes",
+    discipline: "Applicable Canadian building requirements",
   },
   {
-    mark: "ISO",
-    name: "ISO 14001",
-    discipline: "Environmental management",
+    mark: "CSA",
+    name: "CSA S136",
+    discipline: "Cold-formed steel structural design",
   },
   {
-    mark: "ISO",
-    name: "ISO 45001:2018",
-    discipline: "Occupational health & safety",
+    mark: "CSA",
+    name: "CSA A277",
+    discipline: "Prefabricated buildings, modules & panels — where applicable",
   },
   {
-    mark: "EN",
-    name: "EN 1090",
-    discipline: "Structural steel conformity",
+    mark: "NAFS",
+    name: "NAFS / CSA A440 Series",
+    discipline: "Window & exterior door performance",
   },
   {
-    mark: "ICC-ES",
-    name: "ICC Evaluation Service",
-    discipline: "Technical evaluation",
+    mark: "CSA / ULC / cUPC",
+    name: "Product Approvals",
+    discipline: "Safety, fire & plumbing — as applicable",
   },
 ] as const;
 
@@ -65,14 +65,16 @@ export function TrustBanner({ compact = false }: TrustBannerProps) {
                     : "text-3xl font-medium tracking-[-0.045em] sm:text-4xl"
                 }
               >
-                Trusted Standards.{" "}
-                <span className="text-white/38">Certified Quality.</span>
+                Canadian Standards.{" "}
+                <span className="text-white/38">
+                  Project-Specific Compliance.
+                </span>
               </h2>
             </HeadlineReveal>
           </div>
           <p className="max-w-sm text-[10px] uppercase leading-5 tracking-[0.17em] text-white/30 sm:text-right">
-            Documented systems for quality, safety, environmental performance,
-            and structural conformity.
+            Products and systems are reviewed against applicable Canadian
+            codes, standards and project-specific requirements.
           </p>
         </div>
 
