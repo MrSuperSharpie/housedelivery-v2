@@ -35,7 +35,7 @@ export function FundingValueCase({
   image,
 }: FundingValueCaseProps) {
   return (
-    <div className="mt-20 border-t border-white/10 pt-7 lg:mt-24">
+    <div className="border-t border-white/10 pt-7">
         <div className="grid grid-cols-12 gap-y-10 lg:gap-x-8">
           <p className="eyebrow col-span-12 lg:col-span-3">
             Value through coordination

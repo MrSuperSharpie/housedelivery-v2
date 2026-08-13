@@ -365,8 +365,8 @@ export function FinancialCorridors() {
   return (
     <section
       id="cmhc"
-      aria-labelledby="proposed-funding-heading"
-      className="scroll-mt-20 bg-[#0b0c10] px-5 py-24 sm:px-8 sm:py-28 lg:px-12 lg:py-32"
+      aria-labelledby="why-house-delivery-heading"
+      className="scroll-mt-20 bg-[#0b0c10] px-5 pb-24 sm:px-8 sm:pb-28 lg:px-12 lg:pb-32"
     >
       <div className="mx-auto max-w-[1504px]">
         <span
@@ -374,29 +374,6 @@ export function FinancialCorridors() {
           className="block scroll-mt-20"
           aria-hidden="true"
         />
-        <div className="grid grid-cols-12 gap-y-10 border-t border-white/12 pt-7 lg:gap-x-8">
-          <p className="eyebrow col-span-12 lg:col-span-3">
-            CMHC, funding &amp; community pathways
-          </p>
-
-          <HeadlineReveal className="col-span-12 lg:col-span-9 lg:col-start-4">
-            <h2
-              id="proposed-funding-heading"
-              className="max-w-[1260px] text-[clamp(3rem,6.2vw,6.8rem)] font-medium leading-[0.86] tracking-[-0.068em] text-white/90"
-            >
-              The right funding pathway can help make the right home possible.
-            </h2>
-          </HeadlineReveal>
-
-          <p className="col-span-12 max-w-2xl text-base leading-7 text-white/62 sm:col-span-9 sm:col-start-4 sm:text-lg sm:leading-8 lg:col-span-5 lg:col-start-8">
-            Canada’s Housing Design Catalogue can reduce early-stage repetition
-            and give project teams a stronger baseline. Every design still
-            requires site-specific adaptation for land, zoning, utilities,
-            foundations, engineering, permits, climate, and local construction
-            requirements.
-          </p>
-        </div>
-
         <FundingValueCase image="/Maplewood-14.avif" />
 
         <div className="mt-14 grid border-y border-white/12 lg:mt-16 lg:grid-cols-12">
