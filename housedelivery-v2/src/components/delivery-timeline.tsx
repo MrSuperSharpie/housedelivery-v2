@@ -8,6 +8,7 @@ import {
   Home,
   PackageCheck,
   Ruler,
+  Ship,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -16,42 +17,49 @@ import { cn } from "@/lib/cn";
 
 const stages = [
   {
-    day: "Day 01",
+    day: "DAY 01",
     title: "Site review + project kickoff",
     description:
       "We review the site, access, zoning context, utilities, project priorities, and the delivery pathway best suited to the opportunity.",
     icon: Compass,
   },
   {
-    day: "Day 15",
+    day: "DAY 15",
     title: "Design adaptation + engineering",
     description:
       "The selected design is adapted for local snow, wind, seismic, foundation, and jurisdictional requirements while key specifications are coordinated.",
     icon: Ruler,
   },
   {
-    day: "Day 30",
+    day: "DAY 30",
     title: "Permit submission + site preparation begins",
     description:
       "The coordinated permit package enters municipal review as approved site preparation, utility coordination, and local crew planning begin.",
     icon: ClipboardCheck,
   },
   {
-    day: "Day 30–75",
+    day: "DAY 30–75",
     title: "Factory production + site preparation in parallel",
     description:
       "Numbered structural components are precision-formed and quality checked in the factory while site work advances toward delivery readiness.",
     icon: Factory,
   },
   {
-    day: "Day 75–90",
+    day: "DAY 75–120",
+    title: "Ocean transit + customs + inland delivery",
+    description:
+      "The component package moves through ocean transit, customs clearance, and inland delivery while the Canadian site advances toward readiness.",
+    icon: Ship,
+  },
+  {
+    day: "DAY 105–135",
     title: "Delivery + structural assembly",
     description:
-      "The component system arrives in sequence for efficient structural assembly by the coordinated local construction team.",
+      "Where shipment arrival and site readiness allow, delivery sequencing and structural assembly can begin before the broader logistics window is complete.",
     icon: PackageCheck,
   },
   {
-    day: "Day 90–120",
+    day: "DAY 135–165",
     title: "Interior completion, inspections + handover",
     description:
       "Interior systems and finishes are completed, required inspections are closed out, and the documented home is prepared for handover.",
@@ -71,7 +79,7 @@ export function DeliveryTimeline({
   embedded = false,
   eyebrow = "The delivery sequence",
   headlinePrimary = "One path.",
-  headlineSecondary = "Six clear stages.",
+  headlineSecondary = "Seven clear stages.",
   introCopy = "Parallel planning replaces the usual stop-start sequence. Engineering, approvals, production, and site work are coordinated around one delivery target.",
 }: DeliveryTimelineProps) {
   const [activeStage, setActiveStage] = useState(0);
@@ -101,17 +109,16 @@ export function DeliveryTimeline({
           <div className="max-w-xl self-end lg:justify-self-end">
             <p className="text-lg leading-8 text-white/55">{introCopy}</p>
             <p className="mt-5 text-xs leading-5 text-white/30">
-              The 120-day target is project-specific. Municipal review, site
-              conditions, utility work, weather, and selected finishes can
-              affect timing.
+              Illustrative project sequence. Timing varies by design,
+              approvals, site conditions, production and logistics.
             </p>
           </div>
         </div>
 
-        <div className="relative mt-20 grid gap-2 md:grid-cols-6">
-          <div className="absolute left-0 right-0 top-[34px] hidden h-px bg-white/12 md:block" />
+        <div className="relative mt-20 grid gap-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+          <div className="absolute left-0 right-0 top-[34px] hidden h-px bg-white/12 xl:block" />
           <motion.div
-            className="absolute left-0 top-[34px] hidden h-px bg-white md:block"
+            className="absolute left-0 top-[34px] hidden h-px bg-white xl:block"
             animate={{ width: `${(activeStage / (stages.length - 1)) * 100}%` }}
             transition={{ duration: 0.55, ease: [0.2, 0.7, 0, 1] }}
           />
@@ -124,14 +131,14 @@ export function DeliveryTimeline({
                 type="button"
                 onClick={() => setActiveStage(index)}
                 className={cn(
-                  "relative z-10 flex items-center gap-4 border border-white/10 p-4 text-left transition-colors md:block md:border-0 md:bg-transparent md:p-0",
+                  "relative z-10 flex items-center gap-4 border border-white/10 p-4 text-left transition-colors xl:block xl:border-0 xl:bg-transparent xl:p-0",
                   isActive ? "bg-white/[0.06]" : "hover:bg-white/[0.03]",
                 )}
                 aria-pressed={isActive}
               >
                 <span
                   className={cn(
-                    "grid size-[68px] shrink-0 place-items-center rounded-full border transition-colors md:mx-auto",
+                    "grid size-[68px] shrink-0 place-items-center rounded-full border transition-colors xl:mx-auto",
                     isActive
                       ? "border-white bg-white text-black"
                       : "border-white/20 bg-[#0e1014] text-white/42",
@@ -139,7 +146,7 @@ export function DeliveryTimeline({
                 >
                   <Icon size={19} strokeWidth={1.5} />
                 </span>
-                <span className="md:mt-5 md:block md:text-center">
+                <span className="xl:mt-5 xl:block xl:text-center">
                   <span className="block text-[9px] uppercase tracking-[0.18em] text-white/35">
                     {stage.day}
                   </span>
