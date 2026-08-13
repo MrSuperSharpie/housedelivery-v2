@@ -2,9 +2,7 @@
 
 import {
   ArrowUpRight,
-  BadgeCheck,
   ChevronDown,
-  MapPinned,
 } from "lucide-react";
 import Image from "next/image";
 import { useRef, useState, type KeyboardEvent } from "react";
@@ -285,24 +283,6 @@ const pathwayImages: Readonly<
   },
 };
 
-const cmhcContext = [
-  {
-    number: "01",
-    title: "Catalogue baseline",
-    copy: "A coordinated reference can reduce early-stage repetition and make the project record more legible.",
-  },
-  {
-    number: "02",
-    title: "Site adaptation",
-    copy: "House Delivery organizes the project-specific design, documentation, and local delivery requirements.",
-  },
-  {
-    number: "03",
-    title: "Funding context",
-    copy: "Financing and program eligibility depend on the borrower, land, project, lender, and applicable pathway.",
-  },
-] as const;
-
 const municipalCommunityPathways: readonly FundingPathway[] = [
   fundingTracks.developer[2],
   fundingTracks.community[7],
@@ -375,64 +355,6 @@ export function FinancialCorridors() {
           aria-hidden="true"
         />
         <FundingValueCase image="/Maplewood-14.avif" />
-
-        <div className="mt-14 grid border-y border-white/12 lg:mt-16 lg:grid-cols-12">
-          <article className="relative flex min-h-[390px] flex-col justify-between overflow-hidden border-b border-white/12 bg-[#0e1014] p-7 sm:p-8 lg:col-span-5 lg:min-h-[460px] lg:border-r lg:border-b-0">
-            <div
-              className="absolute -right-16 -top-14 size-72 rounded-full border border-white/10 sm:size-96"
-              aria-hidden="true"
-            />
-            <div className="relative flex items-start justify-between gap-8">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/48">
-                Canada Housing Design Catalogue
-              </p>
-              <BadgeCheck size={23} strokeWidth={1.25} aria-hidden="true" />
-            </div>
-            <div className="relative">
-              <p className="text-[clamp(5rem,10vw,9rem)] font-medium leading-[0.74] tracking-[-0.085em]">
-                CMHC
-              </p>
-              <p className="mt-9 max-w-md border-t border-white/10 pt-7 text-2xl font-medium leading-[1.02] tracking-[-0.05em] sm:text-3xl">
-                A consistent design reference. A locally coordinated project.
-              </p>
-            </div>
-          </article>
-
-          <div className="grid sm:grid-cols-3 lg:col-span-7">
-            {cmhcContext.map((item, index) => (
-              <article
-                key={item.number}
-                className={`flex min-h-0 flex-col justify-between p-6 sm:min-h-52 sm:p-7 lg:p-8 ${
-                  index > 0
-                    ? "border-t border-white/12 sm:border-t-0 sm:border-l"
-                    : ""
-                }`}
-              >
-                <div className="flex items-center justify-between gap-6">
-                  <span className="text-[9px] tracking-[0.2em] text-white/28">
-                    {item.number}
-                  </span>
-                  {index === 0 ? (
-                    <MapPinned
-                      size={18}
-                      strokeWidth={1.25}
-                      className="text-white/35"
-                      aria-hidden="true"
-                    />
-                  ) : null}
-                </div>
-                <div className="mt-12">
-                  <h3 className="text-xl font-medium tracking-[-0.04em] text-white/86">
-                    {item.title}
-                  </h3>
-                  <p className="mt-3 text-sm leading-6 text-white/46">
-                    {item.copy}
-                  </p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
 
         <div className="mt-20 grid grid-cols-12 gap-y-8 border-t border-white/12 pt-7 lg:gap-x-8">
           <p className="eyebrow col-span-12 lg:col-span-3">
