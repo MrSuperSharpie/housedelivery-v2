@@ -60,6 +60,7 @@ const stages = [
 ] as const;
 
 type DeliveryTimelineProps = {
+  embedded?: boolean;
   eyebrow?: string;
   headlinePrimary?: string;
   headlineSecondary?: string;
@@ -67,6 +68,7 @@ type DeliveryTimelineProps = {
 };
 
 export function DeliveryTimeline({
+  embedded = false,
   eyebrow = "The delivery sequence",
   headlinePrimary = "One path.",
   headlineSecondary = "Six clear stages.",
@@ -78,9 +80,13 @@ export function DeliveryTimeline({
   return (
     <section
       id="timeline"
-      className="scroll-mt-20 border-y border-white/10 bg-[#0e1014] px-5 py-28 sm:px-8 lg:px-12 lg:py-40"
+      className={
+        embedded
+          ? "mt-20 scroll-mt-20 border-t border-white/10 pt-20 lg:mt-28 lg:pt-24"
+          : "scroll-mt-20 border-y border-white/10 bg-[#0e1014] px-5 py-28 sm:px-8 lg:px-12 lg:py-40"
+      }
     >
-      <div className="mx-auto max-w-[1504px]">
+      <div className={embedded ? undefined : "mx-auto max-w-[1504px]"}>
         <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr]">
           <div>
             <p className="eyebrow">{eyebrow}</p>

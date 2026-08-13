@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
 import { RevealText } from "@/components/reveal-text";
+import { TrustBanner } from "@/components/trust-banner";
 import { inclusionPackages } from "@/data/inclusions";
 
 type InclusionItem = {
@@ -162,7 +163,6 @@ const capabilityImages = [
 
 type InclusionGridProps = {
   eyebrow?: string;
-  finishesVariant?: "default" | "compact";
   introCopy?: string;
   headlinePrimary?: string;
   headlineSecondary?: string;
@@ -171,24 +171,22 @@ type InclusionGridProps = {
 
 export function InclusionGrid({
   eyebrow = "The complete package",
-  finishesVariant = "default",
   introCopy = "Every House Delivery Inc. home arrives as a coordinated, certified system—documented, engineered, and finished to a single standard.",
   headlinePrimary = "Included with every",
   headlineSecondary = "delivered home.",
   scopeNote,
 }: InclusionGridProps) {
-  const hasCompactFinishes = finishesVariant === "compact";
-
   return (
     <section
       id="inclusions"
-      className={
-        hasCompactFinishes
-          ? "scroll-mt-20 bg-[#0b0c10] px-5 pt-24 pb-16 sm:px-8 sm:pb-20 lg:px-12 lg:pt-32 lg:pb-24"
-          : "scroll-mt-20 bg-[#0b0c10] px-5 py-24 sm:px-8 lg:px-12 lg:py-32"
-      }
+      className="scroll-mt-20 bg-[#0b0c10] px-5 py-24 sm:px-8 lg:px-12 lg:py-32"
     >
       <div className="mx-auto max-w-[1504px]">
+        <span
+          id="certainty"
+          className="block scroll-mt-20"
+          aria-hidden="true"
+        />
         <div className="mb-20 grid gap-8 border-t border-white/15 pt-7 md:grid-cols-2 lg:mb-28">
           <p className="eyebrow">{eyebrow}</p>
           <p className="max-w-lg text-base leading-7 text-white/48 md:justify-self-end">
@@ -209,39 +207,19 @@ export function InclusionGrid({
           </span>
         </h2>
 
-        <div
-          className={
-            hasCompactFinishes
-              ? "mt-16 grid grid-cols-1 gap-x-12 md:grid-cols-2 lg:mt-24 lg:grid-cols-3"
-              : "mt-20 grid grid-cols-1 gap-x-12 md:grid-cols-2 lg:mt-28 lg:grid-cols-3"
-          }
-        >
+        <div className="mt-20 grid grid-cols-1 gap-x-12 md:grid-cols-2 lg:mt-28 lg:grid-cols-3">
           {inclusions.map((item) => (
             <article
               key={item.number}
-              className={
-                hasCompactFinishes
-                  ? "border-t border-white/10 pt-5 pb-8"
-                  : "border-t border-white/10 pt-7 pb-12"
-              }
+              className="border-t border-white/10 pt-7 pb-12"
             >
               <span className="text-[10px] tracking-[0.2em] text-white/30">
                 {item.number}
               </span>
-              <h3
-                className={`max-w-xs text-xl font-medium leading-tight tracking-[-0.035em] text-white/85 ${
-                  hasCompactFinishes ? "mt-4" : "mt-6"
-                }`}
-              >
+              <h3 className="mt-6 max-w-xs text-xl font-medium leading-tight tracking-[-0.035em] text-white/85">
                 {item.title}
               </h3>
-              <ul
-                className={
-                  hasCompactFinishes
-                    ? "mt-4 space-y-2"
-                    : "mt-6 space-y-3"
-                }
-              >
+              <ul className="mt-6 space-y-3">
                 {item.points.map((point) => (
                   <li
                     key={point}
@@ -259,7 +237,15 @@ export function InclusionGrid({
           ))}
         </div>
 
-        <div className="mt-10 border-t border-white/10 pt-8 lg:mt-16 lg:pt-10">
+      </div>
+    </section>
+  );
+}
+
+export function ModernMethodsSection() {
+  return (
+    <section className="bg-[#0b0c10] px-5 py-24 sm:px-8 lg:px-12 lg:py-32">
+      <div className="mx-auto max-w-[1504px] border-t border-white/10 pt-8 lg:pt-10">
           <div className="mb-10 grid grid-cols-12 gap-y-6 sm:mb-12 lg:gap-x-8">
             <h3 className="col-span-12 max-w-[980px] text-[clamp(2.25rem,4.5vw,4.9rem)] font-medium leading-[0.92] tracking-[-0.06em] text-white/90 lg:col-span-9 lg:col-start-4">
               We&apos;re taking modern methods of construction to a whole new
@@ -294,22 +280,18 @@ export function InclusionGrid({
               </figure>
             ))}
           </div>
-        </div>
 
-        <div
-          className={
-            hasCompactFinishes
-              ? "mt-16 border-t border-white/10 pt-8 lg:mt-24 lg:pt-10"
-              : "mt-24 border-t border-white/10 pt-10 lg:mt-40 lg:pt-14"
-          }
-        >
-          <div
-            className={
-              hasCompactFinishes
-                ? "grid grid-cols-12 gap-y-8 lg:gap-x-8"
-                : "grid grid-cols-12 gap-y-12 lg:gap-x-8"
-            }
-          >
+        <TrustBanner compact />
+      </div>
+    </section>
+  );
+}
+
+export function FinishesSection() {
+  return (
+    <section className="bg-[#0b0c10] px-5 pb-24 sm:px-8 lg:px-12 lg:pb-32">
+      <div className="mx-auto max-w-[1504px] border-t border-white/10 pt-10 lg:pt-14">
+          <div className="grid grid-cols-12 gap-y-8 lg:gap-x-8">
             <div className="col-span-12 lg:col-span-3">
               <p className="eyebrow !text-white/45">
                 Finishes / Inclusions Library
@@ -322,7 +304,7 @@ export function InclusionGrid({
             <div className="col-span-12 lg:col-span-9 lg:col-start-4">
               <HeadlineReveal
                 variant="sweep"
-                trigger={hasCompactFinishes ? "mount" : "viewport"}
+                trigger="viewport"
               >
                 <h3 className="max-w-5xl text-[clamp(2.8rem,6vw,6.8rem)] font-medium leading-[0.86] tracking-[-0.07em] text-white/90">
                   The final layer,
@@ -331,13 +313,7 @@ export function InclusionGrid({
                 </h3>
               </HeadlineReveal>
 
-              <div
-                className={
-                  hasCompactFinishes
-                    ? "mt-8 grid grid-cols-12 gap-y-8 border-t border-white/10 pt-6 lg:gap-x-8"
-                    : "mt-12 grid grid-cols-12 gap-y-10 border-t border-white/10 pt-8 lg:gap-x-8"
-                }
-              >
+              <div className="mt-10 grid grid-cols-12 gap-y-8 border-t border-white/10 pt-8 lg:gap-x-8">
                 <p className="col-span-12 max-w-2xl text-lg leading-8 text-white/70 lg:col-span-7">
                   Flooring. Glazing. Doors. Cabinetry. Every finish, organized
                   through one coordinated package structure.
@@ -345,7 +321,7 @@ export function InclusionGrid({
 
                 <Link
                   href="/inclusions"
-                  className="group col-span-12 inline-flex w-fit items-center gap-4 self-start border-b border-white/35 pb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/80 transition-colors duration-500 hover:border-white hover:text-white lg:col-span-4 lg:col-start-9"
+                  className="group col-span-12 inline-flex min-h-12 w-fit items-center gap-4 self-start border border-white bg-white px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-black transition-colors duration-500 hover:bg-transparent hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white lg:col-span-4 lg:col-start-9"
                 >
                   Explore the Inclusions Library
                   <ArrowUpRight
@@ -356,16 +332,9 @@ export function InclusionGrid({
                 </Link>
               </div>
 
-              <div
-                className={
-                  hasCompactFinishes
-                    ? "mt-10 grid grid-cols-12 border-y border-white/10"
-                    : "mt-14 grid grid-cols-12 border-y border-white/10"
-                }
-              >
-                {inclusionPackages.map((tier) =>
-                  hasCompactFinishes ? (
-                    <div
+              <div className="mt-10 grid grid-cols-12 border-y border-white/10">
+                {inclusionPackages.map((tier) => (
+                  <div
                       key={tier.id}
                       role="group"
                       tabIndex={0}
@@ -390,24 +359,8 @@ export function InclusionGrid({
                           {tier.description}
                         </p>
                       </div>
-                    </div>
-                  ) : (
-                    <div
-                      key={tier.id}
-                      className="col-span-12 flex items-end justify-between border-b border-white/10 py-6 last:border-b-0 sm:col-span-4 sm:block sm:border-r sm:border-b-0 sm:px-6 sm:first:pl-0 sm:last:border-r-0 sm:last:pr-0"
-                    >
-                      <span className="text-[10px] tabular-nums tracking-[0.18em] text-white/30">
-                        {tier.number}
-                      </span>
-                      <p className="mt-7 text-2xl font-medium tracking-[-0.035em] text-white/90">
-                        {tier.name}
-                      </p>
-                      <p className="mt-2 text-[10px] uppercase tracking-[0.16em] text-white/45">
-                        {tier.positioning}
-                      </p>
-                    </div>
-                  ),
-                )}
+                  </div>
+                ))}
               </div>
 
               <p className="mt-6 text-sm leading-6 text-white/50">
@@ -416,7 +369,6 @@ export function InclusionGrid({
               </p>
             </div>
           </div>
-        </div>
       </div>
     </section>
   );

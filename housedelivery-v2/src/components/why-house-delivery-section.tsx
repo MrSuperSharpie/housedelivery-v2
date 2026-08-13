@@ -2,7 +2,6 @@ import { CircleDollarSign, Layers3, ShieldCheck } from "lucide-react";
 import Image from "next/image";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
-import { TrustBanner } from "@/components/trust-banner";
 
 const benefits = [
   {
@@ -28,30 +27,25 @@ const benefits = [
   },
 ] as const;
 
-type WhyHouseDeliverySectionProps = {
+type FundingValueCaseProps = {
   image: string;
 };
 
-export function WhyHouseDeliverySection({
+export function FundingValueCase({
   image,
-}: WhyHouseDeliverySectionProps) {
+}: FundingValueCaseProps) {
   return (
-    <section
-      id="certainty"
-      aria-labelledby="why-house-delivery-heading"
-      className="scroll-mt-20 bg-[#0b0c10] px-5 py-28 sm:px-8 lg:px-12 lg:py-36"
-    >
-      <div className="mx-auto max-w-[1504px]">
-        <div className="grid grid-cols-12 gap-y-12 border-t border-white/10 pt-7 lg:gap-x-8">
+    <div className="mt-20 border-t border-white/10 pt-7 lg:mt-24">
+        <div className="grid grid-cols-12 gap-y-10 lg:gap-x-8">
           <p className="eyebrow col-span-12 lg:col-span-3">
-            Why House Delivery Inc.
+            Value through coordination
           </p>
           <HeadlineReveal
             className="col-span-12 lg:col-span-9 lg:col-start-4"
           >
             <h2
               id="why-house-delivery-heading"
-              className="max-w-[1250px] text-[clamp(3.5rem,8vw,8.8rem)] font-medium leading-[0.82] tracking-[-0.075em] text-white/90"
+              className="max-w-[1100px] text-[clamp(2.8rem,5vw,5.8rem)] font-medium leading-[0.88] tracking-[-0.065em] text-white/90"
             >
               A remarkable home.
               <br />
@@ -66,8 +60,8 @@ export function WhyHouseDeliverySection({
           </p>
         </div>
 
-        <div className="mt-16 grid grid-cols-12 gap-y-12 lg:mt-20 lg:gap-x-8">
-          <div className="group relative col-span-12 min-h-[500px] overflow-hidden bg-[#13151a] lg:col-span-7 lg:min-h-[680px]">
+        <div className="mt-14 grid grid-cols-12 gap-y-12 lg:mt-16 lg:gap-x-8">
+          <div className="group relative col-span-12 min-h-[420px] overflow-hidden bg-[#13151a] lg:col-span-7 lg:min-h-[560px]">
             <Image
               src={image}
               alt="Refined interior of a House Delivery Inc. residence"
@@ -119,8 +113,6 @@ export function WhyHouseDeliverySection({
           </div>
         </div>
 
-        <TrustBanner compact />
-      </div>
-    </section>
+    </div>
   );
 }

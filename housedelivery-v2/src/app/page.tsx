@@ -1,7 +1,10 @@
 import { CarriageHomeShowcase } from "@/components/carriage-home-showcase";
-import { DeliveryTimeline } from "@/components/delivery-timeline";
 import { FinancialCorridors } from "@/components/financial-corridors";
-import { InclusionGrid } from "@/components/inclusion-grid";
+import {
+  FinishesSection,
+  InclusionGrid,
+  ModernMethodsSection,
+} from "@/components/inclusion-grid";
 import { LuxuryHero } from "@/components/luxury-hero";
 import { ModelShowcase } from "@/components/model-showcase";
 import { PortfolioCategoryNav } from "@/components/portfolio-category-nav";
@@ -9,7 +12,6 @@ import { PreApprovedShowcase } from "@/components/pre-approved-showcase";
 import { ProjectUnderstandingSection } from "@/components/project-understanding-section";
 import { ReservationForm } from "@/components/reservation-form";
 import { SiteHeader } from "@/components/site-header";
-import { WhyHouseDeliverySection } from "@/components/why-house-delivery-section";
 import { models } from "@/data/models";
 
 export default function Home() {
@@ -37,15 +39,28 @@ export default function Home() {
         />
         <CarriageHomeShowcase />
         <PreApprovedShowcase
-          catalogueFollowOn={
+        />
+        <ModernMethodsSection />
+        <FinishesSection />
+        <FinancialCorridors />
+        <ProjectUnderstandingSection />
+        <InclusionGrid
+          eyebrow="The coordinated kit of parts"
+          introCopy="House Delivery organizes the structure, building components, interior elements, documentation, and delivery pathway as one connected system. Fewer disconnected decisions on site. Greater clarity before construction begins."
+          headlinePrimary="One coordinated home."
+          headlineSecondary="Thousands of decisions already resolved."
+          scopeNote="Local foundations, engineering, permitting, installation, weatherproofing, site supervision, and qualified local construction remain essential to the completed home."
+        />
+        <section className="bg-[#0b0c10] px-5 pb-24 sm:px-8 lg:px-12 lg:pb-32">
+          <div className="mx-auto max-w-[1504px] border-t border-white/10 pt-10 lg:pt-12">
             <div className="grid grid-cols-12 gap-y-8 lg:gap-x-8">
               <p className="eyebrow col-span-12 lg:col-span-3">
                 More ways to begin
               </p>
               <div className="col-span-12 lg:col-span-9 lg:col-start-4">
-                <h3 className="max-w-5xl text-[clamp(3rem,5.7vw,6.4rem)] font-medium leading-[0.88] tracking-[-0.065em] text-white/92">
+                <h2 className="max-w-5xl text-[clamp(3rem,5.7vw,6.4rem)] font-medium leading-[0.88] tracking-[-0.065em] text-white/92">
                   Not seeing your home?
-                </h3>
+                </h2>
                 <div className="mt-8 grid gap-6 border-t border-white/10 pt-7 md:grid-cols-2 md:gap-10">
                   <p className="max-w-xl text-base leading-7 text-white/66">
                     This collection is only the beginning. We have hundreds of
@@ -76,26 +91,8 @@ export default function Home() {
                 </div>
               </div>
             </div>
-          }
-        />
-        <InclusionGrid
-          eyebrow="The coordinated kit of parts"
-          finishesVariant="compact"
-          introCopy="House Delivery organizes the structure, building components, interior elements, documentation, and delivery pathway as one connected system. Fewer disconnected decisions on site. Greater clarity before construction begins."
-          headlinePrimary="One coordinated home."
-          headlineSecondary="Thousands of decisions already resolved."
-          scopeNote="Local foundations, engineering, permitting, installation, weatherproofing, site supervision, and qualified local construction remain essential to the completed home."
-        />
-        <WhyHouseDeliverySection image={models[1].images[2]} />
-        <FinancialCorridors />
-        <DeliveryTimeline
-          eyebrow="Coordination before construction"
-          headlinePrimary="Resolve more before"
-          headlineSecondary="the site is waiting."
-          introCopy="House Delivery moves design, procurement, factory production, site preparation, logistics, and local crew coordination upstream, with several workstreams advancing at the same time. Factory production and site preparation happen at the same time—not one after the other."
-        />
-
-        <ProjectUnderstandingSection />
+          </div>
+        </section>
         <ReservationForm models={models} />
       </main>
     </>

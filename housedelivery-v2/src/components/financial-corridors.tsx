@@ -10,6 +10,7 @@ import Image from "next/image";
 import { useRef, useState, type KeyboardEvent } from "react";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
+import { FundingValueCase } from "@/components/why-house-delivery-section";
 import { cn } from "@/lib/cn";
 
 type FundingPathway = {
@@ -383,11 +384,7 @@ export function FinancialCorridors() {
               id="proposed-funding-heading"
               className="max-w-[1260px] text-[clamp(3rem,6.2vw,6.8rem)] font-medium leading-[0.86] tracking-[-0.068em] text-white/90"
             >
-              A proven starting point.
-              <br />
-              <span className="text-white/38">
-                A clearer route forward.
-              </span>
+              The right funding pathway can help make the right home possible.
             </h2>
           </HeadlineReveal>
 
@@ -399,6 +396,8 @@ export function FinancialCorridors() {
             requirements.
           </p>
         </div>
+
+        <FundingValueCase image="/Maplewood-14.avif" />
 
         <div className="mt-14 grid border-y border-white/12 lg:mt-16 lg:grid-cols-12">
           <article className="relative flex min-h-[390px] flex-col justify-between overflow-hidden border-b border-white/12 bg-[#0e1014] p-7 sm:p-8 lg:col-span-5 lg:min-h-[460px] lg:border-r lg:border-b-0">
@@ -466,7 +465,7 @@ export function FinancialCorridors() {
             className="col-span-12 lg:col-span-9 lg:col-start-4"
           >
             <h3 className="max-w-[1100px] text-[clamp(2.8rem,5vw,5.8rem)] font-medium leading-[0.88] tracking-[-0.065em] text-white/90">
-              The right pathway can help make the right home possible.
+              Find the pathway that fits the opportunity.
             </h3>
           </HeadlineReveal>
           <p className="col-span-12 max-w-2xl text-base leading-7 text-white/58 sm:col-span-9 sm:col-start-4 lg:col-span-5 lg:col-start-8">
