@@ -121,34 +121,42 @@ const inclusions: readonly InclusionItem[] = [
   },
 ];
 
-const systemImages = [
+const capabilityImages = [
   {
     number: "01",
-    label: "Structure, multiplied",
-    src: "/Row Housing.jpg",
-    alt: "Light steel framing rising across a multi-home row housing project",
-    ratio: "aspect-[16/9]",
+    label: "Architecture, realized",
+    src: "/images/homepage/capabilities/architecture-realized.jpg",
+    alt: "Completed contemporary residence with broad glazing and warm timber detailing",
   },
   {
     number: "02",
-    label: "Form, completed",
-    src: "/Row Housing 2.jpg",
-    alt: "Completed contemporary row homes built with light steel framing",
-    ratio: "aspect-[16/9]",
+    label: "Structure, engineered",
+    src: "/images/homepage/capabilities/structure-engineered.webp",
+    alt: "Engineered light-gauge steel frame forming a contemporary residence",
   },
   {
     number: "03",
-    label: "Architecture, realized",
-    src: "/Cedar View 1.jpg",
-    alt: "Completed Cedar View residence with expansive glazing and sheltered outdoor space",
-    ratio: "aspect-[16/9]",
+    label: "Precision, assembled",
+    src: "/images/homepage/capabilities/precision-assembled.jpg",
+    alt: "Close view of precision fastening during steel-frame assembly",
   },
   {
     number: "04",
-    label: "Precision beneath",
-    src: "/Cedar View Steel Frame.jpg",
-    alt: "Cedar View residence revealed as a precision light steel frame",
-    ratio: "aspect-[2/1]",
+    label: "Automation, integrated",
+    src: "/images/homepage/capabilities/automation-integrated.jpg",
+    alt: "Industrial robotic arm moving panels through an automated manufacturing line",
+  },
+  {
+    number: "05",
+    label: "Manufacturing, refined",
+    src: "/images/homepage/capabilities/manufacturing-refined.jpg",
+    alt: "Computer-controlled manufacturing equipment operating inside a production facility",
+  },
+  {
+    number: "06",
+    label: "Interiors, completed",
+    src: "/images/homepage/capabilities/interiors-completed.jpg",
+    alt: "Completed contemporary interior with integrated cabinetry and living area",
   },
 ] as const;
 
@@ -252,25 +260,36 @@ export function InclusionGrid({
         </div>
 
         <div className="mt-10 border-t border-white/10 pt-8 lg:mt-16 lg:pt-10">
-          <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:gap-8">
-            {systemImages.map((image) => (
+          <div className="mb-10 grid grid-cols-12 gap-y-6 sm:mb-12 lg:gap-x-8">
+            <h3 className="col-span-12 max-w-[980px] text-[clamp(2.25rem,4.5vw,4.9rem)] font-medium leading-[0.92] tracking-[-0.06em] text-white/90 lg:col-span-9 lg:col-start-4">
+              We&apos;re taking modern methods of construction to a whole new
+              level.
+            </h3>
+            <p className="col-span-12 max-w-[860px] text-[clamp(1.25rem,2.1vw,2rem)] font-medium italic leading-[1.08] tracking-[-0.035em] text-white/62 lg:col-span-7 lg:col-start-6">
+              “Prefab used to mean compromise. What we&apos;re building is the
+              opposite — architectural quality, precision manufacturing, and
+              real customization, with less waste, less time, and more
+              savings.”
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-x-3 gap-y-10 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-12 lg:gap-x-8 lg:gap-y-14">
+            {capabilityImages.map((image) => (
               <figure key={image.number} className="group">
-                <div
-                  className={`relative ${image.ratio} overflow-hidden border border-white/10 bg-white/[0.035]`}
-                >
+                <div className="relative aspect-[16/10] overflow-hidden border border-white/10 bg-white/[0.035]">
                   <Image
                     src={image.src}
                     alt={image.alt}
                     fill
                     quality={90}
-                    sizes="(max-width: 639px) calc(50vw - 1.625rem), (max-width: 1023px) calc(50vw - 2.75rem), (max-width: 1599px) calc(50vw - 4rem), 736px"
+                    sizes="(max-width: 639px) calc(100vw - 2.5rem), (max-width: 1023px) calc(50vw - 2.75rem), (max-width: 1599px) calc(50vw - 4rem), 736px"
                     style={{ imageRendering: "auto" }}
-                    className="object-contain brightness-90 grayscale transition-all duration-[2000ms] ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-[1.025] group-hover:brightness-100 group-hover:grayscale-0"
+                    className="object-cover brightness-90 grayscale transition-all duration-[2000ms] ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-[1.025] group-hover:brightness-100 group-hover:grayscale-0"
                   />
                 </div>
                 <figcaption className="mt-3 flex items-start justify-between gap-3 border-t border-white/10 pt-3 text-[8px] uppercase leading-4 tracking-[0.16em] text-white/35 sm:mt-4 sm:text-[9px] sm:tracking-[0.2em]">
                   <span>{image.label}</span>
-                  <span>{image.number} / 04</span>
+                  <span>{image.number} / 06</span>
                 </figcaption>
               </figure>
             ))}
