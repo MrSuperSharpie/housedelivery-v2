@@ -465,7 +465,7 @@ export function FinancialCorridors() {
             className="col-span-12 lg:col-span-9 lg:col-start-4"
           >
             <h3 className="max-w-[1100px] text-[clamp(2.8rem,5vw,5.8rem)] font-medium leading-[0.88] tracking-[-0.065em] text-white/90">
-              Find the pathway that fits the opportunity.
+              Find the funding pathway that fits the opportunity.
             </h3>
           </HeadlineReveal>
           <p className="col-span-12 max-w-2xl text-base leading-7 text-white/58 sm:col-span-9 sm:col-start-4 lg:col-span-5 lg:col-start-8">
