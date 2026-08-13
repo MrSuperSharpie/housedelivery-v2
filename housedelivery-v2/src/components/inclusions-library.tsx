@@ -16,6 +16,12 @@ import {
 const curationMessage =
   "We’re curating the House Delivery inclusion collection. Essential, Premium and Signature selections will be expanded as products, specifications and technical information are confirmed.";
 
+const packageComparisonImages = {
+  essential: "/images/homepage/finish-levels/essential-finish-level.jpg",
+  premium: "/images/homepage/finish-levels/premium-finish-level.jpg",
+  signature: "/images/homepage/finish-levels/signature-finish-level.jpg",
+} as const;
+
 function ProductImage({ product }: { product: InclusionProduct }) {
   const images = product.gallery ?? (product.image ? [product.image] : []);
 
@@ -496,7 +502,21 @@ export function InclusionsLibrary() {
                     {inclusionPackage.positioning}
                   </span>
                 </div>
-                <div className="mt-auto pt-20">
+                <div className="relative mt-6 h-32 overflow-hidden sm:mt-8 sm:h-36 lg:h-40">
+                  <Image
+                    src={packageComparisonImages[inclusionPackage.id]}
+                    alt=""
+                    fill
+                    quality={82}
+                    sizes="(max-width: 1023px) calc(100vw - 4rem), (max-width: 1599px) 31vw, 437px"
+                    className="object-cover"
+                  />
+                  <div
+                    aria-hidden="true"
+                    className="absolute inset-0 bg-black/12"
+                  />
+                </div>
+                <div className="mt-auto pt-8 lg:pt-10">
                   <h3 className="text-[clamp(2.6rem,4.5vw,4.8rem)] font-medium leading-none tracking-[-0.06em] text-white/92">
                     {inclusionPackage.name}
                   </h3>
