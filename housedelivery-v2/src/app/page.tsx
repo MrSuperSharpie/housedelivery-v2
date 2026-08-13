@@ -1,5 +1,6 @@
 import { CarriageHomeShowcase } from "@/components/carriage-home-showcase";
 import { DeliveryTimeline } from "@/components/delivery-timeline";
+import { EditorialBrandStatement } from "@/components/editorial-brand-statement";
 import { FinancialCorridors } from "@/components/financial-corridors";
 import { InclusionGrid } from "@/components/inclusion-grid";
 import { LuxuryHero } from "@/components/luxury-hero";
@@ -22,6 +23,11 @@ export default function Home() {
           productStatement="Pre-approved and custom homes, delivered as coordinated building systems for communities, developers, and families."
           supportingCopy="Exceptional design. A smarter path to ownership. A coordinated home system built to reduce delay, waste, and uncertainty—so more of your investment can remain in the home itself."
         />
+        <EditorialBrandStatement chapter="A better house, delivered better">
+          We’re not trying to build a cheaper house. We’re trying to build a
+          better house, faster — while removing unnecessary cost, waste and
+          complexity.
+        </EditorialBrandStatement>
         <section
           aria-label="Housing categories"
           className="bg-[#0B0C10] px-5 sm:px-8 lg:px-12"
@@ -35,6 +41,18 @@ export default function Home() {
           introCopy="Each residence begins as a coordinated architectural system and is adapted to your land, local requirements, climate, priorities, and chosen level of finish."
           valueCopy="Begin with a proven design. Shape it around the life, land, and budget it needs to serve."
         />
+        <EditorialBrandStatement
+          chapter="Precision without compromise"
+          align="right"
+        >
+          Prefab used to mean &quot;
+          <em className="font-medium text-white not-italic underline decoration-white/38 decoration-1 underline-offset-[0.16em]">
+            compromise
+          </em>
+          &quot;. What we’re building is the opposite: architectural quality,
+          precision manufacturing and customization — with less waste and less
+          time.
+        </EditorialBrandStatement>
         <CarriageHomeShowcase />
         <PreApprovedShowcase
           catalogueFollowOn={
@@ -78,6 +96,11 @@ export default function Home() {
             </div>
           }
         />
+        <EditorialBrandStatement chapter="The kit-of-parts logic">
+          Why should every home be treated like a one-off prototype? We
+          standardize and coordinate what can be repeated, then adapt, engineer
+          and complete each home properly for its Canadian site.
+        </EditorialBrandStatement>
         <InclusionGrid
           eyebrow="The coordinated kit of parts"
           finishesVariant="compact"
@@ -86,8 +109,23 @@ export default function Home() {
           headlineSecondary="Thousands of decisions already resolved."
           scopeNote="Local foundations, engineering, permitting, installation, weatherproofing, site supervision, and qualified local construction remain essential to the completed home."
         />
+        <EditorialBrandStatement
+          chapter="One coordinated supply chain"
+          align="right"
+        >
+          The breakthrough isn’t one factory or one building system. It’s
+          bringing strong manufacturers, Canadian professionals and local
+          builders into one coordinated supply chain.
+        </EditorialBrandStatement>
         <WhyHouseDeliverySection image={models[1].images[2]} />
         <FinancialCorridors />
+        <EditorialBrandStatement
+          chapter="The House Delivery thesis"
+          strength="thesis"
+        >
+          I’m not reinventing the house. I’m reinventing how we procure,
+          coordinate and deliver everything that goes into it.
+        </EditorialBrandStatement>
         <DeliveryTimeline
           eyebrow="Coordination before construction"
           headlinePrimary="Resolve more before"
