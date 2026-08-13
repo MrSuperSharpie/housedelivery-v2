@@ -161,6 +161,12 @@ const capabilityImages = [
   },
 ] as const;
 
+const finishTierImages = {
+  essential: "/images/homepage/finish-levels/essential-finish-level.jpg",
+  premium: "/images/homepage/finish-levels/premium-finish-level.jpg",
+  signature: "/images/homepage/finish-levels/signature-finish-level.jpg",
+} as const;
+
 type InclusionGridProps = {
   eyebrow?: string;
   introCopy?: string;
@@ -335,30 +341,45 @@ export function FinishesSection() {
               <div className="mt-10 grid grid-cols-12 border-y border-white/10">
                 {inclusionPackages.map((tier) => (
                   <div
-                      key={tier.id}
-                      role="group"
-                      tabIndex={0}
-                      aria-label={`${tier.name} finish tier`}
-                      aria-describedby={`finish-tier-message-${tier.id}`}
-                      className="group col-span-12 grid grid-cols-[32px_minmax(0,1fr)] gap-x-4 border-b border-white/10 py-6 last:border-b-0 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-white/35 sm:col-span-4 sm:block sm:border-r sm:border-b-0 sm:px-6 sm:first:pl-0 sm:last:border-r-0 sm:last:pr-0"
-                    >
-                      <span className="pt-1 text-[10px] tabular-nums tracking-[0.18em] text-white/30 sm:pt-0">
-                        {tier.number}
-                      </span>
-                      <div className="sm:mt-7">
-                        <p className="text-2xl font-medium tracking-[-0.035em] text-white/90">
-                          {tier.name}
-                        </p>
-                        <p className="mt-2 text-[10px] uppercase tracking-[0.16em] text-white/45">
-                          {tier.positioning}
-                        </p>
-                        <p
-                          id={`finish-tier-message-${tier.id}`}
-                          className="mt-3 text-[10px] leading-4 tracking-[0.04em] text-white/45 opacity-100 transition-opacity duration-500 ease-out motion-reduce:transition-none [@media(min-width:640px)_and_(hover:hover)_and_(pointer:fine)]:opacity-0 [@media(min-width:640px)_and_(hover:hover)_and_(pointer:fine)]:group-hover:opacity-100 [@media(min-width:640px)_and_(hover:hover)_and_(pointer:fine)]:group-focus-visible:opacity-100"
-                        >
-                          {tier.description}
-                        </p>
-                      </div>
+                    key={tier.id}
+                    role="group"
+                    tabIndex={0}
+                    aria-label={`${tier.name} finish tier`}
+                    aria-describedby={`finish-tier-message-${tier.id}`}
+                    className="group relative col-span-12 grid min-h-44 grid-cols-[32px_minmax(0,1fr)] gap-x-4 overflow-hidden border-b border-white/10 px-4 py-6 last:border-b-0 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-white/50 sm:col-span-4 sm:block sm:min-h-56 sm:border-r sm:border-b-0 sm:px-6 sm:first:pl-6 sm:last:border-r-0 sm:last:pr-6"
+                  >
+                    <div className="absolute inset-0 opacity-45 transition-opacity duration-[350ms] ease-out motion-reduce:transition-none [@media(hover:hover)_and_(pointer:fine)]:opacity-0 [@media(hover:hover)_and_(pointer:fine)]:group-hover:opacity-80 [@media(hover:hover)_and_(pointer:fine)]:group-focus-visible:opacity-80">
+                      <Image
+                        src={finishTierImages[tier.id]}
+                        alt=""
+                        fill
+                        quality={82}
+                        sizes="(max-width: 639px) calc(100vw - 2.5rem), (max-width: 1599px) 33vw, 488px"
+                        className="object-cover transition-transform duration-[350ms] ease-out motion-reduce:transition-none [@media(hover:hover)_and_(pointer:fine)]:scale-[1.015] [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-100 [@media(hover:hover)_and_(pointer:fine)]:group-focus-visible:scale-100"
+                      />
+                      <div
+                        aria-hidden="true"
+                        className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/55 to-black/80"
+                      />
+                    </div>
+
+                    <span className="relative z-10 pt-1 text-[10px] tabular-nums tracking-[0.18em] text-white/55 sm:pt-0">
+                      {tier.number}
+                    </span>
+                    <div className="relative z-10 sm:mt-7">
+                      <p className="text-2xl font-medium tracking-[-0.035em] text-white/90">
+                        {tier.name}
+                      </p>
+                      <p className="mt-2 text-[10px] uppercase tracking-[0.16em] text-white/60">
+                        {tier.positioning}
+                      </p>
+                      <p
+                        id={`finish-tier-message-${tier.id}`}
+                        className="mt-3 text-[10px] leading-4 tracking-[0.04em] text-white/60 opacity-100 transition-opacity duration-[350ms] ease-out motion-reduce:transition-none [@media(min-width:640px)_and_(hover:hover)_and_(pointer:fine)]:opacity-0 [@media(min-width:640px)_and_(hover:hover)_and_(pointer:fine)]:group-hover:opacity-100 [@media(min-width:640px)_and_(hover:hover)_and_(pointer:fine)]:group-focus-visible:opacity-100"
+                      >
+                        {tier.description}
+                      </p>
+                    </div>
                   </div>
                 ))}
               </div>
