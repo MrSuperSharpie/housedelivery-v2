@@ -23,7 +23,10 @@ export default function Home() {
           productStatement="Pre-approved and custom homes, delivered as coordinated building systems for communities, developers, and families."
           supportingCopy="Exceptional design. A smarter path to ownership. A coordinated home system built to reduce delay, waste, and uncertainty—so more of your investment can remain in the home itself."
         />
-        <EditorialBrandStatement chapter="A better house, delivered better">
+        <EditorialBrandStatement
+          chapter="A better house, delivered better"
+          variant="manifesto"
+        >
           We’re not trying to build a cheaper house. We’re trying to build a
           better house, faster — while removing unnecessary cost, waste and
           complexity.
@@ -43,10 +46,14 @@ export default function Home() {
         />
         <EditorialBrandStatement
           chapter="Precision without compromise"
-          align="right"
+          variant="feature"
+          image={{
+            src: "/Steel Frame 3.webp",
+            alt: "Precision light-gauge steel framing inside a House Delivery building system",
+          }}
         >
           Prefab used to mean &quot;
-          <em className="font-medium text-white not-italic underline decoration-white/38 decoration-1 underline-offset-[0.16em]">
+          <em className="font-medium text-white italic underline decoration-white/30 decoration-1 underline-offset-[0.16em]">
             compromise
           </em>
           &quot;. What we’re building is the opposite: architectural quality,
@@ -96,32 +103,23 @@ export default function Home() {
             </div>
           }
         />
-        <EditorialBrandStatement chapter="The kit-of-parts logic">
-          Why should every home be treated like a one-off prototype? We
-          standardize and coordinate what can be repeated, then adapt, engineer
-          and complete each home properly for its Canadian site.
-        </EditorialBrandStatement>
         <InclusionGrid
           eyebrow="The coordinated kit of parts"
+          editorialCopy="Why should every home be treated like a one-off prototype? We standardize and coordinate what can be repeated, then adapt, engineer and complete each home properly for its Canadian site."
           finishesVariant="compact"
           introCopy="House Delivery organizes the structure, building components, interior elements, documentation, and delivery pathway as one connected system. Fewer disconnected decisions on site. Greater clarity before construction begins."
           headlinePrimary="One coordinated home."
           headlineSecondary="Thousands of decisions already resolved."
           scopeNote="Local foundations, engineering, permitting, installation, weatherproofing, site supervision, and qualified local construction remain essential to the completed home."
         />
-        <EditorialBrandStatement
-          chapter="One coordinated supply chain"
-          align="right"
-        >
-          The breakthrough isn’t one factory or one building system. It’s
-          bringing strong manufacturers, Canadian professionals and local
-          builders into one coordinated supply chain.
-        </EditorialBrandStatement>
-        <WhyHouseDeliverySection image={models[1].images[2]} />
+        <WhyHouseDeliverySection
+          image={models[1].images[2]}
+          editorialCopy="The breakthrough isn’t one factory or one building system. It’s bringing strong manufacturers, Canadian professionals and local builders into one coordinated supply chain."
+        />
         <FinancialCorridors />
         <EditorialBrandStatement
           chapter="The House Delivery thesis"
-          strength="thesis"
+          variant="process"
         >
           I’m not reinventing the house. I’m reinventing how we procure,
           coordinate and deliver everything that goes into it.

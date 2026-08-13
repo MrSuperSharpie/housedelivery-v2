@@ -1,58 +1,72 @@
 import type { ReactNode } from "react";
+import Image from "next/image";
 
 import { cn } from "@/lib/cn";
 
 type EditorialBrandStatementProps = {
   chapter: string;
   children: ReactNode;
-  align?: "left" | "right";
-  strength?: "standard" | "thesis";
+  variant: "manifesto" | "feature" | "process";
+  image?: {
+    src: string;
+    alt: string;
+  };
 };
 
 export function EditorialBrandStatement({
   chapter,
   children,
-  align = "left",
-  strength = "standard",
+  variant,
+  image,
 }: EditorialBrandStatementProps) {
-  const isRightAligned = align === "right";
-  const isThesis = strength === "thesis";
+  const isFeature = variant === "feature";
+  const isManifesto = variant === "manifesto";
 
   return (
     <section
       aria-label={chapter}
-      className="bg-[#0b0c10] px-5 py-20 sm:px-8 sm:py-24 lg:px-12 lg:py-32"
+      className={cn(
+        "bg-[#0b0c10] px-5 sm:px-8 lg:px-12",
+        isManifesto
+          ? "py-14 sm:py-16 lg:py-20"
+          : "py-16 sm:py-20 lg:py-24",
+      )}
     >
       <div className="mx-auto max-w-[1504px] border-t border-white/10 pt-6 sm:pt-7">
-        <div
-          className={cn(
-            "grid grid-cols-12 gap-y-10 lg:gap-x-8",
-            isRightAligned && "lg:text-right",
-          )}
-        >
-          <p
+        <div className="grid grid-cols-12 gap-y-8 lg:gap-x-8">
+          {isFeature && image ? (
+            <figure className="relative col-span-12 aspect-[4/3] overflow-hidden bg-[#13151a] md:col-span-6 lg:aspect-[5/4]">
+              <Image
+                src={image.src}
+                alt={image.alt}
+                fill
+                quality={90}
+                sizes="(max-width: 767px) 100vw, (max-width: 1599px) 50vw, 736px"
+                className="object-cover brightness-90"
+              />
+            </figure>
+          ) : null}
+
+          <div
             className={cn(
-              "eyebrow col-span-12",
-              isRightAligned
-                ? "lg:col-span-3 lg:col-start-10"
-                : "lg:col-span-3",
+              "col-span-12",
+              isFeature && image
+                ? "md:col-span-6 md:pl-6 lg:col-span-5 lg:col-start-8 lg:self-center lg:pl-0"
+                : "lg:col-span-9 lg:col-start-4",
             )}
           >
-            {chapter}
-          </p>
-          <p
-            className={cn(
-              "col-span-12 font-medium text-white/88",
-              isThesis
-                ? "max-w-[1260px] text-[clamp(2.9rem,6vw,6.8rem)] leading-[0.9] tracking-[-0.065em]"
-                : "max-w-[1180px] text-[clamp(2.35rem,4.7vw,5.3rem)] leading-[0.94] tracking-[-0.058em]",
-              isRightAligned
-                ? "lg:col-span-10 lg:col-start-3 lg:justify-self-end"
-                : "lg:col-span-10 lg:col-start-3",
-            )}
-          >
-            {children}
-          </p>
+            <p className="eyebrow">{chapter}</p>
+            <p
+              className={cn(
+                "font-medium text-white/86",
+                isManifesto
+                  ? "mt-6 max-w-[1060px] text-[clamp(1.9rem,3.5vw,3.2rem)] leading-[0.96] tracking-[-0.052em] sm:mt-7"
+                  : "mt-6 max-w-[940px] text-[clamp(1.8rem,3.15vw,3rem)] leading-[0.98] tracking-[-0.048em] sm:mt-7",
+              )}
+            >
+              {children}
+            </p>
+          </div>
         </div>
       </div>
     </section>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { HeadlineReveal } from "@/components/headline-reveal";
 import { RevealText } from "@/components/reveal-text";
 import { inclusionPackages } from "@/data/inclusions";
+import { cn } from "@/lib/cn";
 
 type InclusionItem = {
   number: string;
@@ -154,6 +155,7 @@ const systemImages = [
 
 type InclusionGridProps = {
   eyebrow?: string;
+  editorialCopy?: string;
   finishesVariant?: "default" | "compact";
   introCopy?: string;
   headlinePrimary?: string;
@@ -163,6 +165,7 @@ type InclusionGridProps = {
 
 export function InclusionGrid({
   eyebrow = "The complete package",
+  editorialCopy,
   finishesVariant = "default",
   introCopy = "Every House Delivery Inc. home arrives as a coordinated, certified system—documented, engineered, and finished to a single standard.",
   headlinePrimary = "Included with every",
@@ -181,16 +184,29 @@ export function InclusionGrid({
       }
     >
       <div className="mx-auto max-w-[1504px]">
-        <div className="mb-20 grid gap-8 border-t border-white/15 pt-7 md:grid-cols-2 lg:mb-28">
-          <p className="eyebrow">{eyebrow}</p>
-          <p className="max-w-lg text-base leading-7 text-white/48 md:justify-self-end">
-            {introCopy}
-            {scopeNote ? (
-              <span className="mt-4 block text-sm leading-6 text-white/34">
-                {scopeNote}
-              </span>
+        <div className="mb-16 grid grid-cols-12 gap-y-8 border-t border-white/15 pt-7 lg:mb-24 lg:gap-x-8">
+          <p className="eyebrow col-span-12 lg:col-span-3">{eyebrow}</p>
+          <div className="col-span-12 lg:col-span-9 lg:col-start-4">
+            {editorialCopy ? (
+              <p className="max-w-[920px] text-[clamp(1.7rem,2.35vw,2.25rem)] font-medium leading-[1.04] tracking-[-0.045em] text-white/80">
+                {editorialCopy}
+              </p>
             ) : null}
-          </p>
+            <p
+              className={cn(
+                "max-w-2xl text-base leading-7 text-white/48",
+                editorialCopy &&
+                  "mt-7 border-t border-white/10 pt-6 lg:ml-auto lg:max-w-xl",
+              )}
+            >
+              {introCopy}
+              {scopeNote ? (
+                <span className="mt-4 block text-sm leading-6 text-white/34">
+                  {scopeNote}
+                </span>
+              ) : null}
+            </p>
+          </div>
         </div>
 
         <h2 className="max-w-[1200px] text-[clamp(2.9rem,7vw,7.5rem)] font-medium leading-[0.85] tracking-[-0.07em]">

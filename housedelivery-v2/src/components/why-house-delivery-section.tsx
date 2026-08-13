@@ -29,10 +29,12 @@ const benefits = [
 ] as const;
 
 type WhyHouseDeliverySectionProps = {
+  editorialCopy?: string;
   image: string;
 };
 
 export function WhyHouseDeliverySection({
+  editorialCopy,
   image,
 }: WhyHouseDeliverySectionProps) {
   return (
@@ -60,7 +62,12 @@ export function WhyHouseDeliverySection({
               </span>
             </h2>
           </HeadlineReveal>
-          <p className="col-span-10 col-start-3 max-w-xl border-l border-white/10 pl-6 text-lg leading-8 text-white/70 sm:col-span-7 sm:col-start-6 lg:col-span-4 lg:col-start-9">
+          {editorialCopy ? (
+            <p className="col-span-12 max-w-[920px] text-[clamp(1.7rem,2.35vw,2.25rem)] font-medium leading-[1.04] tracking-[-0.045em] text-white/80 lg:col-span-7 lg:col-start-4">
+              {editorialCopy}
+            </p>
+          ) : null}
+          <p className="col-span-10 col-start-3 max-w-xl border-l border-white/10 pl-6 text-lg leading-8 text-white/70 sm:col-span-7 sm:col-start-6 lg:col-span-3 lg:col-start-10">
             Less waste. Fewer disconnected decisions. More of the project
             investment directed toward the home itself.
           </p>
