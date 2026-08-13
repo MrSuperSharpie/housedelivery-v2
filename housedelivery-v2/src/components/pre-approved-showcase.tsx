@@ -87,7 +87,9 @@ function CatalogueModelGrid({ models }: CatalogueModelGridProps) {
               aria-label={`Download PDF drawings and specifications for ${model.name}`}
               className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/52 transition-colors hover:text-white"
             >
-              Download PDF
+              {model.slug === "sixplex-courtyard"
+                ? "Download CMHC Drawings · PDF"
+                : "Download PDF"}
             </a>
           </div>
         </article>
@@ -149,7 +151,7 @@ export function PreApprovedShowcase({
             </div>
             <div className="border-t border-[#1f2833] p-7 sm:border-t-0 sm:p-9">
               <p className="text-4xl font-medium tracking-[-0.055em]">
-                07 <span className="text-lg text-white/34">typologies</span>
+                07 <span className="text-lg text-white/34">home types</span>
               </p>
               <p className="mt-2 text-[9px] uppercase tracking-[0.18em] text-white/35">
                 BC catalogue range
@@ -157,18 +159,28 @@ export function PreApprovedShowcase({
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2 p-7 sm:p-9">
-            {catalogModels.map((model) => (
-              <a
-                key={model.code}
-                href={model.downloadHref}
-                download
-                aria-label={`Download PDF drawings for ${model.name}`}
-                className="border border-white/14 px-4 py-2 text-[9px] font-semibold uppercase tracking-[0.16em] text-white/52 transition-colors hover:border-white/35 hover:text-white/90"
-              >
-                {model.catalogLabel}
-              </a>
-            ))}
+          <div className="p-7 sm:p-9">
+            <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/42">
+              Download CMHC catalogue drawings
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {catalogModels.map((model) => (
+                <a
+                  key={model.code}
+                  href={model.downloadHref}
+                  download
+                  aria-label={`Download PDF drawings for ${model.name}`}
+                  className="border border-white/14 px-4 py-2 text-[9px] font-semibold uppercase tracking-[0.16em] text-white/52 transition-colors hover:border-white/35 hover:text-white/90"
+                >
+                  {model.catalogLabel} ↓ PDF
+                </a>
+              ))}
+            </div>
+            <p className="mt-5 max-w-4xl text-xs leading-5 text-white/34">
+              Official CMHC Housing Design Catalogue architectural drawings.
+              Provided for planning and reference. Site-specific adaptation,
+              professional review and local approvals are still required.
+            </p>
           </div>
         </div>
 
