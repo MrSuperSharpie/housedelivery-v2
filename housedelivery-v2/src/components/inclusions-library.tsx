@@ -1,206 +1,69 @@
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
-import { ProductImageGallery } from "@/components/product-image-gallery";
-import { SelectableInclusionCard } from "@/components/selectable-inclusion-card";
 import {
-  getInclusionPackage,
   inclusionCategories,
-  inclusionPackages,
   type InclusionCategory,
-  type InclusionProduct,
 } from "@/data/inclusions";
 
-const curationMessage =
-  "We’re curating the House Delivery inclusion collection. Essential, Premium and Signature selections will be expanded as products, specifications and technical information are confirmed.";
+const homeCollections = [
+  {
+    number: "01",
+    name: "Custom Homes",
+    levels: "Premium · Signature",
+    description:
+      "More design freedom, elevated materials and coordinated whole-home design directions.",
+  },
+  {
+    number: "02",
+    name: "Laneway & Carriage Homes",
+    levels: "Essential · Premium",
+    description:
+      "Controlled selections designed around efficient, highly coordinated compact homes.",
+  },
+  {
+    number: "03",
+    name: "Pre-Approved Homes",
+    levels: "Essential · Premium",
+    description:
+      "A streamlined selection structure designed to support repeatability, clarity and project efficiency.",
+  },
+] as const;
 
-const packageComparisonImages = {
-  essential: "/images/homepage/finish-levels/essential-finish-level.jpg",
-  premium: "/images/homepage/finish-levels/premium-finish-level.jpg",
-  signature: "/images/homepage/finish-levels/signature-finish-level.jpg",
-} as const;
-
-function ProductImage({ product }: { product: InclusionProduct }) {
-  const images = product.gallery ?? (product.image ? [product.image] : []);
-
-  if (images.length === 0) {
-    return (
-      <div className="flex aspect-[4/3] items-end border-b border-white/10 bg-[#121419] p-6 sm:p-8">
-        <div>
-          <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/60">
-            Controlled imagery
-          </p>
-          <p className="mt-3 text-lg font-medium tracking-[-0.025em] text-white/55">
-            Product image pending
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <ProductImageGallery
-      images={images}
-      productName={product.name}
-      productSku={product.sku}
-    />
-  );
-}
-
-function ProductCard({ product }: { product: InclusionProduct }) {
-  const inclusionPackage = getInclusionPackage(product.packageTier);
-  const productHeadingId = `product-${product.sku.toLowerCase()}`;
-
-  return (
-    <article
-      aria-labelledby={productHeadingId}
-      className="flex h-full flex-col border border-white/12 bg-[#0e1014]"
-    >
-      <ProductImage product={product} />
-
-      <div className="flex flex-1 flex-col p-6 sm:p-8">
-        <div className="flex items-start justify-between gap-6 border-b border-white/10 pb-5">
-          <div>
-            <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/60">
-              {inclusionPackage.name} package
-            </p>
-            <p className="mt-2 text-[10px] uppercase tracking-[0.16em] text-white/54">
-              {inclusionPackage.positioning}
-            </p>
-          </div>
-          <dl className="text-right">
-            <dt className="text-[8px] uppercase tracking-[0.18em] text-white/60">
-              House Delivery SKU
-            </dt>
-            <dd className="mt-2 font-mono text-[10px] tracking-[0.12em] text-white/62">
-              {product.sku}
-            </dd>
-          </dl>
-        </div>
-
-        <div className="pt-8">
-          <p className="text-[9px] font-semibold uppercase tracking-[0.19em] text-white/60">
-            {product.category}
-          </p>
-          <h3
-            id={productHeadingId}
-            className="mt-4 text-[clamp(2rem,3.2vw,3.3rem)] font-medium leading-[0.95] tracking-[-0.055em] text-white/92"
-          >
-            {product.name}
-          </h3>
-          <p className="mt-6 text-sm leading-6 text-white/53">
-            {product.customerDescription}
-          </p>
-        </div>
-
-        {product.specifications.length > 0 ? (
-          <div className="mt-10 border-t border-white/10 pt-6">
-            <h4 className="text-[9px] font-semibold uppercase tracking-[0.19em] text-white/60">
-              {product.specificationsHeading ?? "Listed specification"}
-            </h4>
-            <ul className="mt-5 space-y-3">
-              {product.specifications.map((specification) => (
-                <li
-                  key={specification}
-                  className="flex gap-3 text-sm leading-6 text-white/58"
-                >
-                  <Check
-                    aria-hidden="true"
-                    className="mt-1 size-3.5 shrink-0 text-white/38"
-                    strokeWidth={1.5}
-                  />
-                  <span>{specification}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-
-        <dl className="mt-10 grid grid-cols-2 border-l border-t border-white/10 text-sm">
-          <div className="min-h-28 border-b border-r border-white/10 p-4">
-            <dt className="text-[8px] font-semibold uppercase leading-4 tracking-[0.16em] text-white/60">
-              Selection status
-            </dt>
-            <dd className="mt-4 leading-5 text-white/67">
-              {product.selectionStatus}
-            </dd>
-          </div>
-          <div className="min-h-28 border-b border-r border-white/10 p-4">
-            <dt className="text-[8px] font-semibold uppercase leading-4 tracking-[0.16em] text-white/60">
-              Sample
-            </dt>
-            <dd className="mt-4 leading-5 text-white/67">
-              {product.sampleRequired ? "Required" : "Not required"}
-            </dd>
-          </div>
-          <div className="min-h-28 border-b border-r border-white/10 p-4">
-            <dt className="text-[8px] font-semibold uppercase leading-4 tracking-[0.16em] text-white/60">
-              Technical review
-            </dt>
-            <dd className="mt-4 leading-5 text-white/67">
-              {product.technicalReviewRequired ? "Required" : "Not required"}
-            </dd>
-          </div>
-          <div className="min-h-28 border-b border-r border-white/10 p-4">
-            <dt className="text-[8px] font-semibold uppercase leading-4 tracking-[0.16em] text-white/60">
-              Project-specific review
-            </dt>
-            <dd className="mt-4 leading-5 text-white/67">
-              {product.projectSpecificApprovalRequired
-                ? "Required"
-                : "Not required"}
-            </dd>
-          </div>
-        </dl>
-
-        <p className="mt-5 text-xs leading-5 text-white/60">
-          {product.availability}
-        </p>
-      </div>
-    </article>
-  );
-}
-
-function CategoryHeroImage({ category }: { category: InclusionCategory }) {
-  return (
-    <div className="flex size-full flex-col bg-[#121419]">
-      <div className="relative aspect-[3/2] w-full overflow-hidden">
-        {category.heroImage ? (
-          <Image
-            src={category.heroImage.src}
-            alt={category.heroImage.alt}
-            fill
-            quality={90}
-            sizes="(max-width: 1023px) 100vw, 58vw"
-            className="object-cover"
-          />
-        ) : (
-          <div className="flex size-full items-end p-6 sm:p-8 lg:p-10">
-            <div>
-              <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/60">
-                Controlled category imagery
-              </p>
-              <p className="mt-3 text-xl font-medium tracking-[-0.03em] text-white/55 sm:text-2xl">
-                Category imagery pending
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="border-t border-white/12 bg-[#0e1014] px-6 py-5 sm:px-8 sm:py-6 lg:px-10">
-        <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/60">
-          CURATING THE COLLECTION
-        </p>
-        <p className="mt-3 max-w-2xl text-xs leading-5 text-white/52 sm:text-sm sm:leading-6">
-          {curationMessage}
-        </p>
-      </div>
-    </div>
-  );
-}
+const overviewDescriptions: Record<InclusionCategory["id"], string> = {
+  flooring:
+    "Flooring systems coordinated for durability, continuity, comfort and a cohesive whole-home material direction.",
+  "kitchen-cabinetry":
+    "Cabinetry, finishes, storage and hardware coordinated around the kitchen layout and the wider interior palette.",
+  wardrobes:
+    "Wardrobe systems coordinated around practical storage planning, room layouts and a consistent interior finish language.",
+  "interior-doors":
+    "Interior doors, finishes and hardware coordinated with the flooring, cabinetry and architectural character of the home.",
+  "exterior-doors":
+    "Entry doors and associated finishes coordinated with the home’s architecture, arrival sequence and project requirements.",
+  "windows-patio-doors":
+    "Windows and patio doors coordinated around the architecture, daylight, indoor-outdoor connection and project-specific performance needs.",
+  "kitchen-bath-fixtures":
+    "Sinks, faucets and related kitchen and bathroom fixtures coordinated with the selected home, surfaces and cabinetry.",
+  "bathroom-vanities":
+    "Vanities, storage, finishes and fixtures coordinated around bathroom layouts and the home’s overall material direction.",
+  "tile-surfaces":
+    "Tile and applied surfaces coordinated across wet areas, feature zones and durable transitions throughout the home.",
+  countertops:
+    "Countertop materials and profiles coordinated across kitchen, vanity and other work-surface applications.",
+  "wall-panels":
+    "Interior wall panels coordinated for selected feature areas as part of the home’s broader material palette.",
+  lighting:
+    "Lighting coordinated to support everyday use, architectural emphasis and a consistent atmosphere throughout the home.",
+  appliances:
+    "Appliances coordinated with cabinetry, kitchen planning, service requirements and the selected home design.",
+  "window-coverings":
+    "Window coverings coordinated for privacy, daylight control and alignment with the interior finish direction.",
+  "garage-doors-operators":
+    "Garage doors and operators coordinated with the home exterior, access needs and project-specific technical requirements.",
+};
 
 function BrowseInclusions() {
   return (
@@ -212,20 +75,21 @@ function BrowseInclusions() {
         <div className="grid gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:items-end lg:gap-20">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/60">
-              Catalogue index
+              Coordinated scope
             </p>
             <h2
               id="browse-inclusions-heading"
               className="mt-7 max-w-3xl text-[clamp(3.25rem,7vw,7.5rem)] font-medium leading-[0.86] tracking-[-0.07em]"
             >
-              Browse
+              What we
               <br />
-              <span className="text-white/38">Inclusions</span>
+              <span className="text-white/38">coordinate.</span>
             </h2>
           </div>
           <p className="max-w-2xl text-base leading-7 text-white/52 lg:justify-self-end lg:text-lg lg:leading-8">
-            Move directly to a category. Controlled products will be introduced
-            as selections, imagery and technical information are approved.
+            Explore the products, finishes and systems that House Delivery can
+            bring together as one complete home. Final selections are shaped by
+            the home collection and the needs of each project.
           </p>
         </div>
 
@@ -256,6 +120,33 @@ function BrowseInclusions() {
   );
 }
 
+function CategoryImage({ category }: { category: InclusionCategory }) {
+  return (
+    <div className="relative aspect-[4/3] size-full overflow-hidden bg-[#121419] sm:aspect-[3/2] lg:aspect-auto lg:min-h-[34rem]">
+      {category.heroImage ? (
+        <Image
+          src={category.heroImage.src}
+          alt={category.heroImage.alt}
+          fill
+          quality={90}
+          sizes="(max-width: 1023px) 100vw, 58vw"
+          className="object-cover"
+        />
+      ) : (
+        <div className="flex size-full items-end p-6 sm:p-8 lg:p-10">
+          <p className="text-lg font-medium tracking-[-0.025em] text-white/55">
+            Category imagery in development
+          </p>
+        </div>
+      )}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"
+      />
+    </div>
+  );
+}
+
 function CategorySection({
   category,
   index,
@@ -264,14 +155,14 @@ function CategorySection({
   index: number;
 }) {
   const headingId = `inclusion-${category.id}-heading`;
-  const hasProducts = category.products.length > 0;
+  const imageFirst = index % 2 === 0;
 
   return (
     <section
       id={category.id}
       aria-labelledby={headingId}
-      className={`relative scroll-mt-24 border-t border-white/10 px-5 py-16 sm:px-8 sm:py-24 lg:px-12 lg:py-36 ${
-        index % 2 === 1 ? "bg-[#0d0f13]" : "bg-[#0b0c10]"
+      className={`relative scroll-mt-24 border-t border-white/10 px-5 py-16 sm:px-8 sm:py-24 lg:px-12 lg:py-32 ${
+        imageFirst ? "bg-[#0b0c10]" : "bg-[#0d0f13]"
       }`}
     >
       {category.legacyIds?.map((legacyId) => (
@@ -287,13 +178,18 @@ function CategorySection({
         aria-hidden="true"
         className="pointer-events-none absolute left-0 top-0 scroll-mt-24"
       />
+
       <div className="mx-auto max-w-[1504px]">
-        <div className="grid overflow-hidden border border-white/12 lg:grid-cols-12">
-          <div className="border-b border-white/12 lg:col-span-7 lg:border-b-0 lg:border-r">
-            <CategoryHeroImage category={category} />
+        <article className="grid overflow-hidden border border-white/12 lg:grid-cols-12">
+          <div
+            className={`border-b border-white/12 lg:col-span-7 lg:border-b-0 ${
+              imageFirst ? "lg:border-r" : "lg:order-2 lg:border-l"
+            }`}
+          >
+            <CategoryImage category={category} />
           </div>
 
-          <div className="flex min-h-[22rem] flex-col p-6 sm:min-h-[25rem] sm:p-9 lg:col-span-5 lg:min-h-[34rem] lg:p-10 xl:p-12">
+          <div className="flex min-h-80 flex-col p-6 sm:min-h-96 sm:p-9 lg:col-span-5 lg:min-h-[34rem] lg:p-10 xl:p-12">
             <div className="flex items-start justify-between gap-6">
               <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/60">
                 {category.eyebrow}
@@ -306,7 +202,7 @@ function CategorySection({
               </span>
             </div>
 
-            <div className="mt-auto pt-20">
+            <div className="mt-auto pt-16 sm:pt-20">
               <h2
                 id={headingId}
                 className="max-w-3xl text-[clamp(2.75rem,5.5vw,5.8rem)] font-medium leading-[0.88] tracking-[-0.065em] text-white/92"
@@ -314,52 +210,11 @@ function CategorySection({
                 {category.name}
               </h2>
               <p className="mt-7 max-w-xl text-base leading-7 text-white/56 lg:text-lg lg:leading-8">
-                {category.description}
+                {overviewDescriptions[category.id]}
               </p>
-              {category.packageContext ? (
-                <p className="mt-7 border-t border-white/10 pt-5 text-xs leading-6 text-white/50">
-                  {category.packageContext}
-                </p>
-              ) : null}
             </div>
           </div>
-        </div>
-
-        {hasProducts ? (
-          <div className="mt-12 grid gap-6 md:grid-cols-2 xl:mt-16 xl:grid-cols-3 xl:gap-8">
-            {category.products.map((product) => {
-              if (product.choices?.length) {
-                return (
-                  <SelectableInclusionCard
-                    key={product.sku}
-                    product={product}
-                    inclusionPackage={getInclusionPackage(product.packageTier)}
-                  />
-                );
-              }
-
-              return <ProductCard key={product.sku} product={product} />;
-            })}
-          </div>
-        ) : (
-          <div className="mt-6 grid min-h-32 border border-white/12 bg-[#0e1014] sm:mt-8 sm:grid-cols-[0.7fr_1.3fr] lg:mt-10">
-            <div className="flex items-end border-b border-white/10 p-6 sm:border-b-0 sm:border-r sm:p-8">
-              <div>
-                <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/60">
-                  Controlled selection area
-                </p>
-                <p className="mt-3 text-xl font-medium tracking-[-0.03em] text-white/72">
-                  Selections in development
-                </p>
-              </div>
-            </div>
-            <p className="max-w-2xl self-center p-6 text-sm leading-7 text-white/52 sm:p-8">
-              No products are displayed until House Delivery names, package
-              assignments, descriptions and supporting information are ready
-              for customer review.
-            </p>
-          </div>
-        )}
+        </article>
       </div>
     </section>
   );
@@ -380,25 +235,24 @@ export function InclusionsLibrary() {
             <h1 className="max-w-[1400px] text-[clamp(3.25rem,11vw,11rem)] font-medium leading-[0.8] tracking-[-0.078em]">
               Inclusions
               <br />
-              <span className="text-white/38">Library</span>
+              <span className="text-white/38">Overview</span>
             </h1>
           </HeadlineReveal>
 
           <div className="mt-16 grid gap-8 border-t border-white/16 pt-7 lg:grid-cols-[0.72fr_1.28fr] lg:gap-20">
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/60">
-              Catalogue framework / 15 categories
+              Complete-home coordination / 15 categories
             </p>
             <div className="max-w-3xl">
               <p className="text-xl leading-8 tracking-[-0.025em] text-white/76 sm:text-2xl sm:leading-9">
-                Curated finishes. Coordinated systems. One House Delivery
-                approach.
+                Products, finishes and systems, brought together around the
+                home you choose.
               </p>
               <p className="mt-5 text-sm leading-7 text-white/54 sm:text-base sm:leading-8">
-                A controlled collection of finishes and systems organized into
-                Essential, Premium and Signature packages. House Delivery
-                coordinates selected products into repeatable project packages
-                while retaining the flexibility required for site, design and
-                project conditions.
+                House Delivery coordinates the many material and product
+                decisions that turn a building system into a complete home.
+                This overview shows the breadth of that work; detailed
+                selections are developed within the experience for each home.
               </p>
             </div>
           </div>
@@ -416,112 +270,58 @@ export function InclusionsLibrary() {
               />
             </div>
             <figcaption className="mt-4 max-w-2xl border-l border-white/20 pl-4 text-xs leading-5 text-white/48">
-              Illustrative design inspiration. Final selections vary by package
-              and project.
+              A coordinated interior direction brings the individual parts of
+              a home together as one considered whole.
             </figcaption>
           </figure>
         </div>
       </section>
 
       <section
-        aria-labelledby="catalogue-notice-heading"
-        className="px-5 py-16 sm:px-8 sm:py-20 lg:px-12"
-      >
-        <div className="mx-auto max-w-[1504px] border border-white/18 bg-[#0e1014] p-6 sm:p-9 lg:p-12">
-          <div className="grid gap-8 lg:grid-cols-[0.6fr_1.4fr] lg:gap-20">
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/60">
-                Catalogue notice
-              </p>
-              <h2
-                id="catalogue-notice-heading"
-                className="mt-5 max-w-sm text-3xl font-medium leading-tight tracking-[-0.045em] text-white/88"
-              >
-                A preliminary selection pathway.
-              </h2>
-            </div>
-            <div className="space-y-5 text-sm leading-7 text-white/57 sm:text-base">
-              <p>
-                Selections shown are preliminary and subject to availability,
-                substitution and project-specific review. Final products,
-                specifications and commercial terms are confirmed only after
-                design, technical, site and agreement review. Images and
-                descriptions are illustrative and do not establish
-                certification, code compliance or final supply.
-              </p>
-              <p className="border-t border-white/10 pt-5 text-white/55">
-                House Delivery may propose an approved alternative where a
-                selected product is unavailable or unsuitable for the final
-                project conditions.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section
-        aria-labelledby="package-comparison-heading"
+        aria-labelledby="home-collections-heading"
         className="px-5 py-24 sm:px-8 lg:px-12 lg:py-36"
       >
         <div className="mx-auto max-w-[1504px]">
-          <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-end lg:gap-20">
+          <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-end lg:gap-20">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/60">
-                Package comparison
+                Design collections
               </p>
               <h2
-                id="package-comparison-heading"
-                className="mt-7 max-w-3xl text-[clamp(3rem,6.5vw,7rem)] font-medium leading-[0.88] tracking-[-0.068em]"
+                id="home-collections-heading"
+                className="mt-7 max-w-4xl text-[clamp(3rem,6.5vw,7rem)] font-medium leading-[0.88] tracking-[-0.068em]"
               >
-                One system.
+                Selections shaped
                 <br />
-                <span className="text-white/38">Three expressions.</span>
+                <span className="text-white/38">to the home you choose.</span>
               </h2>
             </div>
             <p className="max-w-2xl text-base leading-7 text-white/52 lg:justify-self-end lg:text-lg lg:leading-8">
-              Essential establishes the coordinated project baseline. Premium
-              and Signature build on that foundation through controlled
-              material, finish and detailing upgrades.
+              House Delivery coordinates the products and finishes that turn a
+              building system into a complete home. Design levels vary by home
+              collection so choices remain clear, coordinated and appropriate
+              to the home.
             </p>
           </div>
 
           <div className="mt-16 grid border-l border-t border-white/12 lg:mt-24 lg:grid-cols-3">
-            {inclusionPackages.map((inclusionPackage) => (
+            {homeCollections.map((collection) => (
               <article
-                key={inclusionPackage.id}
-                className="flex min-h-80 flex-col border-b border-r border-white/12 p-6 sm:p-8 lg:min-h-[28rem]"
+                key={collection.name}
+                className="flex min-h-72 flex-col border-b border-r border-white/12 p-6 sm:min-h-80 sm:p-8 lg:min-h-[25rem]"
               >
-                <div className="flex items-start justify-between gap-6">
-                  <span
-                    aria-hidden="true"
-                    className="font-mono text-[10px] tracking-[0.18em] text-white/26"
-                  >
-                    {inclusionPackage.number}
-                  </span>
-                  <span className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/60">
-                    {inclusionPackage.positioning}
-                  </span>
-                </div>
-                <div className="relative mt-6 h-32 overflow-hidden sm:mt-8 sm:h-36 lg:h-40">
-                  <Image
-                    src={packageComparisonImages[inclusionPackage.id]}
-                    alt=""
-                    fill
-                    quality={82}
-                    sizes="(max-width: 1023px) calc(100vw - 4rem), (max-width: 1599px) 31vw, 437px"
-                    className="object-cover"
-                  />
-                  <div
-                    aria-hidden="true"
-                    className="absolute inset-0 bg-black/12"
-                  />
-                </div>
-                <div className="mt-auto pt-8 lg:pt-10">
-                  <h3 className="text-[clamp(2.6rem,4.5vw,4.8rem)] font-medium leading-none tracking-[-0.06em] text-white/92">
-                    {inclusionPackage.name}
+                <span className="font-mono text-[10px] tracking-[0.18em] text-white/30">
+                  {collection.number}
+                </span>
+                <div className="mt-auto pt-14">
+                  <h3 className="max-w-sm text-[clamp(2.2rem,3.4vw,3.8rem)] font-medium leading-[0.94] tracking-[-0.055em] text-white/92">
+                    {collection.name}
                   </h3>
-                  <p className="mt-6 max-w-sm text-sm leading-7 text-white/50">
-                    {inclusionPackage.description}
+                  <p className="mt-6 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/68">
+                    {collection.levels}
+                  </p>
+                  <p className="mt-5 max-w-sm border-t border-white/10 pt-5 text-sm leading-7 text-white/50">
+                    {collection.description}
                   </p>
                 </div>
               </article>
@@ -536,39 +336,60 @@ export function InclusionsLibrary() {
         <CategorySection key={category.id} category={category} index={index} />
       ))}
 
-      <section className="border-t border-white/10 px-5 py-24 sm:px-8 lg:px-12 lg:py-36">
+      <section
+        aria-labelledby="start-with-home-heading"
+        className="border-t border-white/10 px-5 py-24 sm:px-8 lg:px-12 lg:py-36"
+      >
         <div className="mx-auto max-w-[1504px]">
           <div className="grid gap-14 lg:grid-cols-[1.25fr_0.75fr] lg:items-end lg:gap-24">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/60">
-                From preliminary to project-specific
+                From architecture to interior
               </p>
-              <h2 className="mt-7 max-w-5xl text-[clamp(3rem,6.5vw,7rem)] font-medium leading-[0.88] tracking-[-0.068em]">
-                Selections begin here.
+              <h2
+                id="start-with-home-heading"
+                className="mt-7 max-w-5xl text-[clamp(3rem,6.5vw,7rem)] font-medium leading-[0.88] tracking-[-0.068em]"
+              >
+                Start with the home.
                 <br />
-                <span className="text-white/38">Confirmation comes later.</span>
+                <span className="text-white/38">Then shape the details.</span>
               </h2>
             </div>
             <div className="border-l border-white/15 pl-6 sm:pl-8">
               <p className="text-sm leading-7 text-white/52">
-                Final selections are developed through project discovery and
-                confirmed through the project agreement and technical-review
-                process. Begin with your site, priorities and preferred package
-                to establish the right project pathway.
+                Your home establishes the architecture. Its design collection
+                then brings the flooring, cabinetry, surfaces, bathrooms,
+                doors and other inclusions together as one coordinated
+                interior.
               </p>
-              <Link
-                href="/#reserve"
-                className="group mt-8 inline-flex min-h-11 items-center gap-5 border border-white bg-white px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.17em] text-[#0b0c10] transition-colors hover:bg-transparent hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-              >
-                Begin project review
-                <ArrowRight
-                  aria-hidden="true"
-                  className="size-3.5 transition-transform group-hover:translate-x-1"
-                  strokeWidth={1.5}
-                />
-              </Link>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link
+                  href="/#models"
+                  className="group inline-flex min-h-11 items-center gap-5 border border-white bg-white px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.17em] text-[#0b0c10] transition-colors hover:bg-transparent hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+                >
+                  Explore the Homes
+                  <ArrowRight
+                    aria-hidden="true"
+                    className="size-3.5 transition-transform group-hover:translate-x-1"
+                    strokeWidth={1.5}
+                  />
+                </Link>
+                <Link
+                  href="/#reserve"
+                  className="inline-flex min-h-11 items-center border border-white/28 px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.17em] text-white/76 transition-colors hover:border-white hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+                >
+                  Begin Project Review
+                </Link>
+              </div>
             </div>
           </div>
+
+          <p className="mt-20 max-w-5xl border-t border-white/12 pt-6 text-xs leading-6 text-white/42 lg:mt-28">
+            Images and selections are illustrative. Final products, finishes,
+            availability, pricing and technical suitability are confirmed
+            during project review and are subject to project-specific
+            requirements.
+          </p>
         </div>
       </section>
     </main>

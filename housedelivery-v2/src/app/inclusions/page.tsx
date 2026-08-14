@@ -4,13 +4,13 @@ import { InclusionsLibrary } from "@/components/inclusions-library";
 import { SiteHeader } from "@/components/site-header";
 
 export const metadata: Metadata = {
-  title: "House Delivery Inclusions Library",
+  title: "House Delivery Inclusions Overview",
   description:
-    "Explore House Delivery’s preliminary Essential, Premium and Signature inclusion framework across flooring, cabinetry, doors, windows, bathrooms and more.",
+    "Explore the products, finishes and systems House Delivery coordinates into complete custom, laneway, carriage and pre-approved homes.",
   openGraph: {
-    title: "House Delivery Inclusions Library",
+    title: "House Delivery Inclusions Overview",
     description:
-      "Explore House Delivery’s preliminary Essential, Premium and Signature inclusion framework across flooring, cabinetry, doors, windows, bathrooms and more.",
+      "Explore the products, finishes and systems House Delivery coordinates into complete custom, laneway, carriage and pre-approved homes.",
     type: "website",
   },
 };
