@@ -3,14 +3,14 @@ import Link from "next/link";
 
 import { cn } from "@/lib/cn";
 
-type InclusionDestination = {
+export type ContextualInclusionDestination = {
   href: string;
   label: string;
 };
 
 function getInclusionDestination(
   sourceLabel: string,
-): InclusionDestination | null {
+): ContextualInclusionDestination | null {
   const label = sourceLabel.toLowerCase();
 
   if (label.includes("bath")) {
@@ -67,14 +67,18 @@ function getInclusionDestination(
 
 export function ContextualInclusionsLink({
   sourceLabel,
+  destinationOverride,
 }: {
   sourceLabel: string;
+  destinationOverride?: ContextualInclusionDestination;
 }) {
-  const destination = getInclusionDestination(sourceLabel);
+  const defaultDestination = getInclusionDestination(sourceLabel);
 
-  if (!destination) {
+  if (!defaultDestination) {
     return null;
   }
+
+  const destination = destinationOverride ?? defaultDestination;
 
   return (
     <Link

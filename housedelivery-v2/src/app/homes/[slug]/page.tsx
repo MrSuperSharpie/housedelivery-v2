@@ -5,12 +5,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
+import { HomeDesignCollections } from "@/components/home-design-collections";
 import { HomeDetailHero } from "@/components/home-detail-hero";
 import { HomeEditorialGallery } from "@/components/home-editorial-gallery";
 import { HomeFloorPlanViewer } from "@/components/home-floor-plan-viewer";
 import { ExploreAllInclusionsLink } from "@/components/inclusions-journey-links";
 import { RevealText } from "@/components/reveal-text";
 import { SiteHeader } from "@/components/site-header";
+import { getHomeDesignCollections } from "@/data/home-design-collections";
 import { models, type HomeModel } from "@/data/models";
 
 type HomeDetailPageProps = {
@@ -63,6 +65,7 @@ export default async function HomeDetailPage({
   }
 
   const nextModel: HomeModel = models[(modelIndex + 1) % models.length];
+  const designCollections = getHomeDesignCollections(model.slug);
   const specifications = [
     { label: "Footprint", value: model.footprint ?? "Site-adapted" },
     { label: "Main level", value: formatArea(model.levels.main) },
@@ -161,7 +164,19 @@ export default async function HomeDetailPage({
           images={model.images}
           floorPlanImage={model.floorPlanImage}
           narrative={model.narrative}
+          contextualInclusionsDestination={
+            designCollections
+              ? {
+                  href: "#design-collections",
+                  label: `Explore ${model.name} Design Collections`,
+                }
+              : undefined
+          }
         />
+
+        {designCollections ? (
+          <HomeDesignCollections experience={designCollections} />
+        ) : null}
 
         <HomeFloorPlanViewer model={model} />
 

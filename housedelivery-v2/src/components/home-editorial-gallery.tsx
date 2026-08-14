@@ -4,7 +4,10 @@ import { motion, useReducedMotion } from "framer-motion";
 import Image from "next/image";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
-import { ContextualInclusionsLink } from "@/components/inclusions-journey-links";
+import {
+  ContextualInclusionsLink,
+  type ContextualInclusionDestination,
+} from "@/components/inclusions-journey-links";
 import type { HomeModel } from "@/data/models";
 
 type GallerySource =
@@ -35,6 +38,7 @@ type HomeEditorialGalleryProps = {
   narrative?: HomeModel["narrative"];
   imageQuality?: number;
   unoptimized?: boolean;
+  contextualInclusionsDestination?: ContextualInclusionDestination;
 };
 
 // Floor plan / footprint assets must never appear in the lifestyle gallery —
@@ -123,6 +127,7 @@ export function HomeEditorialGallery({
   narrative = [],
   imageQuality = 100,
   unoptimized = true,
+  contextualInclusionsDestination,
 }: HomeEditorialGalleryProps) {
   const shouldReduceMotion = useReducedMotion();
   const lifestyleImages = images.filter(
@@ -213,7 +218,10 @@ export function HomeEditorialGallery({
                             {String(lifestyleImages.length).padStart(2, "0")}
                           </span>
                         </div>
-                        <ContextualInclusionsLink sourceLabel={image.label} />
+                        <ContextualInclusionsLink
+                          sourceLabel={image.label}
+                          destinationOverride={contextualInclusionsDestination}
+                        />
                       </figcaption>
                     </figure>
                   ))}
