@@ -2,6 +2,7 @@
 
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
@@ -175,7 +176,6 @@ export function HomeDesignCollections({
                 {selectedCollection ? (
                   <div
                     id={detailId}
-                    role="status"
                     aria-live="polite"
                     className="mt-8 border-t border-white/20 bg-white/[0.018] px-6 py-10 sm:px-9 sm:py-12 lg:px-12 lg:py-14"
                   >
@@ -212,17 +212,25 @@ export function HomeDesignCollections({
                           stone, bathrooms, fixtures, doors and other
                           inclusions.
                         </p>
-                        <div className="mt-6 flex items-center justify-between gap-5 text-[10px] font-semibold uppercase leading-5 tracking-[0.16em] text-white/72">
+                        <Link
+                          href={
+                            selectedCollection.id === "premium-coastal-light"
+                              ? "/homes/solace/design-collections/coastal-light"
+                              : "/#reserve"
+                          }
+                          className="group mt-6 flex items-center justify-between gap-5 border-t border-white/14 pt-6 text-[10px] font-semibold uppercase leading-5 tracking-[0.16em] text-white/72 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+                        >
                           <span>
-                            Explore the coordinated inclusions for this design
-                            direction.
+                            {selectedCollection.id === "premium-coastal-light"
+                              ? "Explore Coastal Light"
+                              : `Begin a ${selectedCollection.name} project review`}
                           </span>
                           <ArrowRight
                             aria-hidden="true"
-                            className="size-4 shrink-0"
+                            className="size-4 shrink-0 transition-transform group-hover:translate-x-1"
                             strokeWidth={1.5}
                           />
-                        </div>
+                        </Link>
                       </div>
                     </div>
                   </div>
