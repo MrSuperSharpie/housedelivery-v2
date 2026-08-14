@@ -1,8 +1,7 @@
-import { ArrowUpRight } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
+import { InclusionsFilmFeature } from "@/components/homepage-video-experiences";
 import { RevealText } from "@/components/reveal-text";
 import { TrustBanner } from "@/components/trust-banner";
 import { inclusionPackages } from "@/data/inclusions";
@@ -319,24 +318,14 @@ export function FinishesSection() {
                 </h3>
               </HeadlineReveal>
 
-              <div className="mt-10 grid grid-cols-12 gap-y-8 border-t border-white/10 pt-8 lg:gap-x-8">
-                <p className="col-span-12 max-w-2xl text-lg leading-8 text-white/70 lg:col-span-7">
+              <div className="mt-10 border-t border-white/10 pt-8">
+                <p className="max-w-2xl text-lg leading-8 text-white/70">
                   Flooring. Glazing. Doors. Cabinetry. Every finish, organized
                   through one coordinated package structure.
                 </p>
-
-                <Link
-                  href="/inclusions"
-                  className="group col-span-12 inline-flex min-h-12 w-fit items-center gap-4 self-start border border-white bg-white px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-black transition-colors duration-500 hover:bg-transparent hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white lg:col-span-4 lg:col-start-9"
-                >
-                  Explore the Inclusions Library
-                  <ArrowUpRight
-                    aria-hidden="true"
-                    className="size-3.5 transition-transform duration-500 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
-                    strokeWidth={1.5}
-                  />
-                </Link>
               </div>
+
+              <InclusionsFilmFeature />
 
               <div className="mt-10 grid grid-cols-12 border-y border-white/10">
                 {inclusionPackages.map((tier) => (

@@ -1,5 +1,6 @@
 import { CarriageHomeShowcase } from "@/components/carriage-home-showcase";
 import { FinancialCorridors } from "@/components/financial-corridors";
+import { LangleyWalkthroughFeature } from "@/components/homepage-video-experiences";
 import {
   FinishesSection,
   InclusionGrid,
@@ -15,6 +16,8 @@ import { SiteHeader } from "@/components/site-header";
 import { models } from "@/data/models";
 
 export default function Home() {
+  const langley = models.find((model) => model.slug === "langley");
+
   return (
     <>
       <SiteHeader />
@@ -37,6 +40,12 @@ export default function Home() {
           introCopy="Each residence begins as a coordinated architectural system and is adapted to your land, local requirements, climate, priorities, and chosen level of finish."
           valueCopy="Begin with a proven design. Shape it around the life, land, and budget it needs to serve."
         />
+        {langley?.video ? (
+          <LangleyWalkthroughFeature
+            embedUrl={langley.video.embedUrl}
+            posterSrc={langley.heroImage}
+          />
+        ) : null}
         <CarriageHomeShowcase />
         <PreApprovedShowcase
         />
