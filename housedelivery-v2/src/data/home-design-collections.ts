@@ -48,6 +48,10 @@ const solaceDesignCollections: HomeDesignCollectionsExperience = {
           name: "Coastal Light",
           description:
             "A bright, composed interior built around pale natural woods, warm whites and softly textured stone.",
+          image: {
+            src: "/images/solace/design-collections/premium-coastal-light.png",
+            alt: "Bright coastal kitchen and living interior with pale oak cabinetry and warm white stone",
+          },
           designCues: [
             "Pale oak",
             "Warm white",
@@ -64,6 +68,10 @@ const solaceDesignCollections: HomeDesignCollectionsExperience = {
           name: "Warm Natural",
           description:
             "A warmer interpretation of contemporary West Coast living with natural wood, creamy stone and quieter tonal depth.",
+          image: {
+            src: "/images/solace/design-collections/premium-warm-natural.png",
+            alt: "Warm coastal kitchen and living interior with natural oak and creamy stone",
+          },
           designCues: [
             "Natural oak",
             "Soft walnut tones",
@@ -80,6 +88,10 @@ const solaceDesignCollections: HomeDesignCollectionsExperience = {
           name: "Pacific Contrast",
           description:
             "A stronger architectural palette balancing darker natural woods with stone, charcoal and disciplined contrast.",
+          image: {
+            src: "/images/solace/design-collections/premium-pacific-contrast.png",
+            alt: "Sunset coastal kitchen and living interior with deep wood cabinetry and charcoal accents",
+          },
           designCues: [
             "Smoked or deeper oak",
             "Warm charcoal",
@@ -105,6 +117,10 @@ const solaceDesignCollections: HomeDesignCollectionsExperience = {
           name: "Refined West Coast",
           description:
             "A highly resolved West Coast interior where pale oak, creamy stone and tailored detailing create understated sophistication.",
+          image: {
+            src: "/images/solace/design-collections/signature-refined-west-coast.png",
+            alt: "Refined coastal kitchen and living interior with pale oak and tailored stone detailing",
+          },
           designCues: [
             "Rift-cut pale oak",
             "Creamy limestone character",
@@ -121,6 +137,10 @@ const solaceDesignCollections: HomeDesignCollectionsExperience = {
           name: "Sculpted Natural Luxury",
           description:
             "A richer material experience combining walnut, sculpted stone and carefully controlled architectural detailing.",
+          image: {
+            src: "/images/solace/design-collections/signature-sculpted-natural-luxury.png",
+            alt: "Open-plan coastal kitchen with rich walnut cabinetry and a sculpted stone island",
+          },
           designCues: [
             "Rich walnut",
             "Expressive natural stone",
@@ -136,6 +156,10 @@ const solaceDesignCollections: HomeDesignCollectionsExperience = {
           name: "Architectural Calm",
           description:
             "The most restrained Solace expression — quiet, architectural and deliberately minimal.",
+          image: {
+            src: "/images/solace/design-collections/signature-architectural-calm.png",
+            alt: "Minimal coastal kitchen and living interior with pale oak and uninterrupted stone surfaces",
+          },
           designCues: [
             "Pale oak",
             "Soft putty cabinetry",
