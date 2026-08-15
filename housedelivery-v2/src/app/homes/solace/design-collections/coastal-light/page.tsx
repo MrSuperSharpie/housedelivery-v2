@@ -136,7 +136,7 @@ export default function CoastalLightPage() {
             alt={coastalLightCollection.heroImage.alt}
             fill
             priority
-            quality={92}
+            quality={90}
             sizes="100vw"
             className="object-cover"
           />
