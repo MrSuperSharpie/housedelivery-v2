@@ -16,15 +16,14 @@ export type CoastalLightGroup = {
 };
 
 export const coastalLightCollection = {
-  id: "premium-coastal-light",
+  id: "coastal-light",
   homeName: "Solace",
-  tierName: "Premium",
   number: "01",
   name: "Coastal Light",
   introduction:
-    "A bright, composed whole-home direction shaped by pale oak, warm whites, soft ivory stone and quiet West Coast character.",
-  wholeHomeStatement:
-    "Coastal Light is designed as one continuous interior. Cabinetry, stone, flooring, bathrooms, doors, lighting and storage share the same restrained material language, so the home feels considered rather than assembled.",
+    "A bright, composed visual direction shaped by pale oak, warm whites, soft ivory stone and quiet West Coast character.",
+  coordinationStatement:
+    "Coastal Light establishes a shared material language for Solace. Cabinetry, stone, bathrooms, doors, lighting and storage are still selected category by category, allowing Premium included choices and controlled Signature upgrades to work within the same direction.",
   heroImage: {
     src: "/images/solace/design-collections/premium-coastal-light.png",
     alt: "Coastal Light kitchen and living space with pale oak cabinetry, warm white stone and coastal views",
