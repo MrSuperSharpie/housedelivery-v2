@@ -14,7 +14,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SolaceConfigurator } from "@/components/solace-configurator";
 import { getHomeDesignDirections } from "@/data/home-design-collections";
 import { models, type HomeModel } from "@/data/models";
-import { getSolaceKitchenCabinetryOptions } from "@/data/solace-kitchen-cabinetry";
+import { getSolaceInclusionCategories } from "@/data/solace-inclusion-categories";
 
 type HomeDetailPageProps = {
   params: Promise<{ slug: string }>;
@@ -67,8 +67,8 @@ export default async function HomeDetailPage({
 
   const nextModel: HomeModel = models[(modelIndex + 1) % models.length];
   const designDirections = getHomeDesignDirections(model.slug);
-  const kitchenCabinetryOptions = designDirections
-    ? getSolaceKitchenCabinetryOptions()
+  const solaceInclusionCategories = designDirections
+    ? getSolaceInclusionCategories()
     : [];
   const specifications = [
     { label: "Footprint", value: model.footprint ?? "Site-adapted" },
@@ -181,7 +181,7 @@ export default async function HomeDetailPage({
         {designDirections ? (
           <SolaceConfigurator
             experience={designDirections}
-            kitchenCabinetryOptions={kitchenCabinetryOptions}
+            categories={solaceInclusionCategories}
           />
         ) : null}
 

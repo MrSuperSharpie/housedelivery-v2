@@ -67,7 +67,7 @@ export function getSolaceKitchenCabinetryOptions(): readonly SolaceKitchenCabine
       level: definition.level,
       name: choice.name,
       customerDescription: choice.customerDescription,
-      image: choice.image,
+      primaryImage: choice.image,
       sourceSku: product.sku,
       selectionStatus: product.selectionStatus,
       availability: product.availability,

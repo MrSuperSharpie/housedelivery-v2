@@ -169,10 +169,10 @@ export function HomeDesignCollections({
                 upgrades selected independently by category.
               </p>
               <a
-                href="#solace-kitchen-cabinetry"
+                href="#solace-inclusions"
                 className="group mt-6 flex items-center justify-between gap-5 border-t border-white/14 pt-6 text-[10px] font-semibold uppercase leading-5 tracking-[0.16em] text-white/72 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
               >
-                <span>Continue to kitchen cabinetry</span>
+                <span>Continue to Solace inclusions</span>
                 <ArrowDown
                   aria-hidden="true"
                   className="size-4 shrink-0 transition-transform group-hover:translate-y-1"

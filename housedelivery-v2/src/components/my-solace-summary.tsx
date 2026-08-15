@@ -1,94 +1,148 @@
-import type { HomeDesignDirection } from "@/data/home-design-collections";
-import type { SolaceKitchenCabinetryOption } from "@/data/solace-configuration";
+import { Check, ChevronDown } from "lucide-react";
 
-type MySolaceSummaryProps = {
-  designDirection: HomeDesignDirection;
-  kitchenCabinetry: SolaceKitchenCabinetryOption;
+import type { HomeDesignDirection } from "@/data/home-design-collections";
+import type {
+  SolaceInclusionCategory,
+  SolaceInclusionOption,
+} from "@/data/solace-configuration";
+
+export type ResolvedSolaceSelection = {
+  category: SolaceInclusionCategory;
+  option: SolaceInclusionOption;
 };
 
-export function MySolaceSummary({
-  designDirection,
-  kitchenCabinetry,
-}: MySolaceSummaryProps) {
-  const levelLabel =
-    kitchenCabinetry.level === "premium"
-      ? "Premium — Included"
-      : "Signature — Upgrade";
+type MySolaceSummaryProps = {
+  variant: "compact" | "sticky";
+  designDirection: HomeDesignDirection;
+  categories: readonly SolaceInclusionCategory[];
+  completedSelections: readonly ResolvedSolaceSelection[];
+};
+
+function MySolaceEntries({
+  categories,
+  completedSelections,
+}: Pick<MySolaceSummaryProps, "categories" | "completedSelections">) {
+  const completedByCategory = new Map(
+    completedSelections.map((selection) => [selection.category.id, selection]),
+  );
 
   return (
-    <section
-      id="my-solace"
-      aria-labelledby="my-solace-heading"
-      className="scroll-mt-20 border-b border-white/10 bg-[#e7e3d8] px-5 py-24 text-[#111216] sm:px-8 lg:px-12 lg:py-32"
-    >
-      <div className="mx-auto max-w-[1504px]">
-        <p className="sr-only" aria-live="polite">
-          My Solace updated: {designDirection.name} Design Direction with{" "}
-          {kitchenCabinetry.name} cabinetry, {levelLabel}.
-        </p>
-        <div className="grid gap-14 lg:grid-cols-[0.72fr_1.28fr] lg:items-end lg:gap-24">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-black/45">
-              Live configuration / Prototype
-            </p>
-            <h2
-              id="my-solace-heading"
-              className="mt-7 text-[clamp(4rem,8vw,8.5rem)] font-medium leading-[0.82] tracking-[-0.076em]"
-            >
-              My
-              <br />
-              <span className="text-black/32">Solace.</span>
-            </h2>
-          </div>
+    <ol className="mt-6 divide-y divide-black/10 border-y border-black/12">
+      {categories.map((category) => {
+        const selection = completedByCategory.get(category.id);
 
+        return (
+          <li key={category.id} className="grid grid-cols-[1fr_auto] gap-4 py-3">
+            <div>
+              <p className="text-xs font-medium tracking-[-0.015em] text-black/68">
+                {category.title}
+              </p>
+              <p className="mt-1 text-[10px] leading-4 text-black/42">
+                {selection
+                  ? selection.option.name
+                  : category.status === "coordinated-later"
+                    ? "Coordinated with the project"
+                    : "Not yet selected"}
+              </p>
+            </div>
+            {selection ? (
+              <Check
+                aria-label="Complete"
+                className="mt-0.5 size-3.5 text-black/54"
+                strokeWidth={2}
+              />
+            ) : (
+              <span className="pt-0.5 font-mono text-[8px] tracking-[0.12em] text-black/28">
+                {category.number}
+              </span>
+            )}
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+export function MySolaceSummary({
+  variant,
+  designDirection,
+  categories,
+  completedSelections,
+}: MySolaceSummaryProps) {
+  const selectableCount = categories.filter(
+    (category) => category.status === "selectable",
+  ).length;
+
+  if (variant === "compact") {
+    return (
+      <details className="group border border-black/12 bg-[#e7e3d8] text-[#111216]">
+        <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 px-5 marker:content-none">
           <div>
-            <p className="max-w-2xl text-base leading-8 text-black/58">
-              Your Design Direction and controlled category choices remain
-              separate, creating one clear configuration that can grow as more
-              Solace categories are added.
+            <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/38">
+              My Solace
             </p>
-            <dl className="mt-10 grid border-l border-t border-black/15 sm:grid-cols-2">
-              <div className="flex min-h-36 flex-col justify-between border-b border-r border-black/15 p-5 sm:min-h-44 sm:p-6">
-                <dt className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/38">
-                  Residence
-                </dt>
-                <dd className="mt-8 text-2xl font-medium tracking-[-0.04em] text-black/78 sm:text-3xl">
-                  Solace
-                </dd>
-              </div>
-              <div className="flex min-h-36 flex-col justify-between border-b border-r border-black/15 p-5 sm:min-h-44 sm:p-6">
-                <dt className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/38">
-                  Design Direction
-                </dt>
-                <dd className="mt-8 text-2xl font-medium tracking-[-0.04em] text-black/78 sm:text-3xl">
-                  {designDirection.name}
-                </dd>
-              </div>
-              <div className="flex min-h-36 flex-col justify-between border-b border-r border-black/15 p-5 sm:min-h-44 sm:p-6">
-                <dt className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/38">
-                  Kitchen Cabinetry
-                </dt>
-                <dd className="mt-8 text-2xl font-medium tracking-[-0.04em] text-black/78 sm:text-3xl">
-                  {kitchenCabinetry.name}
-                </dd>
-              </div>
-              <div className="flex min-h-36 flex-col justify-between border-b border-r border-black/15 p-5 sm:min-h-44 sm:p-6">
-                <dt className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/38">
-                  Cabinetry Level
-                </dt>
-                <dd className="mt-8 text-lg font-medium tracking-[-0.025em] text-black/70 sm:text-2xl">
-                  {levelLabel}
-                </dd>
-              </div>
-            </dl>
-            <p className="mt-6 max-w-2xl text-xs leading-6 text-black/45">
-              This prototype is not a final specification or order. House
-              Delivery confirms products, finishes, availability and technical
-              suitability during project review.
+            <p className="mt-1 text-sm font-medium text-black/70">
+              {completedSelections.length} of {selectableCount} choices complete
             </p>
           </div>
+          <ChevronDown
+            aria-hidden="true"
+            className="size-4 transition-transform group-open:rotate-180"
+            strokeWidth={1.5}
+          />
+        </summary>
+        <div className="border-t border-black/12 px-5 pb-6 pt-5">
+          <p className="text-xs leading-5 text-black/48">
+            Solace · {designDirection.name} Design Direction
+          </p>
+          <MySolaceEntries
+            categories={categories}
+            completedSelections={completedSelections}
+          />
         </div>
-      </div>
-    </section>
+      </details>
+    );
+  }
+
+  return (
+    <aside
+      aria-labelledby="my-solace-heading"
+      className="max-h-[calc(100vh-7rem)] overflow-y-auto bg-[#e7e3d8] p-7 text-[#111216]"
+    >
+        <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-black/38">
+          Evolving specification book
+        </p>
+        <h2
+          id="my-solace-heading"
+          className="mt-4 text-4xl font-medium tracking-[-0.06em]"
+        >
+          My Solace
+        </h2>
+        <dl className="mt-6 grid grid-cols-2 border-l border-t border-black/12">
+          <div className="border-b border-r border-black/12 p-4">
+            <dt className="text-[8px] font-semibold uppercase tracking-[0.16em] text-black/38">
+              Residence
+            </dt>
+            <dd className="mt-3 text-sm font-medium text-black/72">Solace</dd>
+          </div>
+          <div className="border-b border-r border-black/12 p-4">
+            <dt className="text-[8px] font-semibold uppercase tracking-[0.16em] text-black/38">
+              Direction
+            </dt>
+            <dd className="mt-3 text-sm font-medium text-black/72">
+              {designDirection.name}
+            </dd>
+          </div>
+        </dl>
+        <MySolaceEntries
+          categories={categories}
+          completedSelections={completedSelections}
+        />
+        <p className="mt-5 text-[10px] leading-5 text-black/42">
+          {completedSelections.length} of {selectableCount} controlled choices
+          complete. Final products and availability are confirmed during project
+          review.
+        </p>
+    </aside>
   );
 }
