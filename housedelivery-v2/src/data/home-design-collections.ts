@@ -1,10 +1,4 @@
-export type HomeDesignDirectionId =
-  | "coastal-light"
-  | "warm-natural"
-  | "pacific-contrast"
-  | "refined-west-coast"
-  | "sculpted-natural-luxury"
-  | "architectural-calm";
+export type HomeDesignDirectionId = string;
 
 export type HomeDesignDirectionImage = {
   src: string;

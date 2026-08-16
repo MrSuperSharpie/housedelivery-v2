@@ -26,7 +26,9 @@ export function HomeDesignCollections({
   );
 
   if (!selectedDirection) {
-    throw new Error(`Unknown Solace design direction: ${selectedDirectionId}`);
+    throw new Error(
+      `Unknown ${experience.homeName} design direction: ${selectedDirectionId}`,
+    );
   }
 
   return (
@@ -38,7 +40,12 @@ export function HomeDesignCollections({
       <div className="mx-auto max-w-[1504px]">
         <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-end lg:gap-20">
           <div>
-            <p className="eyebrow">{experience.homeName} / Design Directions</p>
+            <p
+              className="eyebrow"
+              style={{ color: "rgb(255 255 255 / 0.6)" }}
+            >
+              {experience.homeName} / Design Directions
+            </p>
             <HeadlineReveal variant="sweep" className="mt-7">
               <h2
                 id="design-directions-heading"
@@ -46,7 +53,7 @@ export function HomeDesignCollections({
               >
                 Set the visual
                 <br />
-                <span className="text-white/40">direction.</span>
+                <span className="text-white/55">direction.</span>
               </h2>
             </HeadlineReveal>
           </div>
@@ -91,9 +98,9 @@ export function HomeDesignCollections({
                 </span>
 
                 <span className="flex flex-1 flex-col px-6 pb-7 pt-6 sm:px-7 sm:pb-8 sm:pt-7">
-                  <span className="flex items-center justify-between gap-5 text-[9px] font-semibold uppercase tracking-[0.19em] text-white/48">
+                  <span className="flex items-center justify-between gap-5 text-[9px] font-semibold uppercase tracking-[0.19em] text-white/55">
                     <span>Design direction</span>
-                    <span className="font-mono font-normal text-white/30">
+                    <span className="font-mono font-normal text-white/55">
                       {direction.number} /{" "}
                       {String(experience.directions.length).padStart(2, "0")}
                     </span>
@@ -111,7 +118,7 @@ export function HomeDesignCollections({
                       "mt-auto flex items-center gap-3 pt-8 text-[9px] font-semibold uppercase tracking-[0.18em] transition-colors",
                       isSelected
                         ? "text-white"
-                        : "text-white/45 group-hover:text-white/72",
+                        : "text-white/55 group-hover:text-white/72",
                     )}
                   >
                     <span
@@ -138,7 +145,7 @@ export function HomeDesignCollections({
         >
           <div className="grid gap-12 lg:grid-cols-[0.82fr_1.18fr] lg:gap-20">
             <div>
-              <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/42">
+              <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/55">
                 Selected design direction
               </p>
               <h3 className="mt-6 text-[clamp(2.5rem,5vw,5.5rem)] font-medium leading-[0.92] tracking-[-0.065em] text-white/92">
@@ -150,7 +157,7 @@ export function HomeDesignCollections({
             </div>
 
             <div>
-              <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/42">
+              <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/55">
                 Principal material cues
               </p>
               <ul className="mt-5 grid gap-x-8 sm:grid-cols-2">
@@ -164,15 +171,16 @@ export function HomeDesignCollections({
                 ))}
               </ul>
               <p className="mt-8 max-w-2xl border-t border-white/14 pt-6 text-sm leading-7 text-white/56">
-                This direction guides visual coordination. Solace still begins
-                from a Premium inclusion baseline, with controlled Signature
-                upgrades selected independently by category.
+                This direction guides visual coordination. {experience.homeName}
+                {" "}still begins from a Premium inclusion baseline, with
+                controlled Signature upgrades selected independently by
+                category.
               </p>
               <a
-                href="#solace-inclusions"
+                href="#home-inclusions"
                 className="group mt-6 flex items-center justify-between gap-5 border-t border-white/14 pt-6 text-[10px] font-semibold uppercase leading-5 tracking-[0.16em] text-white/72 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
               >
-                <span>Continue to Solace inclusions</span>
+                <span>Continue to {experience.homeName} inclusions</span>
                 <ArrowDown
                   aria-hidden="true"
                   className="size-4 shrink-0 transition-transform group-hover:translate-y-1"
@@ -183,7 +191,7 @@ export function HomeDesignCollections({
           </div>
         </div>
 
-        <p className="mt-28 max-w-5xl border-t border-white/12 pt-6 text-xs leading-6 text-white/42 lg:mt-40">
+        <p className="mt-28 max-w-5xl border-t border-white/12 pt-6 text-xs leading-6 text-white/55 lg:mt-40">
           Illustrative design visualizations. Design Directions establish a
           coordinated visual language; final products, finishes, availability
           and technical suitability are confirmed separately during project
