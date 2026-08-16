@@ -429,7 +429,7 @@ export function HomeLookBook({
           <div className="mt-16 grid gap-12 border-t border-black/18 pt-7 lg:mt-24 lg:grid-cols-[0.76fr_1.24fr] lg:items-end lg:gap-20">
             <div>
               <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-black/58">
-                Personalized home design brief
+                My {definition.homeName} Look Book / Personalized visual brief
               </p>
               <h2
                 id="home-look-book-heading"

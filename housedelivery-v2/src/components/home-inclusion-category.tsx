@@ -14,6 +14,7 @@ type HomeInclusionCategoryProps = {
   categoryCount: number;
   selectedOption: HomeInclusionOption | undefined;
   showInteractionGuidance: boolean;
+  isStartingCategory: boolean;
   isActive: boolean;
   isComplete: boolean;
   nextCategoryTitle: string | undefined;
@@ -29,6 +30,7 @@ export function HomeInclusionCategory({
   categoryCount,
   selectedOption,
   showInteractionGuidance,
+  isStartingCategory,
   isActive,
   isComplete,
   nextCategoryTitle,
@@ -129,8 +131,9 @@ export function HomeInclusionCategory({
             className="eyebrow"
             style={{ color: "rgb(255 255 255 / 0.7)" }}
           >
-            {category.number} / {String(categoryCount).padStart(2, "0")} —{" "}
-            {category.title}
+            {isStartingCategory && !isComplete
+              ? `${category.number} of ${String(categoryCount).padStart(2, "0")} — Start here`
+              : `${category.number} / ${String(categoryCount).padStart(2, "0")} — ${category.title}`}
           </p>
           <h2
             id={headingId}

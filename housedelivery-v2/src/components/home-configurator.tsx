@@ -34,6 +34,21 @@ type HomeImagePreviewTarget = {
   returnFocusId: string;
 };
 
+const configurationOrientation = [
+  {
+    label: "Choose",
+    detail: () => "Key room looks and finishes",
+  },
+  {
+    label: "Build",
+    detail: (homeName: string) => `Your personalized ${homeName}`,
+  },
+  {
+    label: "Review",
+    detail: () => "Your complete Look Book",
+  },
+] as const;
+
 function getNextIncompleteCategory(
   definition: HomeConfiguratorDefinition,
   configuration: HomeConfiguration,
@@ -329,7 +344,7 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
       <section
         id="home-inclusions"
         aria-labelledby="home-inclusions-heading"
-        className="scroll-mt-20 border-b border-white/10 bg-[#0b0c10] px-5 py-24 sm:px-8 lg:px-12 lg:py-36"
+        className="scroll-mt-24 border-b border-white/10 bg-[#0b0c10] px-5 py-24 sm:px-8 lg:px-12 lg:py-36"
       >
         <div id="design-collections" className="mx-auto max-w-[1504px] scroll-mt-20">
           <div className="mb-16 lg:mb-24">
@@ -346,7 +361,7 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
                 className="eyebrow"
                 style={{ color: "rgb(255 255 255 / 0.6)" }}
               >
-                Set the visual direction
+                Design your {definition.homeName}
               </p>
               <h2
                 id="home-inclusions-heading"
@@ -359,20 +374,58 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
             </div>
             <div className="max-w-2xl lg:justify-self-end">
               <p className="text-base leading-8 text-white/56 lg:text-lg">
-                Personalize the major spaces and finishes that establish the
-                character of your {definition.homeName}. House Delivery uses
-                these choices as the visual brief for the next project-specific
-                design stage.
+                Choose the major spaces and finishes that establish the
+                character of your home. Your selections create a personalized
+                visual brief and Look Book for the next project-specific design
+                stage.
               </p>
               <p className="mt-5 text-xs leading-6 text-white/55">
-                Start from the Premium baseline and mix Signature upgrades by
-                chapter. Confirm one controlled choice at a time.
+                Create the visual brief for your home in 11 controlled choices.
+                Start with the kitchen, then move through the major spaces and
+                finishes that define your {definition.homeName}. Begin with the
+                Premium baseline and selectively choose Signature upgrades.
               </p>
               <p className="mt-5 border-t border-white/12 pt-5 text-[10px] leading-5 text-white/50">
                 {definition.disclaimer}
               </p>
             </div>
           </div>
+
+          <ol
+            aria-label={`How to design your ${definition.homeName}`}
+            data-home-configuration-orientation
+            className="mt-12 grid border-l border-t border-white/14 sm:grid-cols-3 lg:mt-16"
+          >
+            {configurationOrientation.map((step, index) => (
+              <li
+                key={step.label}
+                className="relative min-h-28 border-b border-r border-white/14 p-5 sm:min-h-32 sm:p-6"
+              >
+                <div className="flex items-center justify-between gap-5">
+                  <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/62">
+                    {step.label}
+                  </p>
+                  <span
+                    aria-hidden="true"
+                    className="font-mono text-[9px] tracking-[0.14em] text-white/55"
+                  >
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                </div>
+                <p className="mt-6 max-w-xs text-sm leading-6 text-white/48">
+                  {step.detail(definition.homeName)}
+                </p>
+                {index < configurationOrientation.length - 1 ? (
+                  <span
+                    aria-hidden="true"
+                    className="absolute -right-2.5 top-1/2 z-10 hidden -translate-y-1/2 bg-[#0b0c10] px-1 text-sm text-white/55 sm:block"
+                  >
+                    →
+                  </span>
+                ) : null}
+              </li>
+            ))}
+          </ol>
 
           <p className="sr-only" aria-live="polite">
             {activeCategoryId
@@ -476,6 +529,9 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
                         requiredCategories.findIndex(
                           (candidate) => candidate.id === category.id,
                         ) < 2
+                      }
+                      isStartingCategory={
+                        category.id === requiredCategories[0]?.id
                       }
                       isActive={isActive}
                       isComplete={isComplete}

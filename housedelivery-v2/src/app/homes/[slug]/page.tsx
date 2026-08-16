@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
 import { HomeConfigurator } from "@/components/home-configurator";
+import { HomeDesignToolCallout } from "@/components/home-design-tool-callout";
 import { HomeDetailHero } from "@/components/home-detail-hero";
 import { HomeEditorialGallery } from "@/components/home-editorial-gallery";
 import { HomeFloorPlanViewer } from "@/components/home-floor-plan-viewer";
@@ -66,6 +67,13 @@ export default async function HomeDetailPage({
 
   const nextModel: HomeModel = models[(modelIndex + 1) % models.length];
   const configuratorDefinition = getHomeConfiguratorDefinition(model.slug);
+  const designToolDiscovery =
+    model.slug === "solace" && configuratorDefinition
+      ? {
+          homeName: model.name,
+          href: "#home-inclusions",
+        }
+      : undefined;
   const specifications = [
     { label: "Footprint", value: model.footprint ?? "Site-adapted" },
     { label: "Main level", value: formatArea(model.levels.main) },
@@ -156,6 +164,14 @@ export default async function HomeDetailPage({
               </p>
               <p>Site engineering required</p>
             </div>
+
+            {designToolDiscovery ? (
+              <HomeDesignToolCallout
+                homeName={designToolDiscovery.homeName}
+                href={designToolDiscovery.href}
+                variant="primary"
+              />
+            ) : null}
           </div>
         </section>
 
@@ -164,8 +180,9 @@ export default async function HomeDetailPage({
           images={model.images}
           floorPlanImage={model.floorPlanImage}
           narrative={model.narrative}
+          designToolDiscovery={designToolDiscovery}
           contextualInclusionsDestination={
-            configuratorDefinition
+            configuratorDefinition && !designToolDiscovery
               ? {
                   href: "#design-collections",
                   label: `Explore ${model.name} Design Directions`,
