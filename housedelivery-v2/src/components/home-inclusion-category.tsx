@@ -2,20 +2,16 @@ import { Check, Pencil } from "lucide-react";
 import Image from "next/image";
 
 import { HomeInclusionOptionCard } from "@/components/home-inclusion-option-card";
-import type { HomeDesignDirectionId } from "@/data/home-design-collections";
 import {
-  getHomeOptionDirectionRecommendation,
   getHomeInclusionLevelLabel,
   type HomeInclusionOption,
-  type HomeStandardInclusionCategory,
+  type HomeSelectableInclusionCategory,
 } from "@/data/home-configurator";
 
 type HomeInclusionCategoryProps = {
   houseName: string;
-  category: HomeStandardInclusionCategory;
+  category: HomeSelectableInclusionCategory;
   categoryCount: number;
-  selectedDirectionId: HomeDesignDirectionId;
-  selectedDirectionName: string;
   selectedOption: HomeInclusionOption | undefined;
   showInteractionGuidance: boolean;
   isActive: boolean;
@@ -31,8 +27,6 @@ export function HomeInclusionCategory({
   houseName,
   category,
   categoryCount,
-  selectedDirectionId,
-  selectedDirectionName,
   selectedOption,
   showInteractionGuidance,
   isActive,
@@ -50,7 +44,7 @@ export function HomeInclusionCategory({
       <article
         id={`home-category-${category.id}`}
         data-home-category={category.id}
-        data-category-kind="standard"
+        data-category-kind={category.kind}
         data-category-state="complete"
         className="scroll-mt-28 border border-white/18 bg-white/[0.018] p-4 sm:p-5"
       >
@@ -100,7 +94,7 @@ export function HomeInclusionCategory({
       <article
         id={`home-category-${category.id}`}
         data-home-category={category.id}
-        data-category-kind="standard"
+        data-category-kind={category.kind}
         data-category-state="upcoming"
         className="scroll-mt-28 border border-white/8 px-6 py-7 text-white/55 sm:px-8"
       >
@@ -125,7 +119,7 @@ export function HomeInclusionCategory({
       tabIndex={-1}
       aria-labelledby={headingId}
       data-home-category={category.id}
-      data-category-kind="standard"
+      data-category-kind={category.kind}
       data-category-state="active"
       className="scroll-mt-28 border border-white/22 bg-[#0b0c10] p-5 outline-none sm:p-8 lg:p-10"
     >
@@ -156,6 +150,18 @@ export function HomeInclusionCategory({
               {category.technicalNote}
             </p>
           ) : null}
+          {category.kind === "room-look" ? (
+            <ul className="mt-6 flex flex-wrap gap-2" aria-label={`${category.title} coordinates`}>
+              {category.represents.map((item) => (
+                <li
+                  key={item}
+                  className="border border-white/14 px-3 py-2 text-[8px] font-semibold uppercase tracking-[0.14em] text-white/52"
+                >
+                  {item}
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </div>
       </div>
 
@@ -169,11 +175,6 @@ export function HomeInclusionCategory({
             key={option.id}
             option={option}
             homeName={houseName}
-            directionName={selectedDirectionName}
-            recommendation={getHomeOptionDirectionRecommendation(
-              option,
-              selectedDirectionId,
-            )}
             isSelected={option.id === selectedOption?.id}
             onSelect={() => onSelectOption(option.id)}
             onPreview={() => onPreviewOption(option.id)}

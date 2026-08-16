@@ -2,7 +2,7 @@ import { Check } from "lucide-react";
 
 import { cn } from "@/lib/cn";
 
-type HomeConfiguratorStage = "direction" | "configure" | "look-book";
+type HomeConfiguratorStage = "configure" | "look-book";
 
 type HomeConfiguratorJourneyProps = {
   currentStage: HomeConfiguratorStage;
@@ -16,9 +16,8 @@ const stages: readonly {
   number: string;
   label: string;
 }[] = [
-  { id: "direction", number: "01", label: "Design Direction" },
-  { id: "configure", number: "02", label: "Configure My Home" },
-  { id: "look-book", number: "03", label: "My Look Book" },
+  { id: "configure", number: "01", label: "Configure My Home" },
+  { id: "look-book", number: "02", label: "My Look Book" },
 ];
 
 export function HomeConfiguratorJourney({
@@ -35,7 +34,7 @@ export function HomeConfiguratorJourney({
       <ol
         className={cn(
           "grid gap-px border",
-          "sm:grid-cols-3",
+          "sm:grid-cols-2",
           isDark
             ? "border-white/12 bg-white/10"
             : "border-black/14 bg-black/10",

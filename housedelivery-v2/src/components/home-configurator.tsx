@@ -6,24 +6,21 @@ import { HomeConfigurationProgress } from "@/components/home-configuration-progr
 import { HomeConfigurationSummary } from "@/components/home-configuration-summary";
 import { HomeCoordinatedCategory } from "@/components/home-coordinated-category";
 import { HomeConfiguratorJourney } from "@/components/home-configurator-journey";
-import { HomeDesignCollections } from "@/components/home-design-collections";
 import { HomeFlooringCategory } from "@/components/home-flooring-category";
 import { HomeImagePreview } from "@/components/home-image-preview";
 import { HomeInclusionCategory } from "@/components/home-inclusion-category";
 import { HomeLookBook } from "@/components/home-look-book";
-import type { HomeDesignDirectionId } from "@/data/home-design-collections";
 import {
   createDefaultHomeConfiguration,
   getDisplayedFlooringOption,
-  getDisplayedStandardOption,
-  getHomeOptionDirectionRecommendation,
+  getDisplayedInclusionOption,
   getRequiredCategories,
   isCategoryComplete,
   type HomeConfiguration,
   type HomeConfiguratorDefinition,
   type HomeFlooringCategory as HomeFlooringCategoryData,
   type HomeInclusionCategory as HomeInclusionCategoryData,
-  type HomeStandardInclusionCategory,
+  type HomeSelectableInclusionCategory,
 } from "@/data/home-configurator";
 
 type HomeConfiguratorProps = {
@@ -89,16 +86,6 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
   const closeImagePreview = useCallback(() => {
     setImagePreviewTarget(null);
   }, []);
-  const selectedDirection = definition.designDirections.directions.find(
-    (direction) => direction.id === configuration.designDirectionId,
-  );
-
-  if (!selectedDirection) {
-    throw new Error(
-      `The selected ${definition.homeName} Design Direction is invalid.`,
-    );
-  }
-
   const requiredCategories = getRequiredCategories(definition);
   const completedCount = requiredCategories.filter((category) =>
     isCategoryComplete(category, configuration),
@@ -111,7 +98,7 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
     );
     if (!category || category.kind === "coordinated") return undefined;
 
-    if (category.kind === "standard") {
+    if (category.kind === "standard" || category.kind === "room-look") {
       const option = category.options.find(
         (candidate) => candidate.id === imagePreviewTarget.optionId,
       );
@@ -121,7 +108,7 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
         category,
         option,
         isSelected:
-          getDisplayedStandardOption(category, configuration)?.id ===
+          getDisplayedInclusionOption(category, configuration)?.id ===
           option.id,
       };
     }
@@ -143,16 +130,8 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
     };
   })();
 
-  function selectDesignDirection(directionId: HomeDesignDirectionId) {
-    setConfiguration((current) => ({
-      ...current,
-      designDirectionId: directionId,
-      reviewStatus: "draft",
-    }));
-  }
-
-  function selectStandardOption(
-    category: HomeStandardInclusionCategory,
+  function selectInclusionOption(
+    category: HomeSelectableInclusionCategory,
     optionId: string,
   ) {
     if (!category.options.some((option) => option.id === optionId)) return;
@@ -200,8 +179,11 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
   function selectImagePreviewOption() {
     if (!imagePreview) return;
 
-    if (imagePreview.category.kind === "standard") {
-      selectStandardOption(imagePreview.category, imagePreview.option.id);
+    if (
+      imagePreview.category.kind === "standard" ||
+      imagePreview.category.kind === "room-look"
+    ) {
+      selectInclusionOption(imagePreview.category, imagePreview.option.id);
       return;
     }
 
@@ -214,8 +196,10 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
     }
   }
 
-  function confirmStandardCategory(category: HomeStandardInclusionCategory) {
-    const option = getDisplayedStandardOption(category, configuration);
+  function confirmInclusionCategory(
+    category: HomeSelectableInclusionCategory,
+  ) {
+    const option = getDisplayedInclusionOption(category, configuration);
     if (!option) return;
 
     const nextConfiguration: HomeConfiguration = {
@@ -339,20 +323,15 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
     <div
       id="home-configurator"
       data-home-configuration={definition.homeId}
+      data-home-configuration-version={configuration.schemaVersion}
       data-review-status={configuration.reviewStatus}
     >
-      <HomeDesignCollections
-        experience={definition.designDirections}
-        selectedDirectionId={configuration.designDirectionId}
-        onSelectDirection={selectDesignDirection}
-      />
-
       <section
         id="home-inclusions"
         aria-labelledby="home-inclusions-heading"
         className="scroll-mt-20 border-b border-white/10 bg-[#0b0c10] px-5 py-24 sm:px-8 lg:px-12 lg:py-36"
       >
-        <div className="mx-auto max-w-[1504px]">
+        <div id="design-collections" className="mx-auto max-w-[1504px] scroll-mt-20">
           <div className="mb-16 lg:mb-24">
             <HomeConfiguratorJourney
               currentStage="configure"
@@ -367,26 +346,27 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
                 className="eyebrow"
                 style={{ color: "rgb(255 255 255 / 0.6)" }}
               >
-                My {definition.homeName} / Controlled inclusions
+                Set the visual direction
               </p>
               <h2
                 id="home-inclusions-heading"
                 className="mt-7 text-[clamp(3.8rem,8vw,8.5rem)] font-medium leading-[0.84] tracking-[-0.075em]"
               >
-                Build the
+                Build My
                 <br />
-                <span className="text-white/55">specification.</span>
+                <span className="text-white/55">{definition.homeName}.</span>
               </h2>
             </div>
             <div className="max-w-2xl lg:justify-self-end">
               <p className="text-base leading-8 text-white/56 lg:text-lg">
-                Configure one chapter at a time. Completed choices collapse
-                into a clear record, remain editable, and accumulate in My {definition.homeName} without locking the rest of the home to one level.
+                Personalize the major spaces and finishes that establish the
+                character of your {definition.homeName}. House Delivery uses
+                these choices as the visual brief for the next project-specific
+                design stage.
               </p>
               <p className="mt-5 text-xs leading-6 text-white/55">
-                {definition.homeName} starts from a Premium baseline. Signature
-                upgrades can be selected independently in every available
-                category.
+                Start from the Premium baseline and mix Signature upgrades by
+                chapter. Confirm one controlled choice at a time.
               </p>
               <p className="mt-5 border-t border-white/12 pt-5 text-[10px] leading-5 text-white/50">
                 {definition.disclaimer}
@@ -416,7 +396,6 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
                   variant="compact"
                   definition={definition}
                   configuration={configuration}
-                  designDirection={selectedDirection}
                 />
               </div>
 
@@ -451,8 +430,6 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
                         houseName={definition.homeName}
                         category={category}
                         categoryCount={requiredCategories.length}
-                        selectedDirectionId={configuration.designDirectionId}
-                        selectedDirectionName={selectedDirection.name}
                         selectedOptions={selectedOptions}
                         confirmedZoneIds={category.zones
                           .filter(
@@ -491,9 +468,7 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
                       houseName={definition.homeName}
                       category={category}
                       categoryCount={requiredCategories.length}
-                      selectedDirectionId={configuration.designDirectionId}
-                      selectedDirectionName={selectedDirection.name}
-                      selectedOption={getDisplayedStandardOption(
+                      selectedOption={getDisplayedInclusionOption(
                         category,
                         configuration,
                       )}
@@ -506,7 +481,7 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
                       isComplete={isComplete}
                       nextCategoryTitle={getNextCategoryTitle(category)}
                       onSelectOption={(optionId) =>
-                        selectStandardOption(category, optionId)
+                        selectInclusionOption(category, optionId)
                       }
                       onPreviewOption={(optionId) =>
                         setImagePreviewTarget({
@@ -515,7 +490,7 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
                           returnFocusId: `home-option-preview-trigger-${optionId}`,
                         })
                       }
-                      onConfirm={() => confirmStandardCategory(category)}
+                      onConfirm={() => confirmInclusionCategory(category)}
                       onEdit={() => editCategory(category.id)}
                     />
                   );
@@ -528,7 +503,6 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
                 variant="sticky"
                 definition={definition}
                 configuration={configuration}
-                designDirection={selectedDirection}
               />
             </div>
           </div>
@@ -538,7 +512,6 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
       <HomeLookBook
         definition={definition}
         configuration={configuration}
-        designDirection={selectedDirection}
         onEditCategory={editCategory}
         onPreviewOption={(categoryId, optionId, zoneId) =>
           setImagePreviewTarget({
@@ -560,11 +533,6 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
         <HomeImagePreview
           option={imagePreview.option}
           homeName={definition.homeName}
-          directionName={selectedDirection.name}
-          recommendation={getHomeOptionDirectionRecommendation(
-            imagePreview.option,
-            configuration.designDirectionId,
-          )}
           isSelected={imagePreview.isSelected}
           returnFocusId={imagePreviewTarget.returnFocusId}
           onSelect={selectImagePreviewOption}

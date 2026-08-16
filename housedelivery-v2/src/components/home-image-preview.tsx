@@ -7,14 +7,11 @@ import { useEffect, useRef } from "react";
 import {
   getHomeInclusionLevelLabel,
   type HomeInclusionOption,
-  type HomeOptionDirectionRecommendation,
 } from "@/data/home-configurator";
 
 type HomeImagePreviewProps = {
   option: HomeInclusionOption;
   homeName: string;
-  directionName: string;
-  recommendation: HomeOptionDirectionRecommendation | undefined;
   isSelected: boolean;
   returnFocusId: string;
   onSelect: () => void;
@@ -24,8 +21,6 @@ type HomeImagePreviewProps = {
 export function HomeImagePreview({
   option,
   homeName,
-  directionName,
-  recommendation,
   isSelected,
   returnFocusId,
   onSelect,
@@ -138,16 +133,11 @@ export function HomeImagePreview({
               {option.name}
             </h2>
 
-            {recommendation ? (
+            {option.description ? (
               <div className="mt-7 border-t border-white/14 pt-5">
-                <p className="text-[9px] font-semibold uppercase tracking-[0.17em] text-white/62">
-                  {recommendation.label ?? "Complements"} {directionName}
+                <p className="text-sm leading-6 text-white/58">
+                  {option.description}
                 </p>
-                {recommendation.guidance ? (
-                  <p className="mt-3 text-sm leading-6 text-white/58">
-                    {recommendation.guidance}
-                  </p>
-                ) : null}
               </div>
             ) : null}
           </div>

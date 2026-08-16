@@ -3,51 +3,89 @@ import type {
   HomeFlooringZone,
   HomeInclusionLevel,
   HomeInclusionOption,
-  HomeOptionDirectionRecommendation,
+  HomeRoomLookCategory,
   HomeStandardInclusionCategory,
 } from "@/data/home-configurator";
-import { getHomeDesignDirections } from "@/data/home-design-collections";
 import { models } from "@/data/models";
 
 const assetRoot = "/images/homes/solace/configurator";
 
 type FourStrings = readonly [string, string, string, string];
-type FourRecommendationSets = readonly [
-  readonly HomeOptionDirectionRecommendation[] | undefined,
-  readonly HomeOptionDirectionRecommendation[] | undefined,
-  readonly HomeOptionDirectionRecommendation[] | undefined,
-  readonly HomeOptionDirectionRecommendation[] | undefined,
-];
+
+type OptionSource = {
+  level: HomeInclusionLevel;
+  optionNumber: string;
+  name: string;
+  filename: string;
+  description?: string;
+};
 
 const optionSlots: readonly {
   level: HomeInclusionLevel;
   optionNumber: string;
-  suffix: string;
 }[] = [
-  { level: "premium", optionNumber: "01", suffix: "premium-01" },
-  { level: "premium", optionNumber: "02", suffix: "premium-02" },
-  { level: "signature", optionNumber: "01", suffix: "signature-01" },
-  { level: "signature", optionNumber: "02", suffix: "signature-02" },
+  { level: "premium", optionNumber: "01" },
+  { level: "premium", optionNumber: "02" },
+  { level: "signature", optionNumber: "01" },
+  { level: "signature", optionNumber: "02" },
 ];
+
+function createOption(
+  categoryId: string,
+  categoryTitle: string,
+  source: OptionSource,
+): HomeInclusionOption {
+  return {
+    id: `${categoryId}-${source.level}-${source.optionNumber}`,
+    level: source.level,
+    optionNumber: source.optionNumber,
+    name: source.name,
+    description: source.description,
+    image: {
+      src: `${assetRoot}/${source.filename}`,
+      alt: `${source.name}, representative ${categoryTitle.toLowerCase()} design imagery for Solace.`,
+    },
+  };
+}
 
 function createOptions(
   categoryId: string,
   categoryTitle: string,
   filenames: FourStrings,
   names: FourStrings,
-  recommendations?: FourRecommendationSets,
 ): readonly HomeInclusionOption[] {
-  return optionSlots.map((slot, index) => ({
-    id: `${categoryId}-${slot.suffix}`,
-    level: slot.level,
-    optionNumber: slot.optionNumber,
-    name: names[index],
-    directionRecommendations: recommendations?.[index],
-    image: {
-      src: `${assetRoot}/${filenames[index]}`,
-      alt: `${names[index]}, representative ${categoryTitle.toLowerCase()} design imagery for Solace.`,
-    },
-  }));
+  return optionSlots.map((slot, index) =>
+    createOption(categoryId, categoryTitle, {
+      ...slot,
+      name: names[index],
+      filename: filenames[index],
+    }),
+  );
+}
+
+function roomLookCategory({
+  id,
+  number,
+  title,
+  shortTitle = title,
+  description,
+  represents,
+  options,
+  technicalNote,
+}: Omit<HomeRoomLookCategory, "kind" | "shortTitle"> & {
+  shortTitle?: string;
+}): HomeRoomLookCategory {
+  return {
+    kind: "room-look",
+    id,
+    number,
+    title,
+    shortTitle,
+    description,
+    represents,
+    options,
+    technicalNote,
+  };
 }
 
 function standardCategory({
@@ -59,7 +97,6 @@ function standardCategory({
   filenames,
   names,
   technicalNote,
-  recommendations,
 }: {
   id: string;
   number: string;
@@ -69,7 +106,6 @@ function standardCategory({
   filenames: FourStrings;
   names: FourStrings;
   technicalNote?: string;
-  recommendations?: FourRecommendationSets;
 }): HomeStandardInclusionCategory {
   return {
     kind: "standard",
@@ -78,7 +114,7 @@ function standardCategory({
     title,
     shortTitle,
     description,
-    options: createOptions(id, title, filenames, names, recommendations),
+    options: createOptions(id, title, filenames, names),
     technicalNote,
   };
 }
@@ -91,7 +127,6 @@ function flooringZone({
   description,
   filenames,
   names,
-  recommendations,
 }: {
   id: string;
   number: string;
@@ -100,7 +135,6 @@ function flooringZone({
   description: string;
   filenames: FourStrings;
   names: FourStrings;
-  recommendations?: FourRecommendationSets;
 }): HomeFlooringZone {
   return {
     id,
@@ -108,36 +142,93 @@ function flooringZone({
     title,
     shortTitle,
     description,
-    options: createOptions(id, title, filenames, names, recommendations),
+    options: createOptions(id, title, filenames, names),
   };
 }
 
-function complements(
-  directionId: string,
-  guidance?: string,
-): HomeOptionDirectionRecommendation {
-  return { directionId, label: "Complements", guidance };
-}
-
-function recommendedFor(
-  directionId: string,
-  guidance?: string,
-): HomeOptionDirectionRecommendation {
-  return { directionId, label: "Recommended for", guidance };
-}
-
-const designDirections = getHomeDesignDirections("solace");
 const solaceModel = models.find((model) => model.slug === "solace");
 
-if (!designDirections || !solaceModel) {
+if (!solaceModel) {
   throw new Error("Solace configurator source data is unavailable.");
 }
 
+const kitchenLookTitle = "Kitchen Look & Feel";
+const kitchenLookOptions = [
+  createOption("kitchen-look-feel", kitchenLookTitle, {
+    level: "premium",
+    optionNumber: "01",
+    name: "Coastal Light Oak",
+    filename: "solace_kitchen_cabinetry_premium_02.png",
+    description:
+      "Pale oak, softened stone and restrained hardware create a bright, composed kitchen.",
+  }),
+  createOption("kitchen-look-feel", kitchenLookTitle, {
+    level: "signature",
+    optionNumber: "01",
+    name: "Stone Wrapped Oak",
+    filename: "solace_kitchen_cabinetry_signature_01.png",
+    description:
+      "Natural oak and expressive stone establish a richer architectural kitchen.",
+  }),
+  createOption("kitchen-look-feel", kitchenLookTitle, {
+    level: "premium",
+    optionNumber: "02",
+    name: "Soft White",
+    filename: "solace_countertops_premium_01_soft_white.png",
+    description:
+      "Soft white surfaces and quiet detailing create a clean, light-filled kitchen.",
+  }),
+  createOption("kitchen-look-feel", kitchenLookTitle, {
+    level: "signature",
+    optionNumber: "02",
+    name: "Sculpted White",
+    filename: "solace_countertops_signature_01_sculpted_white.png.png",
+    description:
+      "Expressive pale stone and stronger forms create a sculptural, elevated kitchen.",
+  }),
+] as const;
+
+const masterBathroomTitle = "Master Bathroom Look & Feel";
+const masterBathroomOptions = [
+  createOption("master-bathroom-look-feel", masterBathroomTitle, {
+    level: "premium",
+    optionNumber: "01",
+    name: "Coastal Light Spa",
+    filename: "solace_bathroom_systems_premium_01.png",
+    description:
+      "Pale oak and soft stone establish a calm, bright primary bathroom retreat.",
+  }),
+  createOption("master-bathroom-look-feel", masterBathroomTitle, {
+    level: "signature",
+    optionNumber: "01",
+    name: "Calacatta Vein",
+    filename: "solace_tile_surfaces_signature_01.png",
+    description:
+      "Expressive veined stone creates an elevated, gallery-like bathroom character.",
+  }),
+  createOption("master-bathroom-look-feel", masterBathroomTitle, {
+    level: "signature",
+    optionNumber: "02",
+    name: "Charcoal Stone",
+    filename: "solace_tile_surfaces_signature_02.png",
+    description:
+      "Deep charcoal surfaces create a dramatic and composed spa atmosphere.",
+  }),
+  createOption("master-bathroom-look-feel", masterBathroomTitle, {
+    level: "premium",
+    optionNumber: "02",
+    name: "Soft Stone",
+    filename: "solace_tile_surfaces_premium_02.png",
+    description:
+      "Quiet neutral stone creates a warm, understated primary bathroom palette.",
+  }),
+] as const;
+
 export const solaceHomeConfigurator: HomeConfiguratorDefinition = {
+  configurationVersion: 2,
   homeId: "solace",
   homeName: "Solace",
   residenceLabel: "Solace House",
-  designDirections,
   architecturalImages: [
     {
       src: solaceModel.heroImage,
@@ -151,87 +242,28 @@ export const solaceHomeConfigurator: HomeConfiguratorDefinition = {
   disclaimer:
     "Representative design imagery. Final products, finishes, availability, pricing and technical suitability are confirmed during project review and are subject to project-specific requirements.",
   categories: [
-    standardCategory({
-      id: "kitchen-cabinetry",
+    roomLookCategory({
+      id: "kitchen-look-feel",
       number: "01",
-      title: "Kitchen Cabinetry",
+      title: kitchenLookTitle,
       description:
-        "Choose the cabinetry character that establishes the kitchen's material foundation while keeping every other inclusion category independent.",
-      filenames: [
-        "solace_kitchen_cabinetry_premium_01.png",
-        "solace_kitchen_cabinetry_premium_02.png",
-        "solace_kitchen_cabinetry_signature_01.png",
-        "solace_kitchen_cabinetry_signature_02.png",
+        "Choose one coordinated kitchen direction combining cabinetry, surface, fixture and supporting-finish character.",
+      represents: [
+        "Cabinetry",
+        "Countertops",
+        "Kitchen fixtures and hardware",
+        "Supporting finishes",
       ],
-      names: [
-        "Warm Natural Oak",
-        "Coastal Light Oak",
-        "Stone-Wrapped Oak",
-        "Refined Pale Oak",
-      ],
-      recommendations: [
-        [
-          complements(
-            "warm-natural",
-            "Natural oak reinforces the warmer, grounded material language of this direction.",
-          ),
-        ],
-        [
-          complements(
-            "coastal-light",
-            "Pale oak keeps the kitchen bright and quietly connected to the coastal palette.",
-          ),
-        ],
-        [
-          recommendedFor(
-            "sculpted-natural-luxury",
-            "The stronger stone expression adds the sculptural weight characteristic of this direction.",
-          ),
-          complements("pacific-contrast"),
-        ],
-        [
-          complements("refined-west-coast"),
-          complements("architectural-calm"),
-        ],
-      ],
+      options: kitchenLookOptions,
+      technicalNote:
+        "This selection establishes a representative visual brief rather than an exact manufactured kitchen package.",
     }),
     standardCategory({
-      id: "countertops",
+      id: "master-wardrobes",
       number: "02",
-      title: "Countertops",
+      title: "Master Wardrobes",
       description:
-        "Select a surface direction for the kitchen and associated work surfaces, coordinated with the cabinetry and visual direction.",
-      filenames: [
-        "solace_countertops_premium_01_soft_white.png",
-        "solace_countertops_premium_02_warm_stone.png.png",
-        "solace_countertops_signature_01_sculpted_white.png.png",
-        "solace_countertops_signature_02_midnight_stone.png",
-      ],
-      names: ["Soft White", "Warm Stone", "Sculpted White", "Midnight Stone"],
-      recommendations: [
-        [complements("coastal-light"), complements("architectural-calm")],
-        [complements("warm-natural")],
-        [
-          recommendedFor(
-            "sculpted-natural-luxury",
-            "Expressive pale stone brings a more sculptural focal point without overwhelming the room.",
-          ),
-          complements("refined-west-coast"),
-        ],
-        [
-          complements(
-            "pacific-contrast",
-            "The deeper surface tone creates the controlled contrast central to this direction.",
-          ),
-        ],
-      ],
-    }),
-    standardCategory({
-      id: "wardrobes",
-      number: "03",
-      title: "Wardrobes",
-      description:
-        "Choose a coordinated wardrobe direction for the private rooms and dressing areas of Solace.",
+        "Choose the wardrobe direction for the primary bedroom and dressing areas of Solace.",
       filenames: [
         "solace_wardrobes_premium_01.png",
         "solace_wardrobes_premium_02.png",
@@ -247,7 +279,7 @@ export const solaceHomeConfigurator: HomeConfiguratorDefinition = {
     }),
     standardCategory({
       id: "interior-doors",
-      number: "04",
+      number: "03",
       title: "Interior Doors",
       description:
         "Set the interior door language that connects private rooms, circulation spaces and the wider finish palette.",
@@ -266,7 +298,7 @@ export const solaceHomeConfigurator: HomeConfiguratorDefinition = {
     }),
     standardCategory({
       id: "exterior-entry-doors",
-      number: "05",
+      number: "04",
       title: "Exterior Entry Doors",
       shortTitle: "Entry Doors",
       description:
@@ -286,7 +318,7 @@ export const solaceHomeConfigurator: HomeConfiguratorDefinition = {
     }),
     standardCategory({
       id: "windows-patio-doors",
-      number: "06",
+      number: "05",
       title: "Windows & Patio Doors",
       description:
         "Select the glazing expression that shapes daylight and indoor-outdoor connection, subject to project-specific performance review.",
@@ -303,73 +335,25 @@ export const solaceHomeConfigurator: HomeConfiguratorDefinition = {
         "Full-Height Sliding Wall",
       ],
     }),
-    standardCategory({
-      id: "kitchen-bath-fixtures",
-      number: "07",
-      title: "Kitchen & Bath Fixtures",
-      shortTitle: "Fixtures",
+    roomLookCategory({
+      id: "master-bathroom-look-feel",
+      number: "06",
+      title: masterBathroomTitle,
       description:
-        "Choose a coordinated fixture direction spanning the kitchen and bathrooms without implying a final manufacturer or product specification.",
-      filenames: [
-        "solace_kitchen_bath_fixtures_premium_01.png",
-        "solace_kitchen_bath_fixtures_premium_02.png",
-        "solace_kitchen_bath_fixtures_signature_01.png",
-        "solace_kitchen_bath_fixtures_signature_02.png",
+        "Choose one coordinated primary bathroom direction combining vanity, surface, tile, fixture and complementary-finish character.",
+      represents: [
+        "Vanity and cabinetry",
+        "Surfaces and tile",
+        "Bathroom fixtures",
+        "Complementary finishes",
       ],
-      names: [
-        "Dark Architectural Kitchen Direction",
-        "Refined Minimal Kitchen Direction",
-        "Architectural Kitchen Fixture Direction",
-        "Dark Spa Bath Fixture Direction",
-      ],
-    }),
-    standardCategory({
-      id: "bathroom-systems",
-      number: "08",
-      title: "Bathroom Systems",
-      description:
-        "Select the bathroom atmosphere that coordinates vanity, surface and spatial character while fixtures remain independently controlled.",
-      filenames: [
-        "solace_bathroom_systems_premium_01.png",
-        "solace_bathroom_systems_premium_02.png",
-        "solace_bathroom_systems_signature_01.png",
-        "solace_bathroom_systems_signature_02.png",
-      ],
-      names: [
-        "Coastal Light Spa",
-        "Warm Oak Spa",
-        "Sculpted Stone Retreat",
-        "Walnut + Stone Retreat",
-      ],
-      recommendations: [
-        [complements("coastal-light"), complements("architectural-calm")],
-        [complements("warm-natural"), complements("refined-west-coast")],
-        [
-          recommendedFor(
-            "sculpted-natural-luxury",
-            "Layered stone gives the bathroom the calm, tactile presence of a private retreat.",
-          ),
-        ],
-        [complements("pacific-contrast")],
-      ],
-    }),
-    standardCategory({
-      id: "tile-surfaces",
-      number: "09",
-      title: "Tile & Surfaces",
-      description:
-        "Choose the applied surface direction for wet areas and selected feature zones throughout Solace.",
-      filenames: [
-        "solace_tile_surfaces_premium_01.png",
-        "solace_tile_surfaces_premium_02.png",
-        "solace_tile_surfaces_signature_01.png",
-        "solace_tile_surfaces_signature_02.png",
-      ],
-      names: ["Warm Limestone", "Soft Stone", "Calacatta Vein", "Charcoal Stone"],
+      options: masterBathroomOptions,
+      technicalNote:
+        "This selection establishes a representative visual brief rather than an exact final product schedule.",
     }),
     standardCategory({
       id: "interior-wall-panels",
-      number: "10",
+      number: "07",
       title: "Interior Wall Panels",
       shortTitle: "Wall Panels",
       description:
@@ -386,19 +370,13 @@ export const solaceHomeConfigurator: HomeConfiguratorDefinition = {
         "Backlit Stone Feature",
         "Architectural Stone Feature",
       ],
-      recommendations: [
-        [complements("coastal-light"), complements("warm-natural")],
-        [complements("architectural-calm"), complements("refined-west-coast")],
-        [recommendedFor("sculpted-natural-luxury")],
-        [complements("pacific-contrast")],
-      ],
     }),
     standardCategory({
       id: "lighting",
-      number: "11",
+      number: "08",
       title: "Lighting",
       description:
-        "Choose the lighting atmosphere that supports everyday use and reinforces the selected visual direction.",
+        "Choose the lighting atmosphere that supports everyday use and reinforces the overall home palette.",
       filenames: [
         "solace_lighting_premium_01.png",
         "solace_lighting_premium_02.png",
@@ -411,22 +389,10 @@ export const solaceHomeConfigurator: HomeConfiguratorDefinition = {
         "Layered Architectural Glow",
         "Sculptural Stair Chandelier",
       ],
-      recommendations: [
-        [complements("coastal-light"), complements("architectural-calm")],
-        [complements("warm-natural")],
-        [complements("refined-west-coast")],
-        [
-          recommendedFor(
-            "sculpted-natural-luxury",
-            "A stronger lighting gesture adds drama while retaining a disciplined architectural rhythm.",
-          ),
-          complements("pacific-contrast"),
-        ],
-      ],
     }),
     standardCategory({
       id: "window-coverings",
-      number: "12",
+      number: "09",
       title: "Roller Blinds / Window Coverings",
       shortTitle: "Window Coverings",
       description:
@@ -446,7 +412,7 @@ export const solaceHomeConfigurator: HomeConfiguratorDefinition = {
     }),
     standardCategory({
       id: "garage-door-operator",
-      number: "13",
+      number: "10",
       title: "Garage Door + Operator",
       shortTitle: "Garage Access",
       description:
@@ -469,11 +435,11 @@ export const solaceHomeConfigurator: HomeConfiguratorDefinition = {
     {
       kind: "flooring",
       id: "flooring",
-      number: "14",
+      number: "11",
       title: "Flooring",
       shortTitle: "Flooring by Zone",
       description:
-        "Build the flooring specification across three controlled zones so each part of Solace can respond to its use and interior character.",
+        "Build the flooring direction across three controlled zones without designing every room separately.",
       technicalNote:
         "Stairs and transition areas remain coordinated to the overall project and do not require a separate customer selection.",
       zones: [
@@ -496,17 +462,6 @@ export const solaceHomeConfigurator: HomeConfiguratorDefinition = {
             "Smoked Wide-Plank Oak",
             "Warm Limestone-Look",
           ],
-          recommendations: [
-            [complements("coastal-light"), complements("architectural-calm")],
-            [complements("warm-natural"), complements("refined-west-coast")],
-            [complements("pacific-contrast")],
-            [
-              recommendedFor(
-                "sculpted-natural-luxury",
-                "The stone-led floor adds a calmer monolithic base for sculptural interiors.",
-              ),
-            ],
-          ],
         }),
         flooringZone({
           id: "flooring-bedrooms",
@@ -525,12 +480,6 @@ export const solaceHomeConfigurator: HomeConfiguratorDefinition = {
             "Light Engineered Oak",
             "Luxury Taupe Carpet",
             "Smoked Oak",
-          ],
-          recommendations: [
-            [complements("coastal-light"), complements("architectural-calm")],
-            [complements("warm-natural"), complements("refined-west-coast")],
-            [complements("sculpted-natural-luxury")],
-            [complements("pacific-contrast")],
           ],
         }),
         flooringZone({
@@ -552,19 +501,13 @@ export const solaceHomeConfigurator: HomeConfiguratorDefinition = {
             "Large-Format Limestone-Look",
             "Graphite Stone-Look",
           ],
-          recommendations: [
-            [complements("coastal-light"), complements("warm-natural")],
-            [complements("architectural-calm"), complements("refined-west-coast")],
-            [recommendedFor("sculpted-natural-luxury")],
-            [complements("pacific-contrast")],
-          ],
         }),
       ],
     },
     {
       kind: "coordinated",
       id: "appliances",
-      number: "15",
+      number: "12",
       title: "Appliances",
       shortTitle: "Appliances",
       description:
@@ -579,56 +522,48 @@ export const solaceHomeConfigurator: HomeConfiguratorDefinition = {
       number: "01",
       title: "Kitchen",
       introduction:
-        "The material and fixture decisions shaping the social heart of Solace.",
+        "The complete visual direction shaping the social heart of Solace.",
       items: [
-        { categoryId: "kitchen-cabinetry" },
-        { categoryId: "countertops" },
-        { categoryId: "kitchen-bath-fixtures" },
+        { categoryId: "kitchen-look-feel" },
         { categoryId: "appliances" },
       ],
     },
     {
-      id: "living",
+      id: "primary-suite",
       number: "02",
+      title: "Primary Suite",
+      introduction:
+        "Wardrobe and door choices establishing the character of the primary retreat.",
+      items: [
+        { categoryId: "master-wardrobes" },
+        { categoryId: "interior-doors" },
+      ],
+    },
+    {
+      id: "master-bathroom",
+      number: "03",
+      title: "Master Bathroom",
+      introduction:
+        "One coordinated bathroom direction spanning vanity, surfaces, tile and fixture character.",
+      items: [{ categoryId: "master-bathroom-look-feel" }],
+    },
+    {
+      id: "living-spaces",
+      number: "04",
       title: "Living Spaces",
       introduction:
-        "The surfaces, light and privacy layers connecting the main living spaces.",
+        "The flooring, material, lighting and privacy layers connecting the main living spaces.",
       items: [
-        { categoryId: "flooring", zoneId: "flooring-main-living", label: "Main Living Flooring" },
+        { categoryId: "flooring" },
         { categoryId: "interior-wall-panels" },
         { categoryId: "lighting" },
         { categoryId: "window-coverings" },
       ],
     },
     {
-      id: "bedrooms",
-      number: "03",
-      title: "Bedrooms",
-      introduction:
-        "Private-room choices composed around calm, storage and tactile comfort.",
-      items: [
-        { categoryId: "wardrobes" },
-        { categoryId: "flooring", zoneId: "flooring-bedrooms", label: "Bedroom Flooring" },
-        { categoryId: "interior-doors" },
-      ],
-    },
-    {
-      id: "bathrooms",
-      number: "04",
-      title: "Bathrooms",
-      introduction:
-        "A coordinated bathroom language spanning atmosphere, fixtures and surfaces.",
-      items: [
-        { categoryId: "bathroom-systems" },
-        { categoryId: "kitchen-bath-fixtures" },
-        { categoryId: "tile-surfaces" },
-        { categoryId: "flooring", zoneId: "flooring-wet-areas", label: "Wet-Area Flooring" },
-      ],
-    },
-    {
-      id: "exterior-envelope",
+      id: "exterior",
       number: "05",
-      title: "Exterior / Envelope",
+      title: "Exterior",
       introduction:
         "The controlled arrival and opening directions completing the architectural envelope.",
       items: [
@@ -636,6 +571,19 @@ export const solaceHomeConfigurator: HomeConfiguratorDefinition = {
         { categoryId: "windows-patio-doors" },
         { categoryId: "garage-door-operator" },
       ],
+    },
+    {
+      id: "secondary-rooms",
+      number: "06",
+      title: "Secondary Rooms",
+      introduction:
+        "A clear path from the visual brief into project-specific room design.",
+      items: [],
+      editorialNote: {
+        eyebrow: "Project-specific coordination",
+        title: "The palette continues.",
+        body: "Additional bedrooms, bathrooms and supporting spaces are coordinated to your selected home palette during project-specific design.",
+      },
     },
   ],
 };

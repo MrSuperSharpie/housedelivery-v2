@@ -1,16 +1,6 @@
-import type {
-  HomeDesignDirectionId,
-  HomeDesignDirectionsExperience,
-} from "@/data/home-design-collections";
 import type { InclusionImage } from "@/data/inclusions";
 
 export type HomeInclusionLevel = "premium" | "signature";
-
-export type HomeOptionDirectionRecommendation = {
-  directionId: HomeDesignDirectionId;
-  label?: "Recommended for" | "Complements";
-  guidance?: string;
-};
 
 export type HomeInclusionOption = {
   id: string;
@@ -19,11 +9,9 @@ export type HomeInclusionOption = {
   name: string;
   description?: string;
   image: InclusionImage;
-  directionRecommendations?: readonly HomeOptionDirectionRecommendation[];
 };
 
-export type HomeStandardInclusionCategory = {
-  kind: "standard";
+type HomeSelectableCategoryBase = {
   id: string;
   number: string;
   title: string;
@@ -32,6 +20,19 @@ export type HomeStandardInclusionCategory = {
   options: readonly HomeInclusionOption[];
   technicalNote?: string;
 };
+
+export type HomeStandardInclusionCategory = HomeSelectableCategoryBase & {
+  kind: "standard";
+};
+
+export type HomeRoomLookCategory = HomeSelectableCategoryBase & {
+  kind: "room-look";
+  represents: readonly string[];
+};
+
+export type HomeSelectableInclusionCategory =
+  | HomeStandardInclusionCategory
+  | HomeRoomLookCategory;
 
 export type HomeFlooringZone = {
   id: string;
@@ -64,7 +65,7 @@ export type HomeCoordinatedCategory = {
 };
 
 export type HomeInclusionCategory =
-  | HomeStandardInclusionCategory
+  | HomeSelectableInclusionCategory
   | HomeFlooringCategory
   | HomeCoordinatedCategory;
 
@@ -80,13 +81,18 @@ export type HomeLookBookChapter = {
   title: string;
   introduction: string;
   items: readonly HomeLookBookItem[];
+  editorialNote?: {
+    eyebrow: string;
+    title: string;
+    body: string;
+  };
 };
 
 export type HomeConfiguratorDefinition = {
+  configurationVersion: number;
   homeId: string;
   homeName: string;
   residenceLabel: string;
-  designDirections: HomeDesignDirectionsExperience;
   architecturalImages: readonly InclusionImage[];
   categories: readonly HomeInclusionCategory[];
   lookBookChapters: readonly HomeLookBookChapter[];
@@ -99,15 +105,15 @@ export type HomeSelection = {
 };
 
 export type HomeConfiguration = {
+  schemaVersion: number;
   homeId: string;
-  designDirectionId: HomeDesignDirectionId;
   inclusionSelections: Partial<Record<string, HomeSelection>>;
   flooringSelections: Partial<Record<string, HomeSelection>>;
   reviewStatus: "draft" | "ready-for-review";
 };
 
 export type ResolvedHomeSelection = {
-  category: HomeStandardInclusionCategory;
+  category: HomeSelectableInclusionCategory;
   option: HomeInclusionOption;
 };
 
@@ -123,36 +129,25 @@ export function getHomeInclusionLevelLabel(level: HomeInclusionLevel) {
     : "Signature — Upgrade";
 }
 
-export function getHomeOptionDirectionRecommendation(
-  option: HomeInclusionOption,
-  directionId: HomeDesignDirectionId,
-) {
-  return option.directionRecommendations?.find(
-    (recommendation) => recommendation.directionId === directionId,
-  );
-}
-
 export function createDefaultHomeConfiguration(
   definition: HomeConfiguratorDefinition,
 ): HomeConfiguration {
   const firstCategory = definition.categories.find(
-    (category): category is HomeStandardInclusionCategory =>
-      category.kind === "standard",
+    (category): category is HomeSelectableInclusionCategory =>
+      category.kind === "standard" || category.kind === "room-look",
   );
   const firstOption = firstCategory?.options.find(
     (option) => option.level === "premium",
   );
-  const firstDirection = definition.designDirections.directions[0];
-
-  if (!firstCategory || !firstOption || !firstDirection) {
+  if (!firstCategory || !firstOption) {
     throw new Error(
       `Home configurator definition is incomplete: ${definition.homeId}`,
     );
   }
 
   return {
+    schemaVersion: definition.configurationVersion,
     homeId: definition.homeId,
-    designDirectionId: firstDirection.id,
     inclusionSelections: {
       [firstCategory.id]: {
         optionId: firstOption.id,
@@ -169,7 +164,7 @@ export function isCategoryComplete(
   configuration: HomeConfiguration,
 ) {
   if (category.kind === "coordinated") return false;
-  if (category.kind === "standard") {
+  if (category.kind === "standard" || category.kind === "room-look") {
     return configuration.inclusionSelections[category.id]?.status === "confirmed";
   }
 
@@ -186,20 +181,20 @@ export function getRequiredCategories(
   );
 }
 
-export function getSelectedStandardOption(
-  category: HomeStandardInclusionCategory,
+export function getSelectedInclusionOption(
+  category: HomeSelectableInclusionCategory,
   configuration: HomeConfiguration,
 ) {
   const optionId = configuration.inclusionSelections[category.id]?.optionId;
   return category.options.find((option) => option.id === optionId);
 }
 
-export function getDisplayedStandardOption(
-  category: HomeStandardInclusionCategory,
+export function getDisplayedInclusionOption(
+  category: HomeSelectableInclusionCategory,
   configuration: HomeConfiguration,
 ) {
   return (
-    getSelectedStandardOption(category, configuration) ??
+    getSelectedInclusionOption(category, configuration) ??
     category.options.find((option) => option.level === "premium") ??
     category.options[0]
   );

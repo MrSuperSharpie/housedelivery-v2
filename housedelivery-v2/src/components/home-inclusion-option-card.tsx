@@ -4,15 +4,12 @@ import Image from "next/image";
 import {
   getHomeInclusionLevelLabel,
   type HomeInclusionOption,
-  type HomeOptionDirectionRecommendation,
 } from "@/data/home-configurator";
 import { cn } from "@/lib/cn";
 
 type HomeInclusionOptionCardProps = {
   option: HomeInclusionOption;
   homeName?: string;
-  directionName: string;
-  recommendation: HomeOptionDirectionRecommendation | undefined;
   isSelected: boolean;
   onSelect: () => void;
   onPreview: () => void;
@@ -27,8 +24,6 @@ type HomeInclusionOptionCardProps = {
 export function HomeInclusionOptionCard({
   option,
   homeName = "Home",
-  directionName,
-  recommendation,
   isSelected,
   onSelect,
   onPreview,
@@ -96,11 +91,6 @@ export function HomeInclusionOptionCard({
           >
             {getHomeInclusionLevelLabel(option.level)} · {option.optionNumber}
           </span>
-          {recommendation ? (
-            <span className="mt-4 border-l border-white/28 pl-3 text-[8px] font-semibold uppercase leading-4 tracking-[0.15em] text-white/66">
-              {recommendation.label ?? "Complements"} {directionName}
-            </span>
-          ) : null}
           <span className="mt-5 text-[clamp(1.8rem,3vw,3.25rem)] font-medium leading-[0.94] tracking-[-0.055em] text-white/92">
             {option.name}
           </span>

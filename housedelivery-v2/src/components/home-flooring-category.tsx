@@ -2,10 +2,8 @@ import { Check, Pencil } from "lucide-react";
 import Image from "next/image";
 
 import { HomeInclusionOptionCard } from "@/components/home-inclusion-option-card";
-import type { HomeDesignDirectionId } from "@/data/home-design-collections";
 import {
   getHomeInclusionLevelLabel,
-  getHomeOptionDirectionRecommendation,
   type HomeFlooringCategory as HomeFlooringCategoryData,
   type HomeInclusionOption,
 } from "@/data/home-configurator";
@@ -14,8 +12,6 @@ type HomeFlooringCategoryProps = {
   houseName: string;
   category: HomeFlooringCategoryData;
   categoryCount: number;
-  selectedDirectionId: HomeDesignDirectionId;
-  selectedDirectionName: string;
   selectedOptions: Readonly<Record<string, HomeInclusionOption | undefined>>;
   confirmedZoneIds: readonly string[];
   activeZoneId: string | null;
@@ -31,8 +27,6 @@ export function HomeFlooringCategory({
   houseName,
   category,
   categoryCount,
-  selectedDirectionId,
-  selectedDirectionName,
   selectedOptions,
   confirmedZoneIds,
   activeZoneId,
@@ -287,11 +281,6 @@ export function HomeFlooringCategory({
                       key={zoneOption.id}
                       option={zoneOption}
                       homeName={houseName}
-                      directionName={selectedDirectionName}
-                      recommendation={getHomeOptionDirectionRecommendation(
-                        zoneOption,
-                        selectedDirectionId,
-                      )}
                       isSelected={zoneOption.id === option?.id}
                       onSelect={() => onSelectOption(zone.id, zoneOption.id)}
                       onPreview={() =>
