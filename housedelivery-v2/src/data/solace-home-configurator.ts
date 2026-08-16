@@ -3,6 +3,7 @@ import type {
   HomeFlooringZone,
   HomeInclusionLevel,
   HomeInclusionOption,
+  HomeOptionDirectionRecommendation,
   HomeStandardInclusionCategory,
 } from "@/data/home-configurator";
 import { getHomeDesignDirections } from "@/data/home-design-collections";
@@ -11,6 +12,12 @@ import { models } from "@/data/models";
 const assetRoot = "/images/homes/solace/configurator";
 
 type FourStrings = readonly [string, string, string, string];
+type FourRecommendationSets = readonly [
+  readonly HomeOptionDirectionRecommendation[] | undefined,
+  readonly HomeOptionDirectionRecommendation[] | undefined,
+  readonly HomeOptionDirectionRecommendation[] | undefined,
+  readonly HomeOptionDirectionRecommendation[] | undefined,
+];
 
 const optionSlots: readonly {
   level: HomeInclusionLevel;
@@ -28,12 +35,14 @@ function createOptions(
   categoryTitle: string,
   filenames: FourStrings,
   names: FourStrings,
+  recommendations?: FourRecommendationSets,
 ): readonly HomeInclusionOption[] {
   return optionSlots.map((slot, index) => ({
     id: `${categoryId}-${slot.suffix}`,
     level: slot.level,
     optionNumber: slot.optionNumber,
     name: names[index],
+    directionRecommendations: recommendations?.[index],
     image: {
       src: `${assetRoot}/${filenames[index]}`,
       alt: `${names[index]}, representative ${categoryTitle.toLowerCase()} design imagery for Solace.`,
@@ -50,6 +59,7 @@ function standardCategory({
   filenames,
   names,
   technicalNote,
+  recommendations,
 }: {
   id: string;
   number: string;
@@ -59,6 +69,7 @@ function standardCategory({
   filenames: FourStrings;
   names: FourStrings;
   technicalNote?: string;
+  recommendations?: FourRecommendationSets;
 }): HomeStandardInclusionCategory {
   return {
     kind: "standard",
@@ -67,7 +78,7 @@ function standardCategory({
     title,
     shortTitle,
     description,
-    options: createOptions(id, title, filenames, names),
+    options: createOptions(id, title, filenames, names, recommendations),
     technicalNote,
   };
 }
@@ -80,6 +91,7 @@ function flooringZone({
   description,
   filenames,
   names,
+  recommendations,
 }: {
   id: string;
   number: string;
@@ -88,6 +100,7 @@ function flooringZone({
   description: string;
   filenames: FourStrings;
   names: FourStrings;
+  recommendations?: FourRecommendationSets;
 }): HomeFlooringZone {
   return {
     id,
@@ -95,8 +108,22 @@ function flooringZone({
     title,
     shortTitle,
     description,
-    options: createOptions(id, title, filenames, names),
+    options: createOptions(id, title, filenames, names, recommendations),
   };
+}
+
+function complements(
+  directionId: string,
+  guidance?: string,
+): HomeOptionDirectionRecommendation {
+  return { directionId, label: "Complements", guidance };
+}
+
+function recommendedFor(
+  directionId: string,
+  guidance?: string,
+): HomeOptionDirectionRecommendation {
+  return { directionId, label: "Recommended for", guidance };
 }
 
 const designDirections = getHomeDesignDirections("solace");
@@ -142,6 +169,31 @@ export const solaceHomeConfigurator: HomeConfiguratorDefinition = {
         "Stone-Wrapped Oak",
         "Refined Pale Oak",
       ],
+      recommendations: [
+        [
+          complements(
+            "warm-natural",
+            "Natural oak reinforces the warmer, grounded material language of this direction.",
+          ),
+        ],
+        [
+          complements(
+            "coastal-light",
+            "Pale oak keeps the kitchen bright and quietly connected to the coastal palette.",
+          ),
+        ],
+        [
+          recommendedFor(
+            "sculpted-natural-luxury",
+            "The stronger stone expression adds the sculptural weight characteristic of this direction.",
+          ),
+          complements("pacific-contrast"),
+        ],
+        [
+          complements("refined-west-coast"),
+          complements("architectural-calm"),
+        ],
+      ],
     }),
     standardCategory({
       id: "countertops",
@@ -156,6 +208,23 @@ export const solaceHomeConfigurator: HomeConfiguratorDefinition = {
         "solace_countertops_signature_02_midnight_stone.png",
       ],
       names: ["Soft White", "Warm Stone", "Sculpted White", "Midnight Stone"],
+      recommendations: [
+        [complements("coastal-light"), complements("architectural-calm")],
+        [complements("warm-natural")],
+        [
+          recommendedFor(
+            "sculpted-natural-luxury",
+            "Expressive pale stone brings a more sculptural focal point without overwhelming the room.",
+          ),
+          complements("refined-west-coast"),
+        ],
+        [
+          complements(
+            "pacific-contrast",
+            "The deeper surface tone creates the controlled contrast central to this direction.",
+          ),
+        ],
+      ],
     }),
     standardCategory({
       id: "wardrobes",
@@ -272,6 +341,17 @@ export const solaceHomeConfigurator: HomeConfiguratorDefinition = {
         "Sculpted Stone Retreat",
         "Walnut + Stone Retreat",
       ],
+      recommendations: [
+        [complements("coastal-light"), complements("architectural-calm")],
+        [complements("warm-natural"), complements("refined-west-coast")],
+        [
+          recommendedFor(
+            "sculpted-natural-luxury",
+            "Layered stone gives the bathroom the calm, tactile presence of a private retreat.",
+          ),
+        ],
+        [complements("pacific-contrast")],
+      ],
     }),
     standardCategory({
       id: "tile-surfaces",
@@ -306,6 +386,12 @@ export const solaceHomeConfigurator: HomeConfiguratorDefinition = {
         "Backlit Stone Feature",
         "Architectural Stone Feature",
       ],
+      recommendations: [
+        [complements("coastal-light"), complements("warm-natural")],
+        [complements("architectural-calm"), complements("refined-west-coast")],
+        [recommendedFor("sculpted-natural-luxury")],
+        [complements("pacific-contrast")],
+      ],
     }),
     standardCategory({
       id: "lighting",
@@ -324,6 +410,18 @@ export const solaceHomeConfigurator: HomeConfiguratorDefinition = {
         "Warm Dining Pendants",
         "Layered Architectural Glow",
         "Sculptural Stair Chandelier",
+      ],
+      recommendations: [
+        [complements("coastal-light"), complements("architectural-calm")],
+        [complements("warm-natural")],
+        [complements("refined-west-coast")],
+        [
+          recommendedFor(
+            "sculpted-natural-luxury",
+            "A stronger lighting gesture adds drama while retaining a disciplined architectural rhythm.",
+          ),
+          complements("pacific-contrast"),
+        ],
       ],
     }),
     standardCategory({
@@ -398,6 +496,17 @@ export const solaceHomeConfigurator: HomeConfiguratorDefinition = {
             "Smoked Wide-Plank Oak",
             "Warm Limestone-Look",
           ],
+          recommendations: [
+            [complements("coastal-light"), complements("architectural-calm")],
+            [complements("warm-natural"), complements("refined-west-coast")],
+            [complements("pacific-contrast")],
+            [
+              recommendedFor(
+                "sculpted-natural-luxury",
+                "The stone-led floor adds a calmer monolithic base for sculptural interiors.",
+              ),
+            ],
+          ],
         }),
         flooringZone({
           id: "flooring-bedrooms",
@@ -416,6 +525,12 @@ export const solaceHomeConfigurator: HomeConfiguratorDefinition = {
             "Light Engineered Oak",
             "Luxury Taupe Carpet",
             "Smoked Oak",
+          ],
+          recommendations: [
+            [complements("coastal-light"), complements("architectural-calm")],
+            [complements("warm-natural"), complements("refined-west-coast")],
+            [complements("sculpted-natural-luxury")],
+            [complements("pacific-contrast")],
           ],
         }),
         flooringZone({
@@ -436,6 +551,12 @@ export const solaceHomeConfigurator: HomeConfiguratorDefinition = {
             "Soft Stone Porcelain",
             "Large-Format Limestone-Look",
             "Graphite Stone-Look",
+          ],
+          recommendations: [
+            [complements("coastal-light"), complements("warm-natural")],
+            [complements("architectural-calm"), complements("refined-west-coast")],
+            [recommendedFor("sculpted-natural-luxury")],
+            [complements("pacific-contrast")],
           ],
         }),
       ],
@@ -469,7 +590,7 @@ export const solaceHomeConfigurator: HomeConfiguratorDefinition = {
     {
       id: "living",
       number: "02",
-      title: "Living",
+      title: "Living Spaces",
       introduction:
         "The surfaces, light and privacy layers connecting the main living spaces.",
       items: [

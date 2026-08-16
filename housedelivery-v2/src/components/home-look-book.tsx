@@ -19,6 +19,11 @@ type HomeLookBookProps = {
   configuration: HomeConfiguration;
   designDirection: HomeDesignDirection;
   onEditCategory: (categoryId: string, zoneId?: string) => void;
+  onPreviewOption: (
+    categoryId: string,
+    optionId: string,
+    zoneId?: string,
+  ) => void;
   onSubmit: () => void;
 };
 
@@ -27,11 +32,17 @@ function LookBookEntry({
   configuration,
   item,
   onEditCategory,
+  onPreviewOption,
+  isFeatured,
 }: Pick<
   HomeLookBookProps,
-  "definition" | "configuration" | "onEditCategory"
+  | "definition"
+  | "configuration"
+  | "onEditCategory"
+  | "onPreviewOption"
 > & {
   item: HomeLookBookItem;
+  isFeatured: boolean;
 }) {
   const category = definition.categories.find(
     (candidate) => candidate.id === item.categoryId,
@@ -109,18 +120,45 @@ function LookBookEntry({
     <article
       data-look-book-category={category.id}
       data-look-book-state="complete"
-      className="flex min-w-0 flex-col overflow-hidden border border-black/14 bg-[#e7e3d8]"
+      className={
+        isFeatured
+          ? "flex min-w-0 flex-col overflow-hidden border border-black/14 bg-[#e7e3d8] md:col-span-2 xl:col-span-2"
+          : "flex min-w-0 flex-col overflow-hidden border border-black/14 bg-[#e7e3d8]"
+      }
     >
-      <div className="relative aspect-[4/3] overflow-hidden border-b border-black/12 bg-[#d6d1c5]">
+      <button
+        type="button"
+        id={`home-look-book-preview-trigger-${option.id}-${item.zoneId ?? category.id}`}
+        aria-label={`View larger image for ${option.name}`}
+        onClick={() =>
+          onPreviewOption(category.id, option.id, item.zoneId)
+        }
+        className={
+          isFeatured
+            ? "group relative aspect-[16/10] overflow-hidden border-b border-black/12 bg-[#d6d1c5] text-left sm:aspect-[16/9]"
+            : "group relative aspect-[4/3] overflow-hidden border-b border-black/12 bg-[#d6d1c5] text-left"
+        }
+      >
         <Image
           src={option.image.src}
           alt={option.image.alt}
           fill
           quality={90}
-          sizes="(max-width: 767px) calc(100vw - 40px), (max-width: 1279px) 50vw, 33vw"
-          className={option.image.fit === "contain" ? "object-contain" : "object-cover"}
+          sizes={
+            isFeatured
+              ? "(max-width: 767px) calc(100vw - 40px), (max-width: 1279px) 100vw, 66vw"
+              : "(max-width: 767px) calc(100vw - 40px), (max-width: 1279px) 50vw, 33vw"
+          }
+          className={
+            option.image.fit === "contain"
+              ? "object-contain"
+              : "object-cover transition-transform duration-700 group-hover:scale-[1.012] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+          }
         />
-      </div>
+        <span className="absolute bottom-4 right-4 bg-black px-3 py-2 text-[8px] font-semibold uppercase tracking-[0.16em] text-white transition-colors group-hover:bg-white group-hover:text-black">
+          View larger
+        </span>
+      </button>
       <div className="flex flex-1 flex-col p-6 sm:p-8">
         <div className="flex items-center justify-between gap-5">
           <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/58">
@@ -159,6 +197,7 @@ export function HomeLookBook({
   configuration,
   designDirection,
   onEditCategory,
+  onPreviewOption,
   onSubmit,
 }: HomeLookBookProps) {
   const requiredCategories = getRequiredCategories(definition);
@@ -373,6 +412,8 @@ export function HomeLookBook({
                       configuration={configuration}
                       item={item}
                       onEditCategory={onEditCategory}
+                      onPreviewOption={onPreviewOption}
+                      isFeatured={index === 0}
                     />
                   ))}
                 </div>

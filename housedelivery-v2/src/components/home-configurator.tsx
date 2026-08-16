@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 import { HomeConfigurationProgress } from "@/components/home-configuration-progress";
 import { HomeConfigurationSummary } from "@/components/home-configuration-summary";
@@ -8,6 +8,7 @@ import { HomeCoordinatedCategory } from "@/components/home-coordinated-category"
 import { HomeConfiguratorJourney } from "@/components/home-configurator-journey";
 import { HomeDesignCollections } from "@/components/home-design-collections";
 import { HomeFlooringCategory } from "@/components/home-flooring-category";
+import { HomeImagePreview } from "@/components/home-image-preview";
 import { HomeInclusionCategory } from "@/components/home-inclusion-category";
 import { HomeLookBook } from "@/components/home-look-book";
 import type { HomeDesignDirectionId } from "@/data/home-design-collections";
@@ -15,6 +16,7 @@ import {
   createDefaultHomeConfiguration,
   getDisplayedFlooringOption,
   getDisplayedStandardOption,
+  getHomeOptionDirectionRecommendation,
   getRequiredCategories,
   isCategoryComplete,
   type HomeConfiguration,
@@ -26,6 +28,13 @@ import {
 
 type HomeConfiguratorProps = {
   definition: HomeConfiguratorDefinition;
+};
+
+type HomeImagePreviewTarget = {
+  categoryId: string;
+  optionId: string;
+  zoneId?: string;
+  returnFocusId: string;
 };
 
 function getNextIncompleteCategory(
@@ -75,6 +84,11 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
       ? firstCategory.zones[0]?.id ?? null
       : null;
   });
+  const [imagePreviewTarget, setImagePreviewTarget] =
+    useState<HomeImagePreviewTarget | null>(null);
+  const closeImagePreview = useCallback(() => {
+    setImagePreviewTarget(null);
+  }, []);
   const selectedDirection = definition.designDirections.directions.find(
     (direction) => direction.id === configuration.designDirectionId,
   );
@@ -89,6 +103,45 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
   const completedCount = requiredCategories.filter((category) =>
     isCategoryComplete(category, configuration),
   ).length;
+  const imagePreview = (() => {
+    if (!imagePreviewTarget) return undefined;
+
+    const category = definition.categories.find(
+      (candidate) => candidate.id === imagePreviewTarget.categoryId,
+    );
+    if (!category || category.kind === "coordinated") return undefined;
+
+    if (category.kind === "standard") {
+      const option = category.options.find(
+        (candidate) => candidate.id === imagePreviewTarget.optionId,
+      );
+      if (!option) return undefined;
+
+      return {
+        category,
+        option,
+        isSelected:
+          getDisplayedStandardOption(category, configuration)?.id ===
+          option.id,
+      };
+    }
+
+    const zone = category.zones.find(
+      (candidate) => candidate.id === imagePreviewTarget.zoneId,
+    );
+    const option = zone?.options.find(
+      (candidate) => candidate.id === imagePreviewTarget.optionId,
+    );
+    if (!zone || !option) return undefined;
+
+    return {
+      category,
+      zone,
+      option,
+      isSelected:
+        getDisplayedFlooringOption(zone, configuration)?.id === option.id,
+    };
+  })();
 
   function selectDesignDirection(directionId: HomeDesignDirectionId) {
     setConfiguration((current) => ({
@@ -142,6 +195,23 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
         reviewStatus: "draft",
       };
     });
+  }
+
+  function selectImagePreviewOption() {
+    if (!imagePreview) return;
+
+    if (imagePreview.category.kind === "standard") {
+      selectStandardOption(imagePreview.category, imagePreview.option.id);
+      return;
+    }
+
+    if (imagePreview.zone) {
+      selectFlooringOption(
+        imagePreview.category,
+        imagePreview.zone.id,
+        imagePreview.option.id,
+      );
+    }
   }
 
   function confirmStandardCategory(category: HomeStandardInclusionCategory) {
@@ -318,6 +388,9 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
                 upgrades can be selected independently in every available
                 category.
               </p>
+              <p className="mt-5 border-t border-white/12 pt-5 text-[10px] leading-5 text-white/50">
+                {definition.disclaimer}
+              </p>
             </div>
           </div>
 
@@ -376,9 +449,10 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
                       <HomeFlooringCategory
                         key={category.id}
                         houseName={definition.homeName}
-                        disclaimer={definition.disclaimer}
                         category={category}
                         categoryCount={requiredCategories.length}
+                        selectedDirectionId={configuration.designDirectionId}
+                        selectedDirectionName={selectedDirection.name}
                         selectedOptions={selectedOptions}
                         confirmedZoneIds={category.zones
                           .filter(
@@ -392,6 +466,14 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
                         isComplete={isComplete}
                         onSelectOption={(zoneId, optionId) =>
                           selectFlooringOption(category, zoneId, optionId)
+                        }
+                        onPreviewOption={(zoneId, optionId) =>
+                          setImagePreviewTarget({
+                            categoryId: category.id,
+                            zoneId,
+                            optionId,
+                            returnFocusId: `home-option-preview-trigger-${optionId}`,
+                          })
                         }
                         onConfirmZone={(zoneId) =>
                           confirmFlooringZone(category, zoneId)
@@ -407,18 +489,31 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
                     <HomeInclusionCategory
                       key={category.id}
                       houseName={definition.homeName}
-                      disclaimer={definition.disclaimer}
                       category={category}
                       categoryCount={requiredCategories.length}
+                      selectedDirectionId={configuration.designDirectionId}
+                      selectedDirectionName={selectedDirection.name}
                       selectedOption={getDisplayedStandardOption(
                         category,
                         configuration,
                       )}
+                      showInteractionGuidance={
+                        requiredCategories.findIndex(
+                          (candidate) => candidate.id === category.id,
+                        ) < 2
+                      }
                       isActive={isActive}
                       isComplete={isComplete}
                       nextCategoryTitle={getNextCategoryTitle(category)}
                       onSelectOption={(optionId) =>
                         selectStandardOption(category, optionId)
+                      }
+                      onPreviewOption={(optionId) =>
+                        setImagePreviewTarget({
+                          categoryId: category.id,
+                          optionId,
+                          returnFocusId: `home-option-preview-trigger-${optionId}`,
+                        })
                       }
                       onConfirm={() => confirmStandardCategory(category)}
                       onEdit={() => editCategory(category.id)}
@@ -445,6 +540,14 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
         configuration={configuration}
         designDirection={selectedDirection}
         onEditCategory={editCategory}
+        onPreviewOption={(categoryId, optionId, zoneId) =>
+          setImagePreviewTarget({
+            categoryId,
+            optionId,
+            zoneId,
+            returnFocusId: `home-look-book-preview-trigger-${optionId}-${zoneId ?? categoryId}`,
+          })
+        }
         onSubmit={() =>
           setConfiguration((current) => ({
             ...current,
@@ -452,6 +555,22 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
           }))
         }
       />
+
+      {imagePreview && imagePreviewTarget ? (
+        <HomeImagePreview
+          option={imagePreview.option}
+          homeName={definition.homeName}
+          directionName={selectedDirection.name}
+          recommendation={getHomeOptionDirectionRecommendation(
+            imagePreview.option,
+            configuration.designDirectionId,
+          )}
+          isSelected={imagePreview.isSelected}
+          returnFocusId={imagePreviewTarget.returnFocusId}
+          onSelect={selectImagePreviewOption}
+          onClose={closeImagePreview}
+        />
+      ) : null}
     </div>
   );
 }

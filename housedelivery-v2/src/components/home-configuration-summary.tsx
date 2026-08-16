@@ -59,7 +59,7 @@ function HomeConfigurationEntries({
                   src={previewOption.image.src}
                   alt=""
                   fill
-                  quality={80}
+                  quality={90}
                   sizes="48px"
                   className={
                     previewOption.image.fit === "contain"
@@ -80,9 +80,9 @@ function HomeConfigurationEntries({
 
               {category.kind === "standard" ? (
                 <p className="mt-1 text-[10px] leading-4 text-black/58">
-                    {previewOption
-                      ? `${previewOption.name} · ${getHomeInclusionLevelLabel(previewOption.level)}`
-                      : "Not yet selected"}
+                  {previewOption
+                    ? `${previewOption.name} · ${getHomeInclusionLevelLabel(previewOption.level)}`
+                    : "Not yet selected"}
                 </p>
               ) : category.kind === "flooring" ? (
                 <ul className="mt-1 grid gap-1">
@@ -186,24 +186,28 @@ export function HomeConfigurationSummary({
       >
         My {definition.homeName}
       </h2>
-      <dl className="mt-6 grid grid-cols-2 border-l border-t border-black/12">
-        <div className="border-b border-r border-black/12 p-4">
-          <dt className="text-[8px] font-semibold uppercase tracking-[0.16em] text-black/58">
-            Residence
-          </dt>
-          <dd className="mt-3 text-sm font-medium text-black/72">
-            {definition.homeName}
-          </dd>
-        </div>
-        <div className="border-b border-r border-black/12 p-4">
-          <dt className="text-[8px] font-semibold uppercase tracking-[0.16em] text-black/58">
-            Direction
-          </dt>
-          <dd className="mt-3 text-sm font-medium text-black/72">
+      <div className="relative mt-6 aspect-[16/10] overflow-hidden bg-black/8">
+        <Image
+          src={designDirection.image.src}
+          alt=""
+          fill
+          quality={90}
+          sizes="320px"
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/78 via-black/8 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 p-5 text-white">
+          <p className="text-[8px] font-semibold uppercase tracking-[0.17em] text-white/64">
+            Design Direction
+          </p>
+          <p className="mt-2 text-xl font-medium tracking-[-0.04em]">
             {designDirection.name}
-          </dd>
+          </p>
         </div>
-      </dl>
+      </div>
+      <p className="mt-4 text-[9px] font-semibold uppercase tracking-[0.16em] text-black/58">
+        {definition.residenceLabel}
+      </p>
       <HomeConfigurationEntries
         definition={definition}
         configuration={configuration}

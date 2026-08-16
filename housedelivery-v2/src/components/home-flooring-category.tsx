@@ -2,38 +2,44 @@ import { Check, Pencil } from "lucide-react";
 import Image from "next/image";
 
 import { HomeInclusionOptionCard } from "@/components/home-inclusion-option-card";
+import type { HomeDesignDirectionId } from "@/data/home-design-collections";
 import {
   getHomeInclusionLevelLabel,
+  getHomeOptionDirectionRecommendation,
   type HomeFlooringCategory as HomeFlooringCategoryData,
   type HomeInclusionOption,
 } from "@/data/home-configurator";
 
 type HomeFlooringCategoryProps = {
   houseName: string;
-  disclaimer: string;
   category: HomeFlooringCategoryData;
   categoryCount: number;
+  selectedDirectionId: HomeDesignDirectionId;
+  selectedDirectionName: string;
   selectedOptions: Readonly<Record<string, HomeInclusionOption | undefined>>;
   confirmedZoneIds: readonly string[];
   activeZoneId: string | null;
   isActive: boolean;
   isComplete: boolean;
   onSelectOption: (zoneId: string, optionId: string) => void;
+  onPreviewOption: (zoneId: string, optionId: string) => void;
   onConfirmZone: (zoneId: string) => void;
   onEditZone: (zoneId: string) => void;
 };
 
 export function HomeFlooringCategory({
   houseName,
-  disclaimer,
   category,
   categoryCount,
+  selectedDirectionId,
+  selectedDirectionName,
   selectedOptions,
   confirmedZoneIds,
   activeZoneId,
   isActive,
   isComplete,
   onSelectOption,
+  onPreviewOption,
   onConfirmZone,
   onEditZone,
 }: HomeFlooringCategoryProps) {
@@ -281,8 +287,16 @@ export function HomeFlooringCategory({
                       key={zoneOption.id}
                       option={zoneOption}
                       homeName={houseName}
+                      directionName={selectedDirectionName}
+                      recommendation={getHomeOptionDirectionRecommendation(
+                        zoneOption,
+                        selectedDirectionId,
+                      )}
                       isSelected={zoneOption.id === option?.id}
                       onSelect={() => onSelectOption(zone.id, zoneOption.id)}
+                      onPreview={() =>
+                        onPreviewOption(zone.id, zoneOption.id)
+                      }
                       onConfirm={() => onConfirmZone(zone.id)}
                       confirmLabel={
                         isZoneComplete
@@ -304,15 +318,10 @@ export function HomeFlooringCategory({
         })}
       </div>
 
-      <div className="mt-8 max-w-2xl border-t border-white/14 pt-7">
-        <p className="text-xs leading-6 text-white/55">
-          Complete one flooring zone at a time. Each confirmed zone remains
-          editable before project review.
-        </p>
-        <p className="mt-3 text-[10px] leading-5 text-white/55">
-          {disclaimer}
-        </p>
-      </div>
+      <p className="mt-8 max-w-2xl border-t border-white/14 pt-6 text-xs leading-6 text-white/55">
+        Complete one flooring zone at a time. Each confirmed zone remains
+        editable before project review.
+      </p>
     </section>
   );
 }

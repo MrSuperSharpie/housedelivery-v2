@@ -1,17 +1,21 @@
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight, Check, Expand } from "lucide-react";
 import Image from "next/image";
 
 import {
   getHomeInclusionLevelLabel,
   type HomeInclusionOption,
+  type HomeOptionDirectionRecommendation,
 } from "@/data/home-configurator";
 import { cn } from "@/lib/cn";
 
 type HomeInclusionOptionCardProps = {
   option: HomeInclusionOption;
   homeName?: string;
+  directionName: string;
+  recommendation: HomeOptionDirectionRecommendation | undefined;
   isSelected: boolean;
   onSelect: () => void;
+  onPreview: () => void;
   onConfirm?: () => void;
   confirmLabel?: string;
   nextLabel?: string;
@@ -23,8 +27,11 @@ type HomeInclusionOptionCardProps = {
 export function HomeInclusionOptionCard({
   option,
   homeName = "Home",
+  directionName,
+  recommendation,
   isSelected,
   onSelect,
+  onPreview,
   onConfirm,
   confirmLabel = "Confirm & Continue",
   nextLabel,
@@ -44,34 +51,43 @@ export function HomeInclusionOptionCard({
     >
       <button
         type="button"
+        id={`home-option-preview-trigger-${option.id}`}
+        aria-label={`View larger image for ${option.name}`}
+        data-preview-home-option={option.id}
+        onClick={onPreview}
+        className="group relative block aspect-[4/3] overflow-hidden border-b border-white/12 bg-[#121419] focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-white"
+      >
+        <Image
+          src={option.image.src}
+          alt={option.image.alt}
+          fill
+          quality={90}
+          sizes={sizes}
+          className={cn(
+            option.image.fit === "contain" ? "object-contain" : "object-cover",
+            "transition-[transform,filter] duration-700 ease-out group-hover:scale-[1.018] group-hover:brightness-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100",
+          )}
+        />
+        {isSelected ? (
+          <span className="absolute right-4 top-4 grid size-10 place-items-center rounded-full bg-white text-[#0b0c10] shadow-lg">
+            <Check aria-hidden="true" className="size-4" strokeWidth={2} />
+          </span>
+        ) : null}
+        <span className="absolute bottom-3 right-3 flex min-h-9 items-center gap-2 bg-black px-3 text-[8px] font-semibold uppercase tracking-[0.16em] text-white transition-colors group-hover:bg-white group-hover:text-black">
+          <Expand aria-hidden="true" className="size-3" strokeWidth={1.5} />
+          View larger
+        </span>
+      </button>
+
+      <button
+        type="button"
         aria-pressed={isSelected}
         data-home-option={option.id}
         data-option-level={option.level}
         onClick={onSelect}
         className="group flex flex-1 flex-col text-left focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-white"
       >
-        <span className="relative block aspect-[4/3] overflow-hidden border-b border-white/12 bg-[#121419]">
-          <Image
-            src={option.image.src}
-            alt={option.image.alt}
-            fill
-            quality={90}
-            sizes={sizes}
-            className={cn(
-              option.image.fit === "contain"
-                ? "object-contain"
-                : "object-cover",
-              "transition-transform duration-700 ease-out group-hover:scale-[1.012] motion-reduce:transition-none motion-reduce:group-hover:scale-100",
-            )}
-          />
-          {isSelected ? (
-            <span className="absolute right-4 top-4 grid size-10 place-items-center rounded-full bg-white text-[#0b0c10] shadow-lg">
-              <Check aria-hidden="true" className="size-4" strokeWidth={2} />
-            </span>
-          ) : null}
-        </span>
-
-        <span className="flex flex-1 flex-col p-5 sm:p-7">
+        <span className="flex flex-1 flex-col p-5 sm:p-6">
           <span
             className={cn(
               "text-[9px] font-semibold uppercase tracking-[0.18em]",
@@ -80,7 +96,12 @@ export function HomeInclusionOptionCard({
           >
             {getHomeInclusionLevelLabel(option.level)} · {option.optionNumber}
           </span>
-          <span className="mt-6 text-[clamp(1.8rem,3vw,3.25rem)] font-medium leading-[0.94] tracking-[-0.055em] text-white/92">
+          {recommendation ? (
+            <span className="mt-4 border-l border-white/28 pl-3 text-[8px] font-semibold uppercase leading-4 tracking-[0.15em] text-white/66">
+              {recommendation.label ?? "Complements"} {directionName}
+            </span>
+          ) : null}
+          <span className="mt-5 text-[clamp(1.8rem,3vw,3.25rem)] font-medium leading-[0.94] tracking-[-0.055em] text-white/92">
             {option.name}
           </span>
           {option.description ? (
@@ -90,7 +111,7 @@ export function HomeInclusionOptionCard({
           ) : null}
           <span
             className={cn(
-              "mt-auto flex items-center gap-3 border-t border-white/10 pt-6 text-[9px] font-semibold uppercase tracking-[0.17em]",
+              "mt-auto flex items-center gap-3 border-t border-white/10 pt-5 text-[9px] font-semibold uppercase tracking-[0.17em]",
               isSelected ? "text-white" : "text-white/55",
             )}
           >

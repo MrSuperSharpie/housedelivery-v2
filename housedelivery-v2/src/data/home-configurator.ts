@@ -6,6 +6,12 @@ import type { InclusionImage } from "@/data/inclusions";
 
 export type HomeInclusionLevel = "premium" | "signature";
 
+export type HomeOptionDirectionRecommendation = {
+  directionId: HomeDesignDirectionId;
+  label?: "Recommended for" | "Complements";
+  guidance?: string;
+};
+
 export type HomeInclusionOption = {
   id: string;
   level: HomeInclusionLevel;
@@ -13,6 +19,7 @@ export type HomeInclusionOption = {
   name: string;
   description?: string;
   image: InclusionImage;
+  directionRecommendations?: readonly HomeOptionDirectionRecommendation[];
 };
 
 export type HomeStandardInclusionCategory = {
@@ -114,6 +121,15 @@ export function getHomeInclusionLevelLabel(level: HomeInclusionLevel) {
   return level === "premium"
     ? "Premium — Included"
     : "Signature — Upgrade";
+}
+
+export function getHomeOptionDirectionRecommendation(
+  option: HomeInclusionOption,
+  directionId: HomeDesignDirectionId,
+) {
+  return option.directionRecommendations?.find(
+    (recommendation) => recommendation.directionId === directionId,
+  );
 }
 
 export function createDefaultHomeConfiguration(

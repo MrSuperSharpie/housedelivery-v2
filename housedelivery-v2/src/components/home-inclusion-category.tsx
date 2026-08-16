@@ -2,7 +2,9 @@ import { Check, Pencil } from "lucide-react";
 import Image from "next/image";
 
 import { HomeInclusionOptionCard } from "@/components/home-inclusion-option-card";
+import type { HomeDesignDirectionId } from "@/data/home-design-collections";
 import {
+  getHomeOptionDirectionRecommendation,
   getHomeInclusionLevelLabel,
   type HomeInclusionOption,
   type HomeStandardInclusionCategory,
@@ -10,28 +12,34 @@ import {
 
 type HomeInclusionCategoryProps = {
   houseName: string;
-  disclaimer: string;
   category: HomeStandardInclusionCategory;
   categoryCount: number;
+  selectedDirectionId: HomeDesignDirectionId;
+  selectedDirectionName: string;
   selectedOption: HomeInclusionOption | undefined;
+  showInteractionGuidance: boolean;
   isActive: boolean;
   isComplete: boolean;
   nextCategoryTitle: string | undefined;
   onSelectOption: (optionId: string) => void;
+  onPreviewOption: (optionId: string) => void;
   onConfirm: () => void;
   onEdit: () => void;
 };
 
 export function HomeInclusionCategory({
   houseName,
-  disclaimer,
   category,
   categoryCount,
+  selectedDirectionId,
+  selectedDirectionName,
   selectedOption,
+  showInteractionGuidance,
   isActive,
   isComplete,
   nextCategoryTitle,
   onSelectOption,
+  onPreviewOption,
   onConfirm,
   onEdit,
 }: HomeInclusionCategoryProps) {
@@ -44,10 +52,10 @@ export function HomeInclusionCategory({
         data-home-category={category.id}
         data-category-kind="standard"
         data-category-state="complete"
-        className="scroll-mt-28 border border-white/18 bg-white/[0.02] p-5 sm:p-6"
+        className="scroll-mt-28 border border-white/18 bg-white/[0.018] p-4 sm:p-5"
       >
-        <div className="grid min-w-0 items-center gap-5 sm:grid-cols-[5.5rem_minmax(0,1fr)_auto] sm:gap-7">
-          <div className="relative aspect-[4/3] overflow-hidden bg-[#15171b]">
+        <div className="grid min-w-0 items-center gap-5 sm:grid-cols-[6.5rem_minmax(0,1fr)_auto] sm:gap-7">
+          <div className="relative aspect-[4/3] overflow-hidden border border-white/10 bg-[#15171b]">
             <Image
               src={selectedOption.image.src}
               alt=""
@@ -62,15 +70,14 @@ export function HomeInclusionCategory({
             />
           </div>
           <div className="min-w-0">
-            <p className="flex items-center gap-2 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/55">
+            <p className="flex items-center gap-2 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/58">
               <Check aria-hidden="true" className="size-3" strokeWidth={2} />
-              {category.number} / Complete
+              {category.number} / {String(categoryCount).padStart(2, "0")} · {category.title}
             </p>
-            <h3 className="mt-3 text-2xl font-medium tracking-[-0.04em] text-white/88 sm:text-3xl">
-              {category.title}
+            <h3 className="mt-3 text-2xl font-medium tracking-[-0.045em] text-white/90 sm:text-[2rem]">
+              {selectedOption.name}
             </h3>
-            <p className="mt-2 text-sm leading-6 text-white/50">
-              {selectedOption.name} ·{" "}
+            <p className="mt-2 text-[9px] font-semibold uppercase tracking-[0.16em] text-white/55">
               {getHomeInclusionLevelLabel(selectedOption.level)}
             </p>
           </div>
@@ -162,8 +169,14 @@ export function HomeInclusionCategory({
             key={option.id}
             option={option}
             homeName={houseName}
+            directionName={selectedDirectionName}
+            recommendation={getHomeOptionDirectionRecommendation(
+              option,
+              selectedDirectionId,
+            )}
             isSelected={option.id === selectedOption?.id}
             onSelect={() => onSelectOption(option.id)}
+            onPreview={() => onPreviewOption(option.id)}
             onConfirm={onConfirm}
             confirmLabel={
               nextCategoryTitle
@@ -180,18 +193,13 @@ export function HomeInclusionCategory({
         ))}
       </div>
 
-      <div className="mt-8 max-w-2xl border-t border-white/14 pt-7">
-        <p className="text-xs leading-6 text-white/55">
+      {showInteractionGuidance ? (
+        <p className="mt-8 max-w-2xl border-t border-white/14 pt-6 text-xs leading-6 text-white/55">
           {selectedOption
-            ? isComplete
-              ? `${selectedOption.name} is reflected in My ${houseName}. Choose another option to update it.`
-              : `${selectedOption.name} is selected. Confirm from the card to continue.`
+            ? `${selectedOption.name} is selected. Confirm from the card to continue.`
             : "Choose one controlled option to continue."}
         </p>
-        <p className="mt-3 text-[10px] leading-5 text-white/55">
-          {disclaimer}
-        </p>
-      </div>
+      ) : null}
     </section>
   );
 }
