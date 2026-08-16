@@ -1,4 +1,5 @@
 import { Check, ChevronDown } from "lucide-react";
+import Image from "next/image";
 
 import type { HomeDesignDirection } from "@/data/home-design-collections";
 import {
@@ -22,13 +23,56 @@ function HomeConfigurationEntries({
   definition,
   configuration,
 }: Pick<HomeConfigurationSummaryProps, "definition" | "configuration">) {
+  const visibleCategories = definition.categories.filter(
+    (category) =>
+      category.kind === "coordinated" ||
+      isCategoryComplete(category, configuration),
+  );
+
+  if (visibleCategories.length === 0) {
+    return (
+      <p className="mt-6 border-y border-black/12 py-5 text-xs leading-5 text-black/58">
+        Confirm your first inclusion to begin My {definition.homeName}.
+      </p>
+    );
+  }
+
   return (
     <ol className="mt-6 divide-y divide-black/10 border-y border-black/12">
-      {definition.categories.map((category) => {
+      {visibleCategories.map((category) => {
         const isComplete = isCategoryComplete(category, configuration);
+        const previewOption =
+          category.kind === "standard"
+            ? getSelectedStandardOption(category, configuration)
+            : category.kind === "flooring"
+              ? getSelectedFlooringOption(category.zones[0], configuration)
+              : undefined;
 
         return (
-          <li key={category.id} className="grid grid-cols-[1fr_auto] gap-4 py-3">
+          <li
+            key={category.id}
+            className="grid grid-cols-[3rem_minmax(0,1fr)_auto] items-start gap-3 py-3"
+          >
+            {previewOption ? (
+              <div className="relative aspect-square overflow-hidden bg-black/8">
+                <Image
+                  src={previewOption.image.src}
+                  alt=""
+                  fill
+                  quality={80}
+                  sizes="48px"
+                  className={
+                    previewOption.image.fit === "contain"
+                      ? "object-contain"
+                      : "object-cover"
+                  }
+                />
+              </div>
+            ) : (
+              <div className="grid aspect-square place-items-center border border-black/10 font-mono text-[8px] text-black/65">
+                CO
+              </div>
+            )}
             <div className="min-w-0">
               <p className="text-xs font-medium tracking-[-0.015em] text-black/68">
                 {category.title}
@@ -36,17 +80,9 @@ function HomeConfigurationEntries({
 
               {category.kind === "standard" ? (
                 <p className="mt-1 text-[10px] leading-4 text-black/58">
-                  {isComplete
-                    ? (() => {
-                        const option = getSelectedStandardOption(
-                          category,
-                          configuration,
-                        );
-                        return option
-                          ? `${option.name} · ${getHomeInclusionLevelLabel(option.level)}`
-                          : "Not yet selected";
-                      })()
-                    : "Not yet selected"}
+                    {previewOption
+                      ? `${previewOption.name} · ${getHomeInclusionLevelLabel(previewOption.level)}`
+                      : "Not yet selected"}
                 </p>
               ) : category.kind === "flooring" ? (
                 <ul className="mt-1 grid gap-1">
@@ -110,10 +146,10 @@ export function HomeConfigurationSummary({
         <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 px-5 marker:content-none">
           <div>
             <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/58">
-              My {definition.homeName}
+              My {definition.homeName} · {completeCount}/{requiredCategories.length}
             </p>
             <p className="mt-1 text-sm font-medium text-black/70">
-              {completeCount} of {requiredCategories.length} chapters complete
+              {designDirection.name} direction
             </p>
           </div>
           <ChevronDown
@@ -122,7 +158,7 @@ export function HomeConfigurationSummary({
             strokeWidth={1.5}
           />
         </summary>
-        <div className="border-t border-black/12 px-5 pb-6 pt-5">
+        <div className="max-h-[62vh] overflow-y-auto border-t border-black/12 px-5 pb-6 pt-5">
           <p className="text-xs leading-5 text-black/58">
             {definition.residenceLabel} · {designDirection.name} Design Direction
           </p>
@@ -138,7 +174,8 @@ export function HomeConfigurationSummary({
   return (
     <aside
       aria-labelledby={`my-${definition.homeId}-heading`}
-      className="max-h-[calc(100vh-7rem)] overflow-y-auto bg-[#e7e3d8] p-7 text-[#111216]"
+      tabIndex={0}
+      className="max-h-[calc(100vh-7rem)] overflow-y-auto bg-[#e7e3d8] p-7 text-[#111216] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
     >
       <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-black/58">
         Evolving specification book

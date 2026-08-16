@@ -44,7 +44,7 @@ export function HomeConfigurationProgress({
       ? 0
       : (completeCount / requiredCategories.length) * 100;
 
-  function renderCategory(category: HomeInclusionCategory, compact: boolean) {
+  function renderCategory(category: HomeInclusionCategory) {
     const isActive = category.id === activeCategoryId;
     const isComplete = isCategoryComplete(category, configuration);
     const isEditable = category.kind !== "coordinated" && isComplete;
@@ -54,12 +54,7 @@ export function HomeConfigurationProgress({
         <span className="font-mono text-[9px] tracking-[0.14em] text-white/55">
           {category.number}
         </span>
-        <span
-          className={cn(
-            "min-w-0 flex-1 text-left text-xs font-medium tracking-[-0.01em]",
-            compact ? "" : "truncate",
-          )}
-        >
+        <span className="min-w-0 flex-1 text-left text-xs font-medium tracking-[-0.01em]">
           {category.shortTitle}
         </span>
         {isComplete ? (
@@ -73,19 +68,13 @@ export function HomeConfigurationProgress({
     );
 
     return (
-      <li
-        key={category.id}
-        className={cn(compact ? "border-b border-white/8 last:border-b-0" : "bg-[#0d0f13]")}
-      >
+      <li key={category.id} className="border-b border-white/8 last:border-b-0">
         {isEditable ? (
           <button
             type="button"
             onClick={() => onEditCategory(category.id)}
             aria-label={`Edit ${category.title}`}
-            className={cn(
-              "flex w-full items-center gap-3 text-white/64 transition-colors hover:bg-white/[0.03] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-white",
-              compact ? "min-h-11 px-4" : "min-h-12 px-4",
-            )}
+            className="flex min-h-11 w-full items-center gap-3 px-4 text-white/64 transition-colors hover:bg-white/[0.03] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-white"
           >
             {content}
           </button>
@@ -94,7 +83,7 @@ export function HomeConfigurationProgress({
             aria-current={isActive ? "step" : undefined}
             className={cn(
               "flex items-center gap-3",
-              compact ? "min-h-11 px-4" : "min-h-12 px-4",
+              "min-h-11 px-4",
               isActive
                 ? "bg-white/[0.045] text-white"
                 : "text-white/55",
@@ -113,11 +102,11 @@ export function HomeConfigurationProgress({
         <div className="flex items-end justify-between gap-5">
           <div>
             <p className="text-[9px] font-semibold uppercase tracking-[0.19em] text-white/55">
-              Configuration progress
+              My {definition.homeName}
             </p>
             <p className="mt-3 text-xl font-medium tracking-[-0.035em] text-white/82">
               {activeCategory
-                ? `${activeCategory.number} / ${String(definition.categories.length).padStart(2, "0")} · ${activeCategory.shortTitle}`
+                ? `${activeCategory.number} / ${String(requiredCategories.length).padStart(2, "0")} · ${activeCategory.shortTitle}`
                 : "Selections ready to review"}
             </p>
           </div>
@@ -133,9 +122,9 @@ export function HomeConfigurationProgress({
         </div>
       </div>
 
-      <details className="group mt-5 border border-white/10 sm:hidden">
+      <details className="group mt-5 border border-white/10">
         <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-5 px-4 text-[9px] font-semibold uppercase tracking-[0.17em] text-white/54 marker:content-none">
-          <span>View all {definition.categories.length} categories</span>
+          <span>View configuration chapters</span>
           <span aria-hidden="true" className="text-white/55 group-open:hidden">
             +
           </span>
@@ -146,18 +135,12 @@ export function HomeConfigurationProgress({
             −
           </span>
         </summary>
-        <ol className="border-t border-white/10">
+        <ol className="max-h-[52vh] overflow-y-auto border-t border-white/10">
           {definition.categories.map((category) =>
-            renderCategory(category, true),
+            renderCategory(category),
           )}
         </ol>
       </details>
-
-      <ol className="mt-5 hidden gap-px bg-white/8 sm:grid sm:grid-cols-2 lg:grid-cols-1">
-        {definition.categories.map((category) =>
-          renderCategory(category, false),
-        )}
-      </ol>
     </nav>
   );
 }

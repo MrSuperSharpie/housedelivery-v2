@@ -5,6 +5,7 @@ import { useState } from "react";
 import { HomeConfigurationProgress } from "@/components/home-configuration-progress";
 import { HomeConfigurationSummary } from "@/components/home-configuration-summary";
 import { HomeCoordinatedCategory } from "@/components/home-coordinated-category";
+import { HomeConfiguratorJourney } from "@/components/home-configurator-journey";
 import { HomeDesignCollections } from "@/components/home-design-collections";
 import { HomeFlooringCategory } from "@/components/home-flooring-category";
 import { HomeInclusionCategory } from "@/components/home-inclusion-category";
@@ -46,15 +47,14 @@ function getNextIncompleteCategory(
   );
 }
 
-function focusConfigurationTarget(categoryId: string | null) {
-  const targetId = categoryId
-    ? `home-category-${categoryId}`
-    : "home-look-book";
-
+function focusConfigurationTarget(targetId: string) {
   window.requestAnimationFrame(() => {
     window.requestAnimationFrame(() => {
       const target = document.getElementById(targetId);
-      target?.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (!target) return;
+
+      const top = target.getBoundingClientRect().top + window.scrollY - 96;
+      window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
       target?.focus({ preventScroll: true });
     });
   });
@@ -67,6 +67,14 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(
     () => getRequiredCategories(definition)[0]?.id ?? null,
   );
+  const [activeFlooringZoneId, setActiveFlooringZoneId] = useState<
+    string | null
+  >(() => {
+    const firstCategory = getRequiredCategories(definition)[0];
+    return firstCategory?.kind === "flooring"
+      ? firstCategory.zones[0]?.id ?? null
+      : null;
+  });
   const selectedDirection = definition.designDirections.directions.find(
     (direction) => direction.id === configuration.designDirectionId,
   );
@@ -156,26 +164,54 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
 
     setConfiguration(nextConfiguration);
     setActiveCategoryId(nextCategory?.id ?? null);
-    focusConfigurationTarget(nextCategory?.id ?? null);
+    setActiveFlooringZoneId(
+      nextCategory?.kind === "flooring"
+        ? nextCategory.zones[0]?.id ?? null
+        : null,
+    );
+    focusConfigurationTarget(
+      nextCategory ? `home-category-${nextCategory.id}` : "home-look-book",
+    );
   }
 
-  function confirmFlooringCategory(category: HomeFlooringCategoryData) {
-    const confirmedSelections = { ...configuration.flooringSelections };
-
-    for (const zone of category.zones) {
-      const option = getDisplayedFlooringOption(zone, configuration);
-      if (!option) return;
-      confirmedSelections[zone.id] = {
-        optionId: option.id,
-        status: "confirmed",
-      };
-    }
+  function confirmFlooringZone(
+    category: HomeFlooringCategoryData,
+    zoneId: string,
+  ) {
+    const zone = category.zones.find((candidate) => candidate.id === zoneId);
+    if (!zone) return;
+    const option = getDisplayedFlooringOption(zone, configuration);
+    if (!option) return;
 
     const nextConfiguration: HomeConfiguration = {
       ...configuration,
-      flooringSelections: confirmedSelections,
+      flooringSelections: {
+        ...configuration.flooringSelections,
+        [zone.id]: { optionId: option.id, status: "confirmed" },
+      },
       reviewStatus: "draft",
     };
+    const zoneIndex = category.zones.findIndex(
+      (candidate) => candidate.id === zone.id,
+    );
+    const zoneSearchOrder = [
+      ...category.zones.slice(zoneIndex + 1),
+      ...category.zones.slice(0, zoneIndex),
+    ];
+    const nextZone = zoneSearchOrder.find(
+      (candidate) =>
+        nextConfiguration.flooringSelections[candidate.id]?.status !==
+        "confirmed",
+    );
+
+    if (nextZone) {
+      setConfiguration(nextConfiguration);
+      setActiveCategoryId(category.id);
+      setActiveFlooringZoneId(nextZone.id);
+      focusConfigurationTarget(`home-flooring-zone-${nextZone.id}`);
+      return;
+    }
+
     const nextCategory = getNextIncompleteCategory(
       definition,
       nextConfiguration,
@@ -184,17 +220,39 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
 
     setConfiguration(nextConfiguration);
     setActiveCategoryId(nextCategory?.id ?? null);
-    focusConfigurationTarget(nextCategory?.id ?? null);
+    setActiveFlooringZoneId(
+      nextCategory?.kind === "flooring"
+        ? nextCategory.zones[0]?.id ?? null
+        : null,
+    );
+    focusConfigurationTarget(
+      nextCategory ? `home-category-${nextCategory.id}` : "home-look-book",
+    );
   }
 
-  function editCategory(categoryId: string) {
+  function editCategory(categoryId: string, zoneId?: string) {
     const category = definition.categories.find(
       (candidate) => candidate.id === categoryId,
     );
     if (!category || category.kind === "coordinated") return;
 
     setActiveCategoryId(categoryId);
-    focusConfigurationTarget(categoryId);
+    if (category.kind === "flooring") {
+      const targetZoneId =
+        category.zones.find((zone) => zone.id === zoneId)?.id ??
+        category.zones[0]?.id ??
+        null;
+      setActiveFlooringZoneId(targetZoneId);
+      focusConfigurationTarget(
+        targetZoneId
+          ? `home-flooring-zone-${targetZoneId}`
+          : `home-category-${categoryId}`,
+      );
+      return;
+    }
+
+    setActiveFlooringZoneId(null);
+    focusConfigurationTarget(`home-category-${categoryId}`);
   }
 
   function getNextCategoryTitle(
@@ -225,6 +283,14 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
         className="scroll-mt-20 border-b border-white/10 bg-[#0b0c10] px-5 py-24 sm:px-8 lg:px-12 lg:py-36"
       >
         <div className="mx-auto max-w-[1504px]">
+          <div className="mb-16 lg:mb-24">
+            <HomeConfiguratorJourney
+              currentStage="configure"
+              ariaLabel={`${definition.homeName} configuration journey`}
+              homeName={definition.homeName}
+            />
+          </div>
+
           <div className="grid gap-12 border-t border-white/15 pt-7 lg:grid-cols-[0.78fr_1.22fr] lg:items-end lg:gap-20">
             <div>
               <p
@@ -261,7 +327,7 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
               : `All ${completedCount} required chapters complete. Review My ${definition.homeName}.`}
           </p>
 
-          <div className="mt-16 grid items-start gap-8 lg:mt-24 lg:grid-cols-[18rem_minmax(0,1fr)] 2xl:grid-cols-[18rem_minmax(0,1fr)_20rem]">
+          <div className="mt-16 grid items-start gap-8 lg:mt-24 lg:grid-cols-[16rem_minmax(0,1fr)] xl:grid-cols-[14rem_minmax(0,1fr)_18rem] xl:gap-6 2xl:grid-cols-[18rem_minmax(0,1fr)_20rem] 2xl:gap-8">
             <div className="lg:sticky lg:top-24">
               <HomeConfigurationProgress
                 definition={definition}
@@ -272,7 +338,7 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
             </div>
 
             <div className="min-w-0">
-              <div className="2xl:hidden">
+              <div className="sticky top-[4.75rem] z-30 xl:hidden">
                 <HomeConfigurationSummary
                   variant="compact"
                   definition={definition}
@@ -281,7 +347,7 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
                 />
               </div>
 
-              <div className="mt-5 grid gap-3 2xl:mt-0">
+              <div className="mt-5 grid gap-3 xl:mt-0">
                 {definition.categories.map((category) => {
                   if (category.kind === "coordinated") {
                     return (
@@ -312,14 +378,27 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
                         houseName={definition.homeName}
                         disclaimer={definition.disclaimer}
                         category={category}
+                        categoryCount={requiredCategories.length}
                         selectedOptions={selectedOptions}
+                        confirmedZoneIds={category.zones
+                          .filter(
+                            (zone) =>
+                              configuration.flooringSelections[zone.id]
+                                ?.status === "confirmed",
+                          )
+                          .map((zone) => zone.id)}
+                        activeZoneId={activeFlooringZoneId}
                         isActive={isActive}
                         isComplete={isComplete}
                         onSelectOption={(zoneId, optionId) =>
                           selectFlooringOption(category, zoneId, optionId)
                         }
-                        onConfirm={() => confirmFlooringCategory(category)}
-                        onEdit={() => editCategory(category.id)}
+                        onConfirmZone={(zoneId) =>
+                          confirmFlooringZone(category, zoneId)
+                        }
+                        onEditZone={(zoneId) =>
+                          editCategory(category.id, zoneId)
+                        }
                       />
                     );
                   }
@@ -330,6 +409,7 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
                       houseName={definition.homeName}
                       disclaimer={definition.disclaimer}
                       category={category}
+                      categoryCount={requiredCategories.length}
                       selectedOption={getDisplayedStandardOption(
                         category,
                         configuration,
@@ -348,7 +428,7 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
               </div>
             </div>
 
-            <div className="hidden 2xl:sticky 2xl:top-24 2xl:block">
+            <div className="hidden xl:sticky xl:top-24 xl:block">
               <HomeConfigurationSummary
                 variant="sticky"
                 definition={definition}

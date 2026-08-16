@@ -1,6 +1,7 @@
 import { ArrowRight, BookOpen, Check, Pencil } from "lucide-react";
 import Image from "next/image";
 
+import { HomeConfiguratorJourney } from "@/components/home-configurator-journey";
 import type { HomeDesignDirection } from "@/data/home-design-collections";
 import {
   getHomeInclusionLevelLabel,
@@ -17,7 +18,7 @@ type HomeLookBookProps = {
   definition: HomeConfiguratorDefinition;
   configuration: HomeConfiguration;
   designDirection: HomeDesignDirection;
-  onEditCategory: (categoryId: string) => void;
+  onEditCategory: (categoryId: string, zoneId?: string) => void;
   onSubmit: () => void;
 };
 
@@ -93,7 +94,7 @@ function LookBookEntry({
           </p>
           <button
             type="button"
-            onClick={() => onEditCategory(category.id)}
+            onClick={() => onEditCategory(category.id, item.zoneId)}
             className="mt-5 inline-flex min-h-10 items-center gap-2 text-[9px] font-semibold uppercase tracking-[0.17em] text-black/52 transition-colors hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
           >
             Continue selection
@@ -141,7 +142,7 @@ function LookBookEntry({
           </p>
           <button
             type="button"
-            onClick={() => onEditCategory(category.id)}
+            onClick={() => onEditCategory(category.id, item.zoneId)}
             className="inline-flex min-h-10 items-center gap-2 text-[8px] font-semibold uppercase tracking-[0.17em] text-black/58 transition-colors hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
           >
             <Pencil aria-hidden="true" className="size-3" strokeWidth={1.5} />
@@ -166,11 +167,84 @@ export function HomeLookBook({
   ).length;
   const isReady = completeCount === requiredCategories.length;
   const isSubmitted = configuration.reviewStatus === "ready-for-review";
+  const firstIncompleteCategory = requiredCategories.find(
+    (category) => !isCategoryComplete(category, configuration),
+  );
   const openingImages = [
     definition.architecturalImages[0],
     designDirection.image,
     definition.architecturalImages[1],
   ].filter(Boolean);
+
+  if (!isReady) {
+    return (
+      <section
+        id="home-look-book"
+        tabIndex={-1}
+        aria-labelledby="home-look-book-heading"
+        data-look-book-ready="false"
+        data-review-status={configuration.reviewStatus}
+        className="scroll-mt-20 bg-[#e7e3d8] px-5 py-24 text-[#111216] outline-none sm:px-8 lg:px-12 lg:py-36"
+      >
+        <div className="mx-auto max-w-[1504px]">
+          <HomeConfiguratorJourney
+            currentStage="configure"
+            theme="light"
+            ariaLabel="Look Book journey preview"
+            homeName={definition.homeName}
+          />
+
+          <div className="mt-16 grid gap-12 border-t border-black/18 pt-7 lg:mt-24 lg:grid-cols-[0.8fr_1.2fr] lg:items-end lg:gap-20">
+            <div>
+              <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-black/58">
+                My {definition.homeName} / Look Book preview
+              </p>
+              <h2
+                id="home-look-book-heading"
+                className="mt-7 text-[clamp(4rem,9vw,9rem)] font-medium leading-[0.82] tracking-[-0.075em] text-black/88"
+              >
+                Your story
+                <br />
+                <span className="text-black/52">takes shape here.</span>
+              </h2>
+            </div>
+            <div className="max-w-xl lg:justify-self-end">
+              <p className="text-base leading-8 text-black/60">
+                Your selected home and interior direction will open into an editorial Look Book once every controlled chapter is confirmed.
+              </p>
+              <div className="mt-8 flex items-center gap-5">
+                <div className="h-px flex-1 bg-black/14">
+                  <div
+                    className="h-px bg-black transition-[width] duration-500 motion-reduce:transition-none"
+                    style={{
+                      width: `${(completeCount / requiredCategories.length) * 100}%`,
+                    }}
+                  />
+                </div>
+                <p className="font-mono text-[9px] tracking-[0.14em] text-black/58">
+                  {completeCount} / {requiredCategories.length}
+                </p>
+              </div>
+              {firstIncompleteCategory ? (
+                <button
+                  type="button"
+                  onClick={() => onEditCategory(firstIncompleteCategory.id)}
+                  className="group mt-8 flex min-h-14 w-full items-center justify-between gap-7 bg-[#111216] px-6 text-left text-[10px] font-semibold uppercase tracking-[0.17em] text-white transition-colors hover:bg-black/76 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
+                >
+                  <span>Continue with {firstIncompleteCategory.shortTitle}</span>
+                  <ArrowRight
+                    aria-hidden="true"
+                    className="size-4 shrink-0 transition-transform group-hover:translate-x-1"
+                    strokeWidth={1.5}
+                  />
+                </button>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section
@@ -183,7 +257,14 @@ export function HomeLookBook({
     >
       <div className="border-b border-black/12 px-5 py-24 sm:px-8 lg:px-12 lg:py-36">
         <div className="mx-auto max-w-[1504px]">
-          <div className="grid gap-12 border-t border-black/18 pt-7 lg:grid-cols-[0.76fr_1.24fr] lg:items-end lg:gap-20">
+          <HomeConfiguratorJourney
+            currentStage="look-book"
+            theme="light"
+            ariaLabel="Look Book journey"
+            homeName={definition.homeName}
+          />
+
+          <div className="mt-16 grid gap-12 border-t border-black/18 pt-7 lg:mt-24 lg:grid-cols-[0.76fr_1.24fr] lg:items-end lg:gap-20">
             <div>
               <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-black/58">
                 Personalized architectural specification book
@@ -199,7 +280,7 @@ export function HomeLookBook({
             </div>
             <div className="max-w-2xl lg:justify-self-end">
               <p className="text-lg font-medium tracking-[-0.025em] text-black/68">
-                {definition.residenceLabel}
+                Your selected home and interior direction
               </p>
               <p className="mt-3 text-3xl font-medium tracking-[-0.05em] text-black/84 sm:text-5xl">
                 {designDirection.name}

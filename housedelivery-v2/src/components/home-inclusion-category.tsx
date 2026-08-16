@@ -1,4 +1,4 @@
-import { ArrowDown, Check, Pencil } from "lucide-react";
+import { Check, Pencil } from "lucide-react";
 import Image from "next/image";
 
 import { HomeInclusionOptionCard } from "@/components/home-inclusion-option-card";
@@ -12,6 +12,7 @@ type HomeInclusionCategoryProps = {
   houseName: string;
   disclaimer: string;
   category: HomeStandardInclusionCategory;
+  categoryCount: number;
   selectedOption: HomeInclusionOption | undefined;
   isActive: boolean;
   isComplete: boolean;
@@ -25,6 +26,7 @@ export function HomeInclusionCategory({
   houseName,
   disclaimer,
   category,
+  categoryCount,
   selectedOption,
   isActive,
   isComplete,
@@ -120,10 +122,14 @@ export function HomeInclusionCategory({
       data-category-state="active"
       className="scroll-mt-28 border border-white/22 bg-[#0b0c10] p-5 outline-none sm:p-8 lg:p-10"
     >
-      <div className="grid gap-10 border-t border-white/15 pt-6 lg:grid-cols-[0.72fr_1.28fr] lg:gap-16">
+      <div className="grid gap-10 border-t border-white/15 pt-6 2xl:grid-cols-[0.72fr_1.28fr] 2xl:gap-16">
         <div>
-          <p className="eyebrow">
-            My {houseName} / {category.number} {category.title}
+          <p
+            className="eyebrow"
+            style={{ color: "rgb(255 255 255 / 0.7)" }}
+          >
+            {category.number} / {String(categoryCount).padStart(2, "0")} —{" "}
+            {category.title}
           </p>
           <h2
             id={headingId}
@@ -134,7 +140,7 @@ export function HomeInclusionCategory({
             <span className="text-white/55">{category.shortTitle}.</span>
           </h2>
         </div>
-        <div className="max-w-2xl lg:justify-self-end lg:self-end">
+        <div className="max-w-2xl 2xl:justify-self-end 2xl:self-end">
           <p className="text-base leading-8 text-white/56">
             {category.description}
           </p>
@@ -155,43 +161,36 @@ export function HomeInclusionCategory({
           <HomeInclusionOptionCard
             key={option.id}
             option={option}
+            homeName={houseName}
             isSelected={option.id === selectedOption?.id}
             onSelect={() => onSelectOption(option.id)}
+            onConfirm={onConfirm}
+            confirmLabel={
+              nextCategoryTitle
+                ? isComplete
+                  ? "Save & Continue"
+                  : "Confirm & Continue"
+                : isComplete
+                  ? "Save & Return to Look Book"
+                  : `Complete My ${houseName}`
+            }
+            nextLabel={nextCategoryTitle}
+            confirmCategoryId={category.id}
           />
         ))}
       </div>
 
-      <div className="mt-8 flex flex-col items-start justify-between gap-5 border-t border-white/14 pt-7 sm:flex-row sm:items-center">
-        <div className="max-w-xl">
-          <p className="text-xs leading-6 text-white/55">
-            {selectedOption
-              ? isComplete
-                ? `${selectedOption.name} is now reflected in My ${houseName}.`
-                : `${selectedOption.name} will be added to My ${houseName} when you continue.`
-              : "Choose one controlled direction to continue."}
-          </p>
-          <p className="mt-3 text-[10px] leading-5 text-white/55">
-            {disclaimer}
-          </p>
-        </div>
-        <button
-          type="button"
-          data-confirm-category={category.id}
-          disabled={!selectedOption}
-          onClick={onConfirm}
-          className="group inline-flex min-h-12 w-full items-center justify-between gap-8 border border-white bg-white px-5 text-[10px] font-semibold uppercase tracking-[0.17em] text-[#0b0c10] transition-colors hover:bg-transparent hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white disabled:cursor-not-allowed disabled:border-white/20 disabled:bg-transparent disabled:text-white/30 sm:w-auto"
-        >
-          <span>
-            {nextCategoryTitle
-              ? `${isComplete ? "Save and continue" : "Continue"} to ${nextCategoryTitle}`
-              : `Complete My ${houseName}`}
-          </span>
-          <ArrowDown
-            aria-hidden="true"
-            className="size-4 shrink-0 transition-transform group-hover:translate-y-1"
-            strokeWidth={1.5}
-          />
-        </button>
+      <div className="mt-8 max-w-2xl border-t border-white/14 pt-7">
+        <p className="text-xs leading-6 text-white/55">
+          {selectedOption
+            ? isComplete
+              ? `${selectedOption.name} is reflected in My ${houseName}. Choose another option to update it.`
+              : `${selectedOption.name} is selected. Confirm from the card to continue.`
+            : "Choose one controlled option to continue."}
+        </p>
+        <p className="mt-3 text-[10px] leading-5 text-white/55">
+          {disclaimer}
+        </p>
       </div>
     </section>
   );

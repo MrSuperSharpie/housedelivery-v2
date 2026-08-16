@@ -1,4 +1,4 @@
-import { ArrowDown, Check, Pencil } from "lucide-react";
+import { Check, Pencil } from "lucide-react";
 import Image from "next/image";
 
 import { HomeInclusionOptionCard } from "@/components/home-inclusion-option-card";
@@ -12,29 +12,33 @@ type HomeFlooringCategoryProps = {
   houseName: string;
   disclaimer: string;
   category: HomeFlooringCategoryData;
+  categoryCount: number;
   selectedOptions: Readonly<Record<string, HomeInclusionOption | undefined>>;
+  confirmedZoneIds: readonly string[];
+  activeZoneId: string | null;
   isActive: boolean;
   isComplete: boolean;
   onSelectOption: (zoneId: string, optionId: string) => void;
-  onConfirm: () => void;
-  onEdit: () => void;
+  onConfirmZone: (zoneId: string) => void;
+  onEditZone: (zoneId: string) => void;
 };
 
 export function HomeFlooringCategory({
   houseName,
   disclaimer,
   category,
+  categoryCount,
   selectedOptions,
+  confirmedZoneIds,
+  activeZoneId,
   isActive,
   isComplete,
   onSelectOption,
-  onConfirm,
-  onEdit,
+  onConfirmZone,
+  onEditZone,
 }: HomeFlooringCategoryProps) {
   const headingId = `home-${category.id}-heading`;
-  const hasEveryZone = category.zones.every(
-    (zone) => selectedOptions[zone.id] !== undefined,
-  );
+  const confirmedZones = new Set(confirmedZoneIds);
 
   if (isComplete && !isActive) {
     return (
@@ -96,7 +100,7 @@ export function HomeFlooringCategory({
           <button
             type="button"
             data-edit-category={category.id}
-            onClick={onEdit}
+            onClick={() => onEditZone(category.zones[0]?.id ?? "")}
             className="inline-flex min-h-11 items-center justify-center gap-3 border border-white/24 px-5 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/70 transition-colors hover:border-white hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
           >
             <Pencil aria-hidden="true" className="size-3" strokeWidth={1.5} />
@@ -141,10 +145,14 @@ export function HomeFlooringCategory({
       data-category-state="active"
       className="scroll-mt-28 border border-white/22 bg-[#0b0c10] p-5 outline-none sm:p-8 lg:p-10"
     >
-      <div className="grid gap-10 border-t border-white/15 pt-6 lg:grid-cols-[0.72fr_1.28fr] lg:gap-16">
+      <div className="grid gap-10 border-t border-white/15 pt-6 2xl:grid-cols-[0.72fr_1.28fr] 2xl:gap-16">
         <div>
-          <p className="eyebrow">
-            My {houseName} / {category.number} {category.title}
+          <p
+            className="eyebrow"
+            style={{ color: "rgb(255 255 255 / 0.7)" }}
+          >
+            {category.number} / {String(categoryCount).padStart(2, "0")} —{" "}
+            {category.title}
           </p>
           <h2
             id={headingId}
@@ -155,7 +163,7 @@ export function HomeFlooringCategory({
             <span className="text-white/55">by zone.</span>
           </h2>
         </div>
-        <div className="max-w-2xl lg:justify-self-end lg:self-end">
+        <div className="max-w-2xl 2xl:justify-self-end 2xl:self-end">
           <p className="text-base leading-8 text-white/56">
             {category.description}
           </p>
@@ -165,77 +173,145 @@ export function HomeFlooringCategory({
         </div>
       </div>
 
-      <div className="mt-12 grid gap-12 lg:mt-16 lg:gap-16">
-        {category.zones.map((zone) => (
-          <section
-            key={zone.id}
-            aria-labelledby={`home-${zone.id}-heading`}
-            data-flooring-zone={zone.id}
-            className="border-t border-white/14 pt-6"
-          >
-            <div className="grid gap-5 md:grid-cols-[13rem_minmax(0,1fr)] md:gap-10">
-              <div>
-                <p className="font-mono text-[9px] tracking-[0.16em] text-white/55">
-                  Zone {zone.number} / 03
-                </p>
-                <h3
-                  id={`home-${zone.id}-heading`}
-                  className="mt-4 text-2xl font-medium tracking-[-0.045em] text-white/88"
-                >
-                  {zone.title}
-                </h3>
-                <p className="mt-3 text-xs leading-6 text-white/55">
-                  {zone.description}
-                </p>
-              </div>
-              <div
-                role="group"
-                aria-label={`${zone.title} flooring choices`}
-                className="grid gap-4 sm:grid-cols-2"
+      <div className="mt-12 grid gap-3 lg:mt-16">
+        {category.zones.map((zone, zoneIndex) => {
+          const option = selectedOptions[zone.id];
+          const isZoneActive = zone.id === activeZoneId;
+          const isZoneComplete = confirmedZones.has(zone.id);
+          const nextZone = category.zones[zoneIndex + 1];
+
+          if (!isZoneActive) {
+            return (
+              <article
+                key={zone.id}
+                id={`home-flooring-zone-${zone.id}`}
+                data-flooring-zone={zone.id}
+                data-flooring-zone-state={
+                  isZoneComplete ? "complete" : "upcoming"
+                }
+                className="scroll-mt-28 border border-white/10 px-5 py-5 sm:px-6"
               >
-                {zone.options.map((option) => (
-                  <HomeInclusionOptionCard
-                    key={option.id}
-                    option={option}
-                    isSelected={option.id === selectedOptions[zone.id]?.id}
-                    onSelect={() => onSelectOption(zone.id, option.id)}
-                    sizes="(max-width: 639px) calc(100vw - 40px), (max-width: 1023px) 50vw, 28vw"
-                  />
-                ))}
+                <div className="grid items-center gap-4 sm:grid-cols-[4.5rem_minmax(0,1fr)_auto]">
+                  {isZoneComplete && option ? (
+                    <div className="relative aspect-square overflow-hidden bg-[#15171b]">
+                      <Image
+                        src={option.image.src}
+                        alt=""
+                        fill
+                        quality={90}
+                        sizes="72px"
+                        className={
+                          option.image.fit === "contain"
+                            ? "object-contain"
+                            : "object-cover"
+                        }
+                      />
+                    </div>
+                  ) : (
+                    <p className="font-mono text-[9px] tracking-[0.16em] text-white/55">
+                      {zone.number} / 03
+                    </p>
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-[8px] font-semibold uppercase tracking-[0.15em] text-white/55">
+                      Flooring {zone.number} of 3 ·{" "}
+                      {isZoneComplete ? "Complete" : "Ahead"}
+                    </p>
+                    <h3 className="mt-2 text-xl font-medium tracking-[-0.035em] text-white/78">
+                      {zone.title}
+                    </h3>
+                    {isZoneComplete && option ? (
+                      <p className="mt-1 text-xs leading-5 text-white/55">
+                        {option.name} ·{" "}
+                        {getHomeInclusionLevelLabel(option.level)}
+                      </p>
+                    ) : null}
+                  </div>
+                  {isZoneComplete ? (
+                    <button
+                      type="button"
+                      onClick={() => onEditZone(zone.id)}
+                      className="inline-flex min-h-10 items-center justify-center gap-2 border border-white/20 px-4 text-[8px] font-semibold uppercase tracking-[0.16em] text-white/65 transition-colors hover:border-white hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+                    >
+                      <Pencil
+                        aria-hidden="true"
+                        className="size-3"
+                        strokeWidth={1.5}
+                      />
+                      Edit
+                    </button>
+                  ) : null}
+                </div>
+              </article>
+            );
+          }
+
+          return (
+            <section
+              key={zone.id}
+              id={`home-flooring-zone-${zone.id}`}
+              tabIndex={-1}
+              aria-labelledby={`home-${zone.id}-heading`}
+              data-flooring-zone={zone.id}
+              data-flooring-zone-state="active"
+              className="scroll-mt-28 border border-white/20 bg-white/[0.018] p-5 outline-none sm:p-7"
+            >
+              <div className="grid gap-5 border-t border-white/14 pt-5 md:grid-cols-[13rem_minmax(0,1fr)] md:gap-10">
+                <div>
+                  <p className="font-mono text-[9px] tracking-[0.16em] text-white/55">
+                    Flooring {zone.number} of 3
+                  </p>
+                  <h3
+                    id={`home-${zone.id}-heading`}
+                    className="mt-4 text-2xl font-medium tracking-[-0.045em] text-white/88"
+                  >
+                    {zone.title}
+                  </h3>
+                  <p className="mt-3 text-xs leading-6 text-white/55">
+                    {zone.description}
+                  </p>
+                </div>
+                <div
+                  role="group"
+                  aria-label={`${zone.title} flooring choices`}
+                  className="grid gap-4 sm:grid-cols-2"
+                >
+                  {zone.options.map((zoneOption) => (
+                    <HomeInclusionOptionCard
+                      key={zoneOption.id}
+                      option={zoneOption}
+                      homeName={houseName}
+                      isSelected={zoneOption.id === option?.id}
+                      onSelect={() => onSelectOption(zone.id, zoneOption.id)}
+                      onConfirm={() => onConfirmZone(zone.id)}
+                      confirmLabel={
+                        isZoneComplete
+                          ? "Save & Return to Look Book"
+                          : nextZone
+                            ? "Confirm & Continue"
+                            : `Complete My ${houseName}`
+                      }
+                      nextLabel={!isZoneComplete ? nextZone?.title : undefined}
+                      confirmCategoryId={category.id}
+                      confirmZoneId={zone.id}
+                      sizes="(max-width: 639px) calc(100vw - 40px), (max-width: 1023px) 50vw, 28vw"
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
-          </section>
-        ))}
+            </section>
+          );
+        })}
       </div>
 
-      <div className="mt-10 flex flex-col items-start justify-between gap-5 border-t border-white/14 pt-7 sm:flex-row sm:items-center">
-        <div className="max-w-xl">
-          <p className="text-xs leading-6 text-white/55">
-            {category.zones.map((zone) => {
-              const option = selectedOptions[zone.id];
-              return option
-                ? `${zone.shortTitle}: ${option.name} (${getHomeInclusionLevelLabel(option.level)})`
-                : `${zone.shortTitle}: choose a direction`;
-            }).join(" · ")}
-          </p>
-          <p className="mt-3 text-[10px] leading-5 text-white/55">
-            {disclaimer}
-          </p>
-        </div>
-        <button
-          type="button"
-          data-confirm-category={category.id}
-          disabled={!hasEveryZone}
-          onClick={onConfirm}
-          className="group inline-flex min-h-12 w-full items-center justify-between gap-8 border border-white bg-white px-5 text-[10px] font-semibold uppercase tracking-[0.17em] text-[#0b0c10] transition-colors hover:bg-transparent hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white disabled:cursor-not-allowed disabled:border-white/20 disabled:bg-transparent disabled:text-white/30 sm:w-auto"
-        >
-          <span>{isComplete ? "Save flooring" : `Complete My ${houseName}`}</span>
-          <ArrowDown
-            aria-hidden="true"
-            className="size-4 shrink-0 transition-transform group-hover:translate-y-1"
-            strokeWidth={1.5}
-          />
-        </button>
+      <div className="mt-8 max-w-2xl border-t border-white/14 pt-7">
+        <p className="text-xs leading-6 text-white/55">
+          Complete one flooring zone at a time. Each confirmed zone remains
+          editable before project review.
+        </p>
+        <p className="mt-3 text-[10px] leading-5 text-white/55">
+          {disclaimer}
+        </p>
       </div>
     </section>
   );
