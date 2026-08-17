@@ -312,14 +312,22 @@ function FolioPage({
   );
 }
 
-function FolioMark({ page, dark = false }: { page: string; dark?: boolean }) {
+function FolioMark({
+  page,
+  homeName,
+  dark = false,
+}: {
+  page: string;
+  homeName: string;
+  dark?: boolean;
+}) {
   return (
     <div
       className={`flex items-center justify-between border-t pt-3 text-[7px] font-semibold uppercase tracking-[0.19em] ${
         dark ? "border-white/18 text-white/48" : "border-black/18 text-black/48"
       }`}
     >
-      <span>House Delivery / Willow Nook</span>
+      <span>House Delivery / {homeName.replace(/^The /, "")}</span>
       <span>{page} / 08</span>
     </div>
   );
@@ -336,6 +344,8 @@ function PersonalizationForm({
 }) {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const homeShortName = definition.homeName.replace(/^The /, "");
+  const lookBookHeadingId = `${definition.homeSlug}-look-book-heading`;
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -356,7 +366,7 @@ function PersonalizationForm({
     <section
       id="home-look-book"
       tabIndex={-1}
-      aria-labelledby="willow-look-book-heading"
+      aria-labelledby={lookBookHeadingId}
       data-look-book-ready="true"
       data-look-book-personalized="false"
       className="scroll-mt-20 bg-[#e7e3d8] px-5 py-24 text-[#111216] outline-none sm:px-8 lg:px-12 lg:py-36"
@@ -365,20 +375,20 @@ function PersonalizationForm({
         <div className="grid gap-14 border-t border-black/18 pt-7 lg:grid-cols-[1.05fr_0.75fr] lg:items-end lg:gap-28">
           <div>
             <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-black/58">
-              My Willow Nook / Personalize your folio
+              My {homeShortName} / Personalize your folio
             </p>
             <h2
-              id="willow-look-book-heading"
+              id={lookBookHeadingId}
               className="mt-7 max-w-5xl text-[clamp(3.8rem,8vw,8rem)] font-medium leading-[0.84] tracking-[-0.075em] text-black/88"
             >
               Create My
               <br />
-              <span className="text-black/48">Willow Nook Look Book.</span>
+              <span className="text-black/48">{homeShortName} Look Book.</span>
             </h2>
             <p className="mt-9 max-w-2xl text-base leading-8 text-black/60">
               Add your name to create a personalized editorial record of the
-              Willow Nook and your {look.name} interior direction. No contact
-              details are required.
+              {definition.homeName} and your {look.name} interior direction. No
+              contact details are required.
             </p>
           </div>
           <form
@@ -539,7 +549,7 @@ function LanewayLookBook({
         </div>
       </FolioPage>
 
-      <FolioPage label="The Willow Nook home and reference plan">
+      <FolioPage label={`${definition.homeName} home and reference plan`}>
         <div className="look-book-page-inner flex flex-col justify-between">
           <div>
             <div className="grid gap-8 border-t border-black/20 pt-4 md:grid-cols-[0.72fr_1.28fr]">
@@ -548,9 +558,7 @@ function LanewayLookBook({
                   02 / The home
                 </p>
                 <h3 className="mt-5 text-[clamp(3rem,6vw,6.5rem)] font-medium leading-[0.86] tracking-[-0.065em]">
-                  Everything needed.
-                  <br />
-                  <span className="text-black/40">Nothing wasted.</span>
+                  {definition.homeStatement}
                 </h3>
               </div>
               <div className="md:pt-14">
@@ -601,7 +609,7 @@ function LanewayLookBook({
               {definition.referencePlanNotice}
             </p>
           </div>
-          <FolioMark page="02" />
+          <FolioMark page="02" homeName={definition.homeName} />
         </div>
       </FolioPage>
 
@@ -645,7 +653,7 @@ function LanewayLookBook({
               eager
             />
           </div>
-          <FolioMark page="03" />
+          <FolioMark page="03" homeName={definition.homeName} />
         </div>
       </FolioPage>
 
@@ -678,7 +686,7 @@ function LanewayLookBook({
               as one continuous interior direction.
             </p>
             <div className="mt-8">
-              <FolioMark page="04" dark />
+              <FolioMark page="04" homeName={definition.homeName} dark />
             </div>
           </div>
         </div>
@@ -737,7 +745,7 @@ function LanewayLookBook({
               </div>
             </div>
           </div>
-          <FolioMark page="05" />
+          <FolioMark page="05" homeName={definition.homeName} />
         </div>
       </FolioPage>
 
@@ -793,7 +801,7 @@ function LanewayLookBook({
               ))}
             </div>
           </div>
-          <FolioMark page="06" />
+          <FolioMark page="06" homeName={definition.homeName} />
         </div>
       </FolioPage>
 
@@ -813,8 +821,8 @@ function LanewayLookBook({
               </div>
               <div className="md:pt-16">
                 <p className="max-w-xl text-base leading-8 text-black/60">
-                  Willow Nook begins as a reference home. A preliminary review
-                  helps establish whether the idea merits deeper,
+                  {definition.homeName} begins as a reference home. A preliminary
+                  review helps establish whether the idea merits deeper,
                   project-specific work.
                 </p>
               </div>
@@ -848,7 +856,7 @@ function LanewayLookBook({
               </p>
             </div>
           </div>
-          <FolioMark page="07" />
+          <FolioMark page="07" homeName={definition.homeName} />
         </div>
       </FolioPage>
 
@@ -873,7 +881,7 @@ function LanewayLookBook({
               {look.name} / Essential package
             </p>
             <h3 className="mt-7 max-w-6xl text-[clamp(3.8rem,8.5vw,8.8rem)] font-medium leading-[0.83] tracking-[-0.072em]">
-              Could Willow Nook
+              Could {definition.homeName.replace(/^The /, "")}
               <br />
               work on my property?
             </h3>
@@ -886,11 +894,11 @@ function LanewayLookBook({
               href="/#reserve"
               className="look-book-screen-control group mt-9 inline-flex min-h-14 items-center gap-12 bg-white px-6 text-[9px] font-semibold uppercase tracking-[0.18em] text-[#111216] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
             >
-              Check Willow Nook for My Property
+              Check {definition.homeName.replace(/^The /, "")} for My Property
               <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
             </Link>
             <div className="mt-12">
-              <FolioMark page="08" dark />
+              <FolioMark page="08" homeName={definition.homeName} dark />
             </div>
           </div>
         </div>
@@ -907,6 +915,13 @@ export function LanewayEssentialExperience({
   const [personalization, setPersonalization] =
     useState<LookBookPersonalization | null>(null);
   const [preview, setPreview] = useState<ImagePreview | null>(null);
+  const homeShortName = definition.homeName.replace(/^The /, "");
+  const essentialSectionId = `${definition.homeSlug}-essential`;
+  const essentialHeadingId = `${definition.homeSlug}-essential-heading`;
+  const chooseLookSectionId = `choose-${definition.homeSlug}-interior-look`;
+  const chooseLookHeadingId = `choose-${definition.homeSlug}-heading`;
+  const myHomeSectionId = `my-${definition.homeSlug}`;
+  const myHomeHeadingId = `my-${definition.homeSlug}-heading`;
 
   const selectedLook =
     definition.looks.find((look) => look.id === selectedLookId) ??
@@ -926,7 +941,7 @@ export function LanewayEssentialExperience({
   function confirmLook() {
     setConfirmedLookId(selectedLook.id);
     setPersonalization(null);
-    scrollToSection("my-willow-nook");
+    scrollToSection(myHomeSectionId);
   }
 
   function createLookBook(nextPersonalization: LookBookPersonalization) {
@@ -937,16 +952,18 @@ export function LanewayEssentialExperience({
   return (
     <section id="laneway-essential-experience">
       <section
-        id="willow-nook-essential"
-        aria-labelledby="willow-essential-heading"
+        id={essentialSectionId}
+        aria-labelledby={essentialHeadingId}
         className="scroll-mt-20 border-y border-white/12 bg-[#101115] px-5 py-24 text-white sm:px-8 sm:py-28 lg:px-12 lg:py-36"
       >
         <div className="mx-auto max-w-[1504px]">
           <div className="grid gap-12 border-t border-white/16 pt-7 lg:grid-cols-[0.76fr_1.24fr] lg:gap-24">
             <div>
-              <p className="eyebrow">Willow Nook / Essential Package Included</p>
+              <p className="eyebrow">
+                {homeShortName} / Essential Package Included
+              </p>
               <h2
-                id="willow-essential-heading"
+                id={essentialHeadingId}
                 className="mt-7 max-w-3xl text-[clamp(3.2rem,6vw,6.8rem)] font-medium leading-[0.87] tracking-[-0.068em]"
               >
                 One complete interior.
@@ -956,13 +973,13 @@ export function LanewayEssentialExperience({
             </div>
             <div className="lg:pt-20">
               <p className="max-w-2xl text-lg leading-8 text-white/64">
-                The Willow Nook includes one coordinated Essential interior
+                {definition.homeName} includes one coordinated Essential interior
                 package. Choose the visual direction that feels most like home;
                 the kitchen, living room, bedroom storage, and bathroom remain
                 part of that single coordinated look.
               </p>
               <a
-                href="#choose-willow-interior-look"
+                href={`#${chooseLookSectionId}`}
                 className="group mt-8 inline-flex min-h-13 items-center gap-12 bg-white px-5 text-[9px] font-semibold uppercase tracking-[0.18em] text-[#111216] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
               >
                 Choose My Interior Look
@@ -974,8 +991,8 @@ export function LanewayEssentialExperience({
       </section>
 
       <section
-        id="choose-willow-interior-look"
-        aria-labelledby="choose-willow-heading"
+        id={chooseLookSectionId}
+        aria-labelledby={chooseLookHeadingId}
         className="scroll-mt-20 bg-[#0b0c10] px-5 py-24 text-white sm:px-8 sm:py-28 lg:px-12 lg:py-36"
       >
         <div className="mx-auto max-w-[1504px]">
@@ -983,7 +1000,7 @@ export function LanewayEssentialExperience({
             <div>
               <p className="eyebrow">One decision / Essential interior look</p>
               <h2
-                id="choose-willow-heading"
+                id={chooseLookHeadingId}
                 className="mt-6 max-w-3xl text-[clamp(3rem,6vw,6.5rem)] font-medium leading-[0.87] tracking-[-0.068em]"
               >
                 Choose the feeling.
@@ -1033,18 +1050,18 @@ export function LanewayEssentialExperience({
 
       {confirmedLook ? (
         <section
-          id="my-willow-nook"
-          aria-labelledby="my-willow-nook-heading"
+          id={myHomeSectionId}
+          aria-labelledby={myHomeHeadingId}
           className="scroll-mt-20 bg-[#e7e3d8] px-5 py-24 text-[#111216] sm:px-8 sm:py-28 lg:px-12 lg:py-36"
         >
           <div className="mx-auto max-w-[1504px]">
             <div className="flex flex-wrap items-end justify-between gap-8 border-t border-black/18 pt-7">
               <div>
                 <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-black/48">
-                  Confirmed / My Willow Nook
+                  Confirmed / My {homeShortName}
                 </p>
                 <h2
-                  id="my-willow-nook-heading"
+                  id={myHomeHeadingId}
                   className="mt-6 text-[clamp(3.5rem,7vw,7.5rem)] font-medium leading-[0.84] tracking-[-0.07em]"
                 >
                   Home, coordinated.
@@ -1052,7 +1069,7 @@ export function LanewayEssentialExperience({
               </div>
               <button
                 type="button"
-                onClick={() => scrollToSection("choose-willow-interior-look")}
+                onClick={() => scrollToSection(chooseLookSectionId)}
                 className="inline-flex min-h-11 items-center gap-3 border border-black/20 px-4 text-[8px] font-semibold uppercase tracking-[0.17em] hover:bg-black hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
               >
                 <Pencil className="size-3" aria-hidden="true" />
@@ -1111,7 +1128,7 @@ export function LanewayEssentialExperience({
                 </h3>
                 <p className="mt-4 max-w-2xl text-sm leading-7 text-black/56">
                   Your selection records one coordinated interior direction for
-                  Willow Nook. Final products and specifications are confirmed
+                  {definition.homeName}. Final products and specifications are confirmed
                   through the project process.
                 </p>
               </div>
@@ -1121,7 +1138,7 @@ export function LanewayEssentialExperience({
                 className="group flex min-h-14 items-center justify-between gap-14 bg-[#111216] px-6 text-left text-[9px] font-semibold uppercase tracking-[0.18em] text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
               >
                 <BookOpen className="size-4" aria-hidden="true" />
-                Create My Willow Nook Look Book
+                Create My {homeShortName} Look Book
                 <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
               </button>
             </div>
@@ -1136,7 +1153,7 @@ export function LanewayEssentialExperience({
             look={confirmedLook}
             personalization={personalization}
             onEditName={() => setPersonalization(null)}
-            onEditLook={() => scrollToSection("choose-willow-interior-look")}
+            onEditLook={() => scrollToSection(chooseLookSectionId)}
             onPreview={setPreview}
           />
         ) : (

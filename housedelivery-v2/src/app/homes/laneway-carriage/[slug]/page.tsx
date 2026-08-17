@@ -219,7 +219,7 @@ export default async function CarriageHomeDetailPage({
                 <h2 className="max-w-6xl text-[clamp(3.4rem,8vw,8.5rem)] font-medium leading-[0.84] tracking-[-0.075em]">
                   {essentialDefinition ? (
                     <>
-                      Could Willow Nook
+                      Could {essentialDefinition.homeName.replace(/^The /, "")}
                       <br />
                       <span className="text-white/40">work on my property?</span>
                     </>
