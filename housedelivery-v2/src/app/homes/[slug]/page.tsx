@@ -184,8 +184,8 @@ export default async function HomeDetailPage({
           contextualInclusionsDestination={
             configuratorDefinition && !designToolDiscovery
               ? {
-                  href: "#design-collections",
-                  label: `Explore ${model.name} Design Directions`,
+                  href: "#home-inclusions",
+                  label: `Design My ${configuratorDefinition.homeName}`,
                 }
               : undefined
           }

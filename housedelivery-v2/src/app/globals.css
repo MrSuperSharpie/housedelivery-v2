@@ -266,6 +266,10 @@ img {
     grid-template-columns: 1fr 0.7fr !important;
   }
 
+  #home-look-book [data-look-book-home-introduction][data-long-residence-label="true"] > .look-book-page-inner > .grid:first-child {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.7fr) !important;
+  }
+
   #home-look-book [data-look-book-home-introduction] dl,
   #home-look-book [data-look-book-next-stage] .mt-14.grid {
     grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
@@ -274,6 +278,10 @@ img {
   #home-look-book [data-look-book-home-introduction] .relative.mt-10 {
     height: 110mm !important;
     aspect-ratio: auto !important;
+  }
+
+  #home-look-book h3[data-long-residence-label="true"] {
+    font-size: 10mm !important;
   }
 
   #home-look-book [data-look-book-next-stage] .mt-14.grid {

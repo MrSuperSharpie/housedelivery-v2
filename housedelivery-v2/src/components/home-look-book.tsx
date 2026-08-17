@@ -732,6 +732,7 @@ export function HomeLookBook({
   );
   const preparedDate = formatLookBookPreparedDate(personalization.preparedAt);
   const isSubmitted = configuration.reviewStatus === "ready-for-review";
+  const hasLongResidenceLabel = lookBook.home.residenceLabel.length > 12;
   const context: EditorialContext = {
     definition,
     configuration,
@@ -786,12 +787,31 @@ export function HomeLookBook({
         </div>
       </article>
 
-      <article data-look-book-home-introduction data-look-book-layout="architecture" data-look-book-print-page className="look-book-home-introduction">
+      <article
+        data-look-book-home-introduction
+        data-look-book-layout="architecture"
+        data-look-book-print-page
+        data-long-residence-label={
+          hasLongResidenceLabel ? "true" : undefined
+        }
+        className="look-book-home-introduction"
+      >
         <div className="look-book-page-inner">
           <div className="grid gap-7 border-t border-black/18 pt-5 lg:grid-cols-[0.82fr_1.18fr] lg:items-end lg:gap-20">
             <div>
               <p className="text-[8px] font-semibold uppercase tracking-[0.19em] text-black/52">Architecture / The foundation</p>
-              <h3 className="mt-5 text-[clamp(4rem,8.5vw,8.5rem)] font-medium uppercase leading-[0.82] tracking-[-0.075em] text-black/88">{lookBook.home.residenceLabel}</h3>
+              <h3
+                data-long-residence-label={
+                  hasLongResidenceLabel ? "true" : undefined
+                }
+                className={`mt-5 font-medium uppercase leading-[0.82] tracking-[-0.075em] text-black/88 ${
+                  hasLongResidenceLabel
+                    ? "text-[clamp(3.25rem,6.5vw,6.5rem)]"
+                    : "text-[clamp(4rem,8.5vw,8.5rem)]"
+                }`}
+              >
+                {lookBook.home.residenceLabel}
+              </h3>
             </div>
             <p className="max-w-2xl text-sm leading-7 text-black/58 lg:justify-self-end">{lookBook.home.description}</p>
           </div>
@@ -824,7 +844,7 @@ export function HomeLookBook({
           <div>
             <p className="text-[8px] font-semibold uppercase tracking-[0.2em] text-white/52">A home shaped around you / Next stage</p>
             <h3 className="mt-7 max-w-6xl text-[clamp(4rem,8.5vw,9rem)] font-medium uppercase leading-[0.82] tracking-[-0.075em]">
-              Your Solace.<br /><span className="text-white/48">Ready to become real.</span>
+              Your {definition.homeName}.<br /><span className="text-white/48">Ready to become real.</span>
             </h3>
             <p className="mt-9 max-w-2xl text-sm leading-7 text-white/58">
               This personal Look Book carries your selected design language into
