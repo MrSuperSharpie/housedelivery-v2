@@ -2,15 +2,18 @@
 
 import { ArrowRight, BookOpen, Check, Pencil, Printer } from "lucide-react";
 import Image from "next/image";
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
 
 import { HomeConfiguratorJourney } from "@/components/home-configurator-journey";
 import {
   formatLookBookPreparedDate,
   getLookBookCustomerName,
+  getLookBookDesignStory,
+  getLookBookPersonalTitle,
   type LookBookCustomer,
-  type LookBookSelectionReference,
   type LookBookSection,
+  type LookBookSelection,
+  type LookBookSelectionReference,
 } from "@/data/home-look-book";
 import {
   getHomeInclusionLevelLabel,
@@ -35,12 +38,16 @@ type HomeLookBookProps = {
   onSubmit: () => void;
 };
 
-type LookBookEntryProps = Pick<
+type ResolvedSelection = LookBookSelection & {
+  categoryId: string;
+  zoneId?: string;
+  categoryDescription: string;
+};
+
+type EditorialContext = Pick<
   HomeLookBookProps,
   "definition" | "configuration" | "onEditCategory" | "onPreviewOption"
-> & {
-  item: LookBookSelectionReference;
-};
+>;
 
 function PersonalizationForm({
   homeName,
@@ -53,7 +60,6 @@ function PersonalizationForm({
     event.preventDefault();
     const normalizedFirstName = firstName.trim();
     if (!normalizedFirstName) return;
-
     onCreateLookBook({
       firstName: normalizedFirstName,
       lastName: lastName.trim() || undefined,
@@ -76,7 +82,6 @@ function PersonalizationForm({
           ariaLabel="Create personalized Look Book"
           homeName={homeName}
         />
-
         <div className="mt-16 grid gap-14 border-t border-black/18 pt-7 lg:mt-24 lg:grid-cols-[1.05fr_0.75fr] lg:items-end lg:gap-28">
           <div>
             <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-black/58">
@@ -95,7 +100,6 @@ function PersonalizationForm({
               finish directions you selected. No contact details are required.
             </p>
           </div>
-
           <form
             data-look-book-personalization-form
             onSubmit={handleSubmit}
@@ -124,14 +128,10 @@ function PersonalizationForm({
             </div>
             <button
               type="submit"
-              className="group mt-9 flex min-h-14 w-full items-center justify-between gap-7 bg-[#111216] px-6 text-left text-[10px] font-semibold uppercase tracking-[0.17em] text-white transition-colors hover:bg-black/76 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
+              className="group mt-9 flex min-h-14 w-full items-center justify-between gap-7 bg-[#111216] px-6 text-left text-[10px] font-semibold uppercase tracking-[0.17em] text-white hover:bg-black/76 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
             >
               <span>Create My Look Book</span>
-              <ArrowRight
-                aria-hidden="true"
-                className="size-4 shrink-0 transition-transform group-hover:translate-x-1"
-                strokeWidth={1.5}
-              />
+              <ArrowRight aria-hidden="true" className="size-4" strokeWidth={1.5} />
             </button>
           </form>
         </div>
@@ -140,317 +140,512 @@ function PersonalizationForm({
   );
 }
 
-function FlooringPaletteEntry({
-  definition,
-  configuration,
-  item,
-  onEditCategory,
-  onPreviewOption,
-}: LookBookEntryProps) {
+function resolveSelection(
+  definition: HomeConfiguratorDefinition,
+  configuration: HomeConfiguration,
+  item: LookBookSelectionReference,
+): ResolvedSelection | undefined {
   const category = definition.categories.find(
     (candidate) => candidate.id === item.categoryId,
   );
-  if (!category || category.kind !== "flooring") return null;
+  if (!category || category.kind === "coordinated") return undefined;
 
-  const selections = category.zones.flatMap((zone) => {
-    const option = getSelectedFlooringOption(zone, configuration);
-    return option ? [{ zone, option }] : [];
+  if (category.kind === "flooring") {
+    const zone = category.zones.find((candidate) => candidate.id === item.zoneId);
+    const option = zone ? getSelectedFlooringOption(zone, configuration) : undefined;
+    if (!zone || !option) return undefined;
+    return {
+      categoryId: category.id,
+      zoneId: zone.id,
+      label: item.label ?? zone.title,
+      id: option.id,
+      optionName: option.name,
+      level: option.level,
+      description: option.description,
+      image: option.image,
+      editorial: option.editorial,
+      categoryDescription: zone.description,
+    };
+  }
+
+  const option = getSelectedInclusionOption(category, configuration);
+  if (!option) return undefined;
+  return {
+    categoryId: category.id,
+    label: item.label ?? category.title,
+    id: option.id,
+    optionName: option.name,
+    level: option.level,
+    description: option.description,
+    image: option.image,
+    editorial: option.editorial,
+    categoryDescription: category.description,
+  };
+}
+
+function resolveSection(
+  section: LookBookSection,
+  context: EditorialContext,
+) {
+  return section.items.flatMap((item) => {
+    const selection = resolveSelection(
+      context.definition,
+      context.configuration,
+      item,
+    );
+    return selection ? [selection] : [];
   });
+}
 
+function levelLabel(selection: LookBookSelection) {
+  return getHomeInclusionLevelLabel(selection.level).replace(" — ", " · ");
+}
+
+function EditorialImage({
+  selection,
+  context,
+  className = "aspect-[4/3]",
+  sizes = "(max-width: 767px) 100vw, 60vw",
+}: {
+  selection: ResolvedSelection;
+  context: EditorialContext;
+  className?: string;
+  sizes?: string;
+}) {
   return (
-    <article
-      data-look-book-category={category.id}
-      data-look-book-state="complete"
-      className="look-book-selection look-book-flooring-palette overflow-hidden border border-black/14 bg-[#e7e3d8] md:col-span-2 xl:col-span-3"
+    <button
+      type="button"
+      id={`home-look-book-preview-trigger-${selection.id}-${selection.zoneId ?? selection.categoryId}`}
+      aria-label={`View larger image for ${selection.optionName}`}
+      onClick={() =>
+        context.onPreviewOption(
+          selection.categoryId,
+          selection.id,
+          selection.zoneId,
+        )
+      }
+      className={`look-book-image-button group relative block w-full overflow-hidden bg-[#d3cec1] text-left focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-black ${className}`}
     >
-      <div className="grid sm:grid-cols-3">
-        {selections.map(({ zone, option }) => (
-          <div
-            key={zone.id}
-            data-look-book-zone={zone.id}
-            data-look-book-option={option.id}
-            className="border-b border-black/12 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0"
-          >
-            <button
-              type="button"
-              id={`home-look-book-preview-trigger-${option.id}-${zone.id}`}
-              aria-label={`View larger image for ${zone.title}: ${option.name}`}
-              onClick={() => onPreviewOption(category.id, option.id, zone.id)}
-              className="look-book-image-button group relative block aspect-[4/3] w-full overflow-hidden bg-[#d6d1c5] focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-black"
-            >
-              <Image
-                src={option.image.src}
-                alt={option.image.alt}
-                fill
-                loading="eager"
-                quality={90}
-                sizes="(max-width: 639px) 100vw, 33vw"
-                className={
-                  option.image.fit === "contain"
-                    ? "object-contain"
-                    : "object-cover"
-                }
-              />
-            </button>
-            <div className="p-5 sm:p-6">
-              <p className="text-[8px] font-semibold uppercase tracking-[0.17em] text-black/58">
-                {zone.title}
-              </p>
-              <p className="mt-3 text-xl font-medium tracking-[-0.04em] text-black/82">
-                {option.name}
-              </p>
-              <p className="mt-3 text-[8px] font-semibold uppercase tracking-[0.16em] text-black/60">
-                {getHomeInclusionLevelLabel(option.level)}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="look-book-screen-control flex justify-end border-t border-black/12 px-5 py-3">
-        <button
-          type="button"
-          onClick={() => onEditCategory(category.id, category.zones[0]?.id)}
-          className="inline-flex min-h-10 items-center gap-2 text-[8px] font-semibold uppercase tracking-[0.17em] text-black/58 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
-        >
-          <Pencil aria-hidden="true" className="size-3" strokeWidth={1.5} />
-          Edit flooring
-        </button>
-      </div>
-    </article>
+      <Image
+        src={selection.image.src}
+        alt={selection.image.alt}
+        fill
+        loading="eager"
+        quality={90}
+        sizes={sizes}
+        className={
+          selection.image.fit === "contain"
+            ? "object-contain"
+            : "object-cover transition-transform duration-700 group-hover:scale-[1.012] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+        }
+      />
+      <span className="look-book-screen-control absolute bottom-3 right-3 bg-black/78 px-3 py-2 text-[8px] font-semibold uppercase tracking-[0.16em] text-white">
+        View image
+      </span>
+    </button>
   );
 }
 
-function LookBookEntry(props: LookBookEntryProps) {
-  const {
-    definition,
-    configuration,
-    item,
-    onEditCategory,
-    onPreviewOption,
-  } = props;
-  const category = definition.categories.find(
-    (candidate) => candidate.id === item.categoryId,
+function SelectionCaption({
+  selection,
+  context,
+  compact = false,
+}: {
+  selection: ResolvedSelection;
+  context: EditorialContext;
+  compact?: boolean;
+}) {
+  return (
+    <div
+      data-look-book-category={selection.categoryId}
+      data-look-book-zone={selection.zoneId}
+      data-look-book-option={selection.id}
+      data-look-book-level={selection.level}
+      data-look-book-state="complete"
+      className={compact ? "pt-3" : "pt-5"}
+    >
+      <p className="text-[8px] font-semibold uppercase tracking-[0.17em] text-black/52">
+        {selection.label} / {levelLabel(selection)}
+      </p>
+      <div className="mt-2 flex items-start justify-between gap-5">
+        <p
+          className={
+            compact
+              ? "text-base font-medium leading-tight tracking-[-0.035em] text-black/82"
+              : "text-2xl font-medium leading-tight tracking-[-0.045em] text-black/84"
+          }
+        >
+          {selection.optionName}
+        </p>
+        <button
+          type="button"
+          onClick={() => context.onEditCategory(selection.categoryId, selection.zoneId)}
+          className="look-book-screen-control inline-flex min-h-8 shrink-0 items-center gap-2 text-[8px] font-semibold uppercase tracking-[0.16em] text-black/52 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
+        >
+          <Pencil aria-hidden="true" className="size-3" strokeWidth={1.5} />
+          Edit
+        </button>
+      </div>
+    </div>
   );
-  if (!category) return null;
+}
 
-  if (category.kind === "flooring" && !item.zoneId) {
-    return <FlooringPaletteEntry {...props} />;
-  }
-
-  if (category.kind === "coordinated") {
-    return (
-      <article
-        data-look-book-category={category.id}
-        data-look-book-state="coordinated"
-        className="look-book-selection flex min-h-64 flex-col justify-between border border-black/18 bg-[#dcd6c8] p-6 sm:p-8"
-      >
-        <div className="flex items-center justify-between gap-5">
-          <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/58">
-            {item.label ?? category.title}
+function PageShell({
+  section,
+  children,
+}: {
+  section: LookBookSection;
+  children: ReactNode;
+}) {
+  return (
+    <section
+      aria-labelledby={`look-book-${section.id}-heading`}
+      data-look-book-section={section.id}
+      data-look-book-layout={section.layout}
+      data-look-book-print-page
+      className="look-book-section"
+    >
+      <div className="look-book-page-inner">
+        <header className="look-book-editorial-header">
+          <p className="font-mono text-[8px] tracking-[0.16em] text-black/52">
+            {section.number} / {String(section.title).toUpperCase()}
           </p>
-          <BookOpen
-            aria-hidden="true"
-            className="size-4 text-black/58"
-            strokeWidth={1.5}
-          />
-        </div>
-        <div>
-          <p className="text-3xl font-medium tracking-[-0.05em] text-black/82">
-            {category.coordinatedMessage}
-          </p>
-          <p className="mt-4 max-w-lg text-xs leading-6 text-black/60">
-            {category.description}
-          </p>
-        </div>
-      </article>
-    );
-  }
+          <div className="mt-4 grid gap-4 border-t border-black/18 pt-4 lg:grid-cols-[1fr_0.7fr] lg:items-end lg:gap-20">
+            <h3
+              id={`look-book-${section.id}-heading`}
+              className="max-w-5xl text-[clamp(3.2rem,7vw,7.2rem)] font-medium uppercase leading-[0.82] tracking-[-0.075em] text-black/88"
+            >
+              {section.title}
+            </h3>
+            <p className="max-w-xl text-sm leading-7 text-black/58 lg:justify-self-end">
+              {section.introduction}
+            </p>
+          </div>
+        </header>
+        {children}
+      </div>
+    </section>
+  );
+}
 
-  const flooringZone =
-    category.kind === "flooring"
-      ? category.zones.find((candidate) => candidate.id === item.zoneId)
-      : undefined;
-  const option =
-    category.kind === "standard" || category.kind === "room-look"
-      ? getSelectedInclusionOption(category, configuration)
-      : flooringZone
-        ? getSelectedFlooringOption(flooringZone, configuration)
-        : undefined;
-  if (!option) return null;
-
-  const label = item.label ?? category.title;
-  const isFeature = item.presentation === "feature";
+function DesignStoryPage({
+  section,
+  context,
+}: {
+  section: LookBookSection;
+  context: EditorialContext;
+}) {
+  const selections = resolveSection(section, context);
+  const story = getLookBookDesignStory(selections);
+  const image =
+    section.heroImage === "home-hero"
+      ? context.definition.lookBook.home.heroImage
+      : context.definition.lookBook.home.introductionImage;
 
   return (
-    <article
-      data-look-book-category={category.id}
-      data-look-book-option={option.id}
-      data-look-book-level={option.level}
-      data-look-book-presentation={item.presentation ?? "supporting"}
-      data-look-book-state="complete"
-      className={`look-book-selection flex min-w-0 flex-col overflow-hidden border border-black/14 bg-[#e7e3d8] ${
-        isFeature ? "md:col-span-2 xl:col-span-2" : ""
-      }`}
-    >
-      <button
-        type="button"
-        id={`home-look-book-preview-trigger-${option.id}-${item.zoneId ?? category.id}`}
-        aria-label={`View larger image for ${option.name}`}
-        onClick={() => onPreviewOption(category.id, option.id, item.zoneId)}
-        className={`look-book-image-button group relative overflow-hidden border-b border-black/12 bg-[#d6d1c5] text-left focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-black ${
-          isFeature ? "aspect-[16/10] sm:aspect-[16/9]" : "aspect-[4/3]"
-        }`}
-      >
-        <Image
-          src={option.image.src}
-          alt={option.image.alt}
-          fill
-          loading="eager"
-          quality={90}
-          sizes={
-            isFeature
-              ? "(max-width: 767px) 100vw, 66vw"
-              : "(max-width: 767px) 100vw, 33vw"
-          }
-          className={
-            option.image.fit === "contain"
-              ? "object-contain"
-              : "object-cover transition-transform duration-700 group-hover:scale-[1.012] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
-          }
-        />
-        <span className="look-book-screen-control absolute bottom-4 right-4 bg-black px-3 py-2 text-[8px] font-semibold uppercase tracking-[0.16em] text-white">
-          View larger
-        </span>
-      </button>
-      <div className="flex flex-1 flex-col p-6 sm:p-8">
-        <div className="flex items-center justify-between gap-5">
-          <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/58">
-            {label}
+    <PageShell section={section}>
+      <div className="look-book-design-story mt-10 grid gap-8 lg:grid-cols-[0.84fr_1.16fr] lg:gap-12">
+        <div className="flex flex-col justify-between border-t border-black/18 pt-5">
+          <p className="max-w-lg text-[clamp(1.55rem,3vw,3.2rem)] font-medium leading-[1.03] tracking-[-0.05em] text-black/80">
+            {story.narrative}
           </p>
-          <Check
-            aria-label="Complete"
-            className="look-book-screen-control size-3.5 text-black/58"
-            strokeWidth={2}
-          />
+          <div className="mt-10 grid grid-cols-2 gap-x-6 gap-y-4 border-t border-black/14 pt-4">
+            {story.descriptors.map((descriptor, index) => (
+              <p
+                key={descriptor}
+                className="text-[10px] font-semibold uppercase tracking-[0.18em] text-black/62"
+              >
+                <span className="mr-3 font-mono text-black/34">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                {descriptor}
+              </p>
+            ))}
+          </div>
         </div>
-        <h4 className="mt-7 text-[clamp(1.9rem,3vw,3rem)] font-medium leading-[0.94] tracking-[-0.055em] text-black/84">
-          {option.name}
-        </h4>
-        <p className="mt-5 text-sm leading-7 text-black/60">
-          {option.description ?? flooringZone?.description ?? category.description}
-        </p>
-        <div className="mt-auto flex flex-wrap items-end justify-between gap-5 border-t border-black/12 pt-6">
-          <p className="text-[8px] font-semibold uppercase tracking-[0.16em] text-black/58">
-            {getHomeInclusionLevelLabel(option.level)}
-          </p>
-          <button
-            type="button"
-            onClick={() => onEditCategory(category.id, item.zoneId)}
-            className="look-book-screen-control inline-flex min-h-10 items-center gap-2 text-[8px] font-semibold uppercase tracking-[0.17em] text-black/58 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
-          >
-            <Pencil aria-hidden="true" className="size-3" strokeWidth={1.5} />
-            Edit selection
-          </button>
+        {image ? (
+          <div className="relative min-h-[30rem] overflow-hidden bg-[#d3cec1] lg:min-h-[42rem]">
+            <Image
+              src={image.src}
+              alt={image.alt}
+              fill
+              loading="eager"
+              quality={90}
+              sizes="(max-width: 1023px) 100vw, 58vw"
+              className="object-cover"
+            />
+          </div>
+        ) : null}
+      </div>
+    </PageShell>
+  );
+}
+
+function MaterialPalettePage({
+  section,
+  context,
+}: {
+  section: LookBookSection;
+  context: EditorialContext;
+}) {
+  const selections = resolveSection(section, context);
+  return (
+    <PageShell section={section}>
+      <div className="look-book-material-palette mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {selections.map((selection, index) => (
+          <article key={`${selection.categoryId}-${selection.zoneId ?? index}`}>
+            <EditorialImage
+              selection={selection}
+              context={context}
+              className={index % 3 === 1 ? "aspect-[5/4]" : "aspect-[4/3]"}
+              sizes="(max-width: 639px) 100vw, 33vw"
+            />
+            <SelectionCaption selection={selection} context={context} compact />
+            <p className="mt-1 text-[8px] uppercase tracking-[0.15em] text-black/42">
+              {selection.editorial?.materialRole}
+            </p>
+          </article>
+        ))}
+      </div>
+    </PageShell>
+  );
+}
+
+function CinematicSelectionPage({
+  section,
+  context,
+}: {
+  section: LookBookSection;
+  context: EditorialContext;
+}) {
+  const [hero] = resolveSection(section, context);
+  const coordinated = section.items
+    .map((item) =>
+      context.definition.categories.find((category) => category.id === item.categoryId),
+    )
+    .find((category) => category?.kind === "coordinated");
+  if (!hero) return null;
+  return (
+    <PageShell section={section}>
+      <div className="look-book-cinematic mt-10">
+        <EditorialImage
+          selection={hero}
+          context={context}
+          className="aspect-[16/9] lg:aspect-[16/8]"
+          sizes="100vw"
+        />
+        <div className="grid gap-8 lg:grid-cols-[1.25fr_0.75fr] lg:gap-20">
+          <div>
+            <SelectionCaption selection={hero} context={context} />
+            <p className="mt-5 max-w-2xl text-sm leading-7 text-black/56">
+              {hero.description ?? hero.categoryDescription}
+            </p>
+          </div>
+          {coordinated?.kind === "coordinated" ? (
+            <div
+              data-look-book-category={coordinated.id}
+              data-look-book-state="coordinated"
+              className="mt-5 border-t border-black/16 pt-5 lg:self-start"
+            >
+              <div className="flex items-center gap-3">
+                <BookOpen aria-hidden="true" className="size-4 text-black/48" strokeWidth={1.5} />
+                <p className="text-[8px] font-semibold uppercase tracking-[0.17em] text-black/52">
+                  {coordinated.title} / {coordinated.coordinatedMessage}
+                </p>
+              </div>
+              <p className="mt-4 text-xs leading-6 text-black/52">
+                {coordinated.description}
+              </p>
+            </div>
+          ) : null}
         </div>
       </div>
-    </article>
+    </PageShell>
+  );
+}
+
+function TwoSelectionPage({
+  section,
+  context,
+}: {
+  section: LookBookSection;
+  context: EditorialContext;
+}) {
+  const [hero, detail] = resolveSection(section, context);
+  if (!hero || !detail) return null;
+  const isSplit = section.layout === "editorial-split";
+  return (
+    <PageShell section={section}>
+      <div
+        className={`mt-10 grid gap-7 ${
+          isSplit
+            ? "lg:grid-cols-[1.25fr_0.75fr] lg:items-end"
+            : "lg:grid-cols-[1.4fr_0.6fr] lg:items-start"
+        }`}
+      >
+        <article>
+          <EditorialImage
+            selection={hero}
+            context={context}
+            className={isSplit ? "aspect-[5/4]" : "aspect-[16/11]"}
+          />
+          <SelectionCaption selection={hero} context={context} />
+          <p className="mt-4 max-w-xl text-xs leading-6 text-black/54">
+            {hero.description ?? hero.categoryDescription}
+          </p>
+        </article>
+        <article className={isSplit ? "lg:pb-10" : "lg:pt-24"}>
+          <EditorialImage
+            selection={detail}
+            context={context}
+            className={isSplit ? "aspect-[4/5]" : "aspect-[3/4]"}
+            sizes="(max-width: 1023px) 100vw, 35vw"
+          />
+          <SelectionCaption selection={detail} context={context} compact />
+        </article>
+      </div>
+    </PageShell>
+  );
+}
+
+function DetailStoryPage({
+  section,
+  context,
+}: {
+  section: LookBookSection;
+  context: EditorialContext;
+}) {
+  const [hero, ...details] = resolveSection(section, context);
+  if (!hero) return null;
+  return (
+    <PageShell section={section}>
+      <div className="look-book-detail-story mt-10 grid gap-7 lg:grid-cols-[1.15fr_0.85fr] lg:gap-10">
+        <article>
+          <EditorialImage
+            selection={hero}
+            context={context}
+            className="aspect-[4/3] lg:aspect-[5/4]"
+          />
+          <SelectionCaption selection={hero} context={context} />
+        </article>
+        <div className="grid grid-cols-2 gap-x-4 gap-y-7">
+          {details.map((selection) => (
+            <article key={`${selection.categoryId}-${selection.zoneId ?? "all"}`}>
+              <EditorialImage
+                selection={selection}
+                context={context}
+                className="aspect-[4/3]"
+                sizes="(max-width: 1023px) 50vw, 22vw"
+              />
+              <SelectionCaption selection={selection} context={context} compact />
+            </article>
+          ))}
+        </div>
+      </div>
+    </PageShell>
+  );
+}
+
+function ArrivalPage({
+  section,
+  context,
+}: {
+  section: LookBookSection;
+  context: EditorialContext;
+}) {
+  const selections = resolveSection(section, context);
+  const { lookBook } = context.definition;
+  return (
+    <PageShell section={section}>
+      <div className="look-book-arrival mt-10 grid gap-7 lg:grid-cols-[1.18fr_0.82fr] lg:gap-9">
+        <div className="relative min-h-[28rem] overflow-hidden bg-[#d3cec1] lg:min-h-[39rem]">
+          <Image
+            src={lookBook.home.heroImage.src}
+            alt={lookBook.home.heroImage.alt}
+            fill
+            loading="eager"
+            quality={90}
+            sizes="(max-width: 1023px) 100vw, 60vw"
+            className="object-cover"
+          />
+        </div>
+        <div className="grid grid-cols-3 gap-3 lg:grid-cols-1">
+          {selections.map((selection) => (
+            <article
+              key={selection.categoryId}
+              className="grid content-start gap-0 lg:grid-cols-[0.72fr_1.28fr] lg:gap-4"
+            >
+              <EditorialImage
+                selection={selection}
+                context={context}
+                className="aspect-square"
+                sizes="(max-width: 1023px) 33vw, 18vw"
+              />
+              <SelectionCaption selection={selection} context={context} compact />
+            </article>
+          ))}
+        </div>
+      </div>
+      {section.includeProjectCoordination && lookBook.projectCoordinatedItems?.length ? (
+        <div data-look-book-project-coordinated className="look-book-carried-forward mt-10 border-t border-black/18 pt-5">
+          <div className="grid gap-5 lg:grid-cols-[0.45fr_1.55fr] lg:gap-12">
+            <div>
+              <p className="text-[8px] font-semibold uppercase tracking-[0.18em] text-black/52">
+                Carried forward
+              </p>
+              <p className="mt-3 text-xl font-medium tracking-[-0.04em] text-black/80">
+                Project coordinated.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-4 lg:grid-cols-4">
+              {lookBook.projectCoordinatedItems.map((item) => (
+                <div key={item.id}>
+                  <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-black/62">
+                    {item.title}
+                  </p>
+                  <p className="mt-2 text-[10px] leading-5 text-black/48">
+                    {item.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </PageShell>
   );
 }
 
 function LookBookSectionView({
   section,
-  ...entryProps
-}: Omit<LookBookEntryProps, "item"> & { section: LookBookSection }) {
-  if (section.kind === "editorial") {
-    return (
-      <section
-        aria-labelledby={`look-book-${section.id}-heading`}
-        data-look-book-section={section.id}
-        data-look-book-print-page
-        className="look-book-section"
-      >
-        <div className="look-book-page-inner flex min-h-[34rem] flex-col justify-between bg-[#dcd6c8]">
-          <div className="grid gap-7 border-t border-black/18 pt-6 lg:grid-cols-[0.75fr_1.25fr] lg:gap-20">
-            <div>
-              <p className="font-mono text-[9px] tracking-[0.16em] text-black/58">
-                Section {section.number}
-              </p>
-              <h3
-                id={`look-book-${section.id}-heading`}
-                className="mt-5 text-[clamp(3.25rem,7vw,7.5rem)] font-medium uppercase leading-[0.86] tracking-[-0.075em] text-black/88"
-              >
-                {section.title}
-              </h3>
-            </div>
-            <p className="max-w-xl text-base leading-8 text-black/60 lg:justify-self-end lg:self-end">
-              {section.introduction}
-            </p>
-          </div>
-          <article className="mt-16 grid gap-10 border border-black/14 bg-[#e7e3d8] p-7 sm:p-10 lg:grid-cols-[0.75fr_1.25fr] lg:gap-20 lg:p-14">
-            <div>
-              <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/58">
-                {section.eyebrow}
-              </p>
-              <p className="mt-6 text-[clamp(2.5rem,5vw,5rem)] font-medium leading-[0.9] tracking-[-0.065em] text-black/82">
-                {section.statement}
-              </p>
-            </div>
-            <p className="max-w-2xl text-base leading-8 text-black/60 lg:self-end">
-              {section.body}
-            </p>
-          </article>
-        </div>
-      </section>
-    );
+  context,
+}: {
+  section: LookBookSection;
+  context: EditorialContext;
+}) {
+  if (section.kind === "design-story") {
+    return <DesignStoryPage section={section} context={context} />;
   }
-
-  return (
-    <section
-      aria-labelledby={`look-book-${section.id}-heading`}
-      data-look-book-section={section.id}
-      data-look-book-print-page
-      className="look-book-section"
-    >
-      <div className="look-book-page-inner">
-        <div className="grid gap-7 border-t border-black/18 pt-6 lg:grid-cols-[0.75fr_1.25fr] lg:gap-20">
-          <div>
-            <p className="font-mono text-[9px] tracking-[0.16em] text-black/58">
-              Section {section.number}
-            </p>
-            <h3
-              id={`look-book-${section.id}-heading`}
-              className="mt-5 text-[clamp(3.25rem,7vw,7.5rem)] font-medium uppercase leading-[0.86] tracking-[-0.075em] text-black/88"
-            >
-              {section.title}
-            </h3>
-          </div>
-          <p className="max-w-xl text-base leading-8 text-black/60 lg:justify-self-end lg:self-end">
-            {section.introduction}
-          </p>
-        </div>
-
-        <div className="mt-12 grid items-stretch gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {section.items.map((item, index) => (
-            <LookBookEntry
-              key={`${item.categoryId}-${item.zoneId ?? index}`}
-              {...entryProps}
-              item={item}
-            />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
+  if (section.layout === "material-palette") {
+    return <MaterialPalettePage section={section} context={context} />;
+  }
+  if (section.layout === "cinematic-hero") {
+    return <CinematicSelectionPage section={section} context={context} />;
+  }
+  if (section.layout === "asymmetric" || section.layout === "editorial-split") {
+    return <TwoSelectionPage section={section} context={context} />;
+  }
+  if (section.layout === "detail-story") {
+    return <DetailStoryPage section={section} context={context} />;
+  }
+  return <ArrivalPage section={section} context={context} />;
 }
 
 function IncompleteLookBook({
   definition,
   configuration,
   onEditCategory,
-}: Pick<
-  HomeLookBookProps,
-  "definition" | "configuration" | "onEditCategory"
->) {
+}: Pick<HomeLookBookProps, "definition" | "configuration" | "onEditCategory">) {
   const requiredCategories = getRequiredCategories(definition);
   const completeCount = requiredCategories.filter((category) =>
     isCategoryComplete(category, configuration),
@@ -479,13 +674,8 @@ function IncompleteLookBook({
             <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-black/58">
               My {definition.homeName} / Look Book preview
             </p>
-            <h2
-              id="home-look-book-heading"
-              className="mt-7 text-[clamp(4rem,9vw,9rem)] font-medium leading-[0.82] tracking-[-0.075em] text-black/88"
-            >
-              Your story
-              <br />
-              <span className="text-black/52">takes shape here.</span>
+            <h2 id="home-look-book-heading" className="mt-7 text-[clamp(4rem,9vw,9rem)] font-medium leading-[0.82] tracking-[-0.075em] text-black/88">
+              Your story<br /><span className="text-black/52">takes shape here.</span>
             </h2>
           </div>
           <div className="max-w-xl lg:justify-self-end">
@@ -503,11 +693,7 @@ function IncompleteLookBook({
                 className="group mt-8 flex min-h-14 w-full items-center justify-between gap-7 bg-[#111216] px-6 text-left text-[10px] font-semibold uppercase tracking-[0.17em] text-white hover:bg-black/76 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
               >
                 <span>Continue with {firstIncompleteCategory.shortTitle}</span>
-                <ArrowRight
-                  aria-hidden="true"
-                  className="size-4"
-                  strokeWidth={1.5}
-                />
+                <ArrowRight aria-hidden="true" className="size-4" strokeWidth={1.5} />
               </button>
             ) : null}
           </div>
@@ -529,31 +715,29 @@ export function HomeLookBook({
   const isReady = requiredCategories.every((category) =>
     isCategoryComplete(category, configuration),
   );
-
   if (!isReady) {
-    return (
-      <IncompleteLookBook
-        definition={definition}
-        configuration={configuration}
-        onEditCategory={onEditCategory}
-      />
-    );
+    return <IncompleteLookBook definition={definition} configuration={configuration} onEditCategory={onEditCategory} />;
   }
 
   const personalization = configuration.lookBookPersonalization;
   if (!personalization) {
-    return (
-      <PersonalizationForm
-        homeName={definition.homeName}
-        onCreateLookBook={onCreateLookBook}
-      />
-    );
+    return <PersonalizationForm homeName={definition.homeName} onCreateLookBook={onCreateLookBook} />;
   }
 
   const { lookBook } = definition;
   const customerName = getLookBookCustomerName(personalization.customer);
+  const personalTitle = getLookBookPersonalTitle(
+    personalization.customer,
+    lookBook.home.name,
+  );
   const preparedDate = formatLookBookPreparedDate(personalization.preparedAt);
   const isSubmitted = configuration.reviewStatus === "ready-for-review";
+  const context: EditorialContext = {
+    definition,
+    configuration,
+    onEditCategory,
+    onPreviewOption,
+  };
 
   return (
     <section
@@ -571,289 +755,111 @@ export function HomeLookBook({
             <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/58">
               Personalized visual brief / {personalization.reference}
             </p>
-            <p className="mt-2 text-sm text-black/62">
-              Prepared for {customerName}
-            </p>
+            <p className="mt-2 text-sm text-black/62">Prepared for {customerName}</p>
           </div>
-          <button
-            type="button"
-            data-save-look-book
-            onClick={() => window.print()}
-            className="inline-flex min-h-12 items-center justify-center gap-3 border border-black bg-black px-6 text-[9px] font-semibold uppercase tracking-[0.17em] text-white hover:bg-black/78 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
-          >
+          <button type="button" data-save-look-book onClick={() => window.print()} className="inline-flex min-h-12 items-center justify-center gap-3 border border-black bg-black px-6 text-[9px] font-semibold uppercase tracking-[0.17em] text-white hover:bg-black/78 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black">
             <Printer aria-hidden="true" className="size-4" strokeWidth={1.5} />
-            Save My Look Book
+            Save / Print PDF
           </button>
         </div>
       </div>
 
-      <article
-        data-look-book-cover
-        data-look-book-print-page
-        className="look-book-cover relative min-h-[min(920px,100svh)] overflow-hidden bg-[#111216] text-white"
-      >
-        <Image
-          src={lookBook.home.heroImage.src}
-          alt={lookBook.home.heroImage.alt}
-          fill
-          loading="eager"
-          quality={100}
-          sizes="100vw"
-          className="object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/28 to-black/24" />
-        <div className="look-book-page-inner relative z-10 flex min-h-[min(920px,100svh)] flex-col justify-between px-5 py-10 sm:px-8 sm:py-14 lg:px-12 lg:py-16">
-          <div className="flex items-center justify-between gap-8 border-t border-white/45 pt-5">
-            <Image
-              src="/House Delivery Blk.png"
-              alt="House Delivery Inc."
-              width={675}
-              height={313}
-              loading="eager"
-              unoptimized
-              className="h-12 w-auto brightness-0 invert"
-            />
-            <p className="text-right font-mono text-[8px] uppercase tracking-[0.16em] text-white/72">
-              Look Book Reference
-              <br />
-              {personalization.reference}
+      <article data-look-book-cover data-look-book-layout="cover" data-look-book-print-page className="look-book-cover relative min-h-[min(920px,100svh)] overflow-hidden bg-[#111216] text-white">
+        <Image src={lookBook.home.heroImage.src} alt={lookBook.home.heroImage.alt} fill loading="eager" quality={100} sizes="100vw" className="object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/24 to-black/18" />
+        <div className="look-book-page-inner relative z-10 flex min-h-[min(920px,100svh)] flex-col justify-between">
+          <div className="flex items-start justify-between gap-8 border-t border-white/50 pt-5">
+            <Image src="/House Delivery Blk.png" alt="House Delivery Inc." width={675} height={313} loading="eager" unoptimized className="h-11 w-auto brightness-0 invert" />
+            <p className="text-right font-mono text-[8px] uppercase tracking-[0.16em] text-white/70">
+              Personalized Look Book<br />{personalization.reference}
             </p>
           </div>
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-white/72">
-              {lookBook.home.residenceLabel}
-            </p>
-            <h2
-              id="home-look-book-heading"
-              className="mt-6 text-[clamp(4.5rem,13vw,13rem)] font-medium uppercase leading-[0.74] tracking-[-0.085em]"
-            >
-              My
-              <br />
-              {lookBook.home.name}
+            <p className="text-[9px] font-semibold uppercase tracking-[0.23em] text-white/68">{lookBook.home.residenceLabel}</p>
+            <h2 id="home-look-book-heading" className="mt-6 max-w-6xl text-[clamp(4.2rem,11.5vw,11.5rem)] font-medium uppercase leading-[0.78] tracking-[-0.082em]">
+              {personalTitle}
             </h2>
-            <div className="mt-10 flex flex-col gap-3 border-t border-white/45 pt-5 text-[9px] uppercase tracking-[0.17em] text-white/78 sm:flex-row sm:items-center sm:justify-between">
-              <p>Prepared for {customerName}</p>
-              <p>Prepared {preparedDate}</p>
+            <div className="mt-9 flex flex-col gap-3 border-t border-white/48 pt-5 text-[8px] uppercase tracking-[0.17em] text-white/76 sm:flex-row sm:items-center sm:justify-between">
+              <p>Prepared for {customerName}</p><p>{preparedDate} / {lookBook.home.areaLabel}</p>
             </div>
           </div>
         </div>
       </article>
 
-      <article
-        data-look-book-home-introduction
-        data-look-book-print-page
-        className="look-book-home-introduction"
-      >
-        <div className="look-book-page-inner px-5 py-24 sm:px-8 lg:px-12 lg:py-36">
-          <div className="mx-auto max-w-[1504px]">
-            <div className="grid gap-12 border-t border-black/18 pt-6 lg:grid-cols-[0.8fr_1.2fr] lg:items-end lg:gap-24">
-              <div>
-                <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-black/58">
-                  Home introduction
-                </p>
-                <h3 className="mt-6 text-[clamp(4rem,9vw,9rem)] font-medium uppercase leading-[0.82] tracking-[-0.075em] text-black/88">
-                  {lookBook.home.residenceLabel}
-                </h3>
-              </div>
-              <p className="max-w-2xl text-base leading-8 text-black/62 lg:justify-self-end">
-                {lookBook.home.description}
-              </p>
+      <article data-look-book-home-introduction data-look-book-layout="architecture" data-look-book-print-page className="look-book-home-introduction">
+        <div className="look-book-page-inner">
+          <div className="grid gap-7 border-t border-black/18 pt-5 lg:grid-cols-[0.82fr_1.18fr] lg:items-end lg:gap-20">
+            <div>
+              <p className="text-[8px] font-semibold uppercase tracking-[0.19em] text-black/52">Architecture / The foundation</p>
+              <h3 className="mt-5 text-[clamp(4rem,8.5vw,8.5rem)] font-medium uppercase leading-[0.82] tracking-[-0.075em] text-black/88">{lookBook.home.residenceLabel}</h3>
             </div>
-            {lookBook.home.introductionImage ? (
-              <div className="relative mt-14 aspect-[16/8] overflow-hidden bg-[#d6d1c5] lg:mt-20">
-                <Image
-                  src={lookBook.home.introductionImage.src}
-                  alt={lookBook.home.introductionImage.alt}
-                  fill
-                  loading="eager"
-                  quality={90}
-                  sizes="100vw"
-                  className="object-cover"
-                />
-              </div>
-            ) : null}
-            {lookBook.home.metadata?.length ? (
-              <dl className="mt-5 grid border-l border-t border-black/14 sm:grid-cols-2 lg:grid-cols-4">
-                {lookBook.home.metadata.map((item) => (
-                  <div
-                    key={item.label}
-                    className="border-b border-r border-black/14 p-5"
-                  >
-                    <dt className="text-[8px] font-semibold uppercase tracking-[0.17em] text-black/60">
-                      {item.label}
-                    </dt>
-                    <dd className="mt-5 text-xl font-medium tracking-[-0.04em] text-black/82">
-                      {item.value}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            ) : null}
+            <p className="max-w-2xl text-sm leading-7 text-black/58 lg:justify-self-end">{lookBook.home.description}</p>
           </div>
+          {lookBook.home.introductionImage ? (
+            <div className="relative mt-10 aspect-[16/8] overflow-hidden bg-[#d3cec1]">
+              <Image src={lookBook.home.introductionImage.src} alt={lookBook.home.introductionImage.alt} fill loading="eager" quality={90} sizes="100vw" className="object-cover" />
+            </div>
+          ) : null}
+          {lookBook.home.metadata?.length ? (
+            <dl className="mt-7 grid grid-cols-2 gap-x-7 gap-y-5 border-t border-black/16 pt-5 lg:grid-cols-4">
+              {lookBook.home.metadata.map((item) => (
+                <div key={item.label} className="flex items-end justify-between gap-4 border-b border-black/12 pb-3">
+                  <dt className="text-[8px] font-semibold uppercase tracking-[0.16em] text-black/48">{item.label}</dt>
+                  <dd className="text-2xl font-medium tracking-[-0.05em] text-black/80">{item.value}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : null}
         </div>
       </article>
 
-      <div className="look-book-sections mx-auto grid max-w-[1600px] gap-28 px-5 py-24 sm:px-8 lg:gap-40 lg:px-12 lg:py-36">
+      <div className="look-book-sections">
         {lookBook.sections.map((section) => (
-          <LookBookSectionView
-            key={section.id}
-            section={section}
-            definition={definition}
-            configuration={configuration}
-            onEditCategory={onEditCategory}
-            onPreviewOption={onPreviewOption}
-          />
+          <LookBookSectionView key={section.id} section={section} context={context} />
         ))}
       </div>
 
-      {lookBook.projectCoordinatedItems?.length ? (
-        <section
-          data-look-book-project-coordinated
-          data-look-book-print-page
-          className="bg-[#dcd6c8]"
-        >
-          <div className="look-book-page-inner px-5 py-24 sm:px-8 lg:px-12 lg:py-36">
-            <div className="mx-auto max-w-[1504px]">
-              <div className="grid gap-8 border-t border-black/18 pt-6 lg:grid-cols-[0.8fr_1.2fr] lg:gap-24">
-                <div>
-                  <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-black/58">
-                    Developed with House Delivery
-                  </p>
-                  <h3 className="mt-6 text-[clamp(3.5rem,7vw,7.5rem)] font-medium uppercase leading-[0.84] tracking-[-0.075em] text-black/88">
-                    Project
-                    <br />
-                    Coordinated
-                  </h3>
-                </div>
-                <p className="max-w-xl text-base leading-8 text-black/60 lg:justify-self-end lg:self-end">
-                  Your visual brief establishes the direction. These details are
-                  carried forward and confirmed during the project-specific stage.
-                </p>
-              </div>
-              <div className="mt-16 grid border-l border-t border-black/14 sm:grid-cols-2">
-                {lookBook.projectCoordinatedItems.map((item, index) => (
-                  <article
-                    key={item.id}
-                    className="min-h-44 border-b border-r border-black/14 p-6 sm:p-8"
-                  >
-                    <p className="font-mono text-[8px] tracking-[0.16em] text-black/60">
-                      {String(index + 1).padStart(2, "0")}
-                    </p>
-                    <h4 className="mt-8 text-2xl font-medium tracking-[-0.045em] text-black/82">
-                      {item.title}
-                    </h4>
-                    <p className="mt-4 max-w-md text-xs leading-6 text-black/58">
-                      {item.description}
-                    </p>
-                  </article>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-      ) : null}
-
-      <section
-        data-look-book-next-stage
-        data-look-book-print-page
-        className="bg-[#111216] text-white"
-      >
-        <div className="look-book-page-inner px-5 py-24 sm:px-8 lg:px-12 lg:py-36">
-          <div className="mx-auto max-w-[1504px]">
-            <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/58">
-              Next stage / House Delivery review
-            </p>
-            <h3 className="mt-7 max-w-6xl text-[clamp(3.8rem,8vw,8.5rem)] font-medium uppercase leading-[0.84] tracking-[-0.075em]">
-              Your {definition.homeName}
-              <br />
-              <span className="text-white/58">is taking shape.</span>
+      <section data-look-book-next-stage data-look-book-layout="dark-finale" data-look-book-print-page className="bg-[#111216] text-white">
+        <div className="look-book-page-inner flex flex-col justify-between">
+          <div>
+            <p className="text-[8px] font-semibold uppercase tracking-[0.2em] text-white/52">A home shaped around you / Next stage</p>
+            <h3 className="mt-7 max-w-6xl text-[clamp(4rem,8.5vw,9rem)] font-medium uppercase leading-[0.82] tracking-[-0.075em]">
+              Your Solace.<br /><span className="text-white/48">Ready to become real.</span>
             </h3>
-            <p className="mt-10 max-w-3xl text-base leading-8 text-white/62">
-              Your Look Book captures the major visual choices that define your {" "}
-              {definition.homeName}. House Delivery will review the configuration,
-              confirm project-specific products and requirements, and coordinate
-              the next design stage.
+            <p className="mt-9 max-w-2xl text-sm leading-7 text-white/58">
+              This personal Look Book carries your selected design language into
+              House Delivery review, product confirmation and the project-specific
+              visualization stage.
             </p>
-
-            <div className="mt-16 grid border-l border-t border-white/18 lg:grid-cols-3">
+            <div className="mt-14 grid border-t border-white/20 lg:grid-cols-3">
               {lookBook.nextStageSteps.map((step, index) => (
-                <article
-                  key={step.title}
-                  className="min-h-60 border-b border-r border-white/18 p-6 sm:p-8"
-                >
-                  <p className="font-mono text-[8px] tracking-[0.16em] text-white/48">
-                    {String(index + 1).padStart(2, "0")}
-                  </p>
-                  <h4 className="mt-10 text-xl font-medium uppercase tracking-[-0.035em] text-white/88">
-                    {step.title}
-                  </h4>
-                  <p className="mt-5 text-xs leading-6 text-white/56">
-                    {step.description}
-                  </p>
+                <article key={step.title} className="border-b border-white/16 py-6 lg:border-r lg:px-7 lg:first:pl-0 lg:last:border-r-0">
+                  <p className="font-mono text-[8px] tracking-[0.16em] text-white/38">{String(index + 1).padStart(2, "0")}</p>
+                  <h4 className="mt-6 text-lg font-medium uppercase tracking-[-0.03em] text-white/84">{step.title}</h4>
+                  <p className="mt-4 text-[11px] leading-6 text-white/48">{step.description}</p>
                 </article>
               ))}
             </div>
+          </div>
 
-            <div className="look-book-screen-control mt-14 grid gap-5 lg:grid-cols-[1fr_0.68fr] lg:items-end lg:gap-20">
-              <div>
-                {isSubmitted ? (
-                  <div role="status" className="border border-white/22 p-6">
-                    <p className="flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.17em] text-white/82">
-                      <Check
-                        aria-hidden="true"
-                        className="size-4"
-                        strokeWidth={2}
-                      />
-                      My {definition.homeName} is ready for review
-                    </p>
-                    <p className="mt-4 text-xs leading-6 text-white/56">
-                      This configuration is represented in the application as a
-                      review-ready design brief. Project-system integrations remain
-                      separate.
-                    </p>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    data-submit-home-review={definition.homeId}
-                    onClick={onSubmit}
-                    className="group flex min-h-14 w-full items-center justify-between gap-7 bg-white px-6 text-left text-[10px] font-semibold uppercase tracking-[0.17em] text-black hover:bg-white/82 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-                  >
-                    <span>Submit My {definition.homeName} for Review</span>
-                    <ArrowRight
-                      aria-hidden="true"
-                      className="size-4"
-                      strokeWidth={1.5}
-                    />
-                  </button>
-                )}
-              </div>
-              <div>
-                <button
-                  type="button"
-                  data-save-look-book
-                  onClick={() => window.print()}
-                  className="inline-flex min-h-14 w-full items-center justify-center gap-3 border border-white/44 px-6 text-[9px] font-semibold uppercase tracking-[0.17em] text-white hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-                >
-                  <Printer
-                    aria-hidden="true"
-                    className="size-4"
-                    strokeWidth={1.5}
-                  />
-                  Save My Look Book
+          <div>
+            <div className="look-book-screen-control mt-10 grid gap-5 lg:grid-cols-[1fr_0.7fr] lg:items-end lg:gap-16">
+              {isSubmitted ? (
+                <div role="status" className="border border-white/22 p-5">
+                  <p className="flex items-center gap-3 text-[9px] font-semibold uppercase tracking-[0.17em] text-white/82"><Check aria-hidden="true" className="size-4" />My {definition.homeName} is ready for review</p>
+                </div>
+              ) : (
+                <button type="button" data-submit-home-review={definition.homeId} onClick={onSubmit} className="group flex min-h-14 w-full items-center justify-between gap-7 bg-white px-6 text-left text-[10px] font-semibold uppercase tracking-[0.17em] text-black hover:bg-white/82 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
+                  <span>Submit My {definition.homeName} for Review</span><ArrowRight aria-hidden="true" className="size-4" strokeWidth={1.5} />
                 </button>
-                <p className="mt-3 text-center text-[10px] leading-5 text-white/48">
-                  Choose “Save as PDF” from your browser print window.
-                </p>
-              </div>
+              )}
+              <button type="button" data-save-look-book onClick={() => window.print()} className="inline-flex min-h-14 items-center justify-center gap-3 border border-white/44 px-6 text-[9px] font-semibold uppercase tracking-[0.17em] text-white hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
+                <Printer aria-hidden="true" className="size-4" strokeWidth={1.5} />Save / Print PDF
+              </button>
             </div>
-
-            <div className="mt-16 border-t border-white/18 pt-6 text-[9px] leading-5 text-white/50">
-              <p>{definition.disclaimer}</p>
-              <p className="mt-3">{lookBook.preliminaryNotice}</p>
-              <p className="mt-5 font-mono uppercase tracking-[0.14em]">
-                Prepared for {customerName} / {personalization.reference} / {preparedDate}
-              </p>
+            <div className="mt-10 border-t border-white/18 pt-5 text-[8px] leading-4 text-white/42">
+              <p>{definition.disclaimer}</p><p className="mt-2">{lookBook.preliminaryNotice}</p>
+              <p className="mt-4 font-mono uppercase tracking-[0.13em]">Prepared for {customerName} / {personalization.reference} / {preparedDate}</p>
             </div>
           </div>
         </div>

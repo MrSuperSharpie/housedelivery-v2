@@ -13,12 +13,14 @@ The customer name, generated date and display-only reference are added to `lookB
 Each home definition supplies a `lookBook` object containing:
 
 - `home`: verified home metadata and approved architectural images.
-- `sections`: ordered, optional `selections` or `editorial` sections.
+- `sections`: ordered editorial sections that reference configuration categories.
 - `projectCoordinatedItems`: optional details confirmed during project review.
 - `nextStageSteps`: the House Delivery review pathway.
 - `preliminaryNotice`: the non-specification notice shown on the final page.
 
-A selection section references stable `categoryId` and optional `zoneId` values. It never copies option content. Use `presentation` only to control editorial hierarchy. A simpler home can provide fewer sections without changing the shared component.
+A section references stable `categoryId` and optional `zoneId` values. It never copies option content. Its `layout` selects one of the shared editorial rhythms: cinematic hero, material palette, asymmetric composition, editorial split, detail story or architectural arrival. Cover and finale are shared bookends. A simpler home can provide fewer sections without changing the shared component.
+
+Each option may provide structured `editorial` metadata: deterministic descriptors, short story fragments and an optional material role. The Design Story is assembled only from metadata attached to the customer’s actual selections. This keeps the narrative reproducible and avoids a second, disconnected source of selection truth.
 
 ## Personalization and editing
 
@@ -26,4 +28,4 @@ The Look Book appears only after all required categories are confirmed. First na
 
 ## Print / Save as PDF
 
-`Save My Look Book` calls `window.print()`. The print rules in `src/app/globals.css` isolate `#home-look-book`, hide navigation and controls, use A4 portrait pages, preserve brand colours and imagery, and prevent selection cards from splitting across pages. This is browser print-to-PDF; no server-generated PDF is implied.
+`Save / Print PDF` calls `window.print()`. The print rules in `src/app/globals.css` isolate `#home-look-book`, hide navigation and controls, use an intentional A4 portrait sequence, and preserve brand colours and imagery. This is browser print-to-PDF; no server-generated PDF is implied.

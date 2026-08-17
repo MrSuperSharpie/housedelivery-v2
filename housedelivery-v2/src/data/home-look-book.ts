@@ -25,11 +25,26 @@ export type LookBookHome = {
   }[];
 };
 
+export type LookBookLayout =
+  | "cinematic-hero"
+  | "editorial-split"
+  | "asymmetric"
+  | "material-palette"
+  | "detail-story"
+  | "architectural-arrival"
+  | "dark-finale";
+
+export type LookBookOptionEditorial = {
+  descriptors: readonly string[];
+  storyFragments: readonly string[];
+  materialRole?: string;
+};
+
 export type LookBookSelectionReference = {
   categoryId: string;
   zoneId?: string;
   label?: string;
-  presentation?: "feature" | "supporting" | "flooring-palette";
+  presentation?: "hero" | "detail" | "material";
 };
 
 export type LookBookSelection = {
@@ -41,26 +56,20 @@ export type LookBookSelection = {
   level: "premium" | "signature";
   description?: string;
   image: InclusionImage;
+  editorial?: LookBookOptionEditorial;
 };
 
-type LookBookSectionBase = {
+export type LookBookSection = {
   id: string;
   number: string;
   title: string;
   introduction: string;
+  kind: "design-story" | "selection-story" | "material-story" | "arrival";
+  layout: LookBookLayout;
+  items: readonly LookBookSelectionReference[];
+  heroImage?: "home-hero" | "home-introduction";
+  includeProjectCoordination?: boolean;
 };
-
-export type LookBookSection =
-  | (LookBookSectionBase & {
-      kind: "selections";
-      items: readonly LookBookSelectionReference[];
-    })
-  | (LookBookSectionBase & {
-      kind: "editorial";
-      eyebrow: string;
-      statement: string;
-      body: string;
-    });
 
 export type ProjectCoordinatedItem = {
   id: string;
@@ -78,6 +87,46 @@ export type HomeLookBook = {
   }[];
   preliminaryNotice: string;
 };
+
+export function getLookBookPersonalTitle(
+  customer: LookBookCustomer,
+  homeName: string,
+) {
+  const firstName = customer.firstName.trim();
+  const possessive = firstName.toLowerCase().endsWith("s")
+    ? `${firstName}’`
+    : `${firstName}’s`;
+
+  return `${possessive} ${homeName}`;
+}
+
+export function getLookBookDesignStory(selections: readonly LookBookSelection[]) {
+  const descriptors = Array.from(
+    new Set(selections.flatMap((selection) => selection.editorial?.descriptors ?? [])),
+  ).slice(0, 4);
+  const fragments = Array.from(
+    new Set(
+      selections.flatMap(
+        (selection) => selection.editorial?.storyFragments ?? [],
+      ),
+    ),
+  ).slice(0, 3);
+  const joinedFragments = new Intl.ListFormat("en", {
+    style: "long",
+    type: "conjunction",
+  }).format(fragments);
+  const opening = joinedFragments
+    ? joinedFragments.charAt(0).toUpperCase() + joinedFragments.slice(1)
+    : "Your selected materials, finishes and architectural details";
+
+  return {
+    descriptors:
+      descriptors.length > 0
+        ? descriptors
+        : ["Composed", "Contemporary", "Personal"],
+    narrative: `${opening} shape a composed contemporary home with natural texture, generous light and moments of stronger definition.`,
+  };
+}
 
 export function getLookBookCustomerName(customer: LookBookCustomer) {
   return [customer.firstName.trim(), customer.lastName?.trim()]

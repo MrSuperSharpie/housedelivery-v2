@@ -6,6 +6,7 @@ import type {
   HomeRoomLookCategory,
   HomeStandardInclusionCategory,
 } from "@/data/home-configurator";
+import type { LookBookOptionEditorial } from "@/data/home-look-book";
 import { models } from "@/data/models";
 
 const assetRoot = "/images/homes/solace/configurator";
@@ -30,6 +31,70 @@ const optionSlots: readonly {
   { level: "signature", optionNumber: "02" },
 ];
 
+function createEditorialMetadata(
+  categoryId: string,
+  name: string,
+  level: HomeInclusionLevel,
+): LookBookOptionEditorial {
+  const normalizedName = name.toLowerCase();
+  const descriptors: string[] = [];
+  const storyFragments: string[] = [];
+
+  if (/oak|timber|walnut|wood/.test(normalizedName)) {
+    descriptors.push("Natural");
+    storyFragments.push("warm timber tones");
+  }
+  if (/stone|porcelain|limestone|calacatta|marble/.test(normalizedName)) {
+    descriptors.push("Tactile");
+    storyFragments.push("quietly expressive stone");
+  }
+  if (/white|ivory|light|pale|linen|coastal/.test(normalizedName)) {
+    descriptors.push("Luminous");
+    storyFragments.push("a soft, light-filled palette");
+  }
+  if (/black|charcoal|graphite|smoked|dark/.test(normalizedName)) {
+    descriptors.push("Defined");
+    storyFragments.push("deeper architectural contrast");
+  }
+  if (/panoramic|full-height|sculpted|backlit|architectural/.test(normalizedName)) {
+    descriptors.push("Sculptural");
+    storyFragments.push("strong architectural moments");
+  }
+
+  if (descriptors.length === 0) {
+    descriptors.push(level === "signature" ? "Expressive" : "Refined");
+  }
+  if (storyFragments.length === 0) {
+    storyFragments.push(
+      level === "signature"
+        ? "distinctive architectural detailing"
+        : "a calm, restrained material direction",
+    );
+  }
+
+  const materialRoles: Record<string, string> = {
+    "kitchen-look-feel": "Cabinetry + stone",
+    "master-wardrobes": "Millwork",
+    "master-bathroom-look-feel": "Stone + tile",
+    "interior-wall-panels": "Architectural surface",
+    lighting: "Ambient light",
+    "window-coverings": "Textile + privacy",
+    "interior-doors": "Interior architecture",
+    "exterior-entry-doors": "Arrival",
+    "windows-patio-doors": "Light + opening",
+    "garage-door-operator": "Exterior detail",
+    "flooring-main-living": "Main floor",
+    "flooring-bedrooms": "Bedroom floor",
+    "flooring-wet-areas": "Wet-area floor",
+  };
+
+  return {
+    descriptors: Array.from(new Set(descriptors)),
+    storyFragments: Array.from(new Set(storyFragments)),
+    materialRole: materialRoles[categoryId],
+  };
+}
+
 function createOption(
   categoryId: string,
   categoryTitle: string,
@@ -41,6 +106,7 @@ function createOption(
     optionNumber: source.optionNumber,
     name: source.name,
     description: source.description,
+    editorial: createEditorialMetadata(categoryId, source.name, source.level),
     image: {
       src: `${assetRoot}/${source.filename}`,
       alt: `${source.name}, representative ${categoryTitle.toLowerCase()} design imagery for Solace.`,
@@ -542,108 +608,113 @@ export const solaceHomeConfigurator: HomeConfiguratorDefinition = {
     },
     sections: [
       {
-        kind: "selections",
-        id: "kitchen",
+        kind: "design-story",
+        layout: "cinematic-hero",
+        id: "design-story",
         number: "01",
-        title: "Your Kitchen",
+        title: "The Solace You Created",
         introduction:
-          "The complete visual direction shaping the social heart of Solace.",
+          "A personal design language assembled from the materials, light and architectural details you selected.",
+        heroImage: "home-introduction",
         items: [
-          { categoryId: "kitchen-look-feel", presentation: "feature" },
-          { categoryId: "appliances", presentation: "supporting" },
-        ],
-      },
-      {
-        kind: "selections",
-        id: "primary-suite",
-        number: "02",
-        title: "Primary Suite",
-        introduction:
-          "The wardrobe direction establishing the character of the primary retreat.",
-        items: [
-          { categoryId: "master-wardrobes", presentation: "feature" },
-          {
-            categoryId: "flooring",
-            zoneId: "flooring-bedrooms",
-            label: "Bedroom Flooring",
-            presentation: "supporting",
-          },
-        ],
-      },
-      {
-        kind: "selections",
-        id: "master-bathroom",
-        number: "03",
-        title: "Master Bathroom",
-        introduction:
-          "One coordinated bathroom direction spanning vanity, surfaces, tile and fixture character.",
-        items: [
-          {
-            categoryId: "master-bathroom-look-feel",
-            presentation: "feature",
-          },
-          {
-            categoryId: "flooring",
-            zoneId: "flooring-wet-areas",
-            label: "Wet-Area Flooring",
-            presentation: "supporting",
-          },
-        ],
-      },
-      {
-        kind: "selections",
-        id: "living-spaces",
-        number: "04",
-        title: "Living Spaces",
-        introduction:
-          "The material, lighting and privacy layers connecting the principal social spaces.",
-        items: [
+          { categoryId: "kitchen-look-feel" },
+          { categoryId: "master-bathroom-look-feel" },
+          { categoryId: "master-wardrobes" },
           { categoryId: "interior-wall-panels" },
           { categoryId: "lighting" },
           { categoryId: "window-coverings" },
-        ],
-      },
-      {
-        kind: "selections",
-        id: "flooring-palette",
-        number: "05",
-        title: "Flooring Palette",
-        introduction:
-          "Three coordinated zones read together as one continuous home palette.",
-        items: [{ categoryId: "flooring", presentation: "flooring-palette" }],
-      },
-      {
-        kind: "selections",
-        id: "interior-details",
-        number: "06",
-        title: "Interior Details",
-        introduction:
-          "A restrained interior door language carrying the palette between rooms.",
-        items: [{ categoryId: "interior-doors", presentation: "feature" }],
-      },
-      {
-        kind: "selections",
-        id: "exterior",
-        number: "07",
-        title: "Exterior",
-        introduction:
-          "The controlled arrival and opening directions completing the architectural envelope.",
-        items: [
-          { categoryId: "exterior-entry-doors" },
+          { categoryId: "interior-doors" },
           { categoryId: "windows-patio-doors" },
-          { categoryId: "garage-door-operator" },
+          { categoryId: "flooring", zoneId: "flooring-main-living" },
         ],
       },
       {
-        kind: "editorial",
-        id: "secondary-rooms",
-        number: "08",
-        title: "Secondary Rooms",
+        kind: "material-story",
+        layout: "material-palette",
+        id: "material-dna",
+        number: "02",
+        title: "Material DNA",
         introduction:
-          "A clear path from the visual brief into project-specific room design.",
-        eyebrow: "Project-specific coordination",
-        statement: "The palette continues.",
-        body: "Additional bedrooms, bathrooms and supporting spaces are coordinated to the selected home palette during the project-specific design stage.",
+          "The tones and textures that make the home read as one considered whole.",
+        items: [
+          { categoryId: "kitchen-look-feel", presentation: "material" },
+          { categoryId: "master-bathroom-look-feel", presentation: "material" },
+          { categoryId: "flooring", zoneId: "flooring-main-living", label: "Main Floor", presentation: "material" },
+          { categoryId: "flooring", zoneId: "flooring-bedrooms", label: "Bedroom Floor", presentation: "material" },
+          { categoryId: "flooring", zoneId: "flooring-wet-areas", label: "Wet-Area Floor", presentation: "material" },
+          { categoryId: "interior-doors", presentation: "material" },
+        ],
+      },
+      {
+        kind: "selection-story",
+        layout: "cinematic-hero",
+        id: "kitchen",
+        number: "03",
+        title: "Kitchen",
+        introduction:
+          "The social heart of Solace, expressed through cabinetry, surface, fixture and supporting-finish character.",
+        items: [
+          { categoryId: "kitchen-look-feel", presentation: "hero" },
+          { categoryId: "appliances", presentation: "detail" },
+        ],
+      },
+      {
+        kind: "selection-story",
+        layout: "asymmetric",
+        id: "primary-suite",
+        number: "04",
+        title: "Primary Suite",
+        introduction:
+          "A quiet retreat shaped by tailored millwork and the warmth underfoot.",
+        items: [
+          { categoryId: "master-wardrobes", presentation: "hero" },
+          { categoryId: "flooring", zoneId: "flooring-bedrooms", label: "Bedroom Flooring", presentation: "detail" },
+        ],
+      },
+      {
+        kind: "selection-story",
+        layout: "editorial-split",
+        id: "master-bathroom",
+        number: "05",
+        title: "Master Bathroom",
+        introduction:
+          "A private, restorative room where a singular surface direction meets a grounded wet-area finish.",
+        items: [
+          { categoryId: "master-bathroom-look-feel", presentation: "hero" },
+          { categoryId: "flooring", zoneId: "flooring-wet-areas", label: "Wet-Area Flooring", presentation: "detail" },
+        ],
+      },
+      {
+        kind: "selection-story",
+        layout: "detail-story",
+        id: "living-atmosphere",
+        number: "06",
+        title: "Living Atmosphere",
+        introduction:
+          "Material continuity, filtered light and a measured layer of architectural detail across the principal rooms.",
+        items: [
+          { categoryId: "flooring", zoneId: "flooring-main-living", label: "Main Living Flooring", presentation: "hero" },
+          { categoryId: "interior-wall-panels", presentation: "detail" },
+          { categoryId: "lighting", presentation: "detail" },
+          { categoryId: "window-coverings", presentation: "detail" },
+          { categoryId: "interior-doors", presentation: "detail" },
+        ],
+      },
+      {
+        kind: "arrival",
+        layout: "architectural-arrival",
+        id: "arrival",
+        number: "07",
+        title: "Arrival",
+        introduction:
+          "The first impression of Solace: a composed entry, generous openings and an exterior language held in quiet balance.",
+        heroImage: "home-hero",
+        includeProjectCoordination: true,
+        items: [
+          { categoryId: "exterior-entry-doors", presentation: "detail" },
+          { categoryId: "windows-patio-doors", presentation: "detail" },
+          { categoryId: "garage-door-operator", presentation: "detail" },
+        ],
       },
     ],
     projectCoordinatedItems: [

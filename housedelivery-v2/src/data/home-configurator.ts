@@ -1,6 +1,7 @@
 import type { InclusionImage } from "@/data/inclusions";
 import type {
   HomeLookBook,
+  LookBookOptionEditorial,
   LookBookPersonalization,
 } from "@/data/home-look-book";
 
@@ -13,6 +14,7 @@ export type HomeInclusionOption = {
   name: string;
   description?: string;
   image: InclusionImage;
+  editorial?: LookBookOptionEditorial;
 };
 
 type HomeSelectableCategoryBase = {

@@ -128,6 +128,59 @@ img {
   }
 }
 
+.look-book-page-inner {
+  width: 100%;
+  max-width: 1600px;
+  min-height: min(920px, 100svh);
+  margin-inline: auto;
+  padding: 6rem 1.25rem;
+}
+
+.look-book-section,
+[data-look-book-home-introduction],
+[data-look-book-next-stage] {
+  min-height: min(920px, 100svh);
+}
+
+.look-book-section:nth-child(even) {
+  background: #ded9cd;
+}
+
+#home-look-book :is(
+  .text-black\/34,
+  .text-black\/42,
+  .text-black\/48,
+  .text-black\/52,
+  .text-black\/54,
+  .text-black\/56
+) {
+  color: rgb(0 0 0 / 0.66);
+}
+
+#home-look-book :is(
+  .text-white\/38,
+  .text-white\/42,
+  .text-white\/48,
+  .text-white\/50,
+  .text-white\/52,
+  .text-white\/56,
+  .text-white\/58
+) {
+  color: rgb(255 255 255 / 0.7);
+}
+
+@media (min-width: 640px) {
+  .look-book-page-inner {
+    padding-inline: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .look-book-page-inner {
+    padding: 8rem 3rem;
+  }
+}
+
 @page {
   size: A4 portrait;
   margin: 0;
@@ -176,6 +229,7 @@ img {
 
   #home-look-book [data-look-book-print-page] {
     width: 210mm;
+    height: 297mm;
     min-height: 297mm;
     margin: 0;
     overflow: hidden;
@@ -190,13 +244,11 @@ img {
 
   #home-look-book .look-book-page-inner {
     width: 210mm;
+    max-width: none;
+    height: 297mm;
     min-height: 297mm;
     margin: 0;
     padding: 16mm !important;
-  }
-
-  #home-look-book .look-book-cover .look-book-page-inner {
-    height: 297mm;
   }
 
   #home-look-book .look-book-sections {
@@ -209,49 +261,135 @@ img {
     margin: 0;
   }
 
-  #home-look-book .look-book-section > .look-book-page-inner > .grid:first-child,
-  #home-look-book [data-look-book-home-introduction] .grid:first-child,
-  #home-look-book [data-look-book-project-coordinated] .grid:first-child {
-    grid-template-columns: 0.78fr 1.22fr !important;
+  #home-look-book .look-book-editorial-header > .grid,
+  #home-look-book [data-look-book-home-introduction] > .look-book-page-inner > .grid:first-child {
+    grid-template-columns: 1fr 0.7fr !important;
   }
 
-  #home-look-book .look-book-section > .look-book-page-inner > .mt-12.grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  }
-
-  #home-look-book [data-look-book-presentation="feature"] {
-    grid-column: span 2 !important;
-  }
-
-  #home-look-book [data-look-book-presentation="feature"]:only-child,
-  #home-look-book .look-book-flooring-palette {
-    grid-column: 1 / -1 !important;
-  }
-
-  #home-look-book [data-look-book-section="secondary-rooms"] article {
-    grid-template-columns: 0.75fr 1.25fr !important;
-  }
-
-  #home-look-book [data-look-book-home-introduction] dl {
+  #home-look-book [data-look-book-home-introduction] dl,
+  #home-look-book [data-look-book-next-stage] .mt-14.grid {
     grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
   }
 
-  #home-look-book [data-look-book-project-coordinated] .mt-16.grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  #home-look-book [data-look-book-home-introduction] .relative.mt-10 {
+    height: 110mm !important;
+    aspect-ratio: auto !important;
   }
 
-  #home-look-book [data-look-book-next-stage] .mt-16.grid {
+  #home-look-book [data-look-book-next-stage] .mt-14.grid {
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 6mm !important;
   }
 
-  #home-look-book .look-book-selection {
+  #home-look-book [data-look-book-next-stage] .mt-14.grid article {
+    border-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  #home-look-book [data-look-book-next-stage] .mt-14.grid h4 {
+    font-size: 4.2mm !important;
+  }
+
+  #home-look-book .look-book-editorial-header h3 {
+    font-size: 13mm !important;
+  }
+
+  #home-look-book .look-book-design-story {
+    grid-template-columns: 0.84fr 1.16fr !important;
+  }
+
+  #home-look-book .look-book-design-story > div:last-child {
+    min-height: 0 !important;
+    height: 156mm;
+  }
+
+  #home-look-book .look-book-material-palette {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    column-gap: 4mm !important;
+    row-gap: 5mm !important;
+  }
+
+  #home-look-book .look-book-material-palette .look-book-image-button {
+    aspect-ratio: 1 / 1 !important;
+  }
+
+  #home-look-book .look-book-cinematic .look-book-image-button {
+    height: 112mm !important;
+    aspect-ratio: auto !important;
+  }
+
+  #home-look-book .look-book-cinematic > .grid {
+    grid-template-columns: 1.25fr 0.75fr !important;
+  }
+
+  #home-look-book [data-look-book-layout="asymmetric"] .look-book-page-inner > .grid:last-child,
+  #home-look-book [data-look-book-layout="editorial-split"] .look-book-page-inner > .grid:last-child {
+    grid-template-columns: 1.35fr 0.65fr !important;
+  }
+
+  #home-look-book [data-look-book-layout="asymmetric"] .look-book-page-inner > .grid:last-child > article:last-child {
+    padding-top: 20mm !important;
+  }
+
+  #home-look-book [data-look-book-layout="editorial-split"] .look-book-page-inner > .grid:last-child > article:last-child {
+    padding-bottom: 8mm !important;
+  }
+
+  #home-look-book [data-look-book-layout="asymmetric"] .look-book-page-inner > .grid:last-child > article:first-child .look-book-image-button,
+  #home-look-book [data-look-book-layout="editorial-split"] .look-book-page-inner > .grid:last-child > article:first-child .look-book-image-button {
+    height: 118mm !important;
+    aspect-ratio: auto !important;
+  }
+
+  #home-look-book [data-look-book-layout="asymmetric"] .look-book-page-inner > .grid:last-child > article:last-child .look-book-image-button,
+  #home-look-book [data-look-book-layout="editorial-split"] .look-book-page-inner > .grid:last-child > article:last-child .look-book-image-button {
+    height: 102mm !important;
+    aspect-ratio: auto !important;
+  }
+
+  #home-look-book .look-book-detail-story {
+    grid-template-columns: 1.15fr 0.85fr !important;
+  }
+
+  #home-look-book .look-book-detail-story > article:first-child .look-book-image-button {
+    height: 116mm !important;
+    aspect-ratio: auto !important;
+  }
+
+  #home-look-book .look-book-detail-story > div:last-child .look-book-image-button {
+    height: 38mm !important;
+    aspect-ratio: auto !important;
+  }
+
+  #home-look-book .look-book-arrival {
+    grid-template-columns: 1.18fr 0.82fr !important;
+  }
+
+  #home-look-book .look-book-arrival > div:first-child {
+    min-height: 0 !important;
+    height: 132mm;
+  }
+
+  #home-look-book .look-book-arrival > div:last-child {
+    grid-template-columns: 1fr !important;
+  }
+
+  #home-look-book .look-book-arrival > div:last-child article {
+    grid-template-columns: 0.65fr 1.35fr !important;
+  }
+
+  #home-look-book .look-book-carried-forward > .grid {
+    grid-template-columns: 0.42fr 1.58fr !important;
+  }
+
+  #home-look-book .look-book-carried-forward > .grid > div:last-child {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  #home-look-book article {
     break-inside: avoid;
     page-break-inside: avoid;
-  }
-
-  #home-look-book .look-book-selection > div.p-6,
-  #home-look-book .look-book-selection > div.sm\:p-8 {
-    padding: 5mm !important;
   }
 
   #home-look-book .look-book-image-button {
@@ -259,18 +397,14 @@ img {
   }
 
   #home-look-book h2 {
-    font-size: 25mm !important;
-  }
-
-  #home-look-book h3 {
-    font-size: 14mm !important;
+    font-size: 24mm !important;
   }
 
   #home-look-book h4 {
-    font-size: 7mm !important;
+    font-size: 5mm !important;
   }
 
-  #home-look-book .look-book-selection p {
+  #home-look-book p {
     orphans: 3;
     widows: 3;
   }
