@@ -146,6 +146,10 @@ img {
   background: #ded9cd;
 }
 
+.carriage-print-folio {
+  display: none;
+}
+
 #home-look-book :is(
   .text-black\/34,
   .text-black\/42,
@@ -208,7 +212,8 @@ img {
   main > #home-configurator,
   #home-configurator > #home-look-book,
   main > #laneway-essential-experience,
-  #laneway-essential-experience > #home-look-book {
+  #laneway-essential-experience > #home-look-book,
+  main > .carriage-print-folio {
     display: block !important;
   }
 
@@ -230,12 +235,14 @@ img {
     background: #e7e3d8 !important;
   }
 
-  #home-look-book [data-look-book-print-page] {
+  #home-look-book [data-look-book-print-page],
+  .carriage-print-folio [data-home-folio-print-page] {
     width: 210mm;
-    height: 297mm;
     min-height: 297mm;
     margin: 0;
-    overflow: hidden;
+    overflow: visible;
+    break-inside: avoid-page;
+    page-break-inside: avoid;
     break-after: page;
     page-break-after: always;
   }
@@ -250,13 +257,26 @@ img {
     page-break-after: auto;
   }
 
+  .carriage-print-folio [data-home-folio-print-page]:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
   #home-look-book .look-book-page-inner {
     width: 210mm;
     max-width: none;
-    height: 297mm;
     min-height: 297mm;
     margin: 0;
     padding: 16mm !important;
+  }
+
+  #home-look-book [data-look-book-print-page] .look-book-page-inner > *,
+  #home-look-book .home-folio-print-block,
+  .carriage-print-folio .home-folio-print-block,
+  .carriage-print-folio figure,
+  .carriage-print-folio img {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 
   #home-look-book .look-book-sections {
@@ -423,5 +443,277 @@ img {
 
   #home-look-book.laneway-look-book .laneway-look-book-page h3 {
     font-size: 13mm !important;
+  }
+
+  .carriage-print-folio {
+    display: block !important;
+    width: 210mm;
+    margin: 0;
+    background: #e7e3d8 !important;
+    color: #111216;
+  }
+
+  .carriage-print-folio .home-folio-print-page {
+    box-sizing: border-box;
+    background: #e7e3d8;
+    color: #111216;
+  }
+
+  .carriage-print-folio .home-folio-print-page-dark {
+    background: #111216;
+    color: #fff;
+  }
+
+  .carriage-print-folio .home-folio-print-page-inner {
+    box-sizing: border-box;
+    display: flex;
+    width: 210mm;
+    min-height: 297mm;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 16mm;
+  }
+
+  .carriage-print-folio .home-folio-print-page-content {
+    display: flex;
+    min-height: 252mm;
+    flex: 1;
+    flex-direction: column;
+  }
+
+  .carriage-print-folio .home-folio-print-footer,
+  .carriage-print-folio .home-folio-print-kicker {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8mm;
+    font-size: 2mm;
+    font-weight: 600;
+    letter-spacing: 0.19em;
+    line-height: 1.3;
+    text-transform: uppercase;
+  }
+
+  .carriage-print-folio .home-folio-print-footer {
+    border-top: 0.25mm solid rgb(0 0 0 / 0.2);
+    padding-top: 3mm;
+    color: rgb(0 0 0 / 0.54);
+  }
+
+  .carriage-print-folio .home-folio-print-page-dark .home-folio-print-footer {
+    border-color: rgb(255 255 255 / 0.24);
+    color: rgb(255 255 255 / 0.56);
+  }
+
+  .carriage-print-folio .home-folio-print-kicker {
+    border-top: 0.25mm solid rgb(255 255 255 / 0.28);
+    padding-top: 3mm;
+    color: rgb(255 255 255 / 0.66);
+  }
+
+  .carriage-print-folio .home-folio-print-media {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    background: #d3cec1;
+  }
+
+  .carriage-print-folio .home-folio-print-media img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain !important;
+  }
+
+  .carriage-print-folio .home-folio-print-cover-media {
+    height: 145mm;
+    margin-top: 8mm;
+    background: #17181c;
+  }
+
+  .carriage-print-folio .home-folio-print-introduction-media {
+    height: 132mm;
+    margin-top: 10mm;
+  }
+
+  .carriage-print-folio .home-folio-print-gallery-media {
+    height: 76mm;
+  }
+
+  .carriage-print-folio .home-folio-print-plan-media {
+    height: 144mm;
+    background: #f3f1eb;
+  }
+
+  .carriage-print-folio .home-folio-print-title-block {
+    margin-top: 8mm;
+  }
+
+  .carriage-print-folio .home-folio-print-title-block > p,
+  .carriage-print-folio .home-folio-print-finale > p:first-child {
+    font-size: 2.2mm;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .carriage-print-folio .home-folio-print-title-block h1 {
+    margin-top: 3mm;
+    font-size: 16mm;
+    font-weight: 500;
+    letter-spacing: -0.065em;
+    line-height: 0.9;
+  }
+
+  .carriage-print-folio .home-folio-print-title-block > div {
+    display: grid;
+    margin-top: 6mm;
+    grid-template-columns: 0.8fr 1.2fr;
+    gap: 12mm;
+    border-top: 0.25mm solid rgb(255 255 255 / 0.24);
+    padding-top: 4mm;
+  }
+
+  .carriage-print-folio .home-folio-print-title-block > div > p:first-child {
+    font-size: 4.6mm;
+    font-weight: 500;
+    letter-spacing: -0.035em;
+    line-height: 1.1;
+  }
+
+  .carriage-print-folio .home-folio-print-title-block > div > p:last-child {
+    color: rgb(255 255 255 / 0.66);
+    font-size: 3mm;
+    line-height: 1.75;
+  }
+
+  .carriage-print-folio .home-folio-print-heading {
+    border-top: 0.25mm solid rgb(0 0 0 / 0.2);
+    padding-top: 4mm;
+  }
+
+  .carriage-print-folio .home-folio-print-heading > p {
+    color: rgb(0 0 0 / 0.5);
+    font-size: 2mm;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .carriage-print-folio .home-folio-print-heading > div {
+    display: grid;
+    margin-top: 5mm;
+    grid-template-columns: 1fr 0.72fr;
+    align-items: end;
+    gap: 12mm;
+  }
+
+  .carriage-print-folio .home-folio-print-heading h2 {
+    font-size: 12mm;
+    font-weight: 500;
+    letter-spacing: -0.06em;
+    line-height: 0.92;
+  }
+
+  .carriage-print-folio .home-folio-print-heading div > p {
+    color: rgb(0 0 0 / 0.58);
+    font-size: 3mm;
+    line-height: 1.8;
+  }
+
+  .carriage-print-folio figure > figcaption {
+    display: flex;
+    justify-content: space-between;
+    gap: 6mm;
+    border-top: 0.25mm solid rgb(0 0 0 / 0.18);
+    padding-top: 2.5mm;
+    color: rgb(0 0 0 / 0.54);
+    font-size: 2mm;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+
+  .carriage-print-folio .home-folio-print-gallery {
+    display: grid;
+    margin-top: 8mm;
+    gap: 7mm;
+  }
+
+  .carriage-print-folio .home-folio-print-gallery figure {
+    margin: 0;
+  }
+
+  .carriage-print-folio .home-folio-print-plan {
+    margin-top: 10mm;
+    border: 0.25mm solid rgb(0 0 0 / 0.18);
+    background: #f3f1eb;
+  }
+
+  .carriage-print-folio .home-folio-print-plan-label {
+    border-bottom: 0.25mm solid rgb(0 0 0 / 0.14);
+    padding: 3mm 4mm;
+    font-size: 2mm;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .carriage-print-folio .home-folio-print-notice {
+    margin-top: 5mm;
+    color: rgb(0 0 0 / 0.5);
+    font-size: 2.2mm;
+    line-height: 1.65;
+  }
+
+  .carriage-print-folio .home-folio-print-finale {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .carriage-print-folio .home-folio-print-finale > p:first-child {
+    color: rgb(255 255 255 / 0.58);
+  }
+
+  .carriage-print-folio .home-folio-print-finale h2 {
+    max-width: 174mm;
+    margin-top: 7mm;
+    font-size: 20mm;
+    font-weight: 500;
+    letter-spacing: -0.07em;
+    line-height: 0.88;
+  }
+
+  .carriage-print-folio .home-folio-print-finale > p:nth-child(3) {
+    max-width: 110mm;
+    margin-top: 10mm;
+    color: rgb(255 255 255 / 0.66);
+    font-size: 3.2mm;
+    line-height: 1.8;
+  }
+
+  .carriage-print-folio .home-folio-print-finale > div {
+    display: grid;
+    margin-top: 14mm;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-top: 0.25mm solid rgb(255 255 255 / 0.22);
+  }
+
+  .carriage-print-folio .home-folio-print-finale > div p {
+    display: grid;
+    grid-template-columns: 10mm 1fr;
+    border-bottom: 0.25mm solid rgb(255 255 255 / 0.16);
+    padding: 5mm 3mm 5mm 0;
+    color: rgb(255 255 255 / 0.72);
+    font-size: 3mm;
+    line-height: 1.4;
+  }
+
+  .carriage-print-folio .home-folio-print-finale > div span {
+    color: rgb(255 255 255 / 0.38);
+    font-size: 2mm;
+    letter-spacing: 0.16em;
   }
 }

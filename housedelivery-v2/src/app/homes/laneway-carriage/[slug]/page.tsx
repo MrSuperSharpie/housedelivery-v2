@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 
 import { CarriageEditorialGallery } from "@/components/carriage-editorial-gallery";
 import { CarriageHomeDetailHero } from "@/components/carriage-home-detail-hero";
+import { CarriageHomePrintFolio } from "@/components/carriage-home-print-folio";
 import { HeadlineReveal } from "@/components/headline-reveal";
 import { HomeFloorPlanViewer } from "@/components/home-floor-plan-viewer";
 import { ExploreAllInclusionsLink } from "@/components/inclusions-journey-links";
@@ -146,7 +147,7 @@ export default async function CarriageHomeDetailPage({
   return (
     <>
       <SiteHeader />
-      <main className="bg-[#0b0c10] text-white">
+      <main data-carriage-home-page className="bg-[#0b0c10] text-white">
         <CarriageHomeDetailHero
           model={model}
           modelNumber={modelIndex + 1}
@@ -266,6 +267,15 @@ export default async function CarriageHomeDetailPage({
             <CollectionLink direction="next" model={nextModel} />
           </div>
         </nav>
+
+        {essentialDefinition ? null : (
+          <CarriageHomePrintFolio
+            floorPlan={floorPlan}
+            model={model}
+            modelCount={carriageHomes.length}
+            modelNumber={modelIndex + 1}
+          />
+        )}
       </main>
     </>
   );
