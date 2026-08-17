@@ -9,12 +9,14 @@ import { CarriageHomeDetailHero } from "@/components/carriage-home-detail-hero";
 import { HeadlineReveal } from "@/components/headline-reveal";
 import { HomeFloorPlanViewer } from "@/components/home-floor-plan-viewer";
 import { ExploreAllInclusionsLink } from "@/components/inclusions-journey-links";
+import { LanewayEssentialExperience } from "@/components/laneway-essential-experience";
 import { SiteHeader } from "@/components/site-header";
 import {
   carriageHomes,
   type CarriageHome,
   type CarriageHomeImage,
 } from "@/data/carriage-homes";
+import { getLanewayEssentialDefinition } from "@/data/laneway-essential";
 
 type CarriageHomeDetailPageProps = {
   params: Promise<{ slug: string }>;
@@ -129,6 +131,7 @@ export default async function CarriageHomeDetailPage({
   }
 
   const floorPlan = findFloorPlan(model);
+  const essentialDefinition = getLanewayEssentialDefinition(model.slug);
 
   if (!floorPlan) {
     notFound();
@@ -174,6 +177,10 @@ export default async function CarriageHomeDetailPage({
           </div>
         </section>
 
+        {essentialDefinition ? (
+          <LanewayEssentialExperience definition={essentialDefinition} />
+        ) : null}
+
         <CarriageEditorialGallery
           model={model}
           floorPlanImage={floorPlan.src}
@@ -210,23 +217,35 @@ export default async function CarriageHomeDetailPage({
             <div className="mt-8 grid gap-12 lg:grid-cols-[1fr_auto] lg:items-end">
               <HeadlineReveal>
                 <h2 className="max-w-6xl text-[clamp(3.4rem,8vw,8.5rem)] font-medium leading-[0.84] tracking-[-0.075em]">
-                  Begin your
-                  <br />
-                  <span className="text-white/40">project review.</span>
+                  {essentialDefinition ? (
+                    <>
+                      Could Willow Nook
+                      <br />
+                      <span className="text-white/40">work on my property?</span>
+                    </>
+                  ) : (
+                    <>
+                      Begin your
+                      <br />
+                      <span className="text-white/40">project review.</span>
+                    </>
+                  )}
                 </h2>
               </HeadlineReveal>
               <div className="max-w-sm border-l border-white/18 pl-6">
                 <p className="text-sm leading-6 text-white/48">
-                  Start with a project review. We&apos;ll map property fit,
-                  local requirements, site adaptation, and a realistic delivery
-                  sequence for the {model.name}.
+                  {essentialDefinition
+                    ? "Start with a preliminary conversation about your municipality, approximate location, intended use, and timing. Project-specific review is required before any property-fit determination."
+                    : `Start with a project review. We’ll map property fit, local requirements, site adaptation, and a realistic delivery sequence for the ${model.name}.`}
                 </p>
                 <ExploreAllInclusionsLink className="mt-7" />
                 <Link
                   href="/#reserve"
                   className="group mt-5 flex items-center justify-between bg-white px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.17em] text-[#0b0c10]"
                 >
-                  Start your project review
+                  {essentialDefinition
+                    ? "Check My Property"
+                    : "Start your project review"}
                   <ArrowRight
                     size={14}
                     className="transition-transform group-hover:translate-x-1"
