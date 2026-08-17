@@ -235,14 +235,12 @@ img {
     background: #e7e3d8 !important;
   }
 
-  #home-look-book [data-look-book-print-page],
-  .carriage-print-folio [data-home-folio-print-page] {
+  #home-look-book [data-look-book-print-page] {
     width: 210mm;
+    height: 297mm;
     min-height: 297mm;
     margin: 0;
-    overflow: visible;
-    break-inside: avoid-page;
-    page-break-inside: avoid;
+    overflow: hidden;
     break-after: page;
     page-break-after: always;
   }
@@ -265,13 +263,12 @@ img {
   #home-look-book .look-book-page-inner {
     width: 210mm;
     max-width: none;
+    height: 297mm;
     min-height: 297mm;
     margin: 0;
     padding: 16mm !important;
   }
 
-  #home-look-book [data-look-book-print-page] .look-book-page-inner > *,
-  #home-look-book .home-folio-print-block,
   .carriage-print-folio .home-folio-print-block,
   .carriage-print-folio figure,
   .carriage-print-folio img {
@@ -443,6 +440,29 @@ img {
 
   #home-look-book.laneway-look-book .laneway-look-book-page h3 {
     font-size: 13mm !important;
+  }
+
+  #home-look-book.laneway-look-book [data-home-folio-print-page] {
+    height: auto;
+    overflow: visible;
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+  }
+
+  #home-look-book.laneway-look-book [data-home-folio-print-page] .look-book-page-inner > * {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .carriage-print-folio [data-home-folio-print-page] {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0;
+    overflow: visible;
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+    break-after: page;
+    page-break-after: always;
   }
 
   .carriage-print-folio {

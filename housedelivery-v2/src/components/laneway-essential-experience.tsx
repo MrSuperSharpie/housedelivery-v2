@@ -306,7 +306,7 @@ function FolioPage({
       data-look-book-print-page
       data-home-folio-print-page
       aria-label={label}
-      className={`home-folio-print-page laneway-look-book-page relative ${className}`}
+      className={`home-folio-print-page laneway-look-book-page relative overflow-hidden print:overflow-visible ${className}`}
     >
       {children}
     </section>
