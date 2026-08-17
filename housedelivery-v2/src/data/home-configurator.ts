@@ -1,4 +1,8 @@
 import type { InclusionImage } from "@/data/inclusions";
+import type {
+  HomeLookBook,
+  LookBookPersonalization,
+} from "@/data/home-look-book";
 
 export type HomeInclusionLevel = "premium" | "signature";
 
@@ -69,25 +73,6 @@ export type HomeInclusionCategory =
   | HomeFlooringCategory
   | HomeCoordinatedCategory;
 
-export type HomeLookBookItem = {
-  categoryId: string;
-  zoneId?: string;
-  label?: string;
-};
-
-export type HomeLookBookChapter = {
-  id: string;
-  number: string;
-  title: string;
-  introduction: string;
-  items: readonly HomeLookBookItem[];
-  editorialNote?: {
-    eyebrow: string;
-    title: string;
-    body: string;
-  };
-};
-
 export type HomeConfiguratorDefinition = {
   configurationVersion: number;
   homeId: string;
@@ -95,7 +80,7 @@ export type HomeConfiguratorDefinition = {
   residenceLabel: string;
   architecturalImages: readonly InclusionImage[];
   categories: readonly HomeInclusionCategory[];
-  lookBookChapters: readonly HomeLookBookChapter[];
+  lookBook: HomeLookBook;
   disclaimer: string;
 };
 
@@ -110,6 +95,7 @@ export type HomeConfiguration = {
   inclusionSelections: Partial<Record<string, HomeSelection>>;
   flooringSelections: Partial<Record<string, HomeSelection>>;
   reviewStatus: "draft" | "ready-for-review";
+  lookBookPersonalization: LookBookPersonalization | null;
 };
 
 export type ResolvedHomeSelection = {
@@ -156,6 +142,7 @@ export function createDefaultHomeConfiguration(
     },
     flooringSelections: {},
     reviewStatus: "draft",
+    lookBookPersonalization: null,
   };
 }
 

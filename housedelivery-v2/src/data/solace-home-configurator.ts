@@ -225,7 +225,7 @@ const masterBathroomOptions = [
 ] as const;
 
 export const solaceHomeConfigurator: HomeConfiguratorDefinition = {
-  configurationVersion: 2,
+  configurationVersion: 3,
   homeId: "solace",
   homeName: "Solace",
   residenceLabel: "Solace House",
@@ -511,79 +511,185 @@ export const solaceHomeConfigurator: HomeConfiguratorDefinition = {
       title: "Appliances",
       shortTitle: "Appliances",
       description:
-        "Appliance selection will be coordinated with the final kitchen plan, cabinetry and project requirements.",
-      coordinatedMessage:
-        "Supplier selection in progress / coordinated with project",
+        "Appliance package and final models will be confirmed during project review based on availability, project requirements and the selected home specification.",
+      coordinatedMessage: "Project Coordinated",
     },
   ],
-  lookBookChapters: [
-    {
-      id: "kitchen",
-      number: "01",
-      title: "Kitchen",
-      introduction:
-        "The complete visual direction shaping the social heart of Solace.",
-      items: [
-        { categoryId: "kitchen-look-feel" },
-        { categoryId: "appliances" },
-      ],
-    },
-    {
-      id: "primary-suite",
-      number: "02",
-      title: "Primary Suite",
-      introduction:
-        "Wardrobe and door choices establishing the character of the primary retreat.",
-      items: [
-        { categoryId: "master-wardrobes" },
-        { categoryId: "interior-doors" },
-      ],
-    },
-    {
-      id: "master-bathroom",
-      number: "03",
-      title: "Master Bathroom",
-      introduction:
-        "One coordinated bathroom direction spanning vanity, surfaces, tile and fixture character.",
-      items: [{ categoryId: "master-bathroom-look-feel" }],
-    },
-    {
-      id: "living-spaces",
-      number: "04",
-      title: "Living Spaces",
-      introduction:
-        "The flooring, material, lighting and privacy layers connecting the main living spaces.",
-      items: [
-        { categoryId: "flooring" },
-        { categoryId: "interior-wall-panels" },
-        { categoryId: "lighting" },
-        { categoryId: "window-coverings" },
-      ],
-    },
-    {
-      id: "exterior",
-      number: "05",
-      title: "Exterior",
-      introduction:
-        "The controlled arrival and opening directions completing the architectural envelope.",
-      items: [
-        { categoryId: "exterior-entry-doors" },
-        { categoryId: "windows-patio-doors" },
-        { categoryId: "garage-door-operator" },
-      ],
-    },
-    {
-      id: "secondary-rooms",
-      number: "06",
-      title: "Secondary Rooms",
-      introduction:
-        "A clear path from the visual brief into project-specific room design.",
-      items: [],
-      editorialNote: {
-        eyebrow: "Project-specific coordination",
-        title: "The palette continues.",
-        body: "Additional bedrooms, bathrooms and supporting spaces are coordinated to your selected home palette during project-specific design.",
+  lookBook: {
+    home: {
+      id: solaceModel.slug,
+      name: solaceModel.name,
+      residenceLabel: "Solace House",
+      areaLabel: `${solaceModel.squareFeet.toLocaleString()} sq. ft.`,
+      description: solaceModel.description,
+      heroImage: {
+        src: solaceModel.heroImage,
+        alt: "Solace House exterior architecture.",
       },
+      introductionImage: {
+        src: solaceModel.images[1],
+        alt: "Solace House architectural living space.",
+      },
+      metadata: [
+        {
+          label: "Area",
+          value: `${solaceModel.squareFeet.toLocaleString()} sq. ft.`,
+        },
+        { label: "Storeys", value: String(solaceModel.storeys) },
+        { label: "Bedrooms", value: String(solaceModel.bedrooms) },
+        { label: "Bathrooms", value: String(solaceModel.bathrooms) },
+      ],
     },
-  ],
+    sections: [
+      {
+        kind: "selections",
+        id: "kitchen",
+        number: "01",
+        title: "Your Kitchen",
+        introduction:
+          "The complete visual direction shaping the social heart of Solace.",
+        items: [
+          { categoryId: "kitchen-look-feel", presentation: "feature" },
+          { categoryId: "appliances", presentation: "supporting" },
+        ],
+      },
+      {
+        kind: "selections",
+        id: "primary-suite",
+        number: "02",
+        title: "Primary Suite",
+        introduction:
+          "The wardrobe direction establishing the character of the primary retreat.",
+        items: [
+          { categoryId: "master-wardrobes", presentation: "feature" },
+          {
+            categoryId: "flooring",
+            zoneId: "flooring-bedrooms",
+            label: "Bedroom Flooring",
+            presentation: "supporting",
+          },
+        ],
+      },
+      {
+        kind: "selections",
+        id: "master-bathroom",
+        number: "03",
+        title: "Master Bathroom",
+        introduction:
+          "One coordinated bathroom direction spanning vanity, surfaces, tile and fixture character.",
+        items: [
+          {
+            categoryId: "master-bathroom-look-feel",
+            presentation: "feature",
+          },
+          {
+            categoryId: "flooring",
+            zoneId: "flooring-wet-areas",
+            label: "Wet-Area Flooring",
+            presentation: "supporting",
+          },
+        ],
+      },
+      {
+        kind: "selections",
+        id: "living-spaces",
+        number: "04",
+        title: "Living Spaces",
+        introduction:
+          "The material, lighting and privacy layers connecting the principal social spaces.",
+        items: [
+          { categoryId: "interior-wall-panels" },
+          { categoryId: "lighting" },
+          { categoryId: "window-coverings" },
+        ],
+      },
+      {
+        kind: "selections",
+        id: "flooring-palette",
+        number: "05",
+        title: "Flooring Palette",
+        introduction:
+          "Three coordinated zones read together as one continuous home palette.",
+        items: [{ categoryId: "flooring", presentation: "flooring-palette" }],
+      },
+      {
+        kind: "selections",
+        id: "interior-details",
+        number: "06",
+        title: "Interior Details",
+        introduction:
+          "A restrained interior door language carrying the palette between rooms.",
+        items: [{ categoryId: "interior-doors", presentation: "feature" }],
+      },
+      {
+        kind: "selections",
+        id: "exterior",
+        number: "07",
+        title: "Exterior",
+        introduction:
+          "The controlled arrival and opening directions completing the architectural envelope.",
+        items: [
+          { categoryId: "exterior-entry-doors" },
+          { categoryId: "windows-patio-doors" },
+          { categoryId: "garage-door-operator" },
+        ],
+      },
+      {
+        kind: "editorial",
+        id: "secondary-rooms",
+        number: "08",
+        title: "Secondary Rooms",
+        introduction:
+          "A clear path from the visual brief into project-specific room design.",
+        eyebrow: "Project-specific coordination",
+        statement: "The palette continues.",
+        body: "Additional bedrooms, bathrooms and supporting spaces are coordinated to the selected home palette during the project-specific design stage.",
+      },
+    ],
+    projectCoordinatedItems: [
+      {
+        id: "appliances",
+        title: "Appliances",
+        description:
+          "Final package, models and availability are confirmed during project review.",
+      },
+      {
+        id: "secondary-rooms",
+        title: "Secondary Rooms",
+        description:
+          "Supporting spaces are developed from the selected whole-home palette.",
+      },
+      {
+        id: "product-confirmation",
+        title: "Product Confirmation",
+        description:
+          "Detailed products, hardware and availability are confirmed for the project.",
+      },
+      {
+        id: "technical-requirements",
+        title: "Project Requirements",
+        description:
+          "Site-specific and technical requirements are coordinated at the next stage.",
+      },
+    ],
+    nextStageSteps: [
+      {
+        title: "House Delivery Review",
+        description:
+          "We review the selected home, inclusions and project requirements.",
+      },
+      {
+        title: "Product + Project Confirmation",
+        description:
+          "Applicable products, availability, pricing and site-specific requirements are confirmed.",
+      },
+      {
+        title: "Project-Specific Visualization",
+        description:
+          "The approved brief can then be developed into the detailed home visualization and virtual walkthrough stage.",
+      },
+    ],
+    preliminaryNotice:
+      "This Look Book is a preliminary visual design brief and is not a final construction specification, quotation, engineering package or permit document.",
+  },
 };

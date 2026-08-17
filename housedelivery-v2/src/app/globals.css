@@ -127,3 +127,151 @@ img {
     transition-duration: 0.01ms !important;
   }
 }
+
+@page {
+  size: A4 portrait;
+  margin: 0;
+}
+
+@media print {
+  html,
+  body {
+    width: 210mm;
+    min-width: 0;
+    background: #e7e3d8 !important;
+  }
+
+  body {
+    display: block;
+  }
+
+  body > header,
+  body > footer,
+  main > * {
+    display: none !important;
+  }
+
+  main,
+  main > #home-configurator,
+  #home-configurator > #home-look-book {
+    display: block !important;
+  }
+
+  #home-configurator > #home-inclusions,
+  .look-book-screen-control {
+    display: none !important;
+  }
+
+  #home-look-book,
+  #home-look-book * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  #home-look-book {
+    width: 210mm;
+    margin: 0;
+    background: #e7e3d8 !important;
+  }
+
+  #home-look-book [data-look-book-print-page] {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0;
+    overflow: hidden;
+    break-after: page;
+    page-break-after: always;
+  }
+
+  #home-look-book [data-look-book-next-stage] {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  #home-look-book .look-book-page-inner {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0;
+    padding: 16mm !important;
+  }
+
+  #home-look-book .look-book-cover .look-book-page-inner {
+    height: 297mm;
+  }
+
+  #home-look-book .look-book-sections {
+    display: block;
+    max-width: none;
+    padding: 0 !important;
+  }
+
+  #home-look-book .look-book-section {
+    margin: 0;
+  }
+
+  #home-look-book .look-book-section > .look-book-page-inner > .grid:first-child,
+  #home-look-book [data-look-book-home-introduction] .grid:first-child,
+  #home-look-book [data-look-book-project-coordinated] .grid:first-child {
+    grid-template-columns: 0.78fr 1.22fr !important;
+  }
+
+  #home-look-book .look-book-section > .look-book-page-inner > .mt-12.grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  #home-look-book [data-look-book-presentation="feature"] {
+    grid-column: span 2 !important;
+  }
+
+  #home-look-book [data-look-book-presentation="feature"]:only-child,
+  #home-look-book .look-book-flooring-palette {
+    grid-column: 1 / -1 !important;
+  }
+
+  #home-look-book [data-look-book-section="secondary-rooms"] article {
+    grid-template-columns: 0.75fr 1.25fr !important;
+  }
+
+  #home-look-book [data-look-book-home-introduction] dl {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  #home-look-book [data-look-book-project-coordinated] .mt-16.grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  #home-look-book [data-look-book-next-stage] .mt-16.grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  #home-look-book .look-book-selection {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  #home-look-book .look-book-selection > div.p-6,
+  #home-look-book .look-book-selection > div.sm\:p-8 {
+    padding: 5mm !important;
+  }
+
+  #home-look-book .look-book-image-button {
+    cursor: default;
+  }
+
+  #home-look-book h2 {
+    font-size: 25mm !important;
+  }
+
+  #home-look-book h3 {
+    font-size: 14mm !important;
+  }
+
+  #home-look-book h4 {
+    font-size: 7mm !important;
+  }
+
+  #home-look-book .look-book-selection p {
+    orphans: 3;
+    widows: 3;
+  }
+}

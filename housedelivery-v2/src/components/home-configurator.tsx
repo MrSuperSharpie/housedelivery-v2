@@ -22,6 +22,10 @@ import {
   type HomeInclusionCategory as HomeInclusionCategoryData,
   type HomeSelectableInclusionCategory,
 } from "@/data/home-configurator";
+import {
+  createLookBookReference,
+  type LookBookCustomer,
+} from "@/data/home-look-book";
 
 type HomeConfiguratorProps = {
   definition: HomeConfiguratorDefinition;
@@ -334,6 +338,21 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
     )?.shortTitle;
   }
 
+  function createLookBook(customer: LookBookCustomer) {
+    const preparedAt = new Date();
+
+    setConfiguration((current) => ({
+      ...current,
+      lookBookPersonalization: {
+        customer,
+        preparedAt: preparedAt.toISOString(),
+        reference: createLookBookReference(definition.homeId, preparedAt),
+      },
+    }));
+
+    focusConfigurationTarget("home-look-book");
+  }
+
   return (
     <div
       id="home-configurator"
@@ -568,6 +587,7 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
       <HomeLookBook
         definition={definition}
         configuration={configuration}
+        onCreateLookBook={createLookBook}
         onEditCategory={editCategory}
         onPreviewOption={(categoryId, optionId, zoneId) =>
           setImagePreviewTarget({
