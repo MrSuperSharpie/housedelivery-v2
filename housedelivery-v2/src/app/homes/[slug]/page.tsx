@@ -67,13 +67,12 @@ export default async function HomeDetailPage({
 
   const nextModel: HomeModel = models[(modelIndex + 1) % models.length];
   const configuratorDefinition = getHomeConfiguratorDefinition(model.slug);
-  const designToolDiscovery =
-    model.slug === "solace" && configuratorDefinition
-      ? {
-          homeName: model.name,
-          href: "#home-inclusions",
-        }
-      : undefined;
+  const designToolDiscovery = configuratorDefinition
+    ? {
+        homeName: configuratorDefinition.homeName,
+        href: "#home-inclusions",
+      }
+    : undefined;
   const specifications = [
     { label: "Footprint", value: model.footprint ?? "Site-adapted" },
     { label: "Main level", value: formatArea(model.levels.main) },
@@ -181,14 +180,6 @@ export default async function HomeDetailPage({
           floorPlanImage={model.floorPlanImage}
           narrative={model.narrative}
           designToolDiscovery={designToolDiscovery}
-          contextualInclusionsDestination={
-            configuratorDefinition && !designToolDiscovery
-              ? {
-                  href: "#home-inclusions",
-                  label: `Design My ${configuratorDefinition.homeName}`,
-                }
-              : undefined
-          }
         />
 
         {configuratorDefinition ? (
