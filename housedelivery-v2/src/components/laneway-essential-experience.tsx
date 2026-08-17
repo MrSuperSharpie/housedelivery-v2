@@ -48,6 +48,31 @@ function scrollToSection(id: string) {
   });
 }
 
+async function waitForLookBookImages(container: HTMLElement) {
+  const images = Array.from(container.querySelectorAll("img"));
+
+  await Promise.all(
+    images.map(async (image) => {
+      if (!image.complete) {
+        await new Promise<void>((resolve, reject) => {
+          image.addEventListener("load", () => resolve(), { once: true });
+          image.addEventListener(
+            "error",
+            () => reject(new Error(`Unable to load Look Book image: ${image.src}`)),
+            { once: true },
+          );
+        });
+      }
+
+      if (image.naturalWidth === 0) {
+        throw new Error(`Unable to load Look Book image: ${image.src}`);
+      }
+
+      await image.decode().catch(() => undefined);
+    }),
+  );
+}
+
 function PreviewButton({
   image,
   lookName,
@@ -55,6 +80,7 @@ function PreviewButton({
   className,
   sizes,
   priority = false,
+  eager = false,
   children,
 }: {
   image: LanewayEssentialImage;
@@ -63,6 +89,7 @@ function PreviewButton({
   className: string;
   sizes: string;
   priority?: boolean;
+  eager?: boolean;
   children?: ReactNode;
 }) {
   return (
@@ -77,6 +104,7 @@ function PreviewButton({
         alt={image.alt}
         fill
         priority={priority}
+        loading={priority ? undefined : eager ? "eager" : undefined}
         quality={90}
         sizes={sizes}
         className="object-cover transition-transform duration-700 group-hover:scale-[1.015] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
@@ -408,12 +436,26 @@ function LanewayLookBook({
   onEditLook: () => void;
   onPreview: (preview: ImagePreview) => void;
 }) {
+  const [isPreparingPrint, setIsPreparingPrint] = useState(false);
   const customerName = getLookBookCustomerName(personalization.customer);
   const title = getLookBookPersonalTitle(
     personalization.customer,
     definition.homeName.replace(/^The /, ""),
   );
   const preparedDate = formatLookBookPreparedDate(personalization.preparedAt);
+
+  async function handlePrint() {
+    const lookBook = document.getElementById("home-look-book");
+
+    setIsPreparingPrint(true);
+
+    try {
+      if (lookBook) await waitForLookBookImages(lookBook);
+      window.print();
+    } finally {
+      setIsPreparingPrint(false);
+    }
+  }
 
   return (
     <section
@@ -452,11 +494,13 @@ function LanewayLookBook({
             </button>
             <button
               type="button"
-              onClick={() => window.print()}
-              className="inline-flex min-h-11 items-center gap-2 bg-[#111216] px-4 text-[8px] font-semibold uppercase tracking-[0.16em] text-white hover:bg-black/76 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+              onClick={handlePrint}
+              disabled={isPreparingPrint}
+              aria-busy={isPreparingPrint}
+              className="inline-flex min-h-11 items-center gap-2 bg-[#111216] px-4 text-[8px] font-semibold uppercase tracking-[0.16em] text-white hover:bg-black/76 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black disabled:cursor-wait disabled:bg-black/58"
             >
               <Printer className="size-3" aria-hidden="true" />
-              Save as PDF
+              {isPreparingPrint ? "Preparing PDF…" : "Save as PDF"}
             </button>
           </div>
         </div>
@@ -470,7 +514,7 @@ function LanewayLookBook({
           priority
           quality={90}
           sizes="100vw"
-          className="object-cover"
+          className="object-cover object-[60%_center]"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/10 to-black/88" />
         <div className="look-book-page-inner relative z-10 flex flex-col justify-between">
@@ -535,6 +579,7 @@ function LanewayLookBook({
                   src={definition.arrivalImage.src}
                   alt={definition.arrivalImage.alt}
                   fill
+                  loading="eager"
                   quality={90}
                   sizes="70vw"
                   className="object-cover"
@@ -545,6 +590,7 @@ function LanewayLookBook({
                   src={definition.floorPlanImage.src}
                   alt={definition.floorPlanImage.alt}
                   fill
+                  loading="eager"
                   quality={90}
                   sizes="40vw"
                   className="object-contain p-4"
@@ -596,6 +642,7 @@ function LanewayLookBook({
               onPreview={onPreview}
               className="min-h-[540px] md:min-h-0"
               sizes="70vw"
+              eager
             />
           </div>
           <FolioMark page="03" />
@@ -608,6 +655,7 @@ function LanewayLookBook({
             src={look.images.kitchenLiving.src}
             alt={look.images.kitchenLiving.alt}
             fill
+            loading="eager"
             quality={90}
             sizes="100vw"
             className="object-cover"
@@ -657,20 +705,30 @@ function LanewayLookBook({
               </p>
             </div>
             <div className="mt-10 grid gap-4 md:grid-cols-[1.25fr_0.75fr] md:items-start">
-              <PreviewButton
-                image={look.images.bedroomStorage}
-                lookName={look.name}
-                onPreview={onPreview}
-                className="aspect-[4/3]"
-                sizes="70vw"
-              />
+              <div>
+                <p className="mb-3 text-[8px] font-semibold uppercase tracking-[0.2em] text-black/44">
+                  Bedroom + storage
+                </p>
+                <PreviewButton
+                  image={look.images.bedroomStorage}
+                  lookName={look.name}
+                  onPreview={onPreview}
+                  className="aspect-[4/3]"
+                  sizes="70vw"
+                  eager
+                />
+              </div>
               <div className="md:pt-20">
+                <p className="mb-3 text-[8px] font-semibold uppercase tracking-[0.2em] text-black/44">
+                  Bathroom
+                </p>
                 <PreviewButton
                   image={look.images.bathroom}
                   lookName={look.name}
                   onPreview={onPreview}
                   className="aspect-[4/3]"
                   sizes="40vw"
+                  eager
                 />
                 <p className="mt-5 border-t border-black/18 pt-4 text-xs leading-6 text-black/54">
                   Integrated storage, warm light, and a restrained material
@@ -722,6 +780,7 @@ function LanewayLookBook({
                       src={image.src}
                       alt=""
                       fill
+                      loading="eager"
                       quality={90}
                       sizes="33vw"
                       className="scale-150 object-cover"
@@ -798,9 +857,10 @@ function LanewayLookBook({
           src={definition.exteriorImage.src}
           alt=""
           fill
+          loading="eager"
           quality={90}
           sizes="100vw"
-          className="object-cover opacity-38"
+          className="object-cover object-[60%_center] opacity-38"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/82 via-black/58 to-black/28" />
         <div className="look-book-page-inner relative z-10 flex flex-col justify-between">

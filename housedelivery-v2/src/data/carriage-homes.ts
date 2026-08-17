@@ -34,7 +34,7 @@ export const carriageHomes: readonly CarriageHome[] = [
     ],
     images: [
       {
-        src: `${imageRoot}/The-Willow-Nook-1.jpg`,
+        src: `${imageRoot}/The-Willow-Nook-1.png`,
         alt: "The Willow Nook exterior in a landscaped garden setting",
         label: "Exterior perspective",
       },
