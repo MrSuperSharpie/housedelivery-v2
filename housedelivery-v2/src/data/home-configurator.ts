@@ -170,6 +170,15 @@ export function getRequiredCategories(
   );
 }
 
+export function getProjectCoordinatedCategories(
+  definition: HomeConfiguratorDefinition,
+) {
+  return definition.categories.filter(
+    (category): category is HomeCoordinatedCategory =>
+      category.kind === "coordinated",
+  );
+}
+
 export function getSelectedInclusionOption(
   category: HomeSelectableInclusionCategory,
   configuration: HomeConfiguration,

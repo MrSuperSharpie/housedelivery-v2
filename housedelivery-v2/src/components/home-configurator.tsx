@@ -399,10 +399,11 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
                 stage.
               </p>
               <p className="mt-5 text-xs leading-6 text-white/55">
-                Create the visual brief for your home in 11 controlled choices.
-                Start with the kitchen, then move through the major spaces and
-                finishes that define your {definition.homeName}. Begin with the
-                Premium baseline and selectively choose Signature upgrades.
+                Create the visual brief for your home in{" "}
+                {requiredCategories.length} controlled choices. Start with the
+                kitchen, then move through the major spaces and finishes that
+                define your {definition.homeName}. Begin with the Premium
+                baseline and selectively choose Signature upgrades.
               </p>
               <p className="mt-5 border-t border-white/12 pt-5 text-[10px] leading-5 text-white/50">
                 {definition.disclaimer}

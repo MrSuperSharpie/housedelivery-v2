@@ -1,14 +1,12 @@
-import type { HomeConfiguratorDefinition } from "@/data/home-configurator";
-import { customHomeConfigurators } from "@/data/custom-home-configurators";
-import { saturnaHomeConfigurator } from "@/data/saturna-home-configurator";
-import { solaceHomeConfigurator } from "@/data/solace-home-configurator";
+import { getHomeConfiguratorRegistration } from "@/data/home-configurator-registry";
 
-const homeConfigurators: Readonly<Record<string, HomeConfiguratorDefinition>> = {
-  ...customHomeConfigurators,
-  saturna: saturnaHomeConfigurator,
-  solace: solaceHomeConfigurator,
-};
+export {
+  getHomeConfiguratorRegistration,
+  getHomeConfiguratorRegistrationByRoute,
+  getHomeConfiguratorRegistrationsByFamily,
+  homeConfiguratorRegistrations,
+} from "@/data/home-configurator-registry";
 
 export function getHomeConfiguratorDefinition(homeSlug: string) {
-  return homeConfigurators[homeSlug];
+  return getHomeConfiguratorRegistration("custom-home", homeSlug)?.definition;
 }

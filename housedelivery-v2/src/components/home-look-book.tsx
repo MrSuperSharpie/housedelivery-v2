@@ -49,6 +49,32 @@ type EditorialContext = Pick<
   "definition" | "configuration" | "onEditCategory" | "onPreviewOption"
 >;
 
+function SaveLookBookButton({
+  placement,
+  onSave,
+}: {
+  placement: "top" | "completion";
+  onSave: () => void;
+}) {
+  const isCompletionControl = placement === "completion";
+
+  return (
+    <button
+      type="button"
+      data-save-look-book={placement}
+      onClick={onSave}
+      className={
+        isCompletionControl
+          ? "inline-flex min-h-14 items-center justify-center gap-3 border border-white/44 px-6 text-[9px] font-semibold uppercase tracking-[0.17em] text-white hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+          : "inline-flex min-h-12 items-center justify-center gap-3 border border-black bg-black px-6 text-[9px] font-semibold uppercase tracking-[0.17em] text-white hover:bg-black/78 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
+      }
+    >
+      <Printer aria-hidden="true" className="size-4" strokeWidth={1.5} />
+      Save / Print PDF
+    </button>
+  );
+}
+
 function PersonalizationForm({
   homeName,
   onCreateLookBook,
@@ -766,6 +792,7 @@ export function HomeLookBook({
     onEditCategory,
     onPreviewOption,
   };
+  const saveLookBook = () => window.print();
 
   return (
     <section
@@ -785,10 +812,7 @@ export function HomeLookBook({
             </p>
             <p className="mt-2 text-sm text-black/62">Prepared for {customerName}</p>
           </div>
-          <button type="button" data-save-look-book onClick={() => window.print()} className="inline-flex min-h-12 items-center justify-center gap-3 border border-black bg-black px-6 text-[9px] font-semibold uppercase tracking-[0.17em] text-white hover:bg-black/78 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black">
-            <Printer aria-hidden="true" className="size-4" strokeWidth={1.5} />
-            Save / Print PDF
-          </button>
+          <SaveLookBookButton placement="top" onSave={saveLookBook} />
         </div>
       </div>
 
@@ -900,9 +924,10 @@ export function HomeLookBook({
                   <span>Submit My {definition.homeName} for Review</span><ArrowRight aria-hidden="true" className="size-4" strokeWidth={1.5} />
                 </button>
               )}
-              <button type="button" data-save-look-book onClick={() => window.print()} className="inline-flex min-h-14 items-center justify-center gap-3 border border-white/44 px-6 text-[9px] font-semibold uppercase tracking-[0.17em] text-white hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
-                <Printer aria-hidden="true" className="size-4" strokeWidth={1.5} />Save / Print PDF
-              </button>
+              <SaveLookBookButton
+                placement="completion"
+                onSave={saveLookBook}
+              />
             </div>
             <div className="mt-10 border-t border-white/18 pt-5 text-[8px] leading-4 text-white/42">
               <p>{definition.disclaimer}</p><p className="mt-2">{lookBook.preliminaryNotice}</p>

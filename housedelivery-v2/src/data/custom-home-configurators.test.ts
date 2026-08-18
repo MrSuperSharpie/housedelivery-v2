@@ -2,10 +2,26 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  getProjectCoordinatedCategories,
   getRequiredCategories,
   type HomeInclusionCategory,
 } from "@/data/home-configurator";
-import { getHomeConfiguratorDefinition } from "@/data/home-configurators";
+import {
+  canonicalHomeConfiguratorChapterIds,
+  canonicalHomeConfiguratorStages,
+  getCanonicalHomeConfiguratorIssues,
+  homeConfiguratorFamilyPolicies,
+} from "@/data/home-configurator-architecture";
+import {
+  createHomeDesignPackageLibrary,
+  resolveHomeDesignPackageReference,
+} from "@/data/home-design-package-library";
+import {
+  getHomeConfiguratorDefinition,
+  getHomeConfiguratorRegistration,
+  getHomeConfiguratorRegistrationsByFamily,
+  homeConfiguratorRegistrations,
+} from "@/data/home-configurators";
 import { models } from "@/data/models";
 import { saturnaHomeConfigurator } from "@/data/saturna-home-configurator";
 import { solaceHomeConfigurator } from "@/data/solace-home-configurator";
@@ -53,6 +69,145 @@ test("every Custom Home model is registered with the shared configurator", () =>
     }
   }
 });
+
+test("all residential product families are registered without premature activation", () => {
+  const customHomes =
+    getHomeConfiguratorRegistrationsByFamily("custom-home");
+  const carriageHomes = getHomeConfiguratorRegistrationsByFamily(
+    "laneway-carriage-home",
+  );
+  const preApprovedHomes = getHomeConfiguratorRegistrationsByFamily(
+    "pre-approved-home",
+  );
+
+  assert.equal(homeConfiguratorRegistrations.length, 28);
+  assert.equal(customHomes.length, 15);
+  assert.equal(carriageHomes.length, 6);
+  assert.equal(preApprovedHomes.length, 7);
+  assert.equal(new Set(homeConfiguratorRegistrations.map(({ key }) => key)).size, 28);
+  assert.ok(customHomes.every((registration) => registration.definition));
+  assert.ok(
+    [...carriageHomes, ...preApprovedHomes].every(
+      (registration) =>
+        registration.migrationStatus === "awaiting-approved-content" &&
+        registration.definition === undefined &&
+        registration.activeChapterIds.length === 0,
+    ),
+  );
+  assert.equal(getHomeConfiguratorDefinition("willow-nook"), undefined);
+  assert.equal(getHomeConfiguratorDefinition("the-micro"), undefined);
+});
+
+test("the family policy locks finish-only personalization and optional smaller-home chapters", () => {
+  assert.equal(canonicalHomeConfiguratorStages.length, 8);
+  assert.equal(
+    canonicalHomeConfiguratorStages[7]?.title,
+    "My Home / Review / Save as PDF",
+  );
+  assert.deepEqual(
+    homeConfiguratorFamilyPolicies["custom-home"].defaultChapterIds,
+    canonicalHomeConfiguratorChapterIds,
+  );
+  assert.equal(
+    homeConfiguratorFamilyPolicies["laneway-carriage-home"]
+      .allowsDisabledChapters,
+    true,
+  );
+  assert.equal(
+    homeConfiguratorFamilyPolicies["pre-approved-home"]
+      .allowsDisabledChapters,
+    true,
+  );
+
+  for (const policy of Object.values(homeConfiguratorFamilyPolicies)) {
+    assert.equal(policy.personalizationScope, "design-finishes-only");
+    assert.equal(policy.structuralArchitectureChangesAvailable, false);
+    assert.equal(
+      policy.technicalInformationPlacement,
+      "product-page-outside-configurator",
+    );
+    assert.equal(policy.supportsProjectCoordinatedItems, true);
+  }
+});
+
+test("design packages can resolve shared or home-specific approved content", () => {
+  const testImage = {
+    src: "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==",
+    alt: "Test-only design package fixture.",
+    fit: "contain" as const,
+  };
+  const library = createHomeDesignPackageLibrary([
+    {
+      packageId: "test.shared.flooring.warm-modern",
+      chapterId: "whole-home-flooring-stairs",
+      scope: { kind: "shared" },
+      compatibleProductFamilies: [
+        "custom-home",
+        "laneway-carriage-home",
+      ],
+      option: {
+        id: "shared-flooring-premium-1",
+        level: "premium",
+        optionNumber: "1",
+        name: "Warm Modern",
+        image: testImage,
+      },
+    },
+    {
+      packageId: "test.saturna.exterior.warm-modern",
+      chapterId: "exterior-arrival-openings",
+      scope: { kind: "home-specific", homeId: "saturna" },
+      option: {
+        id: "saturna-exterior-premium-1",
+        level: "premium",
+        optionNumber: "1",
+        name: "Warm Modern",
+        image: testImage,
+      },
+    },
+  ]);
+
+  const shared = resolveHomeDesignPackageReference(
+    library,
+    {
+      packageId: "test.shared.flooring.warm-modern",
+      overrides: { name: "Warm Natural" },
+    },
+    {
+      homeId: "willow-nook",
+      productFamily: "laneway-carriage-home",
+      chapterId: "whole-home-flooring-stairs",
+    },
+  );
+  assert.equal(shared.name, "Warm Natural");
+  assert.equal(shared.sourceScope.kind, "shared");
+
+  const saturnaExterior = resolveHomeDesignPackageReference(
+    library,
+    { packageId: "test.saturna.exterior.warm-modern" },
+    {
+      homeId: "saturna",
+      productFamily: "custom-home",
+      chapterId: "exterior-arrival-openings",
+    },
+  );
+  assert.equal(saturnaExterior.sourceScope.kind, "home-specific");
+
+  assert.throws(
+    () =>
+      resolveHomeDesignPackageReference(
+        library,
+        { packageId: "test.saturna.exterior.warm-modern" },
+        {
+          homeId: "solace",
+          productFamily: "custom-home",
+          chapterId: "exterior-arrival-openings",
+        },
+      ),
+    /restricted to saturna/,
+  );
+});
+
 test("Solace remains the approved source definition", () => {
   assert.strictEqual(
     getHomeConfiguratorDefinition("solace"),
@@ -65,6 +220,12 @@ test("Saturna uses its dedicated seven-chapter look-book experiment", () => {
   const definition = getHomeConfiguratorDefinition("saturna");
 
   assert.strictEqual(definition, saturnaHomeConfigurator);
+  assert.deepEqual(getCanonicalHomeConfiguratorIssues(definition), []);
+  assert.equal(
+    getHomeConfiguratorRegistration("custom-home", "saturna")
+      ?.migrationStatus,
+    "canonical",
+  );
   assert.deepEqual(
     definition.categories.map((category) => category.id),
     [
@@ -113,6 +274,25 @@ test("Saturna uses its dedicated seven-chapter look-book experiment", () => {
   assert.deepEqual(exteriorSection.items, [
     { categoryId: "exterior-arrival-openings", presentation: "hero" },
   ]);
+});
+
+test("Project Coordinated remains non-core and does not block completion", () => {
+  const coordinated = getProjectCoordinatedCategories(solaceHomeConfigurator);
+  const requiredCategoryIds = new Set(
+    getRequiredCategories(solaceHomeConfigurator).map((category) => category.id),
+  );
+
+  assert.ok(coordinated.length > 0);
+  assert.ok(
+    coordinated.every(
+      (category) => category.coordinatedMessage === "Project Coordinated",
+    ),
+  );
+  assert.ok(
+    coordinated.every(
+      (category) => !requiredCategoryIds.has(category.id),
+    ),
+  );
 });
 
 test("activated homes use model-specific architecture and labels", () => {
