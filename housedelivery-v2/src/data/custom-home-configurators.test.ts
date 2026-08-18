@@ -7,6 +7,7 @@ import {
 } from "@/data/home-configurator";
 import { getHomeConfiguratorDefinition } from "@/data/home-configurators";
 import { models } from "@/data/models";
+import { saturnaHomeConfigurator } from "@/data/saturna-home-configurator";
 import { solaceHomeConfigurator } from "@/data/solace-home-configurator";
 
 function getCategoryOptions(category: HomeInclusionCategory) {
@@ -32,7 +33,10 @@ test("every Custom Home model is registered with the shared configurator", () =>
       definition.lookBook.home.areaLabel,
       `${model.squareFeet.toLocaleString()} sq. ft.`,
     );
-    assert.equal(getRequiredCategories(definition).length, 11);
+    assert.equal(
+      getRequiredCategories(definition).length,
+      model.slug === "saturna" ? 7 : 11,
+    );
 
     for (const category of definition.categories) {
       const options = getCategoryOptions(category);
@@ -55,6 +59,49 @@ test("Solace remains the approved source definition", () => {
     solaceHomeConfigurator,
   );
   assert.equal(solaceHomeConfigurator.lookBook.sections[0]?.title, "The Solace You Created");
+});
+
+test("Saturna uses its dedicated seven-chapter look-book experiment", () => {
+  const definition = getHomeConfiguratorDefinition("saturna");
+
+  assert.strictEqual(definition, saturnaHomeConfigurator);
+  assert.deepEqual(
+    definition.categories.map((category) => category.id),
+    [
+      "kitchen-look-feel",
+      "primary-ensuite-look-feel",
+      "primary-wardrobe",
+      "interior-doors-details",
+      "exterior-arrival-openings",
+      "whole-home-flooring-stairs",
+      "window-coverings",
+    ],
+  );
+
+  for (const category of definition.categories) {
+    assert.equal(category.kind, "room-look");
+    if (category.kind !== "room-look") continue;
+
+    assert.equal(category.options.length, 4);
+    assert.ok(category.options.every((option) => option.image.fit === "contain"));
+    assert.ok(
+      category.options.every((option) =>
+        option.image.src.startsWith("/images/homes/saturna/configurator/Saturna_"),
+      ),
+    );
+  }
+
+  const selectionSectionIds = new Set(
+    definition.lookBook.sections.flatMap((section) =>
+      section.items.map((item) => item.categoryId),
+    ),
+  );
+  assert.equal(selectionSectionIds.size, 7);
+  assert.ok(
+    definition.categories.every((category) =>
+      selectionSectionIds.has(category.id),
+    ),
+  );
 });
 
 test("activated homes use model-specific architecture and labels", () => {

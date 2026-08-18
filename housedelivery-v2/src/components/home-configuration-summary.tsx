@@ -203,7 +203,11 @@ export function HomeConfigurationSummary({
           height={750}
           quality={90}
           sizes="320px"
-          className="h-full w-full object-cover"
+          className={
+            visualBriefImage.fit === "contain"
+              ? "h-full w-full object-contain"
+              : "h-full w-full object-cover"
+          }
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/78 via-black/8 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 p-5 text-white">
