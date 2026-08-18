@@ -52,3 +52,10 @@ imagery.
 - `Saturna_07_Window-Coverings_Premium-2_Contemporary-Cool.png`
 - `Saturna_07_Window-Coverings_Signature-1_Scandi-Natural.png`
 - `Saturna_07_Window-Coverings_Signature-2_Modern-Earth.png`
+
+## Future master artwork
+
+Future House Delivery design-board masters should preferably be produced at
+`2880 × 2160 px`. This preserves the 4:3 ratio and provides additional detail
+for Retina web displays and Look Book output. The current `1448 × 1086 px`
+Saturna boards remain valid for this experiment.

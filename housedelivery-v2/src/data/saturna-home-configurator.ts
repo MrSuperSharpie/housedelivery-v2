@@ -441,16 +441,15 @@ export const saturnaHomeConfigurator: HomeConfiguratorDefinition = {
         ],
       },
       {
-        kind: "arrival",
-        layout: "architectural-arrival",
+        kind: "selection-story",
+        layout: "cinematic-hero",
         id: "exterior-arrival",
         number: "06",
         title: "Exterior Arrival & Openings",
         introduction:
           "A coordinated finish expression applied to Saturna's fixed architectural form, openings and arrival sequence.",
-        heroImage: "home-hero",
         items: [
-          { categoryId: "exterior-arrival-openings", presentation: "detail" },
+          { categoryId: "exterior-arrival-openings", presentation: "hero" },
         ],
       },
       {

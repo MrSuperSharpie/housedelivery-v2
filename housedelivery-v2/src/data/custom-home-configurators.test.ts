@@ -102,6 +102,17 @@ test("Saturna uses its dedicated seven-chapter look-book experiment", () => {
       selectionSectionIds.has(category.id),
     ),
   );
+
+  const exteriorSection = definition.lookBook.sections.find(
+    (section) => section.id === "exterior-arrival",
+  );
+  assert.ok(exteriorSection);
+  assert.equal(exteriorSection.kind, "selection-story");
+  assert.equal(exteriorSection.layout, "cinematic-hero");
+  assert.equal(exteriorSection.heroImage, undefined);
+  assert.deepEqual(exteriorSection.items, [
+    { categoryId: "exterior-arrival-openings", presentation: "hero" },
+  ]);
 });
 
 test("activated homes use model-specific architecture and labels", () => {

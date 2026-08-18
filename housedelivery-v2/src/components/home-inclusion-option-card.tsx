@@ -56,7 +56,10 @@ export function HomeInclusionOptionCard({
           src={option.image.src}
           alt={option.image.alt}
           fill
-          quality={90}
+          loading={homeName === "Saturna" && isSelected ? "eager" : undefined}
+          quality={
+            homeName === "Saturna" && option.image.fit === "contain" ? 100 : 90
+          }
           sizes={sizes}
           className={cn(
             option.image.fit === "contain" ? "object-contain" : "object-cover",

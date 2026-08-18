@@ -327,6 +327,17 @@ img {
     aspect-ratio: auto !important;
   }
 
+  #home-look-book .look-book-cinematic[data-look-book-design-board="true"] > [data-look-book-selected-board="true"] {
+    width: 90% !important;
+    margin-inline: auto !important;
+  }
+
+  #home-look-book .look-book-cinematic[data-look-book-design-board="true"] .look-book-image-button {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 4 / 3 !important;
+  }
+
   #home-look-book .look-book-cinematic > .grid {
     grid-template-columns: 1.25fr 0.75fr !important;
   }

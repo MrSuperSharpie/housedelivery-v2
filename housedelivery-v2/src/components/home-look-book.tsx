@@ -231,7 +231,12 @@ function EditorialImage({
         alt={selection.image.alt}
         fill
         loading="eager"
-        quality={90}
+        quality={
+          context.definition.homeId === "saturna" &&
+          selection.image.fit === "contain"
+            ? 100
+            : 90
+        }
         sizes={sizes}
         className={
           selection.image.fit === "contain"
@@ -370,7 +375,7 @@ function DesignStoryPage({
               alt={image.alt}
               fill
               loading="eager"
-              quality={90}
+              quality={context.definition.homeId === "saturna" ? 100 : 90}
               sizes="(max-width: 1023px) 100vw, 58vw"
               className="object-cover"
             />
@@ -425,15 +430,37 @@ function CinematicSelectionPage({
     )
     .find((category) => category?.kind === "coordinated");
   if (!hero) return null;
+  const isSaturnaDesignBoard =
+    context.definition.homeId === "saturna" && hero.image.fit === "contain";
   return (
     <PageShell section={section}>
-      <div className="look-book-cinematic mt-10">
-        <EditorialImage
-          selection={hero}
-          context={context}
-          className="aspect-[16/9] lg:aspect-[16/8]"
-          sizes="100vw"
-        />
+      <div
+        data-look-book-design-board={
+          isSaturnaDesignBoard ? "true" : undefined
+        }
+        className="look-book-cinematic mt-10"
+      >
+        <div
+          data-look-book-selected-board={
+            isSaturnaDesignBoard ? "true" : undefined
+          }
+          className={isSaturnaDesignBoard ? "mx-auto w-full lg:w-[90%]" : undefined}
+        >
+          <EditorialImage
+            selection={hero}
+            context={context}
+            className={
+              isSaturnaDesignBoard
+                ? "aspect-[4/3]"
+                : "aspect-[16/9] lg:aspect-[16/8]"
+            }
+            sizes={
+              isSaturnaDesignBoard
+                ? "(max-width: 1023px) 100vw, 90vw"
+                : "100vw"
+            }
+          />
+        </div>
         <div className="grid gap-8 lg:grid-cols-[1.25fr_0.75fr] lg:gap-20">
           <div>
             <SelectionCaption selection={hero} context={context} />
@@ -817,7 +844,7 @@ export function HomeLookBook({
           </div>
           {lookBook.home.introductionImage ? (
             <div className="relative mt-10 aspect-[16/8] overflow-hidden bg-[#d3cec1]">
-              <Image src={lookBook.home.introductionImage.src} alt={lookBook.home.introductionImage.alt} fill loading="eager" quality={90} sizes="100vw" className="object-cover" />
+              <Image src={lookBook.home.introductionImage.src} alt={lookBook.home.introductionImage.alt} fill loading="eager" quality={definition.homeId === "saturna" ? 100 : 90} sizes="100vw" className="object-cover" />
             </div>
           ) : null}
           {lookBook.home.metadata?.length ? (
