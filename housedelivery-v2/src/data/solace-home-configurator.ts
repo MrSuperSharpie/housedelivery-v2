@@ -290,7 +290,7 @@ const masterBathroomOptions = [
   }),
 ] as const;
 
-export const solaceHomeConfigurator: HomeConfiguratorDefinition = {
+export const legacyCustomHomeConfiguratorTemplate: HomeConfiguratorDefinition = {
   configurationVersion: 3,
   homeId: "solace",
   homeName: "Solace",
@@ -762,5 +762,418 @@ export const solaceHomeConfigurator: HomeConfiguratorDefinition = {
     ],
     preliminaryNotice:
       "This Look Book is a preliminary visual design brief and is not a final construction specification, quotation, engineering package or permit document.",
+  },
+};
+
+const visualGuideAssetRoot = "/images/homes/solace/visual-guide";
+
+type SolaceVisualGuidePackage = {
+  level: HomeInclusionLevel;
+  optionNumber: string;
+  name: string;
+  filenameLabel: string;
+  descriptors: readonly string[];
+  storyFragments: readonly string[];
+};
+
+type SolaceVisualGuideChapter = {
+  id: string;
+  number: string;
+  title: string;
+  shortTitle?: string;
+  assetPrefix: string;
+  description: string;
+  represents: readonly string[];
+  materialRole: string;
+  technicalNote?: string;
+  optionNames?: readonly [string, string, string, string];
+};
+
+const solaceVisualGuidePackages = [
+  {
+    level: "premium",
+    optionNumber: "1",
+    name: "Coastal Light Oak",
+    filenameLabel: "Coastal-Light-Oak",
+    descriptors: ["Coastal", "Luminous", "Natural"],
+    storyFragments: ["pale natural oak", "a light, quietly layered palette"],
+  },
+  {
+    level: "premium",
+    optionNumber: "2",
+    name: "Soft White",
+    filenameLabel: "Soft-White",
+    descriptors: ["Soft", "Calm", "Refined"],
+    storyFragments: ["soft white surfaces", "restrained architectural detail"],
+  },
+  {
+    level: "signature",
+    optionNumber: "1",
+    name: "Stone Wrapped Oak",
+    filenameLabel: "Stone-Wrapped-Oak",
+    descriptors: ["Layered", "Grounded", "Architectural"],
+    storyFragments: ["expressive stone", "warm, enveloping oak"],
+  },
+  {
+    level: "signature",
+    optionNumber: "2",
+    name: "Sculpted White",
+    filenameLabel: "Sculpted-White",
+    descriptors: ["Sculptural", "Luminous", "Polished"],
+    storyFragments: ["sculpted pale surfaces", "precise tonal detailing"],
+  },
+] as const satisfies readonly SolaceVisualGuidePackage[];
+
+function createSolaceVisualGuideChapter(
+  source: SolaceVisualGuideChapter,
+): HomeRoomLookCategory {
+  return {
+    kind: "room-look",
+    id: source.id,
+    number: source.number,
+    title: source.title,
+    shortTitle: source.shortTitle ?? source.title,
+    description: source.description,
+    represents: source.represents,
+    technicalNote: source.technicalNote,
+    options: solaceVisualGuidePackages.map((designPackage, index) => {
+      const name = source.optionNames?.[index] ?? designPackage.name;
+
+      return {
+        id: `${source.id}-${designPackage.level}-${designPackage.optionNumber}`,
+        level: designPackage.level,
+        optionNumber: designPackage.optionNumber,
+        name,
+        editorial: {
+          descriptors: designPackage.descriptors,
+          storyFragments: designPackage.storyFragments,
+          materialRole: source.materialRole,
+        },
+        image: {
+          src: `${visualGuideAssetRoot}/${source.assetPrefix}_${designPackage.level === "premium" ? "Premium" : "Signature"}-${designPackage.optionNumber}_${designPackage.filenameLabel}.png`,
+          alt: `${designPackage.level === "premium" ? "Premium" : "Signature"} ${designPackage.optionNumber} — ${name}, ${source.title.toLowerCase()} design board for Solace House.`,
+          fit: "contain" as const,
+          role: "design-board" as const,
+          quality: 100 as const,
+        },
+      };
+    }),
+  };
+}
+
+const solaceVisualGuideChapters = [
+  createSolaceVisualGuideChapter({
+    id: "kitchen-look-feel",
+    number: "01",
+    title: "Kitchen Look & Feel",
+    shortTitle: "Kitchen",
+    assetPrefix: "Solace_01_Kitchen",
+    description:
+      "Choose one coordinated kitchen package. Its complete design board carries the finish direction into My Solace.",
+    represents: [
+      "Cabinetry",
+      "Countertop and backsplash",
+      "Flooring",
+      "Hardware",
+      "Plumbing finish",
+      "Decorative lighting",
+    ],
+    materialRole: "Kitchen palette",
+  }),
+  createSolaceVisualGuideChapter({
+    id: "primary-ensuite-look-feel",
+    number: "02",
+    title: "Primary Ensuite Look & Feel",
+    shortTitle: "Primary Ensuite",
+    assetPrefix: "Solace_02_Primary-Ensuite",
+    description:
+      "Choose one coordinated primary ensuite package, including surfaces, vanity, fixtures and lighting.",
+    represents: [
+      "Floor and wall tile",
+      "Shower floor",
+      "Vanity",
+      "Countertop",
+      "Plumbing finish",
+      "Lighting",
+    ],
+    materialRole: "Ensuite palette",
+  }),
+  createSolaceVisualGuideChapter({
+    id: "primary-wardrobe",
+    number: "03",
+    title: "Primary Wardrobe",
+    assetPrefix: "Solace_03_Primary-Wardrobe",
+    description:
+      "Choose the coordinated wardrobe package for the Solace primary suite.",
+    represents: [
+      "Cabinet finish",
+      "Door treatment",
+      "Interior finish",
+      "Hardware",
+      "Storage configuration",
+      "Lighting",
+    ],
+    materialRole: "Wardrobe millwork",
+  }),
+  createSolaceVisualGuideChapter({
+    id: "interior-doors-details",
+    number: "04",
+    title: "Interior Doors & Details",
+    shortTitle: "Interior Details",
+    assetPrefix: "Solace_04_Interior-Doors-Details",
+    description:
+      "Choose one coordinated package for interior doors, trim and architectural detail.",
+    represents: [
+      "Interior door style",
+      "Door finish",
+      "Hardware",
+      "Architectural wall detail",
+      "Trim and casing",
+      "Accent material",
+    ],
+    materialRole: "Interior architecture",
+  }),
+  createSolaceVisualGuideChapter({
+    id: "exterior-arrival-openings",
+    number: "05",
+    title: "Exterior Arrival & Openings",
+    shortTitle: "Exterior Arrival",
+    assetPrefix: "Solace_05_Exterior-Arrival",
+    description:
+      "Choose a coordinated exterior finish direction for Solace's arrival and openings.",
+    represents: [
+      "Entry door",
+      "Window and patio-door frames",
+      "Garage-door appearance",
+      "Cladding accent",
+      "Exterior hardware",
+      "Exterior lighting",
+    ],
+    materialRole: "Exterior expression",
+    technicalNote:
+      "This selection changes finishes and appearance only. The Solace footprint, roof geometry, window placement and architectural massing remain unchanged.",
+    optionNames: [
+      "Warm White",
+      "Soft White",
+      "Stone Wrapped Oak",
+      "Sculpted White",
+    ],
+  }),
+  createSolaceVisualGuideChapter({
+    id: "whole-home-flooring-stairs",
+    number: "06",
+    title: "Whole-Home Flooring & Stairs",
+    shortTitle: "Flooring & Stairs",
+    assetPrefix: "Solace_06_Flooring-Stairs",
+    description:
+      "Choose one coordinated flooring and stair package for Solace's dry interior areas.",
+    represents: [
+      "Main living areas",
+      "Bedrooms",
+      "Stair treads",
+      "Risers and trim",
+      "Transitions",
+      "Runner or accent texture",
+    ],
+    materialRole: "Whole-home flooring",
+    technicalNote:
+      "Wet-area flooring is included in the Primary Ensuite package and is not selected again here.",
+  }),
+  createSolaceVisualGuideChapter({
+    id: "window-coverings",
+    number: "07",
+    title: "Window Coverings",
+    assetPrefix: "Solace_07_Window-Coverings",
+    description:
+      "Choose one coordinated window-covering package for privacy, light control and textile character.",
+    represents: [
+      "Main-living roller treatment",
+      "Bedroom privacy and blackout",
+      "Privacy and light-filter level",
+      "Fabric and texture",
+      "Control and cassette style",
+      "Accent and trim",
+    ],
+    materialRole: "Textile + privacy",
+  }),
+] as const;
+
+const solaceAppliances = {
+  kind: "coordinated",
+  id: "appliances",
+  number: "PC",
+  title: "Appliances",
+  shortTitle: "Appliances",
+  description:
+    "The final appliance package, manufacturers and models are confirmed during project review.",
+  coordinatedMessage: "Project Coordinated",
+} as const;
+
+export const solaceHomeConfigurator: HomeConfiguratorDefinition = {
+  configurationVersion: 4,
+  homeId: solaceModel.slug,
+  homeName: "Solace",
+  residenceLabel: "Solace House",
+  architecturalImages: [
+    {
+      src: solaceModel.heroImage,
+      alt: "Solace House exterior architecture.",
+    },
+    {
+      src: solaceModel.images[1],
+      alt: "Solace House architectural living space.",
+    },
+  ],
+  disclaimer:
+    "Representative coordinated design boards. Final products, finishes, availability, pricing and technical suitability are confirmed during project review and are subject to project-specific requirements.",
+  categories: [...solaceVisualGuideChapters, solaceAppliances],
+  lookBook: {
+    home: {
+      id: solaceModel.slug,
+      name: "Solace",
+      residenceLabel: "Solace House",
+      areaLabel: `${solaceModel.squareFeet.toLocaleString()} sq. ft.`,
+      description: solaceModel.description,
+      heroImage: {
+        src: solaceModel.heroImage,
+        alt: "Solace House exterior architecture.",
+      },
+      introductionImage: {
+        src: solaceModel.images[1],
+        alt: "Solace House architectural living space.",
+      },
+      metadata: [
+        {
+          label: "Area",
+          value: `${solaceModel.squareFeet.toLocaleString()} sq. ft.`,
+        },
+        { label: "Storeys", value: String(solaceModel.storeys) },
+        { label: "Bedrooms", value: String(solaceModel.bedrooms) },
+        { label: "Bathrooms", value: String(solaceModel.bathrooms) },
+      ],
+    },
+    sections: [
+      {
+        kind: "design-story",
+        layout: "cinematic-hero",
+        id: "design-story",
+        number: "01",
+        title: "The Solace You Created",
+        introduction:
+          "Seven coordinated packages form one considered architectural finish story for Solace House.",
+        heroImage: "home-introduction",
+        items: solaceVisualGuideChapters.map((chapter) => ({
+          categoryId: chapter.id,
+        })),
+      },
+      {
+        kind: "selection-story",
+        layout: "cinematic-hero",
+        id: "kitchen",
+        number: "02",
+        title: "Kitchen Look & Feel",
+        introduction:
+          "Cabinetry, surfaces, hardware, flooring and decorative lighting resolved as one kitchen composition.",
+        items: [
+          { categoryId: "kitchen-look-feel", presentation: "hero" },
+          { categoryId: "appliances", presentation: "detail" },
+        ],
+      },
+      {
+        kind: "selection-story",
+        layout: "cinematic-hero",
+        id: "primary-ensuite",
+        number: "03",
+        title: "Primary Ensuite Look & Feel",
+        introduction:
+          "A complete ensuite atmosphere carried through tile, vanity, plumbing finish, accent material and light.",
+        items: [
+          { categoryId: "primary-ensuite-look-feel", presentation: "hero" },
+        ],
+      },
+      {
+        kind: "selection-story",
+        layout: "cinematic-hero",
+        id: "primary-wardrobe",
+        number: "04",
+        title: "Primary Wardrobe",
+        introduction:
+          "Millwork, storage, hardware and integrated light composed for the primary suite.",
+        items: [{ categoryId: "primary-wardrobe", presentation: "hero" }],
+      },
+      {
+        kind: "selection-story",
+        layout: "cinematic-hero",
+        id: "interior-details",
+        number: "05",
+        title: "Interior Doors & Details",
+        introduction:
+          "Door, trim, hardware and architectural accents establish a consistent interior language.",
+        items: [
+          { categoryId: "interior-doors-details", presentation: "hero" },
+        ],
+      },
+      {
+        kind: "selection-story",
+        layout: "cinematic-hero",
+        id: "exterior-arrival",
+        number: "06",
+        title: "Exterior Arrival & Openings",
+        introduction:
+          "A coordinated finish expression applied to Solace's fixed architectural form, openings and arrival sequence.",
+        items: [
+          { categoryId: "exterior-arrival-openings", presentation: "hero" },
+        ],
+      },
+      {
+        kind: "selection-story",
+        layout: "cinematic-hero",
+        id: "flooring-stairs",
+        number: "07",
+        title: "Whole-Home Flooring & Stairs",
+        introduction:
+          "One continuous dry-area flooring and stair direction, with wet-area finishes held within the ensuite package.",
+        items: [
+          { categoryId: "whole-home-flooring-stairs", presentation: "hero" },
+        ],
+      },
+      {
+        kind: "selection-story",
+        layout: "cinematic-hero",
+        id: "window-coverings",
+        number: "08",
+        title: "Window Coverings",
+        introduction:
+          "Privacy, filtered daylight, blackout performance and textile character resolved as one package.",
+        items: [{ categoryId: "window-coverings", presentation: "hero" }],
+      },
+    ],
+    projectCoordinatedItems: [
+      {
+        id: "appliances",
+        title: "Appliances",
+        description:
+          "The final appliance package, manufacturers and models are confirmed during project review.",
+      },
+    ],
+    nextStageSteps: [
+      {
+        title: "House Delivery Review",
+        description:
+          "We review the seven selected packages alongside the Solace home and project requirements.",
+      },
+      {
+        title: "Product + Project Confirmation",
+        description:
+          "Applicable products, availability, pricing and site-specific requirements are confirmed.",
+      },
+      {
+        title: "Project-Specific Visualization",
+        description:
+          "The approved package brief can be developed into detailed home visualization and virtual walkthrough work.",
+      },
+    ],
+    preliminaryNotice:
+      "This Look Book is a preliminary architectural finish brief and is not a final construction specification, quotation, engineering package or permit document.",
   },
 };

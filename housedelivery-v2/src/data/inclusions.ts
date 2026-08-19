@@ -40,6 +40,8 @@ export type InclusionImage = {
   src: string;
   alt: string;
   fit?: "cover" | "contain";
+  role?: "design-board";
+  quality?: 90 | 100;
 };
 
 export type InclusionProductChoice = {

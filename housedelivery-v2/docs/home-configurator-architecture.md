@@ -1,7 +1,8 @@
 # House Delivery configurator architecture
 
-Saturna is the canonical reference for the shared House Delivery residential
-configurator. Runtime UI remains shared; home and package content remain data.
+Saturna and Solace are canonical references for the shared House Delivery
+residential configurator. Runtime UI remains shared; home and package content
+remain data.
 
 ## Canonical customer journey
 
@@ -27,8 +28,8 @@ not imply structural freedom.
 
 ## Current registration inventory
 
-- Custom Homes: 15 registered with active configurator data. Saturna is
-  canonical; Langley, Solace, Timberline, Profile, Laurentian, Dalton,
+- Custom Homes: 15 registered with active configurator data. Saturna and Solace
+  are canonical; Langley, Timberline, Profile, Laurentian, Dalton,
   South Bay, Boreal, Canmore, Cascade, Maplewood, Cedarview, Summit and Aurora
   retain their existing legacy experience until approved seven-chapter content
   and assets are ready.
@@ -62,5 +63,7 @@ technical packages are required.
 ## Image master standard
 
 Future design-board master artwork should preferably be `2880 x 2160 px` at a
-4:3 ratio. Existing approved `1448 x 1086 px` Saturna boards remain valid and
-must not be regenerated solely to meet the future standard.
+4:3 ratio. Existing approved `1448 x 1086 px` Saturna and Solace boards remain
+valid and must not be regenerated solely to meet the future standard. Solace's
+four approved Exterior Arrival boards are `1672 x 941 px`; they remain
+uncropped in the same design-board presentation.

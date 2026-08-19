@@ -5,7 +5,7 @@ import type {
 } from "@/data/home-configurator";
 import type { LookBookSection } from "@/data/home-look-book";
 import { models, type HomeModel } from "@/data/models";
-import { solaceHomeConfigurator } from "@/data/solace-home-configurator";
+import { legacyCustomHomeConfiguratorTemplate } from "@/data/solace-home-configurator";
 
 type CustomHomeActivationPacket = {
   slug: Exclude<HomeModel["slug"], "solace">;
@@ -179,7 +179,7 @@ function createCustomHomeConfigurator(
     ) ?? model.heroImage;
 
   return {
-    configurationVersion: solaceHomeConfigurator.configurationVersion,
+    configurationVersion: legacyCustomHomeConfiguratorTemplate.configurationVersion,
     homeId: model.slug,
     homeName,
     residenceLabel,
@@ -193,12 +193,12 @@ function createCustomHomeConfigurator(
         alt: `${residenceLabel} architectural study.`,
       },
     ],
-    disclaimer: solaceHomeConfigurator.disclaimer,
-    categories: solaceHomeConfigurator.categories.map((category) =>
+    disclaimer: legacyCustomHomeConfiguratorTemplate.disclaimer,
+    categories: legacyCustomHomeConfiguratorTemplate.categories.map((category) =>
       personalizeCategory(category, homeName),
     ),
     lookBook: {
-      ...solaceHomeConfigurator.lookBook,
+      ...legacyCustomHomeConfiguratorTemplate.lookBook,
       home: {
         id: model.slug,
         name: homeName,
@@ -229,7 +229,7 @@ function createCustomHomeConfigurator(
           },
         ],
       },
-      sections: solaceHomeConfigurator.lookBook.sections.map((section) =>
+      sections: legacyCustomHomeConfiguratorTemplate.lookBook.sections.map((section) =>
         personalizeLookBookSection(
           section,
           homeName,

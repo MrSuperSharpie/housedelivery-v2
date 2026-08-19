@@ -42,7 +42,9 @@ const customHomeRegistrations: readonly HomeConfiguratorRegistration[] =
       route: `/homes/${model.slug}`,
       productFamily: "custom-home",
       migrationStatus:
-        model.slug === "saturna" ? "canonical" : "legacy-active",
+        model.slug === "saturna" || model.slug === "solace"
+          ? "canonical"
+          : "legacy-active",
       activeChapterIds: getRequiredCategories(definition).map(
         (category) => category.id,
       ),

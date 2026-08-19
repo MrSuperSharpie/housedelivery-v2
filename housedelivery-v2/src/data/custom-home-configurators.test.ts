@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { readdirSync } from "node:fs";
+import { basename, join } from "node:path";
 import test from "node:test";
 
 import {
@@ -24,7 +26,12 @@ import {
 } from "@/data/home-configurators";
 import { models } from "@/data/models";
 import { saturnaHomeConfigurator } from "@/data/saturna-home-configurator";
-import { solaceHomeConfigurator } from "@/data/solace-home-configurator";
+import {
+  legacyCustomHomeConfiguratorTemplate,
+  solaceHomeConfigurator,
+} from "@/data/solace-home-configurator";
+
+const canonicalCustomHomeIds = new Set(["saturna", "solace"]);
 
 function getCategoryOptions(category: HomeInclusionCategory) {
   if (category.kind === "standard" || category.kind === "room-look") {
@@ -51,7 +58,7 @@ test("every Custom Home model is registered with the shared configurator", () =>
     );
     assert.equal(
       getRequiredCategories(definition).length,
-      model.slug === "saturna" ? 7 : 11,
+      canonicalCustomHomeIds.has(model.slug) ? 7 : 11,
     );
 
     for (const category of definition.categories) {
@@ -208,15 +215,106 @@ test("design packages can resolve shared or home-specific approved content", () 
   );
 });
 
-test("Solace remains the approved source definition", () => {
-  assert.strictEqual(
-    getHomeConfiguratorDefinition("solace"),
-    solaceHomeConfigurator,
+test("Solace uses exactly seven approved visual-guide chapters", () => {
+  const definition = getHomeConfiguratorDefinition("solace");
+  assert.ok(definition);
+  const requiredCategories = getRequiredCategories(definition);
+
+  assert.strictEqual(definition, solaceHomeConfigurator);
+  assert.deepEqual(getCanonicalHomeConfiguratorIssues(definition), []);
+  assert.equal(
+    getHomeConfiguratorRegistration("custom-home", "solace")
+      ?.migrationStatus,
+    "canonical",
   );
-  assert.equal(solaceHomeConfigurator.lookBook.sections[0]?.title, "The Solace You Created");
+  assert.deepEqual(
+    requiredCategories.map((category) => category.id),
+    [
+      "kitchen-look-feel",
+      "primary-ensuite-look-feel",
+      "primary-wardrobe",
+      "interior-doors-details",
+      "exterior-arrival-openings",
+      "whole-home-flooring-stairs",
+      "window-coverings",
+    ],
+  );
+  assert.deepEqual(
+    requiredCategories.map((category) => category.title),
+    [
+      "Kitchen Look & Feel",
+      "Primary Ensuite Look & Feel",
+      "Primary Wardrobe",
+      "Interior Doors & Details",
+      "Exterior Arrival & Openings",
+      "Whole-Home Flooring & Stairs",
+      "Window Coverings",
+    ],
+  );
+
+  const referencedAssets: string[] = [];
+  for (const category of requiredCategories) {
+    assert.equal(category.kind, "room-look");
+    if (category.kind !== "room-look") continue;
+
+    assert.equal(category.options.length, 4);
+    assert.deepEqual(
+      category.options.map((option) => [option.level, option.optionNumber]),
+      [
+        ["premium", "1"],
+        ["premium", "2"],
+        ["signature", "1"],
+        ["signature", "2"],
+      ],
+    );
+    assert.ok(category.options.every((option) => option.image.fit === "contain"));
+    assert.ok(
+      category.options.every(
+        (option) =>
+          option.image.role === "design-board" &&
+          option.image.quality === 100,
+      ),
+    );
+    for (const option of category.options) {
+      assert.ok(
+        option.image.src.startsWith(
+          "/images/homes/solace/visual-guide/Solace_",
+        ),
+      );
+      referencedAssets.push(basename(option.image.src));
+    }
+  }
+
+  const assetDirectory = join(
+    process.cwd(),
+    "public/images/homes/solace/visual-guide",
+  );
+  const approvedAssets = readdirSync(assetDirectory)
+    .filter((filename) => filename.endsWith(".png"))
+    .sort();
+  assert.equal(approvedAssets.length, 28);
+  assert.deepEqual(referencedAssets.toSorted(), approvedAssets);
+
+  const selectionSectionIds = new Set(
+    definition.lookBook.sections.flatMap((section) =>
+      section.items
+        .map((item) => item.categoryId)
+        .filter((categoryId) => categoryId !== "appliances"),
+    ),
+  );
+  assert.equal(selectionSectionIds.size, 7);
+  assert.ok(
+    requiredCategories.every((category) =>
+      selectionSectionIds.has(category.id),
+    ),
+  );
+  assert.equal(
+    definition.lookBook.sections[0]?.title,
+    "The Solace You Created",
+  );
 });
 
-test("Saturna uses its dedicated seven-chapter look-book experiment", () => {
+test("Saturna remains on its dedicated seven-chapter Look Book", () => {
   const definition = getHomeConfiguratorDefinition("saturna");
 
   assert.strictEqual(definition, saturnaHomeConfigurator);
@@ -293,6 +391,34 @@ test("Project Coordinated remains non-core and does not block completion", () =>
       (category) => !requiredCategoryIds.has(category.id),
     ),
   );
+  assert.deepEqual(coordinated.map((category) => category.id), ["appliances"]);
+  assert.match(
+    coordinated[0]?.description ?? "",
+    /final appliance package, manufacturers and models are confirmed during project review/i,
+  );
+});
+
+test("all other Custom Homes retain the legacy configurator contract", () => {
+  const legacyChapterIds = getRequiredCategories(
+    legacyCustomHomeConfiguratorTemplate,
+  ).map((category) => category.id);
+
+  for (const model of models.filter(
+    (candidate) => !canonicalCustomHomeIds.has(candidate.slug),
+  )) {
+    const definition = getHomeConfiguratorDefinition(model.slug);
+    const registration = getHomeConfiguratorRegistration(
+      "custom-home",
+      model.slug,
+    );
+
+    assert.ok(definition);
+    assert.equal(registration?.migrationStatus, "legacy-active");
+    assert.deepEqual(
+      getRequiredCategories(definition).map((category) => category.id),
+      legacyChapterIds,
+    );
+  }
 });
 
 test("activated homes use model-specific architecture and labels", () => {

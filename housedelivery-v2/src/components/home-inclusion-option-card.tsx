@@ -56,9 +56,15 @@ export function HomeInclusionOptionCard({
           src={option.image.src}
           alt={option.image.alt}
           fill
-          loading={homeName === "Saturna" && isSelected ? "eager" : undefined}
+          loading={
+            (option.image.role === "design-board" || homeName === "Saturna") &&
+            isSelected
+              ? "eager"
+              : undefined
+          }
           quality={
-            homeName === "Saturna" && option.image.fit === "contain" ? 100 : 90
+            option.image.quality ??
+            (homeName === "Saturna" && option.image.fit === "contain" ? 100 : 90)
           }
           sizes={sizes}
           className={cn(

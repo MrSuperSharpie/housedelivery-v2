@@ -258,10 +258,11 @@ function EditorialImage({
         fill
         loading="eager"
         quality={
-          context.definition.homeId === "saturna" &&
+          selection.image.quality ??
+          (context.definition.homeId === "saturna" &&
           selection.image.fit === "contain"
             ? 100
-            : 90
+            : 90)
         }
         sizes={sizes}
         className={
@@ -456,32 +457,34 @@ function CinematicSelectionPage({
     )
     .find((category) => category?.kind === "coordinated");
   if (!hero) return null;
-  const isSaturnaDesignBoard =
-    context.definition.homeId === "saturna" && hero.image.fit === "contain";
+  const isDesignBoard =
+    hero.image.fit === "contain" &&
+    (hero.image.role === "design-board" ||
+      context.definition.homeId === "saturna");
   return (
     <PageShell section={section}>
       <div
         data-look-book-design-board={
-          isSaturnaDesignBoard ? "true" : undefined
+          isDesignBoard ? "true" : undefined
         }
         className="look-book-cinematic mt-10"
       >
         <div
           data-look-book-selected-board={
-            isSaturnaDesignBoard ? "true" : undefined
+            isDesignBoard ? "true" : undefined
           }
-          className={isSaturnaDesignBoard ? "mx-auto w-full lg:w-[90%]" : undefined}
+          className={isDesignBoard ? "mx-auto w-full lg:w-[90%]" : undefined}
         >
           <EditorialImage
             selection={hero}
             context={context}
             className={
-              isSaturnaDesignBoard
+              isDesignBoard
                 ? "aspect-[4/3]"
                 : "aspect-[16/9] lg:aspect-[16/8]"
             }
             sizes={
-              isSaturnaDesignBoard
+              isDesignBoard
                 ? "(max-width: 1023px) 100vw, 90vw"
                 : "100vw"
             }
