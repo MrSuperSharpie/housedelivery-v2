@@ -24,6 +24,7 @@ import {
   getHomeConfiguratorRegistrationsByFamily,
   homeConfiguratorRegistrations,
 } from "@/data/home-configurators";
+import { maplewoodHomeConfigurator } from "@/data/maplewood-home-configurator";
 import { models } from "@/data/models";
 import { saturnaHomeConfigurator } from "@/data/saturna-home-configurator";
 import {
@@ -31,7 +32,7 @@ import {
   solaceHomeConfigurator,
 } from "@/data/solace-home-configurator";
 
-const canonicalCustomHomeIds = new Set(["saturna", "solace"]);
+const canonicalCustomHomeIds = new Set(["maplewood", "saturna", "solace"]);
 
 function getCategoryOptions(category: HomeInclusionCategory) {
   if (category.kind === "standard" || category.kind === "room-look") {
@@ -311,6 +312,112 @@ test("Solace uses exactly seven approved visual-guide chapters", () => {
   assert.equal(
     definition.lookBook.sections[0]?.title,
     "The Solace You Created",
+  );
+});
+
+test("Maplewood uses exactly seven approved visual-guide chapters", () => {
+  const definition = getHomeConfiguratorDefinition("maplewood");
+  assert.ok(definition);
+  const requiredCategories = getRequiredCategories(definition);
+
+  assert.strictEqual(definition, maplewoodHomeConfigurator);
+  assert.deepEqual(getCanonicalHomeConfiguratorIssues(definition), []);
+  assert.equal(
+    getHomeConfiguratorRegistration("custom-home", "maplewood")
+      ?.migrationStatus,
+    "canonical",
+  );
+  assert.deepEqual(
+    requiredCategories.map((category) => [category.id, category.title]),
+    [
+      ["kitchen-look-feel", "Kitchen Look & Feel"],
+      ["primary-ensuite-look-feel", "Primary Ensuite Look & Feel"],
+      ["primary-wardrobe", "Primary Wardrobe"],
+      ["interior-doors-details", "Interior Doors & Details"],
+      ["exterior-arrival-openings", "Exterior Arrival & Openings"],
+      ["whole-home-flooring-stairs", "Whole-Home Flooring & Stairs"],
+      ["window-coverings", "Window Coverings"],
+    ],
+  );
+
+  const referencedAssets: string[] = [];
+  for (const category of requiredCategories) {
+    assert.equal(category.kind, "room-look");
+    if (category.kind !== "room-look") continue;
+
+    assert.equal(category.options.length, 4);
+    assert.deepEqual(
+      category.options.map((option) => [option.level, option.optionNumber]),
+      [
+        ["premium", "1"],
+        ["premium", "2"],
+        ["signature", "1"],
+        ["signature", "2"],
+      ],
+    );
+    assert.ok(category.options.every((option) => option.image.fit === "contain"));
+    assert.ok(
+      category.options.every(
+        (option) =>
+          option.image.role === "design-board" &&
+          option.image.quality === 100,
+      ),
+    );
+    for (const option of category.options) {
+      assert.ok(
+        option.image.src.startsWith(
+          "/images/homes/maplewood/visual-guide/Maplewood_",
+        ),
+      );
+      referencedAssets.push(basename(option.image.src));
+    }
+  }
+
+  const ensuite = requiredCategories.find(
+    (category) => category.id === "primary-ensuite-look-feel",
+  );
+  assert.equal(ensuite?.kind, "room-look");
+  if (ensuite?.kind === "room-look") {
+    assert.deepEqual(
+      ensuite.options.map((option) => option.name),
+      ["Natural Spa", "Warm Modern", "Timeless Elegance", "Sculpted White"],
+    );
+  }
+
+  const assetDirectory = join(
+    process.cwd(),
+    "public/images/homes/maplewood/visual-guide",
+  );
+  const approvedAssets = readdirSync(assetDirectory)
+    .filter((filename) => filename.endsWith(".png"))
+    .sort();
+  assert.equal(approvedAssets.length, 28);
+  assert.deepEqual(referencedAssets.toSorted(), approvedAssets);
+
+  const coordinated = getProjectCoordinatedCategories(definition);
+  assert.deepEqual(coordinated.map((category) => category.id), ["appliances"]);
+  assert.equal(coordinated[0]?.coordinatedMessage, "Project Coordinated");
+  assert.match(
+    coordinated[0]?.description ?? "",
+    /final appliance package and model selections are confirmed during project review/i,
+  );
+
+  const selectionSectionIds = new Set(
+    definition.lookBook.sections.flatMap((section) =>
+      section.items
+        .map((item) => item.categoryId)
+        .filter((categoryId) => categoryId !== "appliances"),
+    ),
+  );
+  assert.equal(selectionSectionIds.size, 7);
+  assert.ok(
+    requiredCategories.every((category) =>
+      selectionSectionIds.has(category.id),
+    ),
+  );
+  assert.equal(
+    definition.lookBook.sections[0]?.title,
+    "The Maplewood You Created",
   );
 });
 

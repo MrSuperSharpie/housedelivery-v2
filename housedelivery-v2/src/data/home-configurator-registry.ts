@@ -9,6 +9,7 @@ import type {
   HomeConfiguratorRegistration,
   HomeProductFamily,
 } from "@/data/home-configurator-architecture";
+import { maplewoodHomeConfigurator } from "@/data/maplewood-home-configurator";
 import { models } from "@/data/models";
 import { saturnaHomeConfigurator } from "@/data/saturna-home-configurator";
 import { solaceHomeConfigurator } from "@/data/solace-home-configurator";
@@ -21,6 +22,7 @@ const customHomeDefinitions: Readonly<
   Record<string, HomeConfiguratorDefinition>
 > = {
   ...customHomeConfigurators,
+  maplewood: maplewoodHomeConfigurator,
   saturna: saturnaHomeConfigurator,
   solace: solaceHomeConfigurator,
 };
@@ -42,7 +44,9 @@ const customHomeRegistrations: readonly HomeConfiguratorRegistration[] =
       route: `/homes/${model.slug}`,
       productFamily: "custom-home",
       migrationStatus:
-        model.slug === "saturna" || model.slug === "solace"
+        model.slug === "maplewood" ||
+        model.slug === "saturna" ||
+        model.slug === "solace"
           ? "canonical"
           : "legacy-active",
       activeChapterIds: getRequiredCategories(definition).map(
