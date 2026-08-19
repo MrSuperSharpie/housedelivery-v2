@@ -13,6 +13,7 @@ import { maplewoodHomeConfigurator } from "@/data/maplewood-home-configurator";
 import { models } from "@/data/models";
 import { saturnaHomeConfigurator } from "@/data/saturna-home-configurator";
 import { solaceHomeConfigurator } from "@/data/solace-home-configurator";
+import { timberlineHomeConfigurator } from "@/data/timberline-home-configurator";
 
 function registrationKey(productFamily: HomeProductFamily, homeId: string) {
   return `${productFamily}:${homeId}`;
@@ -25,6 +26,7 @@ const customHomeDefinitions: Readonly<
   maplewood: maplewoodHomeConfigurator,
   saturna: saturnaHomeConfigurator,
   solace: solaceHomeConfigurator,
+  timberline: timberlineHomeConfigurator,
 };
 
 const customHomeRegistrations: readonly HomeConfiguratorRegistration[] =
@@ -46,7 +48,8 @@ const customHomeRegistrations: readonly HomeConfiguratorRegistration[] =
       migrationStatus:
         model.slug === "maplewood" ||
         model.slug === "saturna" ||
-        model.slug === "solace"
+        model.slug === "solace" ||
+        model.slug === "timberline"
           ? "canonical"
           : "legacy-active",
       activeChapterIds: getRequiredCategories(definition).map(

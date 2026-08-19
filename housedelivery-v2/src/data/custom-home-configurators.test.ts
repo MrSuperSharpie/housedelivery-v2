@@ -31,8 +31,14 @@ import {
   legacyCustomHomeConfiguratorTemplate,
   solaceHomeConfigurator,
 } from "@/data/solace-home-configurator";
+import { timberlineHomeConfigurator } from "@/data/timberline-home-configurator";
 
-const canonicalCustomHomeIds = new Set(["maplewood", "saturna", "solace"]);
+const canonicalCustomHomeIds = new Set([
+  "maplewood",
+  "saturna",
+  "solace",
+  "timberline",
+]);
 
 function getCategoryOptions(category: HomeInclusionCategory) {
   if (category.kind === "standard" || category.kind === "room-look") {
@@ -418,6 +424,132 @@ test("Maplewood uses exactly seven approved visual-guide chapters", () => {
   assert.equal(
     definition.lookBook.sections[0]?.title,
     "The Maplewood You Created",
+  );
+});
+
+test("Timberline uses exactly seven approved visual-guide chapters", () => {
+  const definition = getHomeConfiguratorDefinition("timberline");
+  assert.ok(definition);
+  const requiredCategories = getRequiredCategories(definition);
+
+  assert.strictEqual(definition, timberlineHomeConfigurator);
+  assert.deepEqual(getCanonicalHomeConfiguratorIssues(definition), []);
+  assert.equal(
+    getHomeConfiguratorRegistration("custom-home", "timberline")
+      ?.migrationStatus,
+    "canonical",
+  );
+  assert.deepEqual(
+    requiredCategories.map((category) => [category.id, category.title]),
+    [
+      ["kitchen-look-feel", "Kitchen Look & Feel"],
+      ["primary-ensuite-look-feel", "Primary Ensuite Look & Feel"],
+      ["primary-wardrobe", "Primary Wardrobe"],
+      ["interior-doors-details", "Interior Doors & Details"],
+      ["exterior-arrival-openings", "Exterior Arrival & Openings"],
+      ["whole-home-flooring-stairs", "Whole-Home Flooring & Stairs"],
+      ["window-coverings", "Window Coverings"],
+    ],
+  );
+
+  const expectedOptionNames = new Map([
+    [
+      "kitchen-look-feel",
+      ["Coastal Light Oak", "Soft White", "Stone Wrapped Oak", "Sculpted White"],
+    ],
+    [
+      "primary-ensuite-look-feel",
+      ["Coastal Light Oak", "Soft White", "Stone Wrapped Oak", "Sculpted White"],
+    ],
+    [
+      "primary-wardrobe",
+      ["Warm Natural Oak", "Tailored Light", "Smoked Oak Charcoal", "Limestone Bronze"],
+    ],
+    [
+      "interior-doors-details",
+      ["Warm Natural Oak", "Tailored Light", "Smoked Oak Charcoal", "Limestone Bronze"],
+    ],
+    [
+      "exterior-arrival-openings",
+      ["Coastal Light Oak", "Soft White", "Stone Wrapped Oak", "Sculpted White"],
+    ],
+    [
+      "whole-home-flooring-stairs",
+      ["Warm Natural Oak", "Tailored Light", "Smoked Oak Charcoal", "Limestone Bronze"],
+    ],
+    [
+      "window-coverings",
+      ["Warm Natural", "Tailored Light", "Charcoal Smoked Oak", "Limestone Bronze"],
+    ],
+  ]);
+
+  const referencedAssets: string[] = [];
+  for (const category of requiredCategories) {
+    assert.equal(category.kind, "room-look");
+    if (category.kind !== "room-look") continue;
+
+    assert.equal(category.options.length, 4);
+    assert.deepEqual(
+      category.options.map((option) => [option.level, option.optionNumber]),
+      [
+        ["premium", "1"],
+        ["premium", "2"],
+        ["signature", "1"],
+        ["signature", "2"],
+      ],
+    );
+    assert.deepEqual(
+      category.options.map((option) => option.name),
+      expectedOptionNames.get(category.id),
+    );
+    assert.ok(category.options.every((option) => option.image.fit === "contain"));
+    assert.ok(
+      category.options.every(
+        (option) =>
+          option.image.role === "design-board" &&
+          option.image.quality === 100,
+      ),
+    );
+    for (const option of category.options) {
+      assert.ok(
+        option.image.src.startsWith(
+          "/images/homes/timberline/visual-guide/Timberline_",
+        ),
+      );
+      referencedAssets.push(basename(option.image.src));
+    }
+  }
+
+  const assetDirectory = join(
+    process.cwd(),
+    "public/images/homes/timberline/visual-guide",
+  );
+  const approvedAssets = readdirSync(assetDirectory)
+    .filter((filename) => filename.endsWith(".png"))
+    .sort();
+  assert.equal(approvedAssets.length, 28);
+  assert.deepEqual(referencedAssets.toSorted(), approvedAssets);
+
+  const coordinated = getProjectCoordinatedCategories(definition);
+  assert.deepEqual(coordinated.map((category) => category.id), ["appliances"]);
+  assert.equal(coordinated[0]?.coordinatedMessage, "Project Coordinated");
+
+  const selectionSectionIds = new Set(
+    definition.lookBook.sections.flatMap((section) =>
+      section.items
+        .map((item) => item.categoryId)
+        .filter((categoryId) => categoryId !== "appliances"),
+    ),
+  );
+  assert.equal(selectionSectionIds.size, 7);
+  assert.ok(
+    requiredCategories.every((category) =>
+      selectionSectionIds.has(category.id),
+    ),
+  );
+  assert.equal(
+    definition.lookBook.sections[0]?.title,
+    "The Timberline You Created",
   );
 });
 
