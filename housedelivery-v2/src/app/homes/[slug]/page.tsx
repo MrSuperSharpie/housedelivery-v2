@@ -13,7 +13,7 @@ import { HomeFloorPlanViewer } from "@/components/home-floor-plan-viewer";
 import { ExploreAllInclusionsLink } from "@/components/inclusions-journey-links";
 import { RevealText } from "@/components/reveal-text";
 import { SiteHeader } from "@/components/site-header";
-import { getHomeConfiguratorDefinition } from "@/data/home-configurators";
+import { getHomeConfiguratorRegistration } from "@/data/home-configurators";
 import { models, type HomeModel } from "@/data/models";
 
 type HomeDetailPageProps = {
@@ -66,13 +66,22 @@ export default async function HomeDetailPage({
   }
 
   const nextModel: HomeModel = models[(modelIndex + 1) % models.length];
-  const configuratorDefinition = getHomeConfiguratorDefinition(model.slug);
-  const designToolDiscovery = configuratorDefinition
-    ? {
-        homeName: configuratorDefinition.homeName,
-        href: "#home-inclusions",
-      }
-    : undefined;
+  const configuratorRegistration = getHomeConfiguratorRegistration(
+    "custom-home",
+    model.slug,
+  );
+  const configuratorDefinition = configuratorRegistration?.definition;
+  const hasApprovedLookBook =
+    configuratorRegistration?.migrationStatus === "canonical" &&
+    configuratorDefinition !== undefined;
+  const designToolDiscovery = {
+    homeName:
+      configuratorRegistration?.homeName ?? model.name.replace(/^The\s+/, ""),
+    href: hasApprovedLookBook ? "#home-inclusions" : undefined,
+    availability: hasApprovedLookBook
+      ? ("available" as const)
+      : ("coming-soon" as const),
+  };
   const specifications = [
     { label: "Footprint", value: model.footprint ?? "Site-adapted" },
     { label: "Main level", value: formatArea(model.levels.main) },
@@ -164,13 +173,12 @@ export default async function HomeDetailPage({
               <p>Site engineering required</p>
             </div>
 
-            {designToolDiscovery ? (
-              <HomeDesignToolCallout
-                homeName={designToolDiscovery.homeName}
-                href={designToolDiscovery.href}
-                variant="primary"
-              />
-            ) : null}
+            <HomeDesignToolCallout
+              homeName={designToolDiscovery.homeName}
+              href={designToolDiscovery.href}
+              variant="primary"
+              availability={designToolDiscovery.availability}
+            />
           </div>
         </section>
 

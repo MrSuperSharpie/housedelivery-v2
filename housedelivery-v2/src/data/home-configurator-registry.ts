@@ -1,6 +1,5 @@
 import { carriageHomes } from "@/data/carriage-homes";
 import { catalogModels } from "@/data/catalog";
-import { customHomeConfigurators } from "@/data/custom-home-configurators";
 import {
   getRequiredCategories,
   type HomeConfiguratorDefinition,
@@ -22,7 +21,6 @@ function registrationKey(productFamily: HomeProductFamily, homeId: string) {
 const customHomeDefinitions: Readonly<
   Record<string, HomeConfiguratorDefinition>
 > = {
-  ...customHomeConfigurators,
   maplewood: maplewoodHomeConfigurator,
   saturna: saturnaHomeConfigurator,
   solace: solaceHomeConfigurator,
@@ -33,28 +31,16 @@ const customHomeRegistrations: readonly HomeConfiguratorRegistration[] =
   models.map((model) => {
     const definition = customHomeDefinitions[model.slug];
 
-    if (!definition) {
-      throw new Error(
-        `Current Custom Home configurator is unavailable: ${model.slug}`,
-      );
-    }
-
     return {
       key: registrationKey("custom-home", model.slug),
       homeId: model.slug,
-      homeName: definition.homeName,
+      homeName: definition?.homeName ?? model.name.replace(/^The\s+/, ""),
       route: `/homes/${model.slug}`,
       productFamily: "custom-home",
-      migrationStatus:
-        model.slug === "maplewood" ||
-        model.slug === "saturna" ||
-        model.slug === "solace" ||
-        model.slug === "timberline"
-          ? "canonical"
-          : "legacy-active",
-      activeChapterIds: getRequiredCategories(definition).map(
-        (category) => category.id,
-      ),
+      migrationStatus: definition ? "canonical" : "awaiting-approved-content",
+      activeChapterIds: definition
+        ? getRequiredCategories(definition).map((category) => category.id)
+        : [],
       definition,
     };
   });

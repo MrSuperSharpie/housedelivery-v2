@@ -27,10 +27,7 @@ import {
 import { maplewoodHomeConfigurator } from "@/data/maplewood-home-configurator";
 import { models } from "@/data/models";
 import { saturnaHomeConfigurator } from "@/data/saturna-home-configurator";
-import {
-  legacyCustomHomeConfiguratorTemplate,
-  solaceHomeConfigurator,
-} from "@/data/solace-home-configurator";
+import { solaceHomeConfigurator } from "@/data/solace-home-configurator";
 import { timberlineHomeConfigurator } from "@/data/timberline-home-configurator";
 
 const canonicalCustomHomeIds = new Set([
@@ -52,9 +49,14 @@ function getCategoryOptions(category: HomeInclusionCategory) {
   return [];
 }
 
-test("every Custom Home model is registered with the shared configurator", () => {
+test("only approved Custom Homes expose a shared configurator", () => {
   for (const model of models) {
     const definition = getHomeConfiguratorDefinition(model.slug);
+
+    if (!canonicalCustomHomeIds.has(model.slug)) {
+      assert.equal(definition, undefined);
+      continue;
+    }
 
     assert.ok(definition, `Missing configurator for ${model.slug}`);
     assert.equal(definition.homeId, model.slug);
@@ -65,7 +67,7 @@ test("every Custom Home model is registered with the shared configurator", () =>
     );
     assert.equal(
       getRequiredCategories(definition).length,
-      canonicalCustomHomeIds.has(model.slug) ? 7 : 11,
+      7,
     );
 
     for (const category of definition.categories) {
@@ -99,7 +101,33 @@ test("all residential product families are registered without premature activati
   assert.equal(carriageHomes.length, 6);
   assert.equal(preApprovedHomes.length, 7);
   assert.equal(new Set(homeConfiguratorRegistrations.map(({ key }) => key)).size, 28);
-  assert.ok(customHomes.every((registration) => registration.definition));
+  assert.equal(
+    customHomes.filter(
+      (registration) => registration.migrationStatus === "canonical",
+    ).length,
+    4,
+  );
+  assert.ok(
+    customHomes
+      .filter((registration) => registration.migrationStatus === "canonical")
+      .every(
+        (registration) =>
+          registration.definition !== undefined &&
+          registration.activeChapterIds.length === 7,
+      ),
+  );
+  assert.ok(
+    customHomes
+      .filter(
+        (registration) =>
+          registration.migrationStatus === "awaiting-approved-content",
+      )
+      .every(
+        (registration) =>
+          registration.definition === undefined &&
+          registration.activeChapterIds.length === 0,
+      ),
+  );
   assert.ok(
     [...carriageHomes, ...preApprovedHomes].every(
       (registration) =>
@@ -637,11 +665,7 @@ test("Project Coordinated remains non-core and does not block completion", () =>
   );
 });
 
-test("all other Custom Homes retain the legacy configurator contract", () => {
-  const legacyChapterIds = getRequiredCategories(
-    legacyCustomHomeConfiguratorTemplate,
-  ).map((category) => category.id);
-
+test("unfinished Custom Homes cannot resolve a fallback configurator", () => {
   for (const model of models.filter(
     (candidate) => !canonicalCustomHomeIds.has(candidate.slug),
   )) {
@@ -651,23 +675,25 @@ test("all other Custom Homes retain the legacy configurator contract", () => {
       model.slug,
     );
 
-    assert.ok(definition);
-    assert.equal(registration?.migrationStatus, "legacy-active");
-    assert.deepEqual(
-      getRequiredCategories(definition).map((category) => category.id),
-      legacyChapterIds,
-    );
+    assert.equal(definition, undefined);
+    assert.equal(registration?.migrationStatus, "awaiting-approved-content");
+    assert.deepEqual(registration?.activeChapterIds, []);
   }
 });
 
-test("activated homes use model-specific architecture and labels", () => {
-  for (const model of models.filter((candidate) => candidate.slug !== "solace")) {
+test("approved homes use model-specific architecture and labels", () => {
+  for (const model of models.filter((candidate) =>
+    canonicalCustomHomeIds.has(candidate.slug),
+  )) {
     const definition = getHomeConfiguratorDefinition(model.slug);
 
     assert.ok(definition);
     assert.equal(definition.architecturalImages[0]?.src, model.heroImage);
     assert.equal(definition.lookBook.home.heroImage.src, model.heroImage);
     assert.doesNotMatch(definition.homeName, /^The\s/);
-    assert.doesNotMatch(definition.lookBook.sections[0]?.title ?? "", /Solace/);
+    assert.equal(
+      definition.lookBook.sections[0]?.title,
+      `The ${definition.homeName} You Created`,
+    );
   }
 });

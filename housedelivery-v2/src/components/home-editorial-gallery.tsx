@@ -43,7 +43,8 @@ type HomeEditorialGalleryProps = {
   contextualInclusionsDestination?: ContextualInclusionDestination;
   designToolDiscovery?: {
     homeName: string;
-    href: string;
+    href?: string;
+    availability?: "available" | "coming-soon";
   };
 };
 
@@ -270,6 +271,7 @@ export function HomeEditorialGallery({
                     homeName={designToolDiscovery.homeName}
                     href={designToolDiscovery.href}
                     variant="quiet"
+                    availability={designToolDiscovery.availability}
                   />
                 ) : null}
               </Fragment>
