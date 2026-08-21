@@ -272,7 +272,7 @@ export function ModernMethodsSection() {
                     src={image.src}
                     alt={image.alt}
                     fill
-                    quality={90}
+                    quality={95}
                     sizes="(max-width: 639px) calc(100vw - 2.5rem), (max-width: 1023px) calc(50vw - 2.75rem), (max-width: 1599px) calc(50vw - 4rem), 736px"
                     style={{ imageRendering: "auto" }}
                     className="object-cover brightness-90 grayscale transition-all duration-[2000ms] ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-[1.025] group-hover:brightness-100 group-hover:grayscale-0"
@@ -342,7 +342,7 @@ export function FinishesSection() {
                         src={finishTierImages[tier.id]}
                         alt=""
                         fill
-                        quality={82}
+                        quality={95}
                         sizes="(max-width: 639px) calc(100vw - 2.5rem), (max-width: 1599px) 33vw, 488px"
                         className="object-cover transition-transform duration-[350ms] ease-out motion-reduce:transition-none [@media(hover:hover)_and_(pointer:fine)]:scale-[1.015] [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-100 [@media(hover:hover)_and_(pointer:fine)]:group-focus-visible:scale-100"
                       />

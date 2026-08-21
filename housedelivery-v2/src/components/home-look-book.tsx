@@ -259,11 +259,9 @@ function EditorialImage({
         loading="eager"
         quality={
           selection.image.quality ??
-          (context.definition.homeId === "saturna" &&
-          selection.image.fit === "contain"
-            ? 100
-            : 90)
+          (selection.image.role === "design-board" ? 100 : 95)
         }
+        unoptimized={selection.image.role === "design-board"}
         sizes={sizes}
         className={
           selection.image.fit === "contain"

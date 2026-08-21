@@ -90,6 +90,7 @@ export function DeliveryTimeline({
                 width={2172}
                 height={724}
                 quality={100}
+                unoptimized
                 sizes="(max-width: 1023px) 960px, (max-width: 1888px) calc(100vw - 96px), 1776px"
                 className="block h-auto w-full max-w-none"
               />

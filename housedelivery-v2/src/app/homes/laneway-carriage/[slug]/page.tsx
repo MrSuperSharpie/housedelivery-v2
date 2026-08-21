@@ -83,8 +83,8 @@ function CollectionLink({ direction, model }: CollectionLinkProps) {
           src={image.src}
           alt={image.alt}
           fill
-          quality={90}
-          sizes="(max-width: 767px) 100vw, 50vw"
+          quality={95}
+          sizes="(max-width: 767px) 100vw, (max-width: 1599px) 50vw, 736px"
           className="object-cover brightness-90 transition-all duration-[2000ms] ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-[1.04] group-hover:brightness-100 group-focus-visible:scale-[1.04] group-focus-visible:brightness-100"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/5 to-transparent" />

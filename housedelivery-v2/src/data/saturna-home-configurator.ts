@@ -50,6 +50,8 @@ function createOption(
       src: `${assetRoot}/${source.filename}`,
       alt: `${source.level === "premium" ? "Premium" : "Signature"} ${source.optionNumber} — ${source.name}, ${chapter.title.toLowerCase()} design board for Saturna House.`,
       fit: "contain",
+      role: "design-board",
+      quality: 100,
     },
   };
 }

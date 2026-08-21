@@ -41,7 +41,7 @@ export type InclusionImage = {
   alt: string;
   fit?: "cover" | "contain";
   role?: "design-board";
-  quality?: 90 | 100;
+  quality?: 95 | 100;
 };
 
 export type InclusionProductChoice = {

@@ -56,7 +56,7 @@ export function HomeInclusionCategory({
               src={selectedOption.image.src}
               alt=""
               fill
-              quality={90}
+              quality={95}
               sizes="88px"
               className={
                 selectedOption.image.fit === "contain"

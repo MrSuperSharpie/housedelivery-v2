@@ -41,7 +41,7 @@ export function ProjectUnderstandingSection() {
                 src="/Cascade-1.png"
                 alt="Exterior rendering of The Cascade House Delivery home"
                 fill
-                quality={90}
+                quality={95}
                 sizes="(max-width: 1023px) 100vw, (max-width: 1599px) 58vw, 878px"
                 className="object-cover"
               />

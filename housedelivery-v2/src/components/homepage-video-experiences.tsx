@@ -85,7 +85,7 @@ function VideoLightbox({
           src={posterSrc}
           alt={posterAlt}
           fill
-          quality={90}
+          quality={95}
           sizes={sizes}
           className="object-cover brightness-[0.72] transition-[transform,filter] duration-700 ease-out motion-reduce:transition-none group-hover:scale-[1.015] group-hover:brightness-[0.82] group-focus-visible:scale-[1.015] group-focus-visible:brightness-[0.82]"
         />

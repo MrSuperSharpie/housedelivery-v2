@@ -132,6 +132,7 @@ export function HomeImagePreview({
             alt={option.image.alt}
             fill
             quality={100}
+            unoptimized={option.image.role === "design-board"}
             sizes="(max-width: 1023px) 100vw, calc(100vw - 22rem)"
             className="object-contain"
           />

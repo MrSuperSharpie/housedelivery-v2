@@ -42,7 +42,7 @@ function CatalogueModelGrid({ models }: CatalogueModelGridProps) {
               src={model.image}
               alt={model.imageAlt}
               fill
-              quality={90}
+              quality={95}
               sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, (max-width: 1599px) 33vw, 488px"
               style={{ imageRendering: "auto" }}
               className="object-cover brightness-90 transition-all duration-[2000ms] ease-[cubic-bezier(0.25,1,0.5,1)] hover:scale-[1.04] hover:brightness-100 group-hover:scale-[1.04] group-hover:brightness-100"

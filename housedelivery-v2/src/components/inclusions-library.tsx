@@ -209,7 +209,7 @@ function VisualStoryCard({ story }: { story: VisualStory }) {
               src={heroImage.src}
               alt={heroImage.alt}
               fill
-              quality={90}
+              quality={95}
               sizes={
                 story.span === "full"
                   ? "(max-width: 1599px) calc(100vw - 6rem), 1504px"
@@ -359,6 +359,7 @@ export function InclusionsLibrary() {
                   alt="Maplewood Premium kitchen Visual Guide board showing a coordinated light oak design direction."
                   fill
                   quality={100}
+                  unoptimized
                   sizes="(max-width: 1023px) calc(100vw - 2.5rem), 58vw"
                   className="object-contain"
                 />
@@ -436,7 +437,7 @@ export function InclusionsLibrary() {
                     src={collection.image.src}
                     alt={collection.image.alt}
                     fill
-                    quality={90}
+                    quality={95}
                     sizes="(max-width: 1023px) calc(100vw - 2.5rem), 50vw"
                     className="object-cover"
                   />

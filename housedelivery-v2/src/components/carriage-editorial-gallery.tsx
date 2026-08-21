@@ -87,7 +87,7 @@ export function CarriageEditorialGallery({
                       src={image.src}
                       alt={image.alt}
                       fill
-                      quality={90}
+                      quality={95}
                       sizes="(max-width: 639px) calc(100vw - 40px), (max-width: 895px) calc(100vw - 64px), 820px"
                       className="object-contain"
                     />

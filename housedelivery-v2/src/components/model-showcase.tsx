@@ -151,7 +151,7 @@ export function ModelShowcase({
                             : `${model.name} floor plan reference`
                         }
                         fill
-                        quality={90}
+                        quality={95}
                         sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, (max-width: 1599px) 33vw, 488px"
                         style={{ imageRendering: "auto" }}
                         className={cn(

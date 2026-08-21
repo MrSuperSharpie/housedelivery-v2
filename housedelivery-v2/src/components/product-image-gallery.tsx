@@ -51,8 +51,8 @@ export function ProductImageGallery({
         src={activeImage.src}
         alt={activeImage.alt}
         fill
-        quality={90}
-        sizes="(max-width: 767px) 100vw, (max-width: 1279px) 50vw, 33vw"
+        quality={95}
+        sizes="(max-width: 767px) 100vw, (max-width: 1279px) 50vw, (max-width: 1599px) 33vw, 488px"
         className={
           activeImage.fit === "contain" ? "object-contain" : "object-cover"
         }

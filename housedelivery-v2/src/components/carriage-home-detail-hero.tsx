@@ -63,7 +63,7 @@ export function CarriageHomeDetailHero({
             src={heroImage.src}
             alt={heroImage.alt}
             fill
-            quality={90}
+            quality={95}
             loading="eager"
             fetchPriority="high"
             sizes="(max-width: 639px) calc(100vw - 40px), (max-width: 895px) calc(100vw - 64px), 760px"

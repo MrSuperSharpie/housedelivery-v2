@@ -101,7 +101,7 @@ export function CarriageHomeShowcase() {
                       src={mainImage.src}
                       alt={mainImage.alt}
                       fill
-                      quality={90}
+                      quality={95}
                       sizes="(max-width: 767px) 100vw, (max-width: 1535px) 50vw, 728px"
                       style={{ imageRendering: "auto" }}
                       className="object-cover brightness-90 transition-all duration-[2000ms] ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-[1.04] group-hover:brightness-100 group-focus-within:scale-[1.04] group-focus-within:brightness-100"

@@ -75,7 +75,7 @@ export function HomeFlooringCategory({
                       src={option.image.src}
                       alt=""
                       fill
-                      quality={90}
+                      quality={95}
                       sizes="72px"
                       className={
                         option.image.fit === "contain"
@@ -198,7 +198,7 @@ export function HomeFlooringCategory({
                         src={option.image.src}
                         alt=""
                         fill
-                        quality={90}
+                        quality={95}
                         sizes="72px"
                         className={
                           option.image.fit === "contain"

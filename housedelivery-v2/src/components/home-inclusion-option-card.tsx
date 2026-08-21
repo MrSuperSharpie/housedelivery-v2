@@ -64,7 +64,7 @@ export function HomeInclusionOptionCard({
           }
           quality={
             option.image.quality ??
-            (homeName === "Saturna" && option.image.fit === "contain" ? 100 : 90)
+            (option.image.role === "design-board" ? 100 : 95)
           }
           sizes={sizes}
           className={cn(

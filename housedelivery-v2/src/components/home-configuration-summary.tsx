@@ -63,7 +63,7 @@ function HomeConfigurationEntries({
                   alt=""
                   width={96}
                   height={96}
-                  quality={90}
+                  quality={95}
                   sizes="48px"
                   className={
                     previewOption.image.fit === "contain"
@@ -205,7 +205,7 @@ export function HomeConfigurationSummary({
           alt=""
           width={1200}
           height={750}
-          quality={90}
+          quality={95}
           sizes="320px"
           className={
             visualBriefImage.fit === "contain"
