@@ -13,8 +13,12 @@ type HomeImagePreviewProps = {
   option: HomeInclusionOption;
   homeName: string;
   isSelected: boolean;
+  canShowPrevious: boolean;
+  canShowNext: boolean;
   returnFocusId: string;
   onSelect: () => void;
+  onShowPrevious: () => void;
+  onShowNext: () => void;
   onClose: () => void;
 };
 
@@ -22,8 +26,12 @@ export function HomeImagePreview({
   option,
   homeName,
   isSelected,
+  canShowPrevious,
+  canShowNext,
   returnFocusId,
   onSelect,
+  onShowPrevious,
+  onShowNext,
   onClose,
 }: HomeImagePreviewProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -71,6 +79,30 @@ export function HomeImagePreview({
       document.getElementById(returnFocusId)?.focus({ preventScroll: true });
     };
   }, [onClose, returnFocusId]);
+
+  useEffect(() => {
+    function handleArrowKey(event: KeyboardEvent) {
+      if (
+        event.defaultPrevented ||
+        event.altKey ||
+        event.ctrlKey ||
+        event.metaKey
+      ) {
+        return;
+      }
+
+      if (event.key === "ArrowLeft" && canShowPrevious) {
+        event.preventDefault();
+        onShowPrevious();
+      } else if (event.key === "ArrowRight" && canShowNext) {
+        event.preventDefault();
+        onShowNext();
+      }
+    }
+
+    document.addEventListener("keydown", handleArrowKey);
+    return () => document.removeEventListener("keydown", handleArrowKey);
+  }, [canShowNext, canShowPrevious, onShowNext, onShowPrevious]);
 
   return (
     <div
@@ -143,6 +175,27 @@ export function HomeImagePreview({
           </div>
 
           <div className="mt-8 border-t border-white/14 pt-6">
+            <div className="mb-3 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                data-show-previous-preview-option
+                disabled={!canShowPrevious}
+                onClick={onShowPrevious}
+                className="min-h-12 border border-white/24 px-4 text-left text-[9px] font-semibold uppercase tracking-[0.15em] text-white transition-colors hover:border-white hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white disabled:cursor-not-allowed disabled:border-white/10 disabled:text-white/28 disabled:hover:bg-transparent"
+              >
+                <span aria-hidden="true">←</span> Previous
+              </button>
+              <button
+                type="button"
+                data-show-next-preview-option
+                disabled={!canShowNext}
+                onClick={onShowNext}
+                className="min-h-12 border border-white/24 px-4 text-right text-[9px] font-semibold uppercase tracking-[0.15em] text-white transition-colors hover:border-white hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white disabled:cursor-not-allowed disabled:border-white/10 disabled:text-white/28 disabled:hover:bg-transparent"
+              >
+                Next option <span aria-hidden="true">→</span>
+              </button>
+            </div>
+
             {isSelected ? (
               <p className="flex min-h-14 items-center gap-3 bg-white px-5 text-[10px] font-semibold uppercase tracking-[0.17em] text-black">
                 <Check aria-hidden="true" className="size-4" strokeWidth={2} />

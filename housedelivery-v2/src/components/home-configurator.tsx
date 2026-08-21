@@ -148,6 +148,16 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
         getDisplayedFlooringOption(zone, configuration)?.id === option.id,
     };
   })();
+  const imagePreviewOptions = imagePreview
+    ? imagePreview.category.kind === "flooring"
+      ? (imagePreview.zone?.options ?? [])
+      : imagePreview.category.options
+    : [];
+  const imagePreviewOptionIndex = imagePreview
+    ? imagePreviewOptions.findIndex(
+        (option) => option.id === imagePreview.option.id,
+      )
+    : -1;
 
   function selectInclusionOption(
     category: HomeSelectableInclusionCategory,
@@ -213,6 +223,18 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
         imagePreview.option.id,
       );
     }
+  }
+
+  function showAdjacentImagePreviewOption(offset: -1 | 1) {
+    if (!imagePreviewTarget || imagePreviewOptionIndex < 0) return;
+
+    const option = imagePreviewOptions[imagePreviewOptionIndex + offset];
+    if (!option) return;
+
+    setImagePreviewTarget({
+      ...imagePreviewTarget,
+      optionId: option.id,
+    });
   }
 
   function confirmInclusionCategory(
@@ -611,8 +633,15 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
           option={imagePreview.option}
           homeName={definition.homeName}
           isSelected={imagePreview.isSelected}
+          canShowPrevious={imagePreviewOptionIndex > 0}
+          canShowNext={
+            imagePreviewOptionIndex >= 0 &&
+            imagePreviewOptionIndex < imagePreviewOptions.length - 1
+          }
           returnFocusId={imagePreviewTarget.returnFocusId}
           onSelect={selectImagePreviewOption}
+          onShowPrevious={() => showAdjacentImagePreviewOption(-1)}
+          onShowNext={() => showAdjacentImagePreviewOption(1)}
           onClose={closeImagePreview}
         />
       ) : null}
