@@ -1,70 +1,37 @@
-"use client";
-
-import { motion } from "framer-motion";
-import {
-  ClipboardCheck,
-  Compass,
-  Factory,
-  Home,
-  PackageCheck,
-  Ruler,
-  Ship,
-} from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
 
 import { RevealText } from "@/components/reveal-text";
-import { cn } from "@/lib/cn";
 
-const stages = [
+const milestones = [
   {
-    day: "DAY 01",
-    title: "Site review + project kickoff",
+    title: "Project review + fit",
     description:
-      "We review the site, access, zoning context, utilities, project priorities, and the delivery pathway best suited to the opportunity.",
-    icon: Compass,
+      "Site, access, objectives, jurisdiction and delivery pathway.",
   },
   {
-    day: "DAY 15",
-    title: "Design adaptation + engineering",
+    title: "Home configuration + coordination",
     description:
-      "The selected design is adapted for local snow, wind, seismic, foundation, and jurisdictional requirements while key specifications are coordinated.",
-    icon: Ruler,
+      "Confirm the home, inclusions and project requirements.",
   },
   {
-    day: "DAY 30",
-    title: "Permit submission + site preparation begins",
+    title: "Project-specific review + approvals",
     description:
-      "The coordinated permit package enters municipal review as approved site preparation, utility coordination, and local crew planning begin.",
-    icon: ClipboardCheck,
+      "Required local design adaptation, engineering, permitting and technical review begin once the project is ready to proceed.",
   },
   {
-    day: "DAY 30–75",
-    title: "Factory production + site preparation in parallel",
+    title: "Factory production + site preparation",
     description:
-      "Numbered structural components are precision-formed and quality checked in the factory while site work advances toward delivery readiness.",
-    icon: Factory,
+      "Coordinated workstreams can advance in parallel.",
   },
   {
-    day: "DAY 75–120",
-    title: "Ocean transit + customs + inland delivery",
+    title: "Logistics + local assembly",
     description:
-      "The component package moves through ocean transit, customs clearance, and inland delivery while the Canadian site advances toward readiness.",
-    icon: Ship,
+      "Freight, customs, delivery and structural assembly are coordinated.",
   },
   {
-    day: "DAY 105–135",
-    title: "Delivery + structural assembly",
+    title: "Completion + handover",
     description:
-      "Where shipment arrival and site readiness allow, delivery sequencing and structural assembly can begin before the broader logistics window is complete.",
-    icon: PackageCheck,
-  },
-  {
-    day: "DAY 135–165",
-    title: "Interior completion, inspections + handover",
-    description:
-      "Interior systems and finishes are completed, required inspections are closed out, and the documented home is prepared for handover.",
-    icon: Home,
+      "Interior completion, inspections, deficiencies and final handover.",
   },
 ] as const;
 
@@ -83,9 +50,6 @@ export function DeliveryTimeline({
   headlineSecondary = "Seven clear stages.",
   introCopy = "Parallel planning replaces the usual stop-start sequence. Engineering, approvals, production, and site work are coordinated around one delivery target.",
 }: DeliveryTimelineProps) {
-  const [activeStage, setActiveStage] = useState(0);
-  const ActiveIcon = stages[activeStage].icon;
-
   return (
     <section
       id="timeline"
@@ -142,77 +106,44 @@ export function DeliveryTimeline({
           </div>
         </figure>
 
-        <div className="relative mt-20 grid gap-2 border-t border-white/10 pt-16 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
-          <div className="absolute left-0 right-0 top-[98px] hidden h-px bg-white/12 xl:block" />
-          <motion.div
-            className="absolute left-0 top-[98px] hidden h-px bg-white xl:block"
-            animate={{ width: `${(activeStage / (stages.length - 1)) * 100}%` }}
-            transition={{ duration: 0.55, ease: [0.2, 0.7, 0, 1] }}
-          />
-          {stages.map((stage, index) => {
-            const Icon = stage.icon;
-            const isActive = activeStage === index;
-            return (
-              <button
-                key={stage.title}
-                type="button"
-                onClick={() => setActiveStage(index)}
-                className={cn(
-                  "relative z-10 flex items-center gap-4 border border-white/10 p-4 text-left transition-colors xl:block xl:border-0 xl:bg-transparent xl:p-0",
-                  isActive ? "bg-white/[0.06]" : "hover:bg-white/[0.03]",
-                )}
-                aria-pressed={isActive}
-              >
-                <span
-                  className={cn(
-                    "grid size-[68px] shrink-0 place-items-center rounded-full border transition-colors xl:mx-auto",
-                    isActive
-                      ? "border-white bg-white text-black"
-                      : "border-white/20 bg-[#0e1014] text-white/42",
-                  )}
-                >
-                  <Icon size={19} strokeWidth={1.5} />
-                </span>
-                <span className="xl:mt-5 xl:block xl:text-center">
-                  <span className="block text-[9px] uppercase tracking-[0.18em] text-white/35">
-                    {stage.day}
-                  </span>
-                  <span
-                    className={cn(
-                      "mt-1 block text-xs",
-                      isActive ? "text-white" : "text-white/48",
-                    )}
-                  >
-                    {stage.title}
-                  </span>
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        <motion.div
-          key={activeStage}
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="mt-14 grid border-t border-white/15 pt-10 md:grid-cols-[150px_1fr] md:gap-16"
+        <section
+          aria-labelledby="typical-project-milestones-heading"
+          className="mt-20 border-t border-white/10 pt-12 lg:mt-28 lg:pt-16"
         >
-          <div className="flex items-center gap-4 text-white/35">
-            <ActiveIcon size={24} strokeWidth={1.3} />
-            <span className="text-[10px] uppercase tracking-[0.2em]">
-              {stages[activeStage].day}
-            </span>
-          </div>
-          <div className="mt-8 max-w-3xl md:mt-0">
-            <h3 className="text-3xl font-medium tracking-[-0.045em] md:text-4xl">
-              {stages[activeStage].title}
-            </h3>
-            <p className="mt-4 text-base leading-7 text-white/50 md:text-lg md:leading-8">
-              {stages[activeStage].description}
-            </p>
-          </div>
-        </motion.div>
+          <h3
+            id="typical-project-milestones-heading"
+            className="text-2xl font-medium tracking-[-0.04em] text-white/76 sm:text-3xl"
+          >
+            Typical Project Milestones
+          </h3>
+
+          <ol className="mt-10 grid border-t border-white/10 md:grid-cols-2 md:gap-x-16 lg:mt-12 lg:gap-x-24">
+            {milestones.map((milestone, index) => (
+              <li
+                key={milestone.title}
+                className="grid grid-cols-[2rem_1fr] gap-4 border-b border-white/10 py-7 sm:grid-cols-[2.5rem_1fr] sm:gap-6 sm:py-9"
+              >
+                <span className="pt-1 font-mono text-[9px] tracking-[0.18em] text-white/24">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <div>
+                  <h4 className="text-base font-medium tracking-[-0.025em] text-white/70 sm:text-lg">
+                    {milestone.title}
+                  </h4>
+                  <p className="mt-3 max-w-xl text-sm leading-6 text-white/40">
+                    {milestone.description}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ol>
+
+          <p className="mt-8 max-w-3xl text-xs leading-6 text-white/32">
+            Indicative project timing is established after site, design,
+            approval and procurement requirements are understood. Workstreams
+            may overlap.
+          </p>
+        </section>
       </div>
     </section>
   );
