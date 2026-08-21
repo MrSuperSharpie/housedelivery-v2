@@ -38,6 +38,41 @@ type HomeImagePreviewTarget = {
   returnFocusId: string;
 };
 
+function getCategoryImagePreviewTarget(
+  category: HomeInclusionCategoryData,
+  configuration: HomeConfiguration,
+): HomeImagePreviewTarget | undefined {
+  if (category.kind === "coordinated") return undefined;
+
+  if (category.kind === "standard" || category.kind === "room-look") {
+    const option = getDisplayedInclusionOption(category, configuration);
+    if (!option) return undefined;
+
+    return {
+      categoryId: category.id,
+      optionId: option.id,
+      returnFocusId: `home-option-preview-trigger-${option.id}`,
+    };
+  }
+
+  const zone =
+    category.zones.find(
+      (candidate) =>
+        configuration.flooringSelections[candidate.id]?.status !== "confirmed",
+    ) ?? category.zones[0];
+  const option = zone
+    ? getDisplayedFlooringOption(zone, configuration)
+    : undefined;
+  if (!zone || !option) return undefined;
+
+  return {
+    categoryId: category.id,
+    zoneId: zone.id,
+    optionId: option.id,
+    returnFocusId: `home-option-preview-trigger-${option.id}`,
+  };
+}
+
 const configurationOrientation = [
   {
     label: "Choose",
@@ -206,23 +241,95 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
   }
 
   function selectImagePreviewOption() {
-    if (!imagePreview) return;
+    if (!imagePreview || !imagePreviewTarget) return;
+
+    let nextConfiguration: HomeConfiguration;
 
     if (
       imagePreview.category.kind === "standard" ||
       imagePreview.category.kind === "room-look"
     ) {
-      selectInclusionOption(imagePreview.category, imagePreview.option.id);
+      nextConfiguration = {
+        ...configuration,
+        inclusionSelections: {
+          ...configuration.inclusionSelections,
+          [imagePreview.category.id]: {
+            optionId: imagePreview.option.id,
+            status: "confirmed",
+          },
+        },
+        reviewStatus: "draft",
+      };
+    } else {
+      if (!imagePreview.zone) return;
+
+      nextConfiguration = {
+        ...configuration,
+        flooringSelections: {
+          ...configuration.flooringSelections,
+          [imagePreview.zone.id]: {
+            optionId: imagePreview.option.id,
+            status: "confirmed",
+          },
+        },
+        reviewStatus: "draft",
+      };
+    }
+
+    setConfiguration(nextConfiguration);
+
+    if (
+      imagePreview.category.kind === "flooring" &&
+      imagePreview.zone
+    ) {
+      const currentZoneIndex = imagePreview.category.zones.findIndex(
+        (zone) => zone.id === imagePreview.zone?.id,
+      );
+      const nextZone = [
+        ...imagePreview.category.zones.slice(currentZoneIndex + 1),
+        ...imagePreview.category.zones.slice(0, currentZoneIndex),
+      ].find(
+        (zone) =>
+          nextConfiguration.flooringSelections[zone.id]?.status !==
+          "confirmed",
+      );
+      const nextOption = nextZone
+        ? getDisplayedFlooringOption(nextZone, nextConfiguration)
+        : undefined;
+
+      if (nextZone && nextOption) {
+        setActiveCategoryId(imagePreview.category.id);
+        setActiveFlooringZoneId(nextZone.id);
+        setImagePreviewTarget({
+          categoryId: imagePreview.category.id,
+          zoneId: nextZone.id,
+          optionId: nextOption.id,
+          returnFocusId: `home-option-preview-trigger-${nextOption.id}`,
+        });
+        return;
+      }
+    }
+
+    const nextCategory = getNextIncompleteCategory(
+      definition,
+      nextConfiguration,
+      imagePreview.category.id,
+    );
+    const nextPreviewTarget = nextCategory
+      ? getCategoryImagePreviewTarget(nextCategory, nextConfiguration)
+      : undefined;
+
+    if (nextCategory && nextPreviewTarget) {
+      setActiveCategoryId(nextCategory.id);
+      setActiveFlooringZoneId(nextPreviewTarget.zoneId ?? null);
+      setImagePreviewTarget(nextPreviewTarget);
       return;
     }
 
-    if (imagePreview.zone) {
-      selectFlooringOption(
-        imagePreview.category,
-        imagePreview.zone.id,
-        imagePreview.option.id,
-      );
-    }
+    setActiveCategoryId(null);
+    setActiveFlooringZoneId(null);
+    setImagePreviewTarget(null);
+    focusConfigurationTarget("home-look-book");
   }
 
   function showAdjacentImagePreviewOption(offset: -1 | 1) {

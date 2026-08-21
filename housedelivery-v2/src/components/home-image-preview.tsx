@@ -36,7 +36,12 @@ export function HomeImagePreview({
 }: HomeImagePreviewProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const returnFocusIdRef = useRef(returnFocusId);
   const headingId = `home-image-preview-${option.id}-heading`;
+
+  useEffect(() => {
+    returnFocusIdRef.current = returnFocusId;
+  }, [returnFocusId]);
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
@@ -76,9 +81,11 @@ export function HomeImagePreview({
     return () => {
       document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", handleKeyDown);
-      document.getElementById(returnFocusId)?.focus({ preventScroll: true });
+      document
+        .getElementById(returnFocusIdRef.current)
+        ?.focus({ preventScroll: true });
     };
-  }, [onClose, returnFocusId]);
+  }, [onClose]);
 
   useEffect(() => {
     function handleArrowKey(event: KeyboardEvent) {
@@ -160,6 +167,7 @@ export function HomeImagePreview({
             </p>
             <h2
               id={headingId}
+              aria-live="polite"
               className="mt-5 text-[clamp(2.5rem,5vw,4.5rem)] font-medium leading-[0.9] tracking-[-0.06em] lg:text-5xl"
             >
               {option.name}
@@ -196,22 +204,21 @@ export function HomeImagePreview({
               </button>
             </div>
 
-            {isSelected ? (
-              <p className="flex min-h-14 items-center gap-3 bg-white px-5 text-[10px] font-semibold uppercase tracking-[0.17em] text-black">
-                <Check aria-hidden="true" className="size-4" strokeWidth={2} />
-                Selected for My {homeName}
-              </p>
-            ) : (
-              <button
-                type="button"
-                data-select-preview-option={option.id}
-                onClick={onSelect}
-                className="flex min-h-14 w-full items-center justify-between gap-6 bg-white px-5 text-left text-[10px] font-semibold uppercase tracking-[0.17em] text-black transition-colors hover:bg-[#ded9cd] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-              >
+            <button
+              type="button"
+              data-select-preview-option={option.id}
+              aria-label={`Select ${option.name} for My ${homeName} and continue`}
+              onClick={onSelect}
+              className="flex min-h-14 w-full items-center justify-between gap-6 bg-white px-5 text-left text-[10px] font-semibold uppercase tracking-[0.17em] text-black transition-colors hover:bg-[#ded9cd] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+            >
+              <span className="flex items-center gap-3">
+                {isSelected ? (
+                  <Check aria-hidden="true" className="size-4" strokeWidth={2} />
+                ) : null}
                 Select this option
-                <span aria-hidden="true">→</span>
-              </button>
-            )}
+              </span>
+              <span aria-hidden="true">→</span>
+            </button>
           </div>
         </div>
       </div>
