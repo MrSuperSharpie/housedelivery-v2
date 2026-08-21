@@ -4,13 +4,13 @@ import { InclusionsLibrary } from "@/components/inclusions-library";
 import { SiteHeader } from "@/components/site-header";
 
 export const metadata: Metadata = {
-  title: "House Delivery Inclusions Overview",
+  title: "Finishes & Inclusions | House Delivery",
   description:
-    "Explore the products, finishes and systems House Delivery coordinates into complete custom, laneway, carriage and pre-approved homes.",
+    "See how House Delivery coordinates flooring, cabinetry, surfaces, windows, doors, bathrooms, lighting, appliances and other visible elements into curated whole-home design directions.",
   openGraph: {
-    title: "House Delivery Inclusions Overview",
+    title: "The Final Layer, Made Personal | House Delivery",
     description:
-      "Explore the products, finishes and systems House Delivery coordinates into complete custom, laneway, carriage and pre-approved homes.",
+      "Explore the curated finishes and inclusions that bring a House Delivery home together as one considered whole.",
     type: "website",
   },
 };

@@ -10,7 +10,7 @@ import { HomeDesignToolCallout } from "@/components/home-design-tool-callout";
 import { HomeDetailHero } from "@/components/home-detail-hero";
 import { HomeEditorialGallery } from "@/components/home-editorial-gallery";
 import { HomeFloorPlanViewer } from "@/components/home-floor-plan-viewer";
-import { ExploreAllInclusionsLink } from "@/components/inclusions-journey-links";
+import { HomeDesignJourneyLink } from "@/components/inclusions-journey-links";
 import { RevealText } from "@/components/reveal-text";
 import { SiteHeader } from "@/components/site-header";
 import { getHomeConfiguratorRegistration } from "@/data/home-configurators";
@@ -247,7 +247,12 @@ export default async function HomeDetailPage({
                   requirements, model fit, financing context, and a realistic
                   delivery sequence.
                 </p>
-                <ExploreAllInclusionsLink className="mt-7" />
+                <HomeDesignJourneyLink
+                  homeName={designToolDiscovery.homeName}
+                  href={designToolDiscovery.href}
+                  availability={designToolDiscovery.availability}
+                  className="mt-7"
+                />
                 <Link
                   href="/#reserve"
                   className="group mt-5 flex items-center justify-between bg-white px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.17em] text-black"

@@ -8,13 +8,14 @@ import { CarriageEditorialGallery } from "@/components/carriage-editorial-galler
 import { CarriageHomeDetailHero } from "@/components/carriage-home-detail-hero";
 import { HeadlineReveal } from "@/components/headline-reveal";
 import { HomeFloorPlanViewer } from "@/components/home-floor-plan-viewer";
-import { ExploreAllInclusionsLink } from "@/components/inclusions-journey-links";
+import { HomeDesignJourneyLink } from "@/components/inclusions-journey-links";
 import { SiteHeader } from "@/components/site-header";
 import {
   carriageHomes,
   type CarriageHome,
   type CarriageHomeImage,
 } from "@/data/carriage-homes";
+import { getHomeConfiguratorRegistration } from "@/data/home-configurators";
 
 type CarriageHomeDetailPageProps = {
   params: Promise<{ slug: string }>;
@@ -139,6 +140,13 @@ export default async function CarriageHomeDetailPage({
       (modelIndex - 1 + carriageHomes.length) % carriageHomes.length
     ];
   const nextModel = carriageHomes[(modelIndex + 1) % carriageHomes.length];
+  const configuratorRegistration = getHomeConfiguratorRegistration(
+    "laneway-carriage-home",
+    model.slug,
+  );
+  const hasApprovedLookBook =
+    configuratorRegistration?.migrationStatus === "canonical" &&
+    configuratorRegistration.definition !== undefined;
 
   return (
     <>
@@ -221,7 +229,14 @@ export default async function CarriageHomeDetailPage({
                   local requirements, site adaptation, and a realistic delivery
                   sequence for the {model.name}.
                 </p>
-                <ExploreAllInclusionsLink className="mt-7" />
+                <HomeDesignJourneyLink
+                  homeName={configuratorRegistration?.homeName ?? model.name}
+                  href={hasApprovedLookBook ? "#home-inclusions" : undefined}
+                  availability={
+                    hasApprovedLookBook ? "available" : "coming-soon"
+                  }
+                  className="mt-7"
+                />
                 <Link
                   href="/#reserve"
                   className="group mt-5 flex items-center justify-between bg-white px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.17em] text-[#0b0c10]"

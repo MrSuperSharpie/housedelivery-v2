@@ -114,8 +114,10 @@ export function PreApprovedShowcase({
     featuredCount && !showCompleteCollection
       ? catalogModels.slice(0, featuredCount)
       : catalogModels;
-  const canToggleCollection =
-    featuredCount !== undefined && catalogModels.length > featuredCount;
+  const canExpandCollection =
+    !showCompleteCollection &&
+    featuredCount !== undefined &&
+    catalogModels.length > featuredCount;
 
   return (
     <section
@@ -145,27 +147,23 @@ export function PreApprovedShowcase({
           <CatalogueModelGrid models={visibleModels} />
         </div>
 
-        {canToggleCollection ? (
+        {canExpandCollection ? (
           <div className="mt-12 border-t border-white/10 pt-7">
             <button
               type="button"
-              aria-expanded={showCompleteCollection}
+              aria-expanded="false"
               aria-controls="pre-approved-homes-grid pre-approved-catalogue-resources"
-              onClick={() =>
-                setShowCompleteCollection((showComplete) => !showComplete)
-              }
+              onClick={() => setShowCompleteCollection(true)}
               className="inline-flex min-h-11 items-center border-b border-white/28 py-2 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/62 transition-colors hover:border-white hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
             >
-              {showCompleteCollection
-                ? "Show featured pre-approved homes"
-                : "View complete pre-approved collection"}
+              View complete pre-approved collection
             </button>
           </div>
         ) : null}
 
         <div
           id="pre-approved-catalogue-resources"
-          hidden={!showCompleteCollection && canToggleCollection}
+          hidden={!showCompleteCollection && featuredCount !== undefined}
           className="mt-3 border border-[#1f2833] bg-[#0e1014]"
         >
           <div className="grid border-b border-[#1f2833] sm:grid-cols-3">

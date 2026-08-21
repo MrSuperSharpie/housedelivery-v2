@@ -117,3 +117,46 @@ export function ExploreAllInclusionsLink({
     </Link>
   );
 }
+
+export function HomeDesignJourneyLink({
+  homeName,
+  href,
+  availability,
+  className,
+}: {
+  homeName: string;
+  href?: string;
+  availability: "available" | "coming-soon";
+  className?: string;
+}) {
+  if (availability === "coming-soon" || !href) {
+    return (
+      <span
+        aria-disabled="true"
+        className={cn(
+          "inline-flex min-h-11 items-center border-b border-white/12 py-2 text-[10px] font-semibold uppercase tracking-[0.17em] text-white/38",
+          className,
+        )}
+      >
+        Lookbook coming soon
+      </span>
+    );
+  }
+
+  return (
+    <a
+      href={href}
+      className={cn(
+        "group inline-flex min-h-11 items-center gap-4 border-b border-white/20 py-2 text-[10px] font-semibold uppercase tracking-[0.17em] text-white/68 transition-[border-color,color] hover:border-white/55 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white",
+        className,
+      )}
+    >
+      Build My {homeName}
+      <ArrowRight
+        aria-hidden="true"
+        className="size-3.5 transition-transform group-hover:translate-x-1"
+        strokeWidth={1.5}
+      />
+    </a>
+  );
+}

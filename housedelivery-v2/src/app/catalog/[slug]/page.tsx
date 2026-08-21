@@ -5,10 +5,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
-import { ExploreAllInclusionsLink } from "@/components/inclusions-journey-links";
+import { HomeDesignJourneyLink } from "@/components/inclusions-journey-links";
 import { RevealText } from "@/components/reveal-text";
 import { SiteHeader } from "@/components/site-header";
 import { catalogModels, type CatalogModel } from "@/data/catalog";
+import { getHomeConfiguratorRegistration } from "@/data/home-configurators";
 
 type CatalogDetailPageProps = {
   params: Promise<{ slug: string }>;
@@ -59,6 +60,13 @@ export default async function CatalogDetailPage({
 
   const nextModel: CatalogModel =
     catalogModels[(modelIndex + 1) % catalogModels.length];
+  const configuratorRegistration = getHomeConfiguratorRegistration(
+    "pre-approved-home",
+    model.slug,
+  );
+  const hasApprovedLookBook =
+    configuratorRegistration?.migrationStatus === "canonical" &&
+    configuratorRegistration.definition !== undefined;
 
   return (
     <>
@@ -272,7 +280,14 @@ export default async function CatalogDetailPage({
                   requirements, site adaptation, financing context, and a
                   realistic delivery sequence for the {model.name}.
                 </p>
-                <ExploreAllInclusionsLink className="mt-7" />
+                <HomeDesignJourneyLink
+                  homeName={configuratorRegistration?.homeName ?? model.name}
+                  href={hasApprovedLookBook ? "#home-inclusions" : undefined}
+                  availability={
+                    hasApprovedLookBook ? "available" : "coming-soon"
+                  }
+                  className="mt-7"
+                />
                 <Link
                   href="/#reserve"
                   className="group mt-5 flex items-center justify-between bg-white px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.17em] text-[#0B0C10]"

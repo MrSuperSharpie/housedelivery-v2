@@ -197,7 +197,47 @@ export function LangleyWalkthroughFeature({
   );
 }
 
-export function InclusionsFilmFeature() {
+type InclusionsFilmFeatureProps = {
+  prominent?: boolean;
+};
+
+export function InclusionsFilmFeature({
+  prominent = false,
+}: InclusionsFilmFeatureProps) {
+  if (prominent) {
+    return (
+      <div className="border-t border-white/10 pt-8 lg:pt-10">
+        <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-end lg:gap-20">
+          <div>
+            <p className="eyebrow">Inclusions film</p>
+            <h2 className="mt-6 max-w-3xl text-[clamp(3rem,6vw,6.6rem)] font-medium leading-[0.9] tracking-[-0.065em] text-white/92">
+              See the final layer
+              <br />
+              <span className="text-white/40">come together.</span>
+            </h2>
+          </div>
+          <p className="max-w-2xl text-base leading-7 text-white/52 lg:justify-self-end lg:text-lg lg:leading-8">
+            Step inside the cabinetry, surfaces, flooring, fixtures and
+            interior details that House Delivery coordinates as one considered
+            home.
+          </p>
+        </div>
+
+        <div className="mt-12 lg:mt-16">
+          <VideoLightbox
+            accessibleLabel="Watch the House Delivery Inclusions film"
+            embedUrl="https://www.youtube-nocookie.com/embed/G2ti9kw-A3A"
+            posterAlt="Contemporary living room with integrated dark cabinetry and layered interior finishes"
+            posterSrc="/images/inclusions/inclusions-hero.webp"
+            triggerLabel="Watch the Inclusions film"
+            sizes="(max-width: 1599px) calc(100vw - 6rem), 1504px"
+            posterAspectClassName="aspect-video lg:aspect-[2/1]"
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mt-10 grid gap-8 border-t border-white/10 pt-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-end lg:gap-10">
       <div>

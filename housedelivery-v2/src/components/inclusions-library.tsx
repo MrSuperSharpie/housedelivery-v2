@@ -3,220 +3,251 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
+import { InclusionsFilmFeature } from "@/components/homepage-video-experiences";
 import {
   inclusionCategories,
   type InclusionCategory,
 } from "@/data/inclusions";
 
+const personalizationSteps = [
+  {
+    number: "01",
+    title: "Begin with the architecture",
+    description:
+      "The home establishes the plan, proportions, openings and character that every visible selection needs to support.",
+  },
+  {
+    number: "02",
+    title: "Choose a curated direction",
+    description:
+      "Selections are organized into coordinated design directions rather than an unlimited menu of disconnected products.",
+  },
+  {
+    number: "03",
+    title: "Build your personal Look Book",
+    description:
+      "Inside Build My Home / Visual Guide, the available directions are explored room by room and assembled into one personal record.",
+  },
+] as const;
+
 const homeCollections = [
   {
     number: "01",
     name: "Custom Homes",
-    levels: "Premium · Signature",
     description:
-      "More design freedom, elevated materials and coordinated whole-home design directions.",
+      "Elevated, whole-home design directions developed around the architecture and scale of each Custom Home.",
+    levels: ["Premium", "Signature"],
+    image: {
+      src: "/images/homes/maplewood/visual-guide/Maplewood_01_Kitchen_Signature-1_Stone-Wrapped-Oak.png",
+      alt: "Maplewood Signature kitchen Visual Guide board showing a coordinated stone and oak design direction.",
+    },
   },
   {
     number: "02",
-    name: "Laneway & Carriage Homes",
-    levels: "Essential · Premium",
+    name: "Laneway / Carriage + Pre-Approved Homes",
     description:
-      "Controlled selections designed around efficient, highly coordinated compact homes.",
-  },
-  {
-    number: "03",
-    name: "Pre-Approved Homes",
-    levels: "Essential · Premium",
-    description:
-      "A streamlined selection structure designed to support repeatability, clarity and project efficiency.",
+      "Clear, durable selection pathways designed to support compact homes, repeatability and efficient project coordination.",
+    levels: ["Essential", "Premium"],
+    image: {
+      src: "/images/inclusions/kitchen-cabinetry/hero.webp",
+      alt: "Warm wood kitchen cabinetry surrounding a central island in a bright interior.",
+    },
   },
 ] as const;
 
-const overviewDescriptions: Record<InclusionCategory["id"], string> = {
-  flooring:
-    "Flooring systems coordinated for durability, continuity, comfort and a cohesive whole-home material direction.",
-  "kitchen-cabinetry":
-    "Cabinetry, finishes, storage and hardware coordinated around the kitchen layout and the wider interior palette.",
-  wardrobes:
-    "Wardrobe systems coordinated around practical storage planning, room layouts and a consistent interior finish language.",
-  "interior-doors":
-    "Interior doors, finishes and hardware coordinated with the flooring, cabinetry and architectural character of the home.",
-  "exterior-doors":
-    "Entry doors and associated finishes coordinated with the home’s architecture, arrival sequence and project requirements.",
-  "windows-patio-doors":
-    "Windows and patio doors coordinated around the architecture, daylight, indoor-outdoor connection and project-specific performance needs.",
-  "kitchen-bath-fixtures":
-    "Sinks, faucets and related kitchen and bathroom fixtures coordinated with the selected home, surfaces and cabinetry.",
-  "bathroom-vanities":
-    "Vanities, storage, finishes and fixtures coordinated around bathroom layouts and the home’s overall material direction.",
-  "tile-surfaces":
-    "Tile and applied surfaces coordinated across wet areas, feature zones and durable transitions throughout the home.",
-  countertops:
-    "Countertop materials and profiles coordinated across kitchen, vanity and other work-surface applications.",
-  "wall-panels":
-    "Interior wall panels coordinated for selected feature areas as part of the home’s broader material palette.",
-  lighting:
-    "Lighting coordinated to support everyday use, architectural emphasis and a consistent atmosphere throughout the home.",
-  appliances:
-    "Appliances coordinated with cabinetry, kitchen planning, service requirements and the selected home design.",
-  "window-coverings":
-    "Window coverings coordinated for privacy, daylight control and alignment with the interior finish direction.",
-  "garage-doors-operators":
-    "Garage doors and operators coordinated with the home exterior, access needs and project-specific technical requirements.",
+const coordinationBenefits = [
+  "Stronger design consistency",
+  "Fewer disconnected purchases",
+  "Coordinated specifications",
+  "Repeatable procurement",
+  "Clearer replacement planning",
+] as const;
+
+type VisualStory = {
+  number: string;
+  eyebrow: string;
+  title: string;
+  description: string;
+  categoryLine: string;
+  imageCategoryId: InclusionCategory["id"];
+  anchors: readonly string[];
+  span: "wide" | "narrow" | "full";
 };
 
-function BrowseInclusions() {
-  return (
-    <section
-      aria-labelledby="browse-inclusions-heading"
-      className="border-t border-white/10 px-5 py-24 sm:px-8 lg:px-12 lg:py-32"
-    >
-      <div className="mx-auto max-w-[1504px]">
-        <div className="grid gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:items-end lg:gap-20">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/60">
-              Coordinated scope
-            </p>
-            <h2
-              id="browse-inclusions-heading"
-              className="mt-7 max-w-3xl text-[clamp(3.25rem,7vw,7.5rem)] font-medium leading-[0.86] tracking-[-0.07em]"
-            >
-              What we
-              <br />
-              <span className="text-white/38">coordinate.</span>
-            </h2>
-          </div>
-          <p className="max-w-2xl text-base leading-7 text-white/52 lg:justify-self-end lg:text-lg lg:leading-8">
-            Explore the products, finishes and systems that House Delivery can
-            bring together as one complete home. Final selections are shaped by
-            the home collection and the needs of each project.
-          </p>
-        </div>
+const visualStories: readonly VisualStory[] = [
+  {
+    number: "01",
+    eyebrow: "Material foundation",
+    title: "One material language, carried through the home.",
+    description:
+      "Flooring, countertops and tile surfaces are considered together so transitions feel deliberate and the interior reads as one whole.",
+    categoryLine: "Flooring / Countertops / Tile + surfaces",
+    imageCategoryId: "flooring",
+    anchors: ["flooring", "countertops", "tile-surfaces"],
+    span: "wide",
+  },
+  {
+    number: "02",
+    eyebrow: "The working heart",
+    title: "A kitchen resolved as a complete system.",
+    description:
+      "Cabinetry, work surfaces and appliances are coordinated around the architecture, storage plan and service requirements.",
+    categoryLine: "Kitchen cabinetry / Countertops / Appliances",
+    imageCategoryId: "kitchen-cabinetry",
+    anchors: ["kitchen-cabinetry", "appliances"],
+    span: "narrow",
+  },
+  {
+    number: "03",
+    eyebrow: "Integrated storage",
+    title: "Wardrobes that belong to the rooms around them.",
+    description:
+      "Storage planning, finishes and internal organization follow the same calm material direction as the wider interior.",
+    categoryLine: "Wardrobes / Interior storage",
+    imageCategoryId: "wardrobes",
+    anchors: ["wardrobes"],
+    span: "narrow",
+  },
+  {
+    number: "04",
+    eyebrow: "Interior architecture",
+    title: "Details that give the home its rhythm.",
+    description:
+      "Interior doors, hardware and selected architectural wall details reinforce the character of the home from room to room.",
+    categoryLine: "Interior doors / Architectural details / Wall panels",
+    imageCategoryId: "interior-doors",
+    anchors: ["interior-doors", "wall-panels"],
+    span: "wide",
+  },
+  {
+    number: "05",
+    eyebrow: "Arrival + daylight",
+    title: "Exterior openings, read as part of the architecture.",
+    description:
+      "Entry doors, windows, patio doors and related visible openings are coordinated with the arrival sequence and indoor-outdoor experience.",
+    categoryLine: "Entry doors / Windows / Patio doors / Exterior openings",
+    imageCategoryId: "windows-patio-doors",
+    anchors: [
+      "exterior-doors",
+      "windows-patio-doors",
+      "garage-doors-operators",
+    ],
+    span: "wide",
+  },
+  {
+    number: "06",
+    eyebrow: "Complete bathrooms",
+    title: "Fixtures, vanities and surfaces designed to work together.",
+    description:
+      "Bathroom systems are assembled as coordinated environments, balancing daily function with a consistent whole-home finish direction.",
+    categoryLine: "Bathroom systems / Fixtures / Vanities / Surfaces",
+    imageCategoryId: "kitchen-bath-fixtures",
+    anchors: [
+      "kitchen-bath-fixtures",
+      "bathroom-systems",
+      "plumbing-fixtures",
+      "bathroom-vanities",
+    ],
+    span: "narrow",
+  },
+  {
+    number: "07",
+    eyebrow: "Atmosphere + control",
+    title: "The finishing touches that shape how a room feels.",
+    description:
+      "Lighting and window coverings support the architecture with coordinated illumination, privacy and daylight control.",
+    categoryLine: "Lighting / Window coverings",
+    imageCategoryId: "lighting",
+    anchors: ["lighting", "window-coverings"],
+    span: "full",
+  },
+];
 
-        <nav aria-label="Browse inclusion categories" className="mt-14 lg:mt-20">
-          <ol className="grid border-l border-t border-white/12 sm:grid-cols-2 lg:grid-cols-3">
-            {inclusionCategories.map((category) => (
-              <li key={category.id}>
-                <a
-                  href={`#${category.id}`}
-                  className="group flex min-h-24 items-center justify-between gap-6 border-b border-r border-white/12 px-5 py-5 transition-colors hover:bg-white/[0.035] focus-visible:bg-white/[0.035] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-white sm:min-h-28 sm:px-6"
-                >
-                  <span className="text-sm font-medium tracking-[-0.02em] text-white/76 transition-colors group-hover:text-white group-focus-visible:text-white">
-                    {category.shortName}
-                  </span>
-                  <span
-                    aria-hidden="true"
-                    className="font-mono text-[9px] tracking-[0.18em] text-white/32"
-                  >
-                    {category.number}
-                  </span>
-                </a>
-              </li>
-            ))}
-          </ol>
-        </nav>
-      </div>
-    </section>
+function getCategory(categoryId: InclusionCategory["id"]) {
+  const category = inclusionCategories.find(
+    (candidate) => candidate.id === categoryId,
   );
+
+  if (!category) {
+    throw new Error(`Unknown inclusion category: ${categoryId}`);
+  }
+
+  return category;
 }
 
-function CategoryImage({ category }: { category: InclusionCategory }) {
-  return (
-    <div className="relative aspect-[4/3] size-full overflow-hidden bg-[#121419] sm:aspect-[3/2] lg:aspect-auto lg:min-h-[34rem]">
-      {category.heroImage ? (
-        <Image
-          src={category.heroImage.src}
-          alt={category.heroImage.alt}
-          fill
-          quality={90}
-          sizes="(max-width: 1023px) 100vw, 58vw"
-          className="object-cover"
-        />
-      ) : (
-        <div className="flex size-full items-end p-6 sm:p-8 lg:p-10">
-          <p className="text-lg font-medium tracking-[-0.025em] text-white/55">
-            Category imagery in development
-          </p>
-        </div>
-      )}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"
-      />
-    </div>
-  );
-}
-
-function CategorySection({
-  category,
-  index,
-}: {
-  category: InclusionCategory;
-  index: number;
-}) {
-  const headingId = `inclusion-${category.id}-heading`;
-  const imageFirst = index % 2 === 0;
+function VisualStoryCard({ story }: { story: VisualStory }) {
+  const category = getCategory(story.imageCategoryId);
+  const heroImage = category.heroImage;
+  const spanClass =
+    story.span === "full"
+      ? "lg:col-span-12"
+      : story.span === "wide"
+        ? "lg:col-span-7"
+        : "lg:col-span-5";
 
   return (
-    <section
-      id={category.id}
-      aria-labelledby={headingId}
-      className={`relative scroll-mt-24 border-t border-white/10 px-5 py-16 sm:px-8 sm:py-24 lg:px-12 lg:py-32 ${
-        imageFirst ? "bg-[#0b0c10]" : "bg-[#0d0f13]"
-      }`}
-    >
-      {category.legacyIds?.map((legacyId) => (
+    <article className={`relative scroll-mt-24 ${spanClass}`}>
+      {story.anchors.map((anchor) => (
         <span
-          key={legacyId}
-          id={legacyId}
+          key={anchor}
+          id={anchor}
           aria-hidden="true"
           className="pointer-events-none absolute left-0 top-0 scroll-mt-24"
         />
       ))}
-      <span
-        id={`inclusion-${category.id}`}
-        aria-hidden="true"
-        className="pointer-events-none absolute left-0 top-0 scroll-mt-24"
-      />
 
-      <div className="mx-auto max-w-[1504px]">
-        <article className="grid overflow-hidden border border-white/12 lg:grid-cols-12">
+      <figure>
+        <div
+          className={`group relative overflow-hidden bg-[#121419] ${
+            story.span === "full"
+              ? "aspect-[4/3] sm:aspect-[16/9] lg:aspect-[2.3/1]"
+              : "aspect-[4/3] sm:aspect-[3/2]"
+          }`}
+        >
+          {heroImage ? (
+            <Image
+              src={heroImage.src}
+              alt={heroImage.alt}
+              fill
+              quality={90}
+              sizes={
+                story.span === "full"
+                  ? "(max-width: 1599px) calc(100vw - 6rem), 1504px"
+                  : "(max-width: 1023px) calc(100vw - 2.5rem), 58vw"
+              }
+              className="object-cover brightness-90 transition-all duration-[2000ms] ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-[1.025] group-hover:brightness-100"
+            />
+          ) : null}
           <div
-            className={`border-b border-white/12 lg:col-span-7 lg:border-b-0 ${
-              imageFirst ? "lg:border-r" : "lg:order-2 lg:border-l"
-            }`}
-          >
-            <CategoryImage category={category} />
-          </div>
-
-          <div className="flex min-h-80 flex-col p-6 sm:min-h-96 sm:p-9 lg:col-span-5 lg:min-h-[34rem] lg:p-10 xl:p-12">
-            <div className="flex items-start justify-between gap-6">
-              <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/60">
-                {category.eyebrow}
+            aria-hidden="true"
+            className="absolute inset-0 bg-gradient-to-t from-black/72 via-black/5 to-black/[0.06]"
+          />
+          <div className="absolute inset-x-0 bottom-0 p-5 sm:p-7 lg:p-8">
+            <div className="flex items-end justify-between gap-8 border-t border-white/25 pt-4">
+              <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/72">
+                {story.eyebrow}
               </p>
-              <span
-                aria-hidden="true"
-                className="font-mono text-[9px] tracking-[0.18em] text-white/30"
-              >
-                {category.number} / {String(inclusionCategories.length).padStart(2, "0")}
+              <span className="font-mono text-[9px] tracking-[0.18em] text-white/48">
+                {story.number} / 07
               </span>
             </div>
-
-            <div className="mt-auto pt-16 sm:pt-20">
-              <h2
-                id={headingId}
-                className="max-w-3xl text-[clamp(2.75rem,5.5vw,5.8rem)] font-medium leading-[0.88] tracking-[-0.065em] text-white/92"
-              >
-                {category.name}
-              </h2>
-              <p className="mt-7 max-w-xl text-base leading-7 text-white/56 lg:text-lg lg:leading-8">
-                {overviewDescriptions[category.id]}
-              </p>
-            </div>
           </div>
-        </article>
-      </div>
-    </section>
+        </div>
+        <figcaption className="grid gap-5 border-b border-white/10 py-7 sm:grid-cols-[1.1fr_0.9fr] sm:gap-8 sm:py-8">
+          <div>
+            <p className="text-[9px] font-semibold uppercase leading-5 tracking-[0.18em] text-white/36">
+              {story.categoryLine}
+            </p>
+            <h3 className="mt-4 max-w-2xl text-[clamp(2rem,3.3vw,3.6rem)] font-medium leading-[0.94] tracking-[-0.055em] text-white/88">
+              {story.title}
+            </h3>
+          </div>
+          <p className="max-w-xl text-sm leading-7 text-white/48 sm:self-end sm:justify-self-end">
+            {story.description}
+          </p>
+        </figcaption>
+      </figure>
+    </article>
   );
 }
 
@@ -226,101 +257,207 @@ export function InclusionsLibrary() {
       data-inclusions-library
       className="overflow-hidden bg-[#0b0c10] text-white"
     >
-      <section className="border-b border-white/10 px-5 pb-16 pt-36 sm:px-8 sm:pb-20 sm:pt-44 lg:px-12 lg:pb-24 lg:pt-52">
+      <section className="border-b border-white/10 px-5 pb-20 pt-36 sm:px-8 sm:pb-24 sm:pt-44 lg:px-12 lg:pb-32 lg:pt-52">
         <div className="mx-auto max-w-[1504px]">
           <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/60">
-            House Delivery Kit of Parts
+            House Delivery / Finishes + inclusions
           </p>
           <HeadlineReveal trigger="mount" className="mt-8">
-            <h1 className="max-w-[1400px] text-[clamp(3.25rem,11vw,11rem)] font-medium leading-[0.8] tracking-[-0.078em]">
-              Inclusions
+            <h1 className="max-w-[1400px] text-[clamp(3.7rem,10vw,10rem)] font-medium leading-[0.82] tracking-[-0.078em]">
+              The final layer,
               <br />
-              <span className="text-white/38">Overview</span>
+              <span className="text-white/38">made personal.</span>
             </h1>
           </HeadlineReveal>
 
-          <div className="mt-16 grid gap-8 border-t border-white/16 pt-7 lg:grid-cols-[0.72fr_1.28fr] lg:gap-20">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/60">
-              Complete-home coordination / 15 categories
+          <div className="mt-14 grid gap-8 border-t border-white/16 pt-7 lg:grid-cols-[0.72fr_1.28fr] lg:gap-20">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/52">
+              Coordinated architecture / Considered interiors
             </p>
             <div className="max-w-3xl">
               <p className="text-xl leading-8 tracking-[-0.025em] text-white/76 sm:text-2xl sm:leading-9">
-                Products, finishes and systems, brought together around the
-                home you choose.
+                A House Delivery home arrives as a coordinated architectural
+                system. Its visible finishes and inclusions allow that home to
+                feel personal, composed and considered.
               </p>
-              <p className="mt-5 text-sm leading-7 text-white/54 sm:text-base sm:leading-8">
-                House Delivery coordinates the many material and product
-                decisions that turn a building system into a complete home.
-                This overview shows the breadth of that work; detailed
-                selections are developed within the experience for each home.
+              <p className="mt-5 text-sm leading-7 text-white/50 sm:text-base sm:leading-8">
+                Flooring, cabinetry, windows, doors, bathrooms, lighting,
+                window coverings and appliances are brought together through
+                controlled package directions—not left as disconnected
+                purchasing decisions.
               </p>
             </div>
           </div>
 
           <figure className="mt-14 sm:mt-20 lg:mt-24">
-            <div className="relative aspect-[4/3] overflow-hidden border border-white/12 bg-[#121419] sm:aspect-[3/2] lg:aspect-[16/9]">
+            <div className="relative aspect-[4/3] overflow-hidden bg-[#121419] sm:aspect-[3/2] lg:aspect-[2.05/1]">
               <Image
-                src="/images/inclusions/inclusions-hero.webp"
-                alt="Contemporary living room with dark built-in cabinetry, central black-and-white artwork and curved neutral seating."
+                src="/images/inclusions/kitchen-cabinetry/hero.webp"
+                alt="Warm wood cabinetry, pale stone surfaces and a central island in a coordinated contemporary kitchen."
                 fill
-                quality={90}
+                quality={100}
                 loading="eager"
+                fetchPriority="high"
                 sizes="(max-width: 639px) calc(100vw - 40px), (max-width: 1023px) calc(100vw - 64px), (max-width: 1599px) calc(100vw - 96px), 1504px"
                 className="object-cover object-center"
               />
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/[0.05]"
+              />
             </div>
-            <figcaption className="mt-4 max-w-2xl border-l border-white/20 pl-4 text-xs leading-5 text-white/48">
-              A coordinated interior direction brings the individual parts of
-              a home together as one considered whole.
+            <figcaption className="mt-4 max-w-2xl border-l border-white/20 pl-4 text-xs leading-5 text-white/44">
+              The visible parts of the home are coordinated as one design
+              direction, from the largest surfaces to the smallest details.
             </figcaption>
           </figure>
         </div>
       </section>
 
+      <section className="px-5 py-24 sm:px-8 lg:px-12 lg:py-36">
+        <div className="mx-auto max-w-[1504px]">
+          <InclusionsFilmFeature prominent />
+        </div>
+      </section>
+
       <section
-        aria-labelledby="home-collections-heading"
+        aria-labelledby="personalization-heading"
+        className="border-y border-white/10 bg-[#0d0f13] px-5 py-24 sm:px-8 lg:px-12 lg:py-36"
+      >
+        <div className="mx-auto max-w-[1504px]">
+          <div className="grid gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:items-end lg:gap-20">
+            <div>
+              <p className="eyebrow">How personalization works</p>
+              <h2
+                id="personalization-heading"
+                className="mt-7 max-w-4xl text-[clamp(3rem,6.5vw,7rem)] font-medium leading-[0.88] tracking-[-0.068em]"
+              >
+                Curated direction.
+                <br />
+                <span className="text-white/38">A personal result.</span>
+              </h2>
+            </div>
+            <div className="max-w-2xl lg:justify-self-end">
+              <p className="text-lg leading-8 text-white/66">
+                Personalization does not mean unlimited bespoke customization.
+                It means choosing from considered design directions developed
+                to work with the architecture of each home.
+              </p>
+              <p className="mt-5 text-sm leading-7 text-white/44">
+                The individual home experience is where those choices are
+                explored through Build My Home / Visual Guide and assembled
+                into a personalized Look Book.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-16 grid gap-10 lg:mt-24 lg:grid-cols-12 lg:gap-8">
+            <figure className="lg:col-span-7">
+              <div className="relative aspect-[16/9] overflow-hidden bg-[#e8e6df]">
+                <Image
+                  src="/images/homes/maplewood/visual-guide/Maplewood_01_Kitchen_Premium-1_Coastal-Light-Oak.png"
+                  alt="Maplewood Premium kitchen Visual Guide board showing a coordinated light oak design direction."
+                  fill
+                  quality={100}
+                  sizes="(max-width: 1023px) calc(100vw - 2.5rem), 58vw"
+                  className="object-contain"
+                />
+              </div>
+              <figcaption className="mt-4 border-t border-white/10 pt-3 text-[9px] uppercase tracking-[0.18em] text-white/32">
+                Representative Visual Guide / Maplewood
+              </figcaption>
+            </figure>
+
+            <ol className="lg:col-span-5 lg:col-start-8">
+              {personalizationSteps.map((step) => (
+                <li
+                  key={step.number}
+                  className="grid grid-cols-[2.5rem_1fr] gap-5 border-t border-white/12 py-7 first:pt-0 lg:py-9"
+                >
+                  <span className="pt-1 font-mono text-[9px] tracking-[0.18em] text-white/28">
+                    {step.number}
+                  </span>
+                  <div>
+                    <h3 className="text-xl font-medium tracking-[-0.035em] text-white/82">
+                      {step.title}
+                    </h3>
+                    <p className="mt-3 text-sm leading-7 text-white/44">
+                      {step.description}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      <section
+        aria-labelledby="package-structure-heading"
         className="px-5 py-24 sm:px-8 lg:px-12 lg:py-36"
       >
         <div className="mx-auto max-w-[1504px]">
-          <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-end lg:gap-20">
+          <div className="grid gap-10 border-t border-white/12 pt-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-end lg:gap-20">
+            <p className="eyebrow">Package structure</p>
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/60">
-                Design collections
-              </p>
               <h2
-                id="home-collections-heading"
-                className="mt-7 max-w-4xl text-[clamp(3rem,6.5vw,7rem)] font-medium leading-[0.88] tracking-[-0.068em]"
+                id="package-structure-heading"
+                className="max-w-5xl text-[clamp(3rem,6.3vw,6.8rem)] font-medium leading-[0.88] tracking-[-0.068em]"
               >
-                Selections shaped
+                The right level
                 <br />
-                <span className="text-white/38">to the home you choose.</span>
+                <span className="text-white/38">for the home.</span>
               </h2>
+              <p className="mt-8 max-w-2xl text-base leading-8 text-white/50">
+                Package levels follow the type of home so the available
+                choices remain commercially clear and appropriate to the
+                architecture.
+              </p>
             </div>
-            <p className="max-w-2xl text-base leading-7 text-white/52 lg:justify-self-end lg:text-lg lg:leading-8">
-              House Delivery coordinates the products and finishes that turn a
-              building system into a complete home. Design levels vary by home
-              collection so choices remain clear, coordinated and appropriate
-              to the home.
-            </p>
           </div>
 
-          <div className="mt-16 grid border-l border-t border-white/12 lg:mt-24 lg:grid-cols-3">
+          <div className="mt-16 grid border-l border-t border-white/12 lg:mt-24 lg:grid-cols-2">
             {homeCollections.map((collection) => (
               <article
                 key={collection.name}
-                className="flex min-h-72 flex-col border-b border-r border-white/12 p-6 sm:min-h-80 sm:p-8 lg:min-h-[25rem]"
+                className="flex min-h-[34rem] flex-col border-b border-r border-white/12 p-6 sm:p-8 lg:min-h-[40rem] lg:p-10"
               >
-                <span className="font-mono text-[10px] tracking-[0.18em] text-white/30">
-                  {collection.number}
-                </span>
-                <div className="mt-auto pt-14">
-                  <h3 className="max-w-sm text-[clamp(2.2rem,3.4vw,3.8rem)] font-medium leading-[0.94] tracking-[-0.055em] text-white/92">
+                <div className="flex items-start justify-between gap-8">
+                  <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/38">
                     {collection.name}
-                  </h3>
-                  <p className="mt-6 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/68">
-                    {collection.levels}
                   </p>
-                  <p className="mt-5 max-w-sm border-t border-white/10 pt-5 text-sm leading-7 text-white/50">
+                  <span className="font-mono text-[9px] tracking-[0.18em] text-white/24">
+                    {collection.number}
+                  </span>
+                </div>
+
+                <div className="relative mt-8 aspect-[16/9] overflow-hidden bg-[#121419]">
+                  <Image
+                    src={collection.image.src}
+                    alt={collection.image.alt}
+                    fill
+                    quality={90}
+                    sizes="(max-width: 1023px) calc(100vw - 2.5rem), 50vw"
+                    className={
+                      collection.number === "01"
+                        ? "bg-[#e8e6df] object-contain"
+                        : "object-cover"
+                    }
+                  />
+                </div>
+
+                <div className="mt-auto pt-12">
+                  <div className="flex flex-wrap gap-3">
+                    {collection.levels.map((level) => (
+                      <span
+                        key={level}
+                        className="border border-white/20 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/72"
+                      >
+                        {level}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="mt-6 max-w-xl border-t border-white/10 pt-5 text-sm leading-7 text-white/46">
                     {collection.description}
                   </p>
                 </div>
@@ -330,65 +467,95 @@ export function InclusionsLibrary() {
         </div>
       </section>
 
-      <BrowseInclusions />
+      <section
+        aria-labelledby="coordination-heading"
+        className="border-t border-white/10 bg-[#0d0f13] px-5 py-24 sm:px-8 lg:px-12 lg:py-36"
+      >
+        <div className="mx-auto max-w-[1504px]">
+          <div className="grid gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:items-end lg:gap-20">
+            <div>
+              <p className="eyebrow">What House Delivery coordinates</p>
+              <h2
+                id="coordination-heading"
+                className="mt-7 max-w-4xl text-[clamp(3rem,6.5vw,7rem)] font-medium leading-[0.88] tracking-[-0.068em]"
+              >
+                More than a shell.
+                <br />
+                <span className="text-white/38">A complete design system.</span>
+              </h2>
+            </div>
+            <p className="max-w-2xl text-base leading-8 text-white/52 lg:justify-self-end">
+              House Delivery coordinates the major visible elements of the
+              home as connected specifications. The result is a home that
+              feels intentionally designed rather than pieced together.
+            </p>
+          </div>
 
-      {inclusionCategories.map((category, index) => (
-        <CategorySection key={category.id} category={category} index={index} />
-      ))}
+          <ul className="mt-14 grid border-l border-t border-white/12 sm:grid-cols-2 lg:mt-20 lg:grid-cols-5">
+            {coordinationBenefits.map((benefit, index) => (
+              <li
+                key={benefit}
+                className="flex min-h-28 flex-col justify-between border-b border-r border-white/12 p-5"
+              >
+                <span className="font-mono text-[9px] tracking-[0.18em] text-white/22">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <span className="mt-8 max-w-[12rem] text-sm leading-6 text-white/62">
+                  {benefit}
+                </span>
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-16 grid gap-x-8 gap-y-20 lg:mt-24 lg:grid-cols-12 lg:gap-y-28">
+            {visualStories.map((story) => (
+              <VisualStoryCard key={story.number} story={story} />
+            ))}
+          </div>
+        </div>
+      </section>
 
       <section
-        aria-labelledby="start-with-home-heading"
+        aria-labelledby="choose-home-heading"
         className="border-t border-white/10 px-5 py-24 sm:px-8 lg:px-12 lg:py-36"
       >
         <div className="mx-auto max-w-[1504px]">
-          <div className="grid gap-14 lg:grid-cols-[1.25fr_0.75fr] lg:items-end lg:gap-24">
+          <div className="grid gap-14 lg:grid-cols-[1.2fr_0.8fr] lg:items-end lg:gap-24">
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/60">
-                From architecture to interior
-              </p>
+              <p className="eyebrow">Your design journey starts here</p>
               <h2
-                id="start-with-home-heading"
-                className="mt-7 max-w-5xl text-[clamp(3rem,6.5vw,7rem)] font-medium leading-[0.88] tracking-[-0.068em]"
+                id="choose-home-heading"
+                className="mt-7 max-w-5xl text-[clamp(3.4rem,7vw,7.5rem)] font-medium leading-[0.86] tracking-[-0.072em]"
               >
-                Start with the home.
+                Choose the home.
                 <br />
-                <span className="text-white/38">Then shape the details.</span>
+                <span className="text-white/38">Then make it yours.</span>
               </h2>
             </div>
             <div className="border-l border-white/15 pl-6 sm:pl-8">
-              <p className="text-sm leading-7 text-white/52">
-                Your home establishes the architecture. Its design collection
-                then brings the flooring, cabinetry, surfaces, bathrooms,
-                doors and other inclusions together as one coordinated
-                interior.
+              <p className="text-base leading-8 text-white/54">
+                Your home determines the curated design directions and
+                inclusion choices available to you.
               </p>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Link
-                  href="/#models"
-                  className="group inline-flex min-h-11 items-center gap-5 border border-white bg-white px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.17em] text-[#0b0c10] transition-colors hover:bg-transparent hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-                >
-                  Explore the Homes
-                  <ArrowRight
-                    aria-hidden="true"
-                    className="size-3.5 transition-transform group-hover:translate-x-1"
-                    strokeWidth={1.5}
-                  />
-                </Link>
-                <Link
-                  href="/#reserve"
-                  className="inline-flex min-h-11 items-center border border-white/28 px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.17em] text-white/76 transition-colors hover:border-white hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-                >
-                  Begin Project Review
-                </Link>
-              </div>
+              <Link
+                href="/#models"
+                className="group mt-8 inline-flex min-h-12 items-center gap-8 border border-white bg-white px-6 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#0b0c10] transition-colors hover:bg-transparent hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+              >
+                Choose your home
+                <ArrowRight
+                  aria-hidden="true"
+                  className="size-4 transition-transform group-hover:translate-x-1"
+                  strokeWidth={1.5}
+                />
+              </Link>
             </div>
           </div>
 
-          <p className="mt-20 max-w-5xl border-t border-white/12 pt-6 text-xs leading-6 text-white/42 lg:mt-28">
-            Images and selections are illustrative. Final products, finishes,
-            availability, pricing and technical suitability are confirmed
-            during project review and are subject to project-specific
-            requirements.
+          <p className="mt-20 max-w-5xl border-t border-white/12 pt-6 text-xs leading-6 text-white/38 lg:mt-28">
+            Images and design directions are illustrative. Final products,
+            finishes, availability, pricing and technical suitability are
+            confirmed during project review and remain subject to the selected
+            home and project-specific requirements.
           </p>
         </div>
       </section>

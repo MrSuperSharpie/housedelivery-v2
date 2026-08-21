@@ -24,8 +24,10 @@ export function CarriageHomeShowcase({
     featuredCount && !showCompleteCollection
       ? carriageHomes.slice(0, featuredCount)
       : carriageHomes;
-  const canToggleCollection =
-    featuredCount !== undefined && carriageHomes.length > featuredCount;
+  const canExpandCollection =
+    !showCompleteCollection &&
+    featuredCount !== undefined &&
+    carriageHomes.length > featuredCount;
 
   return (
     <section
@@ -157,20 +159,16 @@ export function CarriageHomeShowcase({
             })}
           </div>
 
-          {canToggleCollection ? (
+          {canExpandCollection ? (
             <div className="mt-12 border-t border-white/10 pt-7">
               <button
                 type="button"
-                aria-expanded={showCompleteCollection}
+                aria-expanded="false"
                 aria-controls="carriage-homes-grid"
-                onClick={() =>
-                  setShowCompleteCollection((showComplete) => !showComplete)
-                }
+                onClick={() => setShowCompleteCollection(true)}
                 className="inline-flex min-h-11 items-center border-b border-white/28 py-2 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/62 transition-colors hover:border-white hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
               >
-                {showCompleteCollection
-                  ? "Show featured laneway and carriage homes"
-                  : "View complete laneway and carriage collection"}
+                View complete laneway and carriage collection
               </button>
             </div>
           ) : null}

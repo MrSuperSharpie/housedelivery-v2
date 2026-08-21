@@ -45,8 +45,10 @@ export function ModelShowcase({
     featuredCount && !showCompleteCollection
       ? filteredModels.slice(0, featuredCount)
       : filteredModels;
-  const canToggleCollection =
-    featuredCount !== undefined && filteredModels.length > featuredCount;
+  const canExpandCollection =
+    !showCompleteCollection &&
+    featuredCount !== undefined &&
+    filteredModels.length > featuredCount;
 
   return (
     <section
@@ -251,20 +253,16 @@ export function ModelShowcase({
           </AnimatePresence>
         </motion.div>
 
-        {canToggleCollection ? (
+        {canExpandCollection ? (
           <div className="mt-12 border-t border-white/10 pt-7">
             <button
               type="button"
-              aria-expanded={showCompleteCollection}
+              aria-expanded="false"
               aria-controls="custom-homes-grid"
-              onClick={() =>
-                setShowCompleteCollection((showComplete) => !showComplete)
-              }
+              onClick={() => setShowCompleteCollection(true)}
               className="inline-flex min-h-11 items-center border-b border-white/28 py-2 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/62 transition-colors hover:border-white hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
             >
-              {showCompleteCollection
-                ? "Show featured custom homes"
-                : "View complete custom homes collection"}
+              View complete custom homes collection
             </button>
           </div>
         ) : null}

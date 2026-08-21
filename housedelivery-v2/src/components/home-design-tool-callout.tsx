@@ -133,7 +133,9 @@ export function HomeDesignToolCallout({
                 isPrimary ? "min-w-64 pb-3" : "min-w-52 pb-2",
               )}
             >
-              {isPrimary ? `Design My ${homeName}` : "Start designing"}
+              {isPrimary
+                ? `Build My ${homeName}`
+                : `Explore ${homeName} Design Options`}
               <ArrowRight
                 aria-hidden="true"
                 className="size-4 transition-transform group-hover:translate-x-1"
