@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { HomeConfigurationProgress } from "@/components/home-configuration-progress";
 import { HomeConfigurationSummary } from "@/components/home-configuration-summary";
@@ -27,6 +27,13 @@ import {
   createLookBookReference,
   type LookBookCustomer,
 } from "@/data/home-look-book";
+import {
+  getPlannerConfigurationKey,
+  PLANNER_RETURN_KEY,
+  readPlannerDesignSession,
+  type PlannerDesignReturn,
+  type PlannerDesignSession,
+} from "@/lib/planner-design-session";
 
 type HomeConfiguratorProps = {
   definition: HomeConfiguratorDefinition;
@@ -138,9 +145,62 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
   });
   const [imagePreviewTarget, setImagePreviewTarget] =
     useState<HomeImagePreviewTarget | null>(null);
+  const [plannerSession, setPlannerSession] =
+    useState<PlannerDesignSession>();
+  const [plannerConfigurationHydrated, setPlannerConfigurationHydrated] =
+    useState(false);
+  const [plannerLookBookSaved, setPlannerLookBookSaved] = useState(false);
   const closeImagePreview = useCallback(() => {
     setImagePreviewTarget(null);
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    window.queueMicrotask(() => {
+      if (!active) return;
+      try {
+        const session = readPlannerDesignSession(window.location.search);
+        if (!session || session.modelId !== `custom:${definition.homeId}`) {
+          setPlannerConfigurationHydrated(true);
+          return;
+        }
+
+        setPlannerSession(session);
+        const saved = window.localStorage.getItem(
+          getPlannerConfigurationKey(session),
+        );
+        if (saved) {
+          const restored = JSON.parse(saved) as HomeConfiguration;
+          if (
+            restored.homeId === definition.homeId &&
+            restored.schemaVersion === definition.configurationVersion
+          ) {
+            setConfiguration(restored);
+            setPlannerLookBookSaved(Boolean(restored.lookBookPersonalization));
+          }
+        }
+      } catch {
+        // A malformed or unavailable local design should not block Build My.
+      } finally {
+        setPlannerConfigurationHydrated(true);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [definition.configurationVersion, definition.homeId]);
+
+  useEffect(() => {
+    if (!plannerSession || !plannerConfigurationHydrated) return;
+    try {
+      window.localStorage.setItem(
+        getPlannerConfigurationKey(plannerSession),
+        JSON.stringify(configuration),
+      );
+    } catch {
+      // Build My remains usable when local storage is unavailable.
+    }
+  }, [configuration, plannerConfigurationHydrated, plannerSession]);
   const requiredCategories = getHomeConfiguratorJourneyCategories(definition);
   const displayedCategories = [
     ...requiredCategories,
@@ -487,12 +547,33 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
     focusConfigurationTarget("home-look-book");
   }
 
+  function returnToPlanner() {
+    if (!plannerSession || !configuration.lookBookPersonalization) return;
+    const result: PlannerDesignReturn = {
+      ...plannerSession,
+      configuration,
+      completedAt: new Date().toISOString(),
+    };
+
+    try {
+      window.localStorage.setItem(PLANNER_RETURN_KEY, JSON.stringify(result));
+      window.localStorage.setItem(
+        getPlannerConfigurationKey(plannerSession),
+        JSON.stringify(configuration),
+      );
+    } catch {
+      return;
+    }
+    window.location.assign(plannerSession.returnHref);
+  }
+
   return (
     <div
       id="home-configurator"
       data-home-configuration={definition.homeId}
       data-home-configuration-version={configuration.schemaVersion}
       data-review-status={configuration.reviewStatus}
+      data-planner-design-group={plannerSession?.variationId}
     >
       <section
         id="home-inclusions"
@@ -737,6 +818,17 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
             ...current,
             reviewStatus: "ready-for-review",
           }))
+        }
+        plannerContext={
+          plannerSession
+            ? {
+                designLabel: `${definition.homeName} — ${plannerSession.designLabel}`,
+                assignedQuantity: plannerSession.assignedQuantity,
+                isSaved: plannerLookBookSaved,
+                onSave: () => setPlannerLookBookSaved(true),
+                onReturn: returnToPlanner,
+              }
+            : undefined
         }
       />
 

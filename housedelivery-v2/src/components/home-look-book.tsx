@@ -36,6 +36,13 @@ type HomeLookBookProps = {
     zoneId?: string,
   ) => void;
   onSubmit: () => void;
+  plannerContext?: {
+    designLabel: string;
+    assignedQuantity: number;
+    isSaved: boolean;
+    onSave: () => void;
+    onReturn: () => void;
+  };
 };
 
 type ResolvedSelection = LookBookSelection & {
@@ -700,6 +707,7 @@ export function HomeLookBook({
   onEditCategory,
   onPreviewOption,
   onSubmit,
+  plannerContext,
 }: HomeLookBookProps) {
   const requiredCategories = getHomeConfiguratorJourneyCategories(definition);
   const isReady = requiredCategories.every((category) =>
@@ -729,7 +737,10 @@ export function HomeLookBook({
     onEditCategory,
     onPreviewOption,
   };
-  const saveLookBook = () => window.print();
+  const saveLookBook = () => {
+    plannerContext?.onSave();
+    window.print();
+  };
 
   return (
     <section
@@ -749,8 +760,24 @@ export function HomeLookBook({
             </p>
             <p className="mt-2 text-sm text-black/62">Prepared for {customerName}</p>
           </div>
-          <SaveLookBookButton placement="top" onSave={saveLookBook} />
+          <div className="flex flex-col gap-3 sm:items-end">
+            <SaveLookBookButton placement="top" onSave={saveLookBook} />
+            {plannerContext?.isSaved ? (
+              <button
+                type="button"
+                onClick={plannerContext.onReturn}
+                className="inline-flex min-h-12 items-center justify-center gap-3 border border-black px-6 text-[9px] font-semibold uppercase tracking-[0.17em] text-black hover:bg-black hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
+              >
+                Return to Project <ArrowRight aria-hidden="true" className="size-4" />
+              </button>
+            ) : null}
+          </div>
         </div>
+        {plannerContext ? (
+          <p className="mx-auto mt-5 max-w-[1504px] text-xs leading-5 text-black/52">
+            Project design group: {plannerContext.designLabel} · Assigned to {plannerContext.assignedQuantity} {plannerContext.assignedQuantity === 1 ? "home" : "homes"}. Save or print this Look Book, then return to continue the project.
+          </p>
+        ) : null}
       </div>
 
       <article data-look-book-cover data-look-book-layout="cover" data-look-book-print-page className="look-book-cover relative min-h-[min(920px,100svh)] overflow-hidden bg-[#111216] text-white">
@@ -815,10 +842,21 @@ export function HomeLookBook({
                   <span>Submit My {definition.homeName} for Review</span><ArrowRight aria-hidden="true" className="size-4" strokeWidth={1.5} />
                 </button>
               )}
-              <SaveLookBookButton
-                placement="completion"
-                onSave={saveLookBook}
-              />
+              <div className="grid gap-3">
+                <SaveLookBookButton
+                  placement="completion"
+                  onSave={saveLookBook}
+                />
+                {plannerContext?.isSaved ? (
+                  <button
+                    type="button"
+                    onClick={plannerContext.onReturn}
+                    className="inline-flex min-h-14 items-center justify-between gap-7 border border-white/44 px-6 text-[9px] font-semibold uppercase tracking-[0.17em] text-white hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+                  >
+                    Return to Project <ArrowRight aria-hidden="true" className="size-4" />
+                  </button>
+                ) : null}
+              </div>
             </div>
             <div className="mt-10 border-t border-white/18 pt-5 text-[8px] leading-4 text-white/42">
               <p>{definition.disclaimer}</p><p className="mt-2">{lookBook.preliminaryNotice}</p>

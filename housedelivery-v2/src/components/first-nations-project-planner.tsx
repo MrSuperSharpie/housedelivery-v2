@@ -16,24 +16,36 @@ import { useEffect, useMemo, useState } from "react";
 
 import { cn } from "@/lib/cn";
 import {
+  addPlannerDesignVariation,
   calculatePreliminaryEstimate,
+  createPlannerDesignVariation,
   defaultPlannerState,
   formatPlanningValue,
+  getPlannerDesignProgress,
   getPortfolioSummary,
   getReadinessProfile,
   matchFundingCorridors,
+  migratePlannerState,
+  reassignPlannerDesignQuantity,
+  resizePlannerDesignVariations,
   type FundingCorridor,
   type PlannerCatalogItem,
+  type PlannerDesignVariation,
   type PlannerPhase,
   type PlannerPortfolioLine,
   type PlannerState,
 } from "@/lib/project-planner";
-
-const STORAGE_KEY = "house-delivery:first-nations-planner:v1";
+import {
+  buildPlannerDesignHref,
+  PLANNER_RETURN_KEY,
+  PLANNER_STORAGE_KEY,
+  type PlannerDesignReturn,
+  type PlannerDesignSession,
+} from "@/lib/planner-design-session";
 
 const plannerPhaseLabels = {
-  "phase-1": "Phase 1",
-  "phase-2": "Phase 2",
+  "phase-1": "Active / First Build",
+  "phase-2": "Near-Term / Next Build",
   future: "Future Pipeline",
 } as const;
 
@@ -66,6 +78,26 @@ function createLineId() {
     : `line-${Date.now()}`;
 }
 
+function getPlannerHomeName(name: string) {
+  return name.replace(/^The\s+/i, "");
+}
+
+function getPlannerDesignSession(
+  line: PlannerPortfolioLine,
+  model: PlannerCatalogItem,
+  variation: PlannerDesignVariation,
+): PlannerDesignSession {
+  return {
+    lineId: line.id,
+    variationId: variation.id,
+    modelId: model.id,
+    homeName: getPlannerHomeName(model.name),
+    designLabel: variation.label,
+    assignedQuantity: variation.assignedQuantity,
+    returnHref: "/first-nations-project-planner#planner-design-workspace",
+  };
+}
+
 function labelValue(value: string) {
   return value === "unknown"
     ? "Unknown / to confirm"
@@ -83,17 +115,73 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-function PlannerLink({ href, children }: { href: string; children: React.ReactNode }) {
+function PlannerLink({
+  href,
+  children,
+  newTab = true,
+}: {
+  href: string;
+  children: React.ReactNode;
+  newTab?: boolean;
+}) {
   return (
     <Link
       href={href}
-      target="_blank"
-      rel="noreferrer"
+      target={newTab ? "_blank" : undefined}
+      rel={newTab ? "noreferrer" : undefined}
       className="inline-flex min-h-9 items-center gap-2 border-b border-black/28 text-[9px] font-semibold uppercase tracking-[0.15em] text-black/58 transition-colors hover:border-black hover:text-black"
     >
       {children}
       <ArrowUpRight aria-hidden="true" className="size-3.5" />
     </Link>
+  );
+}
+
+function PlannerHomeActions({
+  item,
+  line,
+}: {
+  item: PlannerCatalogItem;
+  line?: PlannerPortfolioLine;
+}) {
+  const variation = line?.designVariations[0];
+  const session = line && variation
+    ? getPlannerDesignSession(line, item, variation)
+    : undefined;
+  const buildHref = item.buildMyHref && session
+    ? buildPlannerDesignHref(item.buildMyHref, session)
+    : undefined;
+  const lookBookHref = item.lookBookHref && session
+    ? buildPlannerDesignHref(item.lookBookHref, session, "look-book")
+    : undefined;
+
+  return (
+    <div className="mt-5 grid gap-3 border-t border-black/12 pt-4">
+      <div>
+        <PlannerLink href={item.viewHref}>View Home</PlannerLink>
+        <p className="mt-1 text-[10px] leading-4 text-black/42">Architecture, plans and walkthrough</p>
+      </div>
+      <div>
+        {!item.buildMyHref ? (
+          <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-black/38">Build My — Coming Soon</span>
+        ) : buildHref ? (
+          <PlannerLink href={buildHref} newTab={false}>Build My</PlannerLink>
+        ) : (
+          <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-black/38">Build My — Add to Project First</span>
+        )}
+        <p className="mt-1 text-[10px] leading-4 text-black/42">Choose the design direction</p>
+      </div>
+      <div>
+        {!item.lookBookHref ? (
+          <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-black/38">Look Book — Coming Soon</span>
+        ) : lookBookHref && variation?.status === "complete" ? (
+          <PlannerLink href={lookBookHref} newTab={false}>Look Book</PlannerLink>
+        ) : (
+          <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-black/38">Look Book — Save a Design First</span>
+        )}
+        <p className="mt-1 text-[10px] leading-4 text-black/42">Reopen saved design selections</p>
+      </div>
+    </div>
   );
 }
 
@@ -212,35 +300,40 @@ function PortfolioStep({
   );
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [phases, setPhases] = useState<Record<string, PlannerPhase>>({});
+  const [addFeedback, setAddFeedback] = useState<Record<string, string>>({});
   const catalog = plannerCatalog.filter((item) => item.family === family);
   const summary = getPortfolioSummary(state.portfolio, plannerCatalog);
 
   function addItem(item: PlannerCatalogItem) {
     const quantity = Math.max(1, quantities[item.id] ?? 1);
     const phase = phases[item.id] ?? "phase-1";
-    setState((current) => {
-      const existing = current.portfolio.find(
-        (line) => line.modelId === item.id && line.phase === phase,
-      );
-      const portfolio = existing
-        ? current.portfolio.map((line) =>
-            line.id === existing.id
-              ? { ...line, quantity: line.quantity + quantity }
-              : line,
-          )
-        : [
-            ...current.portfolio,
-            {
-              id: createLineId(),
-              modelId: item.id,
-              quantity,
-              phase,
-              designSelections: {},
-              lookBookReference: "",
-            },
-          ];
-      return { ...current, portfolio };
-    });
+    const existing = state.portfolio.find(
+      (line) => line.modelId === item.id && line.phase === phase,
+    );
+    const lineId = existing?.id ?? createLineId();
+    const portfolio = existing
+      ? state.portfolio.map((line) =>
+          line.id === existing.id
+            ? resizePlannerDesignVariations(line, line.quantity + quantity)
+            : line,
+        )
+      : [
+          ...state.portfolio,
+          {
+            id: lineId,
+            modelId: item.id,
+            quantity,
+            phase,
+            designVariations: [createPlannerDesignVariation(lineId, quantity)],
+          },
+        ];
+    const nextSummary = getPortfolioSummary(portfolio, plannerCatalog);
+
+    setState((current) => ({ ...current, portfolio }));
+    setAddFeedback((current) => ({
+      ...current,
+      [item.id]: `${quantity} ${getPlannerHomeName(item.name)} added to your project · ${nextSummary.totalHomes} homes total`,
+    }));
   }
 
   function updateLine(id: string, patch: Partial<PlannerPortfolioLine>) {
@@ -264,7 +357,7 @@ function PortfolioStep({
       <StepHeader
         eyebrow="02 / Housing portfolio"
         title="Build the portfolio."
-        intro="Combine repeatable home models across Phase 1, Phase 2 and the future pipeline. Model pages open separately so this planning work stays saved."
+        intro="Combine repeatable home models across an Active / First Build, a Near-Term / Next Build and the Future Pipeline. These phases describe planned delivery sequence—not rigid construction dates."
       />
 
       <div className="mt-14 grid gap-5 border-y border-black/16 py-7 sm:grid-cols-3">
@@ -307,7 +400,10 @@ function PortfolioStep({
                     value={line.quantity}
                     onChange={(event) =>
                       updateLine(line.id, {
-                        quantity: Math.max(1, Number(event.target.value) || 1),
+                        ...resizePlannerDesignVariations(
+                          line,
+                          Math.max(1, Number(event.target.value) || 1),
+                        ),
                       })
                     }
                     className={selectClassName}
@@ -399,12 +495,10 @@ function PortfolioStep({
               </span>
             </div>
             <p className="mt-4 min-h-20 text-sm leading-6 text-black/52">{item.description}</p>
-            <div className="mt-5 flex flex-wrap gap-x-5 gap-y-1">
-              <PlannerLink href={item.viewHref}>View Home</PlannerLink>
-              {item.walkthroughHref ? <PlannerLink href={item.walkthroughHref}>Walkthrough</PlannerLink> : null}
-              {item.buildMyHref ? <PlannerLink href={item.buildMyHref}>Build My</PlannerLink> : null}
-              {item.lookBookHref ? <PlannerLink href={item.lookBookHref}>Look Book</PlannerLink> : null}
-            </div>
+            <PlannerHomeActions
+              item={item}
+              line={state.portfolio.find((line) => line.modelId === item.id)}
+            />
             <div className="mt-6 grid grid-cols-[5.5rem_1fr] gap-3">
               <label>
                 <span className="sr-only">Quantity of {item.name}</span>
@@ -434,8 +528,14 @@ function PortfolioStep({
               onClick={() => addItem(item)}
               className="mt-3 inline-flex min-h-12 w-full items-center justify-between bg-black px-5 text-[9px] font-semibold uppercase tracking-[0.17em] text-white"
             >
-              Add to portfolio <Plus aria-hidden="true" className="size-4" />
+              Add to Project <Plus aria-hidden="true" className="size-4" />
             </button>
+            {addFeedback[item.id] ? (
+              <p role="status" aria-live="polite" className="mt-3 flex items-start gap-2 text-xs leading-5 text-black/62">
+                <Check aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
+                {addFeedback[item.id]}
+              </p>
+            ) : null}
           </article>
         ))}
       </div>
@@ -541,8 +641,8 @@ function RefineStep({
     <div>
       <StepHeader
         eyebrow="04 / Refine project"
-        title="Replace assumptions with context."
-        intro="Every answer can remain unknown. The objective is to identify what is understood, what requires engagement and what must be reviewed before a commercial or technical commitment."
+        title="Refine Your Project"
+        intro="These answers help House Delivery better understand the community, site, delivery needs and funding context. Every answer can remain unknown while the project is still taking shape."
       />
       <fieldset className="mt-16 border-t border-black/16 pt-6">
         <legend className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/46">Who should the portfolio serve?</legend>
@@ -589,13 +689,21 @@ function DesignStep({
   state,
   setState,
   catalog,
+  returnNotice,
 }: {
   state: PlannerState;
   setState: React.Dispatch<React.SetStateAction<PlannerState>>;
   catalog: readonly PlannerCatalogItem[];
+  returnNotice?: string;
 }) {
   const summary = getPortfolioSummary(state.portfolio, catalog);
   const designLines = summary.lines.filter(({ model }) => model.designChapters.length > 0);
+  const progress = getPlannerDesignProgress(state.portfolio, catalog);
+  const nextDesign = designLines
+    .flatMap(({ line, model }) =>
+      line.designVariations.map((variation) => ({ line, model, variation })),
+    )
+    .find(({ variation }) => variation.status !== "complete");
 
   function updateLine(lineId: string, updater: (line: PlannerPortfolioLine) => PlannerPortfolioLine) {
     setState((current) => ({
@@ -609,49 +717,132 @@ function DesignStep({
       <StepHeader
         eyebrow="05 / House Delivery design direction"
         title="Make the direction visible."
-        intro="Premium and Signature selections are visual direction—not exact supplier products or a fully costed bill of materials. They do not change this planning case unless a controlled commercial delta is established later."
+        intro="Create one design per home type and assign it to every matching home by default. Add a design variation only when part of that quantity needs a different direction."
       />
+      {returnNotice ? (
+        <div role="status" className="mt-10 border border-black bg-black p-5 text-white sm:p-6">
+          <p className="flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.16em]"><Check aria-hidden="true" className="size-4" />{returnNotice}</p>
+          <p className="mt-3 text-sm leading-6 text-white/58">Your project totals and saved design assignments remain intact.</p>
+        </div>
+      ) : null}
+      {designLines.length ? (
+        <div className="mt-8 flex flex-col gap-5 border-y border-black/16 py-6 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm leading-6 text-black/58">
+            {progress.completedDesigns} design {progress.completedDesigns === 1 ? "group" : "groups"} completed · {progress.remainingDesignGroups} remaining
+          </p>
+          {nextDesign ? (
+            <PlannerLink
+              href={buildPlannerDesignHref(
+                nextDesign.model.buildMyHref!,
+                getPlannerDesignSession(nextDesign.line, nextDesign.model, nextDesign.variation),
+              )}
+              newTab={false}
+            >
+              Continue to Next Home Design
+            </PlannerLink>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setState((current) => ({ ...current, step: 3 }))}
+              className="inline-flex min-h-11 items-center gap-3 border-b border-black/28 text-[9px] font-semibold uppercase tracking-[0.15em]"
+            >
+              Refine Your Project <ArrowRight aria-hidden="true" className="size-3.5" />
+            </button>
+          )}
+        </div>
+      ) : null}
       {designLines.length ? (
         <div className="mt-16 space-y-14">
           {designLines.map(({ line, model }) => {
-            const selectedCount = model.designChapters.filter((chapter) => line.designSelections[chapter.id]).length;
             return (
-              <article key={line.id} className="border-t border-black/16 pt-6">
+              <article key={line.id} id={`planner-design-line-${line.id}`} className="scroll-mt-28 border-t border-black/16 pt-6">
                 <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
                   <div>
                     <p className="text-[9px] uppercase tracking-[0.18em] text-black/42">{plannerPhaseLabels[line.phase]} / Visual Direction</p>
                     <h3 className="mt-3 text-4xl font-medium tracking-[-0.055em]">{model.name}</h3>
-                    <p className="mt-3 text-sm text-black/48">{selectedCount} of {model.designChapters.length} design chapters recorded</p>
+                    <p className="mt-3 max-w-2xl text-sm leading-6 text-black/48">
+                      {line.designVariations.length === 1
+                        ? `Create one ${getPlannerHomeName(model.name)} design and assign it to all ${line.quantity} ${line.quantity === 1 ? "home" : "homes"}.`
+                        : `${line.designVariations.length} design variations are assigned across ${line.quantity} homes.`}
+                    </p>
                   </div>
-                  <div className="flex flex-wrap gap-5">
-                    {model.buildMyHref ? <PlannerLink href={model.buildMyHref}>Open full Build My</PlannerLink> : null}
-                    {model.lookBookHref ? <PlannerLink href={model.lookBookHref}>Open Look Book</PlannerLink> : null}
-                  </div>
+                  <p className="text-right text-xs leading-5 text-black/45">Delivery sequence<br />{plannerPhaseLabels[line.phase]}</p>
                 </div>
-                <div className="mt-7 grid border-l border-t border-black/16 lg:grid-cols-2">
-                  {model.designChapters.map((chapter) => (
-                    <label key={chapter.id} className="border-b border-r border-black/16 p-5">
-                      <FieldLabel>{chapter.number} / {chapter.title}</FieldLabel>
-                      <select
-                        value={line.designSelections[chapter.id] ?? ""}
-                        onChange={(event) => updateLine(line.id, (current) => ({ ...current, designSelections: { ...current.designSelections, [chapter.id]: event.target.value } }))}
-                        className={selectClassName}
+                <div className="mt-7 grid gap-4 lg:grid-cols-2">
+                  {line.designVariations.map((variation) => {
+                    const session = getPlannerDesignSession(line, model, variation);
+                    const buildHref = buildPlannerDesignHref(model.buildMyHref!, session);
+                    const lookBookHref = buildPlannerDesignHref(
+                      model.lookBookHref ?? model.buildMyHref!,
+                      session,
+                      "look-book",
+                    );
+                    return (
+                      <section
+                        key={variation.id}
+                        id={`planner-design-${variation.id}`}
+                        className="scroll-mt-28 border border-black/16 p-5 sm:p-6"
                       >
-                        <option value="">Not selected</option>
-                        {chapter.options.map((option) => <option key={option.id} value={option.id}>{option.label} · {option.status}</option>)}
-                      </select>
-                    </label>
-                  ))}
-                  <label className="border-b border-r border-black/16 p-5 lg:col-span-2">
-                    <FieldLabel>Existing Look Book reference / customer note</FieldLabel>
-                    <input
-                      value={line.lookBookReference}
-                      onChange={(event) => updateLine(line.id, (current) => ({ ...current, lookBookReference: event.target.value }))}
-                      placeholder="Optional reference or note"
-                      className="w-full bg-transparent text-base text-black outline-none placeholder:text-black/25"
-                    />
-                  </label>
+                        <div className="flex items-start justify-between gap-5">
+                          <div>
+                            <p className="text-[9px] font-semibold uppercase tracking-[0.17em] text-black/42">Saved design group</p>
+                            <h4 className="mt-2 text-2xl font-medium tracking-[-0.04em]">{getPlannerHomeName(model.name)} — {variation.label}</h4>
+                          </div>
+                          <span className={cn("px-3 py-2 text-[8px] font-semibold uppercase tracking-[0.14em]", variation.status === "complete" ? "bg-black text-white" : "border border-black/18 text-black/46")}>
+                            {variation.status === "complete" ? "Design completed" : "Design remaining"}
+                          </span>
+                        </div>
+                        {line.designVariations.length > 1 ? (
+                          <label className="mt-6 block max-w-52">
+                            <FieldLabel>Assigned quantity</FieldLabel>
+                            <input
+                              type="number"
+                              min="1"
+                              max={line.quantity - (line.designVariations.length - 1)}
+                              value={variation.assignedQuantity}
+                              onChange={(event) =>
+                                updateLine(line.id, (current) =>
+                                  reassignPlannerDesignQuantity(
+                                    current,
+                                    variation.id,
+                                    Number(event.target.value) || 1,
+                                  ),
+                                )
+                              }
+                              className={selectClassName}
+                            />
+                          </label>
+                        ) : (
+                          <p className="mt-6 text-sm text-black/56">Assigned to {variation.assignedQuantity} {variation.assignedQuantity === 1 ? "home" : "homes"}</p>
+                        )}
+                        {variation.lookBookReference ? (
+                          <p className="mt-3 font-mono text-[9px] uppercase tracking-[0.13em] text-black/42">Look Book / {variation.lookBookReference}</p>
+                        ) : null}
+                        <div className="mt-7 flex flex-wrap gap-x-5 gap-y-3 border-t border-black/12 pt-4">
+                          {variation.status === "complete" ? (
+                            <>
+                              <PlannerLink href={lookBookHref} newTab={false}>View Look Book</PlannerLink>
+                              <PlannerLink href={buildHref} newTab={false}>Edit Design</PlannerLink>
+                            </>
+                          ) : (
+                            <>
+                              <PlannerLink href={buildHref} newTab={false}>Build My {getPlannerHomeName(model.name)}</PlannerLink>
+                              <span className="self-center text-[9px] font-semibold uppercase tracking-[0.15em] text-black/32">Look Book — Save a design first</span>
+                            </>
+                          )}
+                        </div>
+                      </section>
+                    );
+                  })}
                 </div>
+                <button
+                  type="button"
+                  disabled={line.designVariations.length >= line.quantity}
+                  onClick={() => updateLine(line.id, addPlannerDesignVariation)}
+                  className="mt-5 inline-flex min-h-11 items-center gap-3 border border-black/22 px-5 text-[9px] font-semibold uppercase tracking-[0.15em] text-black/62 disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                  <Plus aria-hidden="true" className="size-3.5" /> Create Another Design Variation
+                </button>
               </article>
             );
           })}
@@ -766,11 +957,13 @@ function OpportunityReport({ state, onRefine, catalog, corridors }: { state: Pla
   const estimate = calculatePreliminaryEstimate(state.portfolio, catalog);
   const funding = matchFundingCorridors(state, corridors, catalog).filter((item) => item.relevance !== "Monitor");
   const readiness = getReadinessProfile(state, catalog);
-  const designSelections = summary.lines.flatMap(({ line, model }) => model.designChapters.flatMap((chapter) => {
-    const optionId = line.designSelections[chapter.id];
-    const option = chapter.options.find((candidate) => candidate.id === optionId);
-    return option ? [{ model: model.name, chapter: chapter.title, option: option.label }] : [];
-  }));
+  const savedDesigns = summary.lines.flatMap(({ line, model }) =>
+    line.designVariations.flatMap((variation) =>
+      variation.status === "complete"
+        ? [{ model: model.name, variation }]
+        : [],
+    ),
+  );
   const missingInformation = readiness.filter((item) => !item.ready).map((item) => item.label);
   const reviewBody = encodeURIComponent([
     `Community / Nation: ${state.community}`,
@@ -825,7 +1018,7 @@ function OpportunityReport({ state, onRefine, catalog, corridors }: { state: Pla
         </ReportSection>
 
         <ReportSection number="04" title="Design direction">
-          {designSelections.length ? <div className="grid gap-3 sm:grid-cols-2">{designSelections.map((selection) => <p key={`${selection.model}-${selection.chapter}`} className="border-t border-black/16 pt-3 text-sm"><span className="text-black/42">{selection.model} / {selection.chapter}</span><br />{selection.option} · Visual Direction</p>)}</div> : <p className="text-sm text-black/52">Design direction has not yet been recorded. Technical and project-specific approvals remain separate.</p>}
+          {savedDesigns.length ? <div className="grid gap-3 sm:grid-cols-2">{savedDesigns.map(({ model, variation }) => <p key={variation.id} className="border-t border-black/16 pt-3 text-sm"><span className="text-black/42">{getPlannerHomeName(model)} — {variation.label}</span><br />Assigned to {variation.assignedQuantity} {variation.assignedQuantity === 1 ? "home" : "homes"}{variation.lookBookReference ? ` · ${variation.lookBookReference}` : ""}</p>)}</div> : <p className="text-sm text-black/52">Design direction has not yet been recorded. Technical and project-specific approvals remain separate.</p>}
         </ReportSection>
 
         <ReportSection number="05" title="Major range drivers">
@@ -865,18 +1058,74 @@ function ReportSection({ number, title, children }: { number: string; title: str
 export function FirstNationsProjectPlanner({ catalog, fundingCorridors }: { catalog: readonly PlannerCatalogItem[]; fundingCorridors: readonly FundingCorridor[] }) {
   const [state, setState] = useState<PlannerState>(defaultPlannerState);
   const [hydrated, setHydrated] = useState(false);
+  const [returnNotice, setReturnNotice] = useState<string>();
 
   useEffect(() => {
     let active = true;
     window.queueMicrotask(() => {
       if (!active) return;
       try {
-        const saved = window.localStorage.getItem(STORAGE_KEY);
-        if (saved) {
-          const parsed = JSON.parse(saved) as PlannerState;
-          if (parsed.version === 1 && parsed.audience === "first-nations") {
-            setState(parsed);
-          }
+        const saved = window.localStorage.getItem(PLANNER_STORAGE_KEY);
+        const restored = saved
+          ? migratePlannerState(JSON.parse(saved))
+          : defaultPlannerState;
+        const returnedValue = window.localStorage.getItem(PLANNER_RETURN_KEY);
+        const returned = returnedValue
+          ? (JSON.parse(returnedValue) as PlannerDesignReturn)
+          : undefined;
+
+        if (restored && returned?.lineId && returned.variationId) {
+          const designSelections = Object.fromEntries(
+            [
+              ...Object.entries(returned.configuration.inclusionSelections),
+              ...Object.entries(returned.configuration.flooringSelections),
+            ].flatMap(([categoryId, selection]) =>
+              selection?.status === "confirmed"
+                ? [[categoryId, selection.optionId] as const]
+                : [],
+            ),
+          );
+          const portfolio = restored.portfolio.map((line) =>
+            line.id === returned.lineId
+              ? {
+                  ...line,
+                  designVariations: line.designVariations.map((variation) =>
+                    variation.id === returned.variationId
+                      ? {
+                          ...variation,
+                          status: "complete" as const,
+                          designSelections,
+                          lookBookReference:
+                            returned.configuration.lookBookPersonalization
+                              ?.reference ?? variation.lookBookReference,
+                          savedAt: returned.completedAt,
+                        }
+                      : variation,
+                  ),
+                }
+              : line,
+          );
+          const returnedState: PlannerState = {
+            ...restored,
+            portfolio,
+            step: 4,
+          };
+          window.localStorage.setItem(
+            PLANNER_STORAGE_KEY,
+            JSON.stringify(returnedState),
+          );
+          setState(returnedState);
+          setReturnNotice(
+            `${returned.homeName} — ${returned.designLabel} is saved and assigned to ${returned.assignedQuantity} ${returned.assignedQuantity === 1 ? "home" : "homes"}.`,
+          );
+          window.localStorage.removeItem(PLANNER_RETURN_KEY);
+          window.requestAnimationFrame(() => {
+            document
+              .getElementById(`planner-design-${returned.variationId}`)
+              ?.scrollIntoView({ behavior: "smooth", block: "center" });
+          });
+        } else if (restored) {
+          setState(restored);
         }
       } catch {
         // A malformed local draft should never block a new planning session.
@@ -891,8 +1140,29 @@ export function FirstNationsProjectPlanner({ catalog, fundingCorridors }: { cata
 
   useEffect(() => {
     if (!hydrated) return;
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    try {
+      window.localStorage.setItem(PLANNER_STORAGE_KEY, JSON.stringify(state));
+    } catch {
+      // Private browsing or a full storage quota should not block the planner.
+    }
   }, [hydrated, state]);
+
+  const projectSummary = getPortfolioSummary(state.portfolio, catalog);
+  const designProgress = getPlannerDesignProgress(state.portfolio, catalog);
+  const includedHomeTypes = projectSummary.lines.map(({ model }) =>
+    getPlannerHomeName(model.name),
+  );
+  const completedHomeTypes = projectSummary.lines.flatMap(({ line, model }) =>
+    line.designVariations.some((variation) => variation.status === "complete")
+      ? [getPlannerHomeName(model.name)]
+      : [],
+  );
+  const remainingHomeTypes = projectSummary.lines.flatMap(({ line, model }) =>
+    model.designChapters.length > 0 &&
+    line.designVariations.some((variation) => variation.status !== "complete")
+      ? [getPlannerHomeName(model.name)]
+      : [],
+  );
 
   const canContinue = useMemo(() => {
     if (state.step === 0) return Boolean(state.community.trim() && state.location.trim() && Number(state.approximateHomes) > 0);
@@ -908,7 +1178,8 @@ export function FirstNationsProjectPlanner({ catalog, fundingCorridors }: { cata
   function resetPlanner() {
     if (!window.confirm("Clear this local planner draft and start again?")) return;
     setState(defaultPlannerState);
-    window.localStorage.removeItem(STORAGE_KEY);
+    setReturnNotice(undefined);
+    window.localStorage.removeItem(PLANNER_STORAGE_KEY);
   }
 
   return (
@@ -923,12 +1194,25 @@ export function FirstNationsProjectPlanner({ catalog, fundingCorridors }: { cata
         </div>
       </div>
 
+      <div className="planner-screen-only sticky top-[4.5rem] z-30 border-b border-black/14 bg-[#edeae2]/95 px-5 py-4 backdrop-blur sm:px-8 lg:px-12">
+        <div className="mx-auto max-w-[1504px]">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-black/72">
+            {projectSummary.totalHomes} homes · {projectSummary.modelCount} home {projectSummary.modelCount === 1 ? "type" : "types"} · {designProgress.completedDesigns} {designProgress.completedDesigns === 1 ? "design" : "designs"} completed · {designProgress.remainingDesignGroups} design {designProgress.remainingDesignGroups === 1 ? "group" : "groups"} remaining
+          </p>
+          <p className="mt-2 text-[10px] leading-4 text-black/46">
+            {includedHomeTypes.length ? `Included: ${includedHomeTypes.join(", ")}.` : "No homes added yet."}
+            {completedHomeTypes.length ? ` Configured: ${completedHomeTypes.join(", ")}.` : ""}
+            {remainingHomeTypes.length ? ` Next: ${remainingHomeTypes.join(", ")}.` : ""}
+          </p>
+        </div>
+      </div>
+
       <div className="mx-auto max-w-[1504px] px-5 py-16 sm:px-8 sm:py-20 lg:px-12 lg:py-28">
         {state.step === 0 ? <StartStep state={state} update={(patch) => setState((current) => ({ ...current, ...patch }))} /> : null}
         {state.step === 1 ? <PortfolioStep state={state} setState={setState} catalog={catalog} /> : null}
         {state.step === 2 ? <EstimatePanel state={state} catalog={catalog} /> : null}
         {state.step === 3 ? <RefineStep state={state} setState={setState} /> : null}
-        {state.step === 4 ? <DesignStep state={state} setState={setState} catalog={catalog} /> : null}
+        {state.step === 4 ? <DesignStep state={state} setState={setState} catalog={catalog} returnNotice={returnNotice} /> : null}
         {state.step === 5 ? <FundingStep state={state} catalog={catalog} corridors={fundingCorridors} /> : null}
         {state.step === 6 ? <ScaleReadinessStep state={state} catalog={catalog} /> : null}
         {state.step === 7 ? <OpportunityReport state={state} onRefine={() => goToStep(3)} catalog={catalog} corridors={fundingCorridors} /> : null}

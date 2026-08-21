@@ -223,7 +223,7 @@ export const firstNationsFundingCorridors = [
 ] as const satisfies readonly FundingCorridor[];
 
 export const plannerPhaseLabels = {
-  "phase-1": "Phase 1",
-  "phase-2": "Phase 2",
+  "phase-1": "Active / First Build",
+  "phase-2": "Near-Term / Next Build",
   future: "Future Pipeline",
 } as const;

@@ -54,13 +54,22 @@ export type PlannerCatalogItem = {
   planningBasis: PlanningBasis;
 };
 
+export type PlannerDesignVariation = {
+  id: string;
+  label: string;
+  assignedQuantity: number;
+  status: "draft" | "complete";
+  designSelections: Readonly<Record<string, string>>;
+  lookBookReference: string;
+  savedAt?: string;
+};
+
 export type PlannerPortfolioLine = {
   id: string;
   modelId: string;
   quantity: number;
   phase: PlannerPhase;
-  designSelections: Readonly<Record<string, string>>;
-  lookBookReference: string;
+  designVariations: readonly PlannerDesignVariation[];
 };
 
 export type ProjectRefinement = {
@@ -78,7 +87,7 @@ export type ProjectRefinement = {
 };
 
 export type PlannerState = {
-  version: 1;
+  version: 2;
   audience: PlannerAudience;
   step: number;
   community: string;
@@ -132,7 +141,7 @@ export type MatchedFundingCorridor = FundingCorridor & {
 };
 
 export const defaultPlannerState: PlannerState = {
-  version: 1,
+  version: 2,
   audience: "first-nations",
   step: 0,
   community: "",
@@ -156,6 +165,208 @@ export const defaultPlannerState: PlannerState = {
   },
   projectNotes: "",
 };
+
+type LegacyPlannerPortfolioLine = Omit<PlannerPortfolioLine, "designVariations"> & {
+  designSelections?: Readonly<Record<string, string>>;
+  lookBookReference?: string;
+  designVariations?: readonly PlannerDesignVariation[];
+};
+
+type LegacyPlannerState = Omit<PlannerState, "version" | "portfolio"> & {
+  version?: number;
+  portfolio?: readonly LegacyPlannerPortfolioLine[];
+};
+
+function getDesignLetter(index: number) {
+  return String.fromCharCode(65 + index);
+}
+
+export function createPlannerDesignVariation(
+  lineId: string,
+  assignedQuantity: number,
+  index = 0,
+): PlannerDesignVariation {
+  const letter = getDesignLetter(index);
+  return {
+    id: `${lineId}:design-${letter.toLowerCase()}`,
+    label: `Design ${letter}`,
+    assignedQuantity: Math.max(1, assignedQuantity),
+    status: "draft",
+    designSelections: {},
+    lookBookReference: "",
+  };
+}
+
+export function migratePlannerState(value: unknown): PlannerState | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const candidate = value as Partial<LegacyPlannerState>;
+  if (candidate.audience !== "first-nations") return undefined;
+
+  const portfolio = Array.isArray(candidate.portfolio)
+    ? candidate.portfolio.flatMap((line) => {
+        if (
+          !line ||
+          typeof line.id !== "string" ||
+          typeof line.modelId !== "string" ||
+          typeof line.quantity !== "number" ||
+          !["phase-1", "phase-2", "future"].includes(line.phase)
+        ) {
+          return [];
+        }
+
+        const designVariations =
+          Array.isArray(line.designVariations) && line.designVariations.length > 0
+            ? line.designVariations
+            : [
+                {
+                  ...createPlannerDesignVariation(line.id, line.quantity),
+                  designSelections: line.designSelections ?? {},
+                  lookBookReference: line.lookBookReference ?? "",
+                },
+              ];
+
+        return [
+          {
+            id: line.id,
+            modelId: line.modelId,
+            quantity: Math.max(1, line.quantity),
+            phase: line.phase,
+            designVariations,
+          },
+        ];
+      })
+    : [];
+
+  return {
+    ...defaultPlannerState,
+    ...candidate,
+    version: 2,
+    portfolio,
+    refinement: {
+      ...defaultPlannerState.refinement,
+      ...(candidate.refinement ?? {}),
+    },
+  };
+}
+
+export function resizePlannerDesignVariations(
+  line: PlannerPortfolioLine,
+  requestedQuantity: number,
+): PlannerPortfolioLine {
+  const quantity = Math.max(line.designVariations.length || 1, requestedQuantity);
+  if (line.designVariations.length === 0) {
+    return {
+      ...line,
+      quantity,
+      designVariations: [createPlannerDesignVariation(line.id, quantity)],
+    };
+  }
+
+  const variations = line.designVariations.map((variation) => ({
+    ...variation,
+    assignedQuantity: Math.max(1, variation.assignedQuantity),
+  }));
+  const assignedTotal = variations.reduce(
+    (total, variation) => total + variation.assignedQuantity,
+    0,
+  );
+  let delta = quantity - assignedTotal;
+  if (delta > 0) {
+    variations[0].assignedQuantity += delta;
+  } else {
+    for (let index = 0; index < variations.length && delta < 0; index += 1) {
+      const removable = variations[index].assignedQuantity - 1;
+      const reduction = Math.min(removable, Math.abs(delta));
+      variations[index].assignedQuantity -= reduction;
+      delta += reduction;
+    }
+  }
+
+  return {
+    ...line,
+    quantity,
+    designVariations: variations,
+  };
+}
+
+export function addPlannerDesignVariation(
+  line: PlannerPortfolioLine,
+): PlannerPortfolioLine {
+  if (line.quantity <= line.designVariations.length) return line;
+  const donorIndex = line.designVariations.findIndex(
+    (variation) => variation.assignedQuantity > 1,
+  );
+  if (donorIndex < 0) return line;
+
+  return {
+    ...line,
+    designVariations: [
+      ...line.designVariations.map((variation, index) =>
+        index === donorIndex
+          ? { ...variation, assignedQuantity: variation.assignedQuantity - 1 }
+          : variation,
+      ),
+      createPlannerDesignVariation(line.id, 1, line.designVariations.length),
+    ],
+  };
+}
+
+export function reassignPlannerDesignQuantity(
+  line: PlannerPortfolioLine,
+  variationId: string,
+  requestedQuantity: number,
+): PlannerPortfolioLine {
+  const targetIndex = line.designVariations.findIndex(
+    (variation) => variation.id === variationId,
+  );
+  if (targetIndex < 0 || line.designVariations.length < 2) return line;
+
+  const maximum = line.quantity - (line.designVariations.length - 1);
+  const targetQuantity = Math.min(maximum, Math.max(1, requestedQuantity));
+  const currentQuantity = line.designVariations[targetIndex].assignedQuantity;
+  let remainingDelta = targetQuantity - currentQuantity;
+  const variations = line.designVariations.map((variation) => ({ ...variation }));
+
+  if (remainingDelta > 0) {
+    for (let index = 0; index < variations.length && remainingDelta > 0; index += 1) {
+      if (index === targetIndex) continue;
+      const available = variations[index].assignedQuantity - 1;
+      const transfer = Math.min(available, remainingDelta);
+      variations[index].assignedQuantity -= transfer;
+      remainingDelta -= transfer;
+    }
+  } else if (remainingDelta < 0) {
+    const recipientIndex = targetIndex === 0 ? 1 : 0;
+    variations[recipientIndex].assignedQuantity += Math.abs(remainingDelta);
+    remainingDelta = 0;
+  }
+
+  variations[targetIndex].assignedQuantity = targetQuantity - remainingDelta;
+  return { ...line, designVariations: variations };
+}
+
+export function getPlannerDesignProgress(
+  portfolio: readonly PlannerPortfolioLine[],
+  catalog: readonly PlannerCatalogItem[],
+) {
+  const configurableModelIds = new Set(
+    catalog
+      .filter((model) => model.designChapters.length > 0)
+      .map((model) => model.id),
+  );
+  const groups = portfolio.flatMap((line) =>
+    configurableModelIds.has(line.modelId) ? line.designVariations : [],
+  );
+  const completedDesigns = groups.filter(
+    (variation) => variation.status === "complete",
+  ).length;
+
+  return {
+    completedDesigns,
+    remainingDesignGroups: groups.length - completedDesigns,
+    totalDesignGroups: groups.length,
+  };
+}
 
 export function getPortfolioSummary(
   portfolio: readonly PlannerPortfolioLine[],

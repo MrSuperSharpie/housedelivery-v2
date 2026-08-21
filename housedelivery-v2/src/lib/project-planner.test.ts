@@ -6,13 +6,23 @@ import {
   firstNationsPlannerCatalog,
 } from "../data/first-nations-planner";
 import {
+  addPlannerDesignVariation,
   calculatePreliminaryEstimate,
+  createPlannerDesignVariation,
   defaultPlannerState,
+  getPlannerDesignProgress,
   getPortfolioSummary,
   getReadinessProfile,
   matchFundingCorridors,
+  migratePlannerState,
+  reassignPlannerDesignQuantity,
+  type PlannerPortfolioLine,
   type PlannerState,
 } from "./project-planner";
+import {
+  buildPlannerDesignHref,
+  readPlannerDesignSession,
+} from "./planner-design-session";
 
 const portfolio = [
   {
@@ -20,16 +30,14 @@ const portfolio = [
     modelId: "catalogue:bc-duplex",
     quantity: 8,
     phase: "phase-1" as const,
-    designSelections: {},
-    lookBookReference: "",
+    designVariations: [createPlannerDesignVariation("duplex-line", 8)],
   },
   {
     id: "adu-line",
     modelId: "catalogue:the-micro",
     quantity: 6,
     phase: "phase-2" as const,
-    designSelections: {},
-    lookBookReference: "",
+    designVariations: [createPlannerDesignVariation("adu-line", 6)],
   },
 ];
 
@@ -127,4 +135,122 @@ test("all current planner catalogue models have explicit planning-basis records"
     assert.ok(model.planningBasis.exclusions.length > 0);
     assert.ok(model.planningBasis.source.length > 0);
   }
+});
+
+test("one design group represents all identical homes until a variation is requested", () => {
+  const original: PlannerPortfolioLine = {
+    id: "maplewood-line",
+    modelId: "custom:maplewood",
+    quantity: 4,
+    phase: "phase-1",
+    designVariations: [createPlannerDesignVariation("maplewood-line", 4)],
+  };
+
+  const split = addPlannerDesignVariation(original);
+  assert.deepEqual(
+    split.designVariations.map((variation) => variation.assignedQuantity),
+    [3, 1],
+  );
+
+  const balanced = reassignPlannerDesignQuantity(
+    split,
+    split.designVariations[0].id,
+    2,
+  );
+  assert.deepEqual(
+    balanced.designVariations.map((variation) => variation.assignedQuantity),
+    [2, 2],
+  );
+});
+
+test("review scenario preserves five homes and advances design progress by group", () => {
+  const scenario: readonly PlannerPortfolioLine[] = [
+    ["saturna", 2],
+    ["solace", 2],
+    ["timberline", 1],
+  ].map(([slug, quantity]) => {
+    const lineId = `${slug}-line`;
+    return {
+      id: lineId,
+      modelId: `custom:${slug}`,
+      quantity: Number(quantity),
+      phase: "phase-1" as const,
+      designVariations: [
+        createPlannerDesignVariation(lineId, Number(quantity)),
+      ],
+    };
+  });
+  const completed = scenario.map((line) =>
+    line.modelId === "custom:saturna"
+      ? {
+          ...line,
+          designVariations: line.designVariations.map((variation) => ({
+            ...variation,
+            status: "complete" as const,
+            lookBookReference: "SATURNA-TEST",
+          })),
+        }
+      : line,
+  );
+
+  const summary = getPortfolioSummary(completed, firstNationsPlannerCatalog);
+  const progress = getPlannerDesignProgress(
+    completed,
+    firstNationsPlannerCatalog,
+  );
+
+  assert.equal(summary.totalHomes, 5);
+  assert.equal(summary.modelCount, 3);
+  assert.equal(progress.completedDesigns, 1);
+  assert.equal(progress.remainingDesignGroups, 2);
+  assert.equal(completed[0].designVariations[0].assignedQuantity, 2);
+});
+
+test("version one planner drafts migrate into one quantity-based design group", () => {
+  const migrated = migratePlannerState({
+    ...defaultPlannerState,
+    version: 1,
+    portfolio: [
+      {
+        id: "legacy-saturna",
+        modelId: "custom:saturna",
+        quantity: 2,
+        phase: "phase-1",
+        designSelections: { kitchen: "premium-1" },
+        lookBookReference: "LEGACY-1",
+      },
+    ],
+  });
+
+  assert.equal(migrated?.version, 2);
+  assert.equal(migrated?.portfolio[0].designVariations.length, 1);
+  assert.equal(
+    migrated?.portfolio[0].designVariations[0].assignedQuantity,
+    2,
+  );
+  assert.equal(
+    migrated?.portfolio[0].designVariations[0].lookBookReference,
+    "LEGACY-1",
+  );
+});
+
+test("Planner Build My links preserve the design-group return context", () => {
+  const session = {
+    lineId: "saturna-line",
+    variationId: "saturna-line:design-a",
+    modelId: "custom:saturna",
+    homeName: "Saturna",
+    designLabel: "Design A",
+    assignedQuantity: 2,
+    returnHref: "/first-nations-project-planner#planner-design-workspace",
+  };
+  const href = buildPlannerDesignHref(
+    "/homes/saturna#home-inclusions",
+    session,
+  );
+  const parsed = new URL(href, "https://www.housedelivery.ca");
+
+  assert.equal(parsed.pathname, "/homes/saturna");
+  assert.equal(parsed.hash, "#home-inclusions");
+  assert.deepEqual(readPlannerDesignSession(parsed.search), session);
 });
