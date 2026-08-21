@@ -2,8 +2,9 @@ import { Check, ChevronDown } from "lucide-react";
 import Image from "next/image";
 
 import {
+  getHomeConfiguratorJourneyCategories,
   getHomeInclusionLevelLabel,
-  getRequiredCategories,
+  getProjectCoordinatedCategories,
   getSelectedInclusionOption,
   getSelectedFlooringOption,
   isCategoryComplete,
@@ -22,7 +23,10 @@ function HomeConfigurationEntries({
   definition,
   configuration,
 }: Pick<HomeConfigurationSummaryProps, "definition" | "configuration">) {
-  const visibleCategories = definition.categories.filter(
+  const visibleCategories = [
+    ...getHomeConfiguratorJourneyCategories(definition),
+    ...getProjectCoordinatedCategories(definition),
+  ].filter(
     (category) =>
       category.kind === "coordinated" ||
       isCategoryComplete(category, configuration),
@@ -134,7 +138,7 @@ export function HomeConfigurationSummary({
   definition,
   configuration,
 }: HomeConfigurationSummaryProps) {
-  const requiredCategories = getRequiredCategories(definition);
+  const requiredCategories = getHomeConfiguratorJourneyCategories(definition);
   const completeCount = requiredCategories.filter((category) =>
     isCategoryComplete(category, configuration),
   ).length;

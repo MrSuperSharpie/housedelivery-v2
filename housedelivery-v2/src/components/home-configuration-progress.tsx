@@ -1,7 +1,8 @@
 import { Check } from "lucide-react";
 
 import {
-  getRequiredCategories,
+  getHomeConfiguratorJourneyCategories,
+  getProjectCoordinatedCategories,
   isCategoryComplete,
   type HomeConfiguration,
   type HomeConfiguratorDefinition,
@@ -32,7 +33,11 @@ export function HomeConfigurationProgress({
   activeCategoryId,
   onEditCategory,
 }: HomeConfigurationProgressProps) {
-  const requiredCategories = getRequiredCategories(definition);
+  const requiredCategories = getHomeConfiguratorJourneyCategories(definition);
+  const displayedCategories = [
+    ...requiredCategories,
+    ...getProjectCoordinatedCategories(definition),
+  ];
   const completeCount = requiredCategories.filter((category) =>
     isCategoryComplete(category, configuration),
   ).length;
@@ -136,7 +141,7 @@ export function HomeConfigurationProgress({
           </span>
         </summary>
         <ol className="max-h-[52vh] overflow-y-auto border-t border-white/10">
-          {definition.categories.map((category) =>
+          {displayedCategories.map((category) =>
             renderCategory(category),
           )}
         </ol>

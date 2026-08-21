@@ -1,4 +1,5 @@
 import type { InclusionImage } from "@/data/inclusions";
+import { isFinalHomeDesignCategory } from "@/data/home-configurator-order";
 
 export type LookBookCustomer = {
   firstName: string;
@@ -91,12 +92,27 @@ export type HomeLookBook = {
 export function getLookBookSelectionSections(
   sections: readonly LookBookSection[],
 ) {
-  return sections
-    .filter((section) => section.kind === "selection-story")
-    .map((section, index) => ({
-      ...section,
-      number: String(index + 1).padStart(2, "0"),
-    }));
+  const selectionSections = sections.filter(
+    (section) => section.kind === "selection-story",
+  );
+  const orderedSections = [
+    ...selectionSections.filter(
+      (section) =>
+        !section.items.some((item) =>
+          isFinalHomeDesignCategory(item.categoryId),
+        ),
+    ),
+    ...selectionSections.filter((section) =>
+      section.items.some((item) =>
+        isFinalHomeDesignCategory(item.categoryId),
+      ),
+    ),
+  ];
+
+  return orderedSections.map((section, index) => ({
+    ...section,
+    number: String(index + 1).padStart(2, "0"),
+  }));
 }
 
 export function getLookBookPersonalTitle(

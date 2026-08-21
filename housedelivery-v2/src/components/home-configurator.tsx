@@ -14,7 +14,8 @@ import {
   createDefaultHomeConfiguration,
   getDisplayedFlooringOption,
   getDisplayedInclusionOption,
-  getRequiredCategories,
+  getHomeConfiguratorJourneyCategories,
+  getProjectCoordinatedCategories,
   isCategoryComplete,
   type HomeConfiguration,
   type HomeConfiguratorDefinition,
@@ -93,7 +94,7 @@ function getNextIncompleteCategory(
   configuration: HomeConfiguration,
   currentCategoryId: string,
 ) {
-  const requiredCategories = getRequiredCategories(definition);
+  const requiredCategories = getHomeConfiguratorJourneyCategories(definition);
   const currentIndex = requiredCategories.findIndex(
     (category) => category.id === currentCategoryId,
   );
@@ -125,12 +126,12 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
     createDefaultHomeConfiguration(definition),
   );
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(
-    () => getRequiredCategories(definition)[0]?.id ?? null,
+    () => getHomeConfiguratorJourneyCategories(definition)[0]?.id ?? null,
   );
   const [activeFlooringZoneId, setActiveFlooringZoneId] = useState<
     string | null
   >(() => {
-    const firstCategory = getRequiredCategories(definition)[0];
+    const firstCategory = getHomeConfiguratorJourneyCategories(definition)[0];
     return firstCategory?.kind === "flooring"
       ? firstCategory.zones[0]?.id ?? null
       : null;
@@ -140,7 +141,11 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
   const closeImagePreview = useCallback(() => {
     setImagePreviewTarget(null);
   }, []);
-  const requiredCategories = getRequiredCategories(definition);
+  const requiredCategories = getHomeConfiguratorJourneyCategories(definition);
+  const displayedCategories = [
+    ...requiredCategories,
+    ...getProjectCoordinatedCategories(definition),
+  ];
   const completedCount = requiredCategories.filter((category) =>
     isCategoryComplete(category, configuration),
   ).length;
@@ -602,7 +607,7 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
               </div>
 
               <div className="mt-5 grid gap-3 xl:mt-0">
-                {definition.categories.map((category) => {
+                {displayedCategories.map((category) => {
                   if (category.kind === "coordinated") {
                     return (
                       <HomeCoordinatedCategory

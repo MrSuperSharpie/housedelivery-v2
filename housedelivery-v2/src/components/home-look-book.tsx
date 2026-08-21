@@ -16,8 +16,8 @@ import {
   type LookBookSelectionReference,
 } from "@/data/home-look-book";
 import {
+  getHomeConfiguratorJourneyCategories,
   getHomeInclusionLevelLabel,
-  getRequiredCategories,
   getSelectedFlooringOption,
   getSelectedInclusionOption,
   isCategoryComplete,
@@ -111,15 +111,15 @@ function PersonalizationForm({
         <div className="mt-16 grid gap-14 border-t border-black/18 pt-7 lg:mt-24 lg:grid-cols-[1.05fr_0.75fr] lg:items-end lg:gap-28">
           <div>
             <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-black/58">
-              Configuration complete / Personalize your folio
+              Configuration complete / Final review
             </p>
             <h2
               id="home-look-book-heading"
               className="mt-7 max-w-5xl text-[clamp(4rem,9vw,9rem)] font-medium leading-[0.82] tracking-[-0.075em] text-black/88"
             >
-              Create My
+              Your {homeName}.
               <br />
-              <span className="text-black/52">{homeName} Look Book.</span>
+              <span className="text-black/52">Ready to become real.</span>
             </h2>
             <p className="mt-9 max-w-2xl text-base leading-8 text-black/60">
               Add your name to create a personalized record of the room and
@@ -638,7 +638,7 @@ function IncompleteLookBook({
   configuration,
   onEditCategory,
 }: Pick<HomeLookBookProps, "definition" | "configuration" | "onEditCategory">) {
-  const requiredCategories = getRequiredCategories(definition);
+  const requiredCategories = getHomeConfiguratorJourneyCategories(definition);
   const completeCount = requiredCategories.filter((category) =>
     isCategoryComplete(category, configuration),
   ).length;
@@ -703,7 +703,7 @@ export function HomeLookBook({
   onPreviewOption,
   onSubmit,
 }: HomeLookBookProps) {
-  const requiredCategories = getRequiredCategories(definition);
+  const requiredCategories = getHomeConfiguratorJourneyCategories(definition);
   const isReady = requiredCategories.every((category) =>
     isCategoryComplete(category, configuration),
   );

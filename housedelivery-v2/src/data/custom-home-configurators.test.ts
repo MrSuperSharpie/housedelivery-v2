@@ -4,10 +4,12 @@ import { basename, join } from "node:path";
 import test from "node:test";
 
 import {
+  getHomeConfiguratorJourneyCategories,
   getProjectCoordinatedCategories,
   getRequiredCategories,
   type HomeInclusionCategory,
 } from "@/data/home-configurator";
+import { finalHomeDesignCategoryId } from "@/data/home-configurator-order";
 import {
   canonicalHomeConfiguratorChapterIds,
   canonicalHomeConfiguratorStages,
@@ -695,6 +697,46 @@ test("approved homes use model-specific architecture and labels", () => {
     assert.equal(
       definition.lookBook.sections[0]?.title,
       `The ${definition.homeName} You Created`,
+    );
+  }
+});
+
+test("every Build My journey and Look Book ends with Exterior Arrival & Openings", () => {
+  const expectedLeadingCategoryIds = canonicalHomeConfiguratorChapterIds.filter(
+    (categoryId) => categoryId !== finalHomeDesignCategoryId,
+  );
+
+  for (const model of models.filter((candidate) =>
+    canonicalCustomHomeIds.has(candidate.slug),
+  )) {
+    const definition = getHomeConfiguratorDefinition(model.slug);
+    assert.ok(definition);
+
+    const journeyCategories =
+      getHomeConfiguratorJourneyCategories(definition);
+    assert.deepEqual(
+      journeyCategories.map((category) => category.id),
+      [...expectedLeadingCategoryIds, finalHomeDesignCategoryId],
+    );
+    assert.deepEqual(
+      journeyCategories.map((category) => category.number),
+      ["01", "02", "03", "04", "05", "06", "07"],
+    );
+
+    const lookBookSections = getLookBookSelectionSections(
+      definition.lookBook.sections,
+    );
+    assert.ok(
+      lookBookSections.at(-1)?.items.some(
+        (item) => item.categoryId === finalHomeDesignCategoryId,
+      ),
+    );
+    assert.ok(
+      lookBookSections.slice(0, -1).every((section) =>
+        section.items.every(
+          (item) => item.categoryId !== finalHomeDesignCategoryId,
+        ),
+      ),
     );
   }
 });

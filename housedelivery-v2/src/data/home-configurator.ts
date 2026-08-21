@@ -1,4 +1,5 @@
 import type { InclusionImage } from "@/data/inclusions";
+import { isFinalHomeDesignCategory } from "@/data/home-configurator-order";
 import type {
   HomeLookBook,
   LookBookOptionEditorial,
@@ -168,6 +169,26 @@ export function getRequiredCategories(
   return definition.categories.filter(
     (category) => category.kind !== "coordinated",
   );
+}
+
+export function getHomeConfiguratorJourneyCategories(
+  definition: HomeConfiguratorDefinition,
+) {
+  const categories = getRequiredCategories(definition);
+
+  const orderedCategories = [
+    ...categories.filter(
+      (category) => !isFinalHomeDesignCategory(category.id),
+    ),
+    ...categories.filter((category) =>
+      isFinalHomeDesignCategory(category.id),
+    ),
+  ];
+
+  return orderedCategories.map((category, index) => ({
+    ...category,
+    number: String(index + 1).padStart(2, "0"),
+  }));
 }
 
 export function getProjectCoordinatedCategories(
