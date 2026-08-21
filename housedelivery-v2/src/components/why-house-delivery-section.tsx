@@ -116,3 +116,16 @@ export function FundingValueCase({
     </div>
   );
 }
+
+export function FundingValueSection() {
+  return (
+    <section
+      aria-labelledby="why-house-delivery-heading"
+      className="bg-[#0b0c10] px-5 py-24 sm:px-8 lg:px-12 lg:py-32"
+    >
+      <div className="mx-auto max-w-[1504px]">
+        <FundingValueCase image="/Maplewood-14.avif" />
+      </div>
+    </section>
+  );
+}

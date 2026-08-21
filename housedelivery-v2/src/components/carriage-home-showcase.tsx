@@ -4,14 +4,28 @@ import { motion, useReducedMotion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 
 import { carriageHomes } from "@/data/carriage-homes";
 
 const revealViewport = { once: true, margin: "-100px" } as const;
 const luxuryEase: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
-export function CarriageHomeShowcase() {
+type CarriageHomeShowcaseProps = {
+  featuredCount?: number;
+};
+
+export function CarriageHomeShowcase({
+  featuredCount,
+}: CarriageHomeShowcaseProps) {
   const shouldReduceMotion = useReducedMotion();
+  const [showCompleteCollection, setShowCompleteCollection] = useState(false);
+  const visibleHomes =
+    featuredCount && !showCompleteCollection
+      ? carriageHomes.slice(0, featuredCount)
+      : carriageHomes;
+  const canToggleCollection =
+    featuredCount !== undefined && carriageHomes.length > featuredCount;
 
   return (
     <section
@@ -64,8 +78,11 @@ export function CarriageHomeShowcase() {
             </div>
           </div>
 
-          <div className="mt-16 grid gap-8 md:grid-cols-2 md:gap-12 lg:mt-24">
-            {carriageHomes.map((model, index) => {
+          <div
+            id="carriage-homes-grid"
+            className="mt-16 grid gap-8 md:grid-cols-2 md:gap-12 lg:mt-24"
+          >
+            {visibleHomes.map((model, index) => {
               const mainImage = model.images[0];
 
               return (
@@ -139,6 +156,24 @@ export function CarriageHomeShowcase() {
               );
             })}
           </div>
+
+          {canToggleCollection ? (
+            <div className="mt-12 border-t border-white/10 pt-7">
+              <button
+                type="button"
+                aria-expanded={showCompleteCollection}
+                aria-controls="carriage-homes-grid"
+                onClick={() =>
+                  setShowCompleteCollection((showComplete) => !showComplete)
+                }
+                className="inline-flex min-h-11 items-center border-b border-white/28 py-2 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/62 transition-colors hover:border-white hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+              >
+                {showCompleteCollection
+                  ? "Show featured laneway and carriage homes"
+                  : "View complete laneway and carriage collection"}
+              </button>
+            </div>
+          ) : null}
 
           <div className="mt-12 grid gap-6 border-t border-white/10 pt-7 lg:grid-cols-[0.72fr_1.28fr] lg:gap-20">
             <p className="eyebrow">Planning note</p>

@@ -1,7 +1,9 @@
+"use client";
+
 import { ArrowUpRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 import {
   catalogModels,
@@ -100,11 +102,21 @@ function CatalogueModelGrid({ models }: CatalogueModelGridProps) {
 
 type PreApprovedShowcaseProps = {
   catalogueFollowOn?: ReactNode;
+  featuredCount?: number;
 };
 
 export function PreApprovedShowcase({
   catalogueFollowOn,
+  featuredCount,
 }: PreApprovedShowcaseProps) {
+  const [showCompleteCollection, setShowCompleteCollection] = useState(false);
+  const visibleModels =
+    featuredCount && !showCompleteCollection
+      ? catalogModels.slice(0, featuredCount)
+      : catalogModels;
+  const canToggleCollection =
+    featuredCount !== undefined && catalogModels.length > featuredCount;
+
   return (
     <section
       id="pre-approved-homes"
@@ -129,9 +141,33 @@ export function PreApprovedShowcase({
           </h2>
         </div>
 
-        <CatalogueModelGrid models={catalogModels} />
+        <div id="pre-approved-homes-grid">
+          <CatalogueModelGrid models={visibleModels} />
+        </div>
 
-        <div className="mt-3 border border-[#1f2833] bg-[#0e1014]">
+        {canToggleCollection ? (
+          <div className="mt-12 border-t border-white/10 pt-7">
+            <button
+              type="button"
+              aria-expanded={showCompleteCollection}
+              aria-controls="pre-approved-homes-grid pre-approved-catalogue-resources"
+              onClick={() =>
+                setShowCompleteCollection((showComplete) => !showComplete)
+              }
+              className="inline-flex min-h-11 items-center border-b border-white/28 py-2 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/62 transition-colors hover:border-white hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+            >
+              {showCompleteCollection
+                ? "Show featured pre-approved homes"
+                : "View complete pre-approved collection"}
+            </button>
+          </div>
+        ) : null}
+
+        <div
+          id="pre-approved-catalogue-resources"
+          hidden={!showCompleteCollection && canToggleCollection}
+          className="mt-3 border border-[#1f2833] bg-[#0e1014]"
+        >
           <div className="grid border-b border-[#1f2833] sm:grid-cols-3">
             <div className="p-7 sm:border-r sm:border-[#1f2833] sm:p-9">
               <p className="text-4xl font-medium tracking-[-0.055em]">

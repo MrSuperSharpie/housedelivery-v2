@@ -8,7 +8,6 @@ import Image from "next/image";
 import { useRef, useState, type KeyboardEvent } from "react";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
-import { FundingValueCase } from "@/components/why-house-delivery-section";
 import { cn } from "@/lib/cn";
 
 type FundingPathway = {
@@ -345,8 +344,8 @@ export function FinancialCorridors() {
   return (
     <section
       id="cmhc"
-      aria-labelledby="why-house-delivery-heading"
-      className="scroll-mt-20 bg-[#0b0c10] px-5 pb-24 sm:px-8 sm:pb-28 lg:px-12 lg:pb-32"
+      aria-labelledby="funding-corridors-heading"
+      className="scroll-mt-20 bg-[#0b0c10] px-5 py-24 sm:px-8 sm:py-28 lg:px-12 lg:py-32"
     >
       <div className="mx-auto max-w-[1504px]">
         <span
@@ -354,16 +353,17 @@ export function FinancialCorridors() {
           className="block scroll-mt-20"
           aria-hidden="true"
         />
-        <FundingValueCase image="/Maplewood-14.avif" />
-
-        <div className="mt-20 grid grid-cols-12 gap-y-8 border-t border-white/12 pt-7 lg:gap-x-8">
+        <div className="grid grid-cols-12 gap-y-8 border-t border-white/12 pt-7 lg:gap-x-8">
           <p className="eyebrow col-span-12 lg:col-span-3">
             Funding and financial corridors
           </p>
           <HeadlineReveal
             className="col-span-12 lg:col-span-9 lg:col-start-4"
           >
-            <h3 className="max-w-[1100px] text-[clamp(2.8rem,5vw,5.8rem)] font-medium leading-[0.88] tracking-[-0.065em] text-white/90">
+            <h3
+              id="funding-corridors-heading"
+              className="max-w-[1100px] text-[clamp(2.8rem,5vw,5.8rem)] font-medium leading-[0.88] tracking-[-0.065em] text-white/90"
+            >
               Find the funding pathway that fits the opportunity.
             </h3>
           </HeadlineReveal>
@@ -637,6 +637,40 @@ export function FinancialCorridors() {
             </div>
           );
         })}
+
+        <aside
+          aria-labelledby="larger-housing-opportunity-heading"
+          className="mt-16 grid grid-cols-12 gap-y-6 border-t border-white/12 pt-8 lg:mt-20 lg:gap-x-8 lg:pt-10"
+        >
+          <p className="eyebrow col-span-12 lg:col-span-3">
+            Institutional projects
+          </p>
+          <div className="col-span-12 lg:col-span-7 lg:col-start-4">
+            <h3
+              id="larger-housing-opportunity-heading"
+              className="text-[clamp(2rem,3.4vw,3.75rem)] font-medium leading-[0.95] tracking-[-0.055em] text-white/88"
+            >
+              Larger housing opportunity?
+            </h3>
+            <p className="mt-6 max-w-3xl text-sm leading-7 text-white/50 sm:text-base">
+              For First Nations, municipalities, community housing and
+              development projects, House Delivery can structure an early
+              project understanding before detailed technical work begins.
+            </p>
+            <a
+              href="#reserve"
+              className="group mt-7 inline-flex items-center gap-4 border-b border-white/35 pb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/75 transition-colors hover:border-white hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white focus-visible:ring-offset-4 focus-visible:ring-offset-[#0b0c10]"
+            >
+              Discuss a project
+              <ArrowUpRight
+                size={14}
+                strokeWidth={1.4}
+                aria-hidden="true"
+                className="transition-transform duration-500 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+              />
+            </a>
+          </div>
+        </aside>
       </div>
     </section>
   );
