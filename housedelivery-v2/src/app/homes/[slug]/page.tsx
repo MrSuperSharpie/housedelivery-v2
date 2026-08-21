@@ -197,7 +197,7 @@ export default async function HomeDetailPage({
         <HomeFloorPlanViewer model={model} />
 
         {model.video ? (
-          <section className="px-5 py-28 sm:px-8 lg:px-12 lg:py-40">
+          <section id="film" className="scroll-mt-24 px-5 py-28 sm:px-8 lg:px-12 lg:py-40">
             <div className="mx-auto max-w-[1504px]">
               <div className="mb-12 grid gap-8 border-t border-white/15 pt-7 sm:grid-cols-2">
                 <div>

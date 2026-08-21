@@ -429,17 +429,30 @@ export default function FirstNationsInspiredPage() {
                     variant="fade"
                     clip={false}
                   >
-                    <Link
-                      href="/#reserve"
-                      className="group inline-flex shrink-0 items-center gap-5 border-b border-white pb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/90 transition-colors hover:text-white"
-                    >
-                      Begin project review
-                      <ArrowUpRight
-                        aria-hidden="true"
-                        size={14}
-                        className="transition-transform duration-500 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
-                      />
-                    </Link>
+                    <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+                      <Link
+                        href="/first-nations-project-planner"
+                        className="group inline-flex shrink-0 items-center justify-between gap-5 bg-white px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#0b0c10] transition-colors hover:bg-white/82"
+                      >
+                        Plan a housing portfolio
+                        <ArrowUpRight
+                          aria-hidden="true"
+                          size={14}
+                          className="transition-transform duration-500 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                        />
+                      </Link>
+                      <Link
+                        href="/#reserve"
+                        className="group inline-flex shrink-0 items-center justify-between gap-5 border border-white/25 px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/90 transition-colors hover:border-white"
+                      >
+                        Begin project review
+                        <ArrowUpRight
+                          aria-hidden="true"
+                          size={14}
+                          className="transition-transform duration-500 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                        />
+                      </Link>
+                    </div>
                   </ScrollReveal>
                 </div>
               </div>

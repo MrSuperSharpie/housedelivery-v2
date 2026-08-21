@@ -200,8 +200,39 @@ select {
 
   main,
   main > #home-configurator,
+  main > .planner-shell,
   #home-configurator > #home-look-book {
     display: block !important;
+  }
+
+  .planner-screen-only {
+    display: none !important;
+  }
+
+  main > .planner-shell,
+  main > .planner-shell > div,
+  [data-planner-report],
+  [data-planner-report] * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  main > .planner-shell {
+    width: 210mm;
+    background: #fff !important;
+  }
+
+  main > .planner-shell > div:last-child {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  [data-planner-report] {
+    display: block !important;
+    width: 210mm;
+    margin: 0 !important;
+    padding: 14mm !important;
+    background: #fff !important;
   }
 
   #home-configurator > #home-inclusions,
