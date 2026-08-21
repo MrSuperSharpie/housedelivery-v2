@@ -24,6 +24,7 @@ import {
   getHomeConfiguratorRegistrationsByFamily,
   homeConfiguratorRegistrations,
 } from "@/data/home-configurators";
+import { getLookBookSelectionSections } from "@/data/home-look-book";
 import { maplewoodHomeConfigurator } from "@/data/maplewood-home-configurator";
 import { models } from "@/data/models";
 import { saturnaHomeConfigurator } from "@/data/saturna-home-configurator";
@@ -695,5 +696,48 @@ test("approved homes use model-specific architecture and labels", () => {
       definition.lookBook.sections[0]?.title,
       `The ${definition.homeName} You Created`,
     );
+  }
+});
+
+test("approved Look Books use the primary exterior cover and selected Visual Guide boards only", () => {
+  for (const model of models.filter((candidate) =>
+    canonicalCustomHomeIds.has(candidate.slug),
+  )) {
+    const definition = getHomeConfiguratorDefinition(model.slug);
+
+    assert.ok(definition);
+    assert.equal(definition.lookBook.home.heroImage.src, model.heroImage);
+
+    const sections = getLookBookSelectionSections(
+      definition.lookBook.sections,
+    );
+    assert.equal(sections.length, 7);
+    assert.deepEqual(
+      sections.map((section) => section.number),
+      ["01", "02", "03", "04", "05", "06", "07"],
+    );
+
+    for (const section of sections) {
+      assert.equal(section.kind, "selection-story");
+      for (const item of section.items) {
+        const category = definition.categories.find(
+          (candidate) => candidate.id === item.categoryId,
+        );
+        if (!category || category.kind === "coordinated") continue;
+
+        const options = getCategoryOptions(category);
+        assert.ok(options.length > 0);
+        assert.ok(
+          options.every(
+            (option) =>
+              option.image.fit === "contain" &&
+              option.image.src.startsWith(
+                `/images/homes/${definition.homeId}/`,
+              ),
+          ),
+          `${definition.homeId}/${section.id} must use only its approved Visual Guide boards`,
+        );
+      }
+    }
   }
 });

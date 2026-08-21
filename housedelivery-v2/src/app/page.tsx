@@ -37,12 +37,11 @@ export default function Home() {
         </section>
         <ModelShowcase
           models={models}
-          featuredCount={6}
           introCopy="Each residence begins as a coordinated architectural system and is adapted to your land, local requirements, climate, priorities, and chosen level of finish."
           valueCopy="Begin with a proven design. Shape it around the life, land, and budget it needs to serve."
         />
-        <CarriageHomeShowcase featuredCount={2} />
-        <PreApprovedShowcase featuredCount={3} />
+        <CarriageHomeShowcase />
+        <PreApprovedShowcase />
         {langley?.video ? (
           <LangleyWalkthroughFeature
             embedUrl={langley.video.embedUrl}

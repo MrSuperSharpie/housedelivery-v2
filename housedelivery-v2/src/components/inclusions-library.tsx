@@ -38,8 +38,8 @@ const homeCollections = [
       "Elevated, whole-home design directions developed around the architecture and scale of each Custom Home.",
     levels: ["Premium", "Signature"],
     image: {
-      src: "/images/homes/maplewood/visual-guide/Maplewood_01_Kitchen_Signature-1_Stone-Wrapped-Oak.png",
-      alt: "Maplewood Signature kitchen Visual Guide board showing a coordinated stone and oak design direction.",
+      src: "/images/inclusions/wardrobes/hero.webp",
+      alt: "Dark, tailored wardrobe with integrated lighting and coordinated storage.",
     },
   },
   {
@@ -49,8 +49,8 @@ const homeCollections = [
       "Clear, durable selection pathways designed to support compact homes, repeatability and efficient project coordination.",
     levels: ["Essential", "Premium"],
     image: {
-      src: "/images/inclusions/kitchen-cabinetry/hero.webp",
-      alt: "Warm wood kitchen cabinetry surrounding a central island in a bright interior.",
+      src: "/images/inclusions/bathroom-systems/hero.webp",
+      alt: "Calm primary bathroom with a freestanding tub, coordinated vanities and full-height glazing.",
     },
   },
 ] as const;
@@ -292,8 +292,8 @@ export function InclusionsLibrary() {
           <figure className="mt-14 sm:mt-20 lg:mt-24">
             <div className="relative aspect-[4/3] overflow-hidden bg-[#121419] sm:aspect-[3/2] lg:aspect-[2.05/1]">
               <Image
-                src="/images/inclusions/kitchen-cabinetry/hero.webp"
-                alt="Warm wood cabinetry, pale stone surfaces and a central island in a coordinated contemporary kitchen."
+                src="/images/inclusions/coordinated-architectural-system.png"
+                alt="Warm, coordinated living interior with integrated wood detailing, stone surfaces, lighting and exterior openings."
                 fill
                 quality={100}
                 loading="eager"
@@ -438,11 +438,7 @@ export function InclusionsLibrary() {
                     fill
                     quality={90}
                     sizes="(max-width: 1023px) calc(100vw - 2.5rem), 50vw"
-                    className={
-                      collection.number === "01"
-                        ? "bg-[#e8e6df] object-contain"
-                        : "object-cover"
-                    }
+                    className="object-cover"
                   />
                 </div>
 

@@ -12,7 +12,6 @@ import { cn } from "@/lib/cn";
 
 type ModelShowcaseProps = {
   models: readonly HomeModel[];
-  featuredCount?: number;
   introCopy?: string;
   valueCopy?: string;
 };
@@ -31,24 +30,14 @@ type ViewMode = "exterior" | "plan";
 
 export function ModelShowcase({
   models,
-  featuredCount,
   introCopy = "Every model begins as a pre-engineered component system and is adapted to your land, local code, climate loads, and chosen level of finish.",
   valueCopy,
 }: ModelShowcaseProps) {
   const [activeFilter, setActiveFilter] = useState(0);
-  const [showCompleteCollection, setShowCompleteCollection] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("exterior");
   const filteredModels = models.filter((model) =>
     filters[activeFilter].test(model.squareFeet),
   );
-  const visibleModels =
-    featuredCount && !showCompleteCollection
-      ? filteredModels.slice(0, featuredCount)
-      : filteredModels;
-  const canExpandCollection =
-    !showCompleteCollection &&
-    featuredCount !== undefined &&
-    filteredModels.length > featuredCount;
 
   return (
     <section
@@ -126,7 +115,7 @@ export function ModelShowcase({
           className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-12 lg:grid-cols-3"
         >
           <AnimatePresence mode="popLayout">
-            {visibleModels.map((model, index) => (
+            {filteredModels.map((model, index) => (
               <motion.article
                 layout
                 key={model.slug}
@@ -253,19 +242,6 @@ export function ModelShowcase({
           </AnimatePresence>
         </motion.div>
 
-        {canExpandCollection ? (
-          <div className="mt-12 border-t border-white/10 pt-7">
-            <button
-              type="button"
-              aria-expanded="false"
-              aria-controls="custom-homes-grid"
-              onClick={() => setShowCompleteCollection(true)}
-              className="inline-flex min-h-11 items-center border-b border-white/28 py-2 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/62 transition-colors hover:border-white hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-            >
-              View complete custom homes collection
-            </button>
-          </div>
-        ) : null}
       </div>
     </section>
   );

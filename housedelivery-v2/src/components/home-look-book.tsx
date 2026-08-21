@@ -8,8 +8,8 @@ import { HomeConfiguratorJourney } from "@/components/home-configurator-journey"
 import {
   formatLookBookPreparedDate,
   getLookBookCustomerName,
-  getLookBookDesignStory,
   getLookBookPersonalTitle,
+  getLookBookSelectionSections,
   type LookBookCustomer,
   type LookBookSection,
   type LookBookSelection,
@@ -360,59 +360,6 @@ function PageShell({
   );
 }
 
-function DesignStoryPage({
-  section,
-  context,
-}: {
-  section: LookBookSection;
-  context: EditorialContext;
-}) {
-  const selections = resolveSection(section, context);
-  const story = getLookBookDesignStory(selections);
-  const image =
-    section.heroImage === "home-hero"
-      ? context.definition.lookBook.home.heroImage
-      : context.definition.lookBook.home.introductionImage;
-
-  return (
-    <PageShell section={section}>
-      <div className="look-book-design-story mt-10 grid gap-8 lg:grid-cols-[0.84fr_1.16fr] lg:gap-12">
-        <div className="flex flex-col justify-between border-t border-black/18 pt-5">
-          <p className="max-w-lg text-[clamp(1.55rem,3vw,3.2rem)] font-medium leading-[1.03] tracking-[-0.05em] text-black/80">
-            {story.narrative}
-          </p>
-          <div className="mt-10 grid grid-cols-2 gap-x-6 gap-y-4 border-t border-black/14 pt-4">
-            {story.descriptors.map((descriptor, index) => (
-              <p
-                key={descriptor}
-                className="text-[10px] font-semibold uppercase tracking-[0.18em] text-black/62"
-              >
-                <span className="mr-3 font-mono text-black/34">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-                {descriptor}
-              </p>
-            ))}
-          </div>
-        </div>
-        {image ? (
-          <div className="relative min-h-[30rem] overflow-hidden bg-[#d3cec1] lg:min-h-[42rem]">
-            <Image
-              src={image.src}
-              alt={image.alt}
-              fill
-              loading="eager"
-              quality={context.definition.homeId === "saturna" ? 100 : 90}
-              sizes="(max-width: 1023px) 100vw, 58vw"
-              className="object-cover"
-            />
-          </div>
-        ) : null}
-      </div>
-    </PageShell>
-  );
-}
-
 function MaterialPalettePage({
   section,
   context,
@@ -613,29 +560,18 @@ function ArrivalPage({
   const { lookBook } = context.definition;
   return (
     <PageShell section={section}>
-      <div className="look-book-arrival mt-10 grid gap-7 lg:grid-cols-[1.18fr_0.82fr] lg:gap-9">
-        <div className="relative min-h-[28rem] overflow-hidden bg-[#d3cec1] lg:min-h-[39rem]">
-          <Image
-            src={lookBook.home.heroImage.src}
-            alt={lookBook.home.heroImage.alt}
-            fill
-            loading="eager"
-            quality={90}
-            sizes="(max-width: 1023px) 100vw, 60vw"
-            className="object-cover"
-          />
-        </div>
-        <div className="grid grid-cols-3 gap-3 lg:grid-cols-1">
+      <div className="look-book-arrival mt-10">
+        <div className="grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
           {selections.map((selection) => (
             <article
               key={selection.categoryId}
-              className="grid content-start gap-0 lg:grid-cols-[0.72fr_1.28fr] lg:gap-4"
+              className="content-start"
             >
               <EditorialImage
                 selection={selection}
                 context={context}
-                className="aspect-square"
-                sizes="(max-width: 1023px) 33vw, 18vw"
+                className="aspect-[4/3]"
+                sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw"
               />
               <SelectionCaption selection={selection} context={context} compact />
             </article>
@@ -680,7 +616,7 @@ function LookBookSectionView({
   context: EditorialContext;
 }) {
   if (section.kind === "design-story") {
-    return <DesignStoryPage section={section} context={context} />;
+    return null;
   }
   if (section.layout === "material-palette") {
     return <MaterialPalettePage section={section} context={context} />;
@@ -788,7 +724,7 @@ export function HomeLookBook({
   );
   const preparedDate = formatLookBookPreparedDate(personalization.preparedAt);
   const isSubmitted = configuration.reviewStatus === "ready-for-review";
-  const hasLongResidenceLabel = lookBook.home.residenceLabel.length > 12;
+  const selectionSections = getLookBookSelectionSections(lookBook.sections);
   const context: EditorialContext = {
     definition,
     configuration,
@@ -841,54 +777,8 @@ export function HomeLookBook({
         </div>
       </article>
 
-      <article
-        data-look-book-home-introduction
-        data-look-book-layout="architecture"
-        data-look-book-print-page
-        data-long-residence-label={
-          hasLongResidenceLabel ? "true" : undefined
-        }
-        className="look-book-home-introduction"
-      >
-        <div className="look-book-page-inner">
-          <div className="grid gap-7 border-t border-black/18 pt-5 lg:grid-cols-[0.82fr_1.18fr] lg:items-end lg:gap-20">
-            <div>
-              <p className="text-[8px] font-semibold uppercase tracking-[0.19em] text-black/52">Architecture / The foundation</p>
-              <h3
-                data-long-residence-label={
-                  hasLongResidenceLabel ? "true" : undefined
-                }
-                className={`mt-5 font-medium uppercase leading-[0.82] tracking-[-0.075em] text-black/88 ${
-                  hasLongResidenceLabel
-                    ? "text-[clamp(3.25rem,6.5vw,6.5rem)]"
-                    : "text-[clamp(4rem,8.5vw,8.5rem)]"
-                }`}
-              >
-                {lookBook.home.residenceLabel}
-              </h3>
-            </div>
-            <p className="max-w-2xl text-sm leading-7 text-black/58 lg:justify-self-end">{lookBook.home.description}</p>
-          </div>
-          {lookBook.home.introductionImage ? (
-            <div className="relative mt-10 aspect-[16/8] overflow-hidden bg-[#d3cec1]">
-              <Image src={lookBook.home.introductionImage.src} alt={lookBook.home.introductionImage.alt} fill loading="eager" quality={definition.homeId === "saturna" ? 100 : 90} sizes="100vw" className="object-cover" />
-            </div>
-          ) : null}
-          {lookBook.home.metadata?.length ? (
-            <dl className="mt-7 grid grid-cols-2 gap-x-7 gap-y-5 border-t border-black/16 pt-5 lg:grid-cols-4">
-              {lookBook.home.metadata.map((item) => (
-                <div key={item.label} className="flex items-end justify-between gap-4 border-b border-black/12 pb-3">
-                  <dt className="text-[8px] font-semibold uppercase tracking-[0.16em] text-black/48">{item.label}</dt>
-                  <dd className="text-2xl font-medium tracking-[-0.05em] text-black/80">{item.value}</dd>
-                </div>
-              ))}
-            </dl>
-          ) : null}
-        </div>
-      </article>
-
       <div className="look-book-sections">
-        {lookBook.sections.map((section) => (
+        {selectionSections.map((section) => (
           <LookBookSectionView key={section.id} section={section} context={context} />
         ))}
       </div>

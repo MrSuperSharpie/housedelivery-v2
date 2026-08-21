@@ -88,6 +88,17 @@ export type HomeLookBook = {
   preliminaryNotice: string;
 };
 
+export function getLookBookSelectionSections(
+  sections: readonly LookBookSection[],
+) {
+  return sections
+    .filter((section) => section.kind === "selection-story")
+    .map((section, index) => ({
+      ...section,
+      number: String(index + 1).padStart(2, "0"),
+    }));
+}
+
 export function getLookBookPersonalTitle(
   customer: LookBookCustomer,
   homeName: string,
