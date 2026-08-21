@@ -10,6 +10,7 @@ import {
   Ruler,
   Ship,
 } from "lucide-react";
+import Image from "next/image";
 import { useState } from "react";
 
 import { RevealText } from "@/components/reveal-text";
@@ -108,17 +109,43 @@ export function DeliveryTimeline({
           </div>
           <div className="max-w-xl self-end lg:justify-self-end">
             <p className="text-lg leading-8 text-white/55">{introCopy}</p>
-            <p className="mt-5 text-xs leading-5 text-white/30">
-              Illustrative project sequence. Timing varies by design,
-              approvals, site conditions, production and logistics.
-            </p>
           </div>
         </div>
 
-        <div className="relative mt-20 grid gap-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
-          <div className="absolute left-0 right-0 top-[34px] hidden h-px bg-white/12 xl:block" />
+        <figure className="relative left-1/2 mt-16 w-[calc(100vw-2.5rem)] -translate-x-1/2 sm:w-[calc(100vw-4rem)] lg:mt-24 lg:w-[min(calc(100vw-6rem),1776px)]">
+          <div
+            className="overflow-x-auto overscroll-x-contain bg-black [scrollbar-color:rgba(255,255,255,0.24)_transparent] [scrollbar-width:thin]"
+            tabIndex={0}
+            role="region"
+            aria-label="Panoramic House Delivery process. Scroll horizontally to view all five stages."
+          >
+            <div className="w-[960px] lg:w-full">
+              <Image
+                src="/images/how-it-works/house-delivery-process.png"
+                alt="House Delivery process from site preparation and digital home coordination through factory production, structural assembly and completed home."
+                width={2172}
+                height={724}
+                quality={100}
+                sizes="(max-width: 1023px) 960px, (max-width: 1888px) calc(100vw - 96px), 1776px"
+                className="block h-auto w-full max-w-none"
+              />
+            </div>
+          </div>
+          <div className="mt-4 flex flex-col gap-3 border-t border-white/10 pt-4 sm:flex-row sm:items-start sm:justify-between sm:gap-8">
+            <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/30 lg:hidden">
+              Swipe to explore all five stages
+            </p>
+            <figcaption className="max-w-2xl text-xs leading-5 text-white/30 sm:ml-auto sm:text-right">
+              Illustrative project sequence. Timing varies by design,
+              approvals, site conditions, production and logistics.
+            </figcaption>
+          </div>
+        </figure>
+
+        <div className="relative mt-20 grid gap-2 border-t border-white/10 pt-16 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+          <div className="absolute left-0 right-0 top-[98px] hidden h-px bg-white/12 xl:block" />
           <motion.div
-            className="absolute left-0 top-[34px] hidden h-px bg-white xl:block"
+            className="absolute left-0 top-[98px] hidden h-px bg-white xl:block"
             animate={{ width: `${(activeStage / (stages.length - 1)) * 100}%` }}
             transition={{ duration: 0.55, ease: [0.2, 0.7, 0, 1] }}
           />

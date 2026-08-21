@@ -90,7 +90,7 @@ export function ProjectUnderstandingSection() {
           eyebrow="Coordination before construction"
           headlinePrimary="Resolve more before"
           headlineSecondary="the site is waiting."
-          introCopy="House Delivery moves design, procurement, factory production, site preparation, logistics, and local crew coordination upstream, with several workstreams advancing at the same time. Factory production and site preparation happen at the same time—not one after the other."
+          introCopy="House Delivery coordinates design, procurement, factory production, site preparation, logistics and local assembly so key workstreams can move in parallel—not one after another."
         />
       </div>
     </section>
