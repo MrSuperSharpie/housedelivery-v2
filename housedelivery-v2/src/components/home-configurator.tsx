@@ -560,11 +560,11 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
     focusConfigurationTarget("home-look-book");
   }
 
-  function returnToPlanner() {
-    if (!plannerSession || !configuration.lookBookPersonalization) return;
+  function returnToPlanner(configurationToSave = configuration) {
+    if (!plannerSession || !configurationToSave.lookBookPersonalization) return;
     const result: PlannerDesignReturn = {
       ...plannerSession,
-      configuration,
+      configuration: configurationToSave,
       completedAt: new Date().toISOString(),
     };
 
@@ -572,7 +572,7 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
       window.localStorage.setItem(PLANNER_RETURN_KEY, JSON.stringify(result));
       window.localStorage.setItem(
         getPlannerConfigurationKey(plannerSession),
-        JSON.stringify(configuration),
+        JSON.stringify(configurationToSave),
       );
     } catch {
       return;
@@ -580,9 +580,28 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
     window.location.assign(plannerSession.returnHref);
   }
 
-  function saveLookBookAndReturnToPlanner() {
-    window.print();
-    returnToPlanner();
+  function saveLookBookAndReturnToPlanner(projectDesignName?: string) {
+    if (!plannerSession) return;
+    const existingPersonalization = configuration.lookBookPersonalization;
+    const preparedAt = existingPersonalization?.preparedAt
+      ? new Date(existingPersonalization.preparedAt)
+      : new Date();
+    const nextConfiguration: HomeConfiguration = {
+      ...configuration,
+      lookBookPersonalization: {
+        projectDesignName:
+          projectDesignName?.trim() ||
+          existingPersonalization?.projectDesignName ||
+          `${definition.homeName} — ${plannerSession.designLabel}`,
+        preparedAt: preparedAt.toISOString(),
+        reference:
+          existingPersonalization?.reference ??
+          createLookBookReference(definition.homeId, preparedAt),
+      },
+    };
+
+    setConfiguration(nextConfiguration);
+    returnToPlanner(nextConfiguration);
   }
 
   const activeConfigurationOrientation = plannerSession

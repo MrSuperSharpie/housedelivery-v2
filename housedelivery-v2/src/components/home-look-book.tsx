@@ -39,7 +39,7 @@ type HomeLookBookProps = {
   plannerContext?: {
     designLabel: string;
     assignedQuantity: number;
-    onSaveAndReturn: () => void;
+    onSaveAndReturn: (projectDesignName?: string) => void;
   };
 };
 
@@ -164,6 +164,95 @@ function PersonalizationForm({
               className="group mt-9 flex min-h-14 w-full items-center justify-between gap-7 bg-[#111216] px-6 text-left text-[10px] font-semibold uppercase tracking-[0.17em] text-white hover:bg-black/76 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
             >
               <span>Create My Look Book</span>
+              <ArrowRight aria-hidden="true" className="size-4" strokeWidth={1.5} />
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ProjectLookBookForm({
+  homeName,
+  designLabel,
+  assignedQuantity,
+  onSaveAndReturn,
+}: {
+  homeName: string;
+  designLabel: string;
+  assignedQuantity: number;
+  onSaveAndReturn: (projectDesignName: string) => void;
+}) {
+  const [projectDesignName, setProjectDesignName] = useState(designLabel);
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const normalizedName = projectDesignName.trim();
+    if (!normalizedName) return;
+    onSaveAndReturn(normalizedName);
+  }
+
+  return (
+    <section
+      id="home-look-book"
+      tabIndex={-1}
+      aria-labelledby="home-look-book-heading"
+      data-look-book-ready="true"
+      data-look-book-personalized="false"
+      data-planner-look-book="true"
+      className="scroll-mt-20 bg-[#e7e3d8] px-5 py-24 text-[#111216] outline-none sm:px-8 lg:px-12 lg:py-36"
+    >
+      <div className="mx-auto max-w-[1504px]">
+        <HomeConfiguratorJourney
+          currentStage="look-book"
+          theme="light"
+          ariaLabel="Save project Look Book"
+          homeName={homeName}
+          plannerMode
+        />
+        <div className="mt-16 grid gap-14 border-t border-black/18 pt-7 lg:mt-24 lg:grid-cols-[1.05fr_0.75fr] lg:items-end lg:gap-28">
+          <div>
+            <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-black/58">
+              Configuration complete / Project design
+            </p>
+            <h2
+              id="home-look-book-heading"
+              className="mt-7 max-w-5xl text-[clamp(4rem,9vw,9rem)] font-medium leading-[0.82] tracking-[-0.075em] text-black/88"
+            >
+              Your {homeName}.
+              <br />
+              <span className="text-black/52">Ready to become real.</span>
+            </h2>
+            <p className="mt-9 max-w-2xl text-base leading-8 text-black/60">
+              Save this design as one project Look Book. It will remain assigned
+              to the full home quantity unless you explicitly create another
+              design variation in the Planner.
+            </p>
+          </div>
+          <form
+            data-project-look-book-form
+            onSubmit={handleSubmit}
+            className="border border-black/16 bg-[#ded9cd] p-6 sm:p-9"
+          >
+            <label className="form-field">
+              <span>Project design name / Required</span>
+              <input
+                required
+                value={projectDesignName}
+                onChange={(event) => setProjectDesignName(event.target.value)}
+                placeholder={`${homeName} — Design A`}
+              />
+            </label>
+            <p className="mt-6 text-sm text-black/60">
+              Assigned to: {assignedQuantity}{" "}
+              {assignedQuantity === 1 ? "home" : "homes"}
+            </p>
+            <button
+              type="submit"
+              className="group mt-9 flex min-h-14 w-full items-center justify-between gap-7 bg-[#111216] px-6 text-left text-[10px] font-semibold uppercase tracking-[0.17em] text-white hover:bg-black/76 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
+            >
+              <span>Save My Look Book &amp; Return to Project</span>
               <ArrowRight aria-hidden="true" className="size-4" strokeWidth={1.5} />
             </button>
           </form>
@@ -721,15 +810,34 @@ export function HomeLookBook({
 
   const personalization = configuration.lookBookPersonalization;
   if (!personalization) {
-    return <PersonalizationForm homeName={definition.homeName} onCreateLookBook={onCreateLookBook} plannerMode={Boolean(plannerContext)} />;
+    return plannerContext ? (
+      <ProjectLookBookForm
+        homeName={definition.homeName}
+        designLabel={plannerContext.designLabel}
+        assignedQuantity={plannerContext.assignedQuantity}
+        onSaveAndReturn={plannerContext.onSaveAndReturn}
+      />
+    ) : (
+      <PersonalizationForm
+        homeName={definition.homeName}
+        onCreateLookBook={onCreateLookBook}
+      />
+    );
   }
 
   const { lookBook } = definition;
-  const customerName = getLookBookCustomerName(personalization.customer);
-  const personalTitle = getLookBookPersonalTitle(
-    personalization.customer,
-    lookBook.home.name,
-  );
+  const projectDesignName =
+    personalization.projectDesignName ?? plannerContext?.designLabel;
+  const customerName = personalization.customer
+    ? getLookBookCustomerName(personalization.customer)
+    : "";
+  const personalTitle = projectDesignName ??
+    (personalization.customer
+      ? getLookBookPersonalTitle(
+          personalization.customer,
+          lookBook.home.name,
+        )
+      : lookBook.home.name);
   const preparedDate = formatLookBookPreparedDate(personalization.preparedAt);
   const isSubmitted = configuration.reviewStatus === "ready-for-review";
   const selectionSections = getLookBookSelectionSections(lookBook.sections);
@@ -757,16 +865,20 @@ export function HomeLookBook({
         <div className="mx-auto flex max-w-[1504px] flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/58">
-              Personalized visual brief / {personalization.reference}
+              {projectDesignName ? "Project design Look Book" : "Personalized visual brief"} / {personalization.reference}
             </p>
-            <p className="mt-2 text-sm text-black/62">Prepared for {customerName}</p>
+            <p className="mt-2 text-sm text-black/62">
+              {projectDesignName
+                ? `${projectDesignName} · Assigned to: ${plannerContext?.assignedQuantity ?? 1} ${(plannerContext?.assignedQuantity ?? 1) === 1 ? "home" : "homes"}`
+                : `Prepared for ${customerName}`}
+            </p>
           </div>
           <div className="flex flex-col gap-3 sm:items-end">
             <SaveLookBookButton placement="top" onSave={saveLookBook} />
             {plannerContext ? (
               <button
                 type="button"
-                onClick={plannerContext.onSaveAndReturn}
+                onClick={() => plannerContext.onSaveAndReturn()}
                 className="inline-flex min-h-12 items-center justify-center gap-3 border border-black px-6 text-[9px] font-semibold uppercase tracking-[0.17em] text-black hover:bg-black hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
               >
                 Save My Look Book &amp; Return to Project <ArrowRight aria-hidden="true" className="size-4" />
@@ -788,7 +900,7 @@ export function HomeLookBook({
           <div className="flex items-start justify-between gap-8 border-t border-white/50 pt-5">
             <Image src="/House Delivery Blk.png" alt="House Delivery Inc." width={675} height={313} loading="eager" unoptimized className="h-11 w-auto brightness-0 invert" />
             <p className="text-right font-mono text-[8px] uppercase tracking-[0.16em] text-white/70">
-              Personalized Look Book<br />{personalization.reference}
+              {projectDesignName ? "Project Look Book" : "Personalized Look Book"}<br />{personalization.reference}
             </p>
           </div>
           <div>
@@ -797,7 +909,7 @@ export function HomeLookBook({
               {personalTitle}
             </h2>
             <div className="mt-9 flex flex-col gap-3 border-t border-white/48 pt-5 text-[8px] uppercase tracking-[0.17em] text-white/76 sm:flex-row sm:items-center sm:justify-between">
-              <p>Prepared for {customerName}</p><p>{preparedDate} / {lookBook.home.areaLabel}</p>
+              <p>{projectDesignName ? `Project design / ${projectDesignName}` : `Prepared for ${customerName}`}</p><p>{preparedDate} / {lookBook.home.areaLabel}</p>
             </div>
           </div>
         </div>
@@ -851,7 +963,7 @@ export function HomeLookBook({
                 {plannerContext ? (
                   <button
                     type="button"
-                    onClick={plannerContext.onSaveAndReturn}
+                    onClick={() => plannerContext.onSaveAndReturn()}
                     className="inline-flex min-h-14 items-center justify-between gap-7 border border-white/44 px-6 text-[9px] font-semibold uppercase tracking-[0.17em] text-white hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
                   >
                     Save My Look Book &amp; Return to Project <ArrowRight aria-hidden="true" className="size-4" />
@@ -861,7 +973,7 @@ export function HomeLookBook({
             </div>
             <div className="mt-10 border-t border-white/18 pt-5 text-[8px] leading-4 text-white/42">
               <p>{definition.disclaimer}</p><p className="mt-2">{lookBook.preliminaryNotice}</p>
-              <p className="mt-4 font-mono uppercase tracking-[0.13em]">Prepared for {customerName} / {personalization.reference} / {preparedDate}</p>
+              <p className="mt-4 font-mono uppercase tracking-[0.13em]">{projectDesignName ? `Project design / ${projectDesignName}` : `Prepared for ${customerName}`} / {personalization.reference} / {preparedDate}</p>
             </div>
           </div>
         </div>

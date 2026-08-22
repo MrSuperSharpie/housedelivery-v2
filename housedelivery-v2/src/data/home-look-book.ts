@@ -7,7 +7,8 @@ export type LookBookCustomer = {
 };
 
 export type LookBookPersonalization = {
-  customer: LookBookCustomer;
+  customer?: LookBookCustomer;
+  projectDesignName?: string;
   preparedAt: string;
   reference: string;
 };

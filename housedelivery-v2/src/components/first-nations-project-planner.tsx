@@ -22,6 +22,7 @@ import {
   defaultPlannerState,
   formatPlanningValue,
   getPlannerDesignProgress,
+  getOpportunityReportFundingCorridors,
   getPortfolioSummary,
   getReadinessProfile,
   matchFundingCorridors,
@@ -29,6 +30,7 @@ import {
   reassignPlannerDesignQuantity,
   resizePlannerDesignVariations,
   type FundingCorridor,
+  type FundingCorridorDecision,
   type PlannerCatalogItem,
   type PlannerDesignVariation,
   type PlannerPhase,
@@ -37,6 +39,7 @@ import {
 } from "@/lib/project-planner";
 import {
   buildPlannerDesignHref,
+  buildPlannerHomeViewHref,
   PLANNER_RETURN_KEY,
   PLANNER_STORAGE_KEY,
   type PlannerDesignReturn,
@@ -48,6 +51,12 @@ const plannerPhaseLabels = {
   "phase-2": "Near-Term / Next Build",
   future: "Future Pipeline",
 } as const;
+
+const fundingDecisionLabels: Record<FundingCorridorDecision, string> = {
+  explore: "Explore this corridor",
+  discuss: "Discuss with House Delivery",
+  "not-relevant": "Not relevant",
+};
 
 const steps = [
   { label: "Community Need", eyebrow: "Start" },
@@ -94,7 +103,7 @@ function getPlannerDesignSession(
     homeName: getPlannerHomeName(model.name),
     designLabel: variation.label,
     assignedQuantity: variation.assignedQuantity,
-    returnHref: "/first-nations-project-planner#planner-design-workspace",
+    returnHref: "/first-nations-project-planner#planner-workspace",
   };
 }
 
@@ -158,7 +167,12 @@ function PlannerHomeActions({
   return (
     <div className="mt-5 grid gap-3 border-t border-black/12 pt-4">
       <div>
-        <PlannerLink href={item.viewHref}>View Home</PlannerLink>
+        <PlannerLink
+          href={buildPlannerHomeViewHref(item.viewHref)}
+          newTab={false}
+        >
+          View Home
+        </PlannerLink>
         <p className="mt-1 text-[10px] leading-4 text-black/42">Architecture, plans and walkthrough</p>
       </div>
       <div>
@@ -801,7 +815,7 @@ function DesignStep({
                         <div className="flex items-start justify-between gap-5">
                           <div>
                             <p className="text-[9px] font-semibold uppercase tracking-[0.17em] text-black/42">Saved design group</p>
-                            <h4 className="mt-2 text-2xl font-medium tracking-[-0.04em]">{getPlannerHomeName(model.name)} — {variation.label}</h4>
+                            <h4 className="mt-2 text-2xl font-medium tracking-[-0.04em]">{variation.projectDesignName ?? `${getPlannerHomeName(model.name)} — ${variation.label}`}</h4>
                           </div>
                           <span className={cn("px-3 py-2 text-[8px] font-semibold uppercase tracking-[0.14em]", variation.status === "complete" ? "bg-black text-white" : "border border-black/18 text-black/46")}>
                             {variation.status === "complete" ? "Design completed" : "Design remaining"}
@@ -877,12 +891,39 @@ function DesignStep({
   );
 }
 
-function FundingStep({ state, catalog, corridors }: { state: PlannerState; catalog: readonly PlannerCatalogItem[]; corridors: readonly FundingCorridor[] }) {
+function FundingStep({
+  state,
+  setState,
+  catalog,
+  corridors,
+}: {
+  state: PlannerState;
+  setState: React.Dispatch<React.SetStateAction<PlannerState>>;
+  catalog: readonly PlannerCatalogItem[];
+  corridors: readonly FundingCorridor[];
+}) {
   const matches = matchFundingCorridors(state, corridors, catalog);
   const ordered = [...matches].sort((a, b) => {
-    const rank = { "Strong corridor to explore": 0, "Relevant corridor": 1, "Potential corridor — more information required": 2, Monitor: 3 } as const;
+    const rank = {
+      "Strong corridor to explore": 0,
+      "Relevant corridor": 1,
+      "Potential corridor": 2,
+    } as const;
     return rank[a.relevance] - rank[b.relevance];
   });
+
+  function selectCorridor(
+    corridorId: string,
+    decision: FundingCorridorDecision,
+  ) {
+    setState((current) => ({
+      ...current,
+      fundingCorridorDecisions: {
+        ...current.fundingCorridorDecisions,
+        [corridorId]: decision,
+      },
+    }));
+  }
 
   return (
     <div>
@@ -912,6 +953,35 @@ function FundingStep({ state, catalog, corridors }: { state: PlannerState; catal
                   <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-black/42">Still to confirm</p>
                   <p className="mt-3 text-sm leading-6 text-black/58">{corridor.confirmationNeeded}</p>
                 </div>
+              </div>
+              <div
+                className="mt-7 flex flex-col gap-2 border-t border-black/12 pt-5 sm:flex-row sm:flex-wrap"
+                role="group"
+                aria-label={`Follow-up choice for ${corridor.title}`}
+              >
+                {(Object.entries(fundingDecisionLabels) as readonly [
+                  FundingCorridorDecision,
+                  string,
+                ][]).map(([decision, label]) => {
+                  const isSelected =
+                    state.fundingCorridorDecisions[corridor.id] === decision;
+                  return (
+                    <button
+                      key={decision}
+                      type="button"
+                      aria-pressed={isSelected}
+                      onClick={() => selectCorridor(corridor.id, decision)}
+                      className={cn(
+                        "min-h-11 border px-4 text-left text-[9px] font-semibold uppercase tracking-[0.14em] transition-colors",
+                        isSelected
+                          ? "border-black bg-black text-white"
+                          : "border-black/18 text-black/52 hover:border-black hover:text-black",
+                      )}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </article>
@@ -984,7 +1054,11 @@ function OpportunityReport({
 }) {
   const summary = getPortfolioSummary(state.portfolio, catalog);
   const estimate = calculatePreliminaryEstimate(state.portfolio, catalog);
-  const funding = matchFundingCorridors(state, corridors, catalog).filter((item) => item.relevance !== "Monitor");
+  const funding = getOpportunityReportFundingCorridors(
+    state,
+    corridors,
+    catalog,
+  );
   const readiness = getReadinessProfile(state, catalog);
   const savedDesigns = summary.lines.flatMap(({ line, model }) =>
     line.designVariations.flatMap((variation) =>
@@ -1046,7 +1120,7 @@ function OpportunityReport({
         </ReportSection>
 
         <ReportSection number="04" title="Design direction">
-          {savedDesigns.length ? <div className="grid gap-3 sm:grid-cols-2">{savedDesigns.map(({ model, variation }) => <p key={variation.id} className="border-t border-black/16 pt-3 text-sm"><span className="text-black/42">{getPlannerHomeName(model)} — {variation.label}</span><br />Assigned to {variation.assignedQuantity} {variation.assignedQuantity === 1 ? "home" : "homes"}{variation.lookBookReference ? ` · ${variation.lookBookReference}` : ""}</p>)}</div> : <p className="text-sm text-black/52">Design direction has not yet been recorded. Technical and project-specific approvals remain separate.</p>}
+          {savedDesigns.length ? <div className="grid gap-3 sm:grid-cols-2">{savedDesigns.map(({ model, variation }) => <p key={variation.id} className="border-t border-black/16 pt-3 text-sm"><span className="text-black/42">{variation.projectDesignName ?? `${getPlannerHomeName(model)} — ${variation.label}`}</span><br />Assigned to {variation.assignedQuantity} {variation.assignedQuantity === 1 ? "home" : "homes"}{variation.lookBookReference ? ` · ${variation.lookBookReference}` : ""}</p>)}</div> : <p className="text-sm text-black/52">Design direction has not yet been recorded. Technical and project-specific approvals remain separate.</p>}
         </ReportSection>
 
         <ReportSection number="05" title="Major range drivers">
@@ -1062,7 +1136,7 @@ function OpportunityReport({
         </ReportSection>
 
         <ReportSection number="08" title="Funding corridors">
-          <div className="space-y-4">{funding.map((item) => <div key={item.id} className="border-t border-black/16 pt-3"><p className="text-[8px] font-semibold uppercase tracking-[0.15em] text-black/42">{item.relevance}</p><p className="mt-2 text-sm font-medium">{item.title}</p><p className="mt-1 text-xs leading-5 text-black/50">{item.confirmationNeeded}</p><p className="mt-1 break-all text-[9px] text-black/38">{item.officialSource}</p></div>)}</div>
+          <div className="space-y-4">{funding.map((item) => <div key={item.id} className="border-t border-black/16 pt-3"><p className="text-[8px] font-semibold uppercase tracking-[0.15em] text-black/42">{item.relevance}{item.decision ? ` / ${fundingDecisionLabels[item.decision]}` : ""}</p><p className="mt-2 text-sm font-medium">{item.title}</p><p className="mt-1 text-xs leading-5 text-black/50">{item.confirmationNeeded}</p><p className="mt-1 break-all text-[9px] text-black/38">{item.officialSource}</p></div>)}</div>
         </ReportSection>
 
         <ReportSection number="09" title="Assumptions, exclusions and missing information">
@@ -1163,6 +1237,11 @@ export function FirstNationsProjectPlanner({ catalog, fundingCorridors }: { cata
                           lookBookReference:
                             returned.configuration.lookBookPersonalization
                               ?.reference ?? variation.lookBookReference,
+                          projectDesignName:
+                            returned.configuration.lookBookPersonalization
+                              ?.projectDesignName ??
+                            variation.projectDesignName ??
+                            `${returned.homeName} — ${returned.designLabel}`,
                           savedAt: returned.completedAt,
                         }
                       : variation,
@@ -1180,13 +1259,29 @@ export function FirstNationsProjectPlanner({ catalog, fundingCorridors }: { cata
             JSON.stringify(returnedState),
           );
           setState(returnedState);
+          const configurableModelIds = new Set(
+            catalog
+              .filter((model) => model.designChapters.length > 0)
+              .map((model) => model.id),
+          );
+          const nextDesign = portfolio
+            .filter((line) => configurableModelIds.has(line.modelId))
+            .flatMap((line) =>
+              line.designVariations.map((variation) => ({ line, variation })),
+            )
+            .find(({ variation }) => variation.status !== "complete");
+          const nextHome = nextDesign
+            ? catalog.find((model) => model.id === nextDesign.line.modelId)
+            : undefined;
           setReturnNotice(
-            `${returned.homeName} — ${returned.designLabel} is saved and assigned to ${returned.assignedQuantity} ${returned.assignedQuantity === 1 ? "home" : "homes"}.`,
+            `${returned.homeName} — ${returned.designLabel} is saved and assigned to ${returned.assignedQuantity} ${returned.assignedQuantity === 1 ? "home" : "homes"}.${nextHome ? ` Next: ${getPlannerHomeName(nextHome.name)} — ${nextDesign?.variation.label}.` : " All project design groups are complete."}`,
           );
           window.localStorage.removeItem(PLANNER_RETURN_KEY);
           window.requestAnimationFrame(() => {
             document
-              .getElementById(`planner-design-${returned.variationId}`)
+              .getElementById(
+                `planner-design-${nextDesign?.variation.id ?? returned.variationId}`,
+              )
               ?.scrollIntoView({ behavior: "smooth", block: "center" });
           });
         } else if (restored) {
@@ -1201,7 +1296,7 @@ export function FirstNationsProjectPlanner({ catalog, fundingCorridors }: { cata
     return () => {
       active = false;
     };
-  }, []);
+  }, [catalog]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -1287,7 +1382,7 @@ export function FirstNationsProjectPlanner({ catalog, fundingCorridors }: { cata
         {state.step === 2 ? <EstimatePanel state={state} catalog={catalog} /> : null}
         {state.step === 3 ? <RefineStep state={state} setState={setState} /> : null}
         {state.step === 4 ? <DesignStep state={state} setState={setState} catalog={catalog} returnNotice={returnNotice} onContinue={() => goToStep(5)} /> : null}
-        {state.step === 5 ? <FundingStep state={state} catalog={catalog} corridors={fundingCorridors} /> : null}
+        {state.step === 5 ? <FundingStep state={state} setState={setState} catalog={catalog} corridors={fundingCorridors} /> : null}
         {state.step === 6 ? <ScaleReadinessStep state={state} catalog={catalog} /> : null}
         {state.step === 7 ? <OpportunityReport state={state} onEditProject={() => goToStep(1)} onPrevious={() => goToStep(6)} onReset={resetPlanner} catalog={catalog} corridors={fundingCorridors} /> : null}
 

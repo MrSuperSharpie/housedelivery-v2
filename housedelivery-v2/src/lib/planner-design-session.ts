@@ -41,6 +41,32 @@ export function buildPlannerDesignHref(
   return `${url.pathname}${url.search}${url.hash}`;
 }
 
+export function buildPlannerHomeViewHref(baseHref: string) {
+  const url = new URL(baseHref, "https://www.housedelivery.ca");
+  url.searchParams.set("planner", "first-nations");
+  url.searchParams.set("plannerView", "home");
+  url.searchParams.set(
+    "plannerReturn",
+    "/first-nations-project-planner#planner-workspace",
+  );
+  return `${url.pathname}${url.search}${url.hash}`;
+}
+
+export function readPlannerHomeViewReturnHref(search: string) {
+  const params = new URLSearchParams(search);
+  const returnHref = params.get("plannerReturn");
+
+  if (
+    params.get("planner") !== "first-nations" ||
+    params.get("plannerView") !== "home" ||
+    !returnHref?.startsWith("/first-nations-project-planner")
+  ) {
+    return undefined;
+  }
+
+  return returnHref;
+}
+
 export function readPlannerDesignSession(
   search: string,
 ): PlannerDesignSession | undefined {

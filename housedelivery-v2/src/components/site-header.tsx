@@ -1,11 +1,12 @@
 "use client";
 
-import { Menu, X } from "lucide-react";
+import { ArrowLeft, Menu, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { cn } from "@/lib/cn";
+import { readPlannerHomeViewReturnHref } from "@/lib/planner-design-session";
 
 const links = [
   { label: "Homes", href: "/#models" },
@@ -22,6 +23,21 @@ export function SiteHeader({
   showProjectReviewAction?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [plannerReturnHref, setPlannerReturnHref] = useState<string>();
+
+  useEffect(() => {
+    let active = true;
+    window.queueMicrotask(() => {
+      if (active) {
+        setPlannerReturnHref(
+          readPlannerHomeViewReturnHref(window.location.search),
+        );
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-[#0b0c10]/75 backdrop-blur-xl">
@@ -115,6 +131,20 @@ export function SiteHeader({
           ) : null}
         </div>
       </nav>
+
+      {plannerReturnHref ? (
+        <div className="absolute inset-x-0 top-full border-b border-black/14 bg-[#e7e3d8] text-[#111216] shadow-[0_12px_32px_rgba(0,0,0,0.12)]">
+          <div className="mx-auto flex max-w-[1600px] items-center px-5 sm:px-8 lg:px-12">
+            <Link
+              href={plannerReturnHref}
+              className="inline-flex min-h-12 items-center gap-3 text-[9px] font-semibold uppercase tracking-[0.17em] text-black/72 transition-colors hover:text-black"
+            >
+              <ArrowLeft aria-hidden="true" className="size-4" />
+              Return to My Project
+            </Link>
+          </div>
+        </div>
+      ) : null}
     </header>
   );
 }

@@ -12,6 +12,7 @@ import {
   createPlannerDesignVariation,
   defaultPlannerState,
   getPlannerDesignProgress,
+  getOpportunityReportFundingCorridors,
   getPortfolioSummary,
   getReadinessProfile,
   matchFundingCorridors,
@@ -22,6 +23,8 @@ import {
 } from "./project-planner";
 import {
   buildPlannerDesignHref,
+  buildPlannerHomeViewHref,
+  readPlannerHomeViewReturnHref,
   readPlannerDesignSession,
 } from "./planner-design-session";
 
@@ -99,7 +102,46 @@ test("funding corridors remain contextual and are never deducted from feasibilit
       (corridor) => corridor.relevance === "Strong corridor to explore",
     ),
   );
+  assert.ok(
+    corridors.some(
+      (corridor) => corridor.relevance === "Relevant corridor",
+    ),
+  );
   assert.deepEqual(estimateAfter, estimateBefore);
+});
+
+test("Opportunity Report prioritizes follow-up choices and excludes corridors marked not relevant", () => {
+  const state: PlannerState = {
+    ...defaultPlannerState,
+    location: "British Columbia",
+    portfolio,
+    refinement: {
+      ...defaultPlannerState.refinement,
+      landStatus: "on-reserve",
+      affordability: "community-rental",
+    },
+    fundingCorridorDecisions: {
+      "cmhc-section-95": "explore",
+      "isc-on-reserve-housing": "discuss",
+      "bc-builds": "not-relevant",
+    },
+  };
+
+  const reportCorridors = getOpportunityReportFundingCorridors(
+    state,
+    firstNationsFundingCorridors,
+    firstNationsPlannerCatalog,
+  );
+
+  assert.equal(reportCorridors.length, 5);
+  assert.equal(reportCorridors[0].id, "cmhc-section-95");
+  assert.equal(reportCorridors[0].decision, "explore");
+  assert.equal(reportCorridors[1].id, "isc-on-reserve-housing");
+  assert.equal(reportCorridors[1].decision, "discuss");
+  assert.equal(
+    reportCorridors.some((corridor) => corridor.id === "bc-builds"),
+    false,
+  );
 });
 
 test("scale facts and readiness information remain separate", () => {
@@ -178,11 +220,11 @@ test("one design group represents all identical homes until a variation is reque
   );
 });
 
-test("review scenario preserves six homes and advances design progress by group", () => {
+test("review scenario preserves five homes and advances design progress by group", () => {
   const scenario: readonly PlannerPortfolioLine[] = [
     ["saturna", 2],
     ["solace", 2],
-    ["timberline", 2],
+    ["timberline", 1],
   ].map(([slug, quantity]) => {
     const lineId = `${slug}-line`;
     return {
@@ -214,7 +256,7 @@ test("review scenario preserves six homes and advances design progress by group"
     firstNationsPlannerCatalog,
   );
 
-  assert.equal(summary.totalHomes, 6);
+  assert.equal(summary.totalHomes, 5);
   assert.equal(summary.modelCount, 3);
   assert.equal(progress.completedDesigns, 1);
   assert.equal(progress.remainingDesignGroups, 2);
@@ -237,7 +279,8 @@ test("version one planner drafts migrate into one quantity-based design group", 
     ],
   });
 
-  assert.equal(migrated?.version, 2);
+  assert.equal(migrated?.version, 3);
+  assert.deepEqual(migrated?.fundingCorridorDecisions, {});
   assert.equal(migrated?.portfolio[0].designVariations.length, 1);
   assert.equal(
     migrated?.portfolio[0].designVariations[0].assignedQuantity,
@@ -249,6 +292,42 @@ test("version one planner drafts migrate into one quantity-based design group", 
   );
 });
 
+test("current Planner drafts restore funding choices and the five-home workflow", () => {
+  const lines: readonly PlannerPortfolioLine[] = [
+    ["solace", 2],
+    ["saturna", 2],
+    ["timberline", 1],
+  ].map(([slug, quantity]) => ({
+    id: `${slug}-line`,
+    modelId: `custom:${slug}`,
+    quantity: Number(quantity),
+    phase: "phase-1" as const,
+    designVariations: [
+      createPlannerDesignVariation(`${slug}-line`, Number(quantity)),
+    ],
+  }));
+  const migrated = migratePlannerState({
+    ...defaultPlannerState,
+    step: 5,
+    portfolio: lines,
+    fundingCorridorDecisions: {
+      "cmhc-section-95": "explore",
+      "bc-builds": "not-relevant",
+    },
+  });
+
+  assert.equal(migrated?.step, 5);
+  assert.equal(
+    getPortfolioSummary(migrated?.portfolio ?? [], firstNationsPlannerCatalog)
+      .totalHomes,
+    5,
+  );
+  assert.deepEqual(migrated?.fundingCorridorDecisions, {
+    "cmhc-section-95": "explore",
+    "bc-builds": "not-relevant",
+  });
+});
+
 test("Planner Build My links preserve the design-group return context", () => {
   const session = {
     lineId: "saturna-line",
@@ -257,7 +336,7 @@ test("Planner Build My links preserve the design-group return context", () => {
     homeName: "Saturna",
     designLabel: "Design A",
     assignedQuantity: 2,
-    returnHref: "/first-nations-project-planner#planner-design-workspace",
+    returnHref: "/first-nations-project-planner#planner-workspace",
   };
   const href = buildPlannerDesignHref(
     "/homes/saturna#home-inclusions",
@@ -268,4 +347,23 @@ test("Planner Build My links preserve the design-group return context", () => {
   assert.equal(parsed.pathname, "/homes/saturna");
   assert.equal(parsed.hash, "#home-inclusions");
   assert.deepEqual(readPlannerDesignSession(parsed.search), session);
+});
+
+test("Planner View Home links preserve a safe return to the project", () => {
+  const href = buildPlannerHomeViewHref("/homes/solace#floor-plans");
+  const parsed = new URL(href, "https://www.housedelivery.ca");
+
+  assert.equal(parsed.pathname, "/homes/solace");
+  assert.equal(parsed.hash, "#floor-plans");
+  assert.equal(parsed.searchParams.get("plannerView"), "home");
+  assert.equal(
+    readPlannerHomeViewReturnHref(parsed.search),
+    "/first-nations-project-planner#planner-workspace",
+  );
+  assert.equal(
+    readPlannerHomeViewReturnHref(
+      "?planner=first-nations&plannerView=home&plannerReturn=https://example.com",
+    ),
+    undefined,
+  );
 });

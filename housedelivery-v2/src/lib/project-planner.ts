@@ -60,6 +60,7 @@ export type PlannerCatalogItem = {
 export type PlannerDesignVariation = {
   id: string;
   label: string;
+  projectDesignName?: string;
   assignedQuantity: number;
   status: "draft" | "complete";
   designSelections: Readonly<Record<string, string>>;
@@ -89,8 +90,13 @@ export type ProjectRefinement = {
   targetTiming: string;
 };
 
+export type FundingCorridorDecision =
+  | "explore"
+  | "discuss"
+  | "not-relevant";
+
 export type PlannerState = {
-  version: 2;
+  version: 3;
   audience: PlannerAudience;
   step: number;
   community: string;
@@ -100,6 +106,9 @@ export type PlannerState = {
   deliveryHorizon: string;
   portfolio: readonly PlannerPortfolioLine[];
   refinement: ProjectRefinement;
+  fundingCorridorDecisions: Readonly<
+    Record<string, FundingCorridorDecision>
+  >;
   projectNotes: string;
 };
 
@@ -117,8 +126,7 @@ export type PreliminaryEstimate = {
 export type FundingRelevance =
   | "Strong corridor to explore"
   | "Relevant corridor"
-  | "Potential corridor — more information required"
-  | "Monitor";
+  | "Potential corridor";
 
 export type FundingCorridor = {
   id: string;
@@ -143,8 +151,12 @@ export type MatchedFundingCorridor = FundingCorridor & {
   relevance: FundingRelevance;
 };
 
+export type ReportFundingCorridor = MatchedFundingCorridor & {
+  decision?: FundingCorridorDecision;
+};
+
 export const defaultPlannerState: PlannerState = {
-  version: 2,
+  version: 3,
   audience: "first-nations",
   step: 0,
   community: "",
@@ -166,6 +178,7 @@ export const defaultPlannerState: PlannerState = {
     canadianValue: "unknown",
     targetTiming: "unknown",
   },
+  fundingCorridorDecisions: {},
   projectNotes: "",
 };
 
@@ -175,9 +188,13 @@ type LegacyPlannerPortfolioLine = Omit<PlannerPortfolioLine, "designVariations">
   designVariations?: readonly PlannerDesignVariation[];
 };
 
-type LegacyPlannerState = Omit<PlannerState, "version" | "portfolio"> & {
+type LegacyPlannerState = Omit<
+  PlannerState,
+  "version" | "portfolio" | "fundingCorridorDecisions"
+> & {
   version?: number;
   portfolio?: readonly LegacyPlannerPortfolioLine[];
+  fundingCorridorDecisions?: unknown;
 };
 
 function getDesignLetter(index: number) {
@@ -239,16 +256,29 @@ export function migratePlannerState(value: unknown): PlannerState | undefined {
         ];
       })
     : [];
+  const fundingCorridorDecisions =
+    candidate.fundingCorridorDecisions &&
+    typeof candidate.fundingCorridorDecisions === "object"
+      ? Object.fromEntries(
+          Object.entries(candidate.fundingCorridorDecisions).filter(
+            (entry): entry is [string, FundingCorridorDecision] =>
+              ["explore", "discuss", "not-relevant"].includes(
+                String(entry[1]),
+              ),
+          ),
+        )
+      : {};
 
   return {
     ...defaultPlannerState,
     ...candidate,
-    version: 2,
+    version: 3,
     portfolio,
     refinement: {
       ...defaultPlannerState.refinement,
       ...(candidate.refinement ?? {}),
     },
+    fundingCorridorDecisions,
   };
 }
 
@@ -480,32 +510,83 @@ export function matchFundingCorridors(
     const regionKnown = state.location.trim().length > 0;
     const regionMatch = corridor.region === "canada" || isBc;
     const needsAffordability = corridor.priorities.includes("affordability");
+    const needsRental = corridor.priorities.includes("rental");
     const hasScale = totalHomes >= 5;
     const needsScale = corridor.priorities.includes("scale");
+    const rentalRelevant =
+      state.refinement.affordability === "community-rental";
 
     let relevance: FundingRelevance;
     if ((landKnown && !landMatch) || (regionKnown && !regionMatch)) {
-      relevance = "Monitor";
+      relevance = "Potential corridor";
     } else if (
       (!landKnown && !corridor.landStatus.includes("either")) ||
       (!regionKnown && corridor.region === "bc") ||
-      (needsAffordability && !affordabilityKnown) ||
+      (needsAffordability &&
+        (!affordabilityKnown || !affordabilityRelevant)) ||
+      (needsRental && affordabilityKnown && !rentalRelevant) ||
       (needsScale && totalHomes === 0)
     ) {
-      relevance = "Potential corridor — more information required";
-    } else if (
-      landMatch &&
-      regionMatch &&
-      (!needsAffordability || affordabilityRelevant) &&
-      (!needsScale || hasScale)
-    ) {
-      relevance = "Strong corridor to explore";
+      relevance = "Potential corridor";
     } else {
-      relevance = "Relevant corridor";
+      const strengthSignals = [
+        landKnown &&
+          landMatch &&
+          !corridor.landStatus.includes("either"),
+        corridor.region === "bc" && isBc,
+        needsAffordability && affordabilityRelevant,
+        needsRental && rentalRelevant,
+        needsScale && hasScale,
+      ].filter(Boolean).length;
+
+      relevance =
+        strengthSignals >= 4
+          ? "Strong corridor to explore"
+          : "Relevant corridor";
     }
 
     return { ...corridor, relevance };
   });
+}
+
+const fundingRelevanceRank: Record<FundingRelevance, number> = {
+  "Strong corridor to explore": 0,
+  "Relevant corridor": 1,
+  "Potential corridor": 2,
+};
+
+const fundingDecisionRank: Record<FundingCorridorDecision, number> = {
+  explore: 0,
+  discuss: 1,
+  "not-relevant": 2,
+};
+
+export function getOpportunityReportFundingCorridors(
+  state: PlannerState,
+  corridors: readonly FundingCorridor[],
+  catalog: readonly PlannerCatalogItem[],
+): readonly ReportFundingCorridor[] {
+  return matchFundingCorridors(state, corridors, catalog)
+    .map((corridor) => ({
+      ...corridor,
+      decision: state.fundingCorridorDecisions[corridor.id],
+    }))
+    .filter((corridor) => corridor.decision !== "not-relevant")
+    .sort((a, b) => {
+      const aDecision = a.decision
+        ? fundingDecisionRank[a.decision]
+        : Number.POSITIVE_INFINITY;
+      const bDecision = b.decision
+        ? fundingDecisionRank[b.decision]
+        : Number.POSITIVE_INFINITY;
+
+      return (
+        aDecision - bDecision ||
+        fundingRelevanceRank[a.relevance] -
+          fundingRelevanceRank[b.relevance]
+      );
+    })
+    .slice(0, 5);
 }
 
 export function getReadinessProfile(
