@@ -39,9 +39,7 @@ type HomeLookBookProps = {
   plannerContext?: {
     designLabel: string;
     assignedQuantity: number;
-    isSaved: boolean;
-    onSave: () => void;
-    onReturn: () => void;
+    onSaveAndReturn: () => void;
   };
 };
 
@@ -85,7 +83,8 @@ function SaveLookBookButton({
 function PersonalizationForm({
   homeName,
   onCreateLookBook,
-}: Pick<HomeLookBookProps, "onCreateLookBook"> & { homeName: string }) {
+  plannerMode,
+}: Pick<HomeLookBookProps, "onCreateLookBook"> & { homeName: string; plannerMode?: boolean }) {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
 
@@ -114,6 +113,7 @@ function PersonalizationForm({
           theme="light"
           ariaLabel="Create personalized Look Book"
           homeName={homeName}
+          plannerMode={plannerMode}
         />
         <div className="mt-16 grid gap-14 border-t border-black/18 pt-7 lg:mt-24 lg:grid-cols-[1.05fr_0.75fr] lg:items-end lg:gap-28">
           <div>
@@ -642,7 +642,8 @@ function IncompleteLookBook({
   definition,
   configuration,
   onEditCategory,
-}: Pick<HomeLookBookProps, "definition" | "configuration" | "onEditCategory">) {
+  plannerMode,
+}: Pick<HomeLookBookProps, "definition" | "configuration" | "onEditCategory"> & { plannerMode?: boolean }) {
   const requiredCategories = getHomeConfiguratorJourneyCategories(definition);
   const completeCount = requiredCategories.filter((category) =>
     isCategoryComplete(category, configuration),
@@ -665,11 +666,12 @@ function IncompleteLookBook({
           theme="light"
           ariaLabel="Look Book journey preview"
           homeName={definition.homeName}
+          plannerMode={plannerMode}
         />
         <div className="mt-16 grid gap-12 border-t border-black/18 pt-7 lg:mt-24 lg:grid-cols-[0.8fr_1.2fr] lg:items-end lg:gap-20">
           <div>
             <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-black/58">
-              My {definition.homeName} / Look Book preview
+              My {definition.homeName} / My Look Book preview
             </p>
             <h2 id="home-look-book-heading" className="mt-7 text-[clamp(4rem,9vw,9rem)] font-medium leading-[0.82] tracking-[-0.075em] text-black/88">
               Your story<br /><span className="text-black/52">takes shape here.</span>
@@ -677,8 +679,8 @@ function IncompleteLookBook({
           </div>
           <div className="max-w-xl lg:justify-self-end">
             <p className="text-base leading-8 text-black/60">
-              Your major room and finish selections will open into an editorial
-              Look Book once every controlled chapter is confirmed.
+              Once every controlled chapter is confirmed, your major room and
+              finish selections will be presented in My Look Book.
             </p>
             <p className="mt-7 font-mono text-[9px] tracking-[0.14em] text-black/58">
               {completeCount} / {requiredCategories.length} complete
@@ -714,12 +716,12 @@ export function HomeLookBook({
     isCategoryComplete(category, configuration),
   );
   if (!isReady) {
-    return <IncompleteLookBook definition={definition} configuration={configuration} onEditCategory={onEditCategory} />;
+    return <IncompleteLookBook definition={definition} configuration={configuration} onEditCategory={onEditCategory} plannerMode={Boolean(plannerContext)} />;
   }
 
   const personalization = configuration.lookBookPersonalization;
   if (!personalization) {
-    return <PersonalizationForm homeName={definition.homeName} onCreateLookBook={onCreateLookBook} />;
+    return <PersonalizationForm homeName={definition.homeName} onCreateLookBook={onCreateLookBook} plannerMode={Boolean(plannerContext)} />;
   }
 
   const { lookBook } = definition;
@@ -738,7 +740,6 @@ export function HomeLookBook({
     onPreviewOption,
   };
   const saveLookBook = () => {
-    plannerContext?.onSave();
     window.print();
   };
 
@@ -762,20 +763,20 @@ export function HomeLookBook({
           </div>
           <div className="flex flex-col gap-3 sm:items-end">
             <SaveLookBookButton placement="top" onSave={saveLookBook} />
-            {plannerContext?.isSaved ? (
+            {plannerContext ? (
               <button
                 type="button"
-                onClick={plannerContext.onReturn}
+                onClick={plannerContext.onSaveAndReturn}
                 className="inline-flex min-h-12 items-center justify-center gap-3 border border-black px-6 text-[9px] font-semibold uppercase tracking-[0.17em] text-black hover:bg-black hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
               >
-                Return to Project <ArrowRight aria-hidden="true" className="size-4" />
+                Save My Look Book &amp; Return to Project <ArrowRight aria-hidden="true" className="size-4" />
               </button>
             ) : null}
           </div>
         </div>
         {plannerContext ? (
           <p className="mx-auto mt-5 max-w-[1504px] text-xs leading-5 text-black/52">
-            Project design group: {plannerContext.designLabel} · Assigned to {plannerContext.assignedQuantity} {plannerContext.assignedQuantity === 1 ? "home" : "homes"}. Save or print this Look Book, then return to continue the project.
+            Project design group: {plannerContext.designLabel} · Assigned to {plannerContext.assignedQuantity} {plannerContext.assignedQuantity === 1 ? "home" : "homes"}. Save My Look Book &amp; Return to Project records this design group and brings the next home design into view.
           </p>
         ) : null}
       </div>
@@ -847,13 +848,13 @@ export function HomeLookBook({
                   placement="completion"
                   onSave={saveLookBook}
                 />
-                {plannerContext?.isSaved ? (
+                {plannerContext ? (
                   <button
                     type="button"
-                    onClick={plannerContext.onReturn}
+                    onClick={plannerContext.onSaveAndReturn}
                     className="inline-flex min-h-14 items-center justify-between gap-7 border border-white/44 px-6 text-[9px] font-semibold uppercase tracking-[0.17em] text-white hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
                   >
-                    Return to Project <ArrowRight aria-hidden="true" className="size-4" />
+                    Save My Look Book &amp; Return to Project <ArrowRight aria-hidden="true" className="size-4" />
                   </button>
                 ) : null}
               </div>

@@ -39,10 +39,13 @@ export type PlannerDesignChapter = {
 
 export type PlannerCatalogItem = {
   id: string;
-  family: "custom-home" | "standardized-catalogue";
+  family:
+    | "custom-home"
+    | "standardized-catalogue"
+    | "laneway-carriage-home";
   name: string;
   code?: string;
-  squareFeet: number;
+  squareFeet: number | null;
   homesPerSelection: number;
   image: string;
   description: string;

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
 import test from "node:test";
 
 import {
@@ -137,6 +138,20 @@ test("all current planner catalogue models have explicit planning-basis records"
   }
 });
 
+test("Planner includes the existing Laneway and Carriage Home collection", () => {
+  const carriageHomes = firstNationsPlannerCatalog.filter(
+    (model) => model.family === "laneway-carriage-home",
+  );
+
+  assert.equal(carriageHomes.length, 6);
+  for (const model of carriageHomes) {
+    assert.match(model.id, /^carriage:/);
+    assert.match(model.viewHref, /^\/homes\/laneway-carriage\//);
+    assert.equal(model.squareFeet, null);
+    assert.equal(existsSync(`public${model.image}`), true, model.image);
+  }
+});
+
 test("one design group represents all identical homes until a variation is requested", () => {
   const original: PlannerPortfolioLine = {
     id: "maplewood-line",
@@ -163,11 +178,11 @@ test("one design group represents all identical homes until a variation is reque
   );
 });
 
-test("review scenario preserves five homes and advances design progress by group", () => {
+test("review scenario preserves six homes and advances design progress by group", () => {
   const scenario: readonly PlannerPortfolioLine[] = [
     ["saturna", 2],
     ["solace", 2],
-    ["timberline", 1],
+    ["timberline", 2],
   ].map(([slug, quantity]) => {
     const lineId = `${slug}-line`;
     return {
@@ -181,13 +196,13 @@ test("review scenario preserves five homes and advances design progress by group
     };
   });
   const completed = scenario.map((line) =>
-    line.modelId === "custom:saturna"
+    line.modelId === "custom:solace"
       ? {
           ...line,
           designVariations: line.designVariations.map((variation) => ({
             ...variation,
             status: "complete" as const,
-            lookBookReference: "SATURNA-TEST",
+            lookBookReference: "SOLACE-TEST",
           })),
         }
       : line,
@@ -199,7 +214,7 @@ test("review scenario preserves five homes and advances design progress by group
     firstNationsPlannerCatalog,
   );
 
-  assert.equal(summary.totalHomes, 5);
+  assert.equal(summary.totalHomes, 6);
   assert.equal(summary.modelCount, 3);
   assert.equal(progress.completedDesigns, 1);
   assert.equal(progress.remainingDesignGroups, 2);

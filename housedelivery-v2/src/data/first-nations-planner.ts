@@ -1,6 +1,7 @@
 import { getRequiredCategories } from "@/data/home-configurator";
 import { getHomeConfiguratorRegistration } from "@/data/home-configurators";
 import { catalogModels } from "@/data/catalog";
+import { carriageHomes } from "@/data/carriage-homes";
 import { models } from "@/data/models";
 import type {
   FundingCorridor,
@@ -104,9 +105,55 @@ const standardizedCatalogueHomes: readonly PlannerCatalogItem[] =
     planningBasis: underReviewBasis(`catalogue:${model.slug}`),
   }));
 
+const lanewayCarriageHomes: readonly PlannerCatalogItem[] = carriageHomes.map(
+  (home) => {
+    const registration = getHomeConfiguratorRegistration(
+      "laneway-carriage-home",
+      home.slug,
+    );
+    const definition = registration?.definition;
+    const chapters = definition
+      ? getRequiredCategories(definition).map((category) => ({
+          id: category.id,
+          number: category.number,
+          title: category.title,
+          options:
+            category.kind === "room-look" || category.kind === "standard"
+              ? category.options.map((option) => ({
+                  id: option.id,
+                  label: option.name,
+                  level: option.level,
+                  status: "Visual Direction" as const,
+                }))
+              : [],
+        }))
+      : [];
+
+    return {
+      id: `carriage:${home.slug}`,
+      family: "laneway-carriage-home",
+      name: home.name,
+      squareFeet: null,
+      homesPerSelection: 1,
+      image: home.images[0].src,
+      description: home.description,
+      viewHref: `/homes/laneway-carriage/${home.slug}`,
+      buildMyHref: definition
+        ? `/homes/laneway-carriage/${home.slug}#home-inclusions`
+        : undefined,
+      lookBookHref: definition
+        ? `/homes/laneway-carriage/${home.slug}#home-look-book`
+        : undefined,
+      designChapters: chapters,
+      planningBasis: underReviewBasis(`carriage:${home.slug}`),
+    };
+  },
+);
+
 export const firstNationsPlannerCatalog = [
   ...standardizedCatalogueHomes,
   ...customHomes,
+  ...lanewayCarriageHomes,
 ] as const satisfies readonly PlannerCatalogItem[];
 
 export const firstNationsFundingCorridors = [

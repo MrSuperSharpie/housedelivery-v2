@@ -96,6 +96,21 @@ const configurationOrientation = [
   },
 ] as const;
 
+const plannerConfigurationOrientation = [
+  {
+    label: "Choose",
+    detail: () => "Key room looks and finishes",
+  },
+  {
+    label: "Design",
+    detail: (homeName: string) => `Your personalized ${homeName}`,
+  },
+  {
+    label: "Review",
+    detail: () => "Your complete My Look Book",
+  },
+] as const;
+
 function getNextIncompleteCategory(
   definition: HomeConfiguratorDefinition,
   configuration: HomeConfiguration,
@@ -149,7 +164,6 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
     useState<PlannerDesignSession>();
   const [plannerConfigurationHydrated, setPlannerConfigurationHydrated] =
     useState(false);
-  const [plannerLookBookSaved, setPlannerLookBookSaved] = useState(false);
   const closeImagePreview = useCallback(() => {
     setImagePreviewTarget(null);
   }, []);
@@ -176,7 +190,6 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
             restored.schemaVersion === definition.configurationVersion
           ) {
             setConfiguration(restored);
-            setPlannerLookBookSaved(Boolean(restored.lookBookPersonalization));
           }
         }
       } catch {
@@ -567,6 +580,15 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
     window.location.assign(plannerSession.returnHref);
   }
 
+  function saveLookBookAndReturnToPlanner() {
+    window.print();
+    returnToPlanner();
+  }
+
+  const activeConfigurationOrientation = plannerSession
+    ? plannerConfigurationOrientation
+    : configurationOrientation;
+
   return (
     <div
       id="home-configurator"
@@ -586,6 +608,7 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
               currentStage="configure"
               ariaLabel={`${definition.homeName} configuration journey`}
               homeName={definition.homeName}
+              plannerMode={Boolean(plannerSession)}
             />
           </div>
 
@@ -595,13 +618,15 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
                 className="eyebrow"
                 style={{ color: "rgb(255 255 255 / 0.6)" }}
               >
-                Design your {definition.homeName}
+                {plannerSession
+                  ? "House Delivery Design Center"
+                  : `Design your ${definition.homeName}`}
               </p>
               <h2
                 id="home-inclusions-heading"
                 className="mt-7 text-[clamp(3.8rem,8vw,8.5rem)] font-medium leading-[0.84] tracking-[-0.075em]"
               >
-                Build My
+                {plannerSession ? "Design My" : "Build My"}
                 <br />
                 <span className="text-white/55">{definition.homeName}.</span>
               </h2>
@@ -610,7 +635,7 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
               <p className="text-base leading-8 text-white/56 lg:text-lg">
                 Choose the major spaces and finishes that establish the
                 character of your home. Your selections create a personalized
-                visual brief and Look Book for the next project-specific design
+                visual brief and {plannerSession ? "My Look Book" : "Look Book"} for the next project-specific design
                 stage.
               </p>
               <p className="mt-5 text-xs leading-6 text-white/55">
@@ -631,7 +656,7 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
             data-home-configuration-orientation
             className="mt-12 grid border-l border-t border-white/14 sm:grid-cols-3 lg:mt-16"
           >
-            {configurationOrientation.map((step, index) => (
+            {activeConfigurationOrientation.map((step, index) => (
               <li
                 key={step.label}
                 className="relative min-h-28 border-b border-r border-white/14 p-5 sm:min-h-32 sm:p-6"
@@ -650,7 +675,7 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
                 <p className="mt-6 max-w-xs text-sm leading-6 text-white/48">
                   {step.detail(definition.homeName)}
                 </p>
-                {index < configurationOrientation.length - 1 ? (
+                {index < activeConfigurationOrientation.length - 1 ? (
                   <span
                     aria-hidden="true"
                     className="absolute -right-2.5 top-1/2 z-10 hidden -translate-y-1/2 bg-[#0b0c10] px-1 text-sm text-white/55 sm:block"
@@ -824,9 +849,7 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
             ? {
                 designLabel: `${definition.homeName} — ${plannerSession.designLabel}`,
                 assignedQuantity: plannerSession.assignedQuantity,
-                isSaved: plannerLookBookSaved,
-                onSave: () => setPlannerLookBookSaved(true),
-                onReturn: returnToPlanner,
+                onSaveAndReturn: saveLookBookAndReturnToPlanner,
               }
             : undefined
         }

@@ -51,7 +51,7 @@ const plannerPhaseLabels = {
 
 const steps = [
   { label: "Community Need", eyebrow: "Start" },
-  { label: "Housing Portfolio", eyebrow: "Build" },
+  { label: "My Project", eyebrow: "Build" },
   { label: "Quick Estimate", eyebrow: "Understand" },
   { label: "Refine Project", eyebrow: "Refine" },
   { label: "Design Direction", eyebrow: "Shape" },
@@ -163,21 +163,21 @@ function PlannerHomeActions({
       </div>
       <div>
         {!item.buildMyHref ? (
-          <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-black/38">Build My — Coming Soon</span>
+          <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-black/38">Design My Home — Coming Soon</span>
         ) : buildHref ? (
-          <PlannerLink href={buildHref} newTab={false}>Build My</PlannerLink>
+          <PlannerLink href={buildHref} newTab={false}>Design My Home</PlannerLink>
         ) : (
-          <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-black/38">Build My — Add to Project First</span>
+          <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-black/38">Design My Home — Add to Project First</span>
         )}
         <p className="mt-1 text-[10px] leading-4 text-black/42">Choose the design direction</p>
       </div>
       <div>
         {!item.lookBookHref ? (
-          <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-black/38">Look Book — Coming Soon</span>
+          <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-black/38">My Look Book — Coming Soon</span>
         ) : lookBookHref && variation?.status === "complete" ? (
-          <PlannerLink href={lookBookHref} newTab={false}>Look Book</PlannerLink>
+          <PlannerLink href={lookBookHref} newTab={false}>My Look Book</PlannerLink>
         ) : (
-          <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-black/38">Look Book — Save a Design First</span>
+          <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-black/38">My Look Book — Save a Design First</span>
         )}
         <p className="mt-1 text-[10px] leading-4 text-black/42">Reopen saved design selections</p>
       </div>
@@ -295,7 +295,7 @@ function PortfolioStep({
   setState: React.Dispatch<React.SetStateAction<PlannerState>>;
   catalog: readonly PlannerCatalogItem[];
 }) {
-  const [family, setFamily] = useState<"standardized-catalogue" | "custom-home">(
+  const [family, setFamily] = useState<PlannerCatalogItem["family"]>(
     "standardized-catalogue",
   );
   const [quantities, setQuantities] = useState<Record<string, number>>({});
@@ -355,8 +355,8 @@ function PortfolioStep({
   return (
     <div>
       <StepHeader
-        eyebrow="02 / Housing portfolio"
-        title="Build the portfolio."
+        eyebrow="02 / My Project"
+        title="Build the project."
         intro="Combine repeatable home models across an Active / First Build, a Near-Term / Next Build and the Future Pipeline. These phases describe planned delivery sequence—not rigid construction dates."
       />
 
@@ -370,7 +370,7 @@ function PortfolioStep({
           <p className="mt-2 text-3xl font-medium tracking-[-0.05em]">{summary.modelCount}</p>
         </div>
         <div>
-          <p className="text-[9px] uppercase tracking-[0.18em] text-black/42">Phases represented</p>
+          <p className="text-[9px] uppercase tracking-[0.18em] text-black/42">Delivery groups</p>
           <p className="mt-2 text-3xl font-medium tracking-[-0.05em]">{summary.phaseCount}</p>
         </div>
       </div>
@@ -378,7 +378,7 @@ function PortfolioStep({
       {summary.lines.length ? (
         <div className="mt-12">
           <h3 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-black/50">
-            Working portfolio
+            View / Edit My Project
           </h3>
           <div className="mt-5 border-t border-black/16">
             {summary.lines.map(({ line, model }) => (
@@ -461,6 +461,18 @@ function PortfolioStep({
         >
           Custom Homes
         </button>
+        <button
+          type="button"
+          onClick={() => setFamily("laneway-carriage-home")}
+          className={cn(
+            "min-h-11 border px-5 text-[9px] font-semibold uppercase tracking-[0.17em]",
+            family === "laneway-carriage-home"
+              ? "border-black bg-black text-white"
+              : "border-black/20 text-black/55",
+          )}
+        >
+          Laneway &amp; Carriage Homes
+        </button>
       </div>
 
       {family === "standardized-catalogue" ? (
@@ -486,7 +498,9 @@ function PortfolioStep({
             <div className="mt-5 flex items-start justify-between gap-4">
               <div>
                 <p className="text-[9px] uppercase tracking-[0.17em] text-black/42">
-                  {item.code ?? `${item.squareFeet.toLocaleString()} sq. ft.`}
+                  {item.code ?? (item.squareFeet
+                    ? `${item.squareFeet.toLocaleString()} sq. ft.`
+                    : "Laneway / Carriage Home")}
                 </p>
                 <h3 className="mt-2 text-2xl font-medium tracking-[-0.045em]">{item.name}</h3>
               </div>
@@ -628,12 +642,11 @@ function RefineStep({
     ["accessibility", "Accessibility / adaptability", [["unknown", "Unknown / to confirm"], ["standard", "Standard planning"], ["adaptable", "Adaptable homes required"], ["accessible", "Accessible homes required"], ["mixed", "Mixed accessibility portfolio"]]],
     ["landStatus", "Land / site status", [["unknown", "Unknown / to confirm"], ["on-reserve", "On-reserve"], ["off-reserve", "Off-reserve"], ["mixed", "Mixed land status"]]],
     ["servicing", "Servicing / access / remoteness", [["unknown", "Unknown / to confirm"], ["serviced-road-access", "Serviced with road access"], ["partial-servicing", "Partial servicing"], ["remote-road-access", "Remote with road access"], ["limited-access", "Limited or seasonal access"]]],
-    ["affordability", "Affordability approach", [["unknown", "Unknown / to confirm"], ["deeply-affordable", "Deeply affordable"], ["community-rental", "Community rental"], ["mixed-income", "Mixed-income"], ["ownership", "Ownership pathway"]]],
+    ["affordability", "Housing / tenure approach", [["unknown", "To be determined"], ["community-rental", "Community rental"], ["deeply-affordable", "Affordable housing"], ["mixed-income", "Mixed-income"], ["ownership", "Ownership pathway"]]],
     ["culturalPriorities", "Cultural / design priorities", [["unknown", "Unknown / to confirm"], ["engagement-required", "Community engagement required"], ["defined-priorities", "Priorities identified"], ["artist-collaboration", "Local artist / artisan collaboration"]]],
-    ["energyResilience", "Energy / resilience priorities", [["unknown", "Unknown / to confirm"], ["code-baseline", "Baseline to be established"], ["enhanced-performance", "Enhanced performance"], ["resilience-priority", "Resilience is a priority"], ["off-grid-review", "Off-grid review required"]]],
-    ["localLabour", "Local and Indigenous labour", [["unknown", "Unknown / to confirm"], ["explore", "Explore local participation"], ["available", "Local capacity identified"], ["partner-required", "Delivery partner required"]]],
-    ["trainingObjectives", "Assembly / training / maintenance", [["unknown", "Unknown / to confirm"], ["not-current-priority", "Not a current priority"], ["assembly", "Assembly participation"], ["training", "Training objective"], ["maintenance", "Long-term maintenance capacity"]]],
-    ["canadianValue", "Canadian / local value", [["unknown", "Unknown / to confirm"], ["important", "Important consideration"], ["procurement-priority", "Procurement priority"], ["community-benefit", "Community-benefit objective"]]],
+    ["energyResilience", "Energy & resilience", [["unknown", "To be determined"], ["code-baseline", "Standard requirements / to be confirmed"], ["enhanced-performance", "Higher energy performance"], ["resilience-priority", "Resilience priority"], ["off-grid-review", "Remote / off-grid conditions"]]],
+    ["localLabour", "Local & Indigenous participation", [["unknown", "To be determined"], ["explore", "Interested in local / Indigenous labour"], ["available", "Local crew or trades identified"], ["training-interest", "Interested in training"], ["partner-required", "Need assembly / delivery support"]]],
+    ["trainingObjectives", "Assembly / training / maintenance", [["unknown", "To be determined"], ["assembly", "Local assembly participation"], ["training", "Training interest"], ["maintenance", "Long-term maintenance capability"], ["support-required", "House Delivery / project delivery support required"]]],
     ["targetTiming", "Target timing", [["unknown", "Unknown / to confirm"], ["within-12-months", "Within 12 months"], ["12-24-months", "12–24 months"], ["24-plus-months", "24+ months"], ["phased", "Phased pipeline"]]],
   ] as const;
 
@@ -690,11 +703,13 @@ function DesignStep({
   setState,
   catalog,
   returnNotice,
+  onContinue,
 }: {
   state: PlannerState;
   setState: React.Dispatch<React.SetStateAction<PlannerState>>;
   catalog: readonly PlannerCatalogItem[];
   returnNotice?: string;
+  onContinue: () => void;
 }) {
   const summary = getPortfolioSummary(state.portfolio, catalog);
   const designLines = summary.lines.filter(({ model }) => model.designChapters.length > 0);
@@ -743,10 +758,10 @@ function DesignStep({
           ) : (
             <button
               type="button"
-              onClick={() => setState((current) => ({ ...current, step: 3 }))}
+              onClick={onContinue}
               className="inline-flex min-h-11 items-center gap-3 border-b border-black/28 text-[9px] font-semibold uppercase tracking-[0.15em]"
             >
-              Refine Your Project <ArrowRight aria-hidden="true" className="size-3.5" />
+              Continue to Funding Pathways <ArrowRight aria-hidden="true" className="size-3.5" />
             </button>
           )}
         </div>
@@ -816,18 +831,18 @@ function DesignStep({
                           <p className="mt-6 text-sm text-black/56">Assigned to {variation.assignedQuantity} {variation.assignedQuantity === 1 ? "home" : "homes"}</p>
                         )}
                         {variation.lookBookReference ? (
-                          <p className="mt-3 font-mono text-[9px] uppercase tracking-[0.13em] text-black/42">Look Book / {variation.lookBookReference}</p>
+                          <p className="mt-3 font-mono text-[9px] uppercase tracking-[0.13em] text-black/42">My Look Book / {variation.lookBookReference}</p>
                         ) : null}
                         <div className="mt-7 flex flex-wrap gap-x-5 gap-y-3 border-t border-black/12 pt-4">
                           {variation.status === "complete" ? (
                             <>
-                              <PlannerLink href={lookBookHref} newTab={false}>View Look Book</PlannerLink>
+                              <PlannerLink href={lookBookHref} newTab={false}>My Look Book</PlannerLink>
                               <PlannerLink href={buildHref} newTab={false}>Edit Design</PlannerLink>
                             </>
                           ) : (
                             <>
-                              <PlannerLink href={buildHref} newTab={false}>Build My {getPlannerHomeName(model.name)}</PlannerLink>
-                              <span className="self-center text-[9px] font-semibold uppercase tracking-[0.15em] text-black/32">Look Book — Save a design first</span>
+                              <PlannerLink href={buildHref} newTab={false}>Design My Home</PlannerLink>
+                              <span className="self-center text-[9px] font-semibold uppercase tracking-[0.15em] text-black/32">My Look Book — Save a design first</span>
                             </>
                           )}
                         </div>
@@ -1008,7 +1023,7 @@ function OpportunityReport({ state, onRefine, catalog, corridors }: { state: Pla
 
         <ReportSection number="02" title="Portfolio and phases">
           <div className="border-t border-black/16">
-            {summary.lines.map(({ line, model }) => <div key={line.id} className="grid grid-cols-[1fr_auto] gap-5 border-b border-black/16 py-4 text-sm"><div><p className="font-medium">{model.name}</p><p className="mt-1 text-xs text-black/45">{model.family === "standardized-catalogue" ? "Standardized Catalogue Design" : "Custom Home"} / {model.squareFeet.toLocaleString()} sq. ft.</p></div><p className="text-right">{line.quantity} × {model.homesPerSelection} {model.homesPerSelection === 1 ? "home" : "homes"}<br /><span className="text-xs text-black/45">{plannerPhaseLabels[line.phase]}</span></p></div>)}
+            {summary.lines.map(({ line, model }) => <div key={line.id} className="grid grid-cols-[1fr_auto] gap-5 border-b border-black/16 py-4 text-sm"><div><p className="font-medium">{model.name}</p><p className="mt-1 text-xs text-black/45">{model.family === "standardized-catalogue" ? "Standardized Catalogue Design" : model.family === "laneway-carriage-home" ? "Laneway / Carriage Home" : "Custom Home"}{model.squareFeet ? ` / ${model.squareFeet.toLocaleString()} sq. ft.` : ""}</p></div><p className="text-right">{line.quantity} × {model.homesPerSelection} {model.homesPerSelection === 1 ? "home" : "homes"}<br /><span className="text-xs text-black/45">{plannerPhaseLabels[line.phase]}</span></p></div>)}
           </div>
         </ReportSection>
 
@@ -1029,8 +1044,8 @@ function OpportunityReport({ state, onRefine, catalog, corridors }: { state: Pla
           <div className="grid gap-x-8 sm:grid-cols-2">{readiness.map((item) => <div key={item.label} className="grid grid-cols-[auto_1fr] gap-3 border-t border-black/16 py-3"><span>{item.ready ? "●" : "○"}</span><p className="text-sm"><span className="font-medium">{item.label}</span><br /><span className="text-xs text-black/48">{item.detail}</span></p></div>)}</div>
         </ReportSection>
 
-        <ReportSection number="07" title="Community, local and Canadian value">
-          <div className="grid gap-5 sm:grid-cols-3">{[["Local labour", labelValue(state.refinement.localLabour)], ["Training / maintenance", labelValue(state.refinement.trainingObjectives)], ["Canadian / local value", labelValue(state.refinement.canadianValue)]].map(([label, value]) => <p key={label} className="border-t border-black/16 pt-3 text-sm"><span className="text-black/42">{label}</span><br />{value}</p>)}</div>
+        <ReportSection number="07" title="Community participation and capability">
+          <div className="grid gap-5 sm:grid-cols-2">{[["Local & Indigenous participation", labelValue(state.refinement.localLabour)], ["Assembly / training / maintenance", labelValue(state.refinement.trainingObjectives)]].map(([label, value]) => <p key={label} className="border-t border-black/16 pt-3 text-sm"><span className="text-black/42">{label}</span><br />{value}</p>)}</div>
         </ReportSection>
 
         <ReportSection number="08" title="Funding corridors">
@@ -1195,15 +1210,24 @@ export function FirstNationsProjectPlanner({ catalog, fundingCorridors }: { cata
       </div>
 
       <div className="planner-screen-only sticky top-[4.5rem] z-30 border-b border-black/14 bg-[#edeae2]/95 px-5 py-4 backdrop-blur sm:px-8 lg:px-12">
-        <div className="mx-auto max-w-[1504px]">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-black/72">
-            {projectSummary.totalHomes} homes · {projectSummary.modelCount} home {projectSummary.modelCount === 1 ? "type" : "types"} · {designProgress.completedDesigns} {designProgress.completedDesigns === 1 ? "design" : "designs"} completed · {designProgress.remainingDesignGroups} design {designProgress.remainingDesignGroups === 1 ? "group" : "groups"} remaining
-          </p>
-          <p className="mt-2 text-[10px] leading-4 text-black/46">
-            {includedHomeTypes.length ? `Included: ${includedHomeTypes.join(", ")}.` : "No homes added yet."}
-            {completedHomeTypes.length ? ` Configured: ${completedHomeTypes.join(", ")}.` : ""}
-            {remainingHomeTypes.length ? ` Next: ${remainingHomeTypes.join(", ")}.` : ""}
-          </p>
+        <div className="mx-auto flex max-w-[1504px] flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-black/72">
+              {projectSummary.totalHomes} homes · {projectSummary.modelCount} home {projectSummary.modelCount === 1 ? "type" : "types"} · {projectSummary.phaseCount} delivery {projectSummary.phaseCount === 1 ? "group" : "groups"} · {designProgress.completedDesigns} {designProgress.completedDesigns === 1 ? "design" : "designs"} completed · {designProgress.remainingDesignGroups} design {designProgress.remainingDesignGroups === 1 ? "group" : "groups"} remaining
+            </p>
+            <p className="mt-2 text-[10px] leading-4 text-black/46">
+              {includedHomeTypes.length ? `Included: ${includedHomeTypes.join(", ")}.` : "No homes added yet."}
+              {completedHomeTypes.length ? ` Configured: ${completedHomeTypes.join(", ")}.` : ""}
+              {remainingHomeTypes.length ? ` Next: ${remainingHomeTypes.join(", ")}.` : ""}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => goToStep(1)}
+            className="inline-flex min-h-10 shrink-0 items-center justify-between gap-5 border border-black/22 px-4 text-[9px] font-semibold uppercase tracking-[0.15em] text-black/64 transition-colors hover:border-black hover:text-black"
+          >
+            View / Edit My Project <ArrowRight aria-hidden="true" className="size-3.5" />
+          </button>
         </div>
       </div>
 
@@ -1212,7 +1236,7 @@ export function FirstNationsProjectPlanner({ catalog, fundingCorridors }: { cata
         {state.step === 1 ? <PortfolioStep state={state} setState={setState} catalog={catalog} /> : null}
         {state.step === 2 ? <EstimatePanel state={state} catalog={catalog} /> : null}
         {state.step === 3 ? <RefineStep state={state} setState={setState} /> : null}
-        {state.step === 4 ? <DesignStep state={state} setState={setState} catalog={catalog} returnNotice={returnNotice} /> : null}
+        {state.step === 4 ? <DesignStep state={state} setState={setState} catalog={catalog} returnNotice={returnNotice} onContinue={() => goToStep(5)} /> : null}
         {state.step === 5 ? <FundingStep state={state} catalog={catalog} corridors={fundingCorridors} /> : null}
         {state.step === 6 ? <ScaleReadinessStep state={state} catalog={catalog} /> : null}
         {state.step === 7 ? <OpportunityReport state={state} onRefine={() => goToStep(3)} catalog={catalog} corridors={fundingCorridors} /> : null}

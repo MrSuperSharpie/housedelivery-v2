@@ -9,6 +9,7 @@ type HomeConfiguratorJourneyProps = {
   theme?: "dark" | "light";
   ariaLabel?: string;
   homeName?: string;
+  plannerMode?: boolean;
 };
 
 const stages: readonly {
@@ -25,6 +26,7 @@ export function HomeConfiguratorJourney({
   theme = "dark",
   ariaLabel = "Home configuration journey",
   homeName = "Home",
+  plannerMode = false,
 }: HomeConfiguratorJourneyProps) {
   const activeIndex = stages.findIndex((stage) => stage.id === currentStage);
   const isDark = theme === "dark";
@@ -69,7 +71,9 @@ export function HomeConfiguratorJourney({
               </span>
               <span className="min-w-0 truncate">
                 {stage.id === "configure"
-                  ? `Configure My ${homeName}`
+                  ? plannerMode
+                    ? "Design Center"
+                    : `Configure My ${homeName}`
                   : stage.label}
               </span>
               {isActive ? (
