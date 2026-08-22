@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 export default function FirstNationsProjectPlannerPage() {
   return (
     <>
-      <SiteHeader />
+      <SiteHeader showProjectReviewAction={false} />
       <main className="bg-[#0b0c10] text-white">
         <section className="px-5 pb-20 pt-36 sm:px-8 sm:pb-24 sm:pt-44 lg:px-12 lg:pb-32 lg:pt-52">
           <div className="mx-auto max-w-[1504px]">

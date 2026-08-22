@@ -16,7 +16,11 @@ const links = [
   { label: "Why House Delivery Inc.", href: "/#certainty" },
 ] as const;
 
-export function SiteHeader() {
+export function SiteHeader({
+  showProjectReviewAction = true,
+}: {
+  showProjectReviewAction?: boolean;
+}) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -56,12 +60,14 @@ export function SiteHeader() {
           >
             hello@housedelivery.ca
           </a>
-          <Link
-            href="/#reserve"
-            className="border border-white bg-white px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#0b0c10] transition-colors hover:bg-transparent hover:text-white"
-          >
-            Begin project review
-          </Link>
+          {showProjectReviewAction ? (
+            <Link
+              href="/#reserve"
+              className="border border-white bg-white px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#0b0c10] transition-colors hover:bg-transparent hover:text-white"
+            >
+              Begin project review
+            </Link>
+          ) : null}
         </div>
 
         <button
@@ -98,13 +104,15 @@ export function SiteHeader() {
               {link.label}
             </Link>
           ))}
-          <Link
-            href="/#reserve"
-            className="mt-5 block bg-white px-5 py-4 text-center text-xs font-semibold uppercase tracking-[0.14em] text-[#0b0c10]"
-            onClick={() => setIsOpen(false)}
-          >
-            Begin project review
-          </Link>
+          {showProjectReviewAction ? (
+            <Link
+              href="/#reserve"
+              className="mt-5 block bg-white px-5 py-4 text-center text-xs font-semibold uppercase tracking-[0.14em] text-[#0b0c10]"
+              onClick={() => setIsOpen(false)}
+            >
+              Begin project review
+            </Link>
+          ) : null}
         </div>
       </nav>
     </header>

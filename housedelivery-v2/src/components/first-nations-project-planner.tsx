@@ -967,7 +967,21 @@ function ScaleReadinessStep({ state, catalog }: { state: PlannerState; catalog: 
   );
 }
 
-function OpportunityReport({ state, onRefine, catalog, corridors }: { state: PlannerState; onRefine: () => void; catalog: readonly PlannerCatalogItem[]; corridors: readonly FundingCorridor[] }) {
+function OpportunityReport({
+  state,
+  onEditProject,
+  onPrevious,
+  onReset,
+  catalog,
+  corridors,
+}: {
+  state: PlannerState;
+  onEditProject: () => void;
+  onPrevious: () => void;
+  onReset: () => void;
+  catalog: readonly PlannerCatalogItem[];
+  corridors: readonly FundingCorridor[];
+}) {
   const summary = getPortfolioSummary(state.portfolio, catalog);
   const estimate = calculatePreliminaryEstimate(state.portfolio, catalog);
   const funding = matchFundingCorridors(state, corridors, catalog).filter((item) => item.relevance !== "Monitor");
@@ -989,6 +1003,7 @@ function OpportunityReport({ state, onRefine, catalog, corridors }: { state: Pla
     "",
     "Please contact us to arrange a House Delivery project review.",
   ].join("\n"));
+  const reviewHref = `mailto:hello@housedelivery.ca?subject=${encodeURIComponent(`House Delivery Review — ${state.community || "First Nations project"}`)}&body=${reviewBody}`;
 
   function printReport() {
     const previousTitle = document.title;
@@ -1002,13 +1017,11 @@ function OpportunityReport({ state, onRefine, catalog, corridors }: { state: Pla
       <div className="planner-screen-only">
         <StepHeader eyebrow="08 / Preliminary opportunity report" title="A clearer next conversation." intro="This report carries the opportunity, portfolio, planning basis, contextual funding corridors and missing information into a structured House Delivery review." />
         <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <button type="button" onClick={onRefine} className="inline-flex min-h-12 items-center justify-between gap-8 border border-black/24 px-5 text-[9px] font-semibold uppercase tracking-[0.16em]">Refine My Project <ArrowLeft aria-hidden="true" className="size-4" /></button>
           <button type="button" onClick={printReport} className="inline-flex min-h-12 items-center justify-between gap-8 bg-black px-5 text-[9px] font-semibold uppercase tracking-[0.16em] text-white">Download Preliminary Opportunity Report <FileDown aria-hidden="true" className="size-4" /></button>
-          <a href={`mailto:hello@housedelivery.ca?subject=${encodeURIComponent(`House Delivery Review — ${state.community || "First Nations project"}`)}&body=${reviewBody}`} className="inline-flex min-h-12 items-center justify-between gap-8 border border-black px-5 text-[9px] font-semibold uppercase tracking-[0.16em]">Request House Delivery Review <ArrowRight aria-hidden="true" className="size-4" /></a>
         </div>
       </div>
 
-      <article data-planner-report className="mt-16 bg-white text-black print:mt-0">
+      <article data-planner-report className="mt-16 bg-white px-6 text-black sm:px-10 lg:px-16 xl:px-20 print:mt-0">
         <header className="border-y border-black/18 py-9">
           <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-black/45">House Delivery / Preliminary Opportunity Report</p>
           <h2 className="mt-6 max-w-5xl text-[clamp(3.4rem,7vw,7.5rem)] font-medium leading-[0.82] tracking-[-0.075em]">{state.community || "Community housing opportunity"}</h2>
@@ -1062,6 +1075,43 @@ function OpportunityReport({ state, onRefine, catalog, corridors }: { state: Pla
           <p className="mt-7 max-w-4xl text-xs leading-5 text-white/48">This preliminary report is for early opportunity planning only. It is not a quotation, funding decision, technical approval, permit opinion or commitment to deliver. Project-specific professional review, adaptation and jurisdictional approval are required.</p>
         </footer>
       </article>
+
+      <div data-planner-completion-actions className="planner-screen-only mt-10 border-y border-black/18 py-8 sm:py-10">
+        <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/44">
+          Review complete / Next step
+        </p>
+        <div className="mt-6 grid gap-3 lg:grid-cols-[1.15fr_0.85fr]">
+          <a
+            href={reviewHref}
+            className="inline-flex min-h-16 items-center justify-between gap-8 bg-black px-6 text-[10px] font-semibold uppercase tracking-[0.17em] text-white transition-colors hover:bg-black/78"
+          >
+            Begin Project Review <ArrowRight aria-hidden="true" className="size-4" />
+          </a>
+          <button
+            type="button"
+            onClick={onEditProject}
+            className="inline-flex min-h-16 items-center justify-between gap-8 border border-black/28 px-6 text-[10px] font-semibold uppercase tracking-[0.17em] text-black/68 transition-colors hover:border-black hover:text-black"
+          >
+            View / Edit My Project <ArrowRight aria-hidden="true" className="size-4" />
+          </button>
+        </div>
+        <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-black/14 pt-5">
+          <button
+            type="button"
+            onClick={onPrevious}
+            className="inline-flex min-h-11 items-center gap-3 border border-black/22 px-5 text-[9px] font-semibold uppercase tracking-[0.16em]"
+          >
+            <ArrowLeft aria-hidden="true" className="size-4" /> Previous
+          </button>
+          <button
+            type="button"
+            onClick={onReset}
+            className="inline-flex min-h-11 items-center gap-2 px-2 text-[9px] font-semibold uppercase tracking-[0.15em] text-black/34 transition-colors hover:text-black/60"
+          >
+            <RotateCcw aria-hidden="true" className="size-3.5" /> Start Again
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -1239,15 +1289,15 @@ export function FirstNationsProjectPlanner({ catalog, fundingCorridors }: { cata
         {state.step === 4 ? <DesignStep state={state} setState={setState} catalog={catalog} returnNotice={returnNotice} onContinue={() => goToStep(5)} /> : null}
         {state.step === 5 ? <FundingStep state={state} catalog={catalog} corridors={fundingCorridors} /> : null}
         {state.step === 6 ? <ScaleReadinessStep state={state} catalog={catalog} /> : null}
-        {state.step === 7 ? <OpportunityReport state={state} onRefine={() => goToStep(3)} catalog={catalog} corridors={fundingCorridors} /> : null}
+        {state.step === 7 ? <OpportunityReport state={state} onEditProject={() => goToStep(1)} onPrevious={() => goToStep(6)} onReset={resetPlanner} catalog={catalog} corridors={fundingCorridors} /> : null}
 
-        <div className="planner-screen-only mt-20 flex flex-col-reverse gap-4 border-t border-black/16 pt-6 sm:flex-row sm:items-center sm:justify-between">
+        {state.step < steps.length - 1 ? <div className="planner-screen-only mt-20 flex flex-col-reverse gap-4 border-t border-black/16 pt-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-5">
             <button type="button" onClick={() => goToStep(state.step - 1)} disabled={state.step === 0} className="inline-flex min-h-12 items-center gap-3 border border-black/22 px-5 text-[9px] font-semibold uppercase tracking-[0.16em] disabled:cursor-not-allowed disabled:opacity-30"><ArrowLeft aria-hidden="true" className="size-4" /> Previous</button>
             <button type="button" onClick={resetPlanner} className="inline-flex min-h-12 items-center gap-2 text-[9px] font-semibold uppercase tracking-[0.15em] text-black/42 hover:text-black"><RotateCcw aria-hidden="true" className="size-3.5" /> Start again</button>
           </div>
-          {state.step < steps.length - 1 ? <div><button type="button" onClick={() => goToStep(state.step + 1)} disabled={!canContinue} className="inline-flex min-h-12 min-w-60 items-center justify-between gap-8 bg-black px-5 text-[9px] font-semibold uppercase tracking-[0.16em] text-white disabled:cursor-not-allowed disabled:bg-black/25">{state.step === 2 ? "Refine My Project" : state.step === 6 ? "Create Opportunity Report" : "Continue"}<ArrowRight aria-hidden="true" className="size-4" /></button>{!canContinue ? <p className="mt-3 max-w-xs text-xs leading-5 text-black/45">{state.step === 0 ? "Add the community, location and approximate housing requirement to continue." : "Add at least one home model to continue."}</p> : null}</div> : null}
-        </div>
+          <div><button type="button" onClick={() => goToStep(state.step + 1)} disabled={!canContinue} className="inline-flex min-h-12 min-w-60 items-center justify-between gap-8 bg-black px-5 text-[9px] font-semibold uppercase tracking-[0.16em] text-white disabled:cursor-not-allowed disabled:bg-black/25">{state.step === 2 ? "Refine My Project" : state.step === 6 ? "Create Opportunity Report" : "Continue"}<ArrowRight aria-hidden="true" className="size-4" /></button>{!canContinue ? <p className="mt-3 max-w-xs text-xs leading-5 text-black/45">{state.step === 0 ? "Add the community, location and approximate housing requirement to continue." : "Add at least one home model to continue."}</p> : null}</div>
+        </div> : null}
       </div>
     </section>
   );
