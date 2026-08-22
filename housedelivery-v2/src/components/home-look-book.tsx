@@ -39,6 +39,8 @@ type HomeLookBookProps = {
   plannerContext?: {
     designLabel: string;
     assignedQuantity: number;
+    projectName: string;
+    deliveryGroup: string;
     onSaveAndReturn: (projectDesignName?: string) => void;
   };
 };
@@ -177,11 +179,15 @@ function ProjectLookBookForm({
   homeName,
   designLabel,
   assignedQuantity,
+  projectName,
+  deliveryGroup,
   onSaveAndReturn,
 }: {
   homeName: string;
   designLabel: string;
   assignedQuantity: number;
+  projectName: string;
+  deliveryGroup: string;
   onSaveAndReturn: (projectDesignName: string) => void;
 }) {
   const [projectDesignName, setProjectDesignName] = useState(designLabel);
@@ -235,7 +241,10 @@ function ProjectLookBookForm({
             onSubmit={handleSubmit}
             className="border border-black/16 bg-[#ded9cd] p-6 sm:p-9"
           >
-            <label className="form-field">
+            <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/46">
+              Project: {projectName}
+            </p>
+            <label className="form-field mt-5">
               <span>Project design name / Required</span>
               <input
                 required
@@ -247,6 +256,9 @@ function ProjectLookBookForm({
             <p className="mt-6 text-sm text-black/60">
               Assigned to: {assignedQuantity}{" "}
               {assignedQuantity === 1 ? "home" : "homes"}
+            </p>
+            <p className="mt-2 text-xs text-black/48">
+              Delivery group: {deliveryGroup}
             </p>
             <button
               type="submit"
@@ -815,6 +827,8 @@ export function HomeLookBook({
         homeName={definition.homeName}
         designLabel={plannerContext.designLabel}
         assignedQuantity={plannerContext.assignedQuantity}
+        projectName={plannerContext.projectName}
+        deliveryGroup={plannerContext.deliveryGroup}
         onSaveAndReturn={plannerContext.onSaveAndReturn}
       />
     ) : (
@@ -888,7 +902,7 @@ export function HomeLookBook({
         </div>
         {plannerContext ? (
           <p className="mx-auto mt-5 max-w-[1504px] text-xs leading-5 text-black/52">
-            Project design group: {plannerContext.designLabel} · Assigned to {plannerContext.assignedQuantity} {plannerContext.assignedQuantity === 1 ? "home" : "homes"}. Save My Look Book &amp; Return to Project records this design group and brings the next home design into view.
+            Project: {plannerContext.projectName} · Project design group: {plannerContext.designLabel} · Assigned to {plannerContext.assignedQuantity} {plannerContext.assignedQuantity === 1 ? "home" : "homes"} · Delivery group: {plannerContext.deliveryGroup}. Save My Look Book &amp; Return to Project records this design group and brings the next home design into view.
           </p>
         ) : null}
       </div>

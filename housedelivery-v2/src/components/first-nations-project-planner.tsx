@@ -92,18 +92,21 @@ function getPlannerHomeName(name: string) {
 }
 
 function getPlannerDesignSession(
+  projectName: string,
   line: PlannerPortfolioLine,
   model: PlannerCatalogItem,
   variation: PlannerDesignVariation,
 ): PlannerDesignSession {
   return {
+    projectName,
     lineId: line.id,
     variationId: variation.id,
     modelId: model.id,
     homeName: getPlannerHomeName(model.name),
     designLabel: variation.label,
     assignedQuantity: variation.assignedQuantity,
-    returnHref: "/first-nations-project-planner#planner-workspace",
+    deliveryGroup: plannerPhaseLabels[line.phase],
+    returnHref: "/first-nations-project-planner#planner-design-center",
   };
 }
 
@@ -149,13 +152,15 @@ function PlannerLink({
 function PlannerHomeActions({
   item,
   line,
+  projectName,
 }: {
   item: PlannerCatalogItem;
   line?: PlannerPortfolioLine;
+  projectName: string;
 }) {
   const variation = line?.designVariations[0];
   const session = line && variation
-    ? getPlannerDesignSession(line, item, variation)
+    ? getPlannerDesignSession(projectName, line, item, variation)
     : undefined;
   const buildHref = item.buildMyHref && session
     ? buildPlannerDesignHref(item.buildMyHref, session)
@@ -526,6 +531,7 @@ function PortfolioStep({
             <PlannerHomeActions
               item={item}
               line={state.portfolio.find((line) => line.modelId === item.id)}
+              projectName={state.community}
             />
             <div className="mt-6 grid grid-cols-[5.5rem_1fr] gap-3">
               <label>
@@ -742,7 +748,7 @@ function DesignStep({
   }
 
   return (
-    <div>
+    <div id="planner-design-center" className="scroll-mt-28">
       <StepHeader
         eyebrow="05 / House Delivery design direction"
         title="Make the direction visible."
@@ -760,15 +766,25 @@ function DesignStep({
             {progress.completedDesigns} design {progress.completedDesigns === 1 ? "group" : "groups"} completed · {progress.remainingDesignGroups} remaining
           </p>
           {nextDesign ? (
-            <PlannerLink
-              href={buildPlannerDesignHref(
-                nextDesign.model.buildMyHref!,
-                getPlannerDesignSession(nextDesign.line, nextDesign.model, nextDesign.variation),
-              )}
-              newTab={false}
-            >
-              Continue to Next Home Design
-            </PlannerLink>
+            <div className="sm:text-right">
+              <PlannerLink
+                href={buildPlannerDesignHref(
+                  nextDesign.model.buildMyHref!,
+                  getPlannerDesignSession(
+                    state.community,
+                    nextDesign.line,
+                    nextDesign.model,
+                    nextDesign.variation,
+                  ),
+                )}
+                newTab={false}
+              >
+                Continue to Next Home Design
+              </PlannerLink>
+              <p className="mt-2 text-[10px] text-black/44">
+                Next: {getPlannerHomeName(nextDesign.model.name)} — {nextDesign.variation.label}
+              </p>
+            </div>
           ) : (
             <button
               type="button"
@@ -799,7 +815,12 @@ function DesignStep({
                 </div>
                 <div className="mt-7 grid gap-4 lg:grid-cols-2">
                   {line.designVariations.map((variation) => {
-                    const session = getPlannerDesignSession(line, model, variation);
+                    const session = getPlannerDesignSession(
+                      state.community,
+                      line,
+                      model,
+                      variation,
+                    );
                     const buildHref = buildPlannerDesignHref(model.buildMyHref!, session);
                     const lookBookHref = buildPlannerDesignHref(
                       model.lookBookHref ?? model.buildMyHref!,

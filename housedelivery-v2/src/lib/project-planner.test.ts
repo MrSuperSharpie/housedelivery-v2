@@ -263,6 +263,48 @@ test("review scenario preserves five homes and advances design progress by group
   assert.equal(completed[0].designVariations[0].assignedQuantity, 2);
 });
 
+test("six-home project keeps one two-home design group per model", () => {
+  const scenario: readonly PlannerPortfolioLine[] = [
+    "solace",
+    "saturna",
+    "timberline",
+  ].map((slug) => ({
+    id: `${slug}-line`,
+    modelId: `custom:${slug}`,
+    quantity: 2,
+    phase: "phase-1" as const,
+    designVariations: [createPlannerDesignVariation(`${slug}-line`, 2)],
+  }));
+  const completed = scenario.map((line) =>
+    line.modelId === "custom:solace"
+      ? {
+          ...line,
+          designVariations: line.designVariations.map((variation) => ({
+            ...variation,
+            status: "complete" as const,
+          })),
+        }
+      : line,
+  );
+  const summary = getPortfolioSummary(completed, firstNationsPlannerCatalog);
+  const progress = getPlannerDesignProgress(
+    completed,
+    firstNationsPlannerCatalog,
+  );
+
+  assert.equal(summary.totalHomes, 6);
+  assert.equal(progress.completedDesigns, 1);
+  assert.equal(progress.remainingDesignGroups, 2);
+  assert.deepEqual(
+    completed.map((line) => line.designVariations.length),
+    [1, 1, 1],
+  );
+  assert.deepEqual(
+    completed.map((line) => line.designVariations[0].assignedQuantity),
+    [2, 2, 2],
+  );
+});
+
 test("version one planner drafts migrate into one quantity-based design group", () => {
   const migrated = migratePlannerState({
     ...defaultPlannerState,
@@ -330,13 +372,15 @@ test("current Planner drafts restore funding choices and the five-home workflow"
 
 test("Planner Build My links preserve the design-group return context", () => {
   const session = {
+    projectName: "WestBank",
     lineId: "saturna-line",
     variationId: "saturna-line:design-a",
     modelId: "custom:saturna",
     homeName: "Saturna",
     designLabel: "Design A",
     assignedQuantity: 2,
-    returnHref: "/first-nations-project-planner#planner-workspace",
+    deliveryGroup: "Active / First Build",
+    returnHref: "/first-nations-project-planner#planner-design-center",
   };
   const href = buildPlannerDesignHref(
     "/homes/saturna#home-inclusions",
@@ -346,7 +390,20 @@ test("Planner Build My links preserve the design-group return context", () => {
 
   assert.equal(parsed.pathname, "/homes/saturna");
   assert.equal(parsed.hash, "#home-inclusions");
+  assert.equal(parsed.searchParams.get("plannerProject"), "WestBank");
+  assert.equal(
+    parsed.searchParams.get("plannerDeliveryGroup"),
+    "Active / First Build",
+  );
   assert.deepEqual(readPlannerDesignSession(parsed.search), session);
+});
+
+test("standalone Design My Home URLs do not enter Planner project mode", () => {
+  assert.equal(readPlannerDesignSession(""), undefined);
+  assert.equal(
+    readPlannerDesignSession("?planner=first-nations&plannerHome=Solace"),
+    undefined,
+  );
 });
 
 test("Planner View Home links preserve a safe return to the project", () => {

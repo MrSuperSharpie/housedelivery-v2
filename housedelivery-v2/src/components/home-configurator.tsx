@@ -143,6 +143,56 @@ function focusConfigurationTarget(targetId: string) {
   });
 }
 
+function PlannerDesignContext({
+  session,
+}: {
+  session: PlannerDesignSession;
+}) {
+  return (
+    <aside
+      data-planner-design-context
+      className="mb-8 border border-white/18 bg-white/[0.035] p-5 text-white sm:p-6"
+    >
+      <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
+        <div>
+          <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/48">
+            Project Design Center
+          </p>
+          <p className="mt-3 text-sm text-white/62">
+            Project: {session.projectName}
+          </p>
+          <h2 className="mt-2 text-2xl font-medium tracking-[-0.04em] text-white/92 sm:text-3xl">
+            {session.homeName} — {session.designLabel}
+          </h2>
+        </div>
+        <dl className="grid gap-4 text-xs sm:grid-cols-2 lg:min-w-[28rem]">
+          <div className="border-t border-white/14 pt-3">
+            <dt className="text-[8px] font-semibold uppercase tracking-[0.16em] text-white/42">
+              Assigned quantity
+            </dt>
+            <dd className="mt-2 text-white/72">
+              {session.assignedQuantity}{" "}
+              {session.assignedQuantity === 1 ? "home" : "homes"}
+            </dd>
+          </div>
+          <div className="border-t border-white/14 pt-3">
+            <dt className="text-[8px] font-semibold uppercase tracking-[0.16em] text-white/42">
+              Delivery group
+            </dt>
+            <dd className="mt-2 text-white/72">{session.deliveryGroup}</dd>
+          </div>
+        </dl>
+      </div>
+      <a
+        href={session.returnHref}
+        className="mt-5 inline-flex min-h-10 items-center border-b border-white/28 text-[9px] font-semibold uppercase tracking-[0.16em] text-white/62 transition-colors hover:border-white hover:text-white"
+      >
+        ← Return to My Project
+      </a>
+    </aside>
+  );
+}
+
 export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
   const [configuration, setConfiguration] = useState<HomeConfiguration>(() =>
     createDefaultHomeConfiguration(definition),
@@ -615,6 +665,8 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
       data-home-configuration-version={configuration.schemaVersion}
       data-review-status={configuration.reviewStatus}
       data-planner-design-group={plannerSession?.variationId}
+      data-planner-project={plannerSession?.projectName}
+      data-planner-delivery-group={plannerSession?.deliveryGroup}
     >
       <section
         id="home-inclusions"
@@ -622,6 +674,9 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
         className="scroll-mt-24 border-b border-white/10 bg-[#0b0c10] px-5 py-24 sm:px-8 lg:px-12 lg:py-36"
       >
         <div id="design-collections" className="mx-auto max-w-[1504px] scroll-mt-20">
+          {plannerSession ? (
+            <PlannerDesignContext session={plannerSession} />
+          ) : null}
           <div className="mb-16 lg:mb-24">
             <HomeConfiguratorJourney
               currentStage="configure"
@@ -868,6 +923,8 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
             ? {
                 designLabel: `${definition.homeName} — ${plannerSession.designLabel}`,
                 assignedQuantity: plannerSession.assignedQuantity,
+                projectName: plannerSession.projectName,
+                deliveryGroup: plannerSession.deliveryGroup,
                 onSaveAndReturn: saveLookBookAndReturnToPlanner,
               }
             : undefined
