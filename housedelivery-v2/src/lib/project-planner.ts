@@ -90,13 +90,10 @@ export type ProjectRefinement = {
   targetTiming: string;
 };
 
-export type FundingCorridorDecision =
-  | "explore"
-  | "discuss"
-  | "not-relevant";
+export type FundingCorridorDecision = "include" | "not-relevant";
 
 export type PlannerState = {
-  version: 3;
+  version: 4;
   audience: PlannerAudience;
   step: number;
   community: string;
@@ -109,6 +106,7 @@ export type PlannerState = {
   fundingCorridorDecisions: Readonly<
     Record<string, FundingCorridorDecision>
   >;
+  opportunityReportReference: string;
   projectNotes: string;
 };
 
@@ -156,7 +154,7 @@ export type ReportFundingCorridor = MatchedFundingCorridor & {
 };
 
 export const defaultPlannerState: PlannerState = {
-  version: 3,
+  version: 4,
   audience: "first-nations",
   step: 0,
   community: "",
@@ -179,6 +177,7 @@ export const defaultPlannerState: PlannerState = {
     targetTiming: "unknown",
   },
   fundingCorridorDecisions: {},
+  opportunityReportReference: "",
   projectNotes: "",
 };
 
@@ -256,15 +255,20 @@ export function migratePlannerState(value: unknown): PlannerState | undefined {
         ];
       })
     : [];
-  const fundingCorridorDecisions =
+  const fundingCorridorDecisions: Record<string, FundingCorridorDecision> =
     candidate.fundingCorridorDecisions &&
     typeof candidate.fundingCorridorDecisions === "object"
       ? Object.fromEntries(
-          Object.entries(candidate.fundingCorridorDecisions).filter(
-            (entry): entry is [string, FundingCorridorDecision] =>
-              ["explore", "discuss", "not-relevant"].includes(
-                String(entry[1]),
-              ),
+          Object.entries(candidate.fundingCorridorDecisions).flatMap(
+            ([corridorId, decision]) => {
+              if (decision === "include" || decision === "not-relevant") {
+                return [[corridorId, decision] as const];
+              }
+              if (decision === "explore" || decision === "discuss") {
+                return [[corridorId, "include"] as const];
+              }
+              return [];
+            },
           ),
         )
       : {};
@@ -272,7 +276,7 @@ export function migratePlannerState(value: unknown): PlannerState | undefined {
   return {
     ...defaultPlannerState,
     ...candidate,
-    version: 3,
+    version: 4,
     portfolio,
     refinement: {
       ...defaultPlannerState.refinement,
@@ -556,9 +560,8 @@ const fundingRelevanceRank: Record<FundingRelevance, number> = {
 };
 
 const fundingDecisionRank: Record<FundingCorridorDecision, number> = {
-  explore: 0,
-  discuss: 1,
-  "not-relevant": 2,
+  include: 0,
+  "not-relevant": 1,
 };
 
 export function getOpportunityReportFundingCorridors(
@@ -566,7 +569,7 @@ export function getOpportunityReportFundingCorridors(
   corridors: readonly FundingCorridor[],
   catalog: readonly PlannerCatalogItem[],
 ): readonly ReportFundingCorridor[] {
-  return matchFundingCorridors(state, corridors, catalog)
+  const ranked = matchFundingCorridors(state, corridors, catalog)
     .map((corridor) => ({
       ...corridor,
       decision: state.fundingCorridorDecisions[corridor.id],
@@ -583,10 +586,16 @@ export function getOpportunityReportFundingCorridors(
       return (
         aDecision - bDecision ||
         fundingRelevanceRank[a.relevance] -
-          fundingRelevanceRank[b.relevance]
+        fundingRelevanceRank[b.relevance]
       );
-    })
-    .slice(0, 5);
+    });
+  const included = ranked.filter((corridor) => corridor.decision === "include");
+  const contextual = ranked.filter((corridor) => !corridor.decision);
+
+  return [
+    ...included,
+    ...contextual.slice(0, Math.max(0, 5 - included.length)),
+  ];
 }
 
 export function getReadinessProfile(
@@ -658,6 +667,99 @@ export function getReadinessProfile(
       ready: known(state.refinement.affordability),
     },
   ] as const;
+}
+
+export function createOpportunityReportReference(now = Date.now()) {
+  const date = new Date(now).toISOString().slice(0, 10).replaceAll("-", "");
+  const sequence = Math.abs(now).toString(36).slice(-6).toUpperCase();
+  return `HD-OPP-${date}-${sequence}`;
+}
+
+const projectReviewPhaseLabels: Record<PlannerPhase, string> = {
+  "phase-1": "Active / First Build",
+  "phase-2": "Near-Term / Next Build",
+  future: "Future Pipeline",
+};
+
+function formatProjectReviewValue(value: string) {
+  return value === "unknown" || !value.trim()
+    ? "Unknown / to confirm"
+    : value.replaceAll("-", " ");
+}
+
+export function formatProjectReviewContext(
+  state: PlannerState,
+  catalog: readonly PlannerCatalogItem[],
+  corridors: readonly FundingCorridor[],
+) {
+  const summary = getPortfolioSummary(state.portfolio, catalog);
+  const readiness = getReadinessProfile(state, catalog);
+  const matchedCorridors = matchFundingCorridors(state, corridors, catalog);
+  const selectedFunding = matchedCorridors.filter(
+    (corridor) => state.fundingCorridorDecisions[corridor.id] === "include",
+  );
+  const excludedFunding = matchedCorridors.filter(
+    (corridor) =>
+      state.fundingCorridorDecisions[corridor.id] === "not-relevant",
+  );
+  const refinement = [
+    ["Household priorities", state.refinement.householdPriorities.join(", ")],
+    ["Accessibility", state.refinement.accessibility],
+    ["Land status", state.refinement.landStatus],
+    ["Servicing", state.refinement.servicing],
+    ["Affordability", state.refinement.affordability],
+    ["Cultural priorities", state.refinement.culturalPriorities],
+    ["Energy / resilience", state.refinement.energyResilience],
+    ["Local labour", state.refinement.localLabour],
+    ["Training objectives", state.refinement.trainingObjectives],
+    ["Canadian value", state.refinement.canadianValue],
+    ["Target timing", state.refinement.targetTiming],
+  ] as const;
+  const portfolioLines = summary.lines.flatMap(({ line, model }) => [
+    `${model.name}: ${line.quantity} selection${line.quantity === 1 ? "" : "s"} / ${line.quantity * model.homesPerSelection} home${line.quantity * model.homesPerSelection === 1 ? "" : "s"} / ${projectReviewPhaseLabels[line.phase]}`,
+    ...line.designVariations.map((variation) => {
+      const selections = Object.entries(variation.designSelections)
+        .map(([chapter, option]) => `${chapter}: ${option}`)
+        .join(", ");
+      return `  ${variation.projectDesignName ?? `${model.name.replace(/^The\s+/i, "")} — ${variation.label}`} / Assigned to ${variation.assignedQuantity} home${variation.assignedQuantity === 1 ? "" : "s"} / ${variation.status}${variation.lookBookReference ? ` / Look Book ${variation.lookBookReference}` : ""}${selections ? ` / Selections: ${selections}` : ""}`;
+    }),
+  ]);
+
+  return [
+    "HOUSE DELIVERY PLANNER PROJECT REVIEW",
+    `Opportunity Report: ${state.opportunityReportReference || "Reference pending"}`,
+    `Community / project: ${state.community || "To confirm"}`,
+    `Location: ${state.location || "To confirm"}`,
+    `Housing requirement: ${state.approximateHomes || "To confirm"}`,
+    `Working portfolio: ${summary.totalHomes} homes / ${summary.modelCount} home types / ${summary.phaseCount} delivery groups`,
+    `Site pattern: ${formatProjectReviewValue(state.sitePattern)}`,
+    `Delivery horizon: ${formatProjectReviewValue(state.deliveryHorizon)}`,
+    "",
+    "PORTFOLIO, DELIVERY GROUPS & DESIGN RECORDS",
+    ...(portfolioLines.length ? portfolioLines : ["No homes selected"]),
+    "",
+    "REFINE YOUR PROJECT",
+    ...refinement.map(
+      ([label, value]) => `${label}: ${formatProjectReviewValue(value)}`,
+    ),
+    `Project notes: ${state.projectNotes || "None provided"}`,
+    "",
+    "FUNDING REVIEW (NON-BINDING)",
+    ...(selectedFunding.length
+      ? selectedFunding.map(
+          (corridor) =>
+            `Include: ${corridor.title} / ${corridor.relevance} / ${corridor.organization}`,
+        )
+      : ["No corridors included in the funding review"]),
+    ...(excludedFunding.length
+      ? excludedFunding.map((corridor) => `Not relevant: ${corridor.title}`)
+      : []),
+    "",
+    "SCALE & READINESS",
+    ...readiness.map(
+      (item) => `${item.ready ? "Ready" : "To confirm"}: ${item.label} — ${item.detail}`,
+    ),
+  ].join("\n");
 }
 
 export function formatPlanningValue(value: number | null) {

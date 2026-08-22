@@ -12,15 +12,17 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import { cn } from "@/lib/cn";
 import {
   addPlannerDesignVariation,
   calculatePreliminaryEstimate,
+  createOpportunityReportReference,
   createPlannerDesignVariation,
   defaultPlannerState,
   formatPlanningValue,
+  formatProjectReviewContext,
   getPlannerDesignProgress,
   getOpportunityReportFundingCorridors,
   getPortfolioSummary,
@@ -53,9 +55,8 @@ const plannerPhaseLabels = {
 } as const;
 
 const fundingDecisionLabels: Record<FundingCorridorDecision, string> = {
-  explore: "Explore this corridor",
-  discuss: "Discuss with House Delivery",
-  "not-relevant": "Not relevant",
+  include: "Include in My Funding Review",
+  "not-relevant": "Not Relevant",
 };
 
 const steps = [
@@ -67,6 +68,7 @@ const steps = [
   { label: "Funding Pathways", eyebrow: "Explore" },
   { label: "Scale & Readiness", eyebrow: "Prepare" },
   { label: "Opportunity Report", eyebrow: "Review" },
+  { label: "Project Review", eyebrow: "Submit" },
 ] as const;
 
 const householdOptions = [
@@ -85,6 +87,15 @@ function createLineId() {
   return typeof window !== "undefined" && window.crypto?.randomUUID
     ? window.crypto.randomUUID()
     : `line-${Date.now()}`;
+}
+
+function ensureOpportunityReportReference(state: PlannerState) {
+  return state.opportunityReportReference
+    ? state
+    : {
+        ...state,
+        opportunityReportReference: createOpportunityReportReference(),
+      };
 }
 
 function getPlannerHomeName(name: string) {
@@ -1060,6 +1071,7 @@ function ScaleReadinessStep({ state, catalog }: { state: PlannerState; catalog: 
 
 function OpportunityReport({
   state,
+  onBeginReview,
   onEditProject,
   onPrevious,
   onReset,
@@ -1067,6 +1079,7 @@ function OpportunityReport({
   corridors,
 }: {
   state: PlannerState;
+  onBeginReview: () => void;
   onEditProject: () => void;
   onPrevious: () => void;
   onReset: () => void;
@@ -1089,16 +1102,6 @@ function OpportunityReport({
     ),
   );
   const missingInformation = readiness.filter((item) => !item.ready).map((item) => item.label);
-  const reviewBody = encodeURIComponent([
-    `Community / Nation: ${state.community}`,
-    `Location: ${state.location}`,
-    `Working portfolio: ${summary.totalHomes} homes across ${summary.modelCount} model types`,
-    `Planning confidence: Early`,
-    `Commercial basis: ${estimate.status === "under-review" ? "Under review" : "Preliminary range available"}`,
-    "",
-    "Please contact us to arrange a House Delivery project review.",
-  ].join("\n"));
-  const reviewHref = `mailto:hello@housedelivery.ca?subject=${encodeURIComponent(`House Delivery Review — ${state.community || "First Nations project"}`)}&body=${reviewBody}`;
 
   function printReport() {
     const previousTitle = document.title;
@@ -1116,11 +1119,11 @@ function OpportunityReport({
         </div>
       </div>
 
-      <article data-planner-report className="mt-16 bg-white px-6 text-black sm:px-10 lg:px-16 xl:px-20 print:mt-0">
+      <article id="planner-opportunity-report" tabIndex={-1} data-planner-report className="mt-16 scroll-mt-28 bg-white px-6 text-black outline-none sm:px-10 lg:px-16 xl:px-20 print:mt-0">
         <header className="border-y border-black/18 py-9">
           <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-black/45">House Delivery / Preliminary Opportunity Report</p>
           <h2 className="mt-6 max-w-5xl text-[clamp(3.4rem,7vw,7.5rem)] font-medium leading-[0.82] tracking-[-0.075em]">{state.community || "Community housing opportunity"}</h2>
-          <div className="mt-8 grid gap-3 text-xs uppercase tracking-[0.13em] text-black/48 sm:grid-cols-3"><p>{state.location || "Location to confirm"}</p><p>{summary.totalHomes} working homes</p><p>Confidence / Early</p></div>
+          <div className="mt-8 grid gap-3 text-xs uppercase tracking-[0.13em] text-black/48 sm:grid-cols-4"><p>{state.location || "Location to confirm"}</p><p>{summary.totalHomes} working homes</p><p>Confidence / Early</p><p>{state.opportunityReportReference || "Reference pending"}</p></div>
         </header>
 
         <ReportSection number="01" title="Opportunity">
@@ -1175,17 +1178,31 @@ function OpportunityReport({
         <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/44">
           Review complete / Next step
         </p>
-        <div className="mt-6 grid gap-3 lg:grid-cols-[1.15fr_0.85fr]">
-          <a
-            href={reviewHref}
-            className="inline-flex min-h-16 items-center justify-between gap-8 bg-black px-6 text-[10px] font-semibold uppercase tracking-[0.17em] text-white transition-colors hover:bg-black/78"
+        <div className="mt-6 grid gap-3 lg:grid-cols-2">
+          <button
+            type="button"
+            onClick={onBeginReview}
+            className="inline-flex min-h-16 items-center justify-between gap-8 bg-black px-6 text-left text-[10px] font-semibold uppercase tracking-[0.17em] text-white transition-colors hover:bg-black/78 lg:col-span-2"
           >
             Begin Project Review <ArrowRight aria-hidden="true" className="size-4" />
-          </a>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const report = document.getElementById(
+                "planner-opportunity-report",
+              );
+              report?.scrollIntoView({ behavior: "smooth", block: "start" });
+              report?.focus({ preventScroll: true });
+            }}
+            className="inline-flex min-h-14 items-center justify-between gap-8 border border-black/28 px-6 text-left text-[10px] font-semibold uppercase tracking-[0.17em] text-black/68 transition-colors hover:border-black hover:text-black"
+          >
+            View Opportunity Report <ArrowRight aria-hidden="true" className="size-4" />
+          </button>
           <button
             type="button"
             onClick={onEditProject}
-            className="inline-flex min-h-16 items-center justify-between gap-8 border border-black/28 px-6 text-[10px] font-semibold uppercase tracking-[0.17em] text-black/68 transition-colors hover:border-black hover:text-black"
+            className="inline-flex min-h-14 items-center justify-between gap-8 border border-black/18 px-6 text-left text-[10px] font-semibold uppercase tracking-[0.17em] text-black/58 transition-colors hover:border-black hover:text-black"
           >
             View / Edit My Project <ArrowRight aria-hidden="true" className="size-4" />
           </button>
@@ -1207,6 +1224,196 @@ function OpportunityReport({
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function isAcceptedProjectReviewResponse(
+  value: unknown,
+): value is { accepted: true } {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "accepted" in value &&
+    value.accepted === true
+  );
+}
+
+function ProjectReviewStep({
+  state,
+  catalog,
+  corridors,
+  onViewReport,
+  onEditProject,
+}: {
+  state: PlannerState;
+  catalog: readonly PlannerCatalogItem[];
+  corridors: readonly FundingCorridor[];
+  onViewReport: () => void;
+  onEditProject: () => void;
+}) {
+  const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submissionError, setSubmissionError] = useState("");
+  const submissionInFlight = useRef(false);
+  const summary = getPortfolioSummary(state.portfolio, catalog);
+  const readiness = getReadinessProfile(state, catalog);
+  const includedFunding = matchFundingCorridors(state, corridors, catalog).filter(
+    (corridor) => state.fundingCorridorDecisions[corridor.id] === "include",
+  );
+  const completedDesigns = summary.lines.flatMap(({ line, model }) =>
+    line.designVariations.flatMap((variation) =>
+      variation.status === "complete" ? [{ model, variation }] : [],
+    ),
+  );
+  const reviewContext = formatProjectReviewContext(state, catalog, corridors);
+
+  async function submitProjectReview(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (submissionInFlight.current) return;
+
+    submissionInFlight.current = true;
+    setSubmitting(true);
+    setSubmissionError("");
+    const formData = new FormData(event.currentTarget);
+    const readValue = (name: string) => {
+      const value = formData.get(name);
+      return typeof value === "string" ? value.trim() : "";
+    };
+
+    try {
+      const response = await fetch("/api/inquiries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: readValue("firstName"),
+          lastName: readValue("lastName"),
+          email: readValue("email"),
+          phone: readValue("phone"),
+          model: "",
+          location: state.location,
+          timeline:
+            state.refinement.targetTiming === "unknown"
+              ? ""
+              : labelValue(state.refinement.targetTiming),
+          notes: readValue("reviewNotes"),
+          company: readValue("company"),
+          plannerProject: state.community,
+          plannerReference: state.opportunityReportReference,
+          plannerContext: reviewContext,
+        }),
+      });
+      const result: unknown = await response.json().catch(() => null);
+      if (!response.ok || !isAcceptedProjectReviewResponse(result)) {
+        throw new Error("Project review delivery failed.");
+      }
+      setSubmitted(true);
+    } catch {
+      setSubmissionError(
+        "We couldn’t send this project review right now. Your Planner remains saved on this device; please try again shortly.",
+      );
+    } finally {
+      submissionInFlight.current = false;
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div data-planner-project-review>
+      <StepHeader
+        eyebrow="09 / Project review"
+        title="Carry the full project forward."
+        intro="This is the project-aware review step. Your opportunity, portfolio, delivery groups, design records, refinement answers, funding-review choices and readiness profile are attached to the request below."
+      />
+
+      <div className="mt-14 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          ["Opportunity Report", state.opportunityReportReference],
+          ["Community / project", state.community],
+          ["Working portfolio", `${summary.totalHomes} homes / ${summary.modelCount} home types`],
+          ["Funding review", `${includedFunding.length} selected corridors`],
+        ].map(([label, value]) => (
+          <dl key={label} className="border-t border-black/18 pt-4">
+            <dt className="text-[8px] font-semibold uppercase tracking-[0.16em] text-black/42">{label}</dt>
+            <dd className="mt-3 text-sm font-medium leading-6">{value || "To confirm"}</dd>
+          </dl>
+        ))}
+      </div>
+
+      <div className="mt-14 grid gap-12 lg:grid-cols-2 lg:gap-16">
+        <section>
+          <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/42">Portfolio, delivery groups & Look Books</p>
+          <div className="mt-5 border-t border-black/16">
+            {summary.lines.map(({ line, model }) => (
+              <div key={line.id} className="border-b border-black/16 py-5">
+                <div className="flex items-start justify-between gap-5 text-sm">
+                  <p className="font-medium">{model.name}</p>
+                  <p className="text-right">{line.quantity * model.homesPerSelection} homes<br /><span className="text-xs text-black/45">{plannerPhaseLabels[line.phase]}</span></p>
+                </div>
+                {line.designVariations.map((variation) => (
+                  <p key={variation.id} className="mt-3 text-xs leading-5 text-black/52">
+                    {variation.projectDesignName ?? `${getPlannerHomeName(model.name)} — ${variation.label}`} · Assigned to {variation.assignedQuantity} {variation.assignedQuantity === 1 ? "home" : "homes"} · {variation.status === "complete" ? `Complete${variation.lookBookReference ? ` / ${variation.lookBookReference}` : ""}` : "Design outstanding"}
+                  </p>
+                ))}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/42">Funding review & readiness</p>
+          <div className="mt-5 border-t border-black/16">
+            {includedFunding.length ? includedFunding.map((corridor) => (
+              <p key={corridor.id} className="border-b border-black/16 py-4 text-sm">
+                {corridor.title}<br /><span className="text-xs leading-5 text-black/45">Included for non-binding review · {corridor.relevance}</span>
+              </p>
+            )) : <p className="border-b border-black/16 py-4 text-sm text-black/48">No funding corridors selected for review.</p>}
+          </div>
+          <div className="mt-7 grid gap-2 sm:grid-cols-2">
+            {readiness.map((item) => (
+              <p key={item.label} className="border-t border-black/14 pt-3 text-xs leading-5">
+                <span className="font-medium">{item.ready ? "●" : "○"} {item.label}</span><br /><span className="text-black/45">{item.detail}</span>
+              </p>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <div className="mt-14 border-y border-black/18 py-9 sm:py-12">
+        {submitted ? (
+          <div role="status" className="max-w-3xl">
+            <p className="inline-flex items-center gap-3 text-[9px] font-semibold uppercase tracking-[0.18em] text-black/48"><Check aria-hidden="true" className="size-4" /> Project review received</p>
+            <h3 className="mt-5 text-3xl font-medium tracking-[-0.045em] sm:text-5xl">Your Planner record has moved forward intact.</h3>
+            <p className="mt-5 text-sm leading-6 text-black/55">House Delivery received the project record associated with {state.opportunityReportReference}. Your local Planner draft remains available for reference or editing.</p>
+          </div>
+        ) : (
+          <form onSubmit={submitProjectReview} className="grid gap-x-6 gap-y-8 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/42">Project review contact</p>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-black/52">Add the contact for this review. The project record above—not a blank generic inquiry—will be sent with the request.</p>
+            </div>
+            <label className="form-field"><span>First name</span><input name="firstName" autoComplete="given-name" required /></label>
+            <label className="form-field"><span>Last name</span><input name="lastName" autoComplete="family-name" required /></label>
+            <label className="form-field"><span>Email address</span><input type="email" name="email" autoComplete="email" required /></label>
+            <label className="form-field"><span>Phone</span><input type="tel" name="phone" autoComplete="tel" /></label>
+            <label className="form-field sm:col-span-2"><span>Anything else for this review?</span><textarea name="reviewNotes" rows={3} placeholder="Optional final context for the House Delivery team" /></label>
+            <label className="hidden" aria-hidden="true"><span>Company</span><input name="company" tabIndex={-1} autoComplete="off" /></label>
+            <div className="sm:col-span-2">
+              <button type="submit" disabled={submitting} aria-busy={submitting} className="inline-flex min-h-16 w-full items-center justify-between gap-8 bg-black px-6 text-left text-[10px] font-semibold uppercase tracking-[0.17em] text-white transition-colors hover:bg-black/78 disabled:cursor-wait disabled:opacity-60">
+                {submitting ? "Sending Project Review…" : "Submit Project Review"}<ArrowRight aria-hidden="true" className="size-4" />
+              </button>
+              {submissionError ? <p role="alert" className="mt-4 text-xs leading-5 text-black/60">{submissionError}</p> : null}
+              <p className="mt-4 text-[10px] leading-4 text-black/40">This request begins a non-binding project review. It is not a quotation, funding decision, approval or commitment to deliver.</p>
+            </div>
+          </form>
+        )}
+      </div>
+
+      <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <button type="button" onClick={onViewReport} className="inline-flex min-h-12 items-center justify-between gap-7 border border-black/24 px-5 text-left text-[9px] font-semibold uppercase tracking-[0.16em]">View Opportunity Report <ArrowLeft aria-hidden="true" className="size-4" /></button>
+        <button type="button" onClick={onEditProject} className="inline-flex min-h-12 items-center justify-between gap-7 px-5 text-left text-[9px] font-semibold uppercase tracking-[0.16em] text-black/48 hover:text-black">View / Edit My Project <ArrowRight aria-hidden="true" className="size-4" /></button>
+      </div>
+      <span className="sr-only">{completedDesigns.length} completed design groups carried into project review.</span>
     </div>
   );
 }
@@ -1306,7 +1513,11 @@ export function FirstNationsProjectPlanner({ catalog, fundingCorridors }: { cata
               ?.scrollIntoView({ behavior: "smooth", block: "center" });
           });
         } else if (restored) {
-          setState(restored);
+          setState(
+            restored.step >= 7
+              ? ensureOpportunityReportReference(restored)
+              : restored,
+          );
         }
       } catch {
         // A malformed local draft should never block a new planning session.
@@ -1352,7 +1563,15 @@ export function FirstNationsProjectPlanner({ catalog, fundingCorridors }: { cata
   }, [state]);
 
   function goToStep(step: number) {
-    setState((current) => ({ ...current, step: Math.min(Math.max(step, 0), steps.length - 1) }));
+    setState((current) => {
+      const nextState = {
+        ...current,
+        step: Math.min(Math.max(step, 0), steps.length - 1),
+      };
+      return nextState.step >= 7
+        ? ensureOpportunityReportReference(nextState)
+        : nextState;
+    });
     window.requestAnimationFrame(() => document.getElementById("planner-workspace")?.scrollIntoView({ behavior: "smooth", block: "start" }));
   }
 
@@ -1405,9 +1624,10 @@ export function FirstNationsProjectPlanner({ catalog, fundingCorridors }: { cata
         {state.step === 4 ? <DesignStep state={state} setState={setState} catalog={catalog} returnNotice={returnNotice} onContinue={() => goToStep(5)} /> : null}
         {state.step === 5 ? <FundingStep state={state} setState={setState} catalog={catalog} corridors={fundingCorridors} /> : null}
         {state.step === 6 ? <ScaleReadinessStep state={state} catalog={catalog} /> : null}
-        {state.step === 7 ? <OpportunityReport state={state} onEditProject={() => goToStep(1)} onPrevious={() => goToStep(6)} onReset={resetPlanner} catalog={catalog} corridors={fundingCorridors} /> : null}
+        {state.step === 7 ? <OpportunityReport state={state} onBeginReview={() => goToStep(8)} onEditProject={() => goToStep(1)} onPrevious={() => goToStep(6)} onReset={resetPlanner} catalog={catalog} corridors={fundingCorridors} /> : null}
+        {state.step === 8 ? <ProjectReviewStep state={state} catalog={catalog} corridors={fundingCorridors} onViewReport={() => goToStep(7)} onEditProject={() => goToStep(1)} /> : null}
 
-        {state.step < steps.length - 1 ? <div className="planner-screen-only mt-20 flex flex-col-reverse gap-4 border-t border-black/16 pt-6 sm:flex-row sm:items-center sm:justify-between">
+        {state.step < 7 ? <div className="planner-screen-only mt-20 flex flex-col-reverse gap-4 border-t border-black/16 pt-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-5">
             <button type="button" onClick={() => goToStep(state.step - 1)} disabled={state.step === 0} className="inline-flex min-h-12 items-center gap-3 border border-black/22 px-5 text-[9px] font-semibold uppercase tracking-[0.16em] disabled:cursor-not-allowed disabled:opacity-30"><ArrowLeft aria-hidden="true" className="size-4" /> Previous</button>
             <button type="button" onClick={resetPlanner} className="inline-flex min-h-12 items-center gap-2 text-[9px] font-semibold uppercase tracking-[0.15em] text-black/42 hover:text-black"><RotateCcw aria-hidden="true" className="size-3.5" /> Start again</button>

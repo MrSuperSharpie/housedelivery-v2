@@ -4,7 +4,7 @@ import { models } from "@/data/models";
 
 const inquiryRecipient = "hello@housedelivery.ca";
 const inquiryRoute = "/api/inquiries";
-const maximumRequestBytes = 20_000;
+const maximumRequestBytes = 50_000;
 
 export const runtime = "nodejs";
 
@@ -18,6 +18,9 @@ type InquiryPayload = {
   timeline?: unknown;
   notes?: unknown;
   company?: unknown;
+  plannerProject?: unknown;
+  plannerReference?: unknown;
+  plannerContext?: unknown;
 };
 
 type InquiryLogContext = {
@@ -173,6 +176,9 @@ export async function POST(request: Request) {
   const location = singleLine(payload.location, 160);
   const timeline = singleLine(payload.timeline, 80);
   const notes = multiline(payload.notes, 4_000);
+  const plannerProject = singleLine(payload.plannerProject, 160);
+  const plannerReference = singleLine(payload.plannerReference, 100);
+  const plannerContext = multiline(payload.plannerContext, 30_000);
 
   if (!firstName || !lastName || !isEmail(email)) {
     logInquiryFailure("inquiry_validation_failed", {
@@ -219,19 +225,35 @@ export async function POST(request: Request) {
     );
   }
 
-  const message = [
-    "New House Delivery project review inquiry",
-    "",
-    `Name: ${firstName} ${lastName}`,
-    `Email: ${email}`,
-    `Phone: ${phone || "Not provided"}`,
-    `Preferred model: ${selectedModel?.name ?? "Still exploring"}`,
-    `Project location: ${location || "Not provided"}`,
-    `Desired start: ${timeline || "Not provided"}`,
-    "",
-    "Project details:",
-    notes || "Not provided",
-  ].join("\n");
+  const isPlannerProjectReview = Boolean(plannerContext);
+  const message = isPlannerProjectReview
+    ? [
+        "New House Delivery Planner project review",
+        "",
+        `Opportunity Report: ${plannerReference || "Not provided"}`,
+        `Community / project: ${plannerProject || "Not provided"}`,
+        `Review contact: ${firstName} ${lastName}`,
+        `Email: ${email}`,
+        `Phone: ${phone || "Not provided"}`,
+        `Project location: ${location || "Not provided"}`,
+        `Desired start: ${timeline || "Not provided"}`,
+        `Additional review notes: ${notes || "Not provided"}`,
+        "",
+        plannerContext,
+      ].join("\n")
+    : [
+        "New House Delivery project review inquiry",
+        "",
+        `Name: ${firstName} ${lastName}`,
+        `Email: ${email}`,
+        `Phone: ${phone || "Not provided"}`,
+        `Preferred model: ${selectedModel?.name ?? "Still exploring"}`,
+        `Project location: ${location || "Not provided"}`,
+        `Desired start: ${timeline || "Not provided"}`,
+        "",
+        "Project details:",
+        notes || "Not provided",
+      ].join("\n");
 
   const idempotencyKey = `project-inquiry-${createHash("sha256")
     .update(
@@ -244,6 +266,9 @@ export async function POST(request: Request) {
         location,
         timeline,
         notes,
+        plannerProject,
+        plannerReference,
+        plannerContext,
       }),
     )
     .digest("hex")}`;
@@ -260,7 +285,9 @@ export async function POST(request: Request) {
         from: fromEmail,
         to: [inquiryRecipient],
         reply_to: email,
-        subject: `Project inquiry — ${firstName} ${lastName}`,
+        subject: isPlannerProjectReview
+          ? `Planner project review — ${plannerProject || `${firstName} ${lastName}`}${plannerReference ? ` — ${plannerReference}` : ""}`
+          : `Project inquiry — ${firstName} ${lastName}`,
         text: message,
       }),
       signal: AbortSignal.timeout(10_000),

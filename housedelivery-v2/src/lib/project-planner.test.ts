@@ -10,7 +10,9 @@ import {
   addPlannerDesignVariation,
   calculatePreliminaryEstimate,
   createPlannerDesignVariation,
+  createOpportunityReportReference,
   defaultPlannerState,
+  formatProjectReviewContext,
   getPlannerDesignProgress,
   getOpportunityReportFundingCorridors,
   getPortfolioSummary,
@@ -110,7 +112,7 @@ test("funding corridors remain contextual and are never deducted from feasibilit
   assert.deepEqual(estimateAfter, estimateBefore);
 });
 
-test("Opportunity Report prioritizes follow-up choices and excludes corridors marked not relevant", () => {
+test("Opportunity Report prioritizes funding-review selections and excludes corridors marked not relevant", () => {
   const state: PlannerState = {
     ...defaultPlannerState,
     location: "British Columbia",
@@ -121,8 +123,8 @@ test("Opportunity Report prioritizes follow-up choices and excludes corridors ma
       affordability: "community-rental",
     },
     fundingCorridorDecisions: {
-      "cmhc-section-95": "explore",
-      "isc-on-reserve-housing": "discuss",
+      "cmhc-section-95": "include",
+      "isc-on-reserve-housing": "include",
       "bc-builds": "not-relevant",
     },
   };
@@ -134,13 +136,38 @@ test("Opportunity Report prioritizes follow-up choices and excludes corridors ma
   );
 
   assert.equal(reportCorridors.length, 5);
-  assert.equal(reportCorridors[0].id, "cmhc-section-95");
-  assert.equal(reportCorridors[0].decision, "explore");
-  assert.equal(reportCorridors[1].id, "isc-on-reserve-housing");
-  assert.equal(reportCorridors[1].decision, "discuss");
+  assert.deepEqual(
+    new Set(reportCorridors.slice(0, 2).map((corridor) => corridor.id)),
+    new Set(["cmhc-section-95", "isc-on-reserve-housing"]),
+  );
+  assert.equal(
+    reportCorridors.slice(0, 2).every((corridor) => corridor.decision === "include"),
+    true,
+  );
   assert.equal(
     reportCorridors.some((corridor) => corridor.id === "bc-builds"),
     false,
+  );
+});
+
+test("Opportunity Report carries every explicitly included funding corridor", () => {
+  const fundingCorridorDecisions = Object.fromEntries(
+    firstNationsFundingCorridors.map((corridor) => [corridor.id, "include"]),
+  ) as PlannerState["fundingCorridorDecisions"];
+  const reportCorridors = getOpportunityReportFundingCorridors(
+    {
+      ...defaultPlannerState,
+      portfolio,
+      fundingCorridorDecisions,
+    },
+    firstNationsFundingCorridors,
+    firstNationsPlannerCatalog,
+  );
+
+  assert.equal(reportCorridors.length, firstNationsFundingCorridors.length);
+  assert.equal(
+    reportCorridors.every((corridor) => corridor.decision === "include"),
+    true,
   );
 });
 
@@ -321,7 +348,7 @@ test("version one planner drafts migrate into one quantity-based design group", 
     ],
   });
 
-  assert.equal(migrated?.version, 3);
+  assert.equal(migrated?.version, 4);
   assert.deepEqual(migrated?.fundingCorridorDecisions, {});
   assert.equal(migrated?.portfolio[0].designVariations.length, 1);
   assert.equal(
@@ -353,7 +380,7 @@ test("current Planner drafts restore funding choices and the five-home workflow"
     step: 5,
     portfolio: lines,
     fundingCorridorDecisions: {
-      "cmhc-section-95": "explore",
+      "cmhc-section-95": "include",
       "bc-builds": "not-relevant",
     },
   });
@@ -365,9 +392,96 @@ test("current Planner drafts restore funding choices and the five-home workflow"
     5,
   );
   assert.deepEqual(migrated?.fundingCorridorDecisions, {
-    "cmhc-section-95": "explore",
+    "cmhc-section-95": "include",
     "bc-builds": "not-relevant",
   });
+});
+
+test("legacy funding follow-up choices migrate into the simplified funding review", () => {
+  const migrated = migratePlannerState({
+    ...defaultPlannerState,
+    version: 3,
+    fundingCorridorDecisions: {
+      "cmhc-section-95": "explore",
+      "isc-on-reserve-housing": "discuss",
+      "bc-builds": "not-relevant",
+    },
+  });
+
+  assert.deepEqual(migrated?.fundingCorridorDecisions, {
+    "cmhc-section-95": "include",
+    "isc-on-reserve-housing": "include",
+    "bc-builds": "not-relevant",
+  });
+});
+
+test("project review context carries the complete multi-home Planner record", () => {
+  const reference = createOpportunityReportReference(
+    Date.parse("2026-08-22T12:00:00.000Z"),
+  );
+  const lines: readonly PlannerPortfolioLine[] = [
+    ["solace", 2],
+    ["saturna", 2],
+    ["timberline", 2],
+  ].map(([slug, quantity], index) => {
+    const lineId = `${slug}-line`;
+    const variation = createPlannerDesignVariation(lineId, Number(quantity));
+    return {
+      id: lineId,
+      modelId: `custom:${slug}`,
+      quantity: Number(quantity),
+      phase: index === 0 ? "phase-1" as const : index === 1 ? "phase-2" as const : "future" as const,
+      designVariations: [
+        slug === "solace"
+          ? {
+              ...variation,
+              status: "complete" as const,
+              projectDesignName: "Solace — Design A",
+              lookBookReference: "SOLACE-LOOK-001",
+              designSelections: { kitchen: "premium-1" },
+            }
+          : variation,
+      ],
+    };
+  });
+  const state: PlannerState = {
+    ...defaultPlannerState,
+    community: "WestBank",
+    location: "West Kelowna, BC",
+    approximateHomes: "6",
+    sitePattern: "multiple-sites",
+    deliveryHorizon: "two-to-five-years",
+    portfolio: lines,
+    refinement: {
+      ...defaultPlannerState.refinement,
+      landStatus: "on-reserve",
+      servicing: "partially-serviced",
+      affordability: "community-rental",
+      localLabour: "local-labour-priority",
+    },
+    fundingCorridorDecisions: {
+      "cmhc-section-95": "include",
+      "bc-builds": "not-relevant",
+    },
+    opportunityReportReference: reference,
+    projectNotes: "Coordinate local assembly training.",
+  };
+
+  const context = formatProjectReviewContext(
+    state,
+    firstNationsPlannerCatalog,
+    firstNationsFundingCorridors,
+  );
+
+  assert.match(context, new RegExp(reference));
+  assert.match(context, /Community \/ project: WestBank/);
+  assert.match(context, /Working portfolio: 6 homes \/ 3 home types \/ 3 delivery groups/);
+  assert.match(context, /Solace — Design A \/ Assigned to 2 homes \/ complete \/ Look Book SOLACE-LOOK-001/);
+  assert.match(context, /Include:.*CMHC|Include:.*On-Reserve/i);
+  assert.match(context, /Not relevant: BC Builds/);
+  assert.match(context, /Land status: on reserve/);
+  assert.match(context, /SCALE & READINESS/);
+  assert.match(context, /Coordinate local assembly training/);
 });
 
 test("Planner Build My links preserve the design-group return context", () => {
