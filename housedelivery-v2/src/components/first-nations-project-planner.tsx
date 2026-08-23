@@ -21,17 +21,21 @@ import { cn } from "@/lib/cn";
 import {
   addPlannerDesignVariation,
   calculatePreliminaryEstimate,
+  communityWorkforceCapacityOptions,
+  communityWorkforceCapacityReviewStatement,
   createDefaultPlannerState,
   createOpportunityReportReference,
   createPlannerDesignVariation,
   formatPlanningValue,
   formatProjectReviewContext,
   getAudienceFundingCorridors,
+  getCommunityWorkforceCapacityLabels,
   getCulturalDesignReportRecords,
   getPlannerDesignProgress,
   getOpportunityReportFundingCorridors,
   getPortfolioSummary,
   getReadinessProfile,
+  hasCommunityWorkforceCapacityInterest,
   matchFundingCorridors,
   migratePlannerState,
   plannerAudienceLabels,
@@ -40,6 +44,7 @@ import {
   setPlannerCulturalExteriorInterest,
   type FundingCorridor,
   type FundingCorridorDecision,
+  type CommunityWorkforceCapacityId,
   type PlannerCatalogItem,
   type PlannerAudience,
   type PlannerDesignVariation,
@@ -933,6 +938,22 @@ function RefineStep({
     update("householdPriorities", next.length ? next : ["unknown"]);
   }
 
+  function toggleWorkforceCapacity(value: CommunityWorkforceCapacityId) {
+    const current = state.refinement.communityWorkforceCapacity;
+    const next = value === "to-be-determined"
+      ? ["to-be-determined" as const]
+      : current.includes(value)
+        ? current.filter((item) => item !== value)
+        : [
+            ...current.filter((item) => item !== "to-be-determined"),
+            value,
+          ];
+    update(
+      "communityWorkforceCapacity",
+      next.length ? next : ["to-be-determined"],
+    );
+  }
+
   const fields = [
     ["accessibility", "Accessibility / adaptability", [["unknown", "Unknown / to confirm"], ["standard", "Standard planning"], ["adaptable", "Adaptable homes required"], ["accessible", "Accessible homes required"], ["mixed", "Mixed accessibility portfolio"]]],
     ["landStatus", "Land / site status", [["unknown", "Unknown / to confirm"], ["on-reserve", "On-reserve"], ["off-reserve", "Off-reserve"], ["mixed", "Mixed land status"]]],
@@ -971,6 +992,56 @@ function RefineStep({
           })}
         </div>
       </fieldset> : null}
+      {isFirstNations ? (
+        <fieldset
+          data-community-workforce-capacity
+          className="mt-10 border-t border-black/16 pt-6"
+        >
+          <legend className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/46">
+            Community Workforce &amp; Capacity
+          </legend>
+          <p className="mt-3 max-w-3xl text-xs leading-5 text-black/48">
+            Identify early interests only. Participation, training scope,
+            partners, costs and schedule are defined later through project
+            review.
+          </p>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {communityWorkforceCapacityOptions.map(({ id, label }) => {
+              const checked =
+                state.refinement.communityWorkforceCapacity.includes(id);
+              return (
+                <label
+                  key={id}
+                  className={cn(
+                    "flex min-h-14 cursor-pointer items-center gap-3 border px-4 text-sm",
+                    checked
+                      ? "border-black bg-black text-white"
+                      : "border-black/16 text-black/62",
+                  )}
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => toggleWorkforceCapacity(id)}
+                    className="sr-only"
+                  />
+                  <span
+                    className={cn(
+                      "grid size-5 shrink-0 place-items-center border",
+                      checked ? "border-white" : "border-black/25",
+                    )}
+                  >
+                    {checked ? (
+                      <Check aria-hidden="true" className="size-3" />
+                    ) : null}
+                  </span>
+                  {label}
+                </label>
+              );
+            })}
+          </div>
+        </fieldset>
+      ) : null}
       <div className={cn("grid border-l border-t border-black/16 md:grid-cols-2", isFirstNations ? "mt-10" : "mt-16")}>
         {fields.filter(([key]) => isFirstNations || key !== "culturalPriorities").map(([key, label, options]) => (
           <label key={key} className="border-b border-r border-black/16 p-5 sm:p-7">
@@ -1383,6 +1454,12 @@ function OpportunityReport({
     ),
   );
   const culturalDesigns = getCulturalDesignReportRecords(state, catalog);
+  const workforceCapacityLabels = getCommunityWorkforceCapacityLabels(
+    state.refinement.communityWorkforceCapacity,
+  );
+  const workforceCapacityIdentified = hasCommunityWorkforceCapacityInterest(
+    state.refinement.communityWorkforceCapacity,
+  );
   const missingInformation = readiness.filter((item) => !item.ready).map((item) => item.label);
 
   function printReport() {
@@ -1460,6 +1537,26 @@ function OpportunityReport({
 
         <ReportSection number="07" title={state.audience === "first-nations" ? "Community participation and capability" : state.audience === "developer" ? "Development and delivery capability" : state.audience === "general-contractor" ? "Procurement, logistics and delivery capability" : "Community delivery and operating capability"}>
           <div className="grid gap-5 sm:grid-cols-2">{[[state.audience === "first-nations" ? "Local & Indigenous participation" : "Delivery / trade capacity", labelValue(state.refinement.localLabour)], [state.audience === "first-nations" ? "Assembly / training / maintenance" : "Assembly / maintenance responsibilities", labelValue(state.refinement.trainingObjectives)]].map(([label, value]) => <p key={label} className="border-t border-black/16 pt-3 text-sm"><span className="text-black/42">{label}</span><br />{value}</p>)}</div>
+          {state.audience === "first-nations" ? (
+            <div
+              data-report-community-workforce-capacity
+              className="mt-9 border-t border-black/18 pt-7"
+            >
+              <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/46">
+                Community Workforce &amp; Capacity
+              </p>
+              <p className="mt-4 max-w-4xl text-sm leading-6 text-black/60">
+                {workforceCapacityIdentified
+                  ? communityWorkforceCapacityReviewStatement
+                  : "Community workforce and capacity interests remain to be determined during project review."}
+              </p>
+              <ul className="mt-5 grid gap-2 text-xs leading-5 text-black/55 sm:grid-cols-2">
+                {workforceCapacityLabels.map((label) => (
+                  <li key={label}>— {label}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </ReportSection>
 
         <ReportSection number="08" title={state.audience === "first-nations" ? "Funding corridors" : "Funding and financing context"}>
@@ -1577,6 +1674,12 @@ function ProjectReviewStep({
       variation.status === "complete" ? [{ model, variation }] : [],
     ),
   );
+  const workforceCapacityLabels = getCommunityWorkforceCapacityLabels(
+    state.refinement.communityWorkforceCapacity,
+  );
+  const workforceCapacityIdentified = hasCommunityWorkforceCapacityInterest(
+    state.refinement.communityWorkforceCapacity,
+  );
   const reviewContext = formatProjectReviewContext(state, catalog, corridors);
 
   async function submitProjectReview(event: FormEvent<HTMLFormElement>) {
@@ -1650,6 +1753,25 @@ function ProjectReviewStep({
           </dl>
         ))}
       </div>
+
+      {state.audience === "first-nations" ? (
+        <section
+          data-project-review-community-workforce-capacity
+          className="mt-10 border-y border-black/16 py-6"
+        >
+          <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/42">
+            Community Workforce &amp; Capacity
+          </p>
+          <p className="mt-3 max-w-4xl text-sm leading-6 text-black/55">
+            {workforceCapacityIdentified
+              ? communityWorkforceCapacityReviewStatement
+              : "Community workforce and capacity interests remain to be determined during project review."}
+          </p>
+          <p className="mt-4 text-xs leading-5 text-black/48">
+            {workforceCapacityLabels.join(" · ")}
+          </p>
+        </section>
+      ) : null}
 
       <div className="mt-14 grid gap-12 lg:grid-cols-2 lg:gap-16">
         <section>

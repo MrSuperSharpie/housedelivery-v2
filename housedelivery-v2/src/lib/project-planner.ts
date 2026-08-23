@@ -95,8 +95,39 @@ export type PlannerPortfolioLine = {
   designVariations: readonly PlannerDesignVariation[];
 };
 
+export const communityWorkforceCapacityOptions = [
+  {
+    id: "local-assembly-participation",
+    label: "Interested in local assembly participation",
+  },
+  {
+    id: "local-workforce-identified",
+    label: "Local trades / workforce already identified",
+  },
+  {
+    id: "workforce-training-interest",
+    label: "Interested in workforce training",
+  },
+  {
+    id: "maintenance-capability-interest",
+    label: "Interested in long-term maintenance capability",
+  },
+  {
+    id: "house-delivery-support-required",
+    label: "House Delivery support required",
+  },
+  { id: "to-be-determined", label: "To be determined" },
+] as const;
+
+export type CommunityWorkforceCapacityId =
+  (typeof communityWorkforceCapacityOptions)[number]["id"];
+
+export const communityWorkforceCapacityReviewStatement =
+  "Local workforce participation and training interest identified. Assembly participation, training scope, partners, costs and schedule will be developed during project review.";
+
 export type ProjectRefinement = {
   householdPriorities: readonly string[];
+  communityWorkforceCapacity: readonly CommunityWorkforceCapacityId[];
   accessibility: string;
   landStatus: string;
   servicing: string;
@@ -189,6 +220,7 @@ export function createDefaultPlannerState(
     portfolio: [],
     refinement: {
       householdPriorities: ["unknown"],
+      communityWorkforceCapacity: ["to-be-determined"],
       accessibility: "unknown",
       landStatus: "unknown",
       servicing: "unknown",
@@ -230,6 +262,36 @@ type LegacyPlannerState = Omit<
 
 function getDesignLetter(index: number) {
   return String.fromCharCode(65 + index);
+}
+
+function normalizeCommunityWorkforceCapacity(
+  value: unknown,
+): readonly CommunityWorkforceCapacityId[] {
+  if (!Array.isArray(value)) return ["to-be-determined"];
+  const selected = communityWorkforceCapacityOptions.flatMap((option) =>
+    value.includes(option.id) ? [option.id] : [],
+  );
+  const specificSelections = selected.filter(
+    (selection) => selection !== "to-be-determined",
+  );
+  return specificSelections.length > 0
+    ? specificSelections
+    : ["to-be-determined"];
+}
+
+export function getCommunityWorkforceCapacityLabels(
+  selections: readonly CommunityWorkforceCapacityId[],
+) {
+  const selected = new Set(selections);
+  return communityWorkforceCapacityOptions.flatMap((option) =>
+    selected.has(option.id) ? [option.label] : [],
+  );
+}
+
+export function hasCommunityWorkforceCapacityInterest(
+  selections: readonly CommunityWorkforceCapacityId[],
+) {
+  return selections.some((selection) => selection !== "to-be-determined");
 }
 
 export function createPlannerDesignVariation(
@@ -341,6 +403,9 @@ export function migratePlannerState(value: unknown): PlannerState | undefined {
     refinement: {
       ...defaults.refinement,
       ...(candidate.refinement ?? {}),
+      communityWorkforceCapacity: normalizeCommunityWorkforceCapacity(
+        candidate.refinement?.communityWorkforceCapacity,
+      ),
     },
     fundingCorridorDecisions,
   };
@@ -692,6 +757,12 @@ export function getReadinessProfile(
 ) {
   const summary = getPortfolioSummary(state.portfolio, catalog);
   const known = (value: string) => value !== "unknown" && value.trim() !== "";
+  const workforceCapacityLabels = getCommunityWorkforceCapacityLabels(
+    state.refinement.communityWorkforceCapacity,
+  );
+  const workforceCapacityIdentified = hasCommunityWorkforceCapacityInterest(
+    state.refinement.communityWorkforceCapacity,
+  );
 
   const audienceReadiness =
     state.audience === "first-nations"
@@ -773,6 +844,17 @@ export function getReadinessProfile(
         : "Local delivery capacity to confirm",
       ready: known(state.refinement.localLabour),
     },
+    ...(state.audience === "first-nations"
+      ? [
+          {
+            label: "Community workforce & capacity",
+            detail: workforceCapacityIdentified
+              ? workforceCapacityLabels.join("; ")
+              : "Community workforce and capacity interests to be determined",
+            ready: workforceCapacityIdentified,
+          },
+        ]
+      : []),
     audienceReadiness,
     {
       label: "Funding pathway",
@@ -897,6 +979,12 @@ export function formatProjectReviewContext(
     (record) =>
       `${record.designName}: Coastal exterior inspiration selected. Exterior cultural expression to be developed with the Nation during project review.`,
   );
+  const workforceCapacityLabels = getCommunityWorkforceCapacityLabels(
+    state.refinement.communityWorkforceCapacity,
+  );
+  const workforceCapacityIdentified = hasCommunityWorkforceCapacityInterest(
+    state.refinement.communityWorkforceCapacity,
+  );
 
   return [
     "HOUSE DELIVERY PLANNER PROJECT REVIEW",
@@ -922,6 +1010,16 @@ export function formatProjectReviewContext(
       ([label, value]) => `${label}: ${formatProjectReviewValue(value)}`,
     ),
     `Project notes: ${state.projectNotes || "None provided"}`,
+    ...(state.audience === "first-nations"
+      ? [
+          "",
+          "COMMUNITY WORKFORCE & CAPACITY",
+          workforceCapacityIdentified
+            ? communityWorkforceCapacityReviewStatement
+            : "Community workforce and capacity interests remain to be determined during project review.",
+          `Selections: ${workforceCapacityLabels.join(", ")}`,
+        ]
+      : []),
     "",
     "FUNDING REVIEW (NON-BINDING)",
     ...(selectedFunding.length

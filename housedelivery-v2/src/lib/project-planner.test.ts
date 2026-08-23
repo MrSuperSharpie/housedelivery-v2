@@ -9,12 +9,14 @@ import {
 import {
   addPlannerDesignVariation,
   calculatePreliminaryEstimate,
+  communityWorkforceCapacityOptions,
   createDefaultPlannerState,
   createPlannerDesignVariation,
   createOpportunityReportReference,
   defaultPlannerState,
   formatProjectReviewContext,
   getAudienceFundingCorridors,
+  getCommunityWorkforceCapacityLabels,
   getCulturalDesignReportRecords,
   getPlannerDesignProgress,
   getOpportunityReportFundingCorridors,
@@ -359,6 +361,9 @@ test("version one planner drafts migrate into one quantity-based design group", 
 
   assert.equal(migrated?.version, 4);
   assert.deepEqual(migrated?.fundingCorridorDecisions, {});
+  assert.deepEqual(migrated?.refinement.communityWorkforceCapacity, [
+    "to-be-determined",
+  ]);
   assert.equal(migrated?.portfolio[0].designVariations.length, 1);
   assert.equal(
     migrated?.portfolio[0].designVariations[0].assignedQuantity,
@@ -367,6 +372,69 @@ test("version one planner drafts migrate into one quantity-based design group", 
   assert.equal(
     migrated?.portfolio[0].designVariations[0].lookBookReference,
     "LEGACY-1",
+  );
+});
+
+test("First Nations workforce and capacity choices persist without changing pricing", () => {
+  assert.deepEqual(
+    communityWorkforceCapacityOptions.map((option) => option.label),
+    [
+      "Interested in local assembly participation",
+      "Local trades / workforce already identified",
+      "Interested in workforce training",
+      "Interested in long-term maintenance capability",
+      "House Delivery support required",
+      "To be determined",
+    ],
+  );
+  const selections = [
+    "local-assembly-participation",
+    "local-workforce-identified",
+    "workforce-training-interest",
+  ] as const;
+  const state: PlannerState = {
+    ...defaultPlannerState,
+    community: "Example Nation",
+    portfolio,
+    refinement: {
+      ...defaultPlannerState.refinement,
+      communityWorkforceCapacity: selections,
+    },
+  };
+  const estimateBefore = calculatePreliminaryEstimate(
+    state.portfolio,
+    firstNationsPlannerCatalog,
+  );
+  const migrated = migratePlannerState(JSON.parse(JSON.stringify(state)));
+  const estimateAfter = calculatePreliminaryEstimate(
+    migrated?.portfolio ?? [],
+    firstNationsPlannerCatalog,
+  );
+  const readiness = getReadinessProfile(
+    migrated ?? state,
+    firstNationsPlannerCatalog,
+  );
+
+  assert.deepEqual(
+    migrated?.refinement.communityWorkforceCapacity,
+    selections,
+  );
+  assert.deepEqual(estimateAfter, estimateBefore);
+  assert.deepEqual(getCommunityWorkforceCapacityLabels(selections), [
+    "Interested in local assembly participation",
+    "Local trades / workforce already identified",
+    "Interested in workforce training",
+  ]);
+  assert.deepEqual(
+    readiness.find(
+      (item) => item.label === "Community workforce & capacity",
+    ),
+    {
+      label: "Community workforce & capacity",
+      detail:
+        "Interested in local assembly participation; Local trades / workforce already identified; Interested in workforce training",
+      ready: true,
+    },
   );
 });
 
@@ -496,6 +564,11 @@ test("project review context carries the complete multi-home Planner record", ()
       servicing: "partially-serviced",
       affordability: "community-rental",
       localLabour: "local-labour-priority",
+      communityWorkforceCapacity: [
+        "local-assembly-participation",
+        "workforce-training-interest",
+        "house-delivery-support-required",
+      ],
     },
     fundingCorridorDecisions: {
       "cmhc-section-95": "include",
@@ -526,6 +599,14 @@ test("project review context carries the complete multi-home Planner record", ()
     context,
     /Exterior cultural expression to be developed with the Nation during project review/,
   );
+  assert.match(context, /COMMUNITY WORKFORCE & CAPACITY/);
+  assert.match(
+    context,
+    /Local workforce participation and training interest identified/,
+  );
+  assert.match(context, /Interested in local assembly participation/);
+  assert.match(context, /Interested in workforce training/);
+  assert.match(context, /House Delivery support required/);
   assert.deepEqual(getCulturalDesignReportRecords(state, firstNationsPlannerCatalog), [
     {
       id: "solace-line:design-a",
