@@ -1,0 +1,138 @@
+"use client";
+
+import { ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+
+type OrganizationType =
+  | "first-nation"
+  | "developer"
+  | "general-contractor"
+  | "municipality";
+
+const organizationOptions: readonly {
+  id: OrganizationType;
+  label: string;
+}[] = [
+  { id: "first-nation", label: "First Nation / Indigenous Community" },
+  { id: "developer", label: "Developer / Landowner" },
+  { id: "general-contractor", label: "General Contractor" },
+  { id: "municipality", label: "Municipality / Non-Profit" },
+];
+
+export function ProjectPlanningRouter() {
+  const [organization, setOrganization] = useState<OrganizationType>();
+  const [showComingSoon, setShowComingSoon] = useState(false);
+
+  function chooseOrganization(value: OrganizationType) {
+    setOrganization(value);
+    setShowComingSoon(false);
+  }
+
+  function resetChoice() {
+    setOrganization(undefined);
+    setShowComingSoon(false);
+  }
+
+  return (
+    <div className="mx-auto max-w-[1504px]">
+      <div className="grid grid-cols-12 gap-y-12 border-t border-white/12 pt-7 lg:gap-x-8">
+        <p className="eyebrow col-span-12 lg:col-span-3">Housing pathway / Start here</p>
+        <div className="col-span-12 lg:col-span-8 lg:col-start-4">
+          <h1 className="max-w-5xl text-[clamp(3.6rem,8vw,8.5rem)] font-medium leading-[0.82] tracking-[-0.075em] text-white/92">
+            What are you
+            <br />
+            <span className="text-white/38">planning?</span>
+          </h1>
+          <p className="mt-8 max-w-2xl text-base leading-7 text-white/58 sm:text-lg sm:leading-8">
+            Choose the path that best reflects who is planning and the scale of the housing need.
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-16 border-y border-white/12 py-8 sm:py-10 lg:mt-24">
+        {!organization ? (
+          <div data-project-planning-audience className="grid gap-3 md:grid-cols-2">
+            {organizationOptions.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                onClick={() => chooseOrganization(option.id)}
+                className="group inline-flex min-h-16 items-center justify-between gap-6 border border-white/18 px-5 text-left text-[10px] font-semibold uppercase tracking-[0.16em] text-white/72 transition-colors hover:border-white/60 hover:bg-white hover:text-[#0b0c10] sm:px-6"
+              >
+                {option.label}
+                <ArrowRight aria-hidden="true" className="size-4 shrink-0" />
+              </button>
+            ))}
+            <Link
+              href="/#models"
+              className="group inline-flex min-h-16 items-center justify-between gap-6 border border-white/18 px-5 text-left text-[10px] font-semibold uppercase tracking-[0.16em] text-white/72 transition-colors hover:border-white/60 hover:bg-white hover:text-[#0b0c10] sm:px-6 md:col-span-2"
+            >
+              Individual Home
+              <ArrowRight aria-hidden="true" className="size-4 shrink-0" />
+            </Link>
+          </div>
+        ) : (
+          <div data-project-planning-size>
+            <button
+              type="button"
+              onClick={resetChoice}
+              className="inline-flex min-h-11 items-center gap-3 text-[9px] font-semibold uppercase tracking-[0.16em] text-white/44 transition-colors hover:text-white"
+            >
+              <ArrowLeft aria-hidden="true" className="size-4" /> Change planning group
+            </button>
+            <p className="mt-8 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/38">
+              {organizationOptions.find((option) => option.id === organization)?.label}
+            </p>
+            <h2 className="mt-5 text-[clamp(2.6rem,5vw,5.5rem)] font-medium leading-[0.88] tracking-[-0.065em] text-white/90">
+              Are you planning:
+            </h2>
+
+            <div className="mt-10 grid gap-3 sm:grid-cols-2">
+              <Link
+                href="/#models"
+                className="inline-flex min-h-16 items-center justify-between gap-6 border border-white/22 px-5 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/78 transition-colors hover:border-white hover:bg-white hover:text-[#0b0c10] sm:px-6"
+              >
+                One Home <ArrowRight aria-hidden="true" className="size-4" />
+              </Link>
+              {organization === "first-nation" ? (
+                <Link
+                  href="/first-nations-project-planner"
+                  className="inline-flex min-h-16 items-center justify-between gap-6 bg-white px-5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#0b0c10] transition-colors hover:bg-white/82 sm:px-6"
+                >
+                  Multiple Homes <ArrowRight aria-hidden="true" className="size-4" />
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowComingSoon(true)}
+                  className="inline-flex min-h-16 items-center justify-between gap-6 bg-white px-5 text-left text-[10px] font-semibold uppercase tracking-[0.16em] text-[#0b0c10] transition-colors hover:bg-white/82 sm:px-6"
+                >
+                  Multiple Homes <ArrowRight aria-hidden="true" className="size-4" />
+                </button>
+              )}
+            </div>
+
+            {showComingSoon ? (
+              <div data-project-planning-coming-soon role="status" className="mt-10 border-t border-white/12 pt-8">
+                <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/38">Multi-home planning</p>
+                <h3 className="mt-4 max-w-3xl text-3xl font-medium leading-tight tracking-[-0.045em] text-white/90 sm:text-5xl">
+                  Project Planning Experience Coming Next
+                </h3>
+                <p className="mt-5 max-w-2xl text-sm leading-6 text-white/52">
+                  This planning mode is still being prepared. House Delivery can discuss the project with you in the meantime.
+                </p>
+                <Link
+                  href="/#reserve"
+                  className="mt-7 inline-flex min-h-12 items-center gap-4 border-b border-white/35 text-[10px] font-semibold uppercase tracking-[0.17em] text-white/80 transition-colors hover:border-white hover:text-white"
+                >
+                  Discuss a Project <ArrowUpRight aria-hidden="true" className="size-4" />
+                </Link>
+              </div>
+            ) : null}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

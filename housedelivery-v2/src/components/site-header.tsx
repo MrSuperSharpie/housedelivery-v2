@@ -80,10 +80,10 @@ export function SiteHeader({
           </a>
           {showProjectReviewAction ? (
             <Link
-              href="/#reserve"
+              href="/plan-a-housing-project"
               className="border border-white bg-white px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#0b0c10] transition-colors hover:bg-transparent hover:text-white"
             >
-              Begin project review
+              Plan a housing project
             </Link>
           ) : null}
         </div>
@@ -124,11 +124,11 @@ export function SiteHeader({
           ))}
           {showProjectReviewAction ? (
             <Link
-              href="/#reserve"
+              href="/plan-a-housing-project"
               className="mt-5 block bg-white px-5 py-4 text-center text-xs font-semibold uppercase tracking-[0.14em] text-[#0b0c10]"
               onClick={() => setIsOpen(false)}
             >
-              Begin project review
+              Plan a housing project
             </Link>
           ) : null}
         </div>

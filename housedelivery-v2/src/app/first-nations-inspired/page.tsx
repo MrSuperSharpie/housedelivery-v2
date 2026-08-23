@@ -331,10 +331,10 @@ export default function FirstNationsInspiredPage() {
                       />
                     </Link>
                     <Link
-                      href="/#reserve"
+                      href="/plan-a-housing-project"
                       className="group inline-flex items-center justify-between gap-5 border border-white/25 px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/85 transition-colors duration-300 hover:border-white/60 hover:bg-white hover:text-[#0B0C10] sm:justify-start"
                     >
-                      Begin Project Review
+                      Plan a Housing Project
                       <ArrowUpRight
                         aria-hidden="true"
                         size={14}
@@ -431,10 +431,10 @@ export default function FirstNationsInspiredPage() {
                   >
                     <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
                       <Link
-                        href="/first-nations-project-planner"
+                        href="/plan-a-housing-project"
                         className="group inline-flex shrink-0 items-center justify-between gap-5 bg-white px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#0b0c10] transition-colors hover:bg-white/82"
                       >
-                        Plan a housing portfolio
+                        Plan a Housing Project
                         <ArrowUpRight
                           aria-hidden="true"
                           size={14}
@@ -445,7 +445,7 @@ export default function FirstNationsInspiredPage() {
                         href="/#reserve"
                         className="group inline-flex shrink-0 items-center justify-between gap-5 border border-white/25 px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/90 transition-colors hover:border-white"
                       >
-                        Begin project review
+                        Discuss a project
                         <ArrowUpRight
                           aria-hidden="true"
                           size={14}

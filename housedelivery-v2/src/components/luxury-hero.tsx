@@ -3,6 +3,7 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowDown, ArrowUpRight } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRef } from "react";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
@@ -117,13 +118,13 @@ export function LuxuryHero({
                 Explore the Homes
                 <ArrowDown size={14} />
               </a>
-              <a
-                href="#reserve"
+              <Link
+                href="/plan-a-housing-project"
                 className="inline-flex min-h-12 items-center justify-between gap-5 border border-white/40 px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:border-white hover:bg-white hover:text-[#0b0c10] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
               >
-                Start a Project
+                Plan a Housing Project
                 <ArrowUpRight size={14} />
-              </a>
+              </Link>
             </div>
           </motion.div>
         </div>

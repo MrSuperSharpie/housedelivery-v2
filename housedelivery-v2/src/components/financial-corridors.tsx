@@ -5,6 +5,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRef, useState, type KeyboardEvent } from "react";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
@@ -657,18 +658,26 @@ export function FinancialCorridors() {
               development projects, House Delivery can structure an early
               project understanding before detailed technical work begins.
             </p>
-            <a
-              href="#reserve"
-              className="group mt-7 inline-flex items-center gap-4 border-b border-white/35 pb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/75 transition-colors hover:border-white hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white focus-visible:ring-offset-4 focus-visible:ring-offset-[#0b0c10]"
-            >
-              Discuss a project
-              <ArrowUpRight
-                size={14}
-                strokeWidth={1.4}
-                aria-hidden="true"
-                className="transition-transform duration-500 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
-              />
-            </a>
+            <div className="mt-7 flex flex-col items-start gap-5 sm:flex-row sm:items-center">
+              <Link
+                href="/plan-a-housing-project"
+                className="group inline-flex items-center gap-4 border-b border-white/35 pb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/75 transition-colors hover:border-white hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white focus-visible:ring-offset-4 focus-visible:ring-offset-[#0b0c10]"
+              >
+                Plan a housing project
+                <ArrowUpRight
+                  size={14}
+                  strokeWidth={1.4}
+                  aria-hidden="true"
+                  className="transition-transform duration-500 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                />
+              </Link>
+              <a
+                href="#reserve"
+                className="text-[9px] font-semibold uppercase tracking-[0.16em] text-white/42 transition-colors hover:text-white/75"
+              >
+                Discuss a project
+              </a>
+            </div>
           </div>
         </aside>
       </div>
