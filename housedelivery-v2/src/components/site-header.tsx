@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 
 import { cn } from "@/lib/cn";
 import { readPlannerHomeViewReturnHref } from "@/lib/planner-design-session";
+import { usePlannerHomeViewContext } from "@/lib/use-planner-home-view-context";
 
 const links = [
   { label: "Homes", href: "/#models" },
@@ -24,6 +25,7 @@ export function SiteHeader({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [plannerReturnHref, setPlannerReturnHref] = useState<string>();
+  const plannerHomeContext = usePlannerHomeViewContext();
 
   useEffect(() => {
     let active = true;
@@ -132,12 +134,22 @@ export function SiteHeader({
         </div>
       </nav>
 
-      {plannerReturnHref ? (
+      {plannerHomeContext || plannerReturnHref ? (
         <div className="absolute inset-x-0 top-full border-b border-black/14 bg-[#e7e3d8] text-[#111216] shadow-[0_12px_32px_rgba(0,0,0,0.12)]">
-          <div className="mx-auto flex max-w-[1600px] items-center px-5 sm:px-8 lg:px-12">
+          <div className="mx-auto flex max-w-[1600px] flex-col gap-3 px-5 py-3 sm:px-8 md:flex-row md:items-center md:justify-between md:gap-8 lg:px-12">
+            {plannerHomeContext ? (
+              <div data-planner-home-context className="flex flex-wrap items-center gap-x-7 gap-y-1">
+                <div>
+                  <p className="text-[8px] font-semibold uppercase tracking-[0.18em] text-black/42">Inside My Project</p>
+                  <p className="mt-1 text-sm font-medium tracking-[-0.02em]">{plannerHomeContext.projectName}</p>
+                </div>
+                <p className="text-xs text-black/58">{plannerHomeContext.totalHomes} homes total</p>
+                <p className="text-xs font-medium">{plannerHomeContext.homeName} × {plannerHomeContext.homeQuantity}</p>
+              </div>
+            ) : null}
             <Link
-              href={plannerReturnHref}
-              className="inline-flex min-h-12 items-center gap-3 text-[9px] font-semibold uppercase tracking-[0.17em] text-black/72 transition-colors hover:text-black"
+              href={plannerHomeContext?.returnHref ?? plannerReturnHref!}
+              className="inline-flex min-h-10 shrink-0 items-center gap-3 text-[9px] font-semibold uppercase tracking-[0.17em] text-black/72 transition-colors hover:text-black"
             >
               <ArrowLeft aria-hidden="true" className="size-4" />
               Return to My Project

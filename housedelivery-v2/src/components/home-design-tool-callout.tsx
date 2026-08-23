@@ -1,7 +1,15 @@
+"use client";
+
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
 import { cn } from "@/lib/cn";
+import {
+  addPlannerHomeViewContextToProject,
+  buildPlannerDesignHref,
+} from "@/lib/planner-design-session";
+import { usePlannerHomeViewContext } from "@/lib/use-planner-home-view-context";
 
 type HomeDesignToolCalloutProps = {
   homeName: string;
@@ -19,6 +27,30 @@ export function HomeDesignToolCallout({
   const isPrimary = variant === "primary";
   const isComingSoon = availability === "coming-soon";
   const headingId = `home-design-tool-${variant}-heading`;
+  const plannerHomeContext = usePlannerHomeViewContext();
+  const [plannerActionError, setPlannerActionError] = useState("");
+  const activePlannerContext =
+    plannerHomeContext?.homeName === homeName ? plannerHomeContext : undefined;
+
+  function addHomeToProject() {
+    if (!activePlannerContext) return;
+    const session = addPlannerHomeViewContextToProject(activePlannerContext);
+    if (!session) {
+      setPlannerActionError(
+        "We couldn’t update this local project. Return to My Project and try again.",
+      );
+      return;
+    }
+
+    if (isComingSoon || !href) {
+      window.location.assign(activePlannerContext.returnHref);
+      return;
+    }
+
+    window.location.assign(
+      buildPlannerDesignHref(`${window.location.pathname}${href}`, session),
+    );
+  }
 
   return (
     <aside
@@ -87,18 +119,28 @@ export function HomeDesignToolCallout({
                 design collections for this home.
               </p>
               <p>
-                Explore the home today, and check back soon to build your
+                Explore the home today, and check back soon to create your
                 personalized lookbook.
               </p>
             </div>
             <div className="mt-7 flex flex-wrap items-center gap-x-8 gap-y-4">
-              <span
-                aria-disabled="true"
-                data-lookbook-coming-soon-cta
-                className="inline-flex min-h-12 items-center border border-white/16 px-5 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/38"
-              >
-                Design Lookbook Coming Soon
-              </span>
+              {activePlannerContext && !activePlannerContext.designSession ? (
+                <button
+                  type="button"
+                  onClick={addHomeToProject}
+                  className="inline-flex min-h-12 items-center border border-white/32 px-5 text-left text-[10px] font-semibold uppercase tracking-[0.18em] text-white/78"
+                >
+                  Add {homeName} to My Project
+                </button>
+              ) : (
+                <span
+                  aria-disabled="true"
+                  data-lookbook-coming-soon-cta
+                  className="inline-flex min-h-12 items-center border border-white/16 px-5 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/38"
+                >
+                  Design Lookbook Coming Soon
+                </span>
+              )}
               <Link
                 href="/#reserve"
                 className="group inline-flex min-h-12 items-center gap-3 border-b border-white/28 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/72 transition-[border-color,color] hover:border-white hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
@@ -123,27 +165,44 @@ export function HomeDesignToolCallout({
               )}
             >
               {isPrimary
-                ? `Choose the key kitchen, bathroom, wardrobe, flooring and finish directions that define your home. Build a personalized ${homeName} Look Book before moving into project-specific design.`
+                ? `Choose the key kitchen, bathroom, wardrobe, flooring and finish directions that define your home. Create a personalized ${homeName} Look Book before moving into project-specific design.`
                 : `${homeName} includes an interactive design experience where you can shape the key spaces and finishes of your home.`}
             </p>
-            <a
-              href={href}
-              className={cn(
-                "group mt-7 inline-flex min-h-12 items-center justify-between gap-10 border-b border-white/28 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/72 transition-[border-color,color] hover:border-white hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white",
-                isPrimary ? "min-w-64 pb-3" : "min-w-52 pb-2",
-              )}
-            >
-              {isPrimary
-                ? `Build My ${homeName}`
-                : `Explore ${homeName} Design Options`}
-              <ArrowRight
-                aria-hidden="true"
-                className="size-4 transition-transform group-hover:translate-x-1"
-                strokeWidth={1.5}
-              />
-            </a>
+            {activePlannerContext && !activePlannerContext.designSession ? (
+              <button
+                type="button"
+                onClick={addHomeToProject}
+                className={cn(
+                  "group mt-7 inline-flex min-h-12 items-center justify-between gap-10 border-b border-white/28 text-left text-[10px] font-semibold uppercase tracking-[0.18em] text-white/72 transition-[border-color,color] hover:border-white hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white",
+                  isPrimary ? "min-w-64 pb-3" : "min-w-52 pb-2",
+                )}
+              >
+                Add {homeName} to My Project
+                <ArrowRight aria-hidden="true" className="size-4 transition-transform group-hover:translate-x-1" strokeWidth={1.5} />
+              </button>
+            ) : (
+              <a
+                href={href}
+                className={cn(
+                  "group mt-7 inline-flex min-h-12 items-center justify-between gap-10 border-b border-white/28 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/72 transition-[border-color,color] hover:border-white hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white",
+                  isPrimary ? "min-w-64 pb-3" : "min-w-52 pb-2",
+                )}
+              >
+                {activePlannerContext?.designSession
+                  ? `Design ${homeName} for My Project`
+                  : isPrimary
+                    ? `Design My ${homeName}`
+                    : `Explore ${homeName} Design Options`}
+                <ArrowRight
+                  aria-hidden="true"
+                  className="size-4 transition-transform group-hover:translate-x-1"
+                  strokeWidth={1.5}
+                />
+              </a>
+            )}
           </>
         )}
+        {plannerActionError ? <p role="alert" className="mt-4 text-xs leading-5 text-white/58">{plannerActionError}</p> : null}
       </div>
     </aside>
   );

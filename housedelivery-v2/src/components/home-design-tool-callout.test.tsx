@@ -27,3 +27,17 @@ test("unfinished homes render a non-navigating Lookbook Coming Soon entry point"
   assert.doesNotMatch(markup, /#home-inclusions/);
   assert.doesNotMatch(markup, /Design My Langley/);
 });
+
+test("approved standalone homes use Design My Home terminology", () => {
+  const markup = renderToStaticMarkup(
+    <HomeDesignToolCallout
+      homeName="Solace"
+      href="#home-inclusions"
+      variant="primary"
+      availability="available"
+    />,
+  );
+
+  assert.match(markup, /Design My Solace/);
+  assert.doesNotMatch(markup, /Build My Solace/);
+});

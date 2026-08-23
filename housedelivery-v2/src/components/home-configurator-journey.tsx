@@ -73,7 +73,7 @@ export function HomeConfiguratorJourney({
                 {stage.id === "configure"
                   ? plannerMode
                     ? "Design Center"
-                    : `Configure My ${homeName}`
+                    : `${homeName} Design Center`
                   : stage.label}
               </span>
               {isActive ? (

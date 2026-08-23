@@ -243,7 +243,7 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
           }
         }
       } catch {
-        // A malformed or unavailable local design should not block Build My.
+        // A malformed or unavailable local design should not block Design My Home.
       } finally {
         setPlannerConfigurationHydrated(true);
       }
@@ -261,7 +261,7 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
         JSON.stringify(configuration),
       );
     } catch {
-      // Build My remains usable when local storage is unavailable.
+      // Design My Home remains usable when local storage is unavailable.
     }
   }, [configuration, plannerConfigurationHydrated, plannerSession]);
   const requiredCategories = getHomeConfiguratorJourneyCategories(definition);
@@ -700,7 +700,7 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
                 id="home-inclusions-heading"
                 className="mt-7 text-[clamp(3.8rem,8vw,8.5rem)] font-medium leading-[0.84] tracking-[-0.075em]"
               >
-                {plannerSession ? "Design My" : "Build My"}
+                Design My
                 <br />
                 <span className="text-white/55">{definition.homeName}.</span>
               </h2>

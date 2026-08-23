@@ -164,10 +164,16 @@ function PlannerHomeActions({
   item,
   line,
   projectName,
+  totalHomes,
+  requestedQuantity,
+  requestedPhase,
 }: {
   item: PlannerCatalogItem;
   line?: PlannerPortfolioLine;
   projectName: string;
+  totalHomes: number;
+  requestedQuantity: number;
+  requestedPhase: PlannerPhase;
 }) {
   const variation = line?.designVariations[0];
   const session = line && variation
@@ -184,7 +190,20 @@ function PlannerHomeActions({
     <div className="mt-5 grid gap-3 border-t border-black/12 pt-4">
       <div>
         <PlannerLink
-          href={buildPlannerHomeViewHref(item.viewHref)}
+          href={buildPlannerHomeViewHref(item.viewHref, {
+            projectName,
+            totalHomes,
+            modelId: item.id,
+            homeName: getPlannerHomeName(item.name),
+            homeQuantity:
+              (line?.quantity ?? requestedQuantity) * item.homesPerSelection,
+            requestedQuantity: line?.quantity ?? requestedQuantity,
+            phase: line?.phase ?? requestedPhase,
+            returnHref:
+              session?.returnHref ??
+              "/first-nations-project-planner#planner-workspace",
+            designSession: session,
+          })}
           newTab={false}
         >
           View Home
@@ -543,6 +562,9 @@ function PortfolioStep({
               item={item}
               line={state.portfolio.find((line) => line.modelId === item.id)}
               projectName={state.community}
+              totalHomes={summary.totalHomes}
+              requestedQuantity={quantities[item.id] ?? 1}
+              requestedPhase={phases[item.id] ?? "phase-1"}
             />
             <div className="mt-6 grid grid-cols-[5.5rem_1fr] gap-3">
               <label>

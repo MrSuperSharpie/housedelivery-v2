@@ -26,7 +26,7 @@ const personalizationSteps = [
     number: "03",
     title: "Build your personal Look Book",
     description:
-      "Inside Build My Home / Visual Guide, the available directions are explored room by room and assembled into one personal record.",
+      "Inside Design My Home / Visual Guide, the available directions are explored room by room and assembled into one personal record.",
   },
 ] as const;
 
@@ -345,7 +345,7 @@ export function InclusionsLibrary() {
               </p>
               <p className="mt-5 text-sm leading-7 text-white/44">
                 The individual home experience is where those choices are
-                explored through Build My Home / Visual Guide and assembled
+                explored through Design My Home / Visual Guide and assembled
                 into a personalized Look Book.
               </p>
             </div>

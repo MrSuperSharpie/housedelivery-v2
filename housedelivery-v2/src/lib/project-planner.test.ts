@@ -26,6 +26,7 @@ import {
 import {
   buildPlannerDesignHref,
   buildPlannerHomeViewHref,
+  readPlannerHomeViewContext,
   readPlannerHomeViewReturnHref,
   readPlannerDesignSession,
 } from "./planner-design-session";
@@ -484,7 +485,7 @@ test("project review context carries the complete multi-home Planner record", ()
   assert.match(context, /Coordinate local assembly training/);
 });
 
-test("Planner Build My links preserve the design-group return context", () => {
+test("Planner Design My Home links preserve the design-group return context", () => {
   const session = {
     projectName: "WestBank",
     lineId: "saturna-line",
@@ -520,13 +521,42 @@ test("standalone Design My Home URLs do not enter Planner project mode", () => {
   );
 });
 
-test("Planner View Home links preserve a safe return to the project", () => {
-  const href = buildPlannerHomeViewHref("/homes/solace#floor-plans");
+test("Planner View Home links carry project, quantity and design-group context", () => {
+  const designSession = {
+    projectName: "WestBank Housing Project",
+    lineId: "solace-line",
+    variationId: "solace-line:design-a",
+    modelId: "custom:solace",
+    homeName: "Solace",
+    designLabel: "Design A",
+    assignedQuantity: 2,
+    deliveryGroup: "Active / First Build",
+    returnHref: "/first-nations-project-planner#planner-workspace",
+  };
+  const context = {
+    projectName: "WestBank Housing Project",
+    totalHomes: 6,
+    modelId: "custom:solace",
+    homeName: "Solace",
+    homeQuantity: 2,
+    requestedQuantity: 2,
+    phase: "phase-1" as const,
+    returnHref: "/first-nations-project-planner#planner-workspace",
+    designSession,
+  };
+  const href = buildPlannerHomeViewHref(
+    "/homes/solace#floor-plans",
+    context,
+  );
   const parsed = new URL(href, "https://www.housedelivery.ca");
 
   assert.equal(parsed.pathname, "/homes/solace");
   assert.equal(parsed.hash, "#floor-plans");
   assert.equal(parsed.searchParams.get("plannerView"), "home");
+  assert.equal(parsed.searchParams.get("plannerTotalHomes"), "6");
+  assert.equal(parsed.searchParams.get("plannerHomeQuantity"), "2");
+  assert.deepEqual(readPlannerHomeViewContext(parsed.search), context);
+  assert.deepEqual(readPlannerDesignSession(parsed.search), designSession);
   assert.equal(
     readPlannerHomeViewReturnHref(parsed.search),
     "/first-nations-project-planner#planner-workspace",
@@ -537,4 +567,22 @@ test("Planner View Home links preserve a safe return to the project", () => {
     ),
     undefined,
   );
+});
+
+test("Planner View Home supports an add-to-project context without creating a design session", () => {
+  const context = {
+    projectName: "WestBank Housing Project",
+    totalHomes: 4,
+    modelId: "custom:solace",
+    homeName: "Solace",
+    homeQuantity: 2,
+    requestedQuantity: 2,
+    phase: "phase-2" as const,
+    returnHref: "/first-nations-project-planner#planner-workspace",
+  };
+  const href = buildPlannerHomeViewHref("/homes/solace", context);
+  const parsed = new URL(href, "https://www.housedelivery.ca");
+
+  assert.deepEqual(readPlannerHomeViewContext(parsed.search), context);
+  assert.equal(readPlannerDesignSession(parsed.search), undefined);
 });
