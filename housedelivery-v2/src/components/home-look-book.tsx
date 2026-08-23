@@ -6,6 +6,12 @@ import { useState, type FormEvent, type ReactNode } from "react";
 
 import { HomeConfiguratorJourney } from "@/components/home-configurator-journey";
 import {
+  coastalDesignDirectionLabel,
+  coastalInfluenceNotice,
+  getCulturalDesignImage,
+  type CulturalDesignImage,
+} from "@/data/first-nations-cultural-design";
+import {
   formatLookBookPreparedDate,
   getLookBookCustomerName,
   getLookBookPersonalTitle,
@@ -55,6 +61,78 @@ type EditorialContext = Pick<
   HomeLookBookProps,
   "definition" | "configuration" | "onEditCategory" | "onPreviewOption"
 >;
+
+function CoastalLookBookSummary({
+  homeName,
+  image,
+}: {
+  homeName: string;
+  image: CulturalDesignImage;
+}) {
+  return (
+    <section
+      data-look-book-cultural-summary
+      data-look-book-design-direction="contemporary-coastal"
+      data-look-book-print-page
+      className="bg-[#e7e3d8] text-[#111216]"
+    >
+      <div className="look-book-page-inner">
+        <header className="border-t border-black/18 pt-5">
+          <p className="font-mono text-[8px] uppercase tracking-[0.18em] text-black/52">
+            Project Look Book / Exterior direction
+          </p>
+          <div className="mt-5 grid gap-5 lg:grid-cols-[0.72fr_1.28fr] lg:items-end lg:gap-16">
+            <div>
+              <p className="text-[9px] font-semibold uppercase tracking-[0.19em] text-black/52">
+                Design Direction
+              </p>
+              <h3 className="mt-4 max-w-3xl text-[clamp(2.8rem,5.5vw,5.8rem)] font-medium uppercase leading-[0.86] tracking-[-0.065em] text-black/88">
+                {coastalDesignDirectionLabel}
+              </h3>
+            </div>
+            <p className="max-w-xl text-sm leading-7 text-black/56 lg:justify-self-end">
+              A project-level exterior and cultural direction for {homeName}.
+              The Premium and Signature design selections remain as shown in
+              the following pages.
+            </p>
+          </div>
+        </header>
+
+        <figure className="mt-9">
+          <div
+            data-look-book-cultural-summary-image
+            className="relative aspect-video overflow-hidden bg-[#d3cec1]"
+          >
+            <Image
+              src={image.src}
+              alt={image.alt}
+              fill
+              loading="eager"
+              unoptimized
+              sizes="100vw"
+              className="object-contain"
+            />
+          </div>
+          <figcaption className="mt-4 text-[9px] font-semibold uppercase tracking-[0.18em] text-black/52">
+            Illustrative Exterior Inspiration
+          </figcaption>
+        </figure>
+
+        <aside
+          data-look-book-coastal-influence-notice
+          className="mt-8 border-y border-black/18 py-5"
+        >
+          <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/58">
+            Coastal Influence Notice
+          </p>
+          <p className="mt-3 max-w-5xl text-sm leading-7 text-black/58">
+            {coastalInfluenceNotice}
+          </p>
+        </aside>
+      </div>
+    </section>
+  );
+}
 
 function SaveLookBookButton({
   placement,
@@ -855,6 +933,10 @@ export function HomeLookBook({
   const preparedDate = formatLookBookPreparedDate(personalization.preparedAt);
   const isSubmitted = configuration.reviewStatus === "ready-for-review";
   const selectionSections = getLookBookSelectionSections(lookBook.sections);
+  const coastalImage =
+    plannerContext && configuration.culturalExteriorInterest
+      ? getCulturalDesignImage(definition.homeId)
+      : undefined;
   const context: EditorialContext = {
     definition,
     configuration,
@@ -928,6 +1010,13 @@ export function HomeLookBook({
           </div>
         </div>
       </article>
+
+      {coastalImage ? (
+        <CoastalLookBookSummary
+          homeName={definition.homeName}
+          image={coastalImage}
+        />
+      ) : null}
 
       <div className="look-book-sections">
         {selectionSections.map((section) => (
