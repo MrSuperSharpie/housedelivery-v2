@@ -45,6 +45,7 @@ import {
   type PlannerState,
 } from "@/lib/project-planner";
 import {
+  applyPlannerDesignReturn,
   buildPlannerDesignHref,
   buildPlannerHomeViewHref,
   getPlannerReturnHref,
@@ -1698,48 +1699,8 @@ export function FirstNationsProjectPlanner({
           returned?.lineId &&
           returned.variationId
         ) {
-          const designSelections = Object.fromEntries(
-            [
-              ...Object.entries(returned.configuration.inclusionSelections),
-              ...Object.entries(returned.configuration.flooringSelections),
-            ].flatMap(([categoryId, selection]) =>
-              selection?.status === "confirmed"
-                ? [[categoryId, selection.optionId] as const]
-                : [],
-            ),
-          );
-          const portfolio = restored.portfolio.map((line) =>
-            line.id === returned.lineId
-              ? {
-                  ...line,
-                  designVariations: line.designVariations.map((variation) =>
-                    variation.id === returned.variationId
-                      ? {
-                          ...variation,
-                          status: "complete" as const,
-                          designSelections,
-                          lookBookReference:
-                            returned.configuration.lookBookPersonalization
-                              ?.reference ?? variation.lookBookReference,
-                          projectDesignName:
-                            returned.configuration.lookBookPersonalization
-                              ?.projectDesignName ??
-                            variation.projectDesignName ??
-                            `${returned.homeName} — ${returned.designLabel}`,
-                          culturalDesignDirection:
-                            returned.configuration.culturalDesignDirection,
-                          savedAt: returned.completedAt,
-                        }
-                      : variation,
-                  ),
-                }
-              : line,
-          );
-          const returnedState: PlannerState = {
-            ...restored,
-            portfolio,
-            step: 4,
-          };
+          const returnedState = applyPlannerDesignReturn(restored, returned);
+          const portfolio = returnedState.portfolio;
           window.localStorage.setItem(
             storageKey,
             JSON.stringify(returnedState),

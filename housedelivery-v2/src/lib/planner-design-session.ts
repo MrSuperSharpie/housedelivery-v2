@@ -64,6 +64,51 @@ export type PlannerHomeViewContext = {
   designSession?: PlannerDesignSession;
 };
 
+export function applyPlannerDesignReturn(
+  state: PlannerState,
+  returned: PlannerDesignReturn,
+): PlannerState {
+  const designSelections = Object.fromEntries(
+    [
+      ...Object.entries(returned.configuration.inclusionSelections),
+      ...Object.entries(returned.configuration.flooringSelections),
+    ].flatMap(([categoryId, selection]) =>
+      selection?.status === "confirmed"
+        ? [[categoryId, selection.optionId] as const]
+        : [],
+    ),
+  );
+  const portfolio = state.portfolio.map((line) =>
+    line.id === returned.lineId
+      ? {
+          ...line,
+          designVariations: line.designVariations.map((variation) =>
+            variation.id === returned.variationId
+              ? {
+                  ...variation,
+                  status: "complete" as const,
+                  designSelections,
+                  lookBookReference:
+                    returned.configuration.lookBookPersonalization?.reference ??
+                    variation.lookBookReference,
+                  projectDesignName:
+                    returned.configuration.lookBookPersonalization
+                      ?.projectDesignName ??
+                    variation.projectDesignName ??
+                    `${returned.homeName} — ${returned.designLabel}`,
+                  culturalDesignDirection:
+                    returned.configuration.culturalDesignDirection,
+                  savedAt: returned.completedAt,
+                }
+              : variation,
+          ),
+        }
+      : line,
+  );
+
+  return { ...state, portfolio, step: 4 };
+}
+
 const plannerPhaseLabels: Record<PlannerPhase, string> = {
   "phase-1": "Active / First Build",
   "phase-2": "Near-Term / Next Build",

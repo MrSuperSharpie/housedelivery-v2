@@ -27,6 +27,7 @@ import {
   type PlannerState,
 } from "./project-planner";
 import {
+  applyPlannerDesignReturn,
   buildPlannerDesignHref,
   buildPlannerHomeViewHref,
   getPlannerReturnHref,
@@ -545,6 +546,74 @@ test("contemporary and non-First Nations project modes do not add a cultural exp
   assert.equal(contemporary[0]?.choice, "contemporary");
   assert.deepEqual(contemporary[0]?.areas, []);
   assert.deepEqual(developer, []);
+});
+
+test("Save Look Book return completes the design group and carries cultural intent into the report", () => {
+  const lineId = "solace-cultural-line";
+  const variation = createPlannerDesignVariation(lineId, 2);
+  const state: PlannerState = {
+    ...defaultPlannerState,
+    community: "WestBank",
+    portfolio: [
+      {
+        id: lineId,
+        modelId: "custom:solace",
+        quantity: 2,
+        phase: "phase-1",
+        designVariations: [variation],
+      },
+    ],
+  };
+  const completed = applyPlannerDesignReturn(state, {
+    audience: "first-nations",
+    projectName: "WestBank",
+    lineId,
+    variationId: variation.id,
+    modelId: "custom:solace",
+    homeName: "Solace",
+    designLabel: "Design A",
+    assignedQuantity: 2,
+    deliveryGroup: "Active / First Build",
+    returnHref: "/first-nations-project-planner#planner-design-center",
+    completedAt: "2026-08-23T12:00:00.000Z",
+    configuration: {
+      schemaVersion: 1,
+      homeId: "solace",
+      inclusionSelections: {
+        kitchen: { optionId: "premium-1", status: "confirmed" },
+      },
+      flooringSelections: {},
+      reviewStatus: "ready-for-review",
+      lookBookPersonalization: {
+        projectDesignName: "Solace — Design A",
+        preparedAt: "2026-08-23T12:00:00.000Z",
+        reference: "SOLACE-CULTURAL-001",
+      },
+      culturalDesignDirection: {
+        choice: "explore",
+        areas: [
+          "entry-arrival",
+          "local-artist-artisan-collaboration",
+        ],
+      },
+    },
+  });
+  const completedVariation = completed.portfolio[0]?.designVariations[0];
+  const records = getCulturalDesignReportRecords(
+    completed,
+    firstNationsPlannerCatalog,
+  );
+
+  assert.equal(completed.step, 4);
+  assert.equal(completedVariation?.status, "complete");
+  assert.equal(completedVariation?.assignedQuantity, 2);
+  assert.equal(completedVariation?.lookBookReference, "SOLACE-CULTURAL-001");
+  assert.deepEqual(completedVariation?.culturalDesignDirection?.areas, [
+    "entry-arrival",
+    "local-artist-artisan-collaboration",
+  ]);
+  assert.equal(records[0]?.choice, "explore");
+  assert.equal(records[0]?.artistCollaborationRequested, true);
 });
 
 test("Planner Design My Home links preserve the design-group return context", () => {
