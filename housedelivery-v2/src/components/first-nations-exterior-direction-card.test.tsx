@@ -17,14 +17,13 @@ test("approved Coastal imagery resolves case-sensitive paths without substitutio
     "canmore",
     "cascade",
     "cedarview",
-    "dalton",
     "langley",
     "laurentian",
     "maplewood",
     "meridian",
     "solace",
     "solstice",
-    "southbay",
+    "south-bay",
     "summit",
     "timberline",
   ];
@@ -35,6 +34,11 @@ test("approved Coastal imagery resolves case-sensitive paths without substitutio
     assert.equal(existsSync(`public${image.src}`), true, image.src);
   }
 
+  assert.equal(getCulturalDesignImage("dalton"), undefined);
+  assert.equal(
+    getCulturalDesignImage("south-bay")?.src,
+    "/images/first-nations-inspired/design-center/Southbay-Coastal.png",
+  );
   assert.equal(getCulturalDesignImage("saturna"), undefined);
 });
 
