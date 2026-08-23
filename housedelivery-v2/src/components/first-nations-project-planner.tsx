@@ -1132,12 +1132,20 @@ function OpportunityReport({
     document.title = previousTitle;
   }
 
+  function viewReport() {
+    const report = document.getElementById("planner-opportunity-report");
+    report?.scrollIntoView({ behavior: "smooth", block: "start" });
+    report?.focus({ preventScroll: true });
+  }
+
   return (
     <div>
       <div className="planner-screen-only">
         <StepHeader eyebrow="08 / Preliminary opportunity report" title="A clearer next conversation." intro="This report carries the opportunity, portfolio, planning basis, contextual funding corridors and missing information into a structured House Delivery review." />
-        <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <button type="button" onClick={printReport} className="inline-flex min-h-12 items-center justify-between gap-8 bg-black px-5 text-[9px] font-semibold uppercase tracking-[0.16em] text-white">Download Preliminary Opportunity Report <FileDown aria-hidden="true" className="size-4" /></button>
+        <div data-planner-report-controls="top" className="mt-10 grid gap-3 lg:grid-cols-3">
+          <button type="button" onClick={viewReport} className="inline-flex min-h-14 items-center justify-between gap-8 border border-black/28 px-5 text-left text-[9px] font-semibold uppercase tracking-[0.16em] text-black/68 transition-colors hover:border-black hover:text-black">View Opportunity Report <ArrowRight aria-hidden="true" className="size-4" /></button>
+          <button type="button" onClick={printReport} data-planner-report-download="top" className="inline-flex min-h-14 items-center justify-between gap-8 border border-black px-5 text-left text-[9px] font-semibold uppercase tracking-[0.16em] text-black transition-colors hover:bg-black hover:text-white">Download Opportunity Report <FileDown aria-hidden="true" className="size-4" /></button>
+          <button type="button" onClick={onBeginReview} className="inline-flex min-h-14 items-center justify-between gap-8 bg-black px-5 text-left text-[9px] font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-black/78">Begin Project Review <ArrowRight aria-hidden="true" className="size-4" /></button>
         </div>
       </div>
 
@@ -1210,16 +1218,11 @@ function OpportunityReport({
           </button>
           <button
             type="button"
-            onClick={() => {
-              const report = document.getElementById(
-                "planner-opportunity-report",
-              );
-              report?.scrollIntoView({ behavior: "smooth", block: "start" });
-              report?.focus({ preventScroll: true });
-            }}
-            className="inline-flex min-h-14 items-center justify-between gap-8 border border-black/28 px-6 text-left text-[10px] font-semibold uppercase tracking-[0.17em] text-black/68 transition-colors hover:border-black hover:text-black"
+            onClick={printReport}
+            data-planner-report-download="bottom"
+            className="inline-flex min-h-14 items-center justify-between gap-8 border border-black px-6 text-left text-[10px] font-semibold uppercase tracking-[0.17em] text-black transition-colors hover:bg-black hover:text-white"
           >
-            View Opportunity Report <ArrowRight aria-hidden="true" className="size-4" />
+            Download Opportunity Report <FileDown aria-hidden="true" className="size-4" />
           </button>
           <button
             type="button"
@@ -1246,6 +1249,15 @@ function OpportunityReport({
           </button>
         </div>
       </div>
+
+      <button
+        type="button"
+        onClick={printReport}
+        data-planner-report-download="persistent"
+        className="planner-screen-only fixed bottom-3 right-3 z-40 inline-flex min-h-11 max-w-[calc(100vw-1.5rem)] items-center gap-3 border border-black/18 bg-white px-4 text-[9px] font-semibold uppercase tracking-[0.15em] text-black shadow-[0_12px_36px_rgba(0,0,0,0.16)] transition-colors hover:border-black sm:bottom-6 sm:right-6"
+      >
+        <FileDown aria-hidden="true" className="size-3.5" /> Download Report
+      </button>
     </div>
   );
 }
@@ -1584,7 +1596,7 @@ export function FirstNationsProjectPlanner({ catalog, fundingCorridors }: { cata
     return true;
   }, [state]);
 
-  function goToStep(step: number) {
+  function goToStep(step: number, focusTargetId?: string) {
     setState((current) => {
       const nextState = {
         ...current,
@@ -1594,7 +1606,13 @@ export function FirstNationsProjectPlanner({ catalog, fundingCorridors }: { cata
         ? ensureOpportunityReportReference(nextState)
         : nextState;
     });
-    window.requestAnimationFrame(() => document.getElementById("planner-workspace")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    window.requestAnimationFrame(() => {
+      const target = document.getElementById(
+        focusTargetId ?? "planner-workspace",
+      );
+      target?.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (focusTargetId) target?.focus({ preventScroll: true });
+    });
   }
 
   function resetPlanner() {
@@ -1647,7 +1665,7 @@ export function FirstNationsProjectPlanner({ catalog, fundingCorridors }: { cata
         {state.step === 5 ? <FundingStep state={state} setState={setState} catalog={catalog} corridors={fundingCorridors} /> : null}
         {state.step === 6 ? <ScaleReadinessStep state={state} catalog={catalog} /> : null}
         {state.step === 7 ? <OpportunityReport state={state} onBeginReview={() => goToStep(8)} onEditProject={() => goToStep(1)} onPrevious={() => goToStep(6)} onReset={resetPlanner} catalog={catalog} corridors={fundingCorridors} /> : null}
-        {state.step === 8 ? <ProjectReviewStep state={state} catalog={catalog} corridors={fundingCorridors} onViewReport={() => goToStep(7)} onEditProject={() => goToStep(1)} /> : null}
+        {state.step === 8 ? <ProjectReviewStep state={state} catalog={catalog} corridors={fundingCorridors} onViewReport={() => goToStep(7, "planner-opportunity-report")} onEditProject={() => goToStep(1)} /> : null}
 
         {state.step < 7 ? <div className="planner-screen-only mt-20 flex flex-col-reverse gap-4 border-t border-black/16 pt-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-5">
