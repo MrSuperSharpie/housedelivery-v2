@@ -18,6 +18,7 @@ import {
   getAudienceFundingCorridors,
   getCommunityWorkforceCapacityLabels,
   getCulturalDesignReportRecords,
+  getFirstNationsCulturalDesignDirectionLabel,
   getPlannerDesignProgress,
   getOpportunityReportFundingCorridors,
   getPortfolioSummary,
@@ -436,6 +437,45 @@ test("First Nations workforce and capacity choices persist without changing pric
       ready: true,
     },
   );
+  assert.equal(
+    readiness.some((item) => item.label === "Delivery capacity"),
+    false,
+  );
+});
+
+test("First Nations cultural direction is read from the earlier project-home choice", () => {
+  const lineId = "solace-cultural-direction";
+  const contemporaryState: PlannerState = {
+    ...defaultPlannerState,
+    portfolio: [
+      {
+        id: lineId,
+        modelId: "custom:solace",
+        quantity: 2,
+        phase: "phase-1",
+        designVariations: [createPlannerDesignVariation(lineId, 2)],
+      },
+    ],
+  };
+  const coastalState: PlannerState = {
+    ...contemporaryState,
+    portfolio: contemporaryState.portfolio.map((line) => ({
+      ...line,
+      designVariations: line.designVariations.map((variation) => ({
+        ...variation,
+        culturalExteriorInterest: true,
+      })),
+    })),
+  };
+
+  assert.equal(
+    getFirstNationsCulturalDesignDirectionLabel(contemporaryState),
+    "Contemporary / To be determined",
+  );
+  assert.equal(
+    getFirstNationsCulturalDesignDirectionLabel(coastalState),
+    "Coastal Inspiration selected",
+  );
 });
 
 test("current Planner drafts restore funding choices and the five-home workflow", () => {
@@ -607,6 +647,13 @@ test("project review context carries the complete multi-home Planner record", ()
   assert.match(context, /Interested in local assembly participation/);
   assert.match(context, /Interested in workforce training/);
   assert.match(context, /House Delivery support required/);
+  assert.match(
+    context,
+    /Cultural design direction: Coastal Inspiration selected/,
+  );
+  assert.doesNotMatch(context, /Cultural priorities:/);
+  assert.doesNotMatch(context, /Local labour:/);
+  assert.doesNotMatch(context, /Training objectives:/);
   assert.deepEqual(getCulturalDesignReportRecords(state, firstNationsPlannerCatalog), [
     {
       id: "solace-line:design-a",

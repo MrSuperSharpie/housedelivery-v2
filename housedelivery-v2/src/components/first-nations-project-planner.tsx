@@ -31,6 +31,7 @@ import {
   getAudienceFundingCorridors,
   getCommunityWorkforceCapacityLabels,
   getCulturalDesignReportRecords,
+  getFirstNationsCulturalDesignDirectionLabel,
   getPlannerDesignProgress,
   getOpportunityReportFundingCorridors,
   getPortfolioSummary,
@@ -959,12 +960,18 @@ function RefineStep({
     ["landStatus", "Land / site status", [["unknown", "Unknown / to confirm"], ["on-reserve", "On-reserve"], ["off-reserve", "Off-reserve"], ["mixed", "Mixed land status"]]],
     ["servicing", "Servicing / access / remoteness", [["unknown", "Unknown / to confirm"], ["serviced-road-access", "Serviced with road access"], ["partial-servicing", "Partial servicing"], ["remote-road-access", "Remote with road access"], ["limited-access", "Limited or seasonal access"]]],
     ["affordability", "Housing / tenure approach", [["unknown", "To be determined"], ["community-rental", "Community rental"], ["deeply-affordable", "Affordable housing"], ["mixed-income", "Mixed-income"], ["ownership", "Ownership pathway"]]],
-    ["culturalPriorities", "Cultural / design priorities", [["unknown", "Unknown / to confirm"], ["engagement-required", "Community engagement required"], ["defined-priorities", "Priorities identified"], ["artist-collaboration", "Local artist / artisan collaboration"]]],
     ["energyResilience", "Energy & resilience", [["unknown", "To be determined"], ["code-baseline", "Standard requirements / to be confirmed"], ["enhanced-performance", "Higher energy performance"], ["resilience-priority", "Resilience priority"], ["off-grid-review", "Remote / off-grid conditions"]]],
-    ["localLabour", isFirstNations ? "Local & Indigenous participation" : "Delivery / trade capacity", [["unknown", "To be determined"], ["explore", isFirstNations ? "Interested in local / Indigenous labour" : "Local trade participation to explore"], ["available", "Local crew or trades identified"], ["training-interest", "Interested in training"], ["partner-required", "Need assembly / delivery support"]]],
-    ["trainingObjectives", isFirstNations ? "Assembly / training / maintenance" : "Assembly / maintenance responsibilities", [["unknown", "To be determined"], ["assembly", "Local assembly participation"], ["training", "Training interest"], ["maintenance", "Long-term maintenance capability"], ["support-required", "House Delivery / project delivery support required"]]],
+    ["localLabour", "Delivery / trade capacity", [["unknown", "To be determined"], ["explore", "Local trade participation to explore"], ["available", "Local crew or trades identified"], ["training-interest", "Interested in training"], ["partner-required", "Need assembly / delivery support"]]],
+    ["trainingObjectives", "Assembly / maintenance responsibilities", [["unknown", "To be determined"], ["assembly", "Local assembly participation"], ["training", "Training interest"], ["maintenance", "Long-term maintenance capability"], ["support-required", "House Delivery / project delivery support required"]]],
     ["targetTiming", "Target timing", [["unknown", "Unknown / to confirm"], ["within-12-months", "Within 12 months"], ["12-24-months", "12–24 months"], ["24-plus-months", "24+ months"], ["phased", "Phased pipeline"]]],
   ] as const;
+  const visibleFields = fields.filter(([key]) =>
+    isFirstNations
+      ? key !== "localLabour" && key !== "trainingObjectives"
+      : true,
+  );
+  const culturalDesignDirection =
+    getFirstNationsCulturalDesignDirectionLabel(state);
 
   return (
     <div>
@@ -976,7 +983,7 @@ function RefineStep({
           : "These answers help House Delivery better understand the site, housing approach, delivery responsibilities and commercial context. Every answer can remain unknown while the project is still taking shape."}
       />
       {isFirstNations ? <fieldset className="mt-16 border-t border-black/16 pt-6">
-        <legend className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/46">Who should the portfolio serve?</legend>
+        <legend className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/46">Who should the housing serve?</legend>
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {householdOptions.map(([value, label]) => {
             const checked = state.refinement.householdPriorities.includes(value);
@@ -1043,17 +1050,39 @@ function RefineStep({
         </fieldset>
       ) : null}
       <div className={cn("grid border-l border-t border-black/16 md:grid-cols-2", isFirstNations ? "mt-10" : "mt-16")}>
-        {fields.filter(([key]) => isFirstNations || key !== "culturalPriorities").map(([key, label, options]) => (
-          <label key={key} className="border-b border-r border-black/16 p-5 sm:p-7">
-            <FieldLabel>{label}</FieldLabel>
-            <select value={state.refinement[key] as string} onChange={(event) => update(key, event.target.value)} className={selectClassName}>
-              {options.map(([value, optionLabel]) => <option key={value} value={value}>{optionLabel}</option>)}
-            </select>
-          </label>
-        ))}
+        {visibleFields.flatMap(([key, label, options]) => {
+          const field = (
+            <label key={key} className="border-b border-r border-black/16 p-5 sm:p-7">
+              <FieldLabel>{label}</FieldLabel>
+              <select value={state.refinement[key] as string} onChange={(event) => update(key, event.target.value)} className={selectClassName}>
+                {options.map(([value, optionLabel]) => <option key={value} value={value}>{optionLabel}</option>)}
+              </select>
+            </label>
+          );
+
+          return isFirstNations && key === "energyResilience"
+            ? [
+                <div
+                  key="cultural-design-direction"
+                  data-refine-cultural-design-direction
+                  className="border-b border-r border-black/16 p-5 sm:p-7"
+                >
+                  <FieldLabel>Cultural Design Direction</FieldLabel>
+                  <p className="min-h-12 border border-black/14 bg-black/[0.025] px-4 py-3 text-sm font-medium leading-6 text-black/68">
+                    {culturalDesignDirection}
+                  </p>
+                  <p className="mt-3 text-xs leading-5 text-black/42">
+                    This reflects the earlier project-home direction and is not
+                    another design selection.
+                  </p>
+                </div>,
+                field,
+              ]
+            : [field];
+        })}
       </div>
       <label className="mt-8 block border-t border-black/16 pt-6">
-        <FieldLabel>Project notes / information to carry forward</FieldLabel>
+        <FieldLabel>Project Notes</FieldLabel>
         <textarea
           value={state.projectNotes}
           onChange={(event) => setState((current) => ({ ...current, projectNotes: event.target.value }))}
@@ -1460,6 +1489,21 @@ function OpportunityReport({
   const workforceCapacityIdentified = hasCommunityWorkforceCapacityInterest(
     state.refinement.communityWorkforceCapacity,
   );
+  const majorRangeDrivers = [
+    ["Site and servicing", labelValue(state.refinement.servicing)],
+    ["Access and logistics", state.location || "Unknown / to confirm"],
+    ["Accessibility", labelValue(state.refinement.accessibility)],
+    ["Energy and resilience", labelValue(state.refinement.energyResilience)],
+    ...(state.audience === "first-nations"
+      ? []
+      : [
+          [
+            "Local delivery capacity",
+            labelValue(state.refinement.localLabour),
+          ],
+        ]),
+    ["Timing and phasing", labelValue(state.refinement.targetTiming)],
+  ];
   const missingInformation = readiness.filter((item) => !item.ready).map((item) => item.label);
 
   function printReport() {
@@ -1528,24 +1572,19 @@ function OpportunityReport({
         </ReportSection>
 
         <ReportSection number="05" title="Major range drivers">
-          <div className="grid gap-3 sm:grid-cols-2">{[["Site and servicing", labelValue(state.refinement.servicing)], ["Access and logistics", state.location || "Unknown / to confirm"], ["Accessibility", labelValue(state.refinement.accessibility)], ["Energy and resilience", labelValue(state.refinement.energyResilience)], ["Local delivery capacity", labelValue(state.refinement.localLabour)], ["Timing and phasing", labelValue(state.refinement.targetTiming)]].map(([label, value]) => <p key={label} className="border-t border-black/16 pt-3 text-sm"><span className="text-black/42">{label}</span><br />{value}</p>)}</div>
+          <div className="grid gap-3 sm:grid-cols-2">{majorRangeDrivers.map(([label, value]) => <p key={label} className="border-t border-black/16 pt-3 text-sm"><span className="text-black/42">{label}</span><br />{value}</p>)}</div>
         </ReportSection>
 
         <ReportSection number="06" title="Scale and readiness">
           <div className="grid gap-x-8 sm:grid-cols-2">{readiness.map((item) => <div key={item.label} className="grid grid-cols-[auto_1fr] gap-3 border-t border-black/16 py-3"><span>{item.ready ? "●" : "○"}</span><p className="text-sm"><span className="font-medium">{item.label}</span><br /><span className="text-xs text-black/48">{item.detail}</span></p></div>)}</div>
         </ReportSection>
 
-        <ReportSection number="07" title={state.audience === "first-nations" ? "Community participation and capability" : state.audience === "developer" ? "Development and delivery capability" : state.audience === "general-contractor" ? "Procurement, logistics and delivery capability" : "Community delivery and operating capability"}>
-          <div className="grid gap-5 sm:grid-cols-2">{[[state.audience === "first-nations" ? "Local & Indigenous participation" : "Delivery / trade capacity", labelValue(state.refinement.localLabour)], [state.audience === "first-nations" ? "Assembly / training / maintenance" : "Assembly / maintenance responsibilities", labelValue(state.refinement.trainingObjectives)]].map(([label, value]) => <p key={label} className="border-t border-black/16 pt-3 text-sm"><span className="text-black/42">{label}</span><br />{value}</p>)}</div>
+        <ReportSection number="07" title={state.audience === "first-nations" ? "Community workforce & capacity" : state.audience === "developer" ? "Development and delivery capability" : state.audience === "general-contractor" ? "Procurement, logistics and delivery capability" : "Community delivery and operating capability"}>
           {state.audience === "first-nations" ? (
             <div
               data-report-community-workforce-capacity
-              className="mt-9 border-t border-black/18 pt-7"
             >
-              <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/46">
-                Community Workforce &amp; Capacity
-              </p>
-              <p className="mt-4 max-w-4xl text-sm leading-6 text-black/60">
+              <p className="max-w-4xl text-sm leading-6 text-black/60">
                 {workforceCapacityIdentified
                   ? communityWorkforceCapacityReviewStatement
                   : "Community workforce and capacity interests remain to be determined during project review."}
@@ -1556,7 +1595,18 @@ function OpportunityReport({
                 ))}
               </ul>
             </div>
-          ) : null}
+          ) : (
+            <div className="grid gap-5 sm:grid-cols-2">
+              {[
+                ["Delivery / trade capacity", labelValue(state.refinement.localLabour)],
+                ["Assembly / maintenance responsibilities", labelValue(state.refinement.trainingObjectives)],
+              ].map(([label, value]) => (
+                <p key={label} className="border-t border-black/16 pt-3 text-sm">
+                  <span className="text-black/42">{label}</span><br />{value}
+                </p>
+              ))}
+            </div>
+          )}
         </ReportSection>
 
         <ReportSection number="08" title={state.audience === "first-nations" ? "Funding corridors" : "Funding and financing context"}>

@@ -837,13 +837,17 @@ export function getReadinessProfile(
         : "Affordability approach to confirm",
       ready: known(state.refinement.affordability),
     },
-    {
-      label: "Delivery capacity",
-      detail: known(state.refinement.localLabour)
-        ? state.refinement.localLabour.replaceAll("-", " ")
-        : "Local delivery capacity to confirm",
-      ready: known(state.refinement.localLabour),
-    },
+    ...(state.audience === "first-nations"
+      ? []
+      : [
+          {
+            label: "Delivery capacity",
+            detail: known(state.refinement.localLabour)
+              ? state.refinement.localLabour.replaceAll("-", " ")
+              : "Local delivery capacity to confirm",
+            ready: known(state.refinement.localLabour),
+          },
+        ]),
     ...(state.audience === "first-nations"
       ? [
           {
@@ -888,6 +892,22 @@ export type CulturalDesignReportRecord = {
   id: string;
   designName: string;
 };
+
+export function getFirstNationsCulturalDesignDirectionLabel(
+  state: PlannerState,
+) {
+  const coastalSelected =
+    state.audience === "first-nations" &&
+    state.portfolio.some((line) =>
+      line.designVariations.some(
+        (variation) => variation.culturalExteriorInterest === true,
+      ),
+    );
+
+  return coastalSelected
+    ? "Coastal Inspiration selected"
+    : "Contemporary / To be determined";
+}
 
 export function getCulturalDesignReportRecords(
   state: PlannerState,
@@ -941,10 +961,11 @@ export function formatProjectReviewContext(
           ["Land status", state.refinement.landStatus],
           ["Servicing", state.refinement.servicing],
           ["Affordability", state.refinement.affordability],
-          ["Cultural priorities", state.refinement.culturalPriorities],
+          [
+            "Cultural design direction",
+            getFirstNationsCulturalDesignDirectionLabel(state),
+          ],
           ["Energy / resilience", state.refinement.energyResilience],
-          ["Local labour", state.refinement.localLabour],
-          ["Training objectives", state.refinement.trainingObjectives],
           ["Canadian value", state.refinement.canadianValue],
           ["Target timing", state.refinement.targetTiming],
         ] as const)
