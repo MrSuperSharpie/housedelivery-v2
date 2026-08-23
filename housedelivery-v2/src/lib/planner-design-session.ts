@@ -1,7 +1,9 @@
 import type { HomeConfiguration } from "@/data/home-configurator";
 import {
   createPlannerDesignVariation,
+  isPlannerAudience,
   migratePlannerState,
+  type PlannerAudience,
   type PlannerPhase,
   type PlannerState,
 } from "@/lib/project-planner";
@@ -10,7 +12,29 @@ export const PLANNER_STORAGE_KEY = "house-delivery:first-nations-planner:v1";
 export const PLANNER_RETURN_KEY =
   "house-delivery:first-nations-planner:return:v1";
 
+export function getPlannerStorageKey(audience: PlannerAudience) {
+  return audience === "first-nations"
+    ? PLANNER_STORAGE_KEY
+    : `house-delivery:project-planner:${audience}:v1`;
+}
+
+export function getPlannerReturnKey(audience: PlannerAudience) {
+  return audience === "first-nations"
+    ? PLANNER_RETURN_KEY
+    : `house-delivery:project-planner:${audience}:return:v1`;
+}
+
+export function getPlannerReturnHref(
+  audience: PlannerAudience,
+  anchor = "planner",
+) {
+  return audience === "first-nations"
+    ? `/first-nations-project-planner#${anchor}`
+    : `/project-portfolio-planner?audience=${audience}#${anchor}`;
+}
+
 export type PlannerDesignSession = {
+  audience: PlannerAudience;
   projectName: string;
   lineId: string;
   variationId: string;
@@ -28,6 +52,7 @@ export type PlannerDesignReturn = PlannerDesignSession & {
 };
 
 export type PlannerHomeViewContext = {
+  audience: PlannerAudience;
   projectName: string;
   totalHomes: number;
   modelId: string;
@@ -45,8 +70,18 @@ const plannerPhaseLabels: Record<PlannerPhase, string> = {
   future: "Future Pipeline",
 };
 
-function isPlannerReturnHref(value: string) {
-  return value.startsWith("/first-nations-project-planner");
+function isPlannerReturnHref(value: string, audience: PlannerAudience) {
+  if (!value.startsWith("/") || value.startsWith("//")) return false;
+
+  const url = new URL(value, "https://www.housedelivery.ca");
+  if (audience === "first-nations") {
+    return url.pathname === "/first-nations-project-planner";
+  }
+
+  return (
+    url.pathname === "/project-portfolio-planner" &&
+    url.searchParams.get("audience") === audience
+  );
 }
 
 function setPlannerDesignSessionParams(
@@ -74,7 +109,7 @@ export function buildPlannerDesignHref(
   destination: "configure" | "look-book" = "configure",
 ) {
   const url = new URL(baseHref, "https://www.housedelivery.ca");
-  url.searchParams.set("planner", "first-nations");
+  url.searchParams.set("planner", session.audience);
   setPlannerDesignSessionParams(url, session);
   url.hash = destination === "look-book" ? "home-look-book" : "home-inclusions";
   return `${url.pathname}${url.search}${url.hash}`;
@@ -85,7 +120,7 @@ export function buildPlannerHomeViewHref(
   context: PlannerHomeViewContext,
 ) {
   const url = new URL(baseHref, "https://www.housedelivery.ca");
-  url.searchParams.set("planner", "first-nations");
+  url.searchParams.set("planner", context.audience);
   url.searchParams.set("plannerView", "home");
   url.searchParams.set("plannerProject", context.projectName);
   url.searchParams.set("plannerTotalHomes", String(context.totalHomes));
@@ -108,6 +143,7 @@ export function readPlannerHomeViewContext(
   search: string,
 ): PlannerHomeViewContext | undefined {
   const params = new URLSearchParams(search);
+  const audience = params.get("planner");
   const projectName = params.get("plannerProject");
   const modelId = params.get("plannerModel");
   const homeName = params.get("plannerHome");
@@ -118,13 +154,13 @@ export function readPlannerHomeViewContext(
   const phase = params.get("plannerPhase");
 
   if (
-    params.get("planner") !== "first-nations" ||
+    !isPlannerAudience(audience) ||
     params.get("plannerView") !== "home" ||
     !projectName ||
     !modelId ||
     !homeName ||
     !returnHref ||
-    !isPlannerReturnHref(returnHref) ||
+    !isPlannerReturnHref(returnHref, audience) ||
     !Number.isFinite(totalHomes) ||
     totalHomes < 0 ||
     !Number.isFinite(homeQuantity) ||
@@ -149,6 +185,7 @@ export function readPlannerHomeViewContext(
   }
 
   return {
+    audience,
     projectName,
     totalHomes,
     modelId,
@@ -166,13 +203,14 @@ export function readPlannerHomeViewReturnHref(search: string) {
   if (context) return context.returnHref;
 
   const params = new URLSearchParams(search);
+  const audience = params.get("planner");
   const returnHref = params.get("plannerReturn");
 
   if (
-    params.get("planner") !== "first-nations" ||
+    !isPlannerAudience(audience) ||
     params.get("plannerView") !== "home" ||
     !returnHref ||
-    !isPlannerReturnHref(returnHref)
+    !isPlannerReturnHref(returnHref, audience)
   ) {
     return undefined;
   }
@@ -184,7 +222,8 @@ export function readPlannerDesignSession(
   search: string,
 ): PlannerDesignSession | undefined {
   const params = new URLSearchParams(search);
-  if (params.get("planner") !== "first-nations") return undefined;
+  const audience = params.get("planner");
+  if (!isPlannerAudience(audience)) return undefined;
 
   const projectName = params.get("plannerProject");
   const lineId = params.get("plannerLine");
@@ -205,7 +244,7 @@ export function readPlannerDesignSession(
     !designLabel ||
     !deliveryGroup ||
     !returnHref ||
-    !isPlannerReturnHref(returnHref) ||
+    !isPlannerReturnHref(returnHref, audience) ||
     !Number.isFinite(assignedQuantity) ||
     assignedQuantity < 1
   ) {
@@ -213,6 +252,7 @@ export function readPlannerDesignSession(
   }
 
   return {
+    audience,
     projectName,
     lineId,
     variationId,
@@ -231,9 +271,16 @@ export function addPlannerHomeViewContextToProject(
   if (typeof window === "undefined") return undefined;
 
   try {
-    const saved = window.localStorage.getItem(PLANNER_STORAGE_KEY);
+    const storageKey = getPlannerStorageKey(context.audience);
+    const saved = window.localStorage.getItem(storageKey);
     const state = saved ? migratePlannerState(JSON.parse(saved)) : undefined;
-    if (!state || state.community !== context.projectName) return undefined;
+    if (
+      !state ||
+      state.audience !== context.audience ||
+      state.community !== context.projectName
+    ) {
+      return undefined;
+    }
 
     const existing = state.portfolio.find(
       (line) => line.modelId === context.modelId,
@@ -264,9 +311,10 @@ export function addPlannerHomeViewContextToProject(
           step: 1,
           portfolio: [...state.portfolio, line],
         };
-    window.localStorage.setItem(PLANNER_STORAGE_KEY, JSON.stringify(nextState));
+    window.localStorage.setItem(storageKey, JSON.stringify(nextState));
 
     return {
+      audience: context.audience,
       projectName: state.community,
       lineId: line.id,
       variationId: variation.id,

@@ -1,4 +1,22 @@
-export type PlannerAudience = "first-nations" | "developer";
+export const plannerAudiences = [
+  "first-nations",
+  "developer",
+  "general-contractor",
+  "municipality-non-profit",
+] as const;
+
+export type PlannerAudience = (typeof plannerAudiences)[number];
+
+export const plannerAudienceLabels: Record<PlannerAudience, string> = {
+  "first-nations": "First Nation / Indigenous Community",
+  developer: "Developer / Landowner",
+  "general-contractor": "General Contractor",
+  "municipality-non-profit": "Municipality / Non-Profit",
+};
+
+export function isPlannerAudience(value: unknown): value is PlannerAudience {
+  return plannerAudiences.includes(value as PlannerAudience);
+}
 
 export type PlannerPhase = "phase-1" | "phase-2" | "future";
 
@@ -101,6 +119,7 @@ export type PlannerState = {
   approximateHomes: string;
   sitePattern: string;
   deliveryHorizon: string;
+  audienceContext: Readonly<Record<string, string>>;
   portfolio: readonly PlannerPortfolioLine[];
   refinement: ProjectRefinement;
   fundingCorridorDecisions: Readonly<
@@ -153,33 +172,40 @@ export type ReportFundingCorridor = MatchedFundingCorridor & {
   decision?: FundingCorridorDecision;
 };
 
-export const defaultPlannerState: PlannerState = {
-  version: 4,
-  audience: "first-nations",
-  step: 0,
-  community: "",
-  location: "",
-  approximateHomes: "",
-  sitePattern: "unknown",
-  deliveryHorizon: "unknown",
-  portfolio: [],
-  refinement: {
-    householdPriorities: ["unknown"],
-    accessibility: "unknown",
-    landStatus: "unknown",
-    servicing: "unknown",
-    affordability: "unknown",
-    culturalPriorities: "unknown",
-    energyResilience: "unknown",
-    localLabour: "unknown",
-    trainingObjectives: "unknown",
-    canadianValue: "unknown",
-    targetTiming: "unknown",
-  },
-  fundingCorridorDecisions: {},
-  opportunityReportReference: "",
-  projectNotes: "",
-};
+export function createDefaultPlannerState(
+  audience: PlannerAudience = "first-nations",
+): PlannerState {
+  return {
+    version: 4,
+    audience,
+    step: 0,
+    community: "",
+    location: "",
+    approximateHomes: "",
+    sitePattern: "unknown",
+    deliveryHorizon: "unknown",
+    audienceContext: {},
+    portfolio: [],
+    refinement: {
+      householdPriorities: ["unknown"],
+      accessibility: "unknown",
+      landStatus: "unknown",
+      servicing: "unknown",
+      affordability: "unknown",
+      culturalPriorities: "unknown",
+      energyResilience: "unknown",
+      localLabour: "unknown",
+      trainingObjectives: "unknown",
+      canadianValue: "unknown",
+      targetTiming: "unknown",
+    },
+    fundingCorridorDecisions: {},
+    opportunityReportReference: "",
+    projectNotes: "",
+  };
+}
+
+export const defaultPlannerState: PlannerState = createDefaultPlannerState();
 
 type LegacyPlannerPortfolioLine = Omit<PlannerPortfolioLine, "designVariations"> & {
   designSelections?: Readonly<Record<string, string>>;
@@ -189,11 +215,12 @@ type LegacyPlannerPortfolioLine = Omit<PlannerPortfolioLine, "designVariations">
 
 type LegacyPlannerState = Omit<
   PlannerState,
-  "version" | "portfolio" | "fundingCorridorDecisions"
+  "version" | "portfolio" | "fundingCorridorDecisions" | "audienceContext"
 > & {
   version?: number;
   portfolio?: readonly LegacyPlannerPortfolioLine[];
   fundingCorridorDecisions?: unknown;
+  audienceContext?: unknown;
 };
 
 function getDesignLetter(index: number) {
@@ -219,7 +246,8 @@ export function createPlannerDesignVariation(
 export function migratePlannerState(value: unknown): PlannerState | undefined {
   if (!value || typeof value !== "object") return undefined;
   const candidate = value as Partial<LegacyPlannerState>;
-  if (candidate.audience !== "first-nations") return undefined;
+  if (!isPlannerAudience(candidate.audience)) return undefined;
+  const defaults = createDefaultPlannerState(candidate.audience);
 
   const portfolio = Array.isArray(candidate.portfolio)
     ? candidate.portfolio.flatMap((line) => {
@@ -274,12 +302,21 @@ export function migratePlannerState(value: unknown): PlannerState | undefined {
       : {};
 
   return {
-    ...defaultPlannerState,
+    ...defaults,
     ...candidate,
     version: 4,
+    audience: candidate.audience,
+    audienceContext:
+      candidate.audienceContext && typeof candidate.audienceContext === "object"
+        ? Object.fromEntries(
+            Object.entries(candidate.audienceContext).flatMap(([key, value]) =>
+              typeof value === "string" ? [[key, value]] : [],
+            ),
+          )
+        : {},
     portfolio,
     refinement: {
-      ...defaultPlannerState.refinement,
+      ...defaults.refinement,
       ...(candidate.refinement ?? {}),
     },
     fundingCorridorDecisions,
@@ -553,6 +590,22 @@ export function matchFundingCorridors(
   });
 }
 
+export function getAudienceFundingCorridors(
+  audience: PlannerAudience,
+  corridors: readonly FundingCorridor[],
+) {
+  if (audience === "first-nations") return corridors;
+
+  const generalProjectCorridorIds = new Set([
+    "build-canada-homes",
+    "cmhc-aclp",
+    "bc-builds",
+  ]);
+  return corridors.filter((corridor) =>
+    generalProjectCorridorIds.has(corridor.id),
+  );
+}
+
 const fundingRelevanceRank: Record<FundingRelevance, number> = {
   "Strong corridor to explore": 0,
   "Relevant corridor": 1,
@@ -605,6 +658,43 @@ export function getReadinessProfile(
   const summary = getPortfolioSummary(state.portfolio, catalog);
   const known = (value: string) => value !== "unknown" && value.trim() !== "";
 
+  const audienceReadiness =
+    state.audience === "first-nations"
+      ? {
+          label: "Community engagement",
+          detail:
+            state.refinement.householdPriorities.length > 0 &&
+            !state.refinement.householdPriorities.includes("unknown")
+              ? "Priority households identified"
+              : "Community priorities to confirm",
+          ready:
+            state.refinement.householdPriorities.length > 0 &&
+            !state.refinement.householdPriorities.includes("unknown"),
+        }
+      : state.audience === "developer"
+        ? {
+            label: "Development readiness",
+            detail: known(state.audienceContext.developmentReadiness ?? "")
+              ? state.audienceContext.developmentReadiness.replaceAll("-", " ")
+              : "Development readiness to confirm",
+            ready: known(state.audienceContext.developmentReadiness ?? ""),
+          }
+        : state.audience === "general-contractor"
+          ? {
+              label: "Procurement role",
+              detail: known(state.audienceContext.procurementRole ?? "")
+                ? state.audienceContext.procurementRole.replaceAll("-", " ")
+                : "Procurement role to confirm",
+              ready: known(state.audienceContext.procurementRole ?? ""),
+            }
+          : {
+              label: "Housing need",
+              detail: known(state.audienceContext.housingNeed ?? "")
+                ? state.audienceContext.housingNeed.replaceAll("-", " ")
+                : "Housing need to confirm",
+              ready: known(state.audienceContext.housingNeed ?? ""),
+            };
+
   return [
     {
       label: "Housing requirement",
@@ -648,17 +738,7 @@ export function getReadinessProfile(
         : "Local delivery capacity to confirm",
       ready: known(state.refinement.localLabour),
     },
-    {
-      label: "Community engagement",
-      detail:
-        state.refinement.householdPriorities.length > 0 &&
-        !state.refinement.householdPriorities.includes("unknown")
-          ? "Priority households identified"
-          : "Community priorities to confirm",
-      ready:
-        state.refinement.householdPriorities.length > 0 &&
-        !state.refinement.householdPriorities.includes("unknown"),
-    },
+    audienceReadiness,
     {
       label: "Funding pathway",
       detail: known(state.refinement.affordability)
@@ -694,7 +774,11 @@ export function formatProjectReviewContext(
 ) {
   const summary = getPortfolioSummary(state.portfolio, catalog);
   const readiness = getReadinessProfile(state, catalog);
-  const matchedCorridors = matchFundingCorridors(state, corridors, catalog);
+  const matchedCorridors = matchFundingCorridors(
+    state,
+    getAudienceFundingCorridors(state.audience, corridors),
+    catalog,
+  );
   const selectedFunding = matchedCorridors.filter(
     (corridor) => state.fundingCorridorDecisions[corridor.id] === "include",
   );
@@ -702,19 +786,42 @@ export function formatProjectReviewContext(
     (corridor) =>
       state.fundingCorridorDecisions[corridor.id] === "not-relevant",
   );
-  const refinement = [
-    ["Household priorities", state.refinement.householdPriorities.join(", ")],
-    ["Accessibility", state.refinement.accessibility],
-    ["Land status", state.refinement.landStatus],
-    ["Servicing", state.refinement.servicing],
-    ["Affordability", state.refinement.affordability],
-    ["Cultural priorities", state.refinement.culturalPriorities],
-    ["Energy / resilience", state.refinement.energyResilience],
-    ["Local labour", state.refinement.localLabour],
-    ["Training objectives", state.refinement.trainingObjectives],
-    ["Canadian value", state.refinement.canadianValue],
-    ["Target timing", state.refinement.targetTiming],
-  ] as const;
+  const refinement =
+    state.audience === "first-nations"
+      ? ([
+          [
+            "Household priorities",
+            state.refinement.householdPriorities.join(", "),
+          ],
+          ["Accessibility", state.refinement.accessibility],
+          ["Land status", state.refinement.landStatus],
+          ["Servicing", state.refinement.servicing],
+          ["Affordability", state.refinement.affordability],
+          ["Cultural priorities", state.refinement.culturalPriorities],
+          ["Energy / resilience", state.refinement.energyResilience],
+          ["Local labour", state.refinement.localLabour],
+          ["Training objectives", state.refinement.trainingObjectives],
+          ["Canadian value", state.refinement.canadianValue],
+          ["Target timing", state.refinement.targetTiming],
+        ] as const)
+      : ([
+          ["Land / site control", state.refinement.landStatus],
+          ["Servicing", state.refinement.servicing],
+          ["Housing / tenure approach", state.refinement.affordability],
+          ["Accessibility", state.refinement.accessibility],
+          ["Energy / resilience", state.refinement.energyResilience],
+          ["Delivery capacity", state.refinement.localLabour],
+          ["Target timing", state.refinement.targetTiming],
+          ...Object.entries(state.audienceContext).map(
+            ([key, value]) =>
+              [
+                key
+                  .replace(/([A-Z])/g, " $1")
+                  .replace(/^./, (letter) => letter.toUpperCase()),
+                value,
+              ] as const,
+          ),
+        ] as const);
   const portfolioLines = summary.lines.flatMap(({ line, model }) => [
     `${model.name}: ${line.quantity} selection${line.quantity === 1 ? "" : "s"} / ${line.quantity * model.homesPerSelection} home${line.quantity * model.homesPerSelection === 1 ? "" : "s"} / ${projectReviewPhaseLabels[line.phase]}`,
     ...line.designVariations.map((variation) => {
@@ -728,6 +835,9 @@ export function formatProjectReviewContext(
   return [
     "HOUSE DELIVERY PLANNER PROJECT REVIEW",
     `Opportunity Report: ${state.opportunityReportReference || "Reference pending"}`,
+    ...(state.audience === "first-nations"
+      ? []
+      : [`Audience: ${plannerAudienceLabels[state.audience]}`]),
     `Community / project: ${state.community || "To confirm"}`,
     `Location: ${state.location || "To confirm"}`,
     `Housing requirement: ${state.approximateHomes || "To confirm"}`,

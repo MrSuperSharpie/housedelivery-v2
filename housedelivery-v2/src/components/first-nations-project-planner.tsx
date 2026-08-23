@@ -18,22 +18,25 @@ import { cn } from "@/lib/cn";
 import {
   addPlannerDesignVariation,
   calculatePreliminaryEstimate,
+  createDefaultPlannerState,
   createOpportunityReportReference,
   createPlannerDesignVariation,
-  defaultPlannerState,
   formatPlanningValue,
   formatProjectReviewContext,
+  getAudienceFundingCorridors,
   getPlannerDesignProgress,
   getOpportunityReportFundingCorridors,
   getPortfolioSummary,
   getReadinessProfile,
   matchFundingCorridors,
   migratePlannerState,
+  plannerAudienceLabels,
   reassignPlannerDesignQuantity,
   resizePlannerDesignVariations,
   type FundingCorridor,
   type FundingCorridorDecision,
   type PlannerCatalogItem,
+  type PlannerAudience,
   type PlannerDesignVariation,
   type PlannerPhase,
   type PlannerPortfolioLine,
@@ -42,8 +45,9 @@ import {
 import {
   buildPlannerDesignHref,
   buildPlannerHomeViewHref,
-  PLANNER_RETURN_KEY,
-  PLANNER_STORAGE_KEY,
+  getPlannerReturnHref,
+  getPlannerReturnKey,
+  getPlannerStorageKey,
   type PlannerDesignReturn,
   type PlannerDesignSession,
 } from "@/lib/planner-design-session";
@@ -59,8 +63,8 @@ const fundingDecisionLabels: Record<FundingCorridorDecision, string> = {
   "not-relevant": "Not Relevant",
 };
 
-const steps = [
-  { label: "Community Need", eyebrow: "Start" },
+const sharedSteps = [
+  { label: "Project Intake", eyebrow: "Start" },
   { label: "My Project", eyebrow: "Build" },
   { label: "Quick Estimate", eyebrow: "Understand" },
   { label: "Refine Project", eyebrow: "Refine" },
@@ -70,6 +74,10 @@ const steps = [
   { label: "Opportunity Report", eyebrow: "Review" },
   { label: "Project Review", eyebrow: "Submit" },
 ] as const;
+
+const firstNationsSteps = sharedSteps.map((step, index) =>
+  index === 0 ? { ...step, label: "Community Need" } : step,
+);
 
 const householdOptions = [
   ["families", "Families"],
@@ -103,12 +111,14 @@ function getPlannerHomeName(name: string) {
 }
 
 function getPlannerDesignSession(
+  audience: PlannerAudience,
   projectName: string,
   line: PlannerPortfolioLine,
   model: PlannerCatalogItem,
   variation: PlannerDesignVariation,
 ): PlannerDesignSession {
   return {
+    audience,
     projectName,
     lineId: line.id,
     variationId: variation.id,
@@ -117,7 +127,7 @@ function getPlannerDesignSession(
     designLabel: variation.label,
     assignedQuantity: variation.assignedQuantity,
     deliveryGroup: plannerPhaseLabels[line.phase],
-    returnHref: "/first-nations-project-planner#planner-design-center",
+    returnHref: getPlannerReturnHref(audience, "planner-design-center"),
   };
 }
 
@@ -128,6 +138,12 @@ function labelValue(value: string) {
         .split("-")
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(" ");
+}
+
+function audienceContextLabel(key: string) {
+  return key
+    .replace(/([A-Z])/g, " $1")
+    .replace(/^./, (letter) => letter.toUpperCase());
 }
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
@@ -167,6 +183,7 @@ function PlannerHomeActions({
   totalHomes,
   requestedQuantity,
   requestedPhase,
+  audience,
 }: {
   item: PlannerCatalogItem;
   line?: PlannerPortfolioLine;
@@ -174,10 +191,11 @@ function PlannerHomeActions({
   totalHomes: number;
   requestedQuantity: number;
   requestedPhase: PlannerPhase;
+  audience: PlannerAudience;
 }) {
   const variation = line?.designVariations[0];
   const session = line && variation
-    ? getPlannerDesignSession(projectName, line, item, variation)
+    ? getPlannerDesignSession(audience, projectName, line, item, variation)
     : undefined;
   const buildHref = item.buildMyHref && session
     ? buildPlannerDesignHref(item.buildMyHref, session)
@@ -191,6 +209,7 @@ function PlannerHomeActions({
       <div>
         <PlannerLink
           href={buildPlannerHomeViewHref(item.viewHref, {
+            audience,
             projectName,
             totalHomes,
             modelId: item.id,
@@ -201,7 +220,7 @@ function PlannerHomeActions({
             phase: line?.phase ?? requestedPhase,
             returnHref:
               session?.returnHref ??
-              "/first-nations-project-planner#planner-workspace",
+              getPlannerReturnHref(audience, "planner-workspace"),
             designSession: session,
           })}
           newTab={false}
@@ -330,6 +349,148 @@ function StartStep({
             <option value="future-pipeline">Future pipeline</option>
           </select>
         </label>
+      </div>
+    </div>
+  );
+}
+
+type AudienceIntakeField = {
+  key: string;
+  label: string;
+  target: "context" | "refinement" | "state";
+  options: readonly (readonly [string, string])[];
+};
+
+const audienceIntakeFields: Record<
+  Exclude<PlannerAudience, "first-nations">,
+  readonly AudienceIntakeField[]
+> = {
+  developer: [
+    { key: "landStatus", label: "Land / site control", target: "refinement", options: [["unknown", "Unknown / to confirm"], ["controlled", "Site controlled"], ["under-contract", "Under contract"], ["exploring", "Exploring sites"]] },
+    { key: "affordability", label: "Housing / tenure approach", target: "refinement", options: [["unknown", "To be determined"], ["market-rental", "Market rental"], ["ownership", "For-sale / ownership"], ["mixed-income", "Mixed tenure"], ["community-rental", "Affordable / community rental"]] },
+    { key: "servicing", label: "Servicing status", target: "refinement", options: [["unknown", "Unknown / to confirm"], ["serviced-road-access", "Serviced"], ["partial-servicing", "Partially serviced"], ["unserviced", "Unserviced"]] },
+    { key: "deliveryHorizon", label: "Timing / phasing", target: "state", options: [["unknown", "Unknown / to confirm"], ["immediate", "First build ready to advance"], ["phased", "Phased delivery"], ["future-pipeline", "Future pipeline"]] },
+    { key: "developmentReadiness", label: "Development readiness", target: "context", options: [["unknown", "Early exploration"], ["concept", "Concept / due diligence"], ["approvals", "Approvals work underway"], ["procurement", "Preparing for procurement"]] },
+  ],
+  "general-contractor": [
+    { key: "clientProjectType", label: "Client / project type", target: "context", options: [["unknown", "To be confirmed"], ["private", "Private developer / landowner"], ["indigenous", "First Nation / Indigenous community"], ["public", "Municipality / public agency"], ["non-profit", "Non-profit / community housing"]] },
+    { key: "procurementRole", label: "Procurement role", target: "context", options: [["unknown", "To be confirmed"], ["prime-contractor", "Prime / general contractor"], ["construction-manager", "Construction manager"], ["design-build", "Design-build team"], ["early-partner", "Early delivery partner"]] },
+    { key: "siteReadiness", label: "Site readiness", target: "context", options: [["unknown", "Unknown / to confirm"], ["early", "Early site review"], ["preparation", "Site preparation planning"], ["ready", "Site ready / near ready"]] },
+    { key: "logisticsRequirements", label: "Logistics / delivery requirements", target: "context", options: [["unknown", "To be confirmed"], ["standard", "Standard road access"], ["constrained", "Constrained access"], ["remote", "Remote / special logistics"]] },
+    { key: "assemblyResponsibilities", label: "Assembly / local trade responsibilities", target: "context", options: [["unknown", "To be confirmed"], ["gc-led", "GC-led assembly and trades"], ["shared", "Shared delivery responsibilities"], ["support-required", "House Delivery support required"]] },
+    { key: "deliveryHorizon", label: "Timing / phasing", target: "state", options: [["unknown", "Unknown / to confirm"], ["immediate", "Immediate project"], ["phased", "Phased delivery"], ["future-pipeline", "Future pipeline"]] },
+  ],
+  "municipality-non-profit": [
+    { key: "housingNeed", label: "Housing need", target: "context", options: [["unknown", "To be confirmed"], ["affordable-rental", "Affordable rental"], ["supportive", "Supportive / specialized housing"], ["workforce", "Workforce housing"], ["mixed", "Mixed housing need"]] },
+    { key: "landStatus", label: "Land / site control", target: "refinement", options: [["unknown", "Unknown / to confirm"], ["controlled", "Site controlled"], ["partnership", "Partner-controlled site"], ["exploring", "Exploring sites"]] },
+    { key: "affordability", label: "Housing / affordability approach", target: "refinement", options: [["unknown", "To be determined"], ["community-rental", "Community / non-market rental"], ["deeply-affordable", "Deep affordability"], ["mixed-income", "Mixed-income"], ["ownership", "Ownership pathway"]] },
+    { key: "fundingStatus", label: "Funding status", target: "context", options: [["unknown", "To be confirmed"], ["exploring", "Funding options being explored"], ["applications", "Applications planned / underway"], ["committed", "Some funding committed"]] },
+    { key: "servicing", label: "Servicing", target: "refinement", options: [["unknown", "Unknown / to confirm"], ["serviced-road-access", "Serviced"], ["partial-servicing", "Partially serviced"], ["unserviced", "Unserviced"]] },
+    { key: "deliveryHorizon", label: "Timing / delivery readiness", target: "state", options: [["unknown", "Unknown / to confirm"], ["immediate", "Ready to advance"], ["phased", "Phased delivery"], ["future-pipeline", "Future pipeline"]] },
+  ],
+};
+
+function AudienceStartStep({
+  state,
+  setState,
+}: {
+  state: PlannerState;
+  setState: React.Dispatch<React.SetStateAction<PlannerState>>;
+}) {
+  if (state.audience === "first-nations") return null;
+  const fields = audienceIntakeFields[state.audience];
+
+  function updateField(field: AudienceIntakeField, value: string) {
+    setState((current) => {
+      if (field.target === "context") {
+        return {
+          ...current,
+          audienceContext: { ...current.audienceContext, [field.key]: value },
+        };
+      }
+      if (field.target === "refinement") {
+        return {
+          ...current,
+          refinement: { ...current.refinement, [field.key]: value },
+        };
+      }
+      return {
+        ...current,
+        deliveryHorizon: value,
+        refinement: { ...current.refinement, targetTiming: value },
+      };
+    });
+  }
+
+  return (
+    <div>
+      <StepHeader
+        eyebrow={`01 / ${plannerAudienceLabels[state.audience]}`}
+        title="Begin with the project."
+        intro="Create a short working picture of the site, housing programme and delivery readiness. Every answer can be refined as the project develops."
+      />
+      <div className="mt-16 grid border-l border-t border-black/16 sm:grid-cols-2">
+        <label className="border-b border-r border-black/16 p-5 sm:p-7">
+          <FieldLabel>Project / organization name</FieldLabel>
+          <input
+            value={state.community}
+            onChange={(event) =>
+              setState((current) => ({ ...current, community: event.target.value }))
+            }
+            placeholder="Working project name"
+            className="w-full bg-transparent text-xl tracking-[-0.025em] text-black outline-none placeholder:text-black/25"
+          />
+        </label>
+        <label className="border-b border-r border-black/16 p-5 sm:p-7">
+          <FieldLabel>Project location</FieldLabel>
+          <input
+            value={state.location}
+            onChange={(event) =>
+              setState((current) => ({ ...current, location: event.target.value }))
+            }
+            placeholder="Community, region, province"
+            className="w-full bg-transparent text-xl tracking-[-0.025em] text-black outline-none placeholder:text-black/25"
+          />
+        </label>
+        <label className="border-b border-r border-black/16 p-5 sm:p-7">
+          <FieldLabel>Approximate number of homes</FieldLabel>
+          <input
+            type="number"
+            min="1"
+            inputMode="numeric"
+            value={state.approximateHomes}
+            onChange={(event) =>
+              setState((current) => ({
+                ...current,
+                approximateHomes: event.target.value,
+              }))
+            }
+            placeholder="e.g. 24"
+            className="w-full bg-transparent text-xl tracking-[-0.025em] text-black outline-none placeholder:text-black/25"
+          />
+        </label>
+        {fields.map((field) => {
+          const value =
+            field.target === "context"
+              ? state.audienceContext[field.key] ?? "unknown"
+              : field.target === "refinement"
+                ? String(state.refinement[field.key as RefinementKey])
+                : state.deliveryHorizon;
+          return (
+            <label key={field.key} className="border-b border-r border-black/16 p-5 sm:p-7">
+              <FieldLabel>{field.label}</FieldLabel>
+              <select
+                value={value}
+                onChange={(event) => updateField(field, event.target.value)}
+                className={selectClassName}
+              >
+                {field.options.map(([optionValue, label]) => (
+                  <option key={optionValue} value={optionValue}>{label}</option>
+                ))}
+              </select>
+            </label>
+          );
+        })}
       </div>
     </div>
   );
@@ -561,6 +722,7 @@ function PortfolioStep({
             <PlannerHomeActions
               item={item}
               line={state.portfolio.find((line) => line.modelId === item.id)}
+              audience={state.audience}
               projectName={state.community}
               totalHomes={summary.totalHomes}
               requestedQuantity={quantities[item.id] ?? 1}
@@ -674,6 +836,7 @@ function RefineStep({
   state: PlannerState;
   setState: React.Dispatch<React.SetStateAction<PlannerState>>;
 }) {
+  const isFirstNations = state.audience === "first-nations";
   function update(key: RefinementKey, value: string | readonly string[]) {
     setState((current) => ({
       ...current,
@@ -698,8 +861,8 @@ function RefineStep({
     ["affordability", "Housing / tenure approach", [["unknown", "To be determined"], ["community-rental", "Community rental"], ["deeply-affordable", "Affordable housing"], ["mixed-income", "Mixed-income"], ["ownership", "Ownership pathway"]]],
     ["culturalPriorities", "Cultural / design priorities", [["unknown", "Unknown / to confirm"], ["engagement-required", "Community engagement required"], ["defined-priorities", "Priorities identified"], ["artist-collaboration", "Local artist / artisan collaboration"]]],
     ["energyResilience", "Energy & resilience", [["unknown", "To be determined"], ["code-baseline", "Standard requirements / to be confirmed"], ["enhanced-performance", "Higher energy performance"], ["resilience-priority", "Resilience priority"], ["off-grid-review", "Remote / off-grid conditions"]]],
-    ["localLabour", "Local & Indigenous participation", [["unknown", "To be determined"], ["explore", "Interested in local / Indigenous labour"], ["available", "Local crew or trades identified"], ["training-interest", "Interested in training"], ["partner-required", "Need assembly / delivery support"]]],
-    ["trainingObjectives", "Assembly / training / maintenance", [["unknown", "To be determined"], ["assembly", "Local assembly participation"], ["training", "Training interest"], ["maintenance", "Long-term maintenance capability"], ["support-required", "House Delivery / project delivery support required"]]],
+    ["localLabour", isFirstNations ? "Local & Indigenous participation" : "Delivery / trade capacity", [["unknown", "To be determined"], ["explore", isFirstNations ? "Interested in local / Indigenous labour" : "Local trade participation to explore"], ["available", "Local crew or trades identified"], ["training-interest", "Interested in training"], ["partner-required", "Need assembly / delivery support"]]],
+    ["trainingObjectives", isFirstNations ? "Assembly / training / maintenance" : "Assembly / maintenance responsibilities", [["unknown", "To be determined"], ["assembly", "Local assembly participation"], ["training", "Training interest"], ["maintenance", "Long-term maintenance capability"], ["support-required", "House Delivery / project delivery support required"]]],
     ["targetTiming", "Target timing", [["unknown", "Unknown / to confirm"], ["within-12-months", "Within 12 months"], ["12-24-months", "12–24 months"], ["24-plus-months", "24+ months"], ["phased", "Phased pipeline"]]],
   ] as const;
 
@@ -708,9 +871,11 @@ function RefineStep({
       <StepHeader
         eyebrow="04 / Refine project"
         title="Refine Your Project"
-        intro="These answers help House Delivery better understand the community, site, delivery needs and funding context. Every answer can remain unknown while the project is still taking shape."
+        intro={isFirstNations
+          ? "These answers help House Delivery better understand the community, site, delivery needs and funding context. Every answer can remain unknown while the project is still taking shape."
+          : "These answers help House Delivery better understand the site, housing approach, delivery responsibilities and commercial context. Every answer can remain unknown while the project is still taking shape."}
       />
-      <fieldset className="mt-16 border-t border-black/16 pt-6">
+      {isFirstNations ? <fieldset className="mt-16 border-t border-black/16 pt-6">
         <legend className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/46">Who should the portfolio serve?</legend>
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {householdOptions.map(([value, label]) => {
@@ -726,9 +891,9 @@ function RefineStep({
             );
           })}
         </div>
-      </fieldset>
-      <div className="mt-10 grid border-l border-t border-black/16 md:grid-cols-2">
-        {fields.map(([key, label, options]) => (
+      </fieldset> : null}
+      <div className={cn("grid border-l border-t border-black/16 md:grid-cols-2", isFirstNations ? "mt-10" : "mt-16")}>
+        {fields.filter(([key]) => isFirstNations || key !== "culturalPriorities").map(([key, label, options]) => (
           <label key={key} className="border-b border-r border-black/16 p-5 sm:p-7">
             <FieldLabel>{label}</FieldLabel>
             <select value={state.refinement[key] as string} onChange={(event) => update(key, event.target.value)} className={selectClassName}>
@@ -743,7 +908,9 @@ function RefineStep({
           value={state.projectNotes}
           onChange={(event) => setState((current) => ({ ...current, projectNotes: event.target.value }))}
           rows={5}
-          placeholder="Add community priorities, known constraints, partners, reference material or questions for review."
+          placeholder={isFirstNations
+            ? "Add community priorities, known constraints, partners, reference material or questions for review."
+            : "Add known constraints, delivery responsibilities, partners, reference material or questions for review."}
           className="w-full border border-black/18 bg-transparent p-4 text-sm leading-6 text-black outline-none focus:border-black"
         />
       </label>
@@ -804,6 +971,7 @@ function DesignStep({
                 href={buildPlannerDesignHref(
                   nextDesign.model.buildMyHref!,
                   getPlannerDesignSession(
+                    state.audience,
                     state.community,
                     nextDesign.line,
                     nextDesign.model,
@@ -849,6 +1017,7 @@ function DesignStep({
                 <div className="mt-7 grid gap-4 lg:grid-cols-2">
                   {line.designVariations.map((variation) => {
                     const session = getPlannerDesignSession(
+                      state.audience,
                       state.community,
                       line,
                       model,
@@ -956,7 +1125,11 @@ function FundingStep({
   catalog: readonly PlannerCatalogItem[];
   corridors: readonly FundingCorridor[];
 }) {
-  const matches = matchFundingCorridors(state, corridors, catalog);
+  const audienceCorridors = getAudienceFundingCorridors(
+    state.audience,
+    corridors,
+  );
+  const matches = matchFundingCorridors(state, audienceCorridors, catalog);
   const ordered = [...matches].sort((a, b) => {
     const rank = {
       "Strong corridor to explore": 0,
@@ -982,9 +1155,11 @@ function FundingStep({
   return (
     <div>
       <StepHeader
-        eyebrow="06 / Funding pathways"
-        title="Corridors to explore."
-        intro="These contextual matches support an early funding conversation. They are not eligibility findings, approvals or guarantees, and no potential funding is deducted from project feasibility."
+        eyebrow={state.audience === "first-nations" ? "06 / Funding pathways" : "06 / Funding and financing context"}
+        title={state.audience === "first-nations" ? "Corridors to explore." : "Potential pathways to review."}
+        intro={state.audience === "first-nations"
+          ? "These contextual matches support an early funding conversation. They are not eligibility findings, approvals or guarantees, and no potential funding is deducted from project feasibility."
+          : "These contextual pathways support an early owner, proponent and financing conversation. They are not eligibility findings, approvals or guarantees, and no potential funding is deducted from project feasibility."}
       />
       <div className="mt-16 border-t border-black/16">
         {ordered.map((corridor) => (
@@ -1112,7 +1287,7 @@ function OpportunityReport({
   const estimate = calculatePreliminaryEstimate(state.portfolio, catalog);
   const funding = getOpportunityReportFundingCorridors(
     state,
-    corridors,
+    getAudienceFundingCorridors(state.audience, corridors),
     catalog,
   );
   const readiness = getReadinessProfile(state, catalog);
@@ -1127,7 +1302,7 @@ function OpportunityReport({
 
   function printReport() {
     const previousTitle = document.title;
-    document.title = `${state.community || "Community"} — Preliminary Opportunity Report`;
+    document.title = `${state.community || "Housing Project"} — Preliminary Opportunity Report`;
     window.print();
     document.title = previousTitle;
   }
@@ -1152,7 +1327,8 @@ function OpportunityReport({
       <article id="planner-opportunity-report" tabIndex={-1} data-planner-report className="mt-16 scroll-mt-28 bg-white px-6 text-black outline-none sm:px-10 lg:px-16 xl:px-20 print:mt-0">
         <header className="border-y border-black/18 py-9">
           <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-black/45">House Delivery / Preliminary Opportunity Report</p>
-          <h2 className="mt-6 max-w-5xl text-[clamp(3.4rem,7vw,7.5rem)] font-medium leading-[0.82] tracking-[-0.075em]">{state.community || "Community housing opportunity"}</h2>
+          {state.audience !== "first-nations" ? <p className="mt-5 text-[9px] font-semibold uppercase tracking-[0.18em] text-black/42">{plannerAudienceLabels[state.audience]}</p> : null}
+          <h2 className="mt-6 max-w-5xl text-[clamp(3.4rem,7vw,7.5rem)] font-medium leading-[0.82] tracking-[-0.075em]">{state.community || (state.audience === "first-nations" ? "Community housing opportunity" : "Housing project opportunity")}</h2>
           <div className="mt-8 grid gap-3 text-xs uppercase tracking-[0.13em] text-black/48 sm:grid-cols-4"><p>{state.location || "Location to confirm"}</p><p>{summary.totalHomes} working homes</p><p>Confidence / Early</p><p>{state.opportunityReportReference || "Reference pending"}</p></div>
         </header>
 
@@ -1160,6 +1336,17 @@ function OpportunityReport({
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {[["Housing requirement", state.approximateHomes ? `Approximately ${state.approximateHomes}` : "To confirm"], ["Working portfolio", `${summary.totalHomes} homes`], ["Sites", labelValue(state.sitePattern)], ["Horizon", labelValue(state.deliveryHorizon)]].map(([label, value]) => <dl key={label} className="border-t border-black/16 pt-4"><dt className="text-[8px] uppercase tracking-[0.16em] text-black/42">{label}</dt><dd className="mt-3 text-xl font-medium tracking-[-0.03em]">{value}</dd></dl>)}
           </div>
+          {state.audience !== "first-nations" && Object.keys(state.audienceContext).length ? (
+            <div className="mt-8 grid gap-5 border-t border-black/16 pt-6 sm:grid-cols-2 lg:grid-cols-3">
+              {Object.entries(state.audienceContext).map(([key, value]) => (
+                <p key={key} className="text-sm">
+                  <span className="text-black/42">{audienceContextLabel(key)}</span>
+                  <br />
+                  {labelValue(value)}
+                </p>
+              ))}
+            </div>
+          ) : null}
         </ReportSection>
 
         <ReportSection number="02" title="Portfolio and phases">
@@ -1185,11 +1372,11 @@ function OpportunityReport({
           <div className="grid gap-x-8 sm:grid-cols-2">{readiness.map((item) => <div key={item.label} className="grid grid-cols-[auto_1fr] gap-3 border-t border-black/16 py-3"><span>{item.ready ? "●" : "○"}</span><p className="text-sm"><span className="font-medium">{item.label}</span><br /><span className="text-xs text-black/48">{item.detail}</span></p></div>)}</div>
         </ReportSection>
 
-        <ReportSection number="07" title="Community participation and capability">
-          <div className="grid gap-5 sm:grid-cols-2">{[["Local & Indigenous participation", labelValue(state.refinement.localLabour)], ["Assembly / training / maintenance", labelValue(state.refinement.trainingObjectives)]].map(([label, value]) => <p key={label} className="border-t border-black/16 pt-3 text-sm"><span className="text-black/42">{label}</span><br />{value}</p>)}</div>
+        <ReportSection number="07" title={state.audience === "first-nations" ? "Community participation and capability" : state.audience === "developer" ? "Development and delivery capability" : state.audience === "general-contractor" ? "Procurement, logistics and delivery capability" : "Community delivery and operating capability"}>
+          <div className="grid gap-5 sm:grid-cols-2">{[[state.audience === "first-nations" ? "Local & Indigenous participation" : "Delivery / trade capacity", labelValue(state.refinement.localLabour)], [state.audience === "first-nations" ? "Assembly / training / maintenance" : "Assembly / maintenance responsibilities", labelValue(state.refinement.trainingObjectives)]].map(([label, value]) => <p key={label} className="border-t border-black/16 pt-3 text-sm"><span className="text-black/42">{label}</span><br />{value}</p>)}</div>
         </ReportSection>
 
-        <ReportSection number="08" title="Funding corridors">
+        <ReportSection number="08" title={state.audience === "first-nations" ? "Funding corridors" : "Funding and financing context"}>
           <div className="space-y-4">{funding.map((item) => <div key={item.id} className="border-t border-black/16 pt-3"><p className="text-[8px] font-semibold uppercase tracking-[0.15em] text-black/42">{item.relevance}{item.decision ? ` / ${fundingDecisionLabels[item.decision]}` : ""}</p><p className="mt-2 text-sm font-medium">{item.title}</p><p className="mt-1 text-xs leading-5 text-black/50">{item.confirmationNeeded}</p><p className="mt-1 break-all text-[9px] text-black/38">{item.officialSource}</p></div>)}</div>
         </ReportSection>
 
@@ -1292,7 +1479,11 @@ function ProjectReviewStep({
   const submissionInFlight = useRef(false);
   const summary = getPortfolioSummary(state.portfolio, catalog);
   const readiness = getReadinessProfile(state, catalog);
-  const includedFunding = matchFundingCorridors(state, corridors, catalog).filter(
+  const includedFunding = matchFundingCorridors(
+    state,
+    getAudienceFundingCorridors(state.audience, corridors),
+    catalog,
+  ).filter(
     (corridor) => state.fundingCorridorDecisions[corridor.id] === "include",
   );
   const completedDesigns = summary.lines.flatMap(({ line, model }) =>
@@ -1363,9 +1554,9 @@ function ProjectReviewStep({
       <div className="mt-14 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {[
           ["Opportunity Report", state.opportunityReportReference],
-          ["Community / project", state.community],
+          [state.audience === "first-nations" ? "Community / project" : "Project / organization", state.community],
           ["Working portfolio", `${summary.totalHomes} homes / ${summary.modelCount} home types`],
-          ["Funding review", `${includedFunding.length} selected corridors`],
+          [state.audience === "first-nations" ? "Funding review" : "Funding / financing review", `${includedFunding.length} selected corridors`],
         ].map(([label, value]) => (
           <dl key={label} className="border-t border-black/18 pt-4">
             <dt className="text-[8px] font-semibold uppercase tracking-[0.16em] text-black/42">{label}</dt>
@@ -1395,7 +1586,7 @@ function ProjectReviewStep({
         </section>
 
         <section>
-          <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/42">Funding review & readiness</p>
+          <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/42">{state.audience === "first-nations" ? "Funding review & readiness" : "Funding / financing context & readiness"}</p>
           <div className="mt-5 border-t border-black/16">
             {includedFunding.length ? includedFunding.map((corridor) => (
               <p key={corridor.id} className="border-b border-black/16 py-4 text-sm">
@@ -1456,8 +1647,21 @@ function ReportSection({ number, title, children }: { number: string; title: str
   return <section className="border-b border-black/16 py-10 print:break-inside-avoid"><div className="mb-7 grid gap-3 sm:grid-cols-[4rem_1fr]"><p className="font-mono text-[9px] text-black/35">{number}</p><h3 className="text-2xl font-medium tracking-[-0.04em]">{title}</h3></div>{children}</section>;
 }
 
-export function FirstNationsProjectPlanner({ catalog, fundingCorridors }: { catalog: readonly PlannerCatalogItem[]; fundingCorridors: readonly FundingCorridor[] }) {
-  const [state, setState] = useState<PlannerState>(defaultPlannerState);
+export function FirstNationsProjectPlanner({
+  catalog,
+  fundingCorridors,
+  initialAudience = "first-nations",
+}: {
+  catalog: readonly PlannerCatalogItem[];
+  fundingCorridors: readonly FundingCorridor[];
+  initialAudience?: PlannerAudience;
+}) {
+  const storageKey = getPlannerStorageKey(initialAudience);
+  const returnKey = getPlannerReturnKey(initialAudience);
+  const steps = initialAudience === "first-nations" ? firstNationsSteps : sharedSteps;
+  const [state, setState] = useState<PlannerState>(() =>
+    createDefaultPlannerState(initialAudience),
+  );
   const [hydrated, setHydrated] = useState(false);
   const [returnNotice, setReturnNotice] = useState<string>();
 
@@ -1466,16 +1670,24 @@ export function FirstNationsProjectPlanner({ catalog, fundingCorridors }: { cata
     window.queueMicrotask(() => {
       if (!active) return;
       try {
-        const saved = window.localStorage.getItem(PLANNER_STORAGE_KEY);
-        const restored = saved
-          ? migratePlannerState(JSON.parse(saved))
-          : defaultPlannerState;
-        const returnedValue = window.localStorage.getItem(PLANNER_RETURN_KEY);
+        const saved = window.localStorage.getItem(storageKey);
+        const migrated = saved ? migratePlannerState(JSON.parse(saved)) : undefined;
+        const restored =
+          migrated?.audience === initialAudience
+            ? migrated
+            : createDefaultPlannerState(initialAudience);
+        const returnedValue = window.localStorage.getItem(returnKey);
         const returned = returnedValue
           ? (JSON.parse(returnedValue) as PlannerDesignReturn)
           : undefined;
+        const returnedAudience = returned?.audience ?? "first-nations";
 
-        if (restored && returned?.lineId && returned.variationId) {
+        if (
+          restored &&
+          returnedAudience === initialAudience &&
+          returned?.lineId &&
+          returned.variationId
+        ) {
           const designSelections = Object.fromEntries(
             [
               ...Object.entries(returned.configuration.inclusionSelections),
@@ -1517,7 +1729,7 @@ export function FirstNationsProjectPlanner({ catalog, fundingCorridors }: { cata
             step: 4,
           };
           window.localStorage.setItem(
-            PLANNER_STORAGE_KEY,
+            storageKey,
             JSON.stringify(returnedState),
           );
           setState(returnedState);
@@ -1538,7 +1750,7 @@ export function FirstNationsProjectPlanner({ catalog, fundingCorridors }: { cata
           setReturnNotice(
             `${returned.homeName} — ${returned.designLabel} is saved and assigned to ${returned.assignedQuantity} ${returned.assignedQuantity === 1 ? "home" : "homes"}.${nextHome ? ` Next: ${getPlannerHomeName(nextHome.name)} — ${nextDesign?.variation.label}.` : " All project design groups are complete."}`,
           );
-          window.localStorage.removeItem(PLANNER_RETURN_KEY);
+          window.localStorage.removeItem(returnKey);
           window.requestAnimationFrame(() => {
             document
               .getElementById(
@@ -1562,16 +1774,16 @@ export function FirstNationsProjectPlanner({ catalog, fundingCorridors }: { cata
     return () => {
       active = false;
     };
-  }, [catalog]);
+  }, [catalog, initialAudience, returnKey, storageKey]);
 
   useEffect(() => {
     if (!hydrated) return;
     try {
-      window.localStorage.setItem(PLANNER_STORAGE_KEY, JSON.stringify(state));
+      window.localStorage.setItem(storageKey, JSON.stringify(state));
     } catch {
       // Private browsing or a full storage quota should not block the planner.
     }
-  }, [hydrated, state]);
+  }, [hydrated, state, storageKey]);
 
   const projectSummary = getPortfolioSummary(state.portfolio, catalog);
   const designProgress = getPlannerDesignProgress(state.portfolio, catalog);
@@ -1617,9 +1829,9 @@ export function FirstNationsProjectPlanner({ catalog, fundingCorridors }: { cata
 
   function resetPlanner() {
     if (!window.confirm("Clear this local planner draft and start again?")) return;
-    setState(defaultPlannerState);
+    setState(createDefaultPlannerState(initialAudience));
     setReturnNotice(undefined);
-    window.localStorage.removeItem(PLANNER_STORAGE_KEY);
+    window.localStorage.removeItem(storageKey);
   }
 
   return (
@@ -1657,7 +1869,8 @@ export function FirstNationsProjectPlanner({ catalog, fundingCorridors }: { cata
       </div>
 
       <div className="mx-auto max-w-[1504px] px-5 py-16 sm:px-8 sm:py-20 lg:px-12 lg:py-28">
-        {state.step === 0 ? <StartStep state={state} update={(patch) => setState((current) => ({ ...current, ...patch }))} /> : null}
+        {state.step === 0 && state.audience === "first-nations" ? <StartStep state={state} update={(patch) => setState((current) => ({ ...current, ...patch }))} /> : null}
+        {state.step === 0 && state.audience !== "first-nations" ? <AudienceStartStep state={state} setState={setState} /> : null}
         {state.step === 1 ? <PortfolioStep state={state} setState={setState} catalog={catalog} /> : null}
         {state.step === 2 ? <EstimatePanel state={state} catalog={catalog} /> : null}
         {state.step === 3 ? <RefineStep state={state} setState={setState} /> : null}
@@ -1672,9 +1885,11 @@ export function FirstNationsProjectPlanner({ catalog, fundingCorridors }: { cata
             <button type="button" onClick={() => goToStep(state.step - 1)} disabled={state.step === 0} className="inline-flex min-h-12 items-center gap-3 border border-black/22 px-5 text-[9px] font-semibold uppercase tracking-[0.16em] disabled:cursor-not-allowed disabled:opacity-30"><ArrowLeft aria-hidden="true" className="size-4" /> Previous</button>
             <button type="button" onClick={resetPlanner} className="inline-flex min-h-12 items-center gap-2 text-[9px] font-semibold uppercase tracking-[0.15em] text-black/42 hover:text-black"><RotateCcw aria-hidden="true" className="size-3.5" /> Start again</button>
           </div>
-          <div><button type="button" onClick={() => goToStep(state.step + 1)} disabled={!canContinue} className="inline-flex min-h-12 min-w-60 items-center justify-between gap-8 bg-black px-5 text-[9px] font-semibold uppercase tracking-[0.16em] text-white disabled:cursor-not-allowed disabled:bg-black/25">{state.step === 2 ? "Refine My Project" : state.step === 6 ? "Create Opportunity Report" : "Continue"}<ArrowRight aria-hidden="true" className="size-4" /></button>{!canContinue ? <p className="mt-3 max-w-xs text-xs leading-5 text-black/45">{state.step === 0 ? "Add the community, location and approximate housing requirement to continue." : "Add at least one home model to continue."}</p> : null}</div>
+          <div><button type="button" onClick={() => goToStep(state.step + 1)} disabled={!canContinue} className="inline-flex min-h-12 min-w-60 items-center justify-between gap-8 bg-black px-5 text-[9px] font-semibold uppercase tracking-[0.16em] text-white disabled:cursor-not-allowed disabled:bg-black/25">{state.step === 2 ? "Refine My Project" : state.step === 6 ? "Create Opportunity Report" : "Continue"}<ArrowRight aria-hidden="true" className="size-4" /></button>{!canContinue ? <p className="mt-3 max-w-xs text-xs leading-5 text-black/45">{state.step === 0 ? (state.audience === "first-nations" ? "Add the community, location and approximate housing requirement to continue." : "Add the project name, location and approximate number of homes to continue.") : "Add at least one home model to continue."}</p> : null}</div>
         </div> : null}
       </div>
     </section>
   );
 }
+
+export const ProjectPortfolioPlanner = FirstNationsProjectPlanner;

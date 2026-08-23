@@ -9,10 +9,12 @@ import {
 import {
   addPlannerDesignVariation,
   calculatePreliminaryEstimate,
+  createDefaultPlannerState,
   createPlannerDesignVariation,
   createOpportunityReportReference,
   defaultPlannerState,
   formatProjectReviewContext,
+  getAudienceFundingCorridors,
   getPlannerDesignProgress,
   getOpportunityReportFundingCorridors,
   getPortfolioSummary,
@@ -26,6 +28,9 @@ import {
 import {
   buildPlannerDesignHref,
   buildPlannerHomeViewHref,
+  getPlannerReturnHref,
+  getPlannerReturnKey,
+  getPlannerStorageKey,
   readPlannerHomeViewContext,
   readPlannerHomeViewReturnHref,
   readPlannerDesignSession,
@@ -487,6 +492,7 @@ test("project review context carries the complete multi-home Planner record", ()
 
 test("Planner Design My Home links preserve the design-group return context", () => {
   const session = {
+    audience: "first-nations" as const,
     projectName: "WestBank",
     lineId: "saturna-line",
     variationId: "saturna-line:design-a",
@@ -523,6 +529,7 @@ test("standalone Design My Home URLs do not enter Planner project mode", () => {
 
 test("Planner View Home links carry project, quantity and design-group context", () => {
   const designSession = {
+    audience: "first-nations" as const,
     projectName: "WestBank Housing Project",
     lineId: "solace-line",
     variationId: "solace-line:design-a",
@@ -534,6 +541,7 @@ test("Planner View Home links carry project, quantity and design-group context",
     returnHref: "/first-nations-project-planner#planner-workspace",
   };
   const context = {
+    audience: "first-nations" as const,
     projectName: "WestBank Housing Project",
     totalHomes: 6,
     modelId: "custom:solace",
@@ -571,6 +579,7 @@ test("Planner View Home links carry project, quantity and design-group context",
 
 test("Planner View Home supports an add-to-project context without creating a design session", () => {
   const context = {
+    audience: "first-nations" as const,
     projectName: "WestBank Housing Project",
     totalHomes: 4,
     modelId: "custom:solace",
@@ -585,4 +594,81 @@ test("Planner View Home supports an add-to-project context without creating a de
 
   assert.deepEqual(readPlannerHomeViewContext(parsed.search), context);
   assert.equal(readPlannerDesignSession(parsed.search), undefined);
+});
+
+test("shared Planner audiences use isolated drafts while preserving the First Nations keys", () => {
+  assert.equal(
+    getPlannerStorageKey("first-nations"),
+    "house-delivery:first-nations-planner:v1",
+  );
+  assert.equal(
+    getPlannerReturnKey("first-nations"),
+    "house-delivery:first-nations-planner:return:v1",
+  );
+
+  for (const audience of [
+    "developer",
+    "general-contractor",
+    "municipality-non-profit",
+  ] as const) {
+    const state = createDefaultPlannerState(audience);
+    assert.equal(state.audience, audience);
+    assert.deepEqual(state.audienceContext, {});
+    assert.match(getPlannerStorageKey(audience), new RegExp(audience));
+    assert.match(getPlannerReturnKey(audience), new RegExp(audience));
+    assert.equal(
+      getPlannerReturnHref(audience, "planner-design-center"),
+      `/project-portfolio-planner?audience=${audience}#planner-design-center`,
+    );
+    assert.equal(migratePlannerState(state)?.audience, audience);
+  }
+});
+
+test("every shared audience round-trips through project-aware Design Center mode", () => {
+  for (const audience of [
+    "developer",
+    "general-contractor",
+    "municipality-non-profit",
+  ] as const) {
+    const session = {
+      audience,
+      projectName: "Harbour Lands",
+      lineId: "solace-line",
+      variationId: "solace-line:design-a",
+      modelId: "custom:solace",
+      homeName: "Solace",
+      designLabel: "Design A",
+      assignedQuantity: 12,
+      deliveryGroup: "Active / First Build",
+      returnHref: `/project-portfolio-planner?audience=${audience}#planner-design-center`,
+    };
+    const href = buildPlannerDesignHref("/homes/solace", session);
+    const parsed = new URL(href, "https://www.housedelivery.ca");
+
+    assert.equal(parsed.searchParams.get("planner"), audience);
+    assert.equal(parsed.searchParams.get("plannerQuantity"), "12");
+    assert.deepEqual(readPlannerDesignSession(parsed.search), session);
+  }
+});
+
+test("non-First Nations modes exclude on-reserve-only funding corridors", () => {
+  const genericCorridors = getAudienceFundingCorridors(
+    "municipality-non-profit",
+    firstNationsFundingCorridors,
+  );
+
+  assert.ok(genericCorridors.length > 0);
+  assert.ok(genericCorridors.length < firstNationsFundingCorridors.length);
+  assert.equal(
+    genericCorridors.some(
+      (corridor) =>
+        corridor.landStatus.length === 1 &&
+        corridor.landStatus[0] === "on-reserve",
+    ),
+    false,
+  );
+  assert.deepEqual(
+    genericCorridors.map((corridor) => corridor.id).sort(),
+    ["bc-builds", "build-canada-homes", "cmhc-aclp"],
+  );
 });

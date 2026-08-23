@@ -29,7 +29,7 @@ import {
 } from "@/data/home-look-book";
 import {
   getPlannerConfigurationKey,
-  PLANNER_RETURN_KEY,
+  getPlannerReturnKey,
   readPlannerDesignSession,
   type PlannerDesignReturn,
   type PlannerDesignSession,
@@ -619,7 +619,10 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
     };
 
     try {
-      window.localStorage.setItem(PLANNER_RETURN_KEY, JSON.stringify(result));
+      window.localStorage.setItem(
+        getPlannerReturnKey(plannerSession.audience),
+        JSON.stringify(result),
+      );
       window.localStorage.setItem(
         getPlannerConfigurationKey(plannerSession),
         JSON.stringify(configurationToSave),

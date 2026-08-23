@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -22,17 +22,21 @@ const organizationOptions: readonly {
 
 export function ProjectPlanningRouter() {
   const [organization, setOrganization] = useState<OrganizationType>();
-  const [showComingSoon, setShowComingSoon] = useState(false);
 
   function chooseOrganization(value: OrganizationType) {
     setOrganization(value);
-    setShowComingSoon(false);
   }
 
   function resetChoice() {
     setOrganization(undefined);
-    setShowComingSoon(false);
   }
+
+  const multipleHomesHref =
+    organization === "first-nation"
+      ? "/first-nations-project-planner"
+      : organization
+        ? `/project-portfolio-planner?audience=${organization === "municipality" ? "municipality-non-profit" : organization}`
+        : "/plan-a-housing-project";
 
   return (
     <div className="mx-auto max-w-[1504px]">
@@ -95,41 +99,13 @@ export function ProjectPlanningRouter() {
               >
                 One Home <ArrowRight aria-hidden="true" className="size-4" />
               </Link>
-              {organization === "first-nation" ? (
-                <Link
-                  href="/first-nations-project-planner"
-                  className="inline-flex min-h-16 items-center justify-between gap-6 bg-white px-5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#0b0c10] transition-colors hover:bg-white/82 sm:px-6"
-                >
-                  Multiple Homes <ArrowRight aria-hidden="true" className="size-4" />
-                </Link>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setShowComingSoon(true)}
-                  className="inline-flex min-h-16 items-center justify-between gap-6 bg-white px-5 text-left text-[10px] font-semibold uppercase tracking-[0.16em] text-[#0b0c10] transition-colors hover:bg-white/82 sm:px-6"
-                >
-                  Multiple Homes <ArrowRight aria-hidden="true" className="size-4" />
-                </button>
-              )}
+              <Link
+                href={multipleHomesHref}
+                className="inline-flex min-h-16 items-center justify-between gap-6 bg-white px-5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#0b0c10] transition-colors hover:bg-white/82 sm:px-6"
+              >
+                Multiple Homes <ArrowRight aria-hidden="true" className="size-4" />
+              </Link>
             </div>
-
-            {showComingSoon ? (
-              <div data-project-planning-coming-soon role="status" className="mt-10 border-t border-white/12 pt-8">
-                <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/38">Multi-home planning</p>
-                <h3 className="mt-4 max-w-3xl text-3xl font-medium leading-tight tracking-[-0.045em] text-white/90 sm:text-5xl">
-                  Project Planning Experience Coming Next
-                </h3>
-                <p className="mt-5 max-w-2xl text-sm leading-6 text-white/52">
-                  This planning mode is still being prepared. House Delivery can discuss the project with you in the meantime.
-                </p>
-                <Link
-                  href="/#reserve"
-                  className="mt-7 inline-flex min-h-12 items-center gap-4 border-b border-white/35 text-[10px] font-semibold uppercase tracking-[0.17em] text-white/80 transition-colors hover:border-white hover:text-white"
-                >
-                  Discuss a Project <ArrowUpRight aria-hidden="true" className="size-4" />
-                </Link>
-              </div>
-            ) : null}
           </div>
         )}
       </div>
