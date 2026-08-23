@@ -5,11 +5,17 @@ import { useCallback, useEffect, useState } from "react";
 import { HomeConfigurationProgress } from "@/components/home-configuration-progress";
 import { HomeConfigurationSummary } from "@/components/home-configuration-summary";
 import { HomeCoordinatedCategory } from "@/components/home-coordinated-category";
+import { FirstNationsCulturalDesignDirection } from "@/components/first-nations-cultural-design-direction";
 import { HomeConfiguratorJourney } from "@/components/home-configurator-journey";
 import { HomeFlooringCategory } from "@/components/home-flooring-category";
 import { HomeImagePreview } from "@/components/home-image-preview";
 import { HomeInclusionCategory } from "@/components/home-inclusion-category";
 import { HomeLookBook } from "@/components/home-look-book";
+import {
+  getCulturalDesignImage,
+  type CulturalDesignAreaId,
+  type CulturalDesignDirection,
+} from "@/data/first-nations-cultural-design";
 import {
   createDefaultHomeConfiguration,
   getDisplayedFlooringOption,
@@ -272,6 +278,11 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
   const completedCount = requiredCategories.filter((category) =>
     isCategoryComplete(category, configuration),
   ).length;
+  const isFirstNationsProjectMode =
+    plannerSession?.audience === "first-nations";
+  const culturalDesignImage = isFirstNationsProjectMode
+    ? getCulturalDesignImage(definition.homeId)
+    : undefined;
   const imagePreview = (() => {
     if (!imagePreviewTarget) return undefined;
 
@@ -340,6 +351,49 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
           },
         },
         reviewStatus: "draft",
+      };
+    });
+  }
+
+  function focusFirstDesignCategory() {
+    const firstCategory = requiredCategories[0];
+    if (!firstCategory) return;
+    setActiveCategoryId(firstCategory.id);
+    setActiveFlooringZoneId(
+      firstCategory.kind === "flooring"
+        ? firstCategory.zones[0]?.id ?? null
+        : null,
+    );
+    focusConfigurationTarget(`home-category-${firstCategory.id}`);
+  }
+
+  function chooseCulturalDesignDirection(
+    choice: CulturalDesignDirection["choice"],
+  ) {
+    setConfiguration((current) => ({
+      ...current,
+      culturalDesignDirection: {
+        choice,
+        areas:
+          choice === "explore"
+            ? current.culturalDesignDirection?.areas ?? []
+            : [],
+      },
+    }));
+    if (choice === "contemporary") focusFirstDesignCategory();
+  }
+
+  function toggleCulturalDesignArea(areaId: CulturalDesignAreaId) {
+    setConfiguration((current) => {
+      if (current.culturalDesignDirection?.choice !== "explore") return current;
+      const areas = current.culturalDesignDirection.areas.includes(areaId)
+        ? current.culturalDesignDirection.areas.filter(
+            (candidate) => candidate !== areaId,
+          )
+        : [...current.culturalDesignDirection.areas, areaId];
+      return {
+        ...current,
+        culturalDesignDirection: { choice: "explore", areas },
       };
     });
   }
@@ -670,6 +724,9 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
       data-planner-design-group={plannerSession?.variationId}
       data-planner-project={plannerSession?.projectName}
       data-planner-delivery-group={plannerSession?.deliveryGroup}
+      data-cultural-design-direction={
+        configuration.culturalDesignDirection?.choice
+      }
     >
       <section
         id="home-inclusions"
@@ -763,6 +820,17 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
               </li>
             ))}
           </ol>
+
+          {isFirstNationsProjectMode ? (
+            <FirstNationsCulturalDesignDirection
+              homeName={definition.homeName}
+              image={culturalDesignImage}
+              direction={configuration.culturalDesignDirection}
+              onChoose={chooseCulturalDesignDirection}
+              onToggleArea={toggleCulturalDesignArea}
+              onContinue={focusFirstDesignCategory}
+            />
+          ) : null}
 
           <p className="sr-only" aria-live="polite">
             {activeCategoryId

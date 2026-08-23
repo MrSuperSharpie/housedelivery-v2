@@ -15,6 +15,7 @@ import {
   defaultPlannerState,
   formatProjectReviewContext,
   getAudienceFundingCorridors,
+  getCulturalDesignReportRecords,
   getPlannerDesignProgress,
   getOpportunityReportFundingCorridors,
   getPortfolioSummary,
@@ -445,6 +446,13 @@ test("project review context carries the complete multi-home Planner record", ()
               projectDesignName: "Solace — Design A",
               lookBookReference: "SOLACE-LOOK-001",
               designSelections: { kitchen: "premium-1" },
+              culturalDesignDirection: {
+                choice: "explore" as const,
+                areas: [
+                  "entry-arrival" as const,
+                  "local-artist-artisan-collaboration" as const,
+                ],
+              },
             }
           : variation,
       ],
@@ -488,6 +496,55 @@ test("project review context carries the complete multi-home Planner record", ()
   assert.match(context, /Land status: on reserve/);
   assert.match(context, /SCALE & READINESS/);
   assert.match(context, /Coordinate local assembly training/);
+  assert.match(context, /CULTURAL DESIGN DIRECTION/);
+  assert.match(context, /Nation-led cultural design exploration requested/);
+  assert.match(context, /Entry \/ arrival/);
+  assert.match(
+    context,
+    /Local artist \/ community collaboration to be developed during project review/,
+  );
+  assert.deepEqual(getCulturalDesignReportRecords(state, firstNationsPlannerCatalog), [
+    {
+      id: "solace-line:design-a",
+      designName: "Solace — Design A",
+      choice: "explore",
+      areas: ["Entry / arrival", "Local artist / artisan collaboration"],
+      artistCollaborationRequested: true,
+    },
+  ]);
+});
+
+test("contemporary and non-First Nations project modes do not add a cultural exploration", () => {
+  const firstNationsState: PlannerState = {
+    ...defaultPlannerState,
+    portfolio: [
+      {
+        id: "solace-line",
+        modelId: "custom:solace",
+        quantity: 2,
+        phase: "phase-1",
+        designVariations: [
+          {
+            ...createPlannerDesignVariation("solace-line", 2),
+            status: "complete",
+            culturalDesignDirection: { choice: "contemporary", areas: [] },
+          },
+        ],
+      },
+    ],
+  };
+  const contemporary = getCulturalDesignReportRecords(
+    firstNationsState,
+    firstNationsPlannerCatalog,
+  );
+  const developer = getCulturalDesignReportRecords(
+    { ...firstNationsState, audience: "developer" },
+    firstNationsPlannerCatalog,
+  );
+
+  assert.equal(contemporary[0]?.choice, "contemporary");
+  assert.deepEqual(contemporary[0]?.areas, []);
+  assert.deepEqual(developer, []);
 });
 
 test("Planner Design My Home links preserve the design-group return context", () => {

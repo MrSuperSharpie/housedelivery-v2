@@ -1,3 +1,8 @@
+import {
+  getCulturalDesignAreaLabel,
+  type CulturalDesignDirection,
+} from "@/data/first-nations-cultural-design";
+
 export const plannerAudiences = [
   "first-nations",
   "developer",
@@ -84,6 +89,7 @@ export type PlannerDesignVariation = {
   designSelections: Readonly<Record<string, string>>;
   lookBookReference: string;
   savedAt?: string;
+  culturalDesignDirection?: CulturalDesignDirection;
 };
 
 export type PlannerPortfolioLine = {
@@ -767,6 +773,44 @@ function formatProjectReviewValue(value: string) {
     : value.replaceAll("-", " ");
 }
 
+export type CulturalDesignReportRecord = {
+  id: string;
+  designName: string;
+  choice: CulturalDesignDirection["choice"];
+  areas: readonly string[];
+  artistCollaborationRequested: boolean;
+};
+
+export function getCulturalDesignReportRecords(
+  state: PlannerState,
+  catalog: readonly PlannerCatalogItem[],
+): readonly CulturalDesignReportRecord[] {
+  if (state.audience !== "first-nations") return [];
+  const summary = getPortfolioSummary(state.portfolio, catalog);
+
+  return summary.lines.flatMap(({ line, model }) =>
+    line.designVariations.flatMap((variation) => {
+      const direction = variation.culturalDesignDirection;
+      if (!direction) return [];
+      return [
+        {
+          id: variation.id,
+          designName:
+            variation.projectDesignName ??
+            `${model.name.replace(/^The\s+/i, "")} — ${variation.label}`,
+          choice: direction.choice,
+          areas: direction.areas
+            .map(getCulturalDesignAreaLabel)
+            .filter((label) => label !== undefined),
+          artistCollaborationRequested: direction.areas.includes(
+            "local-artist-artisan-collaboration",
+          ),
+        },
+      ];
+    }),
+  );
+}
+
 export function formatProjectReviewContext(
   state: PlannerState,
   catalog: readonly PlannerCatalogItem[],
@@ -831,6 +875,12 @@ export function formatProjectReviewContext(
       return `  ${variation.projectDesignName ?? `${model.name.replace(/^The\s+/i, "")} — ${variation.label}`} / Assigned to ${variation.assignedQuantity} home${variation.assignedQuantity === 1 ? "" : "s"} / ${variation.status}${variation.lookBookReference ? ` / Look Book ${variation.lookBookReference}` : ""}${selections ? ` / Selections: ${selections}` : ""}`;
     }),
   ]);
+  const culturalDesignLines = getCulturalDesignReportRecords(state, catalog).map(
+    (record) =>
+      record.choice === "contemporary"
+        ? `${record.designName}: Contemporary design direction selected; no additional cultural design exploration requested at this stage.`
+        : `${record.designName}: Nation-led cultural design exploration requested.${record.areas.length ? ` Areas to explore: ${record.areas.join(", ")}.` : " Areas to be developed during project review."}${record.artistCollaborationRequested ? " Local artist / community collaboration to be developed during project review." : ""}`,
+  );
 
   return [
     "HOUSE DELIVERY PLANNER PROJECT REVIEW",
@@ -847,6 +897,9 @@ export function formatProjectReviewContext(
     "",
     "PORTFOLIO, DELIVERY GROUPS & DESIGN RECORDS",
     ...(portfolioLines.length ? portfolioLines : ["No homes selected"]),
+    ...(culturalDesignLines.length
+      ? ["", "CULTURAL DESIGN DIRECTION", ...culturalDesignLines]
+      : []),
     "",
     "REFINE YOUR PROJECT",
     ...refinement.map(

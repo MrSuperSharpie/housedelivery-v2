@@ -1,4 +1,5 @@
 import type { InclusionImage } from "@/data/inclusions";
+import type { CulturalDesignDirection } from "@/data/first-nations-cultural-design";
 import { isFinalHomeDesignCategory } from "@/data/home-configurator-order";
 import type {
   HomeLookBook,
@@ -99,6 +100,7 @@ export type HomeConfiguration = {
   flooringSelections: Partial<Record<string, HomeSelection>>;
   reviewStatus: "draft" | "ready-for-review";
   lookBookPersonalization: LookBookPersonalization | null;
+  culturalDesignDirection?: CulturalDesignDirection;
 };
 
 export type ResolvedHomeSelection = {

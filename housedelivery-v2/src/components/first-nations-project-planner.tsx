@@ -14,6 +14,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
+import { CulturalDesignReport } from "@/components/cultural-design-report";
 import { cn } from "@/lib/cn";
 import {
   addPlannerDesignVariation,
@@ -24,6 +25,7 @@ import {
   formatPlanningValue,
   formatProjectReviewContext,
   getAudienceFundingCorridors,
+  getCulturalDesignReportRecords,
   getPlannerDesignProgress,
   getOpportunityReportFundingCorridors,
   getPortfolioSummary,
@@ -1070,6 +1072,11 @@ function DesignStep({
                         {variation.lookBookReference ? (
                           <p className="mt-3 font-mono text-[9px] uppercase tracking-[0.13em] text-black/42">My Look Book / {variation.lookBookReference}</p>
                         ) : null}
+                        {variation.culturalDesignDirection ? (
+                          <p className="mt-3 text-xs leading-5 text-black/48">
+                            Cultural design direction / {variation.culturalDesignDirection.choice === "explore" ? "Nation-led exploration requested" : "Contemporary design selected"}
+                          </p>
+                        ) : null}
                         <div className="mt-7 flex flex-wrap gap-x-5 gap-y-3 border-t border-black/12 pt-4">
                           {variation.status === "complete" ? (
                             <>
@@ -1298,6 +1305,7 @@ function OpportunityReport({
         : [],
     ),
   );
+  const culturalDesigns = getCulturalDesignReportRecords(state, catalog);
   const missingInformation = readiness.filter((item) => !item.ready).map((item) => item.label);
 
   function printReport() {
@@ -1362,6 +1370,7 @@ function OpportunityReport({
 
         <ReportSection number="04" title="Design direction">
           {savedDesigns.length ? <div className="grid gap-3 sm:grid-cols-2">{savedDesigns.map(({ model, variation }) => <p key={variation.id} className="border-t border-black/16 pt-3 text-sm"><span className="text-black/42">{variation.projectDesignName ?? `${getPlannerHomeName(model)} — ${variation.label}`}</span><br />Assigned to {variation.assignedQuantity} {variation.assignedQuantity === 1 ? "home" : "homes"}{variation.lookBookReference ? ` · ${variation.lookBookReference}` : ""}</p>)}</div> : <p className="text-sm text-black/52">Design direction has not yet been recorded. Technical and project-specific approvals remain separate.</p>}
+          <CulturalDesignReport records={culturalDesigns} />
         </ReportSection>
 
         <ReportSection number="05" title="Major range drivers">
@@ -1576,9 +1585,10 @@ function ProjectReviewStep({
                   <p className="text-right">{line.quantity * model.homesPerSelection} homes<br /><span className="text-xs text-black/45">{plannerPhaseLabels[line.phase]}</span></p>
                 </div>
                 {line.designVariations.map((variation) => (
-                  <p key={variation.id} className="mt-3 text-xs leading-5 text-black/52">
-                    {variation.projectDesignName ?? `${getPlannerHomeName(model.name)} — ${variation.label}`} · Assigned to {variation.assignedQuantity} {variation.assignedQuantity === 1 ? "home" : "homes"} · {variation.status === "complete" ? `Complete${variation.lookBookReference ? ` / ${variation.lookBookReference}` : ""}` : "Design outstanding"}
-                  </p>
+                  <div key={variation.id} className="mt-3 text-xs leading-5 text-black/52">
+                    <p>{variation.projectDesignName ?? `${getPlannerHomeName(model.name)} — ${variation.label}`} · Assigned to {variation.assignedQuantity} {variation.assignedQuantity === 1 ? "home" : "homes"} · {variation.status === "complete" ? `Complete${variation.lookBookReference ? ` / ${variation.lookBookReference}` : ""}` : "Design outstanding"}</p>
+                    {variation.culturalDesignDirection ? <p className="mt-1 text-black/42">Cultural design direction: {variation.culturalDesignDirection.choice === "explore" ? "Nation-led exploration requested" : "Contemporary design selected"}</p> : null}
+                  </div>
                 ))}
               </div>
             ))}
@@ -1716,6 +1726,8 @@ export function FirstNationsProjectPlanner({
                               ?.projectDesignName ??
                             variation.projectDesignName ??
                             `${returned.homeName} — ${returned.designLabel}`,
+                          culturalDesignDirection:
+                            returned.configuration.culturalDesignDirection,
                           savedAt: returned.completedAt,
                         }
                       : variation,
