@@ -1,8 +1,3 @@
-import {
-  getCulturalDesignAreaLabel,
-  type CulturalDesignDirection,
-} from "@/data/first-nations-cultural-design";
-
 export const plannerAudiences = [
   "first-nations",
   "developer",
@@ -89,7 +84,7 @@ export type PlannerDesignVariation = {
   designSelections: Readonly<Record<string, string>>;
   lookBookReference: string;
   savedAt?: string;
-  culturalDesignDirection?: CulturalDesignDirection;
+  culturalExteriorInterest?: boolean;
 };
 
 export type PlannerPortfolioLine = {
@@ -213,10 +208,14 @@ export function createDefaultPlannerState(
 
 export const defaultPlannerState: PlannerState = createDefaultPlannerState();
 
+type LegacyPlannerDesignVariation = PlannerDesignVariation & {
+  culturalDesignDirection?: { choice?: string };
+};
+
 type LegacyPlannerPortfolioLine = Omit<PlannerPortfolioLine, "designVariations"> & {
   designSelections?: Readonly<Record<string, string>>;
   lookBookReference?: string;
-  designVariations?: readonly PlannerDesignVariation[];
+  designVariations?: readonly LegacyPlannerDesignVariation[];
 };
 
 type LegacyPlannerState = Omit<
@@ -267,7 +266,7 @@ export function migratePlannerState(value: unknown): PlannerState | undefined {
           return [];
         }
 
-        const designVariations =
+        const legacyDesignVariations =
           Array.isArray(line.designVariations) && line.designVariations.length > 0
             ? line.designVariations
             : [
@@ -277,6 +276,24 @@ export function migratePlannerState(value: unknown): PlannerState | undefined {
                   lookBookReference: line.lookBookReference ?? "",
                 },
               ];
+        const designVariations = legacyDesignVariations.map(
+          (variation: LegacyPlannerDesignVariation) => {
+          const { culturalDesignDirection, ...currentVariation } = variation;
+          const culturalExteriorInterest =
+            typeof variation.culturalExteriorInterest === "boolean"
+              ? variation.culturalExteriorInterest
+              : culturalDesignDirection?.choice === "explore"
+                ? true
+                : undefined;
+
+          return {
+            ...currentVariation,
+            ...(culturalExteriorInterest !== undefined
+              ? { culturalExteriorInterest }
+              : {}),
+          };
+          },
+        );
 
         return [
           {
@@ -366,6 +383,18 @@ export function resizePlannerDesignVariations(
     ...line,
     quantity,
     designVariations: variations,
+  };
+}
+
+export function setPlannerCulturalExteriorInterest(
+  line: PlannerPortfolioLine,
+  culturalExteriorInterest: boolean,
+): PlannerPortfolioLine {
+  return {
+    ...line,
+    designVariations: line.designVariations.map((variation, index) =>
+      index === 0 ? { ...variation, culturalExteriorInterest } : variation,
+    ),
   };
 }
 
@@ -776,9 +805,6 @@ function formatProjectReviewValue(value: string) {
 export type CulturalDesignReportRecord = {
   id: string;
   designName: string;
-  choice: CulturalDesignDirection["choice"];
-  areas: readonly string[];
-  artistCollaborationRequested: boolean;
 };
 
 export function getCulturalDesignReportRecords(
@@ -790,21 +816,13 @@ export function getCulturalDesignReportRecords(
 
   return summary.lines.flatMap(({ line, model }) =>
     line.designVariations.flatMap((variation) => {
-      const direction = variation.culturalDesignDirection;
-      if (!direction) return [];
+      if (!variation.culturalExteriorInterest) return [];
       return [
         {
           id: variation.id,
           designName:
             variation.projectDesignName ??
             `${model.name.replace(/^The\s+/i, "")} — ${variation.label}`,
-          choice: direction.choice,
-          areas: direction.areas
-            .map(getCulturalDesignAreaLabel)
-            .filter((label) => label !== undefined),
-          artistCollaborationRequested: direction.areas.includes(
-            "local-artist-artisan-collaboration",
-          ),
         },
       ];
     }),
@@ -877,9 +895,7 @@ export function formatProjectReviewContext(
   ]);
   const culturalDesignLines = getCulturalDesignReportRecords(state, catalog).map(
     (record) =>
-      record.choice === "contemporary"
-        ? `${record.designName}: Contemporary design direction selected; no additional cultural design exploration requested at this stage.`
-        : `${record.designName}: Nation-led cultural design exploration requested.${record.areas.length ? ` Areas to explore: ${record.areas.join(", ")}.` : " Areas to be developed during project review."}${record.artistCollaborationRequested ? " Local artist / community collaboration to be developed during project review." : ""}`,
+      `${record.designName}: Coastal exterior inspiration selected. Exterior cultural expression to be developed with the Nation during project review.`,
   );
 
   return [

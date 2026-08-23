@@ -22,29 +22,10 @@ export function CulturalDesignReport({
             className="border-t border-black/16 pt-4 text-sm leading-6"
           >
             <p className="font-medium">{record.designName}</p>
-            {record.choice === "explore" ? (
-              <>
-                <p className="mt-2 text-black/58">
-                  Nation-led cultural design exploration requested.
-                </p>
-                <p className="mt-2 text-black/48">
-                  {record.areas.length
-                    ? `Areas to explore: ${record.areas.join(", ")}.`
-                    : "Areas of interest to be developed during project review."}
-                </p>
-                {record.artistCollaborationRequested ? (
-                  <p className="mt-2 text-black/48">
-                    Local artist / community collaboration to be developed
-                    during project review.
-                  </p>
-                ) : null}
-              </>
-            ) : (
-              <p className="mt-2 text-black/48">
-                Contemporary design direction selected. No additional cultural
-                design exploration requested at this stage.
-              </p>
-            )}
+            <p className="mt-2 text-black/58">
+              Coastal exterior inspiration selected. Exterior cultural
+              expression to be developed with the Nation during project review.
+            </p>
           </div>
         ))}
       </div>

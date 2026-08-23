@@ -15,6 +15,8 @@ import Link from "next/link";
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import { CulturalDesignReport } from "@/components/cultural-design-report";
+import { FirstNationsExteriorDirectionCard } from "@/components/first-nations-exterior-direction-card";
+import { getCulturalDesignImage } from "@/data/first-nations-cultural-design";
 import { cn } from "@/lib/cn";
 import {
   addPlannerDesignVariation,
@@ -35,6 +37,7 @@ import {
   plannerAudienceLabels,
   reassignPlannerDesignQuantity,
   resizePlannerDesignVariations,
+  setPlannerCulturalExteriorInterest,
   type FundingCorridor,
   type FundingCorridorDecision,
   type PlannerCatalogItem,
@@ -131,6 +134,9 @@ function getPlannerDesignSession(
     assignedQuantity: variation.assignedQuantity,
     deliveryGroup: plannerPhaseLabels[line.phase],
     returnHref: getPlannerReturnHref(audience, "planner-design-center"),
+    ...(audience === "first-nations"
+      ? { culturalExteriorInterest: variation.culturalExteriorInterest ?? false }
+      : {}),
   };
 }
 
@@ -514,6 +520,9 @@ function PortfolioStep({
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [phases, setPhases] = useState<Record<string, PlannerPhase>>({});
   const [addFeedback, setAddFeedback] = useState<Record<string, string>>({});
+  const [culturalExteriorInterests, setCulturalExteriorInterests] = useState<
+    Record<string, boolean>
+  >({});
   const catalog = plannerCatalog.filter((item) => item.family === family);
   const summary = getPortfolioSummary(state.portfolio, plannerCatalog);
 
@@ -524,10 +533,25 @@ function PortfolioStep({
       (line) => line.modelId === item.id && line.phase === phase,
     );
     const lineId = existing?.id ?? createLineId();
+    const culturalExteriorInterest =
+      state.audience === "first-nations" &&
+      getCulturalDesignImage(item.id.replace(/^custom:/, ""))
+        ? culturalExteriorInterests[item.id] ??
+          existing?.designVariations[0]?.culturalExteriorInterest ??
+          false
+        : undefined;
     const portfolio = existing
       ? state.portfolio.map((line) =>
           line.id === existing.id
-            ? resizePlannerDesignVariations(line, line.quantity + quantity)
+            ? culturalExteriorInterest !== undefined
+              ? setPlannerCulturalExteriorInterest(
+                  resizePlannerDesignVariations(
+                    line,
+                    line.quantity + quantity,
+                  ),
+                  culturalExteriorInterest,
+                )
+              : resizePlannerDesignVariations(line, line.quantity + quantity)
             : line,
         )
       : [
@@ -537,7 +561,14 @@ function PortfolioStep({
             modelId: item.id,
             quantity,
             phase,
-            designVariations: [createPlannerDesignVariation(lineId, quantity)],
+            designVariations: [
+              {
+                ...createPlannerDesignVariation(lineId, quantity),
+                ...(culturalExteriorInterest !== undefined
+                  ? { culturalExteriorInterest }
+                  : {}),
+              },
+            ],
           },
         ];
     const nextSummary = getPortfolioSummary(portfolio, plannerCatalog);
@@ -547,6 +578,36 @@ function PortfolioStep({
       ...current,
       [item.id]: `${quantity} ${getPlannerHomeName(item.name)} added to your project · ${nextSummary.totalHomes} homes total`,
     }));
+  }
+
+  function chooseCulturalExteriorDirection(
+    item: PlannerCatalogItem,
+    culturalExteriorInterest: boolean,
+  ) {
+    setCulturalExteriorInterests((current) => ({
+      ...current,
+      [item.id]: culturalExteriorInterest,
+    }));
+    setState((current) => ({
+      ...current,
+      portfolio: current.portfolio.map((line) =>
+        line.modelId === item.id
+          ? setPlannerCulturalExteriorInterest(
+              line,
+              culturalExteriorInterest,
+            )
+          : line,
+      ),
+    }));
+  }
+
+  function getCulturalExteriorInterest(item: PlannerCatalogItem) {
+    return (
+      culturalExteriorInterests[item.id] ??
+      state.portfolio.find((line) => line.modelId === item.id)
+        ?.designVariations[0]?.culturalExteriorInterest ??
+      false
+    );
   }
 
   function updateLine(id: string, patch: Partial<PlannerPortfolioLine>) {
@@ -698,16 +759,31 @@ function PortfolioStep({
       <div className="mt-8 grid gap-x-5 gap-y-10 md:grid-cols-2 xl:grid-cols-3">
         {catalog.map((item) => (
           <article key={item.id} className="border-t border-black/16 pt-4">
-            <div className="relative aspect-[4/3] overflow-hidden bg-black/5">
-              <Image
-                src={item.image}
-                alt={`${item.name} exterior`}
-                fill
-                quality={95}
-                sizes="(min-width: 1280px) 31vw, (min-width: 768px) 48vw, 100vw"
-                className="object-cover"
+            {state.audience === "first-nations" &&
+            getCulturalDesignImage(item.id.replace(/^custom:/, "")) ? (
+              <FirstNationsExteriorDirectionCard
+                homeName={getPlannerHomeName(item.name)}
+                standardImage={item.image}
+                coastalImage={
+                  getCulturalDesignImage(item.id.replace(/^custom:/, ""))!
+                }
+                culturalExteriorInterest={getCulturalExteriorInterest(item)}
+                onChange={(interest) =>
+                  chooseCulturalExteriorDirection(item, interest)
+                }
               />
-            </div>
+            ) : (
+              <div className="relative aspect-[4/3] overflow-hidden bg-black/5">
+                <Image
+                  src={item.image}
+                  alt={`${item.name} exterior`}
+                  fill
+                  quality={95}
+                  sizes="(min-width: 1280px) 31vw, (min-width: 768px) 48vw, 100vw"
+                  className="object-cover"
+                />
+              </div>
+            )}
             <div className="mt-5 flex items-start justify-between gap-4">
               <div>
                 <p className="text-[9px] uppercase tracking-[0.17em] text-black/42">
@@ -1073,9 +1149,9 @@ function DesignStep({
                         {variation.lookBookReference ? (
                           <p className="mt-3 font-mono text-[9px] uppercase tracking-[0.13em] text-black/42">My Look Book / {variation.lookBookReference}</p>
                         ) : null}
-                        {variation.culturalDesignDirection ? (
+                        {variation.culturalExteriorInterest ? (
                           <p className="mt-3 text-xs leading-5 text-black/48">
-                            Cultural design direction / {variation.culturalDesignDirection.choice === "explore" ? "Nation-led exploration requested" : "Contemporary design selected"}
+                            Cultural design direction / Coastal exterior inspiration
                           </p>
                         ) : null}
                         <div className="mt-7 flex flex-wrap gap-x-5 gap-y-3 border-t border-black/12 pt-4">
@@ -1588,7 +1664,7 @@ function ProjectReviewStep({
                 {line.designVariations.map((variation) => (
                   <div key={variation.id} className="mt-3 text-xs leading-5 text-black/52">
                     <p>{variation.projectDesignName ?? `${getPlannerHomeName(model.name)} — ${variation.label}`} · Assigned to {variation.assignedQuantity} {variation.assignedQuantity === 1 ? "home" : "homes"} · {variation.status === "complete" ? `Complete${variation.lookBookReference ? ` / ${variation.lookBookReference}` : ""}` : "Design outstanding"}</p>
-                    {variation.culturalDesignDirection ? <p className="mt-1 text-black/42">Cultural design direction: {variation.culturalDesignDirection.choice === "explore" ? "Nation-led exploration requested" : "Contemporary design selected"}</p> : null}
+                    {variation.culturalExteriorInterest ? <p className="mt-1 text-black/42">Cultural design direction: Coastal exterior inspiration</p> : null}
                   </div>
                 ))}
               </div>

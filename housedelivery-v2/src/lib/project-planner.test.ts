@@ -23,6 +23,7 @@ import {
   matchFundingCorridors,
   migratePlannerState,
   reassignPlannerDesignQuantity,
+  setPlannerCulturalExteriorInterest,
   type PlannerPortfolioLine,
   type PlannerState,
 } from "./project-planner";
@@ -405,6 +406,34 @@ test("current Planner drafts restore funding choices and the five-home workflow"
   });
 });
 
+test("the former cultural exploration choice migrates to the exterior-only flag", () => {
+  const lineId = "legacy-cultural-solace";
+  const migrated = migratePlannerState({
+    ...defaultPlannerState,
+    portfolio: [
+      {
+        id: lineId,
+        modelId: "custom:solace",
+        quantity: 2,
+        phase: "phase-1",
+        designVariations: [
+          {
+            ...createPlannerDesignVariation(lineId, 2),
+            culturalDesignDirection: {
+              choice: "explore",
+              areas: ["entry-arrival", "interior-feature-elements"],
+            },
+          },
+        ],
+      },
+    ],
+  });
+
+  const variation = migrated?.portfolio[0]?.designVariations[0];
+  assert.equal(variation?.culturalExteriorInterest, true);
+  assert.equal("culturalDesignDirection" in (variation ?? {}), false);
+});
+
 test("legacy funding follow-up choices migrate into the simplified funding review", () => {
   const migrated = migratePlannerState({
     ...defaultPlannerState,
@@ -447,13 +476,7 @@ test("project review context carries the complete multi-home Planner record", ()
               projectDesignName: "Solace — Design A",
               lookBookReference: "SOLACE-LOOK-001",
               designSelections: { kitchen: "premium-1" },
-              culturalDesignDirection: {
-                choice: "explore" as const,
-                areas: [
-                  "entry-arrival" as const,
-                  "local-artist-artisan-collaboration" as const,
-                ],
-              },
+              culturalExteriorInterest: true,
             }
           : variation,
       ],
@@ -498,24 +521,20 @@ test("project review context carries the complete multi-home Planner record", ()
   assert.match(context, /SCALE & READINESS/);
   assert.match(context, /Coordinate local assembly training/);
   assert.match(context, /CULTURAL DESIGN DIRECTION/);
-  assert.match(context, /Nation-led cultural design exploration requested/);
-  assert.match(context, /Entry \/ arrival/);
+  assert.match(context, /Coastal exterior inspiration selected/);
   assert.match(
     context,
-    /Local artist \/ community collaboration to be developed during project review/,
+    /Exterior cultural expression to be developed with the Nation during project review/,
   );
   assert.deepEqual(getCulturalDesignReportRecords(state, firstNationsPlannerCatalog), [
     {
       id: "solace-line:design-a",
       designName: "Solace — Design A",
-      choice: "explore",
-      areas: ["Entry / arrival", "Local artist / artisan collaboration"],
-      artistCollaborationRequested: true,
     },
   ]);
 });
 
-test("contemporary and non-First Nations project modes do not add a cultural exploration", () => {
+test("Contemporary and non-First Nations project modes omit the cultural exterior report note", () => {
   const firstNationsState: PlannerState = {
     ...defaultPlannerState,
     portfolio: [
@@ -528,7 +547,7 @@ test("contemporary and non-First Nations project modes do not add a cultural exp
           {
             ...createPlannerDesignVariation("solace-line", 2),
             status: "complete",
-            culturalDesignDirection: { choice: "contemporary", areas: [] },
+            culturalExteriorInterest: false,
           },
         ],
       },
@@ -539,18 +558,26 @@ test("contemporary and non-First Nations project modes do not add a cultural exp
     firstNationsPlannerCatalog,
   );
   const developer = getCulturalDesignReportRecords(
-    { ...firstNationsState, audience: "developer" },
+    {
+      ...firstNationsState,
+      audience: "developer",
+      portfolio: firstNationsState.portfolio.map((line) =>
+        setPlannerCulturalExteriorInterest(line, true),
+      ),
+    },
     firstNationsPlannerCatalog,
   );
 
-  assert.equal(contemporary[0]?.choice, "contemporary");
-  assert.deepEqual(contemporary[0]?.areas, []);
+  assert.deepEqual(contemporary, []);
   assert.deepEqual(developer, []);
 });
 
-test("Save Look Book return completes the design group and carries cultural intent into the report", () => {
+test("Save Look Book return completes the design group and carries Coastal exterior interest into the report", () => {
   const lineId = "solace-cultural-line";
-  const variation = createPlannerDesignVariation(lineId, 2);
+  const variation = {
+    ...createPlannerDesignVariation(lineId, 2),
+    culturalExteriorInterest: true,
+  };
   const state: PlannerState = {
     ...defaultPlannerState,
     community: "WestBank",
@@ -575,6 +602,7 @@ test("Save Look Book return completes the design group and carries cultural inte
     assignedQuantity: 2,
     deliveryGroup: "Active / First Build",
     returnHref: "/first-nations-project-planner#planner-design-center",
+    culturalExteriorInterest: true,
     completedAt: "2026-08-23T12:00:00.000Z",
     configuration: {
       schemaVersion: 1,
@@ -589,13 +617,7 @@ test("Save Look Book return completes the design group and carries cultural inte
         preparedAt: "2026-08-23T12:00:00.000Z",
         reference: "SOLACE-CULTURAL-001",
       },
-      culturalDesignDirection: {
-        choice: "explore",
-        areas: [
-          "entry-arrival",
-          "local-artist-artisan-collaboration",
-        ],
-      },
+      culturalExteriorInterest: true,
     },
   });
   const completedVariation = completed.portfolio[0]?.designVariations[0];
@@ -608,40 +630,43 @@ test("Save Look Book return completes the design group and carries cultural inte
   assert.equal(completedVariation?.status, "complete");
   assert.equal(completedVariation?.assignedQuantity, 2);
   assert.equal(completedVariation?.lookBookReference, "SOLACE-CULTURAL-001");
-  assert.deepEqual(completedVariation?.culturalDesignDirection?.areas, [
-    "entry-arrival",
-    "local-artist-artisan-collaboration",
+  assert.equal(completedVariation?.culturalExteriorInterest, true);
+  assert.deepEqual(records, [
+    {
+      id: "solace-cultural-line:design-a",
+      designName: "Solace — Design A",
+    },
   ]);
-  assert.equal(records[0]?.choice, "explore");
-  assert.equal(records[0]?.artistCollaborationRequested, true);
 });
 
-test("Planner Design My Home links preserve the design-group return context", () => {
+test("Planner Design My Home links preserve the design-group return context and exterior flag", () => {
   const session = {
     audience: "first-nations" as const,
     projectName: "WestBank",
-    lineId: "saturna-line",
-    variationId: "saturna-line:design-a",
-    modelId: "custom:saturna",
-    homeName: "Saturna",
+    lineId: "solace-line",
+    variationId: "solace-line:design-a",
+    modelId: "custom:solace",
+    homeName: "Solace",
     designLabel: "Design A",
     assignedQuantity: 2,
     deliveryGroup: "Active / First Build",
     returnHref: "/first-nations-project-planner#planner-design-center",
+    culturalExteriorInterest: true,
   };
   const href = buildPlannerDesignHref(
-    "/homes/saturna#home-inclusions",
+    "/homes/solace#home-inclusions",
     session,
   );
   const parsed = new URL(href, "https://www.housedelivery.ca");
 
-  assert.equal(parsed.pathname, "/homes/saturna");
+  assert.equal(parsed.pathname, "/homes/solace");
   assert.equal(parsed.hash, "#home-inclusions");
   assert.equal(parsed.searchParams.get("plannerProject"), "WestBank");
   assert.equal(
     parsed.searchParams.get("plannerDeliveryGroup"),
     "Active / First Build",
   );
+  assert.equal(parsed.searchParams.get("plannerCulturalExterior"), "1");
   assert.deepEqual(readPlannerDesignSession(parsed.search), session);
 });
 

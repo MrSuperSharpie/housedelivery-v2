@@ -44,6 +44,7 @@ export type PlannerDesignSession = {
   assignedQuantity: number;
   deliveryGroup: string;
   returnHref: string;
+  culturalExteriorInterest?: boolean;
 };
 
 export type PlannerDesignReturn = PlannerDesignSession & {
@@ -96,8 +97,9 @@ export function applyPlannerDesignReturn(
                       ?.projectDesignName ??
                     variation.projectDesignName ??
                     `${returned.homeName} — ${returned.designLabel}`,
-                  culturalDesignDirection:
-                    returned.configuration.culturalDesignDirection,
+                  culturalExteriorInterest:
+                    returned.configuration.culturalExteriorInterest ??
+                    variation.culturalExteriorInterest,
                   savedAt: returned.completedAt,
                 }
               : variation,
@@ -142,6 +144,12 @@ function setPlannerDesignSessionParams(
   url.searchParams.set("plannerQuantity", String(session.assignedQuantity));
   url.searchParams.set("plannerDeliveryGroup", session.deliveryGroup);
   url.searchParams.set("plannerReturn", session.returnHref);
+  if (session.culturalExteriorInterest !== undefined) {
+    url.searchParams.set(
+      "plannerCulturalExterior",
+      session.culturalExteriorInterest ? "1" : "0",
+    );
+  }
 }
 
 export function getPlannerConfigurationKey(session: PlannerDesignSession) {
@@ -279,6 +287,7 @@ export function readPlannerDesignSession(
   const returnHref = params.get("plannerReturn");
   const deliveryGroup = params.get("plannerDeliveryGroup");
   const assignedQuantity = Number(params.get("plannerQuantity"));
+  const culturalExteriorParam = params.get("plannerCulturalExterior");
 
   if (
     !projectName ||
@@ -307,6 +316,9 @@ export function readPlannerDesignSession(
     assignedQuantity,
     deliveryGroup,
     returnHref,
+    ...(culturalExteriorParam === "1" || culturalExteriorParam === "0"
+      ? { culturalExteriorInterest: culturalExteriorParam === "1" }
+      : {}),
   };
 }
 
