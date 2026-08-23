@@ -15,6 +15,9 @@ import {
   createOpportunityReportReference,
   defaultPlannerState,
   formatProjectReviewContext,
+  firstNationsHousingUseOptions,
+  firstNationsHousingUseQuestion,
+  firstNationsHousingUseSupportingText,
   getAudienceFundingCorridors,
   getCommunityWorkforceCapacityLabels,
   getCulturalDesignReportRecords,
@@ -27,6 +30,7 @@ import {
   migratePlannerState,
   reassignPlannerDesignQuantity,
   setPlannerCulturalExteriorInterest,
+  toggleCommunityWorkforceCapacitySelection,
   type PlannerPortfolioLine,
   type PlannerState,
 } from "./project-planner";
@@ -382,9 +386,8 @@ test("First Nations workforce and capacity choices persist without changing pric
     [
       "Interested in local assembly participation",
       "Local trades / workforce already identified",
-      "Interested in workforce training",
-      "Interested in long-term maintenance capability",
-      "House Delivery support required",
+      "Interested in project-based assembly training",
+      "Need House Delivery support to coordinate local participation",
       "To be determined",
     ],
   );
@@ -424,7 +427,7 @@ test("First Nations workforce and capacity choices persist without changing pric
   assert.deepEqual(getCommunityWorkforceCapacityLabels(selections), [
     "Interested in local assembly participation",
     "Local trades / workforce already identified",
-    "Interested in workforce training",
+    "Interested in project-based assembly training",
   ]);
   assert.deepEqual(
     readiness.find(
@@ -433,7 +436,7 @@ test("First Nations workforce and capacity choices persist without changing pric
     {
       label: "Community workforce & capacity",
       detail:
-        "Interested in local assembly participation; Local trades / workforce already identified; Interested in workforce training",
+        "Interested in local assembly participation; Local trades / workforce already identified; Interested in project-based assembly training",
       ready: true,
     },
   );
@@ -441,6 +444,47 @@ test("First Nations workforce and capacity choices persist without changing pric
     readiness.some((item) => item.label === "Delivery capacity"),
     false,
   );
+});
+
+test("To be determined stays mutually exclusive in workforce selections", () => {
+  assert.deepEqual(
+    toggleCommunityWorkforceCapacitySelection(
+      ["to-be-determined"],
+      "local-assembly-participation",
+    ),
+    ["local-assembly-participation"],
+  );
+  assert.deepEqual(
+    toggleCommunityWorkforceCapacitySelection(
+      ["local-assembly-participation", "workforce-training-interest"],
+      "to-be-determined",
+    ),
+    ["to-be-determined"],
+  );
+  assert.deepEqual(
+    toggleCommunityWorkforceCapacitySelection(
+      ["local-assembly-participation"],
+      "local-assembly-participation",
+    ),
+    ["to-be-determined"],
+  );
+});
+
+test("First Nations housing use keeps the new customer wording and funding values", () => {
+  assert.equal(
+    firstNationsHousingUseQuestion,
+    "How will these homes likely be used?",
+  );
+  assert.equal(
+    firstNationsHousingUseSupportingText,
+    "This helps us identify the most relevant funding and financing pathways.",
+  );
+  assert.deepEqual(firstNationsHousingUseOptions, [
+    ["community-rental", "Community rental"],
+    ["ownership", "Homeownership"],
+    ["mixed-income", "Mixed"],
+    ["unknown", "Not sure yet"],
+  ]);
 });
 
 test("First Nations cultural direction is read from the earlier project-home choice", () => {
@@ -474,7 +518,7 @@ test("First Nations cultural direction is read from the earlier project-home cho
   );
   assert.equal(
     getFirstNationsCulturalDesignDirectionLabel(coastalState),
-    "Coastal Inspiration selected",
+    "Indigenous Inspiration selected",
   );
 });
 
@@ -631,10 +675,11 @@ test("project review context carries the complete multi-home Planner record", ()
   assert.match(context, /Include:.*CMHC|Include:.*On-Reserve/i);
   assert.match(context, /Not relevant: BC Builds/);
   assert.match(context, /Land status: on reserve/);
+  assert.match(context, /Likely housing use: Community rental/);
   assert.match(context, /SCALE & READINESS/);
   assert.match(context, /Coordinate local assembly training/);
   assert.match(context, /CULTURAL DESIGN DIRECTION/);
-  assert.match(context, /Coastal exterior inspiration selected/);
+  assert.match(context, /Indigenous Inspiration selected/);
   assert.match(
     context,
     /Exterior cultural expression to be developed with the Nation during project review/,
@@ -642,14 +687,14 @@ test("project review context carries the complete multi-home Planner record", ()
   assert.match(context, /COMMUNITY WORKFORCE & CAPACITY/);
   assert.match(
     context,
-    /Local workforce participation and training interest identified/,
+    /Community workforce and capacity interests identified/,
   );
   assert.match(context, /Interested in local assembly participation/);
-  assert.match(context, /Interested in workforce training/);
-  assert.match(context, /House Delivery support required/);
+  assert.match(context, /Interested in project-based assembly training/);
+  assert.match(context, /Need House Delivery support to coordinate local participation/);
   assert.match(
     context,
-    /Cultural design direction: Coastal Inspiration selected/,
+    /Cultural design direction: Indigenous Inspiration selected/,
   );
   assert.doesNotMatch(context, /Cultural priorities:/);
   assert.doesNotMatch(context, /Local labour:/);

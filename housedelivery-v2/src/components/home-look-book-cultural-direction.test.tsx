@@ -74,15 +74,16 @@ function renderProjectLookBook(culturalExteriorInterest: boolean) {
   );
 }
 
-test("Coastal project Look Book and print output use the approved exterior summary", () => {
+test("Indigenous Inspiration project Look Book and print output use the approved exterior summary", () => {
   const markup = renderProjectLookBook(true);
 
   assert.match(markup, /data-look-book-cultural-summary="true"/);
   assert.match(markup, /data-look-book-print-page="true"/);
   assert.match(markup, /Solace-Coastal\.png/);
   assert.match(markup, /Design Direction/);
-  assert.match(markup, /Contemporary \+ Coastal Inspiration/);
-  assert.match(markup, /Coastal Influence Notice/);
+  assert.match(markup, /Contemporary \+ Indigenous Inspiration/);
+  assert.match(markup, /Indigenous Influence Notice/);
+  assert.doesNotMatch(markup, /Coastal Inspiration/);
   assert.match(
     markup,
     /Cultural and place-based influence and artistry are identified for project review/,
@@ -110,6 +111,6 @@ test("Contemporary-only project and standalone Look Books remain unchanged", () 
   for (const markup of [projectMarkup, standaloneMarkup]) {
     assert.doesNotMatch(markup, /data-look-book-cultural-summary/);
     assert.doesNotMatch(markup, /Solace-Coastal\.png/);
-    assert.doesNotMatch(markup, /Coastal Influence Notice/);
+    assert.doesNotMatch(markup, /Indigenous Influence Notice/);
   }
 });

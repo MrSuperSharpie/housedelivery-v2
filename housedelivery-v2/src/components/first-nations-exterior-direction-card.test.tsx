@@ -42,7 +42,7 @@ test("approved Coastal imagery resolves case-sensitive paths without substitutio
   assert.equal(getCulturalDesignImage("saturna"), undefined);
 });
 
-test("Coastal Inspiration swaps the First Nations home card image and labels it as illustrative", () => {
+test("Indigenous Inspiration swaps the First Nations home card image and labels it as illustrative", () => {
   const coastalImage = getCulturalDesignImage("solace");
   assert.ok(coastalImage);
   const markup = renderToStaticMarkup(
@@ -57,7 +57,8 @@ test("Coastal Inspiration swaps the First Nations home card image and labels it 
 
   assert.match(markup, /Solace-Coastal\.png/);
   assert.match(markup, /Contemporary/);
-  assert.match(markup, /Coastal Inspiration/);
+  assert.match(markup, /Indigenous Inspiration/);
+  assert.doesNotMatch(markup, /Coastal Inspiration/);
   assert.match(markup, /Illustrative Exterior Inspiration/);
   assert.match(markup, /early visual direction only/);
   assert.match(markup, /not a fixed product, approved design or supplier package/);
@@ -98,7 +99,7 @@ test("Opportunity Report carries only the exterior cultural-direction note", () 
 
   assert.match(markup, /Cultural Design Direction/);
   assert.match(markup, /Solace — Design A/);
-  assert.match(markup, /Coastal exterior inspiration selected/);
+  assert.match(markup, /Indigenous Inspiration selected/);
   assert.match(
     markup,
     /Exterior cultural expression to be developed with the Nation during project review/,

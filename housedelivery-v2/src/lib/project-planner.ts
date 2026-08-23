@@ -106,15 +106,11 @@ export const communityWorkforceCapacityOptions = [
   },
   {
     id: "workforce-training-interest",
-    label: "Interested in workforce training",
-  },
-  {
-    id: "maintenance-capability-interest",
-    label: "Interested in long-term maintenance capability",
+    label: "Interested in project-based assembly training",
   },
   {
     id: "house-delivery-support-required",
-    label: "House Delivery support required",
+    label: "Need House Delivery support to coordinate local participation",
   },
   { id: "to-be-determined", label: "To be determined" },
 ] as const;
@@ -123,7 +119,27 @@ export type CommunityWorkforceCapacityId =
   (typeof communityWorkforceCapacityOptions)[number]["id"];
 
 export const communityWorkforceCapacityReviewStatement =
-  "Local workforce participation and training interest identified. Assembly participation, training scope, partners, costs and schedule will be developed during project review.";
+  "Community workforce and capacity interests identified. Participation, training scope, partners, employment opportunities, costs and schedules will be confirmed during project review.";
+
+export const firstNationsHousingUseQuestion =
+  "How will these homes likely be used?";
+
+export const firstNationsHousingUseSupportingText =
+  "This helps us identify the most relevant funding and financing pathways.";
+
+export const firstNationsHousingUseOptions = [
+  ["community-rental", "Community rental"],
+  ["ownership", "Homeownership"],
+  ["mixed-income", "Mixed"],
+  ["unknown", "Not sure yet"],
+] as const;
+
+export function getFirstNationsHousingUseLabel(value: string) {
+  return (
+    firstNationsHousingUseOptions.find(([optionValue]) => optionValue === value)?.[1] ??
+    (value === "deeply-affordable" ? "Affordable housing" : "Not sure yet")
+  );
+}
 
 export type ProjectRefinement = {
   householdPriorities: readonly string[];
@@ -277,6 +293,24 @@ function normalizeCommunityWorkforceCapacity(
   return specificSelections.length > 0
     ? specificSelections
     : ["to-be-determined"];
+}
+
+export function toggleCommunityWorkforceCapacitySelection(
+  current: readonly CommunityWorkforceCapacityId[],
+  value: CommunityWorkforceCapacityId,
+) {
+  if (value === "to-be-determined") return ["to-be-determined"] as const;
+
+  const next = current.includes(value)
+    ? current.filter((selection) => selection !== value)
+    : [
+        ...current.filter(
+          (selection) => selection !== "to-be-determined",
+        ),
+        value,
+      ];
+
+  return normalizeCommunityWorkforceCapacity(next);
 }
 
 export function getCommunityWorkforceCapacityLabels(
@@ -905,7 +939,7 @@ export function getFirstNationsCulturalDesignDirectionLabel(
     );
 
   return coastalSelected
-    ? "Coastal Inspiration selected"
+    ? "Indigenous Inspiration selected"
     : "Contemporary / To be determined";
 }
 
@@ -960,7 +994,10 @@ export function formatProjectReviewContext(
           ["Accessibility", state.refinement.accessibility],
           ["Land status", state.refinement.landStatus],
           ["Servicing", state.refinement.servicing],
-          ["Affordability", state.refinement.affordability],
+          [
+            "Likely housing use",
+            getFirstNationsHousingUseLabel(state.refinement.affordability),
+          ],
           [
             "Cultural design direction",
             getFirstNationsCulturalDesignDirectionLabel(state),
@@ -998,7 +1035,7 @@ export function formatProjectReviewContext(
   ]);
   const culturalDesignLines = getCulturalDesignReportRecords(state, catalog).map(
     (record) =>
-      `${record.designName}: Coastal exterior inspiration selected. Exterior cultural expression to be developed with the Nation during project review.`,
+      `${record.designName}: Indigenous Inspiration selected. Exterior cultural expression to be developed with the Nation during project review.`,
   );
   const workforceCapacityLabels = getCommunityWorkforceCapacityLabels(
     state.refinement.communityWorkforceCapacity,

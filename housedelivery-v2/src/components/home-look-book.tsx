@@ -123,7 +123,7 @@ function CoastalLookBookSummary({
           className="mt-8 border-y border-black/18 py-5"
         >
           <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/58">
-            Coastal Influence Notice
+            Indigenous Influence Notice
           </p>
           <p className="mt-3 max-w-5xl text-sm leading-7 text-black/58">
             {coastalInfluenceNotice}

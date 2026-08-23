@@ -45,7 +45,7 @@ export function FirstNationsExteriorDirectionCard({
         <div className="mt-3 grid grid-cols-2 gap-2">
           {([
             [false, "Contemporary"],
-            [true, "Coastal Inspiration"],
+            [true, "Indigenous Inspiration"],
           ] as const).map(([value, label]) => {
             const selected = culturalExteriorInterest === value;
             return (
@@ -55,10 +55,10 @@ export function FirstNationsExteriorDirectionCard({
                 aria-pressed={selected}
                 onClick={() => onChange(value)}
                 className={cn(
-                  "flex min-h-12 items-center justify-between gap-2 border px-3 text-left text-[9px] font-semibold uppercase leading-4 tracking-[0.13em] transition-colors",
+                  "flex min-h-12 items-center justify-between gap-2 border px-3 text-left text-[9px] font-semibold uppercase leading-4 tracking-[0.13em] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black",
                   selected
                     ? "border-black bg-black text-white"
-                    : "border-black/18 text-black/52 hover:border-black hover:text-black",
+                    : "border-black/30 bg-white/35 text-black/68 hover:border-black hover:bg-white/80 hover:text-black",
                 )}
               >
                 {label}

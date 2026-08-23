@@ -23,7 +23,7 @@ export function CulturalDesignReport({
           >
             <p className="font-medium">{record.designName}</p>
             <p className="mt-2 text-black/58">
-              Coastal exterior inspiration selected. Exterior cultural
+              Indigenous Inspiration selected. Exterior cultural
               expression to be developed with the Nation during project review.
             </p>
           </div>

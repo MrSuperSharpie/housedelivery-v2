@@ -28,6 +28,9 @@ import {
   createPlannerDesignVariation,
   formatPlanningValue,
   formatProjectReviewContext,
+  firstNationsHousingUseOptions,
+  firstNationsHousingUseQuestion,
+  firstNationsHousingUseSupportingText,
   getAudienceFundingCorridors,
   getCommunityWorkforceCapacityLabels,
   getCulturalDesignReportRecords,
@@ -43,6 +46,7 @@ import {
   reassignPlannerDesignQuantity,
   resizePlannerDesignVariations,
   setPlannerCulturalExteriorInterest,
+  toggleCommunityWorkforceCapacitySelection,
   type FundingCorridor,
   type FundingCorridorDecision,
   type CommunityWorkforceCapacityId,
@@ -101,7 +105,16 @@ const householdOptions = [
 ] as const;
 
 const selectClassName =
-  "min-h-12 w-full border border-black/18 bg-transparent px-4 text-sm text-black outline-none transition-colors focus:border-black";
+  "min-h-12 w-full cursor-pointer border border-black/30 bg-white/35 px-4 text-sm text-black outline-none transition-colors hover:border-black/60 hover:bg-white/70 focus:border-black focus:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black";
+
+const inputControlClassName =
+  "min-h-12 w-full border border-black/30 bg-white/35 px-4 text-sm text-black outline-none transition-colors hover:border-black/60 hover:bg-white/70 focus:border-black focus:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black";
+
+const textInputClassName =
+  "w-full border-b border-black/30 bg-white/20 px-2 py-3 text-xl tracking-[-0.025em] text-black outline-none transition-colors placeholder:text-black/30 hover:border-black/60 hover:bg-white/55 focus:border-black focus:bg-white/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black";
+
+const unselectedControlClassName =
+  "border-black/30 bg-white/35 text-black/68 hover:border-black hover:bg-white/80 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black";
 
 function createLineId() {
   return typeof window !== "undefined" && window.crypto?.randomUUID
@@ -183,7 +196,7 @@ function PlannerLink({
       href={href}
       target={newTab ? "_blank" : undefined}
       rel={newTab ? "noreferrer" : undefined}
-      className="inline-flex min-h-9 items-center gap-2 border-b border-black/28 text-[9px] font-semibold uppercase tracking-[0.15em] text-black/58 transition-colors hover:border-black hover:text-black"
+      className="inline-flex min-h-10 items-center gap-2 border border-black/30 bg-white/35 px-3 text-[9px] font-semibold uppercase tracking-[0.15em] text-black/68 transition-colors hover:border-black hover:bg-black hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
     >
       {children}
       <ArrowUpRight aria-hidden="true" className="size-3.5" />
@@ -315,7 +328,7 @@ function StartStep({
             value={state.community}
             onChange={(event) => update({ community: event.target.value })}
             placeholder="Community or Nation name"
-            className="w-full bg-transparent text-xl tracking-[-0.025em] text-black outline-none placeholder:text-black/25"
+            className={textInputClassName}
           />
         </label>
         <label className="border-b border-r border-black/16 p-5 sm:p-7">
@@ -324,7 +337,7 @@ function StartStep({
             value={state.location}
             onChange={(event) => update({ location: event.target.value })}
             placeholder="Community, region, province"
-            className="w-full bg-transparent text-xl tracking-[-0.025em] text-black outline-none placeholder:text-black/25"
+            className={textInputClassName}
           />
         </label>
         <label className="border-b border-r border-black/16 p-5 sm:p-7">
@@ -336,7 +349,7 @@ function StartStep({
             value={state.approximateHomes}
             onChange={(event) => update({ approximateHomes: event.target.value })}
             placeholder="e.g. 24"
-            className="w-full bg-transparent text-xl tracking-[-0.025em] text-black outline-none placeholder:text-black/25"
+            className={textInputClassName}
           />
         </label>
         <label className="border-b border-r border-black/16 p-5 sm:p-7">
@@ -453,7 +466,7 @@ function AudienceStartStep({
               setState((current) => ({ ...current, community: event.target.value }))
             }
             placeholder="Working project name"
-            className="w-full bg-transparent text-xl tracking-[-0.025em] text-black outline-none placeholder:text-black/25"
+            className={textInputClassName}
           />
         </label>
         <label className="border-b border-r border-black/16 p-5 sm:p-7">
@@ -464,7 +477,7 @@ function AudienceStartStep({
               setState((current) => ({ ...current, location: event.target.value }))
             }
             placeholder="Community, region, province"
-            className="w-full bg-transparent text-xl tracking-[-0.025em] text-black outline-none placeholder:text-black/25"
+            className={textInputClassName}
           />
         </label>
         <label className="border-b border-r border-black/16 p-5 sm:p-7">
@@ -481,7 +494,7 @@ function AudienceStartStep({
               }))
             }
             placeholder="e.g. 24"
-            className="w-full bg-transparent text-xl tracking-[-0.025em] text-black outline-none placeholder:text-black/25"
+            className={textInputClassName}
           />
         </label>
         {fields.map((field) => {
@@ -686,7 +699,7 @@ function PortfolioStep({
                         ),
                       })
                     }
-                    className={selectClassName}
+                    className={inputControlClassName}
                   />
                 </label>
                 <label>
@@ -706,7 +719,7 @@ function PortfolioStep({
                 <button
                   type="button"
                   onClick={() => removeLine(line.id)}
-                  className="inline-flex min-h-11 items-center justify-center gap-2 border border-black/18 px-4 text-[9px] font-semibold uppercase tracking-[0.15em] text-black/52 hover:border-black hover:text-black"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 border border-black/30 bg-white/35 px-4 text-[9px] font-semibold uppercase tracking-[0.15em] text-black/62 transition-colors hover:border-black hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
                 >
                   <Minus aria-hidden="true" className="size-3.5" /> Remove
                 </button>
@@ -724,7 +737,7 @@ function PortfolioStep({
             "min-h-11 border px-5 text-[9px] font-semibold uppercase tracking-[0.17em]",
             family === "standardized-catalogue"
               ? "border-black bg-black text-white"
-              : "border-black/20 text-black/55",
+              : unselectedControlClassName,
           )}
         >
           CMHC Housing Design Catalogue
@@ -736,7 +749,7 @@ function PortfolioStep({
             "min-h-11 border px-5 text-[9px] font-semibold uppercase tracking-[0.17em]",
             family === "custom-home"
               ? "border-black bg-black text-white"
-              : "border-black/20 text-black/55",
+              : unselectedControlClassName,
           )}
         >
           Custom Homes
@@ -748,7 +761,7 @@ function PortfolioStep({
             "min-h-11 border px-5 text-[9px] font-semibold uppercase tracking-[0.17em]",
             family === "laneway-carriage-home"
               ? "border-black bg-black text-white"
-              : "border-black/20 text-black/55",
+              : unselectedControlClassName,
           )}
         >
           Laneway &amp; Carriage Homes
@@ -821,7 +834,7 @@ function PortfolioStep({
                   min="1"
                   value={quantities[item.id] ?? 1}
                   onChange={(event) => setQuantities((current) => ({ ...current, [item.id]: Math.max(1, Number(event.target.value) || 1) }))}
-                  className={selectClassName}
+                  className={inputControlClassName}
                 />
               </label>
               <label>
@@ -840,7 +853,7 @@ function PortfolioStep({
             <button
               type="button"
               onClick={() => addItem(item)}
-              className="mt-3 inline-flex min-h-12 w-full items-center justify-between bg-black px-5 text-[9px] font-semibold uppercase tracking-[0.17em] text-white"
+              className="mt-3 inline-flex min-h-12 w-full items-center justify-between bg-black px-5 text-[9px] font-semibold uppercase tracking-[0.17em] text-white transition-colors hover:bg-black/78 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
             >
               Add to Project <Plus aria-hidden="true" className="size-4" />
             </button>
@@ -940,18 +953,12 @@ function RefineStep({
   }
 
   function toggleWorkforceCapacity(value: CommunityWorkforceCapacityId) {
-    const current = state.refinement.communityWorkforceCapacity;
-    const next = value === "to-be-determined"
-      ? ["to-be-determined" as const]
-      : current.includes(value)
-        ? current.filter((item) => item !== value)
-        : [
-            ...current.filter((item) => item !== "to-be-determined"),
-            value,
-          ];
     update(
       "communityWorkforceCapacity",
-      next.length ? next : ["to-be-determined"],
+      toggleCommunityWorkforceCapacitySelection(
+        state.refinement.communityWorkforceCapacity,
+        value,
+      ),
     );
   }
 
@@ -959,7 +966,7 @@ function RefineStep({
     ["accessibility", "Accessibility / adaptability", [["unknown", "Unknown / to confirm"], ["standard", "Standard planning"], ["adaptable", "Adaptable homes required"], ["accessible", "Accessible homes required"], ["mixed", "Mixed accessibility portfolio"]]],
     ["landStatus", "Land / site status", [["unknown", "Unknown / to confirm"], ["on-reserve", "On-reserve"], ["off-reserve", "Off-reserve"], ["mixed", "Mixed land status"]]],
     ["servicing", "Servicing / access / remoteness", [["unknown", "Unknown / to confirm"], ["serviced-road-access", "Serviced with road access"], ["partial-servicing", "Partial servicing"], ["remote-road-access", "Remote with road access"], ["limited-access", "Limited or seasonal access"]]],
-    ["affordability", "Housing / tenure approach", [["unknown", "To be determined"], ["community-rental", "Community rental"], ["deeply-affordable", "Affordable housing"], ["mixed-income", "Mixed-income"], ["ownership", "Ownership pathway"]]],
+    ["affordability", isFirstNations ? firstNationsHousingUseQuestion : "Housing / tenure approach", isFirstNations ? firstNationsHousingUseOptions : [["unknown", "To be determined"], ["community-rental", "Community rental"], ["deeply-affordable", "Affordable housing"], ["mixed-income", "Mixed-income"], ["ownership", "Ownership pathway"]]],
     ["energyResilience", "Energy & resilience", [["unknown", "To be determined"], ["code-baseline", "Standard requirements / to be confirmed"], ["enhanced-performance", "Higher energy performance"], ["resilience-priority", "Resilience priority"], ["off-grid-review", "Remote / off-grid conditions"]]],
     ["localLabour", "Delivery / trade capacity", [["unknown", "To be determined"], ["explore", "Local trade participation to explore"], ["available", "Local crew or trades identified"], ["training-interest", "Interested in training"], ["partner-required", "Need assembly / delivery support"]]],
     ["trainingObjectives", "Assembly / maintenance responsibilities", [["unknown", "To be determined"], ["assembly", "Local assembly participation"], ["training", "Training interest"], ["maintenance", "Long-term maintenance capability"], ["support-required", "House Delivery / project delivery support required"]]],
@@ -988,7 +995,7 @@ function RefineStep({
           {householdOptions.map(([value, label]) => {
             const checked = state.refinement.householdPriorities.includes(value);
             return (
-              <label key={value} className={cn("flex min-h-14 cursor-pointer items-center gap-3 border px-4 text-sm", checked ? "border-black bg-black text-white" : "border-black/16 text-black/62")}>
+              <label key={value} className={cn("flex min-h-14 cursor-pointer items-center gap-3 border px-4 text-sm transition-colors", checked ? "border-black bg-black text-white" : unselectedControlClassName)}>
                 <input type="checkbox" checked={checked} onChange={() => toggleHousehold(value)} className="sr-only" />
                 <span className={cn("grid size-5 place-items-center border", checked ? "border-white" : "border-black/25")}>
                   {checked ? <Check aria-hidden="true" className="size-3" /> : null}
@@ -1007,10 +1014,15 @@ function RefineStep({
           <legend className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/46">
             Community Workforce &amp; Capacity
           </legend>
-          <p className="mt-3 max-w-3xl text-xs leading-5 text-black/48">
-            Identify early interests only. Participation, training scope,
-            partners, costs and schedule are defined later through project
-            review.
+          <p className="mt-3 max-w-4xl text-sm leading-6 text-black/62">
+            Keep more project value in the community. Create opportunities to
+            train and employ local members in the assembly of your homes, while
+            building skills and capacity that can support future housing
+            projects.
+          </p>
+          <p className="mt-3 max-w-4xl text-xs leading-5 text-black/46">
+            Participation, training scope, partners, employment opportunities,
+            costs and schedules are confirmed during project review.
           </p>
           <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {communityWorkforceCapacityOptions.map(({ id, label }) => {
@@ -1023,7 +1035,7 @@ function RefineStep({
                     "flex min-h-14 cursor-pointer items-center gap-3 border px-4 text-sm",
                     checked
                       ? "border-black bg-black text-white"
-                      : "border-black/16 text-black/62",
+                      : unselectedControlClassName,
                   )}
                 >
                   <input
@@ -1054,6 +1066,11 @@ function RefineStep({
           const field = (
             <label key={key} className="border-b border-r border-black/16 p-5 sm:p-7">
               <FieldLabel>{label}</FieldLabel>
+              {isFirstNations && key === "affordability" ? (
+                <p className="-mt-1 mb-4 text-xs leading-5 text-black/46">
+                  {firstNationsHousingUseSupportingText}
+                </p>
+              ) : null}
               <select value={state.refinement[key] as string} onChange={(event) => update(key, event.target.value)} className={selectClassName}>
                 {options.map(([value, optionLabel]) => <option key={value} value={value}>{optionLabel}</option>)}
               </select>
@@ -1240,7 +1257,7 @@ function DesignStep({
                                   ),
                                 )
                               }
-                              className={selectClassName}
+                              className={inputControlClassName}
                             />
                           </label>
                         ) : (
@@ -1251,7 +1268,7 @@ function DesignStep({
                         ) : null}
                         {variation.culturalExteriorInterest ? (
                           <p className="mt-3 text-xs leading-5 text-black/48">
-                            Cultural design direction / Coastal exterior inspiration
+                            Cultural design direction / Indigenous Inspiration
                           </p>
                         ) : null}
                         <div className="mt-7 flex flex-wrap gap-x-5 gap-y-3 border-t border-black/12 pt-4">
@@ -1275,7 +1292,7 @@ function DesignStep({
                   type="button"
                   disabled={line.designVariations.length >= line.quantity}
                   onClick={() => updateLine(line.id, addPlannerDesignVariation)}
-                  className="mt-5 inline-flex min-h-11 items-center gap-3 border border-black/22 px-5 text-[9px] font-semibold uppercase tracking-[0.15em] text-black/62 disabled:cursor-not-allowed disabled:opacity-30"
+                  className="mt-5 inline-flex min-h-11 items-center gap-3 border border-black/30 bg-white/35 px-5 text-[9px] font-semibold uppercase tracking-[0.15em] text-black/68 transition-colors hover:border-black hover:bg-white disabled:cursor-not-allowed disabled:opacity-30"
                 >
                   <Plus aria-hidden="true" className="size-3.5" /> Create Another Design Variation
                 </button>
@@ -1388,7 +1405,7 @@ function FundingStep({
                         "min-h-11 border px-4 text-left text-[9px] font-semibold uppercase tracking-[0.14em] transition-colors",
                         isSelected
                           ? "border-black bg-black text-white"
-                          : "border-black/18 text-black/52 hover:border-black hover:text-black",
+                          : unselectedControlClassName,
                       )}
                     >
                       {label}
@@ -1836,7 +1853,7 @@ function ProjectReviewStep({
                 {line.designVariations.map((variation) => (
                   <div key={variation.id} className="mt-3 text-xs leading-5 text-black/52">
                     <p>{variation.projectDesignName ?? `${getPlannerHomeName(model.name)} — ${variation.label}`} · Assigned to {variation.assignedQuantity} {variation.assignedQuantity === 1 ? "home" : "homes"} · {variation.status === "complete" ? `Complete${variation.lookBookReference ? ` / ${variation.lookBookReference}` : ""}` : "Design outstanding"}</p>
-                    {variation.culturalExteriorInterest ? <p className="mt-1 text-black/42">Cultural design direction: Coastal exterior inspiration</p> : null}
+                    {variation.culturalExteriorInterest ? <p className="mt-1 text-black/42">Cultural design direction: Indigenous Inspiration</p> : null}
                   </div>
                 ))}
               </div>
@@ -2060,7 +2077,7 @@ export function FirstNationsProjectPlanner({
       <div className="planner-screen-only border-y border-black/14 bg-[#e5e1d7] px-5 sm:px-8 lg:px-12">
         <div className="mx-auto flex max-w-[1504px] items-center gap-2 overflow-x-auto py-4" aria-label="Planner progress">
           {steps.map((step, index) => (
-            <button key={step.label} type="button" onClick={() => index <= state.step ? goToStep(index) : undefined} disabled={index > state.step} aria-current={index === state.step ? "step" : undefined} className={cn("flex min-w-max items-center gap-3 border px-4 py-3 text-left transition-colors", index === state.step ? "border-black bg-black text-white" : index < state.step ? "border-black/24 text-black/65 hover:border-black" : "cursor-not-allowed border-black/10 text-black/25")}>
+            <button key={step.label} type="button" onClick={() => index <= state.step ? goToStep(index) : undefined} disabled={index > state.step} aria-current={index === state.step ? "step" : undefined} className={cn("flex min-w-max items-center gap-3 border px-4 py-3 text-left transition-colors", index === state.step ? "border-black bg-black text-white" : index < state.step ? unselectedControlClassName : "cursor-not-allowed border-black/10 text-black/25")}>
               <span className="font-mono text-[8px]">{String(index + 1).padStart(2, "0")}</span><span className="text-[9px] font-semibold uppercase tracking-[0.14em]">{step.label}</span>
             </button>
           ))}
@@ -2082,7 +2099,7 @@ export function FirstNationsProjectPlanner({
           <button
             type="button"
             onClick={() => goToStep(1)}
-            className="inline-flex min-h-10 shrink-0 items-center justify-between gap-5 border border-black/22 px-4 text-[9px] font-semibold uppercase tracking-[0.15em] text-black/64 transition-colors hover:border-black hover:text-black"
+            className="inline-flex min-h-10 shrink-0 items-center justify-between gap-5 border border-black/30 bg-white/35 px-4 text-[9px] font-semibold uppercase tracking-[0.15em] text-black/68 transition-colors hover:border-black hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
           >
             View / Edit My Project <ArrowRight aria-hidden="true" className="size-3.5" />
           </button>
@@ -2103,10 +2120,10 @@ export function FirstNationsProjectPlanner({
 
         {state.step < 7 ? <div className="planner-screen-only mt-20 flex flex-col-reverse gap-4 border-t border-black/16 pt-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-5">
-            <button type="button" onClick={() => goToStep(state.step - 1)} disabled={state.step === 0} className="inline-flex min-h-12 items-center gap-3 border border-black/22 px-5 text-[9px] font-semibold uppercase tracking-[0.16em] disabled:cursor-not-allowed disabled:opacity-30"><ArrowLeft aria-hidden="true" className="size-4" /> Previous</button>
+            <button type="button" onClick={() => goToStep(state.step - 1)} disabled={state.step === 0} className="inline-flex min-h-12 items-center gap-3 border border-black/30 bg-white/35 px-5 text-[9px] font-semibold uppercase tracking-[0.16em] transition-colors hover:border-black hover:bg-white disabled:cursor-not-allowed disabled:opacity-30"><ArrowLeft aria-hidden="true" className="size-4" /> Previous</button>
             <button type="button" onClick={resetPlanner} className="inline-flex min-h-12 items-center gap-2 text-[9px] font-semibold uppercase tracking-[0.15em] text-black/42 hover:text-black"><RotateCcw aria-hidden="true" className="size-3.5" /> Start again</button>
           </div>
-          <div><button type="button" onClick={() => goToStep(state.step + 1)} disabled={!canContinue} className="inline-flex min-h-12 min-w-60 items-center justify-between gap-8 bg-black px-5 text-[9px] font-semibold uppercase tracking-[0.16em] text-white disabled:cursor-not-allowed disabled:bg-black/25">{state.step === 2 ? "Refine My Project" : state.step === 6 ? "Create Opportunity Report" : "Continue"}<ArrowRight aria-hidden="true" className="size-4" /></button>{!canContinue ? <p className="mt-3 max-w-xs text-xs leading-5 text-black/45">{state.step === 0 ? (state.audience === "first-nations" ? "Add the community, location and approximate housing requirement to continue." : "Add the project name, location and approximate number of homes to continue.") : "Add at least one home model to continue."}</p> : null}</div>
+          <div><button type="button" onClick={() => goToStep(state.step + 1)} disabled={!canContinue} className="inline-flex min-h-12 min-w-60 items-center justify-between gap-8 bg-black px-5 text-[9px] font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-black/78 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black disabled:cursor-not-allowed disabled:bg-black/25">{state.step === 2 ? "Refine My Project" : state.step === 6 ? "Create Opportunity Report" : "Continue"}<ArrowRight aria-hidden="true" className="size-4" /></button>{!canContinue ? <p className="mt-3 max-w-xs text-xs leading-5 text-black/45">{state.step === 0 ? (state.audience === "first-nations" ? "Add the community, location and approximate housing requirement to continue." : "Add the project name, location and approximate number of homes to continue.") : "Add at least one home model to continue."}</p> : null}</div>
         </div> : null}
       </div>
     </section>

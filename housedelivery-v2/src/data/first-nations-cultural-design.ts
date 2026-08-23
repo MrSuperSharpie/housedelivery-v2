@@ -4,7 +4,7 @@ export type CulturalDesignImage = {
 };
 
 export const coastalDesignDirectionLabel =
-  "Contemporary + Coastal Inspiration";
+  "Contemporary + Indigenous Inspiration";
 
 export const coastalInfluenceNotice =
   "Cultural and place-based influence and artistry are identified for project review. Final scope, artist collaboration, product integration, additional cost and timeline are to be confirmed separately.";
@@ -29,7 +29,7 @@ const culturalDesignImages: Readonly<Record<string, CulturalDesignImage>> = {
 function createCulturalDesignImage(homeName: string): CulturalDesignImage {
   return {
     src: `/images/first-nations-inspired/design-center/${homeName}-Coastal.png`,
-    alt: `Illustrative Coastal exterior inspiration for ${homeName}.`,
+    alt: `Illustrative Indigenous exterior inspiration for ${homeName}.`,
   };
 }
 
