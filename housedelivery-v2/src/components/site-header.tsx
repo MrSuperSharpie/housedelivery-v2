@@ -53,10 +53,10 @@ export function SiteHeader({
             alt="House Delivery Inc."
             width={2048}
             height={768}
-            sizes="(max-width: 639px) 128px, 149px"
+            sizes="(max-width: 639px) 128px, (max-width: 1279px) 171px, 192px"
             quality={100}
             unoptimized={true}
-            className="h-12 w-auto object-contain sm:h-14"
+            className="h-12 w-auto object-contain sm:h-16 xl:h-[72px]"
           />
         </Link>
 
