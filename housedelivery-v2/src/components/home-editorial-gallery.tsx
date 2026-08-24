@@ -45,6 +45,7 @@ type HomeEditorialGalleryProps = {
     homeName: string;
     href?: string;
     availability?: "available" | "coming-soon";
+    showGalleryCallout?: boolean;
   };
 };
 
@@ -266,7 +267,9 @@ export function HomeEditorialGallery({
                     </div>
                   ) : null}
                 </article>
-                {designToolDiscovery && rowIndex === 1 ? (
+                {designToolDiscovery &&
+                designToolDiscovery.showGalleryCallout !== false &&
+                rowIndex === 1 ? (
                   <HomeDesignToolCallout
                     homeName={designToolDiscovery.homeName}
                     href={designToolDiscovery.href}

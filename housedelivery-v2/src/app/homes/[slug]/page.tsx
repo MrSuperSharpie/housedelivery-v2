@@ -89,6 +89,9 @@ export default async function HomeDetailPage({
     availability: hasApprovedLookBook
       ? ("available" as const)
       : ("coming-soon" as const),
+    ...(model.slug === "salt-spring"
+      ? { showGalleryCallout: false }
+      : {}),
   };
   const specifications = [
     { label: "Footprint", value: model.footprint ?? "Site-adapted" },

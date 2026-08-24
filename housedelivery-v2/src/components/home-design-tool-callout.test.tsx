@@ -4,6 +4,7 @@ import test from "node:test";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { HomeDesignToolCallout } from "@/components/home-design-tool-callout";
+import { HomeEditorialGallery } from "@/components/home-editorial-gallery";
 
 test("unfinished homes render a non-navigating Lookbook Coming Soon entry point", () => {
   const markup = renderToStaticMarkup(
@@ -40,4 +41,30 @@ test("approved standalone homes use Design My Home terminology", () => {
 
   assert.match(markup, /Design My Solace/);
   assert.doesNotMatch(markup, /Build My Solace/);
+});
+
+test("a home can suppress only the gallery Lookbook callout", () => {
+  const markup = renderToStaticMarkup(
+    <HomeEditorialGallery
+      modelName="The Salt Spring Duplex"
+      images={[
+        "/images/homes/salt-spring/salt-spring-hero.jpg",
+        "/images/homes/salt-spring/salt-spring-living-room.jpg",
+        "/images/homes/salt-spring/salt-spring-kitchen.jpg",
+      ]}
+      floorPlanImage="/images/homes/salt-spring/salt-spring-floor-plan.jpg"
+      imageQuality={75}
+      designToolDiscovery={{
+        homeName: "Salt Spring Duplex",
+        availability: "coming-soon",
+        showGalleryCallout: false,
+      }}
+    />,
+  );
+
+  assert.doesNotMatch(markup, /Design Lookbook/);
+  assert.doesNotMatch(markup, /Design Lookbook Coming Soon/);
+  assert.match(markup, /salt-spring-hero\.jpg/);
+  assert.match(markup, /salt-spring-living-room\.jpg/);
+  assert.match(markup, /salt-spring-kitchen\.jpg/);
 });
