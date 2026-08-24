@@ -26,6 +26,12 @@ export function generateStaticParams() {
   return models.map((model) => ({ slug: model.slug }));
 }
 
+function getResidenceName(model: HomeModel) {
+  return model.name.endsWith("House") || model.name.endsWith("Duplex")
+    ? model.name
+    : `${model.name} House`;
+}
+
 export async function generateMetadata({
   params,
 }: HomeDetailPageProps): Promise<Metadata> {
@@ -38,9 +44,7 @@ export async function generateMetadata({
     return {};
   }
 
-  const residenceName = model.name.endsWith("House")
-    ? model.name
-    : `${model.name} House`;
+  const residenceName = getResidenceName(model);
 
   return {
     title: residenceName,
@@ -111,12 +115,8 @@ export default async function HomeDetailPage({
           model={model}
           modelNumber={modelIndex + 1}
           modelCount={models.length}
-          titleSuffix={model.name.endsWith("House") ? null : "House"}
-          imageAlt={
-            model.name.endsWith("House")
-              ? `${model.name} exterior`
-              : `${model.name} House exterior`
-          }
+          titleSuffix={getResidenceName(model) === model.name ? null : "House"}
+          imageAlt={`${getResidenceName(model)} exterior`}
         />
 
         <section
@@ -178,11 +178,12 @@ export default async function HomeDetailPage({
             <div className="mt-8 grid gap-4 border-t border-white/12 pt-5 text-[9px] uppercase tracking-[0.17em] text-white/30 sm:grid-cols-3">
               <p>{model.storeys} storeys</p>
               <p>
-                {model.garageSpaces === null
-                  ? "Garage configuration varies"
-                  : model.garageSpaces === 0
-                    ? "No garage"
-                    : `${model.garageSpaces}-car garage`}
+                {model.garageLabel ??
+                  (model.garageSpaces === null
+                    ? "Garage configuration varies"
+                    : model.garageSpaces === 0
+                      ? "No garage"
+                      : `${model.garageSpaces}-car garage`)}
               </p>
               <p>Site engineering required</p>
             </div>

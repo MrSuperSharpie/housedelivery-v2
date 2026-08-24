@@ -8,6 +8,7 @@ export type HomeModel = {
   bedrooms: number;
   bathrooms: number | null;
   garageSpaces: number | null;
+  garageLabel?: string;
   footprint: string | null;
   levels: {
     main: number | null;
@@ -103,6 +104,66 @@ export const models = [
       `${cdn}/Ardenvale-House4.jpeg`,
       `${cdn}/Ardenvale-House8.jpeg`,
       "/langley-floorplan.jpg",
+    ],
+  },
+  {
+    slug: "salt-spring",
+    name: "The Salt Spring Duplex",
+    locationLabel: "Contemporary semi-detached duplex",
+    squareFeet: 6073,
+    squareMetres: 564.27,
+    storeys: 2,
+    bedrooms: 8,
+    bathrooms: 8,
+    garageSpaces: 2,
+    garageLabel: "2 garages",
+    footprint: "27.18 × 13.52 m",
+    levels: { main: null, upper: null },
+    structure: "Project-specific",
+    planCallouts: [
+      "Three living areas",
+      "Two kitchens",
+      "Eight bedrooms + bathrooms",
+      "Two private garages",
+    ],
+    summary:
+      "Two independent residences brought together within one cohesive contemporary architectural design.",
+    description:
+      "The Salt Spring Duplex is a contemporary interpretation of the paired home, bringing two independent residences together within one cohesive architectural design.",
+    narrative: [
+      {
+        title: "Independent living, thoughtfully paired",
+        body:
+          "Each residence is designed for independent living, with its own entrance, garage and private interior spaces. The main level features bright, open living areas where the kitchen, dining and family spaces flow naturally together for everyday living and entertaining.",
+      },
+      {
+        title: "Privacy and function above",
+        body:
+          "The upper level provides the more private areas of each residence, with generous bedrooms, bathrooms and comfortable family spaces arranged to support privacy and functionality.",
+      },
+      {
+        title: "Substantial homes, one coordinated form",
+        body:
+          "With approximately 564 m² of combined living space, The Salt Spring Duplex offers a compelling option for multigenerational families, paired households, First Nations housing programs, developers and projects requiring two substantial residences within one coordinated building form.",
+      },
+      {
+        title: "A personalized design direction",
+        body:
+          "The home can be personalized through House Delivery’s coordinated design and inclusion selections.",
+      },
+    ],
+    sourceUrl: "/homes/salt-spring",
+    heroImage: "/images/homes/salt-spring/salt-spring-hero.jpg",
+    floorPlanImage:
+      "/images/homes/salt-spring/salt-spring-floor-plan.jpg",
+    images: [
+      "/images/homes/salt-spring/salt-spring-hero.jpg",
+      "/images/homes/salt-spring/salt-spring-living-room.jpg",
+      "/images/homes/salt-spring/salt-spring-kitchen.jpg",
+      "/images/homes/salt-spring/salt-spring-bathroom.jpg",
+      "/images/homes/salt-spring/salt-spring-bedroom.jpg",
+      "/images/homes/salt-spring/salt-spring-outdoor-living.jpg",
+      "/images/homes/salt-spring/salt-spring-floor-plan.jpg",
     ],
   },
   {

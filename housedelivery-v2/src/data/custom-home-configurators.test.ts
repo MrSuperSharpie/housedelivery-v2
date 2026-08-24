@@ -99,11 +99,11 @@ test("all residential product families are registered without premature activati
     "pre-approved-home",
   );
 
-  assert.equal(homeConfiguratorRegistrations.length, 29);
-  assert.equal(customHomes.length, 16);
+  assert.equal(homeConfiguratorRegistrations.length, 30);
+  assert.equal(customHomes.length, 17);
   assert.equal(carriageHomes.length, 6);
   assert.equal(preApprovedHomes.length, 7);
-  assert.equal(new Set(homeConfiguratorRegistrations.map(({ key }) => key)).size, 29);
+  assert.equal(new Set(homeConfiguratorRegistrations.map(({ key }) => key)).size, 30);
   assert.equal(
     customHomes.filter(
       (registration) => registration.migrationStatus === "canonical",
@@ -173,6 +173,44 @@ test("Mayne House uses its approved gallery and remains Lookbook coming soon", (
   assert.equal(getHomeConfiguratorDefinition("mayne"), undefined);
   assert.equal(
     getHomeConfiguratorRegistration("custom-home", "mayne")
+      ?.migrationStatus,
+    "awaiting-approved-content",
+  );
+});
+
+test("The Salt Spring Duplex uses its approved gallery and remains Lookbook coming soon", () => {
+  const saltSpring = models.find((model) => model.slug === "salt-spring");
+  const assetDirectory = join(
+    process.cwd(),
+    "public/images/homes/salt-spring",
+  );
+  const expectedAssets = [
+    "salt-spring-bathroom.jpg",
+    "salt-spring-bedroom.jpg",
+    "salt-spring-floor-plan.jpg",
+    "salt-spring-hero.jpg",
+    "salt-spring-kitchen.jpg",
+    "salt-spring-living-room.jpg",
+    "salt-spring-outdoor-living.jpg",
+  ];
+
+  assert.ok(saltSpring);
+  assert.equal(saltSpring.name, "The Salt Spring Duplex");
+  assert.equal(saltSpring.squareFeet, 6073);
+  assert.equal(saltSpring.squareMetres, 564.27);
+  assert.equal(saltSpring.garageLabel, "2 garages");
+  assert.equal(
+    saltSpring.heroImage,
+    "/images/homes/salt-spring/salt-spring-hero.jpg",
+  );
+  assert.equal(
+    saltSpring.floorPlanImage,
+    "/images/homes/salt-spring/salt-spring-floor-plan.jpg",
+  );
+  assert.deepEqual(readdirSync(assetDirectory).sort(), expectedAssets);
+  assert.equal(getHomeConfiguratorDefinition("salt-spring"), undefined);
+  assert.equal(
+    getHomeConfiguratorRegistration("custom-home", "salt-spring")
       ?.migrationStatus,
     "awaiting-approved-content",
   );

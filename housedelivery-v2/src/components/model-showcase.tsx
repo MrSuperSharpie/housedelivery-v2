@@ -231,11 +231,12 @@ export function ModelShowcase({
                     <Car size={14} />
                     <dt className="sr-only">Garage spaces</dt>
                     <dd>
-                      {model.garageSpaces === null
-                        ? "Garage varies"
-                        : model.garageSpaces === 0
-                          ? "No garage"
-                          : `${model.garageSpaces}-car`}
+                      {model.garageLabel ??
+                        (model.garageSpaces === null
+                          ? "Garage varies"
+                          : model.garageSpaces === 0
+                            ? "No garage"
+                            : `${model.garageSpaces}-car`)}
                     </dd>
                   </div>
                 </dl>
