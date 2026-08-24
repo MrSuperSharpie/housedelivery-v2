@@ -3,6 +3,7 @@ export type HomeModel = {
   name: string;
   locationLabel: string;
   squareFeet: number;
+  squareMetres?: number;
   storeys: number;
   bedrooms: number;
   bathrooms: number | null;
@@ -740,6 +741,59 @@ export const models = [
       `${cdn}/Harmony-house3.jpeg`,
       `${cdn}/Harmony-house4%20(1).jpeg`,
       "/cedarview-floorplan.jpg",
+    ],
+  },
+  {
+    slug: "mayne",
+    name: "Mayne House",
+    locationLabel: "Contemporary residence",
+    squareFeet: 3116,
+    squareMetres: 289.45,
+    storeys: 2,
+    bedrooms: 4,
+    bathrooms: 4,
+    garageSpaces: 0,
+    footprint: "17.81 × 16.42 m",
+    levels: { main: null, upper: null },
+    structure: "Project-specific",
+    planCallouts: [
+      "Open kitchen + dining + living",
+      "Private deck connection",
+      "Four bedrooms",
+      "No garage",
+    ],
+    summary:
+      "A contemporary two-storey residence shaped by natural light, open living, and a strong connection to outdoor space.",
+    description:
+      "Mayne House is a contemporary two-storey residence designed around natural light, open living and a strong connection to outdoor space. Expansive glazing, clean architectural lines and a restrained modern palette give the home a sophisticated but highly livable character.",
+    narrative: [
+      {
+        title: "An easy flow to the outdoors",
+        body:
+          "The main level brings the kitchen, dining and living areas together with direct access to a private deck, creating an easy flow for everyday living and entertaining. Large windows and sliding glass doors bring natural light deep into the interior.",
+      },
+      {
+        title: "Private spaces above",
+        body:
+          "The upper level provides the home's more private spaces, with generously proportioned bedrooms and bathrooms arranged around a simple, efficient circulation plan.",
+      },
+      {
+        title: "Contemporary and flexible",
+        body:
+          "Mayne combines contemporary architecture with a flexible family layout and can be personalized through House Delivery's coordinated design and inclusion selections.",
+      },
+    ],
+    sourceUrl: "/homes/mayne",
+    heroImage: "/images/homes/mayne/mayne-hero.jpg",
+    floorPlanImage: "/images/homes/mayne/mayne-floor-plan.jpg",
+    images: [
+      "/images/homes/mayne/mayne-hero.jpg",
+      "/images/homes/mayne/mayne-exterior-02.jpg",
+      "/images/homes/mayne/mayne-bathroom.jpg",
+      "/images/homes/mayne/mayne-kitchen.jpg",
+      "/images/homes/mayne/mayne-bedroom.jpg",
+      "/images/homes/mayne/mayne-living-room.jpg",
+      "/images/homes/mayne/mayne-floor-plan.jpg",
     ],
   },
   {

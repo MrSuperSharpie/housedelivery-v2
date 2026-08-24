@@ -233,7 +233,9 @@ export function ModelShowcase({
                     <dd>
                       {model.garageSpaces === null
                         ? "Garage varies"
-                        : `${model.garageSpaces}-car`}
+                        : model.garageSpaces === 0
+                          ? "No garage"
+                          : `${model.garageSpaces}-car`}
                     </dd>
                   </div>
                 </dl>

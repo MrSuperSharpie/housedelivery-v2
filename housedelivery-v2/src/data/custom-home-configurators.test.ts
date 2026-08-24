@@ -99,11 +99,11 @@ test("all residential product families are registered without premature activati
     "pre-approved-home",
   );
 
-  assert.equal(homeConfiguratorRegistrations.length, 28);
-  assert.equal(customHomes.length, 15);
+  assert.equal(homeConfiguratorRegistrations.length, 29);
+  assert.equal(customHomes.length, 16);
   assert.equal(carriageHomes.length, 6);
   assert.equal(preApprovedHomes.length, 7);
-  assert.equal(new Set(homeConfiguratorRegistrations.map(({ key }) => key)).size, 28);
+  assert.equal(new Set(homeConfiguratorRegistrations.map(({ key }) => key)).size, 29);
   assert.equal(
     customHomes.filter(
       (registration) => registration.migrationStatus === "canonical",
@@ -141,6 +141,41 @@ test("all residential product families are registered without premature activati
   );
   assert.equal(getHomeConfiguratorDefinition("willow-nook"), undefined);
   assert.equal(getHomeConfiguratorDefinition("the-micro"), undefined);
+});
+
+test("Mayne House uses its approved gallery and remains Lookbook coming soon", () => {
+  const mayne = models.find((model) => model.slug === "mayne");
+  const assetDirectory = join(
+    process.cwd(),
+    "public/images/homes/mayne",
+  );
+  const expectedAssets = [
+    "mayne-bathroom.jpg",
+    "mayne-bedroom.jpg",
+    "mayne-exterior-02.jpg",
+    "mayne-floor-plan.jpg",
+    "mayne-hero.jpg",
+    "mayne-kitchen.jpg",
+    "mayne-living-room.jpg",
+  ];
+
+  assert.ok(mayne);
+  assert.equal(mayne.name, "Mayne House");
+  assert.equal(mayne.squareFeet, 3116);
+  assert.equal(mayne.squareMetres, 289.45);
+  assert.equal(mayne.garageSpaces, 0);
+  assert.equal(mayne.heroImage, "/images/homes/mayne/mayne-hero.jpg");
+  assert.equal(
+    mayne.floorPlanImage,
+    "/images/homes/mayne/mayne-floor-plan.jpg",
+  );
+  assert.deepEqual(readdirSync(assetDirectory).sort(), expectedAssets);
+  assert.equal(getHomeConfiguratorDefinition("mayne"), undefined);
+  assert.equal(
+    getHomeConfiguratorRegistration("custom-home", "mayne")
+      ?.migrationStatus,
+    "awaiting-approved-content",
+  );
 });
 
 test("the family policy locks finish-only personalization and optional smaller-home chapters", () => {

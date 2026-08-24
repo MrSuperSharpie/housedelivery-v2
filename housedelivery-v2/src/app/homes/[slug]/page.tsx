@@ -38,14 +38,18 @@ export async function generateMetadata({
     return {};
   }
 
+  const residenceName = model.name.endsWith("House")
+    ? model.name
+    : `${model.name} House`;
+
   return {
-    title: `${model.name} House`,
+    title: residenceName,
     description: `${model.description} Explore the ${model.squareFeet.toLocaleString()} sq. ft. plan, specifications, and complete architectural gallery.`,
     openGraph: {
-      title: `${model.name} House`,
+      title: residenceName,
       description: model.description,
       type: "website",
-      images: [{ url: model.heroImage, alt: `${model.name} House` }],
+      images: [{ url: model.heroImage, alt: residenceName }],
     },
   };
 }
@@ -88,7 +92,9 @@ export default async function HomeDetailPage({
     { label: "Upper level", value: formatArea(model.levels.upper) },
     {
       label: "Total area",
-      value: `${model.squareFeet.toLocaleString()} sq. ft.`,
+      value: model.squareMetres
+        ? `${model.squareMetres.toLocaleString()} m² / ${model.squareFeet.toLocaleString()} sq. ft.`
+        : `${model.squareFeet.toLocaleString()} sq. ft.`,
     },
     {
       label: "Accommodation",
@@ -105,6 +111,12 @@ export default async function HomeDetailPage({
           model={model}
           modelNumber={modelIndex + 1}
           modelCount={models.length}
+          titleSuffix={model.name.endsWith("House") ? null : "House"}
+          imageAlt={
+            model.name.endsWith("House")
+              ? `${model.name} exterior`
+              : `${model.name} House exterior`
+          }
         />
 
         <section
@@ -168,7 +180,9 @@ export default async function HomeDetailPage({
               <p>
                 {model.garageSpaces === null
                   ? "Garage configuration varies"
-                  : `${model.garageSpaces}-car garage`}
+                  : model.garageSpaces === 0
+                    ? "No garage"
+                    : `${model.garageSpaces}-car garage`}
               </p>
               <p>Site engineering required</p>
             </div>
