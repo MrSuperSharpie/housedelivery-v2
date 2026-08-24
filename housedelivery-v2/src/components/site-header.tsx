@@ -51,9 +51,9 @@ export function SiteHeader({
           <Image
             src="/images/brand/house-delivery-logo-gold.png"
             alt="House Delivery Inc."
-            width={1278}
-            height={604}
-            sizes="(max-width: 639px) 102px, (max-width: 1279px) 135px, 152px"
+            width={1855}
+            height={650}
+            sizes="(max-width: 639px) 137px, (max-width: 1279px) 183px, 205px"
             quality={100}
             unoptimized={true}
             className="h-12 w-auto object-contain sm:h-16 xl:h-[72px]"
