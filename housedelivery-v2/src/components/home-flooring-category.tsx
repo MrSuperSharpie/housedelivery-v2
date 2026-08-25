@@ -21,6 +21,7 @@ type HomeFlooringCategoryProps = {
   onPreviewOption: (zoneId: string, optionId: string) => void;
   onConfirmZone: (zoneId: string) => void;
   onEditZone: (zoneId: string) => void;
+  directSourceImages?: boolean;
 };
 
 export function HomeFlooringCategory({
@@ -36,6 +37,7 @@ export function HomeFlooringCategory({
   onPreviewOption,
   onConfirmZone,
   onEditZone,
+  directSourceImages = false,
 }: HomeFlooringCategoryProps) {
   const headingId = `home-${category.id}-heading`;
   const confirmedZones = new Set(confirmedZoneIds);
@@ -76,6 +78,8 @@ export function HomeFlooringCategory({
                       alt=""
                       fill
                       quality={95}
+                      unoptimized={directSourceImages}
+                      loading={directSourceImages ? "lazy" : undefined}
                       sizes="72px"
                       className={
                         option.image.fit === "contain"
@@ -199,6 +203,8 @@ export function HomeFlooringCategory({
                         alt=""
                         fill
                         quality={95}
+                        unoptimized={directSourceImages}
+                        loading={directSourceImages ? "lazy" : undefined}
                         sizes="72px"
                         className={
                           option.image.fit === "contain"
@@ -298,6 +304,7 @@ export function HomeFlooringCategory({
                       confirmCategoryId={category.id}
                       confirmZoneId={zone.id}
                       sizes="(max-width: 639px) calc(100vw - 40px), (max-width: 1023px) 50vw, 28vw"
+                      directSourceImage={directSourceImages}
                     />
                   ))}
                 </div>

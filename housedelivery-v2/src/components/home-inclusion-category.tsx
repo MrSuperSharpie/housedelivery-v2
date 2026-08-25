@@ -22,6 +22,7 @@ type HomeInclusionCategoryProps = {
   onPreviewOption: (optionId: string) => void;
   onConfirm: () => void;
   onEdit: () => void;
+  directSourceImages?: boolean;
 };
 
 export function HomeInclusionCategory({
@@ -38,6 +39,7 @@ export function HomeInclusionCategory({
   onPreviewOption,
   onConfirm,
   onEdit,
+  directSourceImages = false,
 }: HomeInclusionCategoryProps) {
   const headingId = `home-${category.id}-heading`;
 
@@ -57,6 +59,8 @@ export function HomeInclusionCategory({
               alt=""
               fill
               quality={95}
+              unoptimized={directSourceImages}
+              loading={directSourceImages ? "lazy" : undefined}
               sizes="88px"
               className={
                 selectedOption.image.fit === "contain"
@@ -193,6 +197,7 @@ export function HomeInclusionCategory({
             }
             nextLabel={nextCategoryTitle}
             confirmCategoryId={category.id}
+            directSourceImage={directSourceImages}
           />
         ))}
       </div>

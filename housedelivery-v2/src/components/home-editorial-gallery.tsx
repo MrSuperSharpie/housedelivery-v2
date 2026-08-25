@@ -40,6 +40,11 @@ type HomeEditorialGalleryProps = {
   narrative?: HomeModel["narrative"];
   imageQuality?: number;
   unoptimized?: boolean;
+  imageSizes?: {
+    full: string;
+    pair: string;
+  };
+  imageLoading?: "eager" | "lazy";
   contextualInclusionsDestination?: ContextualInclusionDestination;
   designToolDiscovery?: {
     homeName: string;
@@ -135,6 +140,11 @@ export function HomeEditorialGallery({
   narrative = [],
   imageQuality = 100,
   unoptimized = true,
+  imageSizes = {
+    full: "(min-width: 768px) 95vw, 100vw",
+    pair: "(min-width: 768px) 48vw, 100vw",
+  },
+  imageLoading,
   contextualInclusionsDestination,
   designToolDiscovery,
 }: HomeEditorialGalleryProps) {
@@ -204,10 +214,11 @@ export function HomeEditorialGallery({
                               fill
                               quality={imageQuality}
                               unoptimized={unoptimized}
+                              loading={imageLoading}
                               sizes={
                                 row.kind === "full"
-                                  ? "(min-width: 768px) 95vw, 100vw"
-                                  : "(min-width: 768px) 48vw, 100vw"
+                                  ? imageSizes.full
+                                  : imageSizes.pair
                               }
                               className={
                                 image.fit === "contain"

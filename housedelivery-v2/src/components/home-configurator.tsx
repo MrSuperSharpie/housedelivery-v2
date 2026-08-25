@@ -37,6 +37,7 @@ import {
 
 type HomeConfiguratorProps = {
   definition: HomeConfiguratorDefinition;
+  directSourceImages?: boolean;
 };
 
 type HomeImagePreviewTarget = {
@@ -193,7 +194,10 @@ function PlannerDesignContext({
   );
 }
 
-export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
+export function HomeConfigurator({
+  definition,
+  directSourceImages = false,
+}: HomeConfiguratorProps) {
   const [configuration, setConfiguration] = useState<HomeConfiguration>(() =>
     createDefaultHomeConfiguration(definition),
   );
@@ -808,6 +812,7 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
                   variant="compact"
                   definition={definition}
                   configuration={configuration}
+                  directSourceImages={directSourceImages}
                 />
               </div>
 
@@ -870,6 +875,7 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
                         onEditZone={(zoneId) =>
                           editCategory(category.id, zoneId)
                         }
+                        directSourceImages={directSourceImages}
                       />
                     );
                   }
@@ -907,6 +913,7 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
                       }
                       onConfirm={() => confirmInclusionCategory(category)}
                       onEdit={() => editCategory(category.id)}
+                      directSourceImages={directSourceImages}
                     />
                   );
                 })}
@@ -918,6 +925,7 @@ export function HomeConfigurator({ definition }: HomeConfiguratorProps) {
                 variant="sticky"
                 definition={definition}
                 configuration={configuration}
+                directSourceImages={directSourceImages}
               />
             </div>
           </div>

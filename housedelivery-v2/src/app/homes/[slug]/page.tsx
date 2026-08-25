@@ -20,6 +20,22 @@ type HomeDetailPageProps = {
   params: Promise<{ slug: string }>;
 };
 
+const sourceFidelityHomeSlugs = new Set([
+  "mayne",
+  "salt-spring",
+  "keats",
+  "saturna",
+]);
+
+const fullWidthHomeImageSizes =
+  "(max-width: 639px) calc(100vw - 40px), (max-width: 1023px) calc(100vw - 64px), (max-width: 1599px) calc(100vw - 96px), 1504px";
+
+const pairedHomeImageSizes =
+  "(max-width: 639px) calc(100vw - 40px), (max-width: 767px) calc(100vw - 64px), (max-width: 1023px) calc(50vw - 42px), (max-width: 1599px) calc(50vw - 58px), 742px";
+
+const fittedFloorPlanImageSizes =
+  "(max-width: 767px) 680px, (max-width: 1023px) calc(100vw - 112px), (max-width: 1599px) calc(100vw - 176px), 1424px";
+
 export const dynamicParams = false;
 
 export function generateStaticParams() {
@@ -88,6 +104,10 @@ export default async function HomeDetailPage({
     model.slug,
   );
   const configuratorDefinition = configuratorRegistration?.definition;
+  const useSourceFidelityImages = sourceFidelityHomeSlugs.has(model.slug);
+  const sourceFidelityImageProps = useSourceFidelityImages
+    ? { imageQuality: 100, unoptimized: true }
+    : {};
   const hasApprovedLookBook =
     configuratorRegistration?.migrationStatus === "canonical" &&
     configuratorDefinition !== undefined;
@@ -141,6 +161,7 @@ export default async function HomeDetailPage({
           modelCount={models.length}
           titleSuffix={getResidenceName(model) === model.name ? null : "House"}
           imageAlt={`${getResidenceName(model)} exterior`}
+          {...sourceFidelityImageProps}
         />
 
         <section
@@ -227,13 +248,33 @@ export default async function HomeDetailPage({
           floorPlanImage={model.floorPlanImage}
           narrative={model.narrative}
           designToolDiscovery={designToolDiscovery}
+          {...sourceFidelityImageProps}
+          imageSizes={
+            useSourceFidelityImages
+              ? {
+                  full: fullWidthHomeImageSizes,
+                  pair: pairedHomeImageSizes,
+                }
+              : undefined
+          }
+          imageLoading={useSourceFidelityImages ? "lazy" : undefined}
         />
 
         {configuratorDefinition ? (
-          <HomeConfigurator definition={configuratorDefinition} />
+          <HomeConfigurator
+            definition={configuratorDefinition}
+            directSourceImages={useSourceFidelityImages}
+          />
         ) : null}
 
-        <HomeFloorPlanViewer model={model} />
+        <HomeFloorPlanViewer
+          model={model}
+          {...sourceFidelityImageProps}
+          fittedImageSizes={
+            useSourceFidelityImages ? fittedFloorPlanImageSizes : undefined
+          }
+          imageLoading={useSourceFidelityImages ? "lazy" : undefined}
+        />
 
         {model.video ? (
           <section id="film" className="scroll-mt-24 px-5 py-28 sm:px-8 lg:px-12 lg:py-40">
@@ -323,7 +364,12 @@ export default async function HomeDetailPage({
                 fill
                 quality={100}
                 unoptimized={true}
-                sizes="95vw"
+                loading={useSourceFidelityImages ? "lazy" : undefined}
+                sizes={
+                  useSourceFidelityImages
+                    ? fullWidthHomeImageSizes
+                    : "95vw"
+                }
                 className="object-cover brightness-90 transition-all duration-[2000ms] ease-[cubic-bezier(0.25,1,0.5,1)] hover:scale-[1.04] hover:brightness-100 group-hover:scale-[1.04] group-hover:brightness-100 render-crisp"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/5 to-transparent" />

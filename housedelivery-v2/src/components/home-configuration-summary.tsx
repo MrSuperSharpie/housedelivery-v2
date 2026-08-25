@@ -17,12 +17,17 @@ type HomeConfigurationSummaryProps = {
   variant: "compact" | "sticky";
   definition: HomeConfiguratorDefinition;
   configuration: HomeConfiguration;
+  directSourceImages?: boolean;
 };
 
 function HomeConfigurationEntries({
   definition,
   configuration,
-}: Pick<HomeConfigurationSummaryProps, "definition" | "configuration">) {
+  directSourceImages,
+}: Pick<
+  HomeConfigurationSummaryProps,
+  "definition" | "configuration" | "directSourceImages"
+>) {
   const visibleCategories = [
     ...getHomeConfiguratorJourneyCategories(definition),
     ...getProjectCoordinatedCategories(definition),
@@ -64,6 +69,8 @@ function HomeConfigurationEntries({
                   width={96}
                   height={96}
                   quality={95}
+                  unoptimized={directSourceImages}
+                  loading={directSourceImages ? "lazy" : undefined}
                   sizes="48px"
                   className={
                     previewOption.image.fit === "contain"
@@ -137,6 +144,7 @@ export function HomeConfigurationSummary({
   variant,
   definition,
   configuration,
+  directSourceImages = false,
 }: HomeConfigurationSummaryProps) {
   const requiredCategories = getHomeConfiguratorJourneyCategories(definition);
   const completeCount = requiredCategories.filter((category) =>
@@ -178,6 +186,7 @@ export function HomeConfigurationSummary({
           <HomeConfigurationEntries
             definition={definition}
             configuration={configuration}
+            directSourceImages={directSourceImages}
           />
         </div>
       </details>
@@ -206,6 +215,8 @@ export function HomeConfigurationSummary({
           width={1200}
           height={750}
           quality={95}
+          unoptimized={directSourceImages}
+          loading={directSourceImages ? "lazy" : undefined}
           sizes="320px"
           className={
             visualBriefImage.fit === "contain"
@@ -229,6 +240,7 @@ export function HomeConfigurationSummary({
       <HomeConfigurationEntries
         definition={definition}
         configuration={configuration}
+        directSourceImages={directSourceImages}
       />
       <p className="mt-5 text-[10px] leading-5 text-black/58">
         {completeCount} of {requiredCategories.length} controlled chapters

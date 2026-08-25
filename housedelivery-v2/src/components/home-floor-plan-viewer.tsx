@@ -17,6 +17,8 @@ type HomeFloorPlanViewerProps = {
   imageQuality?: number;
   unoptimized?: boolean;
   constrainImage?: boolean;
+  fittedImageSizes?: string;
+  imageLoading?: "eager" | "lazy";
 };
 
 export function HomeFloorPlanViewer({
@@ -25,6 +27,8 @@ export function HomeFloorPlanViewer({
   imageQuality = 100,
   unoptimized = true,
   constrainImage = false,
+  fittedImageSizes,
+  imageLoading,
 }: HomeFloorPlanViewerProps) {
   const [isZoomed, setIsZoomed] = useState(false);
   const planCallouts = model.planCallouts ?? [];
@@ -98,6 +102,7 @@ export function HomeFloorPlanViewer({
                 fill
                 quality={imageQuality}
                 unoptimized={unoptimized}
+                loading={imageLoading}
                 sizes={
                   constrainImage
                     ? isZoomed
@@ -105,7 +110,7 @@ export function HomeFloorPlanViewer({
                       : "(max-width: 767px) 680px, 900px"
                     : isZoomed
                       ? "140vw"
-                      : "95vw"
+                      : (fittedImageSizes ?? "95vw")
                 }
                 className="object-contain p-5 sm:p-9"
               />

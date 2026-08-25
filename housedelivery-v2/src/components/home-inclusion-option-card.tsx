@@ -19,6 +19,7 @@ type HomeInclusionOptionCardProps = {
   confirmCategoryId?: string;
   confirmZoneId?: string;
   sizes?: string;
+  directSourceImage?: boolean;
 };
 
 export function HomeInclusionOptionCard({
@@ -33,6 +34,7 @@ export function HomeInclusionOptionCard({
   confirmCategoryId,
   confirmZoneId,
   sizes = "(max-width: 1023px) calc(100vw - 40px), 34vw",
+  directSourceImage = false,
 }: HomeInclusionOptionCardProps) {
   return (
     <article
@@ -57,8 +59,11 @@ export function HomeInclusionOptionCard({
           alt={option.image.alt}
           fill
           loading={
-            (option.image.role === "design-board" || homeName === "Saturna") &&
-            isSelected
+            directSourceImage
+              ? "lazy"
+              : (option.image.role === "design-board" ||
+                    homeName === "Saturna") &&
+                  isSelected
               ? "eager"
               : undefined
           }
@@ -66,6 +71,7 @@ export function HomeInclusionOptionCard({
             option.image.quality ??
             (option.image.role === "design-board" ? 100 : 95)
           }
+          unoptimized={directSourceImage}
           sizes={sizes}
           className={cn(
             option.image.fit === "contain" ? "object-contain" : "object-cover",
