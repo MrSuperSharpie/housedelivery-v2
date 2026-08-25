@@ -49,10 +49,10 @@ export function SiteHeader({
           className="group flex items-center"
         >
           <Image
-            src="/images/brand/house-delivery-logo-gold.png"
+            src="/images/brand/house-delivery-logo-white.png"
             alt="House Delivery Inc."
-            width={2170}
-            height={725}
+            width={1855}
+            height={650}
             sizes="(max-width: 639px) 143px, (max-width: 1279px) 190px, 208px"
             quality={100}
             unoptimized={true}
