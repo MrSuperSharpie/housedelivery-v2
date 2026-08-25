@@ -58,8 +58,17 @@ export async function generateMetadata({
   };
 }
 
-function formatArea(value: number | null) {
-  return value === null ? "Plan-specific" : `${value.toLocaleString()} sq. ft.`;
+function formatArea(value: number | null, squareMetres?: number | null) {
+  if (value === null) {
+    return squareMetres === undefined || squareMetres === null
+      ? "Plan-specific"
+      : `${squareMetres.toLocaleString()} m²`;
+  }
+
+  const squareFeet = `${value.toLocaleString()} sq. ft.`;
+  return squareMetres === undefined || squareMetres === null
+    ? squareFeet
+    : `${squareMetres.toLocaleString()} m² / ${squareFeet}`;
 }
 
 export default async function HomeDetailPage({
@@ -89,14 +98,26 @@ export default async function HomeDetailPage({
     availability: hasApprovedLookBook
       ? ("available" as const)
       : ("coming-soon" as const),
-    ...(model.slug === "salt-spring"
+    ...(["keats", "salt-spring"].includes(model.slug)
       ? { showGalleryCallout: false }
       : {}),
   };
   const specifications = [
     { label: "Footprint", value: model.footprint ?? "Site-adapted" },
-    { label: "Main level", value: formatArea(model.levels.main) },
-    { label: "Upper level", value: formatArea(model.levels.upper) },
+    {
+      label: "Main level",
+      value: formatArea(
+        model.levels.main,
+        model.levelSquareMetres?.main,
+      ),
+    },
+    {
+      label: "Upper level",
+      value: formatArea(
+        model.levels.upper,
+        model.levelSquareMetres?.upper,
+      ),
+    },
     {
       label: "Total area",
       value: model.squareMetres

@@ -99,11 +99,11 @@ test("all residential product families are registered without premature activati
     "pre-approved-home",
   );
 
-  assert.equal(homeConfiguratorRegistrations.length, 30);
-  assert.equal(customHomes.length, 17);
+  assert.equal(homeConfiguratorRegistrations.length, 31);
+  assert.equal(customHomes.length, 18);
   assert.equal(carriageHomes.length, 6);
   assert.equal(preApprovedHomes.length, 7);
-  assert.equal(new Set(homeConfiguratorRegistrations.map(({ key }) => key)).size, 30);
+  assert.equal(new Set(homeConfiguratorRegistrations.map(({ key }) => key)).size, 31);
   assert.equal(
     customHomes.filter(
       (registration) => registration.migrationStatus === "canonical",
@@ -211,6 +211,46 @@ test("The Salt Spring Duplex uses its approved gallery and remains Lookbook comi
   assert.equal(getHomeConfiguratorDefinition("salt-spring"), undefined);
   assert.equal(
     getHomeConfiguratorRegistration("custom-home", "salt-spring")
+      ?.migrationStatus,
+    "awaiting-approved-content",
+  );
+});
+
+test("Keats House uses its approved gallery and remains Lookbook coming soon", () => {
+  const keats = models.find((model) => model.slug === "keats");
+  const assetDirectory = join(
+    process.cwd(),
+    "public/images/homes/keats",
+  );
+  const expectedAssets = [
+    "keats-bathroom-02.jpeg",
+    "keats-exterior-02.jpeg",
+    "keats-floor-plan.jpeg",
+    "keats-hero.jpeg",
+    "keats-kitchen-dining.jpeg",
+    "keats-living-room.jpeg",
+    "keats-outdoor-living.jpeg",
+    "keats-primary-bathroom.jpeg",
+  ];
+
+  assert.ok(keats);
+  assert.equal(keats.name, "Keats House");
+  assert.equal(keats.squareFeet, 3713);
+  assert.equal(keats.squareMetres, 344.92);
+  assert.deepEqual(keats.levels, { main: 2302, upper: 1411 });
+  assert.deepEqual(keats.levelSquareMetres, {
+    main: 213.83,
+    upper: 131.09,
+  });
+  assert.equal(keats.heroImage, "/images/homes/keats/keats-hero.jpeg");
+  assert.equal(
+    keats.floorPlanImage,
+    "/images/homes/keats/keats-floor-plan.jpeg",
+  );
+  assert.deepEqual(readdirSync(assetDirectory).sort(), expectedAssets);
+  assert.equal(getHomeConfiguratorDefinition("keats"), undefined);
+  assert.equal(
+    getHomeConfiguratorRegistration("custom-home", "keats")
       ?.migrationStatus,
     "awaiting-approved-content",
   );

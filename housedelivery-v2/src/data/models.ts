@@ -14,6 +14,10 @@ export type HomeModel = {
     main: number | null;
     upper: number | null;
   };
+  levelSquareMetres?: {
+    main: number | null;
+    upper: number | null;
+  };
   structure: string;
   planCallouts: readonly string[];
   video?: {
@@ -539,6 +543,61 @@ export const models = [
       `${cdn}/Bern-House4.jpeg`,
       `${cdn}/Bern-House7.jpeg`,
       "/boreal-floorplan.jpg",
+    ],
+  },
+  {
+    slug: "keats",
+    name: "Keats House",
+    locationLabel: "Contemporary family home",
+    squareFeet: 3713,
+    squareMetres: 344.92,
+    storeys: 2,
+    bedrooms: 4,
+    bathrooms: 3,
+    garageSpaces: 2,
+    footprint: "13.59 × 21.19 m",
+    levels: { main: 2302, upper: 1411 },
+    levelSquareMetres: { main: 213.83, upper: 131.09 },
+    structure: "Project-specific",
+    planCallouts: [
+      "Three living areas",
+      "One kitchen",
+      "Four bedrooms",
+      "Two-car garage",
+    ],
+    summary:
+      "A substantial contemporary two-storey family home shaped by generous living spaces, natural light, and flexible everyday living.",
+    description:
+      "Keats House is a substantial contemporary two-storey family home designed around generous living spaces, natural light and flexible everyday living.",
+    narrative: [
+      {
+        title: "Generous spaces for daily life",
+        body:
+          "The expansive main level provides room for open-plan kitchen, dining and living spaces, with additional areas that support family gathering, entertaining and more private uses. Large openings and a strong connection to outdoor living give the home a bright, open character.",
+      },
+      {
+        title: "A private family level",
+        body:
+          "The upper level provides the more private family spaces, with bedrooms, bathrooms and additional flexible living areas arranged for comfortable day-to-day use.",
+      },
+      {
+        title: "Space to make personal",
+        body:
+          "With approximately 345 m² of total floor area, Keats House offers considerable space for personalization through House Delivery’s coordinated design and inclusion selections.",
+      },
+    ],
+    sourceUrl: "/homes/keats",
+    heroImage: "/images/homes/keats/keats-hero.jpeg",
+    floorPlanImage: "/images/homes/keats/keats-floor-plan.jpeg",
+    images: [
+      "/images/homes/keats/keats-hero.jpeg",
+      "/images/homes/keats/keats-exterior-02.jpeg",
+      "/images/homes/keats/keats-kitchen-dining.jpeg",
+      "/images/homes/keats/keats-living-room.jpeg",
+      "/images/homes/keats/keats-primary-bathroom.jpeg",
+      "/images/homes/keats/keats-bathroom-02.jpeg",
+      "/images/homes/keats/keats-outdoor-living.jpeg",
+      "/images/homes/keats/keats-floor-plan.jpeg",
     ],
   },
   {
