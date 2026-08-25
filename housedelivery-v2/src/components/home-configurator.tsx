@@ -962,6 +962,7 @@ export function HomeConfigurator({
               }
             : undefined
         }
+        directSourceImages={directSourceImages}
       />
 
       {imagePreview && imagePreviewTarget ? (

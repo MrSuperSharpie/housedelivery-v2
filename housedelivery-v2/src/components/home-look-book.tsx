@@ -49,6 +49,7 @@ type HomeLookBookProps = {
     deliveryGroup: string;
     onSaveAndReturn: (projectDesignName?: string) => void;
   };
+  directSourceImages?: boolean;
 };
 
 type ResolvedSelection = LookBookSelection & {
@@ -59,7 +60,11 @@ type ResolvedSelection = LookBookSelection & {
 
 type EditorialContext = Pick<
   HomeLookBookProps,
-  "definition" | "configuration" | "onEditCategory" | "onPreviewOption"
+  | "definition"
+  | "configuration"
+  | "onEditCategory"
+  | "onPreviewOption"
+  | "directSourceImages"
 >;
 
 function CoastalLookBookSummary({
@@ -442,12 +447,14 @@ function EditorialImage({
         src={selection.image.src}
         alt={selection.image.alt}
         fill
-        loading="eager"
+        loading={context.directSourceImages ? "lazy" : "eager"}
         quality={
           selection.image.quality ??
           (selection.image.role === "design-board" ? 100 : 95)
         }
-        unoptimized={selection.image.role === "design-board"}
+        unoptimized={
+          context.directSourceImages || selection.image.role === "design-board"
+        }
         sizes={sizes}
         className={
           selection.image.fit === "contain"
@@ -889,6 +896,7 @@ export function HomeLookBook({
   onPreviewOption,
   onSubmit,
   plannerContext,
+  directSourceImages = false,
 }: HomeLookBookProps) {
   const requiredCategories = getHomeConfiguratorJourneyCategories(definition);
   const isReady = requiredCategories.every((category) =>
@@ -942,6 +950,7 @@ export function HomeLookBook({
     configuration,
     onEditCategory,
     onPreviewOption,
+    directSourceImages,
   };
   const saveLookBook = () => {
     window.print();
@@ -990,7 +999,16 @@ export function HomeLookBook({
       </div>
 
       <article data-look-book-cover data-look-book-layout="cover" data-look-book-print-page className="look-book-cover relative min-h-[min(920px,100svh)] overflow-hidden bg-[#111216] text-white">
-        <Image src={lookBook.home.heroImage.src} alt={lookBook.home.heroImage.alt} fill loading="eager" quality={100} sizes="100vw" className="object-cover" />
+        <Image
+          src={lookBook.home.heroImage.src}
+          alt={lookBook.home.heroImage.alt}
+          fill
+          loading={directSourceImages ? "lazy" : "eager"}
+          quality={100}
+          unoptimized={directSourceImages}
+          sizes="100vw"
+          className="object-cover"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/24 to-black/18" />
         <div className="look-book-page-inner relative z-10 flex min-h-[min(920px,100svh)] flex-col justify-between">
           <div className="flex items-start justify-between gap-8 border-t border-white/50 pt-5">
