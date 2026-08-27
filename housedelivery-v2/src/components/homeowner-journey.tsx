@@ -487,13 +487,12 @@ export function HomeownerJourney() {
                 <figure>
                   <div className="relative aspect-[4/3] overflow-hidden border border-white/10 bg-[#121419]">
                     <Image
-                      src="/images/how-it-works/house-delivery-process.png"
-                      alt="Prepared residential site with excavation, foundation and local site work underway"
+                      src="/images/journey/07-site-preparation.png"
+                      alt="Residential site preparation with foundation work in a Canadian neighbourhood"
                       fill
                       quality={95}
                       sizes="(max-width: 767px) calc(100vw - 40px), (max-width: 1599px) 50vw, 742px"
                       className="object-cover brightness-[0.92]"
-                      style={{ objectPosition: "28% center" }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/72 via-black/5 to-transparent" />
                     <div className="absolute inset-x-0 bottom-0 p-5 sm:p-7">
