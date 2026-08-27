@@ -36,8 +36,8 @@ const stages: readonly JourneyStage[] = [
     note:
       "You do not need to commission new technical work just to start the conversation.",
     visual: {
-      src: "/images/homes/mayne/mayne-exterior-02.jpg",
-      alt: "Contemporary House Delivery home shown in its property setting",
+      src: "/images/journey/01-your-land.png",
+      alt: "Vancouver residential property highlighted within its neighbourhood context",
       caption: "Property first / Technical work later",
     },
   },
@@ -49,8 +49,8 @@ const stages: readonly JourneyStage[] = [
     description:
       "Explore House Delivery homes and identify the model, approximate size and layout that best reflects how you want to live.",
     visual: {
-      src: "/Solace-1.png",
-      alt: "Solace House exterior from the House Delivery homes collection",
+      src: "/images/journey/02-choose-your-home.jpg",
+      alt: "Contemporary House Delivery home",
       caption: "Architecture / Scale / Layout",
     },
   },
@@ -62,8 +62,8 @@ const stages: readonly JourneyStage[] = [
     description:
       "Use the House Delivery Design Center to select the direction for kitchens, bathrooms, wardrobes, flooring, doors, windows, finishes and other coordinated inclusions.",
     visual: {
-      src: "/images/homes/solace/visual-guide/Solace_01_Kitchen_Premium-1_Coastal-Light-Oak.png",
-      alt: "House Delivery kitchen Visual Guide board with coordinated finish selections",
+      src: "/images/journey/03-make-it-yours.png",
+      alt: "House Delivery Solace primary ensuite design selection",
       caption: "Visual Guide / Coordinated selections",
       fit: "contain",
     },
@@ -86,8 +86,8 @@ const stages: readonly JourneyStage[] = [
     note:
       "This is an early feasibility review, not a permit approval or professional site-specific design.",
     visual: {
-      src: "/images/homes/keats/keats-floor-plan.jpeg",
-      alt: "House model floor plan used to support an early property-fit conversation",
+      src: "/images/journey/04-site-feasibility.jpg",
+      alt: "House floor plan used for preliminary site feasibility review",
       caption: "Model fit / Early review only",
       fit: "contain",
     },
@@ -125,8 +125,8 @@ const stages: readonly JourneyStage[] = [
     ],
     note: "Requirements vary by property and jurisdiction.",
     visual: {
-      src: "/images/homepage/capabilities/structure-engineered.webp",
-      alt: "Engineered light-gauge steel structural frame on a prepared residential site",
+      src: "/images/journey/06-permits-engineering-lgsf.jpg",
+      alt: "Light-gauge steel residential structural framing",
       caption: "Project-specific adaptation / Local requirements",
     },
   },
@@ -145,8 +145,8 @@ const stages: readonly JourneyStage[] = [
       "Project sequencing",
     ],
     visual: {
-      src: "/Row Housing.jpg",
-      alt: "Light-gauge steel housing system and coordinated project vehicles at an active site",
+      src: "/images/journey/08-coordinated-project-package.webp",
+      alt: "Engineered House Delivery structural components prepared as a coordinated project package",
       caption: "Project logistics / Coordinated sequence",
     },
   },
@@ -160,8 +160,8 @@ const stages: readonly JourneyStage[] = [
     note:
       "Trade responsibilities and the local assembly pathway are confirmed for each project.",
     visual: {
-      src: "/Cedar View Steel Frame.jpg",
-      alt: "Light-gauge steel home structure being assembled on its prepared foundation",
+      src: "/images/journey/09-home-takes-shape.png",
+      alt: "House Delivery home taking shape during assembly",
       caption: "Light-gauge steel / Local assembly",
     },
   },
@@ -194,8 +194,8 @@ const stages: readonly JourneyStage[] = [
     note:
       "Documentation, warranties and the House Delivery after-sales pathway complete the handover.",
     visual: {
-      src: "/images/homepage/capabilities/architecture-realized.jpg",
-      alt: "Completed contemporary home ready for occupancy and handover",
+      src: "/images/journey/11-welcome-home.jpeg",
+      alt: "Completed contemporary home ready for occupancy",
       caption: "Handover / After-sales pathway",
     },
   },
