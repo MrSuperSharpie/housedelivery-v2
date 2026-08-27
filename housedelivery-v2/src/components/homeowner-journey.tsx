@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
+import { JourneyAudienceSelector } from "@/components/journey-audience-selector";
 import { JourneyStageNavigator } from "@/components/journey-stage-navigator";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { getHomeConfiguratorRegistrationsByFamily } from "@/data/home-configurators";
@@ -23,6 +24,7 @@ type JourneyStage = {
   description: string;
   note?: string;
   bullets?: readonly string[];
+  bulletsLabel?: string;
   visual: JourneyVisual;
 };
 
@@ -30,12 +32,12 @@ const stages: readonly JourneyStage[] = [
   {
     number: "01",
     id: "your-land",
-    title: "Your Land",
-    lead: "Start with the property.",
+    title: "Your Site",
+    lead: "Start with the site.",
     description:
-      "Share the property address and anything you already have—survey, lot dimensions, photographs, title information or existing drawings.",
+      "Begin with one residential property, a development parcel or a larger community site. Share the address, available plans, surveys, site information or development objectives you already have.",
     note:
-      "You do not need to commission new technical work just to start the conversation.",
+      "You do not need to commission new technical work simply to begin the conversation.",
     visual: {
       src: "/images/journey/01-your-land.png",
       alt: "Vancouver residential property highlighted within its neighbourhood context",
@@ -45,10 +47,12 @@ const stages: readonly JourneyStage[] = [
   {
     number: "02",
     id: "your-home",
-    title: "Your Home",
-    lead: "Choose the home that fits your vision.",
+    title: "Housing Plan",
+    lead: "Choose the homes and housing mix.",
     description:
-      "Explore House Delivery homes and identify the model, approximate size and layout that best reflects how you want to live.",
+      "Select one House Delivery home or begin assembling a broader housing programme using multiple models, unit types and project phases.",
+    note:
+      "Building at scale? House Delivery can coordinate multiple home types within one controlled project programme.",
     visual: {
       src: "/images/journey/02-choose-your-home.jpg",
       alt: "Contemporary House Delivery home",
@@ -58,10 +62,10 @@ const stages: readonly JourneyStage[] = [
   {
     number: "03",
     id: "your-design",
-    title: "Your Design",
-    lead: "Make it yours.",
+    title: "Design + Inclusions",
+    lead: "Create a coordinated design direction.",
     description:
-      "Use the House Delivery Design Center to select the direction for kitchens, bathrooms, wardrobes, flooring, doors, windows, finishes and other coordinated inclusions.",
+      "Select kitchens, bathrooms, flooring, wardrobes, doors, windows and other approved inclusions. For larger projects, controlled design packages can be repeated across multiple homes while still allowing appropriate variation.",
     visual: {
       src: "/images/journey/03-make-it-yours.png",
       alt: "House Delivery Solace primary ensuite design selection",
@@ -72,16 +76,19 @@ const stages: readonly JourneyStage[] = [
   {
     number: "04",
     id: "site-feasibility",
-    title: "Site Feasibility",
-    lead: "Can this home work on this property?",
+    title: "Project Feasibility",
+    lead: "Can this housing plan work on this site?",
     description:
-      "House Delivery completes an initial project review based on the property, intended home and available information.",
+      "House Delivery completes an early project review considering the available site information, intended housing mix and obvious development constraints.",
+    bulletsLabel: "Review may consider:",
     bullets: [
-      "Zoning",
-      "Approximate buildable area",
-      "Setbacks and height",
-      "Access and servicing",
+      "Preliminary site fit",
+      "Zoning and density",
+      "Setbacks",
+      "Access",
+      "Servicing",
       "Parking",
+      "Phasing",
       "Obvious site constraints",
     ],
     note:
@@ -97,11 +104,11 @@ const stages: readonly JourneyStage[] = [
     number: "05",
     id: "project-commitment",
     title: "Project Commitment",
-    lead: "From idea to real project.",
+    lead: "Move from opportunity to real project.",
     description:
-      "If the opportunity appears viable and you want to proceed, the project moves into a formal commercial commitment before project-specific professional and technical work begins.",
+      "Once the opportunity appears credible and the parties want to proceed, the project moves into formal commercial commitment.",
     note:
-      "We establish a credible project before asking you—or House Delivery—to spend unnecessarily on detailed technical work.",
+      "Project-specific technical work begins only when the opportunity has sufficient commitment, funding, financing or deposit to justify it.",
     visual: {
       src: "/images/how-it-works/house-delivery-process.png",
       alt: "Homeowners reviewing a coordinated House Delivery home design",
@@ -112,19 +119,23 @@ const stages: readonly JourneyStage[] = [
   {
     number: "06",
     id: "permits-engineering",
-    title: "Permits & Engineering",
-    lead: "Design it for the actual site.",
+    title: "Permits + Engineering",
+    lead: "Design for the actual site.",
     description:
-      "Qualified Canadian professionals adapt the selected home to the specific property and jurisdiction.",
+      "Qualified Canadian professionals adapt the selected housing plan to the specific property, jurisdiction and project conditions.",
+    bulletsLabel: "Work may include, where required:",
     bullets: [
-      "Survey and architecture",
+      "Survey",
+      "Architecture",
       "Structural engineering",
       "Mechanical and electrical",
-      "Civil and geotechnical",
+      "Civil",
+      "Geotechnical",
       "Energy modelling",
       "Other jurisdiction-specific professional work",
     ],
-    note: "Requirements vary by property and jurisdiction.",
+    note:
+      "Existing House Delivery designs are not automatically permit-ready.",
     visual: {
       src: "/images/journey/06-permits-engineering-lgsf.jpg",
       alt: "Light-gauge steel residential structural framing",
@@ -134,10 +145,10 @@ const stages: readonly JourneyStage[] = [
   {
     number: "08",
     id: "delivery",
-    title: "Delivery",
+    title: "Coordinated Delivery",
     lead: "Everything arrives as a coordinated project package.",
     description:
-      "House Delivery coordinates the supplier production, consolidation and project logistics needed to bring the package to the Canadian site in an organized sequence.",
+      "House Delivery coordinates supplier production, consolidation, logistics, Canadian receiving and project sequencing around the requirements of the project.",
     bullets: [
       "Supplier production",
       "Consolidation and shipping",
@@ -145,6 +156,8 @@ const stages: readonly JourneyStage[] = [
       "Canadian receiving",
       "Project sequencing",
     ],
+    note:
+      "For larger projects, delivery can be organized around phases rather than treating the entire development as a single event.",
     visual: {
       src: "/images/journey/08-coordinated-project-package.webp",
       alt: "Engineered House Delivery structural components prepared as a coordinated project package",
@@ -155,11 +168,11 @@ const stages: readonly JourneyStage[] = [
     number: "09",
     id: "assembly",
     title: "Assembly",
-    lead: "The home takes shape.",
+    lead: "The homes take shape.",
     description:
-      "Local construction teams assemble the light-gauge steel structural system and bring the building to an enclosed, weather-protected stage.",
+      "Local construction teams assemble the light-gauge steel structural system and coordinated components on the prepared site.",
     note:
-      "Trade responsibilities and the local assembly pathway are confirmed for each project.",
+      "General contractors retain control of local site execution, trades and construction management while House Delivery coordinates the agreed supply package.",
     visual: {
       src: "/images/journey/09-home-takes-shape.png",
       alt: "House Delivery home taking shape during assembly",
@@ -169,16 +182,18 @@ const stages: readonly JourneyStage[] = [
   {
     number: "10",
     id: "finishing",
-    title: "Finishing",
+    title: "Finishing + Installation",
     lead: "The design becomes real.",
     description:
-      "The products selected during the design stage are translated into the finished home.",
+      "Approved cabinetry, bathrooms, flooring, doors, wardrobes, fixtures and other coordinated inclusions are installed and integrated into the homes.",
     bullets: [
       "Cabinetry and wardrobes",
       "Bathrooms and fixtures",
       "Flooring and doors",
       "Finishes and approved inclusions",
     ],
+    note:
+      "For multi-home projects, controlled inclusion packages support repeatability while allowing approved project-specific variation.",
     visual: {
       src: "/images/inclusions/coordinated-architectural-system.png",
       alt: "Completed contemporary interior with coordinated cabinetry, surfaces, lighting and finishes",
@@ -188,12 +203,12 @@ const stages: readonly JourneyStage[] = [
   {
     number: "11",
     id: "occupancy",
-    title: "Occupancy",
-    lead: "Welcome home.",
+    title: "Handover + Occupancy",
+    lead: "From completed home to completed community.",
     description:
-      "After required inspections, commissioning, deficiency correction and jurisdictional approvals, the project reaches occupancy and handover.",
+      "Required inspections, commissioning, deficiency correction, documentation and jurisdictional approvals lead to occupancy and project handover.",
     note:
-      "Documentation, warranties and the House Delivery after-sales pathway complete the handover.",
+      "For larger developments, this process can occur progressively as phases or groups of homes are completed.",
     visual: {
       src: "/images/journey/11-welcome-home.jpeg",
       alt: "Completed contemporary home ready for occupancy",
@@ -206,24 +221,29 @@ const commercialPath = [
   "Commercial readiness",
   "Qualified opportunity",
   "Project commitment",
-  "Funding / deposit",
+  "Funding / financing / deposit",
   "Project-specific technical work",
   "Final quotation",
-  "Procurement and delivery",
+  "Procurement + delivery",
 ] as const;
 
 const sitePreparation = [
   "Excavation",
-  "Servicing and drainage",
-  "Foundation and utilities",
+  "Foundations",
+  "Servicing",
+  "Drainage",
+  "Utilities",
   "Local site works",
 ] as const;
 
 const manufacturing = [
   "Light-gauge steel structural components",
   "Windows and doors",
-  "Cabinetry, wardrobes and bathroom systems",
-  "Flooring and selected inclusions",
+  "Cabinetry",
+  "Wardrobes",
+  "Bathroom systems",
+  "Flooring",
+  "Selected inclusions",
   "Coordinated packaging and quality control",
 ] as const;
 
@@ -296,32 +316,33 @@ export function HomeownerJourney() {
         <div className="mx-auto max-w-[1504px]">
           <div className="grid gap-10 border-t border-white/15 pt-7 lg:grid-cols-12 lg:gap-x-8">
             <div className="lg:col-span-3">
-              <p className="eyebrow">For individual homeowners</p>
-              <p className="mt-5 text-[9px] uppercase tracking-[0.2em] text-white/28">
-                From property to occupancy
-              </p>
+              <p className="eyebrow">How House Delivery Works</p>
             </div>
             <div className="lg:col-span-9 lg:col-start-4">
               <HeadlineReveal trigger="mount">
                 <h1 className="max-w-[1200px] text-[clamp(3.6rem,8vw,8.8rem)] font-medium uppercase leading-[0.82] tracking-[-0.075em] text-white/92">
-                  Your House Delivery
+                  One delivery system.
                   <br />
-                  <span className="text-white/38">Journey.</span>
+                  <span className="text-white/38">
+                    From one home to an entire community.
+                  </span>
                 </h1>
               </HeadlineReveal>
               <div className="mt-12 grid gap-8 border-t border-white/10 pt-7 sm:grid-cols-2 lg:mt-16">
                 <p className="max-w-lg text-lg leading-8 text-white/68">
-                  A clear path from the first property conversation to an
-                  occupied House Delivery home.
+                  House Delivery coordinates the path from site and housing
+                  plan through design, procurement, delivery, assembly and
+                  occupancy.
                 </p>
                 <p className="max-w-lg text-sm leading-7 text-white/42 sm:justify-self-end">
-                  Each stage clarifies what is known, what comes next, and when
-                  site-specific professional, technical and commercial work
-                  begins.
+                  Built for First Nations, housing organizations, developers,
+                  general contractors and individual landowners.
                 </p>
               </div>
             </div>
           </div>
+
+          <JourneyAudienceSelector />
 
           <figure className="mt-16 lg:mt-24">
             <div className="overflow-x-auto overscroll-x-contain bg-black [scrollbar-color:rgba(255,255,255,0.24)_transparent] [scrollbar-width:thin]">
@@ -400,7 +421,14 @@ export function HomeownerJourney() {
                   <p className="mt-7 text-base leading-8 text-white/52">
                     {stage.description}
                   </p>
-                  {stage.bullets ? <SupportingList items={stage.bullets} /> : null}
+                  {stage.bulletsLabel ? (
+                    <p className="mt-7 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/34">
+                      {stage.bulletsLabel}
+                    </p>
+                  ) : null}
+                  {stage.bullets ? (
+                    <SupportingList items={stage.bullets} />
+                  ) : null}
                   {stage.number === "02" ? (
                     <Link
                       href="/#models"
@@ -461,7 +489,7 @@ export function HomeownerJourney() {
               <div className="grid gap-10 lg:grid-cols-12 lg:gap-x-8">
                 <div className="lg:col-span-5">
                   <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                    <p className="eyebrow">Site Preparation + Manufacturing</p>
+                    <p className="eyebrow">Site + Manufacturing</p>
                     <span className="font-mono text-[10px] tracking-[0.18em] text-white/28">
                       07 / 11
                     </span>
@@ -472,9 +500,8 @@ export function HomeownerJourney() {
                 </div>
                 <div className="max-w-xl lg:col-span-5 lg:col-start-8 lg:self-end">
                   <p className="text-base leading-8 text-white/52">
-                    While the site is being prepared locally, the coordinated
-                    House Delivery package can be manufactured and organized
-                    in parallel.
+                    While site work progresses locally, the coordinated House
+                    Delivery package can be prepared in parallel.
                   </p>
                   <p className="mt-5 text-xs leading-6 text-white/34">
                     The actual sequence is established after site, approval and
@@ -584,27 +611,20 @@ export function HomeownerJourney() {
 
       <section className="border-t border-white/12 bg-[#e7e3d8] px-5 py-24 text-[#0b0c10] sm:px-8 lg:px-12 lg:py-36">
         <div className="mx-auto max-w-[1504px]">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-black/42">
-            Ready to begin?
-          </p>
-          <div className="mt-8 grid gap-12 lg:grid-cols-[1fr_auto] lg:items-end">
+          <div className="grid gap-12 lg:grid-cols-[1fr_auto] lg:items-end">
             <div>
               <h2 className="max-w-5xl text-[clamp(3.4rem,7vw,7.8rem)] font-medium uppercase leading-[0.84] tracking-[-0.07em]">
-                Start with your
+                What are you
                 <br />
-                <span className="text-black/36">property.</span>
+                <span className="text-black/36">planning?</span>
               </h2>
-              <p className="mt-8 max-w-xl text-base leading-8 text-black/58">
-                You do not need all the answers. Start with your property and
-                the home you are interested in.
-              </p>
             </div>
             <div className="flex min-w-72 flex-col gap-3">
               <Link
-                href="/#reserve"
+                href="/plan-a-housing-project"
                 className="group flex min-h-14 items-center justify-between gap-10 bg-[#0b0c10] px-6 text-[10px] font-semibold uppercase tracking-[0.18em] text-white"
               >
-                Start your project
+                Plan a housing project
                 <ArrowRight
                   aria-hidden="true"
                   className="size-4 transition-transform group-hover:translate-x-1"
@@ -623,6 +643,36 @@ export function HomeownerJourney() {
                 />
               </Link>
             </div>
+          </div>
+          <div className="mt-12 grid border-t border-black/14 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                label: "First Nations + Housing",
+                href: "/first-nations-project-planner",
+              },
+              {
+                label: "Developers",
+                href: "/project-portfolio-planner?audience=developer",
+              },
+              {
+                label: "General Contractors",
+                href: "/project-portfolio-planner?audience=general-contractor",
+              },
+              { label: "Individual Homeowners", href: "/#models" },
+            ].map((pathway) => (
+              <Link
+                key={pathway.label}
+                href={pathway.href}
+                className="group flex min-h-14 items-center justify-between gap-5 border-b border-black/14 py-4 text-[9px] font-semibold uppercase tracking-[0.16em] text-black/48 transition-colors hover:text-black sm:px-5 sm:first:pl-0 lg:border-r lg:last:border-r-0"
+              >
+                {pathway.label}
+                <ArrowRight
+                  aria-hidden="true"
+                  className="size-3.5 shrink-0 transition-transform group-hover:translate-x-1"
+                  strokeWidth={1.5}
+                />
+              </Link>
+            ))}
           </div>
         </div>
       </section>

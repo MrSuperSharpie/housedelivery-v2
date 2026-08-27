@@ -6,17 +6,17 @@ import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 
 const navigationStages = [
-  { number: "01", id: "your-land", title: "Your Land", thumbnail: "/images/journey/01-your-land.png" },
-  { number: "02", id: "your-home", title: "Your Home", thumbnail: "/images/journey/02-choose-your-home.jpg" },
-  { number: "03", id: "your-design", title: "Your Design", thumbnail: "/images/journey/03-make-it-yours.png" },
-  { number: "04", id: "site-feasibility", title: "Site Feasibility", thumbnail: "/images/journey/04-site-feasibility.jpg" },
+  { number: "01", id: "your-land", title: "Your Site", thumbnail: "/images/journey/01-your-land.png" },
+  { number: "02", id: "your-home", title: "Housing Plan", thumbnail: "/images/journey/02-choose-your-home.jpg" },
+  { number: "03", id: "your-design", title: "Design + Inclusions", thumbnail: "/images/journey/03-make-it-yours.png" },
+  { number: "04", id: "site-feasibility", title: "Project Feasibility", thumbnail: "/images/journey/04-site-feasibility.jpg" },
   { number: "05", id: "project-commitment", title: "Project Commitment", thumbnail: "/images/journey/05-project-commitment.png" },
-  { number: "06", id: "permits-engineering", title: "Permits & Engineering", thumbnail: "/images/journey/06-permits-engineering-lgsf.jpg" },
+  { number: "06", id: "permits-engineering", title: "Permits + Engineering", thumbnail: "/images/journey/06-permits-engineering-lgsf.jpg" },
   { number: "07", id: "site-manufacturing", title: "Site + Manufacturing", thumbnail: "/images/journey/07-site-manufacturing.png" },
-  { number: "08", id: "delivery", title: "Delivery", thumbnail: "/images/journey/08-coordinated-project-package.webp" },
+  { number: "08", id: "delivery", title: "Coordinated Delivery", thumbnail: "/images/journey/08-coordinated-project-package.webp" },
   { number: "09", id: "assembly", title: "Assembly", thumbnail: "/images/journey/09-home-takes-shape.png" },
-  { number: "10", id: "finishing", title: "Finishing", thumbnail: "/images/journey/10-finishing.png" },
-  { number: "11", id: "occupancy", title: "Occupancy", thumbnail: "/images/journey/11-welcome-home.jpeg" },
+  { number: "10", id: "finishing", title: "Finishing + Installation", thumbnail: "/images/journey/10-finishing.png" },
+  { number: "11", id: "occupancy", title: "Handover + Occupancy", thumbnail: "/images/journey/11-welcome-home.jpeg" },
 ] as const;
 
 export function JourneyStageNavigator() {
