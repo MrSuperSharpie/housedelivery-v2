@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 import { RevealText } from "@/components/reveal-text";
 
@@ -41,6 +42,7 @@ type DeliveryTimelineProps = {
   headlinePrimary?: string;
   headlineSecondary?: string;
   introCopy?: string;
+  journeyHref?: string;
 };
 
 export function DeliveryTimeline({
@@ -49,6 +51,7 @@ export function DeliveryTimeline({
   headlinePrimary = "One path.",
   headlineSecondary = "Seven clear stages.",
   introCopy = "Parallel planning replaces the usual stop-start sequence. Engineering, approvals, production, and site work are coordinated around one delivery target.",
+  journeyHref,
 }: DeliveryTimelineProps) {
   return (
     <section
@@ -139,11 +142,21 @@ export function DeliveryTimeline({
             ))}
           </ol>
 
-          <p className="mt-8 max-w-3xl text-xs leading-6 text-white/32">
-            Indicative project timing is established after site, design,
-            approval and procurement requirements are understood. Workstreams
-            may overlap.
-          </p>
+          <div className="mt-8 flex flex-col items-start gap-6 sm:flex-row sm:items-end sm:justify-between">
+            <p className="max-w-3xl text-xs leading-6 text-white/32">
+              Indicative project timing is established after site, design,
+              approval and procurement requirements are understood.
+              Workstreams may overlap.
+            </p>
+            {journeyHref ? (
+              <Link
+                href={journeyHref}
+                className="inline-flex min-h-11 shrink-0 items-center border-b border-white/25 py-2 text-[10px] font-semibold uppercase tracking-[0.17em] text-white/62 transition-colors hover:border-white hover:text-white"
+              >
+                Explore the homeowner journey
+              </Link>
+            ) : null}
+          </div>
         </section>
       </div>
     </section>

@@ -12,7 +12,7 @@ import { usePlannerHomeViewContext } from "@/lib/use-planner-home-view-context";
 const links = [
   { label: "Homes", href: "/#models" },
   { label: "Inclusions", href: "/inclusions" },
-  { label: "How it works", href: "/#timeline" },
+  { label: "How it works", href: "/how-it-works" },
   { label: "First Nations", href: "/first-nations-inspired" },
   { label: "CMHC", href: "/#cmhc" },
   { label: "Why House Delivery Inc.", href: "/#certainty" },

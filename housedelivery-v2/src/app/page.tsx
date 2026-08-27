@@ -56,6 +56,7 @@ export default function Home() {
           headlinePrimary="Resolve more before"
           headlineSecondary="the site is waiting."
           introCopy="House Delivery coordinates design, procurement, factory production, site preparation, logistics and local assembly so key workstreams can move in parallel—not one after another."
+          journeyHref="/how-it-works"
         />
         <FinancialCorridors />
         <ReservationForm models={models} />

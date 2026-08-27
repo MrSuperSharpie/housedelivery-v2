@@ -25,7 +25,7 @@ export function SiteFooter() {
               <Link className="block hover:text-white" href="/inclusions">
                 Inclusions Library
               </Link>
-              <Link className="block hover:text-white" href="/#timeline">
+              <Link className="block hover:text-white" href="/how-it-works">
                 Delivery process
               </Link>
               <Link
