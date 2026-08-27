@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
+import { JourneyStageNavigator } from "@/components/journey-stage-navigator";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { getHomeConfiguratorRegistrationsByFamily } from "@/data/home-configurators";
 
@@ -346,29 +347,7 @@ export function HomeownerJourney() {
         </div>
       </section>
 
-      <nav
-        aria-label="House Delivery journey stages"
-        className="border-y border-white/10 bg-[#0e1014]"
-      >
-        <div className="mx-auto flex max-w-[1600px] snap-x overflow-x-auto px-5 sm:px-8 lg:px-12 [scrollbar-width:thin]">
-          {[...stages.slice(0, 6), { number: "07", id: "site-manufacturing", title: "Site + Manufacturing" }, ...stages.slice(6)].map(
-            (stage) => (
-              <a
-                key={stage.number}
-                href={`#${stage.id}`}
-                className="group flex min-w-40 snap-start flex-col gap-2 border-r border-white/10 px-5 py-5 first:border-l sm:min-w-48"
-              >
-                <span className="font-mono text-[9px] tracking-[0.18em] text-white/25 transition-colors group-hover:text-white/55">
-                  {stage.number}
-                </span>
-                <span className="text-[9px] font-semibold uppercase tracking-[0.16em] text-white/48 transition-colors group-hover:text-white">
-                  {stage.title}
-                </span>
-              </a>
-            ),
-          )}
-        </div>
-      </nav>
+      <JourneyStageNavigator />
 
       <section className="px-5 py-24 sm:px-8 lg:px-12 lg:py-36">
         <div className="mx-auto max-w-[1504px]">
