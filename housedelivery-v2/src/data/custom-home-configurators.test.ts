@@ -29,12 +29,14 @@ import {
 import { getLookBookSelectionSections } from "@/data/home-look-book";
 import { maplewoodHomeConfigurator } from "@/data/maplewood-home-configurator";
 import { models } from "@/data/models";
+import { profileHomeConfigurator } from "@/data/profile-home-configurator";
 import { saturnaHomeConfigurator } from "@/data/saturna-home-configurator";
 import { solaceHomeConfigurator } from "@/data/solace-home-configurator";
 import { timberlineHomeConfigurator } from "@/data/timberline-home-configurator";
 
 const canonicalCustomHomeIds = new Set([
   "maplewood",
+  "profile",
   "saturna",
   "solace",
   "timberline",
@@ -108,7 +110,7 @@ test("all residential product families are registered without premature activati
     customHomes.filter(
       (registration) => registration.migrationStatus === "canonical",
     ).length,
-    4,
+    5,
   );
   assert.ok(
     customHomes
@@ -568,6 +570,127 @@ test("Maplewood uses exactly seven approved visual-guide chapters", () => {
   assert.equal(
     definition.lookBook.sections[0]?.title,
     "The Maplewood You Created",
+  );
+});
+
+test("Profile House uses all 30 approved Visual Guide assets and its requested journey", () => {
+  const definition = getHomeConfiguratorDefinition("profile");
+  assert.ok(definition);
+  const requiredCategories = getRequiredCategories(definition);
+  const journeyCategories = getHomeConfiguratorJourneyCategories(definition);
+
+  assert.strictEqual(definition, profileHomeConfigurator);
+  assert.deepEqual(getCanonicalHomeConfiguratorIssues(definition), []);
+  assert.equal(definition.homeName, "Profile House");
+  assert.equal(definition.residenceLabel, "Profile House");
+  assert.equal(
+    getHomeConfiguratorRegistration("custom-home", "profile")?.route,
+    "/homes/profile",
+  );
+  assert.equal(
+    getHomeConfiguratorRegistration("custom-home", "profile")
+      ?.migrationStatus,
+    "canonical",
+  );
+  assert.deepEqual(
+    requiredCategories.map((category) => [category.id, category.title]),
+    [
+      ["kitchen-look-feel", "Kitchen Look & Feel"],
+      ["primary-ensuite-look-feel", "Primary Ensuite Look & Feel"],
+      ["primary-wardrobe", "Primary Wardrobe"],
+      ["interior-doors-details", "Interior Doors & Details"],
+      ["exterior-arrival-openings", "Exterior Arrival & Openings"],
+      ["whole-home-flooring-stairs", "Whole-Home Flooring & Stairs"],
+      ["window-coverings", "Window Coverings"],
+    ],
+  );
+  assert.deepEqual(
+    journeyCategories.map((category) => category.id),
+    [
+      "kitchen-look-feel",
+      "primary-ensuite-look-feel",
+      "primary-wardrobe",
+      "interior-doors-details",
+      "whole-home-flooring-stairs",
+      "window-coverings",
+      "exterior-arrival-openings",
+    ],
+  );
+  assert.deepEqual(
+    journeyCategories.map((category) => category.number),
+    ["01", "02", "03", "04", "05", "06", "07"],
+  );
+
+  const referencedAssets: string[] = [];
+  for (const category of requiredCategories) {
+    assert.equal(category.kind, "room-look");
+    if (category.kind !== "room-look") continue;
+
+    const expectedClassifications =
+      category.id === "primary-wardrobe"
+        ? [
+            ["premium", "1"],
+            ["premium", "2"],
+            ["premium", "3"],
+            ["signature", "1"],
+            ["signature", "2"],
+            ["signature", "3"],
+          ]
+        : [
+            ["premium", "1"],
+            ["premium", "2"],
+            ["signature", "1"],
+            ["signature", "2"],
+          ];
+
+    assert.deepEqual(
+      category.options.map((option) => [option.level, option.optionNumber]),
+      expectedClassifications,
+    );
+    assert.ok(
+      category.options.every(
+        (option) =>
+          option.level !== ("essential" as string) &&
+          option.image.fit === "contain" &&
+          option.image.role === "design-board" &&
+          option.image.quality === 100 &&
+          option.image.src.startsWith(
+            "/images/homes/profile/visual-guide/profile-",
+          ),
+      ),
+    );
+    referencedAssets.push(
+      ...category.options.map((option) => basename(option.image.src)),
+    );
+  }
+
+  const assetDirectory = join(
+    process.cwd(),
+    "public/images/homes/profile/visual-guide",
+  );
+  const approvedAssets = readdirSync(assetDirectory)
+    .filter((filename) => filename.endsWith(".png"))
+    .sort();
+  assert.equal(approvedAssets.length, 30);
+  assert.equal(referencedAssets.length, 30);
+  assert.deepEqual(referencedAssets.toSorted(), approvedAssets);
+
+  const selectionSections = getLookBookSelectionSections(
+    definition.lookBook.sections,
+  );
+  assert.deepEqual(
+    selectionSections.map((section) =>
+      section.items.map((item) => item.categoryId),
+    ),
+    journeyCategories.map((category) => [category.id]),
+  );
+  assert.equal(
+    selectionSections.at(-1)?.title,
+    "Exterior Arrival & Openings",
+  );
+  assert.equal(
+    definition.lookBook.sections[0]?.title,
+    "The Profile House You Created",
   );
 });
 

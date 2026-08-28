@@ -10,6 +10,7 @@ import type {
 } from "@/data/home-configurator-architecture";
 import { maplewoodHomeConfigurator } from "@/data/maplewood-home-configurator";
 import { models } from "@/data/models";
+import { profileHomeConfigurator } from "@/data/profile-home-configurator";
 import { saturnaHomeConfigurator } from "@/data/saturna-home-configurator";
 import { solaceHomeConfigurator } from "@/data/solace-home-configurator";
 import { timberlineHomeConfigurator } from "@/data/timberline-home-configurator";
@@ -22,6 +23,7 @@ const customHomeDefinitions: Readonly<
   Record<string, HomeConfiguratorDefinition>
 > = {
   maplewood: maplewoodHomeConfigurator,
+  profile: profileHomeConfigurator,
   saturna: saturnaHomeConfigurator,
   solace: solaceHomeConfigurator,
   timberline: timberlineHomeConfigurator,
