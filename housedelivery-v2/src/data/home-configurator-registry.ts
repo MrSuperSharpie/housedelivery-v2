@@ -8,6 +8,7 @@ import type {
   HomeConfiguratorRegistration,
   HomeProductFamily,
 } from "@/data/home-configurator-architecture";
+import { laurentianHomeConfigurator } from "@/data/laurentian-home-configurator";
 import { maplewoodHomeConfigurator } from "@/data/maplewood-home-configurator";
 import { models } from "@/data/models";
 import { profileHomeConfigurator } from "@/data/profile-home-configurator";
@@ -22,6 +23,7 @@ function registrationKey(productFamily: HomeProductFamily, homeId: string) {
 const customHomeDefinitions: Readonly<
   Record<string, HomeConfiguratorDefinition>
 > = {
+  laurentian: laurentianHomeConfigurator,
   maplewood: maplewoodHomeConfigurator,
   profile: profileHomeConfigurator,
   saturna: saturnaHomeConfigurator,

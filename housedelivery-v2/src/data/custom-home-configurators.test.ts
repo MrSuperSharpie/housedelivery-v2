@@ -27,6 +27,7 @@ import {
   homeConfiguratorRegistrations,
 } from "@/data/home-configurators";
 import { getLookBookSelectionSections } from "@/data/home-look-book";
+import { laurentianHomeConfigurator } from "@/data/laurentian-home-configurator";
 import { maplewoodHomeConfigurator } from "@/data/maplewood-home-configurator";
 import { models } from "@/data/models";
 import { profileHomeConfigurator } from "@/data/profile-home-configurator";
@@ -35,6 +36,7 @@ import { solaceHomeConfigurator } from "@/data/solace-home-configurator";
 import { timberlineHomeConfigurator } from "@/data/timberline-home-configurator";
 
 const canonicalCustomHomeIds = new Set([
+  "laurentian",
   "maplewood",
   "profile",
   "saturna",
@@ -110,7 +112,7 @@ test("all residential product families are registered without premature activati
     customHomes.filter(
       (registration) => registration.migrationStatus === "canonical",
     ).length,
-    5,
+    6,
   );
   assert.ok(
     customHomes
@@ -464,6 +466,115 @@ test("Solace uses exactly seven approved visual-guide chapters", () => {
   assert.equal(
     definition.lookBook.sections[0]?.title,
     "The Solace You Created",
+  );
+});
+
+test("Laurentian uses all 28 approved Visual Guide boards in seven chapters", () => {
+  const definition = getHomeConfiguratorDefinition("laurentian");
+  assert.ok(definition);
+  const requiredCategories = getRequiredCategories(definition);
+  const journeyCategories = getHomeConfiguratorJourneyCategories(definition);
+
+  assert.strictEqual(definition, laurentianHomeConfigurator);
+  assert.deepEqual(getCanonicalHomeConfiguratorIssues(definition), []);
+  assert.equal(definition.homeName, "Laurentian");
+  assert.equal(definition.residenceLabel, "Laurentian House");
+  assert.equal(
+    getHomeConfiguratorRegistration("custom-home", "laurentian")?.route,
+    "/homes/laurentian",
+  );
+  assert.equal(
+    getHomeConfiguratorRegistration("custom-home", "laurentian")
+      ?.migrationStatus,
+    "canonical",
+  );
+  assert.deepEqual(
+    requiredCategories.map((category) => [category.id, category.title]),
+    [
+      ["kitchen-look-feel", "Kitchen Look & Feel"],
+      ["primary-ensuite-look-feel", "Primary Ensuite Look & Feel"],
+      ["primary-wardrobe", "Primary Wardrobe"],
+      ["interior-doors-details", "Interior Doors & Details"],
+      ["exterior-arrival-openings", "Exterior Arrival & Openings"],
+      ["whole-home-flooring-stairs", "Whole-Home Flooring & Stairs"],
+      ["window-coverings", "Window Coverings"],
+    ],
+  );
+  assert.equal(journeyCategories.length, 7);
+
+  const expectedOptionNames = [
+    "Natural Light Oak",
+    "Soft Ivory Travertine",
+    "Smoked Walnut Graphite",
+    "Sandstone Bronze Linen",
+  ];
+  const referencedAssets: string[] = [];
+
+  for (const category of requiredCategories) {
+    assert.equal(category.kind, "room-look");
+    if (category.kind !== "room-look") continue;
+
+    assert.equal(category.options.length, 4);
+    assert.deepEqual(
+      category.options.map((option) => [option.level, option.optionNumber]),
+      [
+        ["premium", "1"],
+        ["premium", "2"],
+        ["signature", "1"],
+        ["signature", "2"],
+      ],
+    );
+    assert.deepEqual(
+      category.options.map((option) => option.name),
+      expectedOptionNames,
+    );
+    assert.ok(
+      category.options.every(
+        (option) =>
+          option.image.fit === "contain" &&
+          option.image.role === "design-board" &&
+          option.image.quality === 100 &&
+          option.image.src.startsWith(
+            "/images/homes/laurentian/visual-guide/Laurentian_",
+          ),
+      ),
+    );
+    referencedAssets.push(
+      ...category.options.map((option) => basename(option.image.src)),
+    );
+  }
+
+  const assetDirectory = join(
+    process.cwd(),
+    "public/images/homes/laurentian/visual-guide",
+  );
+  const approvedAssets = readdirSync(assetDirectory)
+    .filter((filename) => filename.endsWith(".png"))
+    .sort();
+  assert.equal(approvedAssets.length, 28);
+  assert.equal(referencedAssets.length, 28);
+  assert.deepEqual(referencedAssets.toSorted(), approvedAssets);
+
+  const coordinated = getProjectCoordinatedCategories(definition);
+  assert.deepEqual(coordinated.map((category) => category.id), ["appliances"]);
+  assert.equal(coordinated[0]?.coordinatedMessage, "Project Coordinated");
+  assert.ok(
+    !requiredCategories.some((category) => category.id === "appliances"),
+  );
+
+  const selectionSections = getLookBookSelectionSections(
+    definition.lookBook.sections,
+  );
+  assert.deepEqual(
+    selectionSections.map((section) =>
+      section.items.find((item) => item.categoryId !== "appliances")
+        ?.categoryId,
+    ),
+    journeyCategories.map((category) => category.id),
+  );
+  assert.equal(
+    definition.lookBook.sections[0]?.title,
+    "The Laurentian You Created",
   );
 });
 
