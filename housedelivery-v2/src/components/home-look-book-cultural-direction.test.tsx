@@ -77,6 +77,8 @@ function renderProjectLookBook(culturalExteriorInterest: boolean) {
 test("Indigenous Inspiration project Look Book and print output use the approved exterior summary", () => {
   const markup = renderProjectLookBook(true);
 
+  assert.match(markup, /house-delivery-logo-tan\.png/);
+  assert.doesNotMatch(markup, /House Delivery Blk\.png/);
   assert.match(markup, /data-look-book-cultural-summary="true"/);
   assert.match(markup, /data-look-book-print-page="true"/);
   assert.match(markup, /Solace-Coastal\.png/);

@@ -1012,7 +1012,7 @@ export function HomeLookBook({
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/24 to-black/18" />
         <div className="look-book-page-inner relative z-10 flex min-h-[min(920px,100svh)] flex-col justify-between">
           <div className="flex items-start justify-between gap-8 border-t border-white/50 pt-5">
-            <Image src="/House Delivery Blk.png" alt="House Delivery Inc." width={675} height={313} loading="eager" unoptimized className="h-11 w-auto brightness-0 invert" />
+            <Image src="/images/brand/house-delivery-logo-tan.png" alt="House Delivery Inc." width={1370} height={537} loading="eager" unoptimized className="h-11 w-auto object-contain" />
             <p className="text-right font-mono text-[8px] uppercase tracking-[0.16em] text-white/70">
               {projectDesignName ? "Project Look Book" : "Personalized Look Book"}<br />{personalization.reference}
             </p>
