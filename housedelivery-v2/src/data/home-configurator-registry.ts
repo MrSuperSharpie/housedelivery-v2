@@ -1,5 +1,6 @@
 import { carriageHomes } from "@/data/carriage-homes";
 import { catalogModels } from "@/data/catalog";
+import { daltonHomeConfigurator } from "@/data/dalton-home-configurator";
 import {
   getRequiredCategories,
   type HomeConfiguratorDefinition,
@@ -23,6 +24,7 @@ function registrationKey(productFamily: HomeProductFamily, homeId: string) {
 const customHomeDefinitions: Readonly<
   Record<string, HomeConfiguratorDefinition>
 > = {
+  dalton: daltonHomeConfigurator,
   laurentian: laurentianHomeConfigurator,
   maplewood: maplewoodHomeConfigurator,
   profile: profileHomeConfigurator,
