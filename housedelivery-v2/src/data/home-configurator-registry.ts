@@ -15,6 +15,7 @@ import { models } from "@/data/models";
 import { profileHomeConfigurator } from "@/data/profile-home-configurator";
 import { saturnaHomeConfigurator } from "@/data/saturna-home-configurator";
 import { solaceHomeConfigurator } from "@/data/solace-home-configurator";
+import { southBayHomeConfigurator } from "@/data/south-bay-home-configurator";
 import { timberlineHomeConfigurator } from "@/data/timberline-home-configurator";
 
 function registrationKey(productFamily: HomeProductFamily, homeId: string) {
@@ -30,6 +31,7 @@ const customHomeDefinitions: Readonly<
   profile: profileHomeConfigurator,
   saturna: saturnaHomeConfigurator,
   solace: solaceHomeConfigurator,
+  "south-bay": southBayHomeConfigurator,
   timberline: timberlineHomeConfigurator,
 };
 

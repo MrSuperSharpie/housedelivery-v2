@@ -34,6 +34,7 @@ import { models } from "@/data/models";
 import { profileHomeConfigurator } from "@/data/profile-home-configurator";
 import { saturnaHomeConfigurator } from "@/data/saturna-home-configurator";
 import { solaceHomeConfigurator } from "@/data/solace-home-configurator";
+import { southBayHomeConfigurator } from "@/data/south-bay-home-configurator";
 import { timberlineHomeConfigurator } from "@/data/timberline-home-configurator";
 
 const canonicalCustomHomeIds = new Set([
@@ -43,6 +44,7 @@ const canonicalCustomHomeIds = new Set([
   "profile",
   "saturna",
   "solace",
+  "south-bay",
   "timberline",
 ]);
 
@@ -114,7 +116,7 @@ test("all residential product families are registered without premature activati
     customHomes.filter(
       (registration) => registration.migrationStatus === "canonical",
     ).length,
-    7,
+    8,
   );
   assert.ok(
     customHomes
@@ -468,6 +470,115 @@ test("Solace uses exactly seven approved visual-guide chapters", () => {
   assert.equal(
     definition.lookBook.sections[0]?.title,
     "The Solace You Created",
+  );
+});
+
+test("South Bay uses all 28 approved Visual Guide boards in seven chapters", () => {
+  const definition = getHomeConfiguratorDefinition("south-bay");
+  assert.ok(definition);
+  const requiredCategories = getRequiredCategories(definition);
+  const journeyCategories = getHomeConfiguratorJourneyCategories(definition);
+
+  assert.strictEqual(definition, southBayHomeConfigurator);
+  assert.deepEqual(getCanonicalHomeConfiguratorIssues(definition), []);
+  assert.equal(definition.homeName, "South Bay");
+  assert.equal(definition.residenceLabel, "South Bay House");
+  assert.equal(
+    getHomeConfiguratorRegistration("custom-home", "south-bay")?.route,
+    "/homes/south-bay",
+  );
+  assert.equal(
+    getHomeConfiguratorRegistration("custom-home", "south-bay")
+      ?.migrationStatus,
+    "canonical",
+  );
+  assert.deepEqual(
+    requiredCategories.map((category) => [category.id, category.title]),
+    [
+      ["kitchen-look-feel", "Kitchen Look & Feel"],
+      ["primary-ensuite-look-feel", "Primary Ensuite Look & Feel"],
+      ["primary-wardrobe", "Primary Wardrobe"],
+      ["interior-doors-details", "Interior Doors & Details"],
+      ["exterior-arrival-openings", "Exterior Arrival & Openings"],
+      ["whole-home-flooring-stairs", "Whole-Home Flooring & Stairs"],
+      ["window-coverings", "Window Coverings"],
+    ],
+  );
+  assert.equal(journeyCategories.length, 7);
+
+  const expectedOptionNames = [
+    "Shoreline Oak",
+    "Mist Linen",
+    "Basalt Frame",
+    "Cove Bronze",
+  ];
+  const referencedAssets: string[] = [];
+
+  for (const category of requiredCategories) {
+    assert.equal(category.kind, "room-look");
+    if (category.kind !== "room-look") continue;
+
+    assert.equal(category.options.length, 4);
+    assert.deepEqual(
+      category.options.map((option) => [option.level, option.optionNumber]),
+      [
+        ["premium", "1"],
+        ["premium", "2"],
+        ["signature", "1"],
+        ["signature", "2"],
+      ],
+    );
+    assert.deepEqual(
+      category.options.map((option) => option.name),
+      expectedOptionNames,
+    );
+    assert.ok(
+      category.options.every(
+        (option) =>
+          option.image.fit === "contain" &&
+          option.image.role === "design-board" &&
+          option.image.quality === 100 &&
+          option.image.src.startsWith(
+            "/images/homes/south-bay/visual-guide/South-Bay_",
+          ),
+      ),
+    );
+    referencedAssets.push(
+      ...category.options.map((option) => basename(option.image.src)),
+    );
+  }
+
+  const assetDirectory = join(
+    process.cwd(),
+    "public/images/homes/south-bay/visual-guide",
+  );
+  const approvedAssets = readdirSync(assetDirectory)
+    .filter((filename) => filename.endsWith(".png"))
+    .sort();
+  assert.equal(approvedAssets.length, 28);
+  assert.equal(referencedAssets.length, 28);
+  assert.deepEqual(referencedAssets.toSorted(), approvedAssets);
+
+  const coordinated = getProjectCoordinatedCategories(definition);
+  assert.deepEqual(coordinated.map((category) => category.id), ["appliances"]);
+  assert.equal(coordinated[0]?.coordinatedMessage, "Project Coordinated");
+  assert.ok(
+    !requiredCategories.some((category) => category.id === "appliances"),
+  );
+
+  const selectionSections = getLookBookSelectionSections(
+    definition.lookBook.sections,
+  );
+  assert.deepEqual(
+    selectionSections.map((section) =>
+      section.items.find((item) => item.categoryId !== "appliances")
+        ?.categoryId,
+    ),
+    journeyCategories.map((category) => category.id),
+  );
+  assert.equal(
+    definition.lookBook.sections[0]?.title,
+    "The South Bay You Created",
   );
 });
 
