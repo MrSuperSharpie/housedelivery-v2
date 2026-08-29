@@ -9,6 +9,7 @@ import type {
   HomeConfiguratorRegistration,
   HomeProductFamily,
 } from "@/data/home-configurator-architecture";
+import { langleyHomeConfigurator } from "@/data/langley-home-configurator";
 import { laurentianHomeConfigurator } from "@/data/laurentian-home-configurator";
 import { maplewoodHomeConfigurator } from "@/data/maplewood-home-configurator";
 import { models } from "@/data/models";
@@ -26,6 +27,7 @@ const customHomeDefinitions: Readonly<
   Record<string, HomeConfiguratorDefinition>
 > = {
   dalton: daltonHomeConfigurator,
+  langley: langleyHomeConfigurator,
   laurentian: laurentianHomeConfigurator,
   maplewood: maplewoodHomeConfigurator,
   profile: profileHomeConfigurator,
