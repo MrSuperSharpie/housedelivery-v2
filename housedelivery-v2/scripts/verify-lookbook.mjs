@@ -112,8 +112,55 @@ try {
   );
   assert.equal(
     await page.locator('[data-save-look-book="top"]').count(),
+    0,
+    "disconnected standalone save/print strip is removed",
+  );
+  assert.equal(
+    await page.locator("[data-lookbook-content-transition]").count(),
     1,
-    "top PDF control remains available",
+    "complete Look Book transition is visible",
+  );
+  assert.equal(
+    await page.evaluate(() => {
+      const completionElement = document.querySelector(
+        "[data-lookbook-lead-capture]",
+      );
+      const transitionElement = document.querySelector(
+        "[data-lookbook-content-transition]",
+      );
+      const coverElement = document.querySelector("[data-look-book-cover]");
+      const finaleElement = document.querySelector(
+        "[data-look-book-next-stage]",
+      );
+      const closingElement = document.querySelector(
+        "[data-lookbook-closing-actions]",
+      );
+      if (
+        !completionElement ||
+        !transitionElement ||
+        !coverElement ||
+        !finaleElement ||
+        !closingElement
+      ) {
+        return false;
+      }
+      const follows = (first, second) =>
+        Boolean(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING);
+      return (
+        follows(completionElement, transitionElement) &&
+        follows(transitionElement, coverElement) &&
+        follows(coverElement, finaleElement) &&
+        follows(finaleElement, closingElement)
+      );
+    }),
+    true,
+    "completion, transition, full Look Book, and compact close are sequenced",
+  );
+  const closingActions = page.locator("[data-lookbook-closing-actions]");
+  assert.equal(
+    await closingActions.getByRole("button").count(),
+    3,
+    "compact close repeats download, email, and property actions",
   );
 
   const attribution = await page.evaluate(() =>
@@ -184,7 +231,11 @@ try {
     { name: "desktop", width: 1440, height: 1000 },
   ]) {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
-    await completion.scrollIntoViewIfNeeded();
+    await completion.evaluate((element) => {
+      const top = element.getBoundingClientRect().top + window.scrollY - 96;
+      window.scrollTo({ top: Math.max(0, top), behavior: "instant" });
+    });
+    await page.waitForTimeout(100);
     assert.equal(
       await page.evaluate(
         () => document.documentElement.scrollWidth > window.innerWidth,
@@ -194,7 +245,7 @@ try {
     );
     const box = await completion.boundingBox();
     assert.ok(box && box.width <= viewport.width, `${viewport.name}: completion fits`);
-    await completion.screenshot({
+    await page.screenshot({
       path: `/private/tmp/lookbook-${viewport.name}.png`,
     });
   }

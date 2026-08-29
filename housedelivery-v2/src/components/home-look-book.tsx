@@ -988,21 +988,27 @@ export function HomeLookBook({
       data-review-status={configuration.reviewStatus}
       className="scroll-mt-20 bg-[#e7e3d8] text-[#111216] outline-none"
     >
-      <div className="look-book-screen-control border-b border-black/14 px-5 py-8 sm:px-8 lg:px-12">
-        <div className="mx-auto flex max-w-[1504px] flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/58">
-              {projectDesignName ? "Project design Look Book" : "Personalized visual brief"} / {personalization.reference}
-            </p>
-            <p className="mt-2 text-sm text-black/62">
-              {projectDesignName
-                ? `${projectDesignName} · Assigned to: ${plannerContext?.assignedQuantity ?? 1} ${(plannerContext?.assignedQuantity ?? 1) === 1 ? "home" : "homes"}`
-                : preparedForLabel}
-            </p>
-          </div>
-          <div className="flex flex-col gap-3 sm:items-end">
-            <SaveLookBookButton placement="top" onSave={saveLookBook} />
-            {plannerContext ? (
+      <LookBookCompletionActions
+        definition={definition}
+        configuration={configuration}
+        initialConfigurationId={savedConfigurationId}
+        initialHasContact={savedHasContact}
+        savedView={savedView}
+        enabled={!plannerContext}
+      >
+        {plannerContext ? (
+          <div className="look-book-screen-control border-b border-black/14 px-5 py-8 sm:px-8 lg:px-12">
+            <div className="mx-auto flex max-w-[1504px] flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/58">
+                  Project design Look Book / {personalization.reference}
+                </p>
+                <p className="mt-2 text-sm text-black/62">
+                  {projectDesignName} · Assigned to: {plannerContext.assignedQuantity} {plannerContext.assignedQuantity === 1 ? "home" : "homes"}
+                </p>
+              </div>
+              <div className="flex flex-col gap-3 sm:items-end">
+                <SaveLookBookButton placement="top" onSave={saveLookBook} />
               <button
                 type="button"
                 onClick={() => plannerContext.onSaveAndReturn()}
@@ -1010,17 +1016,15 @@ export function HomeLookBook({
               >
                 Save My Look Book &amp; Return to Project <ArrowRight aria-hidden="true" className="size-4" />
               </button>
-            ) : null}
+              </div>
+            </div>
+            <p className="mx-auto mt-5 max-w-[1504px] text-xs leading-5 text-black/52">
+              Project: {plannerContext.projectName} · Project design group: {plannerContext.designLabel} · Assigned to {plannerContext.assignedQuantity} {plannerContext.assignedQuantity === 1 ? "home" : "homes"} · Delivery group: {plannerContext.deliveryGroup}. Save My Look Book &amp; Return to Project records this design group and brings the next home design into view.
+            </p>
           </div>
-        </div>
-        {plannerContext ? (
-          <p className="mx-auto mt-5 max-w-[1504px] text-xs leading-5 text-black/52">
-            Project: {plannerContext.projectName} · Project design group: {plannerContext.designLabel} · Assigned to {plannerContext.assignedQuantity} {plannerContext.assignedQuantity === 1 ? "home" : "homes"} · Delivery group: {plannerContext.deliveryGroup}. Save My Look Book &amp; Return to Project records this design group and brings the next home design into view.
-          </p>
         ) : null}
-      </div>
 
-      <article data-look-book-cover data-look-book-layout="cover" data-look-book-print-page className="look-book-cover relative min-h-[min(920px,100svh)] overflow-hidden bg-[#111216] text-white">
+      <article id="home-look-book-content" data-look-book-cover data-look-book-layout="cover" data-look-book-print-page className="look-book-cover scroll-mt-20 relative min-h-[min(920px,100svh)] overflow-hidden bg-[#111216] text-white">
         <Image
           src={lookBook.home.heroImage.src}
           alt={lookBook.home.heroImage.alt}
@@ -1115,15 +1119,7 @@ export function HomeLookBook({
                   </button>
                 </div>
               </div>
-            ) : (
-              <LookBookCompletionActions
-                definition={definition}
-                configuration={configuration}
-                initialConfigurationId={savedConfigurationId}
-                initialHasContact={savedHasContact}
-                savedView={savedView}
-              />
-            )}
+            ) : null}
             <div className="mt-10 border-t border-white/18 pt-5 text-[8px] leading-4 text-white/42">
               <p>{definition.disclaimer}</p><p className="mt-2">{lookBook.preliminaryNotice}</p>
               <p className="mt-4 font-mono uppercase tracking-[0.13em]">{projectDesignName ? `Project design / ${projectDesignName}` : preparedForLabel} / {personalization.reference} / {preparedDate}</p>
@@ -1131,6 +1127,7 @@ export function HomeLookBook({
           </div>
         </div>
       </section>
+      </LookBookCompletionActions>
     </section>
   );
 }
