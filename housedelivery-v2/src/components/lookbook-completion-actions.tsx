@@ -6,7 +6,6 @@ import {
   Check,
   Download,
   House,
-  Mail,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -95,6 +94,9 @@ export function LookBookCompletionActions({
   const [savedEmail, setSavedEmail] = useState("");
   const [emailDeliveryPending, setEmailDeliveryPending] = useState(false);
   const [propertySubmitted, setPropertySubmitted] = useState(false);
+  const [configurationSaved, setConfigurationSaved] = useState(
+    Boolean(initialConfigurationId),
+  );
   const [attribution] = useState<LookBookAttribution>(() =>
     getFirstTouchAttribution(),
   );
@@ -207,6 +209,7 @@ export function LookBookCompletionActions({
         company: formValue(formData, "company"),
       });
       setConfigurationId(result.configurationId);
+      setConfigurationSaved(true);
       setHasSavedContact(true);
       setSavedEmail(email);
       setEmailDeliveryPending(result.emailSent === false);
@@ -270,6 +273,7 @@ export function LookBookCompletionActions({
         company: formValue(formData, "company"),
       });
       setConfigurationId(result.configurationId);
+      setConfigurationSaved(true);
       setHasSavedContact(true);
       setPropertySubmitted(true);
       setActiveForm(null);
@@ -290,6 +294,7 @@ export function LookBookCompletionActions({
   const savedUrl = configurationId
     ? `/lookbook/${configurationId}`
     : undefined;
+  const hasSavedLookBook = configurationSaved && savedUrl;
 
   if (!enabled) return <>{children}</>;
 
@@ -304,7 +309,7 @@ export function LookBookCompletionActions({
             Configuration complete
           </p>
           <h3 className="mt-5 max-w-4xl text-[clamp(2.5rem,5.5vw,5.75rem)] font-medium leading-[0.9] tracking-[-0.065em] text-white">
-            Your {definition.homeName} Look Book is ready.
+            Your {definition.homeName} is ready.
           </h3>
           <p className="mt-6 max-w-2xl text-sm leading-7 text-white/64">
             Your selections have been brought together into your personalized House
@@ -335,38 +340,56 @@ export function LookBookCompletionActions({
             </div>
           ) : null}
 
-          <div
-            className={`mt-8 grid gap-3 ${savedUrl && !savedView ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}
-          >
-            <button
-              type="button"
-              onClick={downloadLookBook}
-              className="flex min-h-14 items-center justify-between gap-5 bg-white px-6 text-left text-[10px] font-semibold uppercase tracking-[0.17em] text-black hover:bg-white/84 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+          {hasSavedLookBook ? (
+            <div
+              className={`mt-8 grid max-w-3xl gap-3 ${savedView ? "sm:grid-cols-1" : "sm:grid-cols-2"}`}
+              data-lookbook-saved-actions
             >
-              <span>Download My Look Book</span>
-              <Download className="size-4" aria-hidden="true" />
-            </button>
-            {!savedView ? (
+              {!savedView ? (
+                <Link
+                  href={hasSavedLookBook}
+                  className="flex min-h-14 items-center justify-between gap-5 bg-white px-6 text-[10px] font-semibold uppercase tracking-[0.17em] text-black hover:bg-white/84 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+                >
+                  <span>Open My Saved Look Book</span>
+                  <ArrowRight className="size-4" aria-hidden="true" />
+                </Link>
+              ) : null}
+              <button
+                type="button"
+                onClick={downloadLookBook}
+                className="flex min-h-14 items-center justify-between gap-5 border border-white/44 px-6 text-left text-[10px] font-semibold uppercase tracking-[0.17em] text-white hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+              >
+                <span>Download PDF</span>
+                <Download className="size-4" aria-hidden="true" />
+              </button>
+            </div>
+          ) : !savedView ? (
+            <div className="mt-8 max-w-3xl">
               <button
                 type="button"
                 onClick={openEmailForm}
                 aria-expanded={activeForm === "email"}
-                className="flex min-h-14 items-center justify-between gap-5 border border-white/44 px-6 text-left text-[10px] font-semibold uppercase tracking-[0.17em] text-white hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+                data-lookbook-primary-cta
+                className="flex min-h-16 w-full items-center justify-between gap-6 bg-white px-6 text-left text-[10px] font-semibold uppercase tracking-[0.18em] text-black hover:bg-white/84 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white sm:px-8"
               >
-                <span>{savedUrl ? "Email Updated Look Book" : "Email My Look Book"}</span>
-                <Mail className="size-4" aria-hidden="true" />
-              </button>
-            ) : null}
-            {savedUrl ? (
-              <Link
-                href={savedUrl}
-                className="flex min-h-14 items-center justify-between gap-5 border border-white/44 px-6 text-[10px] font-semibold uppercase tracking-[0.17em] text-white hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-              >
-                <span>View My Look Book</span>
+                <span>Get My Look Book</span>
                 <ArrowRight className="size-4" aria-hidden="true" />
-              </Link>
-            ) : null}
-          </div>
+              </button>
+              <p className="mt-4 max-w-2xl text-sm leading-6 text-white/58">
+                Keep your selections, return anytime, and receive your personalized
+                Look Book.
+              </p>
+            </div>
+          ) : null}
+
+          <a
+            href="#home-look-book-content"
+            data-lookbook-anonymous-link
+            className="mt-8 inline-flex min-h-11 items-center gap-3 border-b border-white/28 text-[9px] font-semibold uppercase tracking-[0.17em] text-white/64 transition-colors hover:border-white hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+          >
+            View online without saving
+            <ArrowDown className="size-4" aria-hidden="true" />
+          </a>
 
           {activeForm === "email" ? (
             <form
@@ -377,11 +400,11 @@ export function LookBookCompletionActions({
               <div className="flex items-start justify-between gap-5">
                 <div>
                   <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/58">
-                    Email &amp; save
+                    Keep your Look Book
                   </p>
                   <p className="mt-3 max-w-xl text-sm leading-6 text-black/62">
-                    Send yourself a copy and we’ll save your selections so you can
-                    return to them later.
+                    Keep your selections, return anytime, and receive your
+                    personalized Look Book.
                   </p>
                 </div>
                 <button
@@ -424,7 +447,7 @@ export function LookBookCompletionActions({
                 disabled={submitting}
                 className="mt-7 flex min-h-14 w-full items-center justify-between gap-5 bg-black px-6 text-left text-[10px] font-semibold uppercase tracking-[0.17em] text-white disabled:cursor-wait disabled:opacity-55"
               >
-                <span>{submitting ? "Saving…" : "Email My Look Book"}</span>
+                <span>{submitting ? "Saving…" : "Get My Look Book"}</span>
                 <ArrowRight className="size-4" aria-hidden="true" />
               </button>
             </form>
@@ -503,32 +526,6 @@ export function LookBookCompletionActions({
         </div>
       </section>
 
-      <section
-        className="look-book-screen-control border-b border-black/14 bg-[#e7e3d8] px-5 py-12 text-black sm:px-8 sm:py-16 lg:px-12"
-        data-lookbook-content-transition
-      >
-        <div className="mx-auto grid max-w-[1504px] gap-8 border-t border-black/18 pt-6 lg:grid-cols-[1fr_auto] lg:items-end">
-          <div>
-            <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/58">
-              Your complete Look Book
-            </p>
-            <h3 className="mt-4 text-[clamp(2.25rem,4.5vw,4.5rem)] font-medium leading-[0.92] tracking-[-0.055em] text-black/88">
-              Explore your complete Look Book.
-            </h3>
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-black/60">
-              Review your selected {definition.homeName} finishes and design direction together.
-            </p>
-          </div>
-          <a
-            href="#home-look-book-content"
-            className="flex min-h-14 items-center justify-between gap-6 border border-black px-6 text-[10px] font-semibold uppercase tracking-[0.17em] text-black hover:bg-black hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
-          >
-            <span>View My Complete Look Book</span>
-            <ArrowDown className="size-4" aria-hidden="true" />
-          </a>
-        </div>
-      </section>
-
       {children}
 
       <section
@@ -545,25 +542,34 @@ export function LookBookCompletionActions({
             </h3>
           </div>
           <div className={`grid gap-3 ${savedView ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
-            <button
-              type="button"
-              onClick={downloadLookBook}
-              className="flex min-h-14 items-center justify-between gap-4 bg-white px-5 text-left text-[9px] font-semibold uppercase tracking-[0.15em] text-black hover:bg-white/84 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-            >
-              <span>Download My Look Book</span>
-              <Download className="size-4 shrink-0" aria-hidden="true" />
-            </button>
-            {!savedView ? (
+            {!hasSavedLookBook && !savedView ? (
               <button
                 type="button"
                 onClick={openEmailFormFromClosing}
                 aria-expanded={activeForm === "email"}
-                className="flex min-h-14 items-center justify-between gap-4 border border-white/44 px-5 text-left text-[9px] font-semibold uppercase tracking-[0.15em] text-white hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+                className="flex min-h-14 items-center justify-between gap-4 bg-white px-5 text-left text-[9px] font-semibold uppercase tracking-[0.15em] text-black hover:bg-white/84 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
               >
-                <span>Email My Look Book</span>
-                <Mail className="size-4 shrink-0" aria-hidden="true" />
+                <span>Get My Look Book</span>
+                <ArrowRight className="size-4 shrink-0" aria-hidden="true" />
               </button>
             ) : null}
+            {hasSavedLookBook && !savedView ? (
+              <Link
+                href={hasSavedLookBook}
+                className="flex min-h-14 items-center justify-between gap-4 bg-white px-5 text-[9px] font-semibold uppercase tracking-[0.15em] text-black hover:bg-white/84 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+              >
+                <span>Open My Saved Look Book</span>
+                <ArrowRight className="size-4 shrink-0" aria-hidden="true" />
+              </Link>
+            ) : null}
+            <button
+              type="button"
+              onClick={downloadLookBook}
+              className={`${savedView ? "bg-white text-black hover:bg-white/84" : "border border-white/44 text-white hover:bg-white hover:text-black"} flex min-h-14 items-center justify-between gap-4 px-5 text-left text-[9px] font-semibold uppercase tracking-[0.15em] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white`}
+            >
+              <span>Download My Look Book</span>
+              <Download className="size-4 shrink-0" aria-hidden="true" />
+            </button>
             <button
               type="button"
               onClick={openPropertyFormFromClosing}

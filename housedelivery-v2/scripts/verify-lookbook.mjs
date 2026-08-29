@@ -8,6 +8,11 @@ const chromePath =
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const homes = ["langley", "solace", "dalton", "maplewood"];
 const expectedConfigurationId = "9342f2c1-8db8-4f09-a42a-f791d81b9407";
+const responsiveViewports = [
+  { name: "mobile", width: 390, height: 844 },
+  { name: "tablet", width: 768, height: 1024 },
+  { name: "desktop", width: 1440, height: 1000 },
+];
 
 const browser = await chromium.launch({
   executablePath: chromePath,
@@ -108,7 +113,7 @@ try {
   await completion.waitFor({ state: "visible" });
   assert.match(
     await completion.innerText(),
-    /Your Langley Look Book is ready/i,
+    /Your Langley is ready/i,
   );
   assert.equal(
     await page.locator('[data-save-look-book="top"]').count(),
@@ -117,18 +122,42 @@ try {
   );
   assert.equal(
     await page.locator("[data-lookbook-content-transition]").count(),
-    1,
-    "complete Look Book transition is visible",
+    0,
+    "the former competing transition panel is removed",
+  );
+  assert.equal(
+    await completion.getByRole("button", { name: "Download My Look Book" }).count(),
+    0,
+    "download does not compete with the primary capture action",
+  );
+  assert.equal(
+    await completion.getByRole("button", { name: "Email My Look Book" }).count(),
+    0,
+    "the former email CTA treatment is removed",
+  );
+  const anonymousLink = completion.getByRole("link", {
+    name: "View online without saving",
+  });
+  assert.equal(
+    await anonymousLink.getAttribute("href"),
+    "#home-look-book-content",
+    "anonymous viewing remains direct and ungated",
   );
   assert.equal(
     await page.evaluate(() => {
       const completionElement = document.querySelector(
         "[data-lookbook-lead-capture]",
       );
-      const transitionElement = document.querySelector(
-        "[data-lookbook-content-transition]",
-      );
       const coverElement = document.querySelector("[data-look-book-cover]");
+      const openingValueElement = document.querySelector(
+        '[data-look-book-value-story="precision-quality"]',
+      );
+      const whyElement = document.querySelector(
+        '[data-look-book-value-story="why-house-delivery"]',
+      );
+      const deliveryValueElement = document.querySelector(
+        '[data-look-book-value-story="delivery-value"]',
+      );
       const finaleElement = document.querySelector(
         "[data-look-book-next-stage]",
       );
@@ -137,8 +166,10 @@ try {
       );
       if (
         !completionElement ||
-        !transitionElement ||
         !coverElement ||
+        !openingValueElement ||
+        !whyElement ||
+        !deliveryValueElement ||
         !finaleElement ||
         !closingElement
       ) {
@@ -147,21 +178,53 @@ try {
       const follows = (first, second) =>
         Boolean(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING);
       return (
-        follows(completionElement, transitionElement) &&
-        follows(transitionElement, coverElement) &&
-        follows(coverElement, finaleElement) &&
+        follows(completionElement, coverElement) &&
+        follows(coverElement, openingValueElement) &&
+        follows(openingValueElement, whyElement) &&
+        follows(whyElement, deliveryValueElement) &&
+        follows(deliveryValueElement, finaleElement) &&
         follows(finaleElement, closingElement)
       );
     }),
     true,
-    "completion, transition, full Look Book, and compact close are sequenced",
+    "completion, value story, full Look Book, and compact close are sequenced",
+  );
+  assert.equal(
+    await page.locator("[data-look-book-value-story]").count(),
+    3,
+    "precision, Why House Delivery, and delivery-value sections render",
+  );
+  assert.equal(
+    await page.locator("[data-look-book-validated-savings]").count(),
+    0,
+    "no unvalidated savings claim is rendered",
   );
   const closingActions = page.locator("[data-lookbook-closing-actions]");
   assert.equal(
     await closingActions.getByRole("button").count(),
     3,
-    "compact close repeats download, email, and property actions",
+    "compact close repeats capture, download, and property actions",
   );
+
+  for (const viewport of responsiveViewports) {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    await completion.evaluate((element) => {
+      const top = element.getBoundingClientRect().top + window.scrollY - 96;
+      window.scrollTo({ top: Math.max(0, top), behavior: "instant" });
+    });
+    await page.waitForTimeout(100);
+    assert.equal(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth > window.innerWidth,
+      ),
+      false,
+      `${viewport.name}: initial capture has no horizontal overflow`,
+    );
+    await page.screenshot({
+      path: `/private/tmp/lookbook-capture-${viewport.name}.png`,
+    });
+  }
+  await page.setViewportSize({ width: 1440, height: 1000 });
 
   const attribution = await page.evaluate(() =>
     JSON.parse(
@@ -177,15 +240,16 @@ try {
       window.__lookBookPrintRequested = true;
     };
   });
-  await completion.getByRole("button", { name: "Download My Look Book" }).click();
+  await anonymousLink.click();
+  await page.waitForTimeout(100);
   assert.equal(
-    await page.evaluate(() => window.__lookBookPrintRequested === true),
-    true,
-    "anonymous PDF/print remains ungated",
+    await page.locator("#home-look-book-content").count(),
+    1,
+    "anonymous action enters the complete Look Book",
   );
 
-  await completion.getByRole("button", { name: "Email My Look Book" }).click();
-  const emailForm = completion.locator("form").filter({ hasText: "Email & save" });
+  await completion.getByRole("button", { name: "Get My Look Book" }).click();
+  const emailForm = completion.locator("form").filter({ hasText: "Keep your Look Book" });
   assert.equal(await emailForm.locator('input[name="phone"][required]').count(), 0);
   assert.equal(
     await emailForm.locator('input[name="followUpRequested"]').isChecked(),
@@ -193,10 +257,21 @@ try {
   );
   await emailForm.locator('input[name="firstName"]').fill("Sarah");
   await emailForm.locator('input[name="email"]').fill("sarah@example.com");
-  await emailForm.getByRole("button", { name: "Email My Look Book" }).click();
+  await emailForm.getByRole("button", { name: "Get My Look Book" }).click();
   await completion.getByText("Look Book saved", { exact: false }).waitFor();
   assert.equal(submittedPayloads[0].followUpRequested, false);
   assert.equal(submittedPayloads[0].attribution.utmSource, "linkedin");
+  assert.equal(
+    await completion.getByRole("link", { name: "Open My Saved Look Book" }).getAttribute("href"),
+    `/lookbook/${expectedConfigurationId}`,
+    "successful capture exposes the persistent Look Book URL",
+  );
+  await completion.getByRole("button", { name: "Download PDF" }).click();
+  assert.equal(
+    await page.evaluate(() => window.__lookBookPrintRequested === true),
+    true,
+    "PDF download becomes available after saving",
+  );
 
   await completion.getByRole("button", { name: "Check My Property" }).click();
   const propertyForm = completion
@@ -225,11 +300,7 @@ try {
   assert.equal(submittedPayloads[1].configurationId, expectedConfigurationId);
   assert.equal(submittedPayloads[1].intent, "property_check");
 
-  for (const viewport of [
-    { name: "mobile", width: 390, height: 844 },
-    { name: "tablet", width: 768, height: 1024 },
-    { name: "desktop", width: 1440, height: 1000 },
-  ]) {
+  for (const viewport of responsiveViewports) {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
     await completion.evaluate((element) => {
       const top = element.getBoundingClientRect().top + window.scrollY - 96;
@@ -247,6 +318,21 @@ try {
     assert.ok(box && box.width <= viewport.width, `${viewport.name}: completion fits`);
     await page.screenshot({
       path: `/private/tmp/lookbook-${viewport.name}.png`,
+    });
+  }
+
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  for (const story of ["precision-quality", "why-house-delivery", "delivery-value"]) {
+    const storySection = page.locator(
+      `[data-look-book-value-story="${story}"]`,
+    );
+    await storySection.evaluate((element) => {
+      const top = element.getBoundingClientRect().top + window.scrollY - 96;
+      window.scrollTo({ top: Math.max(0, top), behavior: "instant" });
+    });
+    await page.waitForTimeout(100);
+    await page.screenshot({
+      path: `/private/tmp/lookbook-story-${story}.png`,
     });
   }
 

@@ -2,7 +2,7 @@
 
 import { ArrowRight, BookOpen, Check, Pencil, Printer } from "lucide-react";
 import Image from "next/image";
-import { useState, type FormEvent, type ReactNode } from "react";
+import { Fragment, useState, type FormEvent, type ReactNode } from "react";
 
 import { HomeConfiguratorJourney } from "@/components/home-configurator-journey";
 import { LookBookCompletionActions } from "@/components/lookbook-completion-actions";
@@ -137,6 +137,226 @@ function CoastalLookBookSummary({
           </p>
           <p className="mt-3 max-w-5xl text-sm leading-7 text-black/58">
             {coastalInfluenceNotice}
+          </p>
+        </aside>
+      </div>
+    </section>
+  );
+}
+
+const houseDeliveryPrinciples = [
+  {
+    label: "Precision",
+    description:
+      "Factory-controlled production, coordinated components and repeatable assembly bring discipline to how the home comes together.",
+  },
+  {
+    label: "Quality",
+    description:
+      "Premium materials, carefully coordinated components, documented specifications and quality-controlled production protect the intended result.",
+  },
+  {
+    label: "Speed",
+    description:
+      "Factory production and site preparation can progress in parallel, reducing the inefficiencies of conventional sequential construction.",
+  },
+  {
+    label: "Value",
+    description:
+      "A more efficient manufacturing, sourcing and delivery system is designed to achieve premium results with better overall value.",
+  },
+] as const;
+
+function HouseDeliveryOpeningStatement({ homeName }: { homeName: string }) {
+  return (
+    <section
+      data-look-book-value-story="precision-quality"
+      data-look-book-print-page
+      className="bg-[#e7e3d8] text-[#111216]"
+    >
+      <div className="look-book-page-inner flex flex-col justify-between">
+        <header className="border-t border-black/18 pt-5">
+          <p className="font-mono text-[8px] uppercase tracking-[0.18em] text-black/52">
+            House Delivery / Designed to be delivered differently
+          </p>
+          <div className="mt-8 grid gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-end lg:gap-24">
+            <h3 className="max-w-5xl text-[clamp(3.4rem,7.5vw,8rem)] font-medium uppercase leading-[0.82] tracking-[-0.075em] text-black/88">
+              Factory precision.
+              <br />
+              <span className="text-black/48">Premium design.</span>
+            </h3>
+            <p className="max-w-xl text-sm leading-7 text-black/58 lg:justify-self-end">
+              Your {homeName} brings design intent and delivery discipline
+              together. Coordinated specifications and controlled production
+              help preserve the quality you selected from concept through
+              assembly.
+            </p>
+          </div>
+        </header>
+
+        <div className="mt-16 grid gap-8 border-t border-black/18 pt-7 sm:grid-cols-2 lg:gap-16">
+          {houseDeliveryPrinciples.slice(0, 2).map((principle, index) => (
+            <article key={principle.label} className="grid gap-4 sm:grid-cols-[auto_1fr] sm:gap-7">
+              <p className="font-mono text-[8px] tracking-[0.16em] text-black/42">
+                {String(index + 1).padStart(2, "0")}
+              </p>
+              <div>
+                <h4 className="text-xl font-medium uppercase tracking-[-0.03em] text-black/82">
+                  {principle.label}
+                </h4>
+                <p className="mt-4 max-w-xl text-xs leading-6 text-black/56">
+                  {principle.description}
+                </p>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <p className="mt-16 border-t border-black/18 pt-6 text-[clamp(1.55rem,3vw,3rem)] font-medium leading-tight tracking-[-0.04em] text-black/78">
+          Less waiting. Better value.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+function WhyHouseDeliverySection() {
+  return (
+    <section
+      data-look-book-value-story="why-house-delivery"
+      data-look-book-print-page
+      className="bg-[#d7d1c4] text-[#111216]"
+    >
+      <div className="look-book-page-inner flex flex-col justify-between">
+        <header className="border-t border-black/18 pt-5">
+          <p className="font-mono text-[8px] uppercase tracking-[0.18em] text-black/52">
+            The House Delivery difference
+          </p>
+          <div className="mt-7 grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-end lg:gap-20">
+            <h3 className="max-w-4xl text-[clamp(3.6rem,8vw,8.5rem)] font-medium uppercase leading-[0.8] tracking-[-0.078em] text-black/88">
+              Why House
+              <br />
+              Delivery.
+            </h3>
+            <div className="max-w-2xl lg:justify-self-end">
+              <p className="text-base leading-8 text-black/62">
+                House Delivery combines factory precision, coordinated sourcing
+                and high-quality components and materials to reduce the
+                inefficiencies of conventional custom construction.
+              </p>
+              <p className="mt-5 text-sm leading-7 text-black/54">
+                The objective is not to build a cheaper house. It is to build a
+                better-value house.
+              </p>
+            </div>
+          </div>
+        </header>
+
+        <div className="mt-14 grid border-t border-black/18 sm:grid-cols-2 lg:grid-cols-4">
+          {houseDeliveryPrinciples.map((principle, index) => (
+            <article
+              key={principle.label}
+              className="border-b border-black/16 py-6 sm:odd:pr-6 sm:even:border-l sm:even:pl-6 lg:border-l lg:pr-6 lg:pl-6 lg:first:border-l-0 lg:first:pl-0 lg:last:pr-0"
+            >
+              <p className="font-mono text-[8px] tracking-[0.16em] text-black/38">
+                {String(index + 1).padStart(2, "0")}
+              </p>
+              <h4 className="mt-5 text-lg font-medium uppercase tracking-[-0.03em] text-black/82">
+                {principle.label}
+              </h4>
+              <p className="mt-4 text-[11px] leading-6 text-black/54">
+                {principle.description}
+              </p>
+            </article>
+          ))}
+        </div>
+
+        <aside className="mt-10 border-y border-black/18 py-5">
+          <p className="text-[8px] font-semibold uppercase tracking-[0.18em] text-black/52">
+            Comparison basis
+          </p>
+          <p className="mt-3 max-w-5xl text-xs leading-6 text-black/56">
+            Value and delivery comparisons should be made against a
+            conventionally built custom home of comparable size, materials,
+            specification and finish quality.
+          </p>
+        </aside>
+      </div>
+    </section>
+  );
+}
+
+function HouseDeliveryValueSection({
+  homeName,
+  validatedSavingsLabel,
+}: {
+  homeName: string;
+  validatedSavingsLabel?: string;
+}) {
+  return (
+    <section
+      data-look-book-value-story="delivery-value"
+      data-look-book-print-page
+      className="bg-[#e7e3d8] text-[#111216]"
+    >
+      <div className="look-book-page-inner flex flex-col justify-between">
+        <header className="border-t border-black/18 pt-5">
+          <p className="font-mono text-[8px] uppercase tracking-[0.18em] text-black/52">
+            Delivery value / Project comparison
+          </p>
+          <h3 className="mt-7 max-w-6xl text-[clamp(3.2rem,7vw,7.5rem)] font-medium uppercase leading-[0.82] tracking-[-0.075em] text-black/88">
+            Could this home cost materially less to deliver?
+          </h3>
+          <p className="mt-8 max-w-3xl text-lg leading-8 tracking-[-0.02em] text-black/64">
+            A better home should not require a bigger premium.
+          </p>
+        </header>
+
+        {validatedSavingsLabel ? (
+          <aside
+            data-look-book-validated-savings
+            className="mt-10 border-y border-black/20 py-7"
+          >
+            <p className="text-[8px] font-semibold uppercase tracking-[0.18em] text-black/52">
+              Validated project comparison
+            </p>
+            <p className="mt-4 text-[clamp(2.5rem,5vw,5rem)] font-medium leading-none tracking-[-0.06em] text-black/86">
+              {validatedSavingsLabel}
+            </p>
+          </aside>
+        ) : null}
+
+        <div className="mt-12 grid gap-10 border-t border-black/18 pt-7 lg:grid-cols-2 lg:gap-20">
+          <article>
+            <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/54">
+              Time
+            </p>
+            <p className="mt-4 max-w-xl text-sm leading-7 text-black/58">
+              Production for your {homeName} and preparation of its site can
+              progress in parallel, reducing the delays built into conventional
+              sequential construction.
+            </p>
+          </article>
+          <article>
+            <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/54">
+              Value
+            </p>
+            <p className="mt-4 max-w-xl text-sm leading-7 text-black/58">
+              Coordinated manufacturing, sourcing and delivery are intended to
+              protect premium design and material quality while removing avoidable
+              process inefficiency.
+            </p>
+          </article>
+        </div>
+
+        <aside className="mt-12 border border-black/18 p-6 sm:p-8">
+          <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/58">
+            Project-specific review
+          </p>
+          <p className="mt-4 max-w-5xl text-sm leading-7 text-black/62">
+            Final savings depend on site conditions, specification and local
+            construction costs. House Delivery can prepare a project-specific
+            comparison against conventional local construction.
           </p>
         </aside>
       </div>
@@ -1062,11 +1282,18 @@ export function HomeLookBook({
         />
       ) : null}
 
+      <HouseDeliveryOpeningStatement homeName={definition.homeName} />
+
       <div className="look-book-sections">
-        {selectionSections.map((section) => (
-          <LookBookSectionView key={section.id} section={section} context={context} />
+        {selectionSections.map((section, index) => (
+          <Fragment key={section.id}>
+            {index === 3 ? <WhyHouseDeliverySection /> : null}
+            <LookBookSectionView section={section} context={context} />
+          </Fragment>
         ))}
       </div>
+
+      <HouseDeliveryValueSection homeName={definition.homeName} />
 
       <section data-look-book-next-stage data-look-book-layout="dark-finale" data-look-book-print-page className="bg-[#111216] text-white">
         <div className="look-book-page-inner flex flex-col justify-between">
