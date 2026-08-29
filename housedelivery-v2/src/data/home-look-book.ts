@@ -179,7 +179,7 @@ export function createLookBookReference(homeId: string, date = new Date()) {
   ].join("");
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   const values = new Uint32Array(4);
-  window.crypto.getRandomValues(values);
+  globalThis.crypto.getRandomValues(values);
   const suffix = Array.from(values, (value) => alphabet[value % alphabet.length]).join("");
 
   return `${prefix}-${dateCode}-${suffix}`;

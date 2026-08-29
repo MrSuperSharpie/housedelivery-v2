@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useState, type FormEvent, type ReactNode } from "react";
 
 import { HomeConfiguratorJourney } from "@/components/home-configurator-journey";
+import { LookBookCompletionActions } from "@/components/lookbook-completion-actions";
 import {
   coastalDesignDirectionLabel,
   coastalInfluenceNotice,
@@ -50,6 +51,10 @@ type HomeLookBookProps = {
     onSaveAndReturn: (projectDesignName?: string) => void;
   };
   directSourceImages?: boolean;
+  readOnly?: boolean;
+  savedConfigurationId?: string;
+  savedHasContact?: boolean;
+  savedView?: boolean;
 };
 
 type ResolvedSelection = LookBookSelection & {
@@ -65,7 +70,7 @@ type EditorialContext = Pick<
   | "onEditCategory"
   | "onPreviewOption"
   | "directSourceImages"
->;
+> & { readOnly?: boolean };
 
 function CoastalLookBookSummary({
   homeName,
@@ -434,13 +439,16 @@ function EditorialImage({
       type="button"
       id={`home-look-book-preview-trigger-${selection.id}-${selection.zoneId ?? selection.categoryId}`}
       aria-label={`View larger image for ${selection.optionName}`}
-      onClick={() =>
-        context.onPreviewOption(
-          selection.categoryId,
-          selection.id,
-          selection.zoneId,
-        )
-      }
+      onClick={() => {
+        if (!context.readOnly) {
+          context.onPreviewOption(
+            selection.categoryId,
+            selection.id,
+            selection.zoneId,
+          );
+        }
+      }}
+      disabled={context.readOnly}
       className={`look-book-image-button group relative block w-full overflow-hidden bg-[#d3cec1] text-left focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-black ${className}`}
     >
       <Image
@@ -462,9 +470,11 @@ function EditorialImage({
             : "object-cover transition-transform duration-700 group-hover:scale-[1.012] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
         }
       />
-      <span className="look-book-screen-control absolute bottom-3 right-3 bg-black/78 px-3 py-2 text-[8px] font-semibold uppercase tracking-[0.16em] text-white">
-        View image
-      </span>
+      {!context.readOnly ? (
+        <span className="look-book-screen-control absolute bottom-3 right-3 bg-black/78 px-3 py-2 text-[8px] font-semibold uppercase tracking-[0.16em] text-white">
+          View image
+        </span>
+      ) : null}
     </button>
   );
 }
@@ -500,14 +510,18 @@ function SelectionCaption({
         >
           {selection.optionName}
         </p>
-        <button
-          type="button"
-          onClick={() => context.onEditCategory(selection.categoryId, selection.zoneId)}
-          className="look-book-screen-control inline-flex min-h-8 shrink-0 items-center gap-2 text-[8px] font-semibold uppercase tracking-[0.16em] text-black/52 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
-        >
-          <Pencil aria-hidden="true" className="size-3" strokeWidth={1.5} />
-          Edit
-        </button>
+        {!context.readOnly ? (
+          <button
+            type="button"
+            onClick={() =>
+              context.onEditCategory(selection.categoryId, selection.zoneId)
+            }
+            className="look-book-screen-control inline-flex min-h-8 shrink-0 items-center gap-2 text-[8px] font-semibold uppercase tracking-[0.16em] text-black/52 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
+          >
+            <Pencil aria-hidden="true" className="size-3" strokeWidth={1.5} />
+            Edit
+          </button>
+        ) : null}
       </div>
     </div>
   );
@@ -897,6 +911,10 @@ export function HomeLookBook({
   onSubmit,
   plannerContext,
   directSourceImages = false,
+  readOnly = false,
+  savedConfigurationId,
+  savedHasContact = false,
+  savedView = false,
 }: HomeLookBookProps) {
   const requiredCategories = getHomeConfiguratorJourneyCategories(definition);
   const isReady = requiredCategories.every((category) =>
@@ -938,6 +956,9 @@ export function HomeLookBook({
           lookBook.home.name,
         )
       : lookBook.home.name);
+  const preparedForLabel = customerName
+    ? `Prepared for ${customerName}`
+    : "Personalized configuration";
   const preparedDate = formatLookBookPreparedDate(personalization.preparedAt);
   const isSubmitted = configuration.reviewStatus === "ready-for-review";
   const selectionSections = getLookBookSelectionSections(lookBook.sections);
@@ -951,6 +972,7 @@ export function HomeLookBook({
     onEditCategory,
     onPreviewOption,
     directSourceImages,
+    readOnly,
   };
   const saveLookBook = () => {
     window.print();
@@ -975,7 +997,7 @@ export function HomeLookBook({
             <p className="mt-2 text-sm text-black/62">
               {projectDesignName
                 ? `${projectDesignName} · Assigned to: ${plannerContext?.assignedQuantity ?? 1} ${(plannerContext?.assignedQuantity ?? 1) === 1 ? "home" : "homes"}`
-                : `Prepared for ${customerName}`}
+                : preparedForLabel}
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:items-end">
@@ -1023,7 +1045,7 @@ export function HomeLookBook({
               {personalTitle}
             </h2>
             <div className="mt-9 flex flex-col gap-3 border-t border-white/48 pt-5 text-[8px] uppercase tracking-[0.17em] text-white/76 sm:flex-row sm:items-center sm:justify-between">
-              <p>{projectDesignName ? `Project design / ${projectDesignName}` : `Prepared for ${customerName}`}</p><p>{preparedDate} / {lookBook.home.areaLabel}</p>
+              <p>{projectDesignName ? `Project design / ${projectDesignName}` : preparedForLabel}</p><p>{preparedDate} / {lookBook.home.areaLabel}</p>
             </div>
           </div>
         </div>
@@ -1066,22 +1088,24 @@ export function HomeLookBook({
           </div>
 
           <div>
-            <div className="look-book-screen-control mt-10 grid gap-5 lg:grid-cols-[1fr_0.7fr] lg:items-end lg:gap-16">
-              {isSubmitted ? (
-                <div role="status" className="border border-white/22 p-5">
-                  <p className="flex items-center gap-3 text-[9px] font-semibold uppercase tracking-[0.17em] text-white/82"><Check aria-hidden="true" className="size-4" />My {definition.homeName} is ready for review</p>
-                </div>
-              ) : (
-                <button type="button" data-submit-home-review={definition.homeId} onClick={onSubmit} className="group flex min-h-14 w-full items-center justify-between gap-7 bg-white px-6 text-left text-[10px] font-semibold uppercase tracking-[0.17em] text-black hover:bg-white/82 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
-                  <span>Submit My {definition.homeName} for Review</span><ArrowRight aria-hidden="true" className="size-4" strokeWidth={1.5} />
-                </button>
-              )}
-              <div className="grid gap-3">
-                <SaveLookBookButton
-                  placement="completion"
-                  onSave={saveLookBook}
-                />
-                {plannerContext ? (
+            {plannerContext ? (
+              <div className="look-book-screen-control mt-10 grid gap-5 lg:grid-cols-[1fr_0.7fr] lg:items-end lg:gap-16">
+                {isSubmitted ? (
+                  <div role="status" className="border border-white/22 p-5">
+                    <p className="flex items-center gap-3 text-[9px] font-semibold uppercase tracking-[0.17em] text-white/82"><Check aria-hidden="true" className="size-4" />My {definition.homeName} is ready for review</p>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    data-submit-home-review={definition.homeId}
+                    onClick={onSubmit}
+                    className="group flex min-h-14 w-full items-center justify-between gap-7 bg-white px-6 text-left text-[10px] font-semibold uppercase tracking-[0.17em] text-black hover:bg-white/82 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+                  >
+                    <span>Submit My {definition.homeName} for Review</span><ArrowRight aria-hidden="true" className="size-4" strokeWidth={1.5} />
+                  </button>
+                )}
+                <div className="grid gap-3">
+                  <SaveLookBookButton placement="completion" onSave={saveLookBook} />
                   <button
                     type="button"
                     onClick={() => plannerContext.onSaveAndReturn()}
@@ -1089,12 +1113,20 @@ export function HomeLookBook({
                   >
                     Save My Look Book &amp; Return to Project <ArrowRight aria-hidden="true" className="size-4" />
                   </button>
-                ) : null}
+                </div>
               </div>
-            </div>
+            ) : (
+              <LookBookCompletionActions
+                definition={definition}
+                configuration={configuration}
+                initialConfigurationId={savedConfigurationId}
+                initialHasContact={savedHasContact}
+                savedView={savedView}
+              />
+            )}
             <div className="mt-10 border-t border-white/18 pt-5 text-[8px] leading-4 text-white/42">
               <p>{definition.disclaimer}</p><p className="mt-2">{lookBook.preliminaryNotice}</p>
-              <p className="mt-4 font-mono uppercase tracking-[0.13em]">{projectDesignName ? `Project design / ${projectDesignName}` : `Prepared for ${customerName}`} / {personalization.reference} / {preparedDate}</p>
+              <p className="mt-4 font-mono uppercase tracking-[0.13em]">{projectDesignName ? `Project design / ${projectDesignName}` : preparedForLabel} / {personalization.reference} / {preparedDate}</p>
             </div>
           </div>
         </div>

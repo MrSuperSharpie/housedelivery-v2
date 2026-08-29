@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { HomeConfigurationProgress } from "@/components/home-configuration-progress";
 import { HomeConfigurationSummary } from "@/components/home-configuration-summary";
@@ -27,6 +27,11 @@ import {
   createLookBookReference,
   type LookBookCustomer,
 } from "@/data/home-look-book";
+import {
+  attributionEventProperties,
+  trackLookBookEvent,
+} from "@/lib/lookbook/analytics";
+import { captureFirstTouchAttribution } from "@/lib/lookbook/attribution";
 import {
   getPlannerConfigurationKey,
   getPlannerReturnKey,
@@ -218,6 +223,20 @@ export function HomeConfigurator({
     useState<PlannerDesignSession>();
   const [plannerConfigurationHydrated, setPlannerConfigurationHydrated] =
     useState(false);
+  const configuratorStarted = useRef(false);
+  const configuratorCompleted = useRef(false);
+  const [analyticsAttribution] = useState(() =>
+    captureFirstTouchAttribution(),
+  );
+  const analyticsBase = useMemo(
+    () => ({
+      home_slug: definition.homeId,
+      home_name: definition.homeName,
+      home_family: "custom-home",
+      ...attributionEventProperties(analyticsAttribution),
+    }),
+    [analyticsAttribution, definition.homeId, definition.homeName],
+  );
   const closeImagePreview = useCallback(() => {
     setImagePreviewTarget(null);
   }, []);
@@ -277,6 +296,18 @@ export function HomeConfigurator({
   }, [definition.configurationVersion, definition.homeId]);
 
   useEffect(() => {
+    const captured = captureFirstTouchAttribution();
+    trackLookBookEvent("configurator_viewed", {
+      home_slug: definition.homeId,
+      home_name: definition.homeName,
+      home_family: "custom-home",
+      ...attributionEventProperties(captured),
+    });
+    // First-touch attribution and the viewed event are scoped to this mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     if (!plannerSession || !plannerConfigurationHydrated) return;
     try {
       window.localStorage.setItem(
@@ -295,6 +326,55 @@ export function HomeConfigurator({
   const completedCount = requiredCategories.filter((category) =>
     isCategoryComplete(category, configuration),
   ).length;
+
+  useEffect(() => {
+    if (completedCount !== requiredCategories.length) return;
+
+    if (!configuratorCompleted.current) {
+      configuratorCompleted.current = true;
+      trackLookBookEvent("configurator_completed", {
+        ...analyticsBase,
+        completion_percentage: 100,
+      });
+    }
+  }, [analyticsBase, completedCount, requiredCategories.length]);
+
+  function completeStandaloneLookBook(
+    nextConfiguration: HomeConfiguration,
+  ): HomeConfiguration {
+    if (plannerSession || nextConfiguration.lookBookPersonalization) {
+      return nextConfiguration;
+    }
+    const preparedAt = new Date();
+    return {
+      ...nextConfiguration,
+      reviewStatus: "ready-for-review",
+      lookBookPersonalization: {
+        preparedAt: preparedAt.toISOString(),
+        reference: createLookBookReference(definition.homeId, preparedAt),
+      },
+    };
+  }
+
+  function trackStarted() {
+    if (configuratorStarted.current) return;
+    configuratorStarted.current = true;
+    trackLookBookEvent("configurator_started", analyticsBase);
+  }
+
+  function trackCategoryCompleted(
+    category: HomeInclusionCategoryData,
+    selectedTier?: string,
+  ) {
+    trackLookBookEvent("configurator_category_completed", {
+      ...analyticsBase,
+      category: category.id,
+      completion_percentage: Math.round(
+        ((completedCount + 1) / requiredCategories.length) * 100,
+      ),
+      ...(selectedTier ? { selected_tier: selectedTier } : {}),
+    });
+  }
   const imagePreview = (() => {
     if (!imagePreviewTarget) return undefined;
 
@@ -350,6 +430,7 @@ export function HomeConfigurator({
     optionId: string,
   ) {
     if (!category.options.some((option) => option.id === optionId)) return;
+    trackStarted();
 
     setConfiguration((current) => {
       const currentStatus = current.inclusionSelections[category.id]?.status;
@@ -374,6 +455,7 @@ export function HomeConfigurator({
   ) {
     const zone = category.zones.find((candidate) => candidate.id === zoneId);
     if (!zone?.options.some((option) => option.id === optionId)) return;
+    trackStarted();
 
     setConfiguration((current) => {
       const currentStatus = current.flooringSelections[zoneId]?.status;
@@ -393,6 +475,7 @@ export function HomeConfigurator({
 
   function selectImagePreviewOption() {
     if (!imagePreview || !imagePreviewTarget) return;
+    trackStarted();
 
     let nextConfiguration: HomeConfiguration;
 
@@ -427,8 +510,6 @@ export function HomeConfigurator({
       };
     }
 
-    setConfiguration(nextConfiguration);
-
     if (
       imagePreview.category.kind === "flooring" &&
       imagePreview.zone
@@ -449,6 +530,7 @@ export function HomeConfigurator({
         : undefined;
 
       if (nextZone && nextOption) {
+        setConfiguration(nextConfiguration);
         setActiveCategoryId(imagePreview.category.id);
         setActiveFlooringZoneId(nextZone.id);
         setImagePreviewTarget({
@@ -471,12 +553,16 @@ export function HomeConfigurator({
       : undefined;
 
     if (nextCategory && nextPreviewTarget) {
+      setConfiguration(nextConfiguration);
       setActiveCategoryId(nextCategory.id);
       setActiveFlooringZoneId(nextPreviewTarget.zoneId ?? null);
       setImagePreviewTarget(nextPreviewTarget);
       return;
     }
 
+    trackCategoryCompleted(imagePreview.category, imagePreview.option.level);
+
+    setConfiguration(completeStandaloneLookBook(nextConfiguration));
     setActiveCategoryId(null);
     setActiveFlooringZoneId(null);
     setImagePreviewTarget(null);
@@ -500,6 +586,7 @@ export function HomeConfigurator({
   ) {
     const option = getDisplayedInclusionOption(category, configuration);
     if (!option) return;
+    trackStarted();
 
     const nextConfiguration: HomeConfiguration = {
       ...configuration,
@@ -515,7 +602,12 @@ export function HomeConfigurator({
       category.id,
     );
 
-    setConfiguration(nextConfiguration);
+    setConfiguration(
+      nextCategory
+        ? nextConfiguration
+        : completeStandaloneLookBook(nextConfiguration),
+    );
+    trackCategoryCompleted(category, option.level);
     setActiveCategoryId(nextCategory?.id ?? null);
     setActiveFlooringZoneId(
       nextCategory?.kind === "flooring"
@@ -535,6 +627,7 @@ export function HomeConfigurator({
     if (!zone) return;
     const option = getDisplayedFlooringOption(zone, configuration);
     if (!option) return;
+    trackStarted();
 
     const nextConfiguration: HomeConfiguration = {
       ...configuration,
@@ -565,13 +658,19 @@ export function HomeConfigurator({
       return;
     }
 
+    trackCategoryCompleted(category, option.level);
+
     const nextCategory = getNextIncompleteCategory(
       definition,
       nextConfiguration,
       category.id,
     );
 
-    setConfiguration(nextConfiguration);
+    setConfiguration(
+      nextCategory
+        ? nextConfiguration
+        : completeStandaloneLookBook(nextConfiguration),
+    );
     setActiveCategoryId(nextCategory?.id ?? null);
     setActiveFlooringZoneId(
       nextCategory?.kind === "flooring"
