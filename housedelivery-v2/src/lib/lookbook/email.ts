@@ -81,7 +81,7 @@ export async function sendCustomerLookBookEmail(
 ) {
   const savedLookBookUrl = `${origin}/lookbook/${record.id}`;
   const viewUrl = `${savedLookBookUrl}/pdf`;
-  const downloadUrl = `${viewUrl}?disposition=attachment`;
+  const downloadUrl = `${savedLookBookUrl}?download=1`;
   const propertyUrl = `${savedLookBookUrl}#check-my-property`;
   const safeFirstName = escapeHtml(record.contact.firstName);
   const safeHomeName = escapeHtml(record.homeDisplayName);
