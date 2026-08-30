@@ -97,22 +97,82 @@ export async function GET(
 
     const printPages = page.locator("[data-look-book-print-page]");
     await printPages.first().waitFor({ state: "attached", timeout: 20_000 });
-    await page.emulateMedia({ media: "print" });
+
+    // The saved Look Book is a long document and most design-board images are
+    // below the initial viewport. Force those images to become eager, visit
+    // every print page so browser lazy-loading is triggered, and refuse to
+    // generate a PDF until every image has real decoded pixels.
     await page.evaluate(async () => {
       await document.fonts.ready;
+
       const images = Array.from(
         document.querySelectorAll<HTMLImageElement>(
           "[data-look-book-print-page] img",
         ),
       );
-      images.forEach((image) => {
+      for (const image of images) {
         image.loading = "eager";
-      });
-      await Promise.race([
-        Promise.all(images.map((image) => image.decode().catch(() => undefined))),
-        new Promise((resolve) => window.setTimeout(resolve, 15_000)),
-      ]);
+        image.decoding = "sync";
+        image.fetchPriority = "high";
+      }
+
+      const pages = Array.from(
+        document.querySelectorAll<HTMLElement>("[data-look-book-print-page]"),
+      );
+      for (const printPage of pages) {
+        printPage.scrollIntoView({ block: "center" });
+        await new Promise<void>((resolve) =>
+          window.setTimeout(resolve, 120),
+        );
+      }
+      window.scrollTo({ top: 0 });
     });
+
+    await page.waitForFunction(
+      () => {
+        const images = Array.from(
+          document.querySelectorAll<HTMLImageElement>(
+            "[data-look-book-print-page] img",
+          ),
+        );
+        return (
+          images.length > 0 &&
+          images.every(
+            (image) =>
+              image.complete && image.naturalWidth > 0 && image.naturalHeight > 0,
+          )
+        );
+      },
+      undefined,
+      { timeout: 25_000 },
+    );
+
+    await page
+      .waitForLoadState("networkidle", { timeout: 10_000 })
+      .catch(() => undefined);
+
+    const imageState = await page
+      .locator("[data-look-book-print-page] img")
+      .evaluateAll((images) =>
+        images.map((node) => {
+          const image = node as HTMLImageElement;
+          return {
+            src: image.currentSrc || image.src,
+            complete: image.complete,
+            naturalWidth: image.naturalWidth,
+            naturalHeight: image.naturalHeight,
+          };
+        }),
+      );
+    const failedImages = imageState.filter(
+      (image) =>
+        !image.complete || image.naturalWidth === 0 || image.naturalHeight === 0,
+    );
+    if (failedImages.length > 0) {
+      throw new Error(`lookbook_image_load_failed_${failedImages.length}`);
+    }
+
+    await page.emulateMedia({ media: "print" });
 
     const pageCount = await printPages.count();
     if (pageCount !== 12) {
