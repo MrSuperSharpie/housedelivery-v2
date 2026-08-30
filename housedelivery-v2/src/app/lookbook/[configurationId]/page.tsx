@@ -51,11 +51,13 @@ export default async function SavedLookBookPage({
     <>
       <SiteHeader />
       <main className="bg-[#0b0c10] text-white">
-        <SavedLookBook
-          definition={definition}
-          configuration={record.configuration}
-          configurationId={record.id}
-        />
+        <div id="home-configurator">
+          <SavedLookBook
+            definition={definition}
+            configuration={record.configuration}
+            configurationId={record.id}
+          />
+        </div>
       </main>
     </>
   );
