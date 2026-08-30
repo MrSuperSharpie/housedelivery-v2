@@ -58,6 +58,8 @@ export async function GET(
     requestUrl.searchParams.get("disposition") === "attachment"
       ? "attachment"
       : "inline";
+  const automationBypassSecret =
+    process.env.VERCEL_AUTOMATION_BYPASS_SECRET?.trim();
   let browser: Browser | undefined;
 
   try {
@@ -77,6 +79,10 @@ export async function GET(
       for (const headerName of FORWARDED_PREVIEW_HEADERS) {
         const value = request.headers.get(headerName);
         if (value) headers[headerName] = value;
+      }
+      if (automationBypassSecret) {
+        headers["x-vercel-protection-bypass"] = automationBypassSecret;
+        headers["x-vercel-set-bypass-cookie"] = "true";
       }
       await route.continue({ headers });
     });
