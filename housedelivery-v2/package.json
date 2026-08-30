@@ -7,6 +7,7 @@
     "build": "next build",
     "test": "tsx --test \"src/**/*.test.ts\" \"src/**/*.test.tsx\"",
     "qa:lookbook": "node scripts/verify-lookbook.mjs",
+    "qa:lookbook:pdf": "node scripts/render-lookbook-pdf.mjs",
     "start": "next start",
     "lint": "eslint",
     "images:floorplans": "node scripts/process-floorplans.mjs"

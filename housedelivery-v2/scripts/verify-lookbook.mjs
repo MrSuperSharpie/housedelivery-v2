@@ -195,6 +195,18 @@ try {
     "precision, Why House Delivery, and delivery-value sections render",
   );
   assert.equal(
+    await page.locator("[data-look-book-selection-confirmation]").count(),
+    7,
+    "all seven final chapters use selected-direction confirmation copy",
+  );
+  assert.equal(
+    await page.locator("[data-look-book-print-page]").evaluateAll((pages) =>
+      pages.some((page) => /\bchoose (?:one|a)\b/i.test(page.textContent ?? "")),
+    ),
+    false,
+    "final Look Book pages contain no configurator instructions",
+  );
+  assert.equal(
     await page.locator("[data-look-book-validated-savings]").count(),
     0,
     "no unvalidated savings claim is rendered",

@@ -61,6 +61,7 @@ type ResolvedSelection = LookBookSelection & {
   categoryId: string;
   zoneId?: string;
   categoryDescription: string;
+  representedItems?: readonly string[];
 };
 
 type EditorialContext = Pick<
@@ -180,10 +181,9 @@ function HouseDeliveryOpeningStatement({ homeName }: { homeName: string }) {
             House Delivery / Designed to be delivered differently
           </p>
           <div className="mt-8 grid gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-end lg:gap-24">
-            <h3 className="max-w-5xl text-[clamp(3.4rem,7.5vw,8rem)] font-medium uppercase leading-[0.82] tracking-[-0.075em] text-black/88">
-              Factory precision.
-              <br />
-              <span className="text-black/48">Premium design.</span>
+            <h3 className="look-book-print-headline max-w-5xl text-[clamp(3.4rem,7.5vw,8rem)] font-medium uppercase leading-[0.82] tracking-[-0.075em] text-black/88">
+              <span className="block">Factory precision.</span>{" "}
+              <span className="block text-black/48">Premium design.</span>
             </h3>
             <p className="max-w-xl text-sm leading-7 text-black/58 lg:justify-self-end">
               Your {homeName} brings design intent and delivery discipline
@@ -233,10 +233,9 @@ function WhyHouseDeliverySection() {
             The House Delivery difference
           </p>
           <div className="mt-7 grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-end lg:gap-20">
-            <h3 className="max-w-4xl text-[clamp(3.6rem,8vw,8.5rem)] font-medium uppercase leading-[0.8] tracking-[-0.078em] text-black/88">
-              Why House
-              <br />
-              Delivery.
+            <h3 className="look-book-print-headline max-w-4xl text-[clamp(3.6rem,8vw,8.5rem)] font-medium uppercase leading-[0.8] tracking-[-0.078em] text-black/88">
+              <span className="block">Why House</span>{" "}
+              <span className="block">Delivery.</span>
             </h3>
             <div className="max-w-2xl lg:justify-self-end">
               <p className="text-base leading-8 text-black/62">
@@ -304,7 +303,7 @@ function HouseDeliveryValueSection({
           <p className="font-mono text-[8px] uppercase tracking-[0.18em] text-black/52">
             Delivery value / Project comparison
           </p>
-          <h3 className="mt-7 max-w-6xl text-[clamp(3.2rem,7vw,7.5rem)] font-medium uppercase leading-[0.82] tracking-[-0.075em] text-black/88">
+          <h3 className="look-book-print-headline mt-7 max-w-6xl text-[clamp(3.2rem,7vw,7.5rem)] font-medium uppercase leading-[0.82] tracking-[-0.075em] text-black/88">
             Could this home cost materially less to deliver?
           </h3>
           <p className="mt-8 max-w-3xl text-lg leading-8 tracking-[-0.02em] text-black/64">
@@ -622,6 +621,9 @@ function resolveSelection(
     image: option.image,
     editorial: option.editorial,
     categoryDescription: category.description,
+    ...(category.kind === "room-look"
+      ? { representedItems: category.represents }
+      : {}),
   };
 }
 
@@ -641,6 +643,26 @@ function resolveSection(
 
 function levelLabel(selection: LookBookSelection) {
   return getHomeInclusionLevelLabel(selection.level).replace(" — ", " · ");
+}
+
+function lowerInitial(value: string) {
+  return value.charAt(0).toLowerCase() + value.slice(1);
+}
+
+function getSelectionConfirmation(selection: ResolvedSelection) {
+  if (!selection.representedItems?.length) {
+    return selection.description ?? selection.categoryDescription;
+  }
+
+  const direction = selection.label
+    .replace(/\s+look\s*&\s*feel$/i, "")
+    .toLowerCase();
+  const scope = new Intl.ListFormat("en", {
+    style: "long",
+    type: "conjunction",
+  }).format(selection.representedItems.map(lowerInitial));
+
+  return `Your selected ${direction} direction carries ${selection.optionName} throughout ${scope}.`;
 }
 
 function EditorialImage({
@@ -770,7 +792,7 @@ function PageShell({
           <div className="mt-4 grid gap-4 border-t border-black/18 pt-4 lg:grid-cols-[1fr_0.7fr] lg:items-end lg:gap-20">
             <h3
               id={`look-book-${section.id}-heading`}
-              className="max-w-5xl text-[clamp(3.2rem,7vw,7.2rem)] font-medium uppercase leading-[0.82] tracking-[-0.075em] text-black/88"
+              className="look-book-print-headline max-w-5xl text-[clamp(3.2rem,7vw,7.2rem)] font-medium uppercase leading-[0.82] tracking-[-0.075em] text-black/88"
             >
               {section.title}
             </h3>
@@ -865,8 +887,11 @@ function CinematicSelectionPage({
         <div className="grid gap-8 lg:grid-cols-[1.25fr_0.75fr] lg:gap-20">
           <div>
             <SelectionCaption selection={hero} context={context} />
-            <p className="mt-5 max-w-2xl text-sm leading-7 text-black/56">
-              {hero.description ?? hero.categoryDescription}
+            <p
+              data-look-book-selection-confirmation
+              className="mt-5 max-w-2xl text-sm leading-7 text-black/56"
+            >
+              {getSelectionConfirmation(hero)}
             </p>
           </div>
           {coordinated?.kind === "coordinated" ? (
@@ -1299,8 +1324,8 @@ export function HomeLookBook({
         <div className="look-book-page-inner flex flex-col justify-between">
           <div>
             <p className="text-[8px] font-semibold uppercase tracking-[0.2em] text-white/52">A home shaped around you / Next stage</p>
-            <h3 className="mt-7 max-w-6xl text-[clamp(4rem,8.5vw,9rem)] font-medium uppercase leading-[0.82] tracking-[-0.075em]">
-              Your {definition.homeName}.<br /><span className="text-white/48">Ready to become real.</span>
+            <h3 className="look-book-print-headline mt-7 max-w-6xl text-[clamp(4rem,8.5vw,9rem)] font-medium uppercase leading-[0.82] tracking-[-0.075em]">
+              <span className="block">Your {definition.homeName}.</span>{" "}<span className="block text-white/48">Ready to become real.</span>
             </h3>
             <p className="mt-9 max-w-2xl text-sm leading-7 text-white/58">
               This personal Look Book carries your selected design language into

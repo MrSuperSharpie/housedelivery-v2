@@ -273,7 +273,7 @@ select {
     height: 297mm;
     min-height: 297mm;
     margin: 0;
-    padding: 16mm !important;
+    padding: 14mm !important;
   }
 
   #home-look-book .look-book-sections {
@@ -288,7 +288,8 @@ select {
 
   #home-look-book .look-book-editorial-header > .grid,
   #home-look-book [data-look-book-home-introduction] > .look-book-page-inner > .grid:first-child {
-    grid-template-columns: 1fr 0.7fr !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.72fr) !important;
+    gap: 8mm !important;
   }
 
   #home-look-book [data-look-book-home-introduction][data-long-residence-label="true"] > .look-book-page-inner > .grid:first-child {
@@ -325,7 +326,42 @@ select {
   }
 
   #home-look-book .look-book-editorial-header h3 {
-    font-size: 13mm !important;
+    font-size: 11mm !important;
+    line-height: 0.88 !important;
+  }
+
+  #home-look-book .look-book-print-headline {
+    letter-spacing: -0.035em !important;
+    word-spacing: 0.1em !important;
+    text-wrap: balance;
+  }
+
+  #home-look-book [data-look-book-value-story="precision-quality"] header > .grid,
+  #home-look-book [data-look-book-value-story="why-house-delivery"] header > .grid {
+    grid-template-columns: minmax(0, 1.18fr) minmax(0, 0.82fr) !important;
+    gap: 10mm !important;
+  }
+
+  #home-look-book [data-look-book-value-story="precision-quality"] h3 {
+    font-size: 18mm !important;
+    line-height: 0.86 !important;
+  }
+
+  #home-look-book [data-look-book-value-story="why-house-delivery"] h3 {
+    font-size: 20mm !important;
+    line-height: 0.84 !important;
+  }
+
+  #home-look-book [data-look-book-value-story="delivery-value"] h3 {
+    max-width: 170mm !important;
+    font-size: 17mm !important;
+    line-height: 0.88 !important;
+  }
+
+  #home-look-book [data-look-book-next-stage] h3 {
+    max-width: 174mm !important;
+    font-size: 19mm !important;
+    line-height: 0.86 !important;
   }
 
   #home-look-book .look-book-design-story {
@@ -353,7 +389,7 @@ select {
   }
 
   #home-look-book .look-book-cinematic[data-look-book-design-board="true"] > [data-look-book-selected-board="true"] {
-    width: 90% !important;
+    width: 100% !important;
     margin-inline: auto !important;
   }
 
@@ -361,6 +397,14 @@ select {
     width: 100% !important;
     height: auto !important;
     aspect-ratio: 4 / 3 !important;
+  }
+
+  #home-look-book .look-book-cinematic[data-look-book-design-board="true"] {
+    margin-top: 8mm !important;
+  }
+
+  #home-look-book .look-book-cinematic[data-look-book-design-board="true"] > .grid {
+    gap: 8mm !important;
   }
 
   #home-look-book .look-book-cinematic > .grid {
