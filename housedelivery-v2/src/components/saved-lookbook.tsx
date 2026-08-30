@@ -27,7 +27,6 @@ export function SavedLookBook({
       savedConfigurationId={configurationId}
       savedHasContact
       savedView
-      directSourceImages
     />
   );
 }
