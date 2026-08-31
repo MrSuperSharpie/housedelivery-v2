@@ -7,6 +7,10 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { RevealText } from "@/components/reveal-text";
+import {
+  resolveHomeExteriorPresentation,
+  type HomeExteriorPresentation,
+} from "@/data/first-nations-cultural-design";
 import type { HomeModel } from "@/data/models";
 import { cn } from "@/lib/cn";
 
@@ -18,12 +22,18 @@ type ModelShowcaseProps = {
 
 const filters = [
   { label: "All homes", test: () => true },
-  { label: "Under 3,000", test: (squareFeet: number) => squareFeet < 3000 },
   {
-    label: "3,000–4,000",
+    label: "Under 3,000 sq. ft.",
+    test: (squareFeet: number) => squareFeet < 3000,
+  },
+  {
+    label: "3,000–4,000 sq. ft.",
     test: (squareFeet: number) => squareFeet >= 3000 && squareFeet < 4000,
   },
-  { label: "4,000+", test: (squareFeet: number) => squareFeet >= 4000 },
+  {
+    label: "4,000+ sq. ft.",
+    test: (squareFeet: number) => squareFeet >= 4000,
+  },
 ] as const;
 
 type ViewMode = "exterior" | "plan";
@@ -35,6 +45,8 @@ export function ModelShowcase({
 }: ModelShowcaseProps) {
   const [activeFilter, setActiveFilter] = useState(0);
   const [viewMode, setViewMode] = useState<ViewMode>("exterior");
+  const [exteriorPresentation, setExteriorPresentation] =
+    useState<HomeExteriorPresentation>("contemporary");
   const filteredModels = models.filter((model) =>
     filters[activeFilter].test(model.squareFeet),
   );
@@ -42,6 +54,7 @@ export function ModelShowcase({
   return (
     <section
       id="models"
+      data-exterior-presentation={exteriorPresentation}
       className="scroll-mt-20 bg-[#0B0C10] px-5 pb-24 pt-28 sm:px-8 lg:px-12 lg:pb-32 lg:pt-40"
     >
       <span id="homes" className="block scroll-mt-20" aria-hidden="true" />
@@ -69,7 +82,7 @@ export function ModelShowcase({
           </p>
         </div>
 
-        <div className="flex flex-col gap-8 py-8 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-8 py-8 xl:flex-row xl:items-end xl:justify-between">
           <div className="flex flex-wrap gap-x-7 gap-y-3" aria-label="Filter models">
             {filters.map((filter, index) => (
               <button
@@ -84,28 +97,62 @@ export function ModelShowcase({
                 )}
                 aria-pressed={activeFilter === index}
               >
-                {filter.label} sq. ft.
+                {filter.label}
               </button>
             ))}
           </div>
 
-          <div className="inline-flex w-fit border border-white/15 p-1" aria-label="Image view">
-            {(["exterior", "plan"] as const).map((mode) => (
-              <button
-                key={mode}
-                type="button"
-                onClick={() => setViewMode(mode)}
-                className={cn(
-                  "px-5 py-2.5 text-[10px] font-semibold uppercase tracking-[0.16em] transition-colors",
-                  viewMode === mode
-                    ? "bg-white text-black"
-                    : "text-white/45 hover:text-white",
-                )}
-                aria-pressed={viewMode === mode}
-              >
-                {mode === "exterior" ? "Residence" : "Floor plan"}
-              </button>
-            ))}
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:gap-4">
+            <fieldset className="min-w-0" data-exterior-presentation-toggle>
+              <legend className="mb-2 text-[8px] font-semibold uppercase tracking-[0.18em] text-white/38">
+                Exterior expression
+              </legend>
+              <div className="inline-flex max-w-full border border-white/15 p-1">
+                {([
+                  ["contemporary", "Contemporary"],
+                  ["indigenous-inspired", "Indigenous Inspired"],
+                ] as const).map(([presentation, label]) => (
+                  <button
+                    key={presentation}
+                    type="button"
+                    onClick={() => setExteriorPresentation(presentation)}
+                    className={cn(
+                      "min-h-11 px-4 py-2.5 text-[9px] font-semibold uppercase leading-4 tracking-[0.14em] transition-colors sm:px-5",
+                      exteriorPresentation === presentation
+                        ? "bg-white text-black"
+                        : "text-white/45 hover:text-white",
+                    )}
+                    aria-pressed={exteriorPresentation === presentation}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+
+            <fieldset className="min-w-0">
+              <legend className="mb-2 text-[8px] font-semibold uppercase tracking-[0.18em] text-white/38">
+                Card view
+              </legend>
+              <div className="inline-flex border border-white/15 p-1" aria-label="Image view">
+                {(["exterior", "plan"] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setViewMode(mode)}
+                    className={cn(
+                      "min-h-11 px-4 py-2.5 text-[9px] font-semibold uppercase tracking-[0.16em] transition-colors sm:px-5 sm:text-[10px]",
+                      viewMode === mode
+                        ? "bg-white text-black"
+                        : "text-white/45 hover:text-white",
+                    )}
+                    aria-pressed={viewMode === mode}
+                  >
+                    {mode === "exterior" ? "Residence" : "Floor plan"}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
           </div>
         </div>
 
@@ -115,16 +162,38 @@ export function ModelShowcase({
           className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-12 lg:grid-cols-3"
         >
           <AnimatePresence mode="popLayout">
-            {filteredModels.map((model, index) => (
-              <motion.article
-                layout
-                key={model.slug}
-                initial={{ opacity: 0, y: 18 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                transition={{ duration: 0.45, delay: Math.min(index * 0.035, 0.2) }}
-                className="group flex min-h-[620px] flex-col overflow-hidden border border-white/10 bg-[#0B0C10] p-7 transition-colors duration-500 hover:border-white/25 sm:p-8"
-              >
+            {filteredModels.map((model, index) => {
+              const exterior = resolveHomeExteriorPresentation(
+                model.slug,
+                model.name,
+                model.images[0],
+                exteriorPresentation,
+              );
+              const image =
+                viewMode === "exterior"
+                  ? exterior.image
+                  : {
+                      src: model.floorPlanImage,
+                      alt: `${model.name} floor plan reference`,
+                    };
+              const showIndigenousInspiredComingSoon =
+                viewMode === "exterior" &&
+                exterior.indigenousInspiredComingSoon;
+
+              return (
+                <motion.article
+                  layout
+                  key={model.slug}
+                  data-model-card={model.slug}
+                  initial={{ opacity: 0, y: 18 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{
+                    duration: 0.45,
+                    delay: Math.min(index * 0.035, 0.2),
+                  }}
+                  className="group flex min-h-[620px] flex-col overflow-hidden border border-white/10 bg-[#0B0C10] p-7 transition-colors duration-500 hover:border-white/25 sm:p-8"
+                >
                 <Link
                   href={`/homes/${model.slug}`}
                   aria-label={`Explore ${model.name}`}
@@ -132,7 +201,7 @@ export function ModelShowcase({
                 >
                   <AnimatePresence mode="wait">
                     <motion.div
-                      key={`${model.slug}-${viewMode}`}
+                      key={`${model.slug}-${viewMode}-${exteriorPresentation}`}
                       initial={{ opacity: 0, scale: 1.015 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0 }}
@@ -140,16 +209,8 @@ export function ModelShowcase({
                       className="absolute inset-0"
                     >
                       <Image
-                        src={
-                          viewMode === "exterior"
-                            ? model.images[0]
-                            : model.floorPlanImage
-                        }
-                        alt={
-                          viewMode === "exterior"
-                            ? `${model.name} exterior`
-                            : `${model.name} floor plan reference`
-                        }
+                        src={image.src}
+                        alt={image.alt}
                         fill
                         quality={95}
                         sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, (max-width: 1599px) 33vw, 488px"
@@ -172,6 +233,15 @@ export function ModelShowcase({
                   >
                     <ArrowUpRight size={16} />
                   </span>
+                  {showIndigenousInspiredComingSoon ? (
+                    <span
+                      data-indigenous-inspired-coming-soon
+                      className="pointer-events-none absolute bottom-5 left-5 border border-white/30 bg-[#0b0c10]/78 px-3 py-2.5 text-[8px] font-semibold uppercase leading-4 tracking-[0.17em] text-white/82 backdrop-blur-md"
+                    >
+                      <span className="block">Indigenous Inspired</span>
+                      <span className="block text-white/48">Coming Soon</span>
+                    </span>
+                  ) : null}
                 </Link>
 
                 <div className="grid gap-6 pb-8 pt-7 xl:grid-cols-[1fr_auto] xl:items-start">
@@ -240,8 +310,9 @@ export function ModelShowcase({
                     </dd>
                   </div>
                 </dl>
-              </motion.article>
-            ))}
+                </motion.article>
+              );
+            })}
           </AnimatePresence>
         </motion.div>
 

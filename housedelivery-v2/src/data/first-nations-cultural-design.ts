@@ -3,6 +3,15 @@ export type CulturalDesignImage = {
   alt: string;
 };
 
+export type HomeExteriorPresentation =
+  | "contemporary"
+  | "indigenous-inspired";
+
+export type ResolvedHomeExteriorPresentation = {
+  image: CulturalDesignImage;
+  indigenousInspiredComingSoon: boolean;
+};
+
 export const coastalDesignDirectionLabel =
   "Contemporary + Indigenous Inspiration";
 
@@ -35,4 +44,40 @@ function createCulturalDesignImage(homeName: string): CulturalDesignImage {
 
 export function getCulturalDesignImage(homeId: string) {
   return culturalDesignImages[homeId];
+}
+
+export function getIndigenousInspiredExteriorImage(homeId: string) {
+  return culturalDesignImages[homeId];
+}
+
+export function resolveHomeExteriorPresentation(
+  homeId: string,
+  homeName: string,
+  contemporaryExteriorImage: string,
+  presentation: HomeExteriorPresentation,
+): ResolvedHomeExteriorPresentation {
+  const contemporaryImage = {
+    src: contemporaryExteriorImage,
+    alt: `${homeName} exterior`,
+  };
+
+  if (presentation === "contemporary") {
+    return {
+      image: contemporaryImage,
+      indigenousInspiredComingSoon: false,
+    };
+  }
+
+  const indigenousInspiredImage =
+    getIndigenousInspiredExteriorImage(homeId);
+
+  return indigenousInspiredImage
+    ? {
+        image: indigenousInspiredImage,
+        indigenousInspiredComingSoon: false,
+      }
+    : {
+        image: contemporaryImage,
+        indigenousInspiredComingSoon: true,
+      };
 }
