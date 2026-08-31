@@ -1116,7 +1116,7 @@ function IncompleteLookBook({
         <div className="mt-16 grid gap-12 border-t border-black/18 pt-7 lg:mt-24 lg:grid-cols-[0.8fr_1.2fr] lg:items-end lg:gap-20">
           <div>
             <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-black/58">
-              My {definition.homeName} / My Look Book preview
+              My {definition.residenceLabel} / My Look Book preview
             </p>
             <h2 id="home-look-book-heading" className="mt-7 text-[clamp(4rem,9vw,9rem)] font-medium leading-[0.82] tracking-[-0.075em] text-black/88">
               Your story<br /><span className="text-black/52">takes shape here.</span>
@@ -1173,7 +1173,7 @@ export function HomeLookBook({
   if (!personalization) {
     return plannerContext ? (
       <ProjectLookBookForm
-        homeName={definition.homeName}
+        homeName={definition.residenceLabel}
         designLabel={plannerContext.designLabel}
         assignedQuantity={plannerContext.assignedQuantity}
         projectName={plannerContext.projectName}
@@ -1182,7 +1182,7 @@ export function HomeLookBook({
       />
     ) : (
       <PersonalizationForm
-        homeName={definition.homeName}
+        homeName={definition.residenceLabel}
         onCreateLookBook={onCreateLookBook}
       />
     );
@@ -1198,9 +1198,9 @@ export function HomeLookBook({
     (personalization.customer
       ? getLookBookPersonalTitle(
           personalization.customer,
-          lookBook.home.name,
+          lookBook.home.residenceLabel,
         )
-      : lookBook.home.name);
+      : lookBook.home.residenceLabel);
   const preparedForLabel = customerName
     ? `Prepared for ${customerName}`
     : "Personalized configuration";
@@ -1302,12 +1302,12 @@ export function HomeLookBook({
 
       {coastalImage ? (
         <CoastalLookBookSummary
-          homeName={definition.homeName}
+          homeName={definition.residenceLabel}
           image={coastalImage}
         />
       ) : null}
 
-      <HouseDeliveryOpeningStatement homeName={definition.homeName} />
+      <HouseDeliveryOpeningStatement homeName={definition.residenceLabel} />
 
       <div className="look-book-sections">
         {selectionSections.map((section, index) => (
@@ -1318,14 +1318,14 @@ export function HomeLookBook({
         ))}
       </div>
 
-      <HouseDeliveryValueSection homeName={definition.homeName} />
+      <HouseDeliveryValueSection homeName={definition.residenceLabel} />
 
       <section data-look-book-next-stage data-look-book-layout="dark-finale" data-look-book-print-page className="bg-[#111216] text-white">
         <div className="look-book-page-inner flex flex-col justify-between">
           <div>
             <p className="text-[8px] font-semibold uppercase tracking-[0.2em] text-white/52">A home shaped around you / Next stage</p>
             <h3 className="look-book-print-headline mt-7 max-w-6xl text-[clamp(4rem,8.5vw,9rem)] font-medium uppercase leading-[0.82] tracking-[-0.075em]">
-              <span className="block">Your {definition.homeName}.</span>{" "}<span className="block text-white/48">Ready to become real.</span>
+              <span className="block">Your {definition.residenceLabel}.</span>{" "}<span className="block text-white/48">Ready to become real.</span>
             </h3>
             <p className="mt-9 max-w-2xl text-sm leading-7 text-white/58">
               This personal Look Book carries your selected design language into
@@ -1348,7 +1348,7 @@ export function HomeLookBook({
               <div className="look-book-screen-control mt-10 grid gap-5 lg:grid-cols-[1fr_0.7fr] lg:items-end lg:gap-16">
                 {isSubmitted ? (
                   <div role="status" className="border border-white/22 p-5">
-                    <p className="flex items-center gap-3 text-[9px] font-semibold uppercase tracking-[0.17em] text-white/82"><Check aria-hidden="true" className="size-4" />My {definition.homeName} is ready for review</p>
+                    <p className="flex items-center gap-3 text-[9px] font-semibold uppercase tracking-[0.17em] text-white/82"><Check aria-hidden="true" className="size-4" />My {definition.residenceLabel} is ready for review</p>
                   </div>
                 ) : (
                   <button
@@ -1357,7 +1357,7 @@ export function HomeLookBook({
                     onClick={onSubmit}
                     className="group flex min-h-14 w-full items-center justify-between gap-7 bg-white px-6 text-left text-[10px] font-semibold uppercase tracking-[0.17em] text-black hover:bg-white/82 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
                   >
-                    <span>Submit My {definition.homeName} for Review</span><ArrowRight aria-hidden="true" className="size-4" strokeWidth={1.5} />
+                    <span>Submit My {definition.residenceLabel} for Review</span><ArrowRight aria-hidden="true" className="size-4" strokeWidth={1.5} />
                   </button>
                 )}
                 <div className="grid gap-3">

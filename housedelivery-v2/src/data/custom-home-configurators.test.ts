@@ -7,6 +7,7 @@ import {
   getHomeConfiguratorJourneyCategories,
   getProjectCoordinatedCategories,
   getRequiredCategories,
+  hasDesignBoardImages,
   type HomeInclusionCategory,
 } from "@/data/home-configurator";
 import { finalHomeDesignCategoryId } from "@/data/home-configurator-order";
@@ -382,6 +383,7 @@ test("the next eight Custom Homes wire all 224 approved Visual Guide boards", ()
 
     const requiredCategories = getRequiredCategories(definition);
     assert.equal(requiredCategories.length, 7);
+    assert.equal(hasDesignBoardImages(definition), true);
     assert.equal(
       getProjectCoordinatedCategories(definition)[0]?.coordinatedMessage,
       "Project Coordinated",
@@ -426,6 +428,17 @@ test("the next eight Custom Homes wire all 224 approved Visual Guide boards", ()
     }
 
     assert.equal(homeImageSources.size, 28, `${home.id} must use 28 boards`);
+    const approvedAssets = readdirSync(
+      join(process.cwd(), "public", home.assetRoot.replace(/^\//, "")),
+    )
+      .filter((filename) => filename.endsWith(".png"))
+      .sort();
+    assert.equal(approvedAssets.length, 28);
+    assert.deepEqual(
+      [...homeImageSources].map((source) => basename(source)).sort(),
+      approvedAssets,
+      `${home.id} data paths must preserve every physical filename exactly`,
+    );
     assert.equal(
       definition.lookBook.sections[0]?.title,
       `The ${definition.homeName} You Created`,

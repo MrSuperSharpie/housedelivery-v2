@@ -309,7 +309,7 @@ export function LookBookCompletionActions({
             Configuration complete
           </p>
           <h3 className="mt-5 max-w-4xl text-[clamp(2.5rem,5.5vw,5.75rem)] font-medium leading-[0.9] tracking-[-0.065em] text-white">
-            Your {definition.homeName} is ready.
+            Your {definition.residenceLabel} is ready.
           </h3>
           <p className="mt-6 max-w-2xl text-sm leading-7 text-white/64">
             Your selections have been brought together into your personalized House
@@ -322,7 +322,7 @@ export function LookBookCompletionActions({
                 <Check className="size-4" aria-hidden="true" /> Request received
               </p>
               <p className="mt-5 max-w-2xl text-sm leading-7 text-white/66">
-                House Delivery has your {definition.homeName} selections and
+                House Delivery has your {definition.residenceLabel} selections and
                 property information. We’ll review the project details and follow
                 up regarding next steps.
               </p>
@@ -335,7 +335,7 @@ export function LookBookCompletionActions({
               <p className="mt-5 max-w-2xl text-sm leading-7 text-white/66">
                 {emailDeliveryPending
                   ? "Your selections are safely saved, but email delivery is temporarily delayed. You can view or download your Look Book now and retry the email shortly."
-                  : `We’ve sent your ${definition.homeName} Look Book to ${savedEmail}.`}
+                  : `We’ve sent your ${definition.residenceLabel} Look Book to ${savedEmail}.`}
               </p>
             </div>
           ) : null}
@@ -535,7 +535,7 @@ export function LookBookCompletionActions({
         <div className="mx-auto grid max-w-[1504px] gap-8 border-t border-white/20 pt-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-end lg:gap-16">
           <div>
             <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/52">
-              Your {definition.homeName} Look Book
+              Your {definition.residenceLabel} Look Book
             </p>
             <h3 className="mt-4 text-[clamp(2rem,3.5vw,3.75rem)] font-medium leading-[0.92] tracking-[-0.05em] text-white">
               Ready when you are.

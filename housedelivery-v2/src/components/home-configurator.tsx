@@ -14,6 +14,7 @@ import {
   createDefaultHomeConfiguration,
   getDisplayedFlooringOption,
   getDisplayedInclusionOption,
+  hasDesignBoardImages,
   getHomeConfiguratorJourneyCategories,
   getProjectCoordinatedCategories,
   isCategoryComplete,
@@ -203,6 +204,8 @@ export function HomeConfigurator({
   definition,
   directSourceImages = false,
 }: HomeConfiguratorProps) {
+  const useDirectSourceImages =
+    directSourceImages || hasDesignBoardImages(definition);
   const [configuration, setConfiguration] = useState<HomeConfiguration>(() =>
     createDefaultHomeConfiguration(definition),
   );
@@ -830,7 +833,7 @@ export function HomeConfigurator({
               >
                 Design My
                 <br />
-                <span className="text-white/55">{definition.homeName}.</span>
+                <span className="text-white/55">{definition.residenceLabel}.</span>
               </h2>
             </div>
             <div className="max-w-2xl lg:justify-self-end">
@@ -875,7 +878,7 @@ export function HomeConfigurator({
                   </span>
                 </div>
                 <p className="mt-6 max-w-xs text-sm leading-6 text-white/48">
-                  {step.detail(definition.homeName)}
+                  {step.detail(definition.residenceLabel)}
                 </p>
                 {index < activeConfigurationOrientation.length - 1 ? (
                   <span
@@ -892,7 +895,7 @@ export function HomeConfigurator({
           <p className="sr-only" aria-live="polite">
             {activeCategoryId
               ? `Now configuring ${definition.categories.find((category) => category.id === activeCategoryId)?.title}. ${completedCount} of ${requiredCategories.length} chapters complete.`
-              : `All ${completedCount} required chapters complete. Review My ${definition.homeName}.`}
+              : `All ${completedCount} required chapters complete. Review My ${definition.residenceLabel}.`}
           </p>
 
           <div className="mt-16 grid items-start gap-8 lg:mt-24 lg:grid-cols-[16rem_minmax(0,1fr)] xl:grid-cols-[14rem_minmax(0,1fr)_18rem] xl:gap-6 2xl:grid-cols-[18rem_minmax(0,1fr)_20rem] 2xl:gap-8">
@@ -911,7 +914,7 @@ export function HomeConfigurator({
                   variant="compact"
                   definition={definition}
                   configuration={configuration}
-                  directSourceImages={directSourceImages}
+                  directSourceImages={useDirectSourceImages}
                 />
               </div>
 
@@ -943,7 +946,7 @@ export function HomeConfigurator({
                     return (
                       <HomeFlooringCategory
                         key={category.id}
-                        houseName={definition.homeName}
+                        houseName={definition.residenceLabel}
                         category={category}
                         categoryCount={requiredCategories.length}
                         selectedOptions={selectedOptions}
@@ -974,7 +977,7 @@ export function HomeConfigurator({
                         onEditZone={(zoneId) =>
                           editCategory(category.id, zoneId)
                         }
-                        directSourceImages={directSourceImages}
+                        directSourceImages={useDirectSourceImages}
                       />
                     );
                   }
@@ -982,7 +985,7 @@ export function HomeConfigurator({
                   return (
                     <HomeInclusionCategory
                       key={category.id}
-                      houseName={definition.homeName}
+                      houseName={definition.residenceLabel}
                       category={category}
                       categoryCount={requiredCategories.length}
                       selectedOption={getDisplayedInclusionOption(
@@ -1012,7 +1015,7 @@ export function HomeConfigurator({
                       }
                       onConfirm={() => confirmInclusionCategory(category)}
                       onEdit={() => editCategory(category.id)}
-                      directSourceImages={directSourceImages}
+                      directSourceImages={useDirectSourceImages}
                     />
                   );
                 })}
@@ -1024,7 +1027,7 @@ export function HomeConfigurator({
                 variant="sticky"
                 definition={definition}
                 configuration={configuration}
-                directSourceImages={directSourceImages}
+                directSourceImages={useDirectSourceImages}
               />
             </div>
           </div>
@@ -1061,13 +1064,13 @@ export function HomeConfigurator({
               }
             : undefined
         }
-        directSourceImages={directSourceImages}
+        directSourceImages={useDirectSourceImages}
       />
 
       {imagePreview && imagePreviewTarget ? (
         <HomeImagePreview
           option={imagePreview.option}
-          homeName={definition.homeName}
+          homeName={definition.residenceLabel}
           isSelected={imagePreview.isSelected}
           canShowPrevious={imagePreviewOptionIndex > 0}
           canShowNext={

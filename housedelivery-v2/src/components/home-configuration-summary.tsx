@@ -40,7 +40,7 @@ function HomeConfigurationEntries({
   if (visibleCategories.length === 0) {
     return (
       <p className="mt-6 border-y border-black/12 py-5 text-xs leading-5 text-black/58">
-        Confirm your first inclusion to begin My {definition.homeName}.
+        Confirm your first inclusion to begin My {definition.residenceLabel}.
       </p>
     );
   }
@@ -167,7 +167,7 @@ export function HomeConfigurationSummary({
         <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 px-5 marker:content-none">
           <div>
             <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/58">
-              My {definition.homeName} · {completeCount}/{requiredCategories.length}
+              My {definition.residenceLabel} · {completeCount}/{requiredCategories.length}
             </p>
             <p className="mt-1 text-sm font-medium text-black/70">
               {completeCount} of {requiredCategories.length} selections confirmed
@@ -206,7 +206,7 @@ export function HomeConfigurationSummary({
         id={`my-${definition.homeId}-heading`}
         className="mt-4 text-4xl font-medium tracking-[-0.06em]"
       >
-        My {definition.homeName}
+        My {definition.residenceLabel}
       </h2>
       <div className="relative mt-6 aspect-[16/10] overflow-hidden bg-black/8">
         <Image

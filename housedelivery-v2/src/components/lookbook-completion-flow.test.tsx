@@ -44,6 +44,7 @@ function createCompleteConfiguration(
     flooringSelections,
     reviewStatus: "ready-for-review",
     lookBookPersonalization: {
+      customer: { firstName: "Sarah" },
       preparedAt: "2026-08-29T12:00:00.000Z",
       reference: `${definition.homeId.toUpperCase()}-FLOW-001`,
     },
@@ -104,8 +105,10 @@ test("every migrated home shares the Get My Look Book flow and House Delivery va
     );
     assert.match(
       markup,
-      new RegExp(`Your ${definition.homeName} is ready\\.`),
+      new RegExp(`Your ${definition.residenceLabel} is ready\\.`),
     );
+    assert.match(markup, new RegExp(`Sarah’s ${definition.residenceLabel}`));
+    assert.doesNotMatch(markup, /House House/);
     assert.match(markup, /View online without saving/);
     assert.equal(
       occurrenceCount(markup, "Get My Look Book"),

@@ -113,7 +113,9 @@ export default async function HomeDetailPage({
     configuratorDefinition !== undefined;
   const designToolDiscovery = {
     homeName:
-      configuratorRegistration?.homeName ?? model.name.replace(/^The\s+/, ""),
+      configuratorDefinition?.residenceLabel ??
+      configuratorRegistration?.homeName ??
+      model.name.replace(/^The\s+/, ""),
     href: hasApprovedLookBook ? "#home-inclusions" : undefined,
     availability: hasApprovedLookBook
       ? ("available" as const)

@@ -107,7 +107,7 @@ export function HomeConfigurationProgress({
         <div className="flex items-end justify-between gap-5">
           <div>
             <p className="text-[9px] font-semibold uppercase tracking-[0.19em] text-white/55">
-              My {definition.homeName}
+              My {definition.residenceLabel}
             </p>
             <p className="mt-3 text-xl font-medium tracking-[-0.035em] text-white/82">
               {activeCategory

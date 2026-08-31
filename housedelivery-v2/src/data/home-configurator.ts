@@ -119,6 +119,21 @@ export function getHomeInclusionLevelLabel(level: HomeInclusionLevel) {
     : "Signature — Upgrade";
 }
 
+export function hasDesignBoardImages(
+  definition: HomeConfiguratorDefinition,
+) {
+  return definition.categories.some((category) => {
+    if (category.kind === "coordinated") return false;
+
+    const options =
+      category.kind === "flooring"
+        ? category.zones.flatMap((zone) => zone.options)
+        : category.options;
+
+    return options.some((option) => option.image.role === "design-board");
+  });
+}
+
 export function createDefaultHomeConfiguration(
   definition: HomeConfiguratorDefinition,
 ): HomeConfiguration {
