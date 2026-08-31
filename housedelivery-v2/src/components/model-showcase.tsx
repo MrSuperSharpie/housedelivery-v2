@@ -1,11 +1,19 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowUpRight, Bath, BedDouble, Car, Layers3 } from "lucide-react";
+import {
+  ArrowUpRight,
+  Bath,
+  BedDouble,
+  Car,
+  Layers3,
+  Maximize2,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
+import { HomeExteriorLightbox } from "@/components/home-exterior-lightbox";
 import { RevealText } from "@/components/reveal-text";
 import {
   resolveHomeExteriorPresentation,
@@ -47,9 +55,29 @@ export function ModelShowcase({
   const [viewMode, setViewMode] = useState<ViewMode>("exterior");
   const [exteriorPresentation, setExteriorPresentation] =
     useState<HomeExteriorPresentation>("contemporary");
+  const [selectedModel, setSelectedModel] = useState<HomeModel | null>(null);
+  const [lightboxPresentation, setLightboxPresentation] =
+    useState<HomeExteriorPresentation>("contemporary");
+  const activeLightboxTriggerRef = useRef<HTMLButtonElement>(null);
   const filteredModels = models.filter((model) =>
     filters[activeFilter].test(model.squareFeet),
   );
+
+  function openExteriorLightbox(
+    model: HomeModel,
+    trigger: HTMLButtonElement,
+  ) {
+    activeLightboxTriggerRef.current = trigger;
+    setLightboxPresentation(exteriorPresentation);
+    setSelectedModel(model);
+  }
+
+  function closeExteriorLightbox() {
+    setSelectedModel(null);
+    window.requestAnimationFrame(() =>
+      activeLightboxTriggerRef.current?.focus(),
+    );
+  }
 
   return (
     <section
@@ -180,25 +208,8 @@ export function ModelShowcase({
                 viewMode === "exterior" &&
                 exterior.indigenousInspiredComingSoon;
 
-              return (
-                <motion.article
-                  layout
-                  key={model.slug}
-                  data-model-card={model.slug}
-                  initial={{ opacity: 0, y: 18 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.98 }}
-                  transition={{
-                    duration: 0.45,
-                    delay: Math.min(index * 0.035, 0.2),
-                  }}
-                  className="group flex min-h-[620px] flex-col overflow-hidden border border-white/10 bg-[#0B0C10] p-7 transition-colors duration-500 hover:border-white/25 sm:p-8"
-                >
-                <Link
-                  href={`/homes/${model.slug}`}
-                  aria-label={`Explore ${model.name}`}
-                  className="relative -mx-7 -mt-7 block aspect-[16/10] overflow-hidden border-b border-white/10 bg-[#13151a] sm:-mx-8 sm:-mt-8"
-                >
+              const cardImage = (
+                <>
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={`${model.slug}-${viewMode}-${exteriorPresentation}`}
@@ -216,7 +227,7 @@ export function ModelShowcase({
                         sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, (max-width: 1599px) 33vw, 488px"
                         style={{ imageRendering: "auto" }}
                         className={cn(
-                          "brightness-90 transition-all duration-[2000ms] ease-[cubic-bezier(0.25,1,0.5,1)] hover:scale-[1.04] hover:brightness-100 group-hover:scale-[1.04] group-hover:brightness-100 group-hover:scale-105 transition-transform duration-700 ease-in-out",
+                          "brightness-90 transition-all duration-700 ease-in-out group-hover/card:scale-[1.04] group-hover/card:brightness-100 group-hover/media:scale-[1.04] group-hover/media:brightness-100",
                           viewMode === "exterior"
                             ? "object-cover object-center"
                             : "bg-[#e9e7e1] object-contain p-4 sm:p-8",
@@ -224,25 +235,75 @@ export function ModelShowcase({
                       />
                     </motion.div>
                   </AnimatePresence>
-                  <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/55 to-transparent" />
-                  <span className="absolute left-5 top-5 border border-white/30 bg-black/25 px-3 py-2 text-[9px] uppercase tracking-[0.18em] backdrop-blur-md">
+                  <span className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/55 to-transparent" />
+                </>
+              );
+
+              return (
+                <motion.article
+                  layout
+                  key={model.slug}
+                  data-model-card={model.slug}
+                  initial={{ opacity: 0, y: 18 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{
+                    duration: 0.45,
+                    delay: Math.min(index * 0.035, 0.2),
+                  }}
+                  className="group/card flex min-h-[620px] flex-col overflow-hidden border border-white/10 bg-[#0B0C10] p-7 transition-colors duration-500 hover:border-white/25 sm:p-8"
+                >
+                  <div className="relative -mx-7 -mt-7 aspect-[16/10] overflow-hidden border-b border-white/10 bg-[#13151a] sm:-mx-8 sm:-mt-8">
+                    {viewMode === "exterior" ? (
+                      <button
+                        type="button"
+                        aria-haspopup="dialog"
+                        aria-label={`Enlarge ${model.name} exterior`}
+                        data-open-home-exterior-preview={model.slug}
+                        onClick={(event) =>
+                          openExteriorLightbox(model, event.currentTarget)
+                        }
+                        className="group/media absolute inset-0 cursor-zoom-in focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-white"
+                      >
+                        {cardImage}
+                      </button>
+                    ) : (
+                      <Link
+                        href={`/homes/${model.slug}`}
+                        aria-label={`Explore ${model.name} floor plan`}
+                        data-model-card-image-navigation={model.slug}
+                        className="group/media absolute inset-0 focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-white"
+                      >
+                        {cardImage}
+                      </Link>
+                    )}
+                    <span className="pointer-events-none absolute left-5 top-5 z-10 border border-white/30 bg-black/25 px-3 py-2 text-[9px] uppercase tracking-[0.18em] backdrop-blur-md">
                     {model.locationLabel}
-                  </span>
-                  <span
-                    className="absolute right-5 top-5 grid size-11 place-items-center rounded-full border border-white/35 bg-black/20 text-white backdrop-blur-md transition-colors hover:bg-white hover:text-black"
-                  >
-                    <ArrowUpRight size={16} />
-                  </span>
-                  {showIndigenousInspiredComingSoon ? (
-                    <span
-                      data-indigenous-inspired-coming-soon
-                      className="pointer-events-none absolute bottom-5 left-5 border border-white/30 bg-[#0b0c10]/78 px-3 py-2.5 text-[8px] font-semibold uppercase leading-4 tracking-[0.17em] text-white/82 backdrop-blur-md"
-                    >
-                      <span className="block">Indigenous Inspired</span>
-                      <span className="block text-white/48">Coming Soon</span>
                     </span>
-                  ) : null}
-                </Link>
+                    <Link
+                      href={`/homes/${model.slug}`}
+                      aria-label={`Explore ${model.name}`}
+                      data-model-card-navigation={model.slug}
+                      className="absolute right-5 top-5 z-20 grid size-11 place-items-center rounded-full border border-white/35 bg-black/20 text-white backdrop-blur-md transition-colors hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                    >
+                      <ArrowUpRight aria-hidden="true" size={16} />
+                    </Link>
+                    {showIndigenousInspiredComingSoon ? (
+                      <span
+                        data-indigenous-inspired-coming-soon
+                        className="pointer-events-none absolute bottom-5 left-5 z-10 border border-white/30 bg-[#0b0c10]/78 px-3 py-2.5 text-[8px] font-semibold uppercase leading-4 tracking-[0.17em] text-white/82 backdrop-blur-md"
+                      >
+                        <span className="block">Indigenous Inspired</span>
+                        <span className="block text-white/48">Coming Soon</span>
+                      </span>
+                    ) : null}
+                    {viewMode === "exterior" ? (
+                      <span className="pointer-events-none absolute bottom-5 right-5 z-10 inline-flex items-center gap-2 border border-white/25 bg-black/45 px-3 py-2 text-[8px] font-semibold uppercase tracking-[0.15em] text-white/78 backdrop-blur-md">
+                        <Maximize2 aria-hidden="true" size={12} />
+                        View larger
+                      </span>
+                    ) : null}
+                  </div>
 
                 <div className="grid gap-6 pb-8 pt-7 xl:grid-cols-[1fr_auto] xl:items-start">
                   <div>
@@ -315,8 +376,16 @@ export function ModelShowcase({
             })}
           </AnimatePresence>
         </motion.div>
-
       </div>
+
+      {selectedModel ? (
+        <HomeExteriorLightbox
+          model={selectedModel}
+          presentation={lightboxPresentation}
+          onPresentationChange={setLightboxPresentation}
+          onClose={closeExteriorLightbox}
+        />
+      ) : null}
     </section>
   );
 }

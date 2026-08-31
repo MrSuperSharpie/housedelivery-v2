@@ -4,6 +4,7 @@ import test from "node:test";
 
 import { renderToStaticMarkup } from "react-dom/server";
 
+import { HomeExteriorLightbox } from "@/components/home-exterior-lightbox";
 import { ModelShowcase } from "@/components/model-showcase";
 import {
   getIndigenousInspiredExteriorImage,
@@ -47,7 +48,60 @@ test("the collection defaults to Contemporary and retains normal home links", ()
   assert.match(markup, /Residence/);
   assert.match(markup, /Floor plan/);
   assert.match(markup, /href="\/homes\/profile"/);
+  assert.match(markup, /data-open-home-exterior-preview="profile"/);
+  assert.match(markup, /data-model-card-navigation="profile"/);
+  assert.match(markup, /View larger/);
   assert.doesNotMatch(markup, /data-indigenous-inspired-coming-soon/);
+});
+
+test("an available Indigenous-inspired exterior renders in the enlarged viewer", () => {
+  const canmore = models.find((model) => model.slug === "canmore");
+  assert.ok(canmore);
+
+  const indigenousInspired = getIndigenousInspiredExteriorImage(
+    canmore.slug,
+  );
+  assert.ok(indigenousInspired);
+
+  const markup = renderToStaticMarkup(
+    <HomeExteriorLightbox
+      model={canmore}
+      presentation="indigenous-inspired"
+      onPresentationChange={() => undefined}
+      onClose={() => undefined}
+    />,
+  );
+
+  assert.match(markup, /data-home-exterior-lightbox="canmore"/);
+  assert.match(
+    markup,
+    /data-lightbox-exterior-presentation="indigenous-inspired"/,
+  );
+  assert.ok(markup.includes(indigenousInspired.src));
+  assert.match(markup, /data-lightbox-exterior-toggle/);
+  assert.match(markup, /href="\/homes\/canmore"/);
+  assert.doesNotMatch(markup, /data-lightbox-indigenous-coming-soon/);
+});
+
+test("a Coming Soon enlarged view retains its Contemporary exterior", () => {
+  const profile = models.find((model) => model.slug === "profile");
+  assert.ok(profile);
+  assert.equal(getIndigenousInspiredExteriorImage(profile.slug), undefined);
+
+  const markup = renderToStaticMarkup(
+    <HomeExteriorLightbox
+      model={profile}
+      presentation="indigenous-inspired"
+      onPresentationChange={() => undefined}
+      onClose={() => undefined}
+    />,
+  );
+
+  assert.match(markup, /data-home-exterior-lightbox="profile"/);
+  assert.match(markup, /data-lightbox-indigenous-coming-soon/);
+  assert.ok(markup.includes(profile.images[0]));
+  assert.match(markup, />Indigenous Inspired</);
+  assert.match(markup, />Coming Soon</);
 });
 
 test("approved Indigenous-inspired exteriors resolve from the shared registry", () => {
