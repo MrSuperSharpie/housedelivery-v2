@@ -49,9 +49,32 @@ test("the collection defaults to Contemporary and retains normal home links", ()
   assert.match(markup, /Floor plan/);
   assert.match(markup, /href="\/homes\/profile"/);
   assert.match(markup, /data-open-home-exterior-preview="profile"/);
+  assert.match(markup, /data-model-card-surface-navigation="profile"/);
   assert.match(markup, /data-model-card-navigation="profile"/);
   assert.match(markup, /View larger/);
   assert.doesNotMatch(markup, /data-indigenous-inspired-coming-soon/);
+});
+
+test("card surfaces use each home's existing detail route while View Larger remains separate", () => {
+  for (const slug of ["langley", "solace", "salt-spring"]) {
+    const model = models.find((candidate) => candidate.slug === slug);
+    assert.ok(model);
+
+    const markup = renderToStaticMarkup(
+      <ModelShowcase models={[{ ...model, images: ["/window.svg"] }]} />,
+    );
+
+    assert.match(
+      markup,
+      new RegExp(`data-model-card-surface-navigation="${slug}"`),
+    );
+    assert.match(markup, new RegExp(`href="/homes/${slug}"`));
+    assert.match(
+      markup,
+      new RegExp(`data-open-home-exterior-preview="${slug}"`),
+    );
+    assert.match(markup, /<button[^>]+aria-haspopup="dialog"[^>]*>/);
+  }
 });
 
 test("Langley and Solace enlarged views use their exact resolved card image", () => {

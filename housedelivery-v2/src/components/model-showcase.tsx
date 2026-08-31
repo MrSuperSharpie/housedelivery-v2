@@ -280,37 +280,20 @@ export function ModelShowcase({
                     duration: 0.45,
                     delay: Math.min(index * 0.035, 0.2),
                   }}
-                  className="group/card flex min-h-[620px] flex-col overflow-hidden border border-white/10 bg-[#0B0C10] p-7 transition-colors duration-500 hover:border-white/25 sm:p-8"
+                  className="group/card relative flex min-h-[620px] flex-col overflow-hidden border border-white/10 bg-[#0B0C10] p-7 transition-colors duration-500 hover:border-white/25 sm:p-8"
                 >
-                  <div className="relative -mx-7 -mt-7 aspect-[16/10] overflow-hidden border-b border-white/10 bg-[#13151a] sm:-mx-8 sm:-mt-8">
-                    {viewMode === "exterior" ? (
-                      <button
-                        type="button"
-                        aria-haspopup="dialog"
-                        aria-label={`Enlarge ${model.name} exterior`}
-                        data-open-home-exterior-preview={model.slug}
-                        data-active-exterior-image={exterior.image.src}
-                        onClick={(event) =>
-                          openExteriorLightbox(
-                            model,
-                            exterior,
-                            event.currentTarget,
-                          )
-                        }
-                        className="group/media absolute inset-0 cursor-zoom-in focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-white"
-                      >
-                        {cardImage}
-                      </button>
-                    ) : (
-                      <Link
-                        href={`/homes/${model.slug}`}
-                        aria-label={`Explore ${model.name} floor plan`}
-                        data-model-card-image-navigation={model.slug}
-                        className="group/media absolute inset-0 focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-white"
-                      >
-                        {cardImage}
-                      </Link>
-                    )}
+                  <Link
+                    href={`/homes/${model.slug}`}
+                    aria-label={`Explore ${model.name}`}
+                    data-model-card-surface-navigation={model.slug}
+                    data-model-card-image-navigation={model.slug}
+                    className="absolute inset-0 z-10 focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-white"
+                  >
+                    <span className="sr-only">Explore {model.name}</span>
+                  </Link>
+
+                  <div className="pointer-events-none relative -mx-7 -mt-7 aspect-[16/10] overflow-hidden border-b border-white/10 bg-[#13151a] sm:-mx-8 sm:-mt-8">
+                    {cardImage}
                     <span className="pointer-events-none absolute left-5 top-5 z-10 border border-white/30 bg-black/25 px-3 py-2 text-[9px] uppercase tracking-[0.18em] backdrop-blur-md">
                     {model.locationLabel}
                     </span>
@@ -318,7 +301,7 @@ export function ModelShowcase({
                       href={`/homes/${model.slug}`}
                       aria-label={`Explore ${model.name}`}
                       data-model-card-navigation={model.slug}
-                      className="absolute right-5 top-5 z-20 grid size-11 place-items-center rounded-full border border-white/35 bg-black/20 text-white backdrop-blur-md transition-colors hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                      className="pointer-events-auto absolute right-5 top-5 z-20 grid size-11 place-items-center rounded-full border border-white/35 bg-black/20 text-white backdrop-blur-md transition-colors hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                     >
                       <ArrowUpRight aria-hidden="true" size={16} />
                     </Link>
@@ -332,10 +315,25 @@ export function ModelShowcase({
                       </span>
                     ) : null}
                     {viewMode === "exterior" ? (
-                      <span className="pointer-events-none absolute bottom-5 right-5 z-10 inline-flex items-center gap-2 border border-white/25 bg-black/45 px-3 py-2 text-[8px] font-semibold uppercase tracking-[0.15em] text-white/78 backdrop-blur-md">
+                      <button
+                        type="button"
+                        aria-haspopup="dialog"
+                        aria-label={`Enlarge ${model.name} exterior`}
+                        data-open-home-exterior-preview={model.slug}
+                        data-active-exterior-image={exterior.image.src}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          openExteriorLightbox(
+                            model,
+                            exterior,
+                            event.currentTarget,
+                          );
+                        }}
+                        className="pointer-events-auto absolute bottom-5 right-5 z-20 inline-flex items-center gap-2 border border-white/25 bg-black/45 px-3 py-2 text-[8px] font-semibold uppercase tracking-[0.15em] text-white/78 backdrop-blur-md transition-colors hover:border-white/55 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                      >
                         <Maximize2 aria-hidden="true" size={12} />
                         View larger
-                      </span>
+                      </button>
                     ) : null}
                   </div>
 
@@ -345,7 +343,7 @@ export function ModelShowcase({
                       <h3 className="text-[clamp(2rem,3vw,3.25rem)] font-medium leading-[0.94] tracking-[-0.055em] text-white/90">
                         <Link
                           href={`/homes/${model.slug}`}
-                          className="transition-colors hover:text-white/65"
+                          className="relative z-20 transition-colors hover:text-white/65 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                         >
                           {model.name}
                         </Link>
