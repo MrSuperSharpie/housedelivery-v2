@@ -2,7 +2,6 @@ import serverlessChromium from "@sparticuz/chromium";
 import { chromium as playwrightChromium, type Browser } from "playwright-core";
 
 import { parseConfigurationId } from "@/lib/lookbook/domain";
-import { getPreviewAuthCookies } from "@/lib/lookbook/preview-auth";
 import { getLookBookRepository } from "@/lib/lookbook/repository";
 
 export const dynamic = "force-dynamic";
@@ -13,6 +12,7 @@ const LOCAL_CHROME_PATH =
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const FORWARDED_PREVIEW_HEADERS = [
   "authorization",
+  "cookie",
   "x-vercel-protection-bypass",
   "x-vercel-set-bypass-cookie",
 ] as const;
@@ -62,17 +62,9 @@ export async function GET(
 
   try {
     browser = await launchBrowser();
-    const browserContext = await browser.newContext({
+    const page = await browser.newPage({
       viewport: { width: 1440, height: 1000 },
     });
-    const previewAuthCookies = getPreviewAuthCookies(
-      request.headers.get("cookie"),
-      requestUrl.origin,
-    );
-    if (previewAuthCookies.length > 0) {
-      await browserContext.addCookies(previewAuthCookies);
-    }
-    const page = await browserContext.newPage();
 
     await page.route("**/*", async (route) => {
       const routeUrl = new URL(route.request().url());
