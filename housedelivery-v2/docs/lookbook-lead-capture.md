@@ -28,6 +28,12 @@ LOOKBOOK_SUPABASE_SERVICE_ROLE_KEY
 RESEND_API_KEY
 ```
 
+For Preview deployments, confirm the variables apply to the branch being
+reviewed. A variable scoped to a different Git branch is not injected into the
+deployment, even when the same variable name appears in the Vercel project.
+After changing a variable's branch scope, redeploy the target branch before
+testing persistence.
+
 Optional configuration:
 
 ```text
@@ -76,6 +82,7 @@ Only home, chapter, completion, tier, and campaign properties are included.
 
 1. Create or select a Supabase project.
 2. Apply the included SQL migration.
-3. Add the required variables to Vercel for Production and Preview.
+3. Add the required variables to Vercel for Production and Preview, and verify
+   any Preview branch scope matches the branch being deployed.
 4. Confirm `housedelivery.ca` is verified in Resend for the configured sender.
 5. Redeploy and complete one end-to-end known-engaged save and one Property Check using non-production test contact details.
