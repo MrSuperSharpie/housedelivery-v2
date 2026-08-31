@@ -18,6 +18,7 @@ import { RevealText } from "@/components/reveal-text";
 import {
   resolveHomeExteriorPresentation,
   type HomeExteriorPresentation,
+  type ResolvedHomeExteriorPresentation,
 } from "@/data/first-nations-cultural-design";
 import type { HomeModel } from "@/data/models";
 import { cn } from "@/lib/cn";
@@ -46,6 +47,12 @@ const filters = [
 
 type ViewMode = "exterior" | "plan";
 
+type SelectedExterior = {
+  model: HomeModel;
+  presentation: HomeExteriorPresentation;
+  exterior: ResolvedHomeExteriorPresentation;
+};
+
 export function ModelShowcase({
   models,
   introCopy = "Every model begins as a pre-engineered component system and is adapted to your land, local code, climate loads, and chosen level of finish.",
@@ -55,9 +62,8 @@ export function ModelShowcase({
   const [viewMode, setViewMode] = useState<ViewMode>("exterior");
   const [exteriorPresentation, setExteriorPresentation] =
     useState<HomeExteriorPresentation>("contemporary");
-  const [selectedModel, setSelectedModel] = useState<HomeModel | null>(null);
-  const [lightboxPresentation, setLightboxPresentation] =
-    useState<HomeExteriorPresentation>("contemporary");
+  const [selectedExterior, setSelectedExterior] =
+    useState<SelectedExterior | null>(null);
   const activeLightboxTriggerRef = useRef<HTMLButtonElement>(null);
   const filteredModels = models.filter((model) =>
     filters[activeFilter].test(model.squareFeet),
@@ -65,17 +71,40 @@ export function ModelShowcase({
 
   function openExteriorLightbox(
     model: HomeModel,
+    exterior: ResolvedHomeExteriorPresentation,
     trigger: HTMLButtonElement,
   ) {
     activeLightboxTriggerRef.current = trigger;
-    setLightboxPresentation(exteriorPresentation);
-    setSelectedModel(model);
+    setSelectedExterior({
+      model,
+      presentation: exteriorPresentation,
+      exterior,
+    });
   }
 
   function closeExteriorLightbox() {
-    setSelectedModel(null);
+    setSelectedExterior(null);
     window.requestAnimationFrame(() =>
       activeLightboxTriggerRef.current?.focus(),
+    );
+  }
+
+  function changeLightboxPresentation(
+    presentation: HomeExteriorPresentation,
+  ) {
+    setSelectedExterior((current) =>
+      current
+        ? {
+            ...current,
+            presentation,
+            exterior: resolveHomeExteriorPresentation(
+              current.model.slug,
+              current.model.name,
+              current.model.images[0],
+              presentation,
+            ),
+          }
+        : null,
     );
   }
 
@@ -260,8 +289,13 @@ export function ModelShowcase({
                         aria-haspopup="dialog"
                         aria-label={`Enlarge ${model.name} exterior`}
                         data-open-home-exterior-preview={model.slug}
+                        data-active-exterior-image={exterior.image.src}
                         onClick={(event) =>
-                          openExteriorLightbox(model, event.currentTarget)
+                          openExteriorLightbox(
+                            model,
+                            exterior,
+                            event.currentTarget,
+                          )
                         }
                         className="group/media absolute inset-0 cursor-zoom-in focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-white"
                       >
@@ -378,11 +412,12 @@ export function ModelShowcase({
         </motion.div>
       </div>
 
-      {selectedModel ? (
+      {selectedExterior ? (
         <HomeExteriorLightbox
-          model={selectedModel}
-          presentation={lightboxPresentation}
-          onPresentationChange={setLightboxPresentation}
+          model={selectedExterior.model}
+          presentation={selectedExterior.presentation}
+          exterior={selectedExterior.exterior}
+          onPresentationChange={changeLightboxPresentation}
           onClose={closeExteriorLightbox}
         />
       ) : null}

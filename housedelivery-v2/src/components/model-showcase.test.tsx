@@ -54,52 +54,69 @@ test("the collection defaults to Contemporary and retains normal home links", ()
   assert.doesNotMatch(markup, /data-indigenous-inspired-coming-soon/);
 });
 
-test("an available Indigenous-inspired exterior renders in the enlarged viewer", () => {
-  const canmore = models.find((model) => model.slug === "canmore");
-  assert.ok(canmore);
+test("Langley and Solace enlarged views use their exact resolved card image", () => {
+  for (const slug of ["langley", "solace"]) {
+    const model = models.find((candidate) => candidate.slug === slug);
+    assert.ok(model);
 
-  const indigenousInspired = getIndigenousInspiredExteriorImage(
-    canmore.slug,
-  );
-  assert.ok(indigenousInspired);
+    const exterior = resolveHomeExteriorPresentation(
+      model.slug,
+      model.name,
+      model.images[0],
+      "indigenous-inspired",
+    );
+    const indigenousInspired = getIndigenousInspiredExteriorImage(model.slug);
+    assert.ok(indigenousInspired);
+    assert.equal(exterior.image.src, indigenousInspired.src);
 
-  const markup = renderToStaticMarkup(
-    <HomeExteriorLightbox
-      model={canmore}
-      presentation="indigenous-inspired"
-      onPresentationChange={() => undefined}
-      onClose={() => undefined}
-    />,
-  );
+    const markup = renderToStaticMarkup(
+      <HomeExteriorLightbox
+        model={model}
+        presentation="indigenous-inspired"
+        exterior={exterior}
+        onPresentationChange={() => undefined}
+        onClose={() => undefined}
+      />,
+    );
 
-  assert.match(markup, /data-home-exterior-lightbox="canmore"/);
-  assert.match(
-    markup,
-    /data-lightbox-exterior-presentation="indigenous-inspired"/,
-  );
-  assert.ok(markup.includes(indigenousInspired.src));
-  assert.match(markup, /data-lightbox-exterior-toggle/);
-  assert.match(markup, /href="\/homes\/canmore"/);
-  assert.doesNotMatch(markup, /data-lightbox-indigenous-coming-soon/);
+    assert.match(
+      markup,
+      new RegExp(`data-home-exterior-lightbox="${slug}"`),
+    );
+    assert.ok(markup.includes(`src="${exterior.image.src}"`));
+    assert.match(markup, /data-lightbox-exterior-toggle/);
+    assert.match(markup, new RegExp(`href="/homes/${slug}"`));
+    assert.doesNotMatch(markup, /data-lightbox-indigenous-coming-soon/);
+  }
 });
 
-test("a Coming Soon enlarged view retains its Contemporary exterior", () => {
-  const profile = models.find((model) => model.slug === "profile");
-  assert.ok(profile);
-  assert.equal(getIndigenousInspiredExteriorImage(profile.slug), undefined);
+test("Salt Spring Coming Soon enlarged view retains its Contemporary exterior", () => {
+  const saltSpring = models.find((model) => model.slug === "salt-spring");
+  assert.ok(saltSpring);
+  assert.equal(
+    getIndigenousInspiredExteriorImage(saltSpring.slug),
+    undefined,
+  );
+  const exterior = resolveHomeExteriorPresentation(
+    saltSpring.slug,
+    saltSpring.name,
+    saltSpring.images[0],
+    "indigenous-inspired",
+  );
 
   const markup = renderToStaticMarkup(
     <HomeExteriorLightbox
-      model={profile}
+      model={saltSpring}
       presentation="indigenous-inspired"
+      exterior={exterior}
       onPresentationChange={() => undefined}
       onClose={() => undefined}
     />,
   );
 
-  assert.match(markup, /data-home-exterior-lightbox="profile"/);
+  assert.match(markup, /data-home-exterior-lightbox="salt-spring"/);
   assert.match(markup, /data-lightbox-indigenous-coming-soon/);
-  assert.ok(markup.includes(profile.images[0]));
+  assert.ok(markup.includes(`src="${saltSpring.images[0]}"`));
   assert.match(markup, />Indigenous Inspired</);
   assert.match(markup, />Coming Soon</);
 });

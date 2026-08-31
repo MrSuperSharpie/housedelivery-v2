@@ -7,8 +7,8 @@ import Link from "next/link";
 import { type MouseEvent, useEffect, useId, useRef } from "react";
 
 import {
-  resolveHomeExteriorPresentation,
   type HomeExteriorPresentation,
+  type ResolvedHomeExteriorPresentation,
 } from "@/data/first-nations-cultural-design";
 import type { HomeModel } from "@/data/models";
 import { cn } from "@/lib/cn";
@@ -16,6 +16,7 @@ import { cn } from "@/lib/cn";
 type HomeExteriorLightboxProps = {
   model: HomeModel;
   presentation: HomeExteriorPresentation;
+  exterior: ResolvedHomeExteriorPresentation;
   onPresentationChange: (presentation: HomeExteriorPresentation) => void;
   onClose: () => void;
 };
@@ -28,6 +29,7 @@ const presentations = [
 export function HomeExteriorLightbox({
   model,
   presentation,
+  exterior,
   onPresentationChange,
   onClose,
 }: HomeExteriorLightboxProps) {
@@ -35,13 +37,6 @@ export function HomeExteriorLightbox({
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const titleId = useId();
   const descriptionId = useId();
-  const exterior = resolveHomeExteriorPresentation(
-    model.slug,
-    model.name,
-    model.images[0],
-    presentation,
-  );
-
   useEffect(() => {
     const dialog = dialogRef.current;
 
@@ -104,6 +99,7 @@ export function HomeExteriorLightbox({
                 src={exterior.image.src}
                 alt={exterior.image.alt}
                 fill
+                unoptimized
                 sizes="(max-width: 1023px) calc(100vw - 1rem), min(calc(100vw - 21rem), 1180px)"
                 className="object-contain"
               />
