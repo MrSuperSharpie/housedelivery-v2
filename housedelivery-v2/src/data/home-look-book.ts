@@ -128,6 +128,15 @@ export function getLookBookPersonalTitle(
   return `${possessive} ${homeName}`;
 }
 
+export function getLookBookHomeTitle(
+  homeName: string,
+  customer?: LookBookCustomer,
+) {
+  return customer?.firstName.trim()
+    ? getLookBookPersonalTitle(customer, homeName)
+    : `My ${homeName}`;
+}
+
 export function getLookBookDesignStory(selections: readonly LookBookSelection[]) {
   const descriptors = Array.from(
     new Set(selections.flatMap((selection) => selection.editorial?.descriptors ?? [])),

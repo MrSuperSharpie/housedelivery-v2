@@ -15,7 +15,6 @@ import {
 import {
   formatLookBookPreparedDate,
   getLookBookCustomerName,
-  getLookBookPersonalTitle,
   getLookBookSelectionSections,
   type LookBookCustomer,
   type LookBookSection,
@@ -433,7 +432,7 @@ function PersonalizationForm({
               id="home-look-book-heading"
               className="mt-7 max-w-5xl text-[clamp(4rem,9vw,9rem)] font-medium leading-[0.82] tracking-[-0.075em] text-black/88"
             >
-              Your {homeName}.
+              My {homeName}.
               <br />
               <span className="text-black/52">Ready to become real.</span>
             </h2>
@@ -1191,19 +1190,6 @@ export function HomeLookBook({
   const { lookBook } = definition;
   const projectDesignName =
     personalization.projectDesignName ?? plannerContext?.designLabel;
-  const customerName = personalization.customer
-    ? getLookBookCustomerName(personalization.customer)
-    : "";
-  const personalTitle = projectDesignName ??
-    (personalization.customer
-      ? getLookBookPersonalTitle(
-          personalization.customer,
-          lookBook.home.residenceLabel,
-        )
-      : lookBook.home.residenceLabel);
-  const preparedForLabel = customerName
-    ? `Prepared for ${customerName}`
-    : "Personalized configuration";
   const preparedDate = formatLookBookPreparedDate(personalization.preparedAt);
   const isSubmitted = configuration.reviewStatus === "ready-for-review";
   const selectionSections = getLookBookSelectionSections(lookBook.sections);
@@ -1238,9 +1224,21 @@ export function HomeLookBook({
         configuration={configuration}
         initialConfigurationId={savedConfigurationId}
         initialHasContact={savedHasContact}
+        initialCustomer={personalization.customer}
         savedView={savedView}
         enabled={!plannerContext}
       >
+        {(customerHomeTitle, customer) => {
+          const personalTitle = projectDesignName ?? customerHomeTitle;
+          const customerName = customer
+            ? getLookBookCustomerName(customer)
+            : "";
+          const preparedForLabel = customerName
+            ? `Prepared for ${customerName}`
+            : "Personalized configuration";
+
+          return (
+            <>
         {plannerContext ? (
           <div className="look-book-screen-control border-b border-black/14 px-5 py-8 sm:px-8 lg:px-12">
             <div className="mx-auto flex max-w-[1504px] flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
@@ -1325,7 +1323,7 @@ export function HomeLookBook({
           <div>
             <p className="text-[8px] font-semibold uppercase tracking-[0.2em] text-white/52">A home shaped around you / Next stage</p>
             <h3 className="look-book-print-headline mt-7 max-w-6xl text-[clamp(4rem,8.5vw,9rem)] font-medium uppercase leading-[0.82] tracking-[-0.075em]">
-              <span className="block">Your {definition.residenceLabel}.</span>{" "}<span className="block text-white/48">Ready to become real.</span>
+              <span className="block">{personalTitle}.</span>{" "}<span className="block text-white/48">Ready to become real.</span>
             </h3>
             <p className="mt-9 max-w-2xl text-sm leading-7 text-white/58">
               This personal Look Book carries your selected design language into
@@ -1379,6 +1377,9 @@ export function HomeLookBook({
           </div>
         </div>
       </section>
+            </>
+          );
+        }}
       </LookBookCompletionActions>
     </section>
   );

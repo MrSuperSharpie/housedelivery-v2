@@ -16,6 +16,7 @@ const noop = () => {};
 
 function createCompleteConfiguration(
   definition: HomeConfiguratorDefinition,
+  customerFirstName = "Sarah",
 ): HomeConfiguration {
   const configuration = createDefaultHomeConfiguration(definition);
   const inclusionSelections: HomeConfiguration["inclusionSelections"] = {};
@@ -44,7 +45,9 @@ function createCompleteConfiguration(
     flooringSelections,
     reviewStatus: "ready-for-review",
     lookBookPersonalization: {
-      customer: { firstName: "Sarah" },
+      ...(customerFirstName
+        ? { customer: { firstName: customerFirstName } }
+        : {}),
       preparedAt: "2026-08-29T12:00:00.000Z",
       reference: `${definition.homeId.toUpperCase()}-FLOW-001`,
     },
@@ -105,7 +108,7 @@ test("every migrated home shares the Get My Look Book flow and House Delivery va
     );
     assert.match(
       markup,
-      new RegExp(`Your ${definition.residenceLabel} is ready\\.`),
+      new RegExp(`Sarah’s ${definition.residenceLabel} is ready\\.`),
     );
     assert.match(markup, new RegExp(`Sarah’s ${definition.residenceLabel}`));
     assert.doesNotMatch(markup, /House House/);
@@ -149,5 +152,48 @@ test("every migrated home shares the Get My Look Book flow and House Delivery va
       /data-save-look-book=\"top\"/,
       `${definition.homeName}: disconnected standalone save bar is removed`,
     );
+  }
+});
+
+test("Cedarview and Canmore covers use My before save and Edgar’s after", () => {
+  for (const homeId of ["cedarview", "canmore"]) {
+    const definition = homeConfiguratorRegistrations.find(
+      (registration) => registration.homeId === homeId,
+    )?.definition;
+    assert.ok(definition);
+
+    const fallbackMarkup = renderToStaticMarkup(
+      <HomeLookBook
+        definition={definition}
+        configuration={createCompleteConfiguration(definition, "")}
+        onCreateLookBook={noop}
+        onEditCategory={noop}
+        onPreviewOption={noop}
+        onSubmit={noop}
+        directSourceImages
+      />,
+    );
+    const namedMarkup = renderToStaticMarkup(
+      <HomeLookBook
+        definition={definition}
+        configuration={createCompleteConfiguration(definition, "Edgar")}
+        onCreateLookBook={noop}
+        onEditCategory={noop}
+        onPreviewOption={noop}
+        onSubmit={noop}
+        directSourceImages
+      />,
+    );
+
+    assert.match(
+      fallbackMarkup,
+      new RegExp(`My ${definition.residenceLabel}`),
+    );
+    assert.match(
+      namedMarkup,
+      new RegExp(`Edgar’s ${definition.residenceLabel}`),
+    );
+    assert.doesNotMatch(fallbackMarkup, /House House/);
+    assert.doesNotMatch(namedMarkup, /House House/);
   }
 });

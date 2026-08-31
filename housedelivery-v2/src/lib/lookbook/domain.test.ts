@@ -7,6 +7,7 @@ import {
   type HomeConfiguration,
   type HomeConfiguratorDefinition,
 } from "@/data/home-configurator";
+import { getLookBookHomeTitle } from "@/data/home-look-book";
 import {
   attachPropertyFeasibility,
   classifyEmailLead,
@@ -160,6 +161,16 @@ test("property feasibility qualifies and updates the same configuration record",
     updatedAt: timestamp,
     completedAt: timestamp,
   };
+  assert.deepEqual(record.configuration.lookBookPersonalization?.customer, {
+    firstName: "Sarah",
+  });
+  assert.equal(
+    getLookBookHomeTitle(
+      definition.residenceLabel,
+      record.configuration.lookBookPersonalization?.customer,
+    ),
+    `Sarah’s ${definition.residenceLabel}`,
+  );
   const property = parsePropertyFeasibility(
     {
       municipality: "Vancouver",

@@ -21,6 +21,10 @@ import type {
   HomeConfiguratorDefinition,
 } from "@/data/home-configurator";
 import {
+  getLookBookHomeTitle,
+  type LookBookCustomer,
+} from "@/data/home-look-book";
+import {
   attributionEventProperties,
   trackLookBookEvent,
 } from "@/lib/lookbook/analytics";
@@ -34,7 +38,11 @@ type LookBookCompletionActionsProps = {
   initialHasContact?: boolean;
   savedView?: boolean;
   enabled?: boolean;
-  children: ReactNode;
+  initialCustomer?: LookBookCustomer;
+  children: (
+    personalizedHomeTitle: string,
+    customer?: LookBookCustomer,
+  ) => ReactNode;
 };
 
 type SubmissionResult = {
@@ -80,6 +88,7 @@ export function LookBookCompletionActions({
   initialHasContact = false,
   savedView = false,
   enabled = true,
+  initialCustomer,
   children,
 }: LookBookCompletionActionsProps) {
   const [configurationId, setConfigurationId] = useState(
@@ -97,6 +106,7 @@ export function LookBookCompletionActions({
   const [configurationSaved, setConfigurationSaved] = useState(
     Boolean(initialConfigurationId),
   );
+  const [savedCustomer, setSavedCustomer] = useState(initialCustomer);
   const [attribution] = useState<LookBookAttribution>(() =>
     getFirstTouchAttribution(),
   );
@@ -185,6 +195,7 @@ export function LookBookCompletionActions({
     setError("");
 
     const formData = new FormData(event.currentTarget);
+    const firstName = formValue(formData, "firstName");
     const email = formValue(formData, "email");
     const followUpRequested = formData.get("followUpRequested") === "on";
     const submissionConfigurationId =
@@ -200,7 +211,7 @@ export function LookBookCompletionActions({
         homeSlug: definition.homeId,
         configuration,
         contact: {
-          firstName: formValue(formData, "firstName"),
+          firstName,
           email,
           phone: formValue(formData, "phone"),
         },
@@ -211,6 +222,7 @@ export function LookBookCompletionActions({
       setConfigurationId(result.configurationId);
       setConfigurationSaved(true);
       setHasSavedContact(true);
+      setSavedCustomer({ firstName });
       setSavedEmail(email);
       setEmailDeliveryPending(result.emailSent === false);
       setActiveForm(null);
@@ -238,6 +250,9 @@ export function LookBookCompletionActions({
     setError("");
 
     const formData = new FormData(event.currentTarget);
+    const firstName = !hasSavedContact
+      ? formValue(formData, "firstName")
+      : "";
     const submissionConfigurationId =
       configurationId ?? createClientConfigurationId();
     if (submissionConfigurationId) {
@@ -252,7 +267,7 @@ export function LookBookCompletionActions({
               homeSlug: definition.homeId,
               configuration,
               contact: {
-                firstName: formValue(formData, "firstName"),
+                firstName,
                 email: formValue(formData, "email"),
                 phone: formValue(formData, "phone"),
               },
@@ -275,6 +290,7 @@ export function LookBookCompletionActions({
       setConfigurationId(result.configurationId);
       setConfigurationSaved(true);
       setHasSavedContact(true);
+      if (firstName) setSavedCustomer({ firstName });
       setPropertySubmitted(true);
       setActiveForm(null);
       trackLookBookEvent("property_check_submitted", eventBase);
@@ -295,8 +311,12 @@ export function LookBookCompletionActions({
     ? `/lookbook/${configurationId}`
     : undefined;
   const hasSavedLookBook = configurationSaved && savedUrl;
+  const personalizedHomeTitle = getLookBookHomeTitle(
+    definition.residenceLabel,
+    savedCustomer,
+  );
 
-  if (!enabled) return <>{children}</>;
+  if (!enabled) return <>{children(personalizedHomeTitle, savedCustomer)}</>;
 
   return (
     <>
@@ -309,7 +329,7 @@ export function LookBookCompletionActions({
             Configuration complete
           </p>
           <h3 className="mt-5 max-w-4xl text-[clamp(2.5rem,5.5vw,5.75rem)] font-medium leading-[0.9] tracking-[-0.065em] text-white">
-            Your {definition.residenceLabel} is ready.
+            {personalizedHomeTitle} is ready.
           </h3>
           <p className="mt-6 max-w-2xl text-sm leading-7 text-white/64">
             Your selections have been brought together into your personalized House
@@ -526,7 +546,7 @@ export function LookBookCompletionActions({
         </div>
       </section>
 
-      {children}
+      {children(personalizedHomeTitle, savedCustomer)}
 
       <section
         className="look-book-screen-control bg-[#111216] px-5 pb-16 text-white sm:px-8 sm:pb-20 lg:px-12 lg:pb-24"
@@ -535,7 +555,7 @@ export function LookBookCompletionActions({
         <div className="mx-auto grid max-w-[1504px] gap-8 border-t border-white/20 pt-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-end lg:gap-16">
           <div>
             <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/52">
-              Your {definition.residenceLabel} Look Book
+              {personalizedHomeTitle} Look Book
             </p>
             <h3 className="mt-4 text-[clamp(2rem,3.5vw,3.75rem)] font-medium leading-[0.92] tracking-[-0.05em] text-white">
               Ready when you are.

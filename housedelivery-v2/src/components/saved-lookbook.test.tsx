@@ -56,6 +56,7 @@ test("saved Look Book restores selections as a read-only downloadable view", () 
   );
 
   assert.match(markup, /Prepared for Sarah/);
+  assert.match(markup, /Sarah’s Langley House/);
   assert.match(markup, /Download My Look Book/);
   assert.match(markup, /Check My Property/);
   assert.match(markup, /data-look-book-option=/);
