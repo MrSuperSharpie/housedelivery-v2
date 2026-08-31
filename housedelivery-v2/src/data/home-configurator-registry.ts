@@ -2,6 +2,16 @@ import { carriageHomes } from "@/data/carriage-homes";
 import { catalogModels } from "@/data/catalog";
 import { daltonHomeConfigurator } from "@/data/dalton-home-configurator";
 import {
+  auroraHomeConfigurator,
+  borealHomeConfigurator,
+  canmoreHomeConfigurator,
+  cascadeHomeConfigurator,
+  cedarviewHomeConfigurator,
+  keatsHomeConfigurator,
+  mayneHomeConfigurator,
+  summitHomeConfigurator,
+} from "@/data/house-delivery-visual-guide-configurators";
+import {
   getRequiredCategories,
   type HomeConfiguratorDefinition,
 } from "@/data/home-configurator";
@@ -26,14 +36,22 @@ function registrationKey(productFamily: HomeProductFamily, homeId: string) {
 const customHomeDefinitions: Readonly<
   Record<string, HomeConfiguratorDefinition>
 > = {
+  aurora: auroraHomeConfigurator,
+  boreal: borealHomeConfigurator,
+  canmore: canmoreHomeConfigurator,
+  cascade: cascadeHomeConfigurator,
+  cedarview: cedarviewHomeConfigurator,
   dalton: daltonHomeConfigurator,
+  keats: keatsHomeConfigurator,
   langley: langleyHomeConfigurator,
   laurentian: laurentianHomeConfigurator,
   maplewood: maplewoodHomeConfigurator,
+  mayne: mayneHomeConfigurator,
   profile: profileHomeConfigurator,
   saturna: saturnaHomeConfigurator,
   solace: solaceHomeConfigurator,
   "south-bay": southBayHomeConfigurator,
+  summit: summitHomeConfigurator,
   timberline: timberlineHomeConfigurator,
 };
 

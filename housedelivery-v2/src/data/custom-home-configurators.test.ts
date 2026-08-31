@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readdirSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import { basename, join } from "node:path";
 import test from "node:test";
 
@@ -39,16 +39,107 @@ import { southBayHomeConfigurator } from "@/data/south-bay-home-configurator";
 import { timberlineHomeConfigurator } from "@/data/timberline-home-configurator";
 
 const canonicalCustomHomeIds = new Set([
+  "aurora",
+  "boreal",
+  "canmore",
+  "cascade",
+  "cedarview",
   "dalton",
+  "keats",
   "langley",
   "laurentian",
   "maplewood",
+  "mayne",
   "profile",
   "saturna",
   "solace",
   "south-bay",
+  "summit",
   "timberline",
 ]);
+
+const newVisualGuideHomes = [
+  {
+    id: "keats",
+    assetRoot: "/images/homes/keats/visual-guide",
+    packageNames: [
+      "Harbour Oak Sandstone",
+      "Gallery Ash Pearlstone",
+      "Night Fir Basalt",
+      "Walnut Bronze Veined Limestone",
+    ],
+  },
+  {
+    id: "boreal",
+    assetRoot: "/images/homes/boreal/visual-guide",
+    packageNames: [
+      "Hearthstone Oak",
+      "Silver Birch",
+      "Midnight Schist",
+      "Bronze Ember",
+    ],
+  },
+  {
+    id: "canmore",
+    assetRoot: "/images/homes/canmore/visual-guide",
+    packageNames: [
+      "Hearth Oak",
+      "Mineral Linen",
+      "Carbon Ridge",
+      "Bronze Walnut",
+    ],
+  },
+  {
+    id: "cascade",
+    assetRoot: "/images/homes/cascade/visual-guide",
+    packageNames: [
+      "Meadow Oak",
+      "Gallery Ash",
+      "Carbon Elm",
+      "Bronze Strata",
+    ],
+  },
+  {
+    id: "cedarview",
+    assetRoot: "/images/homes/cedarview/visual-guide",
+    packageNames: [
+      "Arbutus Stone",
+      "Cloudline Ash",
+      "Raven Basalt",
+      "Bronze Umber",
+    ],
+  },
+  {
+    id: "mayne",
+    assetRoot: "/images/homes/mayne",
+    packageNames: [
+      "Orchard Oak",
+      "Pearl Pumice",
+      "Onyx Grid",
+      "Sienna Walnut",
+    ],
+  },
+  {
+    id: "summit",
+    assetRoot: "/images/homes/summit/visual-guide",
+    packageNames: [
+      "Terrace Elm",
+      "Silver Quartz",
+      "Nightfall Charcoal",
+      "Cognac Bronze",
+    ],
+  },
+  {
+    id: "aurora",
+    assetRoot: "/images/homes/aurora/visual-guide",
+    packageNames: [
+      "Sunward Oak",
+      "Lumen Elm",
+      "Eclipse Slate",
+      "Ember Bronze",
+    ],
+  },
+] as const;
 
 function getCategoryOptions(category: HomeInclusionCategory) {
   if (category.kind === "standard" || category.kind === "room-look") {
@@ -118,7 +209,7 @@ test("all residential product families are registered without premature activati
     customHomes.filter(
       (registration) => registration.migrationStatus === "canonical",
     ).length,
-    9,
+    17,
   );
   assert.ok(
     customHomes
@@ -153,7 +244,7 @@ test("all residential product families are registered without premature activati
   assert.equal(getHomeConfiguratorDefinition("the-micro"), undefined);
 });
 
-test("Mayne House uses its approved gallery and remains Lookbook coming soon", () => {
+test("Mayne House preserves its approved gallery alongside its Visual Guide", () => {
   const mayne = models.find((model) => model.slug === "mayne");
   const assetDirectory = join(
     process.cwd(),
@@ -179,12 +270,16 @@ test("Mayne House uses its approved gallery and remains Lookbook coming soon", (
     mayne.floorPlanImage,
     "/images/homes/mayne/mayne-floor-plan.jpg",
   );
-  assert.deepEqual(readdirSync(assetDirectory).sort(), expectedAssets);
-  assert.equal(getHomeConfiguratorDefinition("mayne"), undefined);
+  const galleryAssets = readdirSync(assetDirectory)
+    .filter((filename) => filename.endsWith(".jpg"))
+    .sort();
+
+  assert.deepEqual(galleryAssets, expectedAssets);
+  assert.ok(getHomeConfiguratorDefinition("mayne"));
   assert.equal(
     getHomeConfiguratorRegistration("custom-home", "mayne")
       ?.migrationStatus,
-    "awaiting-approved-content",
+    "canonical",
   );
 });
 
@@ -226,7 +321,7 @@ test("The Salt Spring Duplex uses its approved gallery and remains Lookbook comi
   );
 });
 
-test("Keats House uses its approved gallery and remains Lookbook coming soon", () => {
+test("Keats House preserves its approved gallery alongside its Visual Guide", () => {
   const keats = models.find((model) => model.slug === "keats");
   const assetDirectory = join(
     process.cwd(),
@@ -257,13 +352,87 @@ test("Keats House uses its approved gallery and remains Lookbook coming soon", (
     keats.floorPlanImage,
     "/images/homes/keats/keats-floor-plan.jpeg",
   );
-  assert.deepEqual(readdirSync(assetDirectory).sort(), expectedAssets);
-  assert.equal(getHomeConfiguratorDefinition("keats"), undefined);
+  const galleryAssets = readdirSync(assetDirectory)
+    .filter((filename) => filename.endsWith(".jpeg"))
+    .sort();
+
+  assert.deepEqual(galleryAssets, expectedAssets);
+  assert.ok(getHomeConfiguratorDefinition("keats"));
   assert.equal(
     getHomeConfiguratorRegistration("custom-home", "keats")
       ?.migrationStatus,
-    "awaiting-approved-content",
+    "canonical",
   );
+});
+
+test("the next eight Custom Homes wire all 224 approved Visual Guide boards", () => {
+  const allImageSources = new Set<string>();
+
+  for (const home of newVisualGuideHomes) {
+    const definition = getHomeConfiguratorDefinition(home.id);
+    const registration = getHomeConfiguratorRegistration(
+      "custom-home",
+      home.id,
+    );
+
+    assert.ok(definition, `Missing configurator for ${home.id}`);
+    assert.equal(registration?.migrationStatus, "canonical");
+    assert.strictEqual(registration?.definition, definition);
+    assert.deepEqual(getCanonicalHomeConfiguratorIssues(definition), []);
+
+    const requiredCategories = getRequiredCategories(definition);
+    assert.equal(requiredCategories.length, 7);
+    assert.equal(
+      getProjectCoordinatedCategories(definition)[0]?.coordinatedMessage,
+      "Project Coordinated",
+    );
+
+    const homeImageSources = new Set<string>();
+    for (const category of requiredCategories) {
+      assert.equal(category.kind, "room-look");
+      if (category.kind !== "room-look") continue;
+
+      assert.deepEqual(
+        category.options.map((option) => option.name),
+        home.packageNames,
+      );
+      assert.deepEqual(
+        category.options.map(
+          (option) => `${option.level}:${option.optionNumber}`,
+        ),
+        ["premium:1", "premium:2", "signature:1", "signature:2"],
+      );
+
+      for (const option of category.options) {
+        assert.equal(option.image.fit, "contain");
+        assert.equal(option.image.role, "design-board");
+        assert.ok(
+          option.image.src.startsWith(`${home.assetRoot}/`),
+          `${home.id} references an asset outside its approved directory: ${option.image.src}`,
+        );
+        assert.ok(
+          existsSync(
+            join(
+              process.cwd(),
+              "public",
+              option.image.src.replace(/^\//, ""),
+            ),
+          ),
+          `Missing Visual Guide board: ${option.image.src}`,
+        );
+        homeImageSources.add(option.image.src);
+        allImageSources.add(option.image.src);
+      }
+    }
+
+    assert.equal(homeImageSources.size, 28, `${home.id} must use 28 boards`);
+    assert.equal(
+      definition.lookBook.sections[0]?.title,
+      `The ${definition.homeName} You Created`,
+    );
+  }
+
+  assert.equal(allImageSources.size, 224);
 });
 
 test("the family policy locks finish-only personalization and optional smaller-home chapters", () => {
