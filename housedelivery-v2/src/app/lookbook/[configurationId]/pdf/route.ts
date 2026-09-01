@@ -12,10 +12,28 @@ const LOCAL_CHROME_PATH =
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const FORWARDED_PREVIEW_HEADERS = [
   "authorization",
-  "cookie",
   "x-vercel-protection-bypass",
   "x-vercel-set-bypass-cookie",
 ] as const;
+
+function parseRequestCookies(cookieHeader: string | null, origin: string) {
+  if (!cookieHeader) return [];
+
+  return cookieHeader
+    .split(";")
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .flatMap((part) => {
+      const separatorIndex = part.indexOf("=");
+      if (separatorIndex <= 0) return [];
+
+      return [{
+        name: part.slice(0, separatorIndex).trim(),
+        value: part.slice(separatorIndex + 1),
+        url: origin,
+      }];
+    });
+}
 
 async function launchBrowser(): Promise<Browser> {
   const isVercel = process.env.VERCEL === "1";
@@ -54,6 +72,10 @@ export async function GET(
 
   const requestUrl = new URL(request.url);
   const sourceUrl = new URL(`/lookbook/${configurationId}`, requestUrl.origin);
+  const previewShareToken = requestUrl.searchParams.get("_vercel_share");
+  if (previewShareToken) {
+    sourceUrl.searchParams.set("_vercel_share", previewShareToken);
+  }
   const disposition =
     requestUrl.searchParams.get("disposition") === "attachment"
       ? "attachment"
@@ -62,9 +84,17 @@ export async function GET(
 
   try {
     browser = await launchBrowser();
-    const page = await browser.newPage({
+    const context = await browser.newContext({
       viewport: { width: 1440, height: 1000 },
     });
+    const requestCookies = parseRequestCookies(
+      request.headers.get("cookie"),
+      requestUrl.origin,
+    );
+    if (requestCookies.length > 0) {
+      await context.addCookies(requestCookies);
+    }
+    const page = await context.newPage();
 
     await page.route("**/*", async (route) => {
       const routeUrl = new URL(route.request().url());
