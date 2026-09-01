@@ -64,6 +64,7 @@ import {
   buildPlannerDesignHref,
   buildPlannerHomeViewHref,
   getPlannerReturnHref,
+  getPlannerConfigurationKey,
   getPlannerReturnKey,
   getPlannerStorageKey,
   type PlannerDesignReturn,
@@ -171,9 +172,56 @@ function getPlannerDesignSession(
     assignedQuantity: variation.assignedQuantity,
     deliveryGroup: plannerPhaseLabels[line.phase],
     returnHref: getPlannerReturnHref(audience, "planner-design-center"),
+    ...(variation.lookBookConfigurationId
+      ? { lookBookConfigurationId: variation.lookBookConfigurationId }
+      : {}),
     ...(audience === "first-nations"
       ? { culturalExteriorInterest: variation.culturalExteriorInterest ?? false }
       : {}),
+  };
+}
+
+function restoreSavedDesignConfigurations(
+  state: PlannerState,
+  catalog: readonly PlannerCatalogItem[],
+) {
+  return {
+    ...state,
+    portfolio: state.portfolio.map((line) => {
+      const model = catalog.find((candidate) => candidate.id === line.modelId);
+      if (!model) return line;
+      return {
+        ...line,
+        designVariations: line.designVariations.map((variation) => {
+          if (variation.configuration || variation.status !== "complete") {
+            return variation;
+          }
+          try {
+            const saved = window.localStorage.getItem(
+              getPlannerConfigurationKey(
+                getPlannerDesignSession(
+                  state.audience,
+                  state.projectId,
+                  state.community,
+                  line,
+                  model,
+                  variation,
+                ),
+              ),
+            );
+            if (!saved) return variation;
+            const configuration = JSON.parse(saved) as NonNullable<
+              PlannerDesignVariation["configuration"]
+            >;
+            return configuration.homeId === line.modelId.replace(/^custom:/, "")
+              ? { ...variation, configuration }
+              : variation;
+          } catch {
+            return variation;
+          }
+        }),
+      };
+    }),
   };
 }
 
@@ -184,6 +232,17 @@ function labelValue(value: string) {
         .split("-")
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(" ");
+}
+
+function getLouStatusLabel(state: PlannerState) {
+  const labels: Record<PlannerState["louStatus"], string> = {
+    "not-started": "Not started",
+    "project-review-requested": "House Delivery review requested",
+    prepared: "LOU prepared",
+    sent: "LOU sent for review",
+    accepted: "LOU accepted",
+  };
+  return labels[state.louStatus];
 }
 
 function getDesignSelectionLevelLabels(variation: PlannerDesignVariation) {
@@ -1476,10 +1535,31 @@ function DesignStep({
                             Cultural design direction / Indigenous Inspiration
                           </p>
                         ) : null}
+                        <label className="mt-5 block">
+                          <FieldLabel>Design Group notes</FieldLabel>
+                          <textarea
+                            rows={2}
+                            value={variation.designNotes}
+                            onChange={(event) =>
+                              updateLine(line.id, (current) => ({
+                                ...current,
+                                designVariations: current.designVariations.map(
+                                  (candidate) =>
+                                    candidate.id === variation.id
+                                      ? { ...candidate, designNotes: event.target.value }
+                                      : candidate,
+                                ),
+                              }))
+                            }
+                            placeholder="Optional notes that should travel with this design package"
+                            className="w-full border border-black/18 bg-transparent p-3 text-xs leading-5 text-black outline-none focus:border-black"
+                          />
+                        </label>
                         <div className="mt-7 flex flex-wrap gap-x-5 gap-y-3 border-t border-black/12 pt-4">
                           {variation.status === "complete" ? (
                             <>
-                              <PlannerLink href={lookBookHref} newTab={false}>View Look Book</PlannerLink>
+                              <PlannerLink href={variation.lookBookConfigurationId ? `/lookbook/${variation.lookBookConfigurationId}` : lookBookHref} newTab={Boolean(variation.lookBookConfigurationId)}>View Look Book</PlannerLink>
+                              {variation.lookBookConfigurationId ? <PlannerLink href={`/lookbook/${variation.lookBookConfigurationId}/pdf?disposition=attachment`} newTab>Download PDF</PlannerLink> : null}
                               <PlannerLink href={buildHref} newTab={false}>Edit Design</PlannerLink>
                             </>
                           ) : (
@@ -1775,7 +1855,7 @@ function FirstNationsProjectReviewSummary({
           ["Homes", String(summary.totalHomes)],
           ["Models", String(summary.modelCount)],
           ["Design groups", `${progress.completedDesigns} of ${designGroupCount} complete`],
-          ["LOU", state.louStatus === "project-review-requested" ? "Review requested" : "Not started"],
+          ["LOU", getLouStatusLabel(state)],
         ].map(([label, value]) => (
           <dl key={label}>
             <dt className="text-[8px] font-semibold uppercase tracking-[0.16em] text-black/42">
@@ -2005,7 +2085,7 @@ function OpportunityReport({
         <div data-planner-report-controls="top" className="mt-10 grid gap-3 lg:grid-cols-3">
           <button type="button" onClick={viewReport} className="inline-flex min-h-14 items-center justify-between gap-8 border border-black/28 px-5 text-left text-[9px] font-semibold uppercase tracking-[0.16em] text-black/68 transition-colors hover:border-black hover:text-black">View Opportunity Report <ArrowRight aria-hidden="true" className="size-4" /></button>
           <button type="button" onClick={printReport} data-planner-report-download="top" className="inline-flex min-h-14 items-center justify-between gap-8 border border-black px-5 text-left text-[9px] font-semibold uppercase tracking-[0.16em] text-black transition-colors hover:bg-black hover:text-white">Download Opportunity Report <FileDown aria-hidden="true" className="size-4" /></button>
-          <button type="button" onClick={onBeginReview} className="inline-flex min-h-14 items-center justify-between gap-8 bg-black px-5 text-left text-[9px] font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-black/78">{state.audience === "first-nations" ? "Continue to Project Review / LOU" : "Begin Project Review"} <ArrowRight aria-hidden="true" className="size-4" /></button>
+          <button type="button" onClick={onBeginReview} className="inline-flex min-h-14 items-center justify-between gap-8 bg-black px-5 text-left text-[9px] font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-black/78">{state.audience === "first-nations" ? "Continue to House Delivery Review" : "Begin Project Review"} <ArrowRight aria-hidden="true" className="size-4" /></button>
         </div>
       </div>
 
@@ -2046,8 +2126,14 @@ function OpportunityReport({
         </ReportSection>
 
         <ReportSection number="04" title="Design direction">
+          <p className="mb-6 max-w-4xl text-sm leading-6 text-black/58">
+            {savedDesigns.length} completed {savedDesigns.length === 1 ? "Design Group" : "Design Groups"}. The completed Look Book establishes the preliminary design direction for each Design Group. Following House Delivery review and the appropriate project authorization, these selections can be used for factory design development, virtual walkthrough preparation and project-specific specification review.
+          </p>
           {savedDesigns.length ? <div className="grid gap-3 sm:grid-cols-2">{savedDesigns.map(({ model, variation }) => { const selectionLevels = getDesignSelectionLevelLabels(variation); return <p key={variation.id} className="border-t border-black/16 pt-3 text-sm"><span className="text-black/42">{variation.projectDesignName ?? `${getPlannerHomeName(model)} — ${variation.label}`}</span><br />Assigned to {variation.assignedQuantity} {variation.assignedQuantity === 1 ? "home" : "homes"} · {variation.culturalExteriorInterest ? "Indigenous Inspiration" : "Contemporary"}{selectionLevels.length ? ` · ${selectionLevels.join(" / ")} selections` : ""}{variation.lookBookReference ? ` · Look Book ${variation.lookBookReference}` : ""}</p>; })}</div> : <p className="text-sm text-black/52">Design direction has not yet been recorded. Technical and project-specific approvals remain separate.</p>}
           <CulturalDesignReport records={culturalDesigns} />
+          <p className="mt-7 max-w-4xl border-t border-black/16 pt-5 text-xs leading-5 text-black/52">
+            Factory design-development and virtual walkthrough services are a separate paid next-stage service and are not included simply by completing this Opportunity Report. No fee is due unless it is separately disclosed and authorized.
+          </p>
         </ReportSection>
 
         <ReportSection number="05" title="Major range drivers">
@@ -2095,7 +2181,7 @@ function OpportunityReport({
 
         <footer className="mt-14 bg-[#0b0c10] p-6 text-white sm:p-9">
           <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/45">Next pathway</p>
-          <p className="mt-5 text-xl font-medium leading-8 tracking-[-0.025em]">Discovery → LOU / Commitment → Funding, Financing or Deposit → Project-Specific Technical Review → Final Quotation → Procurement & Delivery</p>
+          <p className="mt-5 text-xl font-medium leading-8 tracking-[-0.025em]">House Delivery Review → LOU → Separate Design Development Authorization → Factory Virtual Walkthrough &amp; Specification Development → Final / Refined Project Pricing → Definitive Agreement</p>
           <p className="mt-7 max-w-4xl text-xs leading-5 text-white/48">This preliminary report is for early opportunity planning only. It is not a quotation, funding decision, technical approval, permit opinion or commitment to deliver. Project-specific professional review, adaptation and jurisdictional approval are required.</p>
         </footer>
       </article>
@@ -2110,7 +2196,7 @@ function OpportunityReport({
             onClick={onBeginReview}
             className="inline-flex min-h-16 items-center justify-between gap-8 bg-black px-6 text-left text-[10px] font-semibold uppercase tracking-[0.17em] text-white transition-colors hover:bg-black/78 lg:col-span-2"
           >
-            {state.audience === "first-nations" ? "Continue to Project Review / LOU" : "Begin Project Review"} <ArrowRight aria-hidden="true" className="size-4" />
+            {state.audience === "first-nations" ? "Continue to House Delivery Review" : "Begin Project Review"} <ArrowRight aria-hidden="true" className="size-4" />
           </button>
           <button
             type="button"
@@ -2160,12 +2246,87 @@ function OpportunityReport({
 
 function isAcceptedProjectReviewResponse(
   value: unknown,
-): value is { accepted: true } {
+): value is {
+  accepted: true;
+  projectStatus?: string;
+  submissionId?: string;
+  designGroups?: readonly {
+    variationId: string;
+    configurationId: string;
+    lookBookUrl: string;
+    pdfUrl: string;
+  }[];
+} {
   return (
     typeof value === "object" &&
     value !== null &&
     "accepted" in value &&
     value.accepted === true
+  );
+}
+
+function SubmittedProjectJourney({
+  state,
+  completedDesigns,
+}: {
+  state: PlannerState;
+  completedDesigns: readonly {
+    model: PlannerCatalogItem;
+    variation: PlannerDesignVariation;
+  }[];
+}) {
+  const milestones = [
+    ["House Delivery Review", "Current", "House Delivery checks the submitted project, readiness information and completed design packages."],
+    ["Letter of Understanding", "Next", "An authorized Nation representative reviews the preliminary project basis. This is separate from paid design work and is not a purchase agreement."],
+    ["Design Development", "Separate authorization", "Each unique Design Group is one potential factory design-development output. Any fee remains to be configured, disclosed and separately authorized."],
+    ["Virtual Walkthrough", "After payment + release", "Only after the LOU, separate authorization, payment clearance and explicit House Delivery release can a design package move to factory development."],
+    ["Final Pricing", "After factory development", "House Delivery refines project pricing after sufficient project-specific walkthrough and specification development."],
+  ] as const;
+
+  return (
+    <div data-post-submission-project-status className="mt-10">
+      <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/45">
+        Project status / Submitted for House Delivery Review
+      </p>
+      <div className="mt-6 grid border-l border-t border-black/16 sm:grid-cols-2 lg:grid-cols-5">
+        {milestones.map(([title, status, description], index) => (
+          <article key={title} className="border-b border-r border-black/16 p-5">
+            <p className="font-mono text-[8px] tracking-[0.16em] text-black/36">
+              {String(index + 1).padStart(2, "0")}
+            </p>
+            <h4 className="mt-5 text-base font-medium uppercase tracking-[-0.025em]">{title}</h4>
+            <p className="mt-3 text-[8px] font-semibold uppercase tracking-[0.15em] text-black/42">{status}</p>
+            <p className="mt-4 text-xs leading-5 text-black/52">{description}</p>
+          </article>
+        ))}
+      </div>
+
+      <section className="mt-9 border-y border-black/18 py-7">
+        <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/44">Your design moves with the project</p>
+        <p className="mt-4 max-w-4xl text-sm leading-6 text-black/58">
+          Your completed Look Book establishes the design direction for each project home group. Following House Delivery&apos;s project review and an agreed Letter of Understanding, the selected materials, finishes and design direction can move into factory design development.
+        </p>
+        <p className="mt-4 max-w-4xl text-sm leading-6 text-black/58">
+          The factory then uses the approved design brief to prepare the project-specific virtual walkthrough and refine specifications required for final pricing. Factory design-development and virtual walkthrough services are a separate paid next-stage service. Any fee will be disclosed and authorized before that work begins.
+        </p>
+      </section>
+
+      <section className="mt-9">
+        <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/44">Design Development Authorization / Not authorized</p>
+        <p className="mt-3 max-w-3xl text-xs leading-5 text-black/50">
+          One requirement is shown per unique Design Group—not per physical home. This is a future separate authorization, not part of the LOU or this submission.
+        </p>
+        <div className="mt-5 border-t border-black/16">
+          {completedDesigns.map(({ model, variation }) => (
+            <div key={variation.id} className="grid gap-2 border-b border-black/16 py-4 text-sm sm:grid-cols-[1fr_auto]">
+              <p>{variation.projectDesignName ?? `${getPlannerHomeName(model.name)} — ${variation.label}`}<br /><span className="text-xs text-black/44">{variation.assignedQuantity} {variation.assignedQuantity === 1 ? "home" : "homes"} / One design-development package</span></p>
+              <p className="text-black/52">Fee: To be configured<br /><span className="text-xs">Status: Not authorized</span>{variation.lookBookConfigurationId ? <><br /><Link href={`/lookbook/${variation.lookBookConfigurationId}`} target="_blank" rel="noreferrer" className="text-[9px] font-semibold uppercase tracking-[0.14em] underline underline-offset-4">View Look Book</Link>{" / "}<Link href={`/lookbook/${variation.lookBookConfigurationId}/pdf?disposition=attachment`} target="_blank" rel="noreferrer" className="text-[9px] font-semibold uppercase tracking-[0.14em] underline underline-offset-4">PDF</Link></> : null}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+      <span className="sr-only">Project {state.projectId} remains saved on this device with {completedDesigns.length} attached design packages.</span>
+    </div>
   );
 }
 
@@ -2221,6 +2382,19 @@ function ProjectReviewStep({
     }));
   }
 
+  function updateAuthorizedRepresentative(
+    key: keyof PlannerState["authorizedRepresentative"],
+    value: string,
+  ) {
+    setState((current) => ({
+      ...current,
+      authorizedRepresentative: {
+        ...current.authorizedRepresentative,
+        [key]: value,
+      } as PlannerState["authorizedRepresentative"],
+    }));
+  }
+
   async function submitProjectReview(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (submissionInFlight.current) return;
@@ -2232,6 +2406,22 @@ function ProjectReviewStep({
     const readValue = (name: string) => {
       const value = formData.get(name);
       return typeof value === "string" ? value.trim() : "";
+    };
+    const submittedAt = new Date().toISOString();
+    const submissionState: PlannerState = {
+      ...state,
+      contact: {
+        firstName: readValue("firstName"),
+        lastName: readValue("lastName"),
+        email: readValue("email"),
+        phone: readValue("phone"),
+      },
+      authorizedRepresentative: {
+        name: readValue("authorizedRepresentativeName"),
+        title: readValue("authorizedRepresentativeTitle"),
+        councilAuthorizationStatus: (readValue("councilAuthorizationStatus") || "to-confirm") as PlannerState["authorizedRepresentative"]["councilAuthorizationStatus"],
+      },
+      submittedAt,
     };
 
     try {
@@ -2254,22 +2444,44 @@ function ProjectReviewStep({
           plannerProject: state.community,
           plannerReference: state.opportunityReportReference,
           plannerContext: reviewContext,
+          ...(state.audience === "first-nations"
+            ? { plannerRecord: submissionState }
+            : {}),
         }),
       });
       const result: unknown = await response.json().catch(() => null);
-      if (!response.ok || !isAcceptedProjectReviewResponse(result)) {
+      if (
+        !response.ok ||
+        !isAcceptedProjectReviewResponse(result) ||
+        (state.audience === "first-nations" &&
+          result.designGroups?.length !== completedDesigns.length)
+      ) {
         throw new Error("Project review delivery failed.");
       }
+      const savedDesignGroups = new Map(
+        result.designGroups?.map((designGroup) => [
+          designGroup.variationId,
+          designGroup,
+        ]),
+      );
       setState((current) => ({
         ...current,
-        contact: {
-          firstName: readValue("firstName"),
-          lastName: readValue("lastName"),
-          email: readValue("email"),
-          phone: readValue("phone"),
-        },
+        contact: submissionState.contact,
+        authorizedRepresentative: submissionState.authorizedRepresentative,
+        portfolio: current.portfolio.map((line) => ({
+          ...line,
+          designVariations: line.designVariations.map((variation) => ({
+            ...variation,
+            lookBookConfigurationId:
+              savedDesignGroups.get(variation.id)?.configurationId ??
+              variation.lookBookConfigurationId,
+          })),
+        })),
         reviewStatus: "submitted",
+        lifecycleStatus: "submitted-for-review",
         louStatus: "project-review-requested",
+        submissionId: result.submissionId ?? current.submissionId,
+        submittedAt,
       }));
       setSubmitted(true);
     } catch {
@@ -2295,7 +2507,7 @@ function ProjectReviewStep({
           ["Project ID", state.projectId],
           [state.audience === "first-nations" ? "Community / project" : "Project / organization", state.community],
           ["Working portfolio", `${summary.totalHomes} ${summary.totalHomes === 1 ? "home" : "homes"} / ${summary.modelCount} ${summary.modelCount === 1 ? "model type" : "model types"}`],
-          [state.audience === "first-nations" ? "LOU status" : "Funding / financing review", state.audience === "first-nations" ? (state.louStatus === "project-review-requested" ? "Project review requested" : "Not started") : `${includedFunding.length} selected ${includedFunding.length === 1 ? "corridor" : "corridors"}`],
+          [state.audience === "first-nations" ? "LOU status" : "Funding / financing review", state.audience === "first-nations" ? getLouStatusLabel(state) : `${includedFunding.length} selected ${includedFunding.length === 1 ? "corridor" : "corridors"}`],
         ].map(([label, value]) => (
           <dl key={label} className="border-t border-black/18 pt-4">
             <dt className="text-[8px] font-semibold uppercase tracking-[0.16em] text-black/42">{label}</dt>
@@ -2367,10 +2579,13 @@ function ProjectReviewStep({
 
       <div className="mt-14 border-y border-black/18 py-9 sm:py-12">
         {submitted ? (
-          <div role="status" className="max-w-3xl">
+          <div role="status">
+            <div className="max-w-3xl">
             <p className="inline-flex items-center gap-3 text-[9px] font-semibold uppercase tracking-[0.18em] text-black/48"><Check aria-hidden="true" className="size-4" /> Project review received</p>
             <h3 className="mt-5 text-3xl font-medium tracking-[-0.045em] sm:text-5xl">The project record has moved forward intact.</h3>
-            <p className="mt-5 text-sm leading-6 text-black/55">House Delivery received project {state.projectId} with Opportunity Report {state.opportunityReportReference}. The next step is a non-binding review toward an appropriate LOU / commitment pathway. Your local project draft remains available for reference or editing.</p>
+            <p className="mt-5 text-sm leading-6 text-black/55">House Delivery received project {state.projectId} with Opportunity Report {state.opportunityReportReference} and {completedDesigns.length} completed {completedDesigns.length === 1 ? "design package" : "design packages"}. The next step is House Delivery review before an LOU is prepared. Submission is not an LOU, a paid-design authorization, a factory release or final pricing.</p>
+            </div>
+            <SubmittedProjectJourney state={state} completedDesigns={completedDesigns} />
           </div>
         ) : (
           <form onSubmit={submitProjectReview} className="grid gap-x-6 gap-y-8 sm:grid-cols-2">
@@ -2382,6 +2597,17 @@ function ProjectReviewStep({
             <label className="form-field"><span>Last name</span><input name="lastName" autoComplete="family-name" required value={state.contact.lastName} onChange={(event) => updateContact("lastName", event.target.value)} /></label>
             <label className="form-field"><span>Email address</span><input type="email" name="email" autoComplete="email" required value={state.contact.email} onChange={(event) => updateContact("email", event.target.value)} /></label>
             <label className="form-field"><span>Phone</span><input type="tel" name="phone" autoComplete="tel" value={state.contact.phone} onChange={(event) => updateContact("phone", event.target.value)} /></label>
+            {state.audience === "first-nations" ? (
+              <>
+                <div className="sm:col-span-2 border-t border-black/16 pt-7">
+                  <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/42">Authorized project representative</p>
+                  <p className="mt-3 max-w-2xl text-xs leading-5 text-black/50">Record the Nation&apos;s appropriate project representative. This does not assume that only a Chief may review or accept a future LOU.</p>
+                </div>
+                <label className="form-field"><span>Representative name</span><input name="authorizedRepresentativeName" required value={state.authorizedRepresentative.name} onChange={(event) => updateAuthorizedRepresentative("name", event.target.value)} /></label>
+                <label className="form-field"><span>Representative title / role</span><input name="authorizedRepresentativeTitle" required value={state.authorizedRepresentative.title} onChange={(event) => updateAuthorizedRepresentative("title", event.target.value)} /></label>
+                <label className="form-field sm:col-span-2"><span>Council / BCR authorization</span><select name="councilAuthorizationStatus" value={state.authorizedRepresentative.councilAuthorizationStatus} onChange={(event) => updateAuthorizedRepresentative("councilAuthorizationStatus", event.target.value)} className={selectClassName}><option value="to-confirm">To confirm</option><option value="required">Required</option><option value="not-required">Not required</option></select></label>
+              </>
+            ) : null}
             <label className="form-field sm:col-span-2"><span>Anything else for this review?</span><textarea name="reviewNotes" rows={3} placeholder="Optional final context for the House Delivery team" /></label>
             <label className="hidden" aria-hidden="true"><span>Company</span><input name="company" tabIndex={-1} autoComplete="off" /></label>
             <div className="sm:col-span-2">
@@ -2433,10 +2659,14 @@ export function FirstNationsProjectPlanner({
       try {
         const saved = window.localStorage.getItem(storageKey);
         const migrated = saved ? migratePlannerState(JSON.parse(saved)) : undefined;
-        const restored =
+        const restoredDraft =
           migrated?.audience === initialAudience
             ? migrated
             : createDefaultPlannerState(initialAudience);
+        const restored = restoreSavedDesignConfigurations(
+          restoredDraft,
+          catalog,
+        );
         const returnedValue = window.localStorage.getItem(returnKey);
         const returned = returnedValue
           ? (JSON.parse(returnedValue) as PlannerDesignReturn)

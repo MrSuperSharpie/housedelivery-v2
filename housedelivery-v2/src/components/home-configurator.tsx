@@ -740,6 +740,11 @@ export function HomeConfigurator({
     if (!plannerSession || !configurationToSave.lookBookPersonalization) return;
     const result: PlannerDesignReturn = {
       ...plannerSession,
+      lookBookConfigurationId:
+        plannerSession.lookBookConfigurationId ??
+        (window.crypto?.randomUUID
+          ? window.crypto.randomUUID()
+          : undefined),
       configuration: configurationToSave,
       completedAt: new Date().toISOString(),
     };

@@ -45,6 +45,7 @@ export type PlannerDesignSession = {
   assignedQuantity: number;
   deliveryGroup: string;
   returnHref: string;
+  lookBookConfigurationId?: string;
   culturalExteriorInterest?: boolean;
 };
 
@@ -98,7 +99,11 @@ export function applyPlannerDesignReturn(
               ? {
                   ...variation,
                   status: "complete" as const,
+                  configuration: returned.configuration,
                   designSelections,
+                  lookBookConfigurationId:
+                    returned.lookBookConfigurationId ??
+                    variation.lookBookConfigurationId,
                   lookBookReference:
                     returned.configuration.lookBookPersonalization?.reference ??
                     variation.lookBookReference,
@@ -111,6 +116,10 @@ export function applyPlannerDesignReturn(
                     returned.configuration.culturalExteriorInterest ??
                     variation.culturalExteriorInterest,
                   savedAt: returned.completedAt,
+                  revision:
+                    variation.status === "complete"
+                      ? variation.revision + 1
+                      : variation.revision,
                 }
               : variation,
           ),
@@ -165,6 +174,12 @@ function setPlannerDesignSessionParams(
     url.searchParams.set(
       "plannerCulturalExterior",
       session.culturalExteriorInterest ? "1" : "0",
+    );
+  }
+  if (session.lookBookConfigurationId) {
+    url.searchParams.set(
+      "plannerLookBookId",
+      session.lookBookConfigurationId,
     );
   }
 }
@@ -311,6 +326,7 @@ export function readPlannerDesignSession(
   const deliveryGroup = params.get("plannerDeliveryGroup");
   const assignedQuantity = Number(params.get("plannerQuantity"));
   const culturalExteriorParam = params.get("plannerCulturalExterior");
+  const lookBookConfigurationId = params.get("plannerLookBookId");
 
   if (
     !projectName ||
@@ -340,6 +356,7 @@ export function readPlannerDesignSession(
     assignedQuantity,
     deliveryGroup,
     returnHref,
+    ...(lookBookConfigurationId ? { lookBookConfigurationId } : {}),
     ...(culturalExteriorParam === "1" || culturalExteriorParam === "0"
       ? { culturalExteriorInterest: culturalExteriorParam === "1" }
       : {}),

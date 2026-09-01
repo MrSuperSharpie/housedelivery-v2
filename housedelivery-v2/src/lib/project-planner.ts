@@ -1,3 +1,5 @@
+import type { HomeConfiguration } from "@/data/home-configurator";
+
 export const plannerAudiences = [
   "first-nations",
   "developer",
@@ -75,6 +77,54 @@ export type PlannerCatalogItem = {
   planningBasis: PlanningBasis;
 };
 
+export const plannerLifecycleStatuses = [
+  "draft",
+  "submitted-for-review",
+  "house-delivery-review",
+  "lou-prepared",
+  "lou-sent",
+  "lou-accepted",
+  "design-development-authorization-required",
+  "design-development-authorized",
+  "payment-pending",
+  "design-development-paid",
+  "ready-for-factory",
+  "sent-to-factory",
+  "factory-design-in-progress",
+  "factory-design-complete",
+  "final-pricing-in-development",
+  "final-pricing-ready",
+] as const;
+
+export type PlannerLifecycleStatus =
+  (typeof plannerLifecycleStatuses)[number];
+
+export type PlannerDesignDevelopmentStatus =
+  | "not-authorized"
+  | "authorized-payment-pending"
+  | "paid-cleared"
+  | "ready-for-factory-handoff"
+  | "sent-to-factory"
+  | "factory-development-in-progress"
+  | "factory-development-complete";
+
+export type PlannerDesignDevelopment = {
+  status: PlannerDesignDevelopmentStatus;
+  fee: {
+    currency: "CAD";
+    amountCents?: number;
+    status: "not-configured" | "configured";
+  };
+  factoryOutput: {
+    walkthroughStatus: "not-started" | "in-progress" | "complete";
+    walkthroughUrl?: string;
+    reference?: string;
+    specificationNotes?: string;
+    receivedAt?: string;
+    clarificationItems: readonly string[];
+  };
+};
+
 export type PlannerDesignVariation = {
   id: string;
   label: string;
@@ -83,6 +133,11 @@ export type PlannerDesignVariation = {
   status: "draft" | "complete";
   designSelections: Readonly<Record<string, string>>;
   lookBookReference: string;
+  lookBookConfigurationId?: string;
+  configuration?: HomeConfiguration;
+  designNotes: string;
+  revision: number;
+  designDevelopment: PlannerDesignDevelopment;
   savedAt?: string;
   culturalExteriorInterest?: boolean;
 };
@@ -243,10 +298,16 @@ export type PlannerProjectContact = {
   phone: string;
 };
 
+export type PlannerAuthorizedRepresentative = {
+  name: string;
+  title: string;
+  councilAuthorizationStatus: "required" | "not-required" | "to-confirm";
+};
+
 export type FundingCorridorDecision = "include" | "not-relevant";
 
 export type PlannerState = {
-  version: 5;
+  version: 6;
   projectId: string;
   audience: PlannerAudience;
   step: number;
@@ -263,8 +324,17 @@ export type PlannerState = {
   >;
   readiness: FirstNationsProjectReadiness;
   contact: PlannerProjectContact;
+  authorizedRepresentative: PlannerAuthorizedRepresentative;
   reviewStatus: "draft" | "submitted";
-  louStatus: "not-started" | "project-review-requested";
+  lifecycleStatus: PlannerLifecycleStatus;
+  louStatus:
+    | "not-started"
+    | "project-review-requested"
+    | "prepared"
+    | "sent"
+    | "accepted";
+  submissionId: string;
+  submittedAt?: string;
   opportunityReportReference: string;
   projectNotes: string;
 };
@@ -329,7 +399,7 @@ export function createDefaultPlannerState(
   audience: PlannerAudience = "first-nations",
 ): PlannerState {
   return {
-    version: 5,
+    version: 6,
     projectId: "",
     audience,
     step: 0,
@@ -369,8 +439,15 @@ export function createDefaultPlannerState(
       email: "",
       phone: "",
     },
+    authorizedRepresentative: {
+      name: "",
+      title: "",
+      councilAuthorizationStatus: "to-confirm",
+    },
     reviewStatus: "draft",
+    lifecycleStatus: "draft",
     louStatus: "not-started",
+    submissionId: "",
     opportunityReportReference: "",
     projectNotes: "",
   };
@@ -470,7 +547,9 @@ function normalizePlannerContact(value: unknown): PlannerProjectContact {
 
 function migrateFirstNationsStep(step: unknown, version: unknown) {
   const currentStep = typeof step === "number" ? step : 0;
-  if (version === 5) return Math.min(Math.max(currentStep, 0), 6);
+  if (version === 5 || version === 6) {
+    return Math.min(Math.max(currentStep, 0), 6);
+  }
 
   if (currentStep <= 1) return currentStep;
   if (currentStep <= 3) return 1;
@@ -545,6 +624,16 @@ export function createPlannerDesignVariation(
     status: "draft",
     designSelections: {},
     lookBookReference: "",
+    designNotes: "",
+    revision: 1,
+    designDevelopment: {
+      status: "not-authorized",
+      fee: { currency: "CAD", status: "not-configured" },
+      factoryOutput: {
+        walkthroughStatus: "not-started",
+        clarificationItems: [],
+      },
+    },
   };
 }
 
@@ -579,6 +668,10 @@ export function migratePlannerState(value: unknown): PlannerState | undefined {
         const designVariations = legacyDesignVariations.map(
           (variation: LegacyPlannerDesignVariation) => {
           const { culturalDesignDirection, ...currentVariation } = variation;
+          const variationDefaults = createPlannerDesignVariation(
+            line.id,
+            Math.max(1, variation.assignedQuantity || 1),
+          );
           const culturalExteriorInterest =
             typeof variation.culturalExteriorInterest === "boolean"
               ? variation.culturalExteriorInterest
@@ -587,7 +680,35 @@ export function migratePlannerState(value: unknown): PlannerState | undefined {
                 : undefined;
 
           return {
+            ...variationDefaults,
             ...currentVariation,
+            designNotes:
+              typeof variation.designNotes === "string"
+                ? variation.designNotes
+                : "",
+            revision:
+              typeof variation.revision === "number" && variation.revision >= 1
+                ? Math.floor(variation.revision)
+                : 1,
+            designDevelopment: {
+              ...variationDefaults.designDevelopment,
+              ...(variation.designDevelopment ?? {}),
+              fee: {
+                ...variationDefaults.designDevelopment.fee,
+                ...(variation.designDevelopment?.fee ?? {}),
+              },
+              factoryOutput: {
+                ...variationDefaults.designDevelopment.factoryOutput,
+                ...(variation.designDevelopment?.factoryOutput ?? {}),
+                clarificationItems: Array.isArray(
+                  variation.designDevelopment?.factoryOutput
+                    ?.clarificationItems,
+                )
+                  ? variation.designDevelopment.factoryOutput
+                      .clarificationItems
+                  : [],
+              },
+            },
             ...(culturalExteriorInterest !== undefined
               ? { culturalExteriorInterest }
               : {}),
@@ -630,7 +751,7 @@ export function migratePlannerState(value: unknown): PlannerState | undefined {
   return {
     ...defaults,
     ...candidate,
-    version: 5,
+    version: 6,
     projectId:
       typeof candidate.projectId === "string" ? candidate.projectId : "",
     audience: candidate.audience,
@@ -660,13 +781,75 @@ export function migratePlannerState(value: unknown): PlannerState | undefined {
       communityWorkforceCapacity,
     ),
     contact: normalizePlannerContact(candidate.contact),
+    authorizedRepresentative: {
+      name:
+        typeof candidate.authorizedRepresentative?.name === "string"
+          ? candidate.authorizedRepresentative.name
+          : "",
+      title:
+        typeof candidate.authorizedRepresentative?.title === "string"
+          ? candidate.authorizedRepresentative.title
+          : "",
+      councilAuthorizationStatus: [
+        "required",
+        "not-required",
+        "to-confirm",
+      ].includes(
+        candidate.authorizedRepresentative?.councilAuthorizationStatus ?? "",
+      )
+        ? candidate.authorizedRepresentative!.councilAuthorizationStatus
+        : "to-confirm",
+    },
     reviewStatus:
       candidate.reviewStatus === "submitted" ? "submitted" : "draft",
+    lifecycleStatus: plannerLifecycleStatuses.includes(
+      candidate.lifecycleStatus as PlannerLifecycleStatus,
+    )
+      ? (candidate.lifecycleStatus as PlannerLifecycleStatus)
+      : candidate.reviewStatus === "submitted"
+        ? "submitted-for-review"
+        : "draft",
     louStatus:
-      candidate.louStatus === "project-review-requested"
-        ? "project-review-requested"
+      ["project-review-requested", "prepared", "sent", "accepted"].includes(
+        candidate.louStatus ?? "",
+      )
+        ? (candidate.louStatus as PlannerState["louStatus"])
         : "not-started",
+    submissionId:
+      typeof candidate.submissionId === "string"
+        ? candidate.submissionId
+        : "",
+    ...(typeof candidate.submittedAt === "string"
+      ? { submittedAt: candidate.submittedAt }
+      : {}),
   };
+}
+
+export function getDesignDevelopmentPackages(state: PlannerState) {
+  return state.portfolio.flatMap((line) =>
+    line.designVariations.map((variation) => ({
+      lineId: line.id,
+      modelId: line.modelId,
+      phase: line.phase,
+      variation,
+    })),
+  );
+}
+
+export function canMarkDesignGroupReadyForFactory(
+  state: PlannerState,
+  variation: PlannerDesignVariation,
+) {
+  return (
+    state.louStatus === "accepted" &&
+    variation.designDevelopment.status === "paid-cleared"
+  );
+}
+
+export function canSendDesignGroupToFactory(
+  variation: PlannerDesignVariation,
+) {
+  return variation.designDevelopment.status === "ready-for-factory-handoff";
 }
 
 export function resizePlannerDesignVariations(

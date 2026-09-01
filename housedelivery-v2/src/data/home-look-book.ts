@@ -9,6 +9,18 @@ export type LookBookCustomer = {
 export type LookBookPersonalization = {
   customer?: LookBookCustomer;
   projectDesignName?: string;
+  project?: {
+    id: string;
+    name: string;
+    location?: string;
+    designGroupId: string;
+    designGroupName: string;
+    assignedQuantity: number;
+    deliveryGroup: string;
+    exteriorExpression: "Contemporary" | "Indigenous Inspiration";
+    designNotes?: string;
+    revision: number;
+  };
   preparedAt: string;
   reference: string;
 };

@@ -81,6 +81,7 @@ export type StoredLookBookSelection = {
   zoneId?: string;
   zoneTitle?: string;
   optionId: string;
+  optionNumber?: string;
   optionName: string;
   tier: "premium" | "signature";
 };

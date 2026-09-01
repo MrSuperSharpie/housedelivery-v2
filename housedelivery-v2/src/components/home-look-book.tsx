@@ -1190,6 +1190,7 @@ export function HomeLookBook({
   const { lookBook } = definition;
   const projectDesignName =
     personalization.projectDesignName ?? plannerContext?.designLabel;
+  const projectRecord = personalization.project;
   const preparedDate = formatLookBookPreparedDate(personalization.preparedAt);
   const isSubmitted = configuration.reviewStatus === "ready-for-review";
   const selectionSections = getLookBookSelectionSections(lookBook.sections);
@@ -1292,8 +1293,9 @@ export function HomeLookBook({
               {personalTitle}
             </h2>
             <div className="mt-9 flex flex-col gap-3 border-t border-white/48 pt-5 text-[8px] uppercase tracking-[0.17em] text-white/76 sm:flex-row sm:items-center sm:justify-between">
-              <p>{projectDesignName ? `Project design / ${projectDesignName}` : preparedForLabel}</p><p>{preparedDate} / {lookBook.home.areaLabel}</p>
+              <p>{projectRecord ? `${projectRecord.name} / ${projectRecord.id}` : projectDesignName ? `Project design / ${projectDesignName}` : preparedForLabel}</p><p>{preparedDate} / {lookBook.home.areaLabel}</p>
             </div>
+            {projectRecord ? <p className="mt-4 max-w-5xl text-[8px] uppercase leading-5 tracking-[0.14em] text-white/62">{projectRecord.designGroupName} / {projectRecord.assignedQuantity} {projectRecord.assignedQuantity === 1 ? "home" : "homes"} / {projectRecord.deliveryGroup} / {projectRecord.exteriorExpression} / Revision {projectRecord.revision}</p> : null}
           </div>
         </div>
       </article>
@@ -1372,6 +1374,7 @@ export function HomeLookBook({
             ) : null}
             <div className="mt-10 border-t border-white/18 pt-5 text-[8px] leading-4 text-white/42">
               <p>{definition.disclaimer}</p><p className="mt-2">{lookBook.preliminaryNotice}</p>
+              {projectRecord ? <p className="mt-3">Project / {projectRecord.name} / {projectRecord.id} / {projectRecord.designGroupName} / {projectRecord.assignedQuantity} {projectRecord.assignedQuantity === 1 ? "home" : "homes"} / {projectRecord.deliveryGroup} / {projectRecord.exteriorExpression} / Revision {projectRecord.revision}{projectRecord.designNotes ? ` / Design notes: ${projectRecord.designNotes}` : ""}</p> : null}
               <p className="mt-4 font-mono uppercase tracking-[0.13em]">{projectDesignName ? `Project design / ${projectDesignName}` : preparedForLabel} / {personalization.reference} / {preparedDate}</p>
             </div>
           </div>

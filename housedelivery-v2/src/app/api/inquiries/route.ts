@@ -1,10 +1,22 @@
 import { createHash, randomUUID } from "node:crypto";
 
 import { models } from "@/data/models";
+import { getLookBookPublicOrigin } from "@/lib/lookbook/email";
+import {
+  getLookBookRepository,
+  LookBookStorageUnavailableError,
+} from "@/lib/lookbook/repository";
+import {
+  formatPlannerHandoffEmail,
+  parsePlannerProjectHandoff,
+  PlannerHandoffValidationError,
+  type PlannerProjectHandoff,
+} from "@/lib/planner-handoff";
+import { savePlannerProject } from "@/lib/planner-project-repository";
 
 const inquiryRecipient = "hello@housedelivery.ca";
 const inquiryRoute = "/api/inquiries";
-const maximumRequestBytes = 50_000;
+const maximumRequestBytes = 200_000;
 
 export const runtime = "nodejs";
 
@@ -21,6 +33,7 @@ type InquiryPayload = {
   plannerProject?: unknown;
   plannerReference?: unknown;
   plannerContext?: unknown;
+  plannerRecord?: unknown;
 };
 
 type InquiryLogContext = {
@@ -207,6 +220,92 @@ export async function POST(request: Request) {
     return jsonResponse({ error: "Invalid model selection." }, 400);
   }
 
+  let plannerHandoff: PlannerProjectHandoff | undefined;
+  if (payload.plannerRecord !== undefined) {
+    try {
+      plannerHandoff = parsePlannerProjectHandoff({
+        plannerRecord: payload.plannerRecord,
+        contact: {
+          firstName,
+          email,
+          ...(phone ? { phone } : {}),
+        },
+        origin: getLookBookPublicOrigin(request.url),
+      });
+      const repository = getLookBookRepository();
+      for (const designPackage of plannerHandoff.packages) {
+        const existing = await repository.findById(
+          designPackage.configurationId,
+        );
+        if (existing && existing.homeSlug !== designPackage.homeSlug) {
+          throw new PlannerHandoffValidationError(
+            "A Design Group Look Book belongs to a different home.",
+          );
+        }
+        await repository.save({
+          ...designPackage.record,
+          ...(existing?.propertyFeasibility
+            ? { propertyFeasibility: existing.propertyFeasibility }
+            : {}),
+          createdAt: existing?.createdAt ?? designPackage.record.createdAt,
+          completedAt:
+            existing?.completedAt ?? designPackage.record.completedAt,
+        });
+      }
+      const submittedAt =
+        plannerHandoff.state.submittedAt ?? new Date().toISOString();
+      plannerHandoff = {
+        ...plannerHandoff,
+        state: {
+          ...plannerHandoff.state,
+          reviewStatus: "submitted",
+          lifecycleStatus: "submitted-for-review",
+          louStatus: "project-review-requested",
+          submissionId: plannerHandoff.submissionId,
+          submittedAt,
+        },
+      };
+      await savePlannerProject({
+        id: plannerHandoff.state.projectId,
+        submissionId: plannerHandoff.submissionId,
+        opportunityReportReference:
+          plannerHandoff.state.opportunityReportReference,
+        community: plannerHandoff.state.community,
+        lifecycleStatus: plannerHandoff.state.lifecycleStatus,
+        projectState: plannerHandoff.state,
+        designPackages: plannerHandoff.packages.map((item) => {
+          const { record, ...designPackage } = item;
+          void record;
+          return designPackage;
+        }),
+        createdAt: submittedAt,
+        updatedAt: submittedAt,
+        submittedAt,
+      });
+    } catch (error) {
+      const isValidation = error instanceof PlannerHandoffValidationError;
+      logInquiryFailure("planner_handoff_failed", {
+        requestId,
+        status: isValidation ? 400 : 503,
+        durationMs: Date.now() - startedAt,
+        reason: isValidation
+          ? "invalid_planner_handoff"
+          : error instanceof LookBookStorageUnavailableError
+            ? "lookbook_storage_not_configured"
+            : "lookbook_storage_failed",
+        errorType: error instanceof Error ? error.name : "UnknownError",
+      });
+      return jsonResponse(
+        {
+          error: isValidation
+            ? error.message
+            : "Project design-package storage is temporarily unavailable.",
+        },
+        isValidation ? 400 : 503,
+      );
+    }
+  }
+
   const resendApiKey = process.env.RESEND_API_KEY?.trim();
   const fromEmail =
     process.env.INQUIRY_FROM_EMAIL?.trim() ||
@@ -225,8 +324,17 @@ export async function POST(request: Request) {
     );
   }
 
-  const isPlannerProjectReview = Boolean(plannerContext);
-  const message = isPlannerProjectReview
+  const isPlannerProjectReview = Boolean(plannerContext || plannerHandoff);
+  const message = plannerHandoff
+    ? formatPlannerHandoffEmail(plannerHandoff, {
+        firstName,
+        lastName,
+        email,
+        phone,
+        notes,
+        timeline,
+      })
+    : isPlannerProjectReview
     ? [
         "New House Delivery Planner project review",
         "",
@@ -255,7 +363,7 @@ export async function POST(request: Request) {
         notes || "Not provided",
       ].join("\n");
 
-  const idempotencyKey = `project-inquiry-${createHash("sha256")
+  const idempotencyKey = plannerHandoff?.submissionId ?? `project-inquiry-${createHash("sha256")
     .update(
       JSON.stringify({
         firstName,
@@ -337,5 +445,19 @@ export async function POST(request: Request) {
     return jsonResponse({ error: "Inquiry delivery failed." }, 502);
   }
 
-  return jsonResponse({ accepted: true });
+  return jsonResponse({
+    accepted: true,
+    ...(plannerHandoff
+      ? {
+          projectStatus: "submitted-for-review",
+          submissionId: plannerHandoff.submissionId,
+          designGroups: plannerHandoff.packages.map((designPackage) => ({
+            variationId: designPackage.variationId,
+            configurationId: designPackage.configurationId,
+            lookBookUrl: designPackage.lookBookUrl,
+            pdfUrl: designPackage.pdfUrl,
+          })),
+        }
+      : {}),
+  });
 }

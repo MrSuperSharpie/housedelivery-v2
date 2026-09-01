@@ -622,7 +622,7 @@ test("version one planner drafts migrate into one quantity-based design group", 
     ],
   });
 
-  assert.equal(migrated?.version, 5);
+  assert.equal(migrated?.version, 6);
   assert.deepEqual(migrated?.fundingCorridorDecisions, {});
   assert.deepEqual(migrated?.refinement.communityWorkforceCapacity, [
     "to-be-determined",
@@ -659,7 +659,7 @@ test("existing First Nations drafts migrate into the matching consolidated stage
     });
 
     assert.equal(restored?.step, consolidatedStep);
-    assert.equal(restored?.version, 5);
+    assert.equal(restored?.version, 6);
   }
 });
 

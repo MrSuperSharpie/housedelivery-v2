@@ -204,6 +204,7 @@ function resolveConfiguration(
         categoryId: category.id,
         categoryTitle: category.title,
         optionId: option.id,
+        optionNumber: option.optionNumber,
         optionName: option.name,
         tier: option.level,
       });
@@ -231,6 +232,7 @@ function resolveConfiguration(
         zoneId: zone.id,
         zoneTitle: zone.title,
         optionId: option.id,
+        optionNumber: option.optionNumber,
         optionName: option.name,
         tier: option.level,
       });
