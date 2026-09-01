@@ -1,6 +1,15 @@
 import type { NextConfig } from "next";
 
+const deploymentId =
+  process.env.VERCEL_DEPLOYMENT_ID ??
+  process.env.VERCEL_URL ??
+  process.env.VERCEL_GIT_COMMIT_SHA;
+
 const nextConfig: NextConfig = {
+  // Keep cached clients on one deployment. Next.js uses this value to
+  // cache-bust assets and hard-navigate when route data comes from a newer
+  // deployment, avoiding stale-client/new-server version skew.
+  deploymentId,
   serverExternalPackages: ["@sparticuz/chromium", "playwright-core"],
   outputFileTracingIncludes: {
     "/lookbook/*/pdf": [
