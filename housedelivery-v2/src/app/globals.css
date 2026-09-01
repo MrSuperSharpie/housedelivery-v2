@@ -200,6 +200,7 @@ select {
 
   main,
   main > #home-configurator,
+  main > #home-look-book,
   main > .planner-shell,
   main.internal-document-shell,
   main.internal-document-shell > [data-internal-print-document],
