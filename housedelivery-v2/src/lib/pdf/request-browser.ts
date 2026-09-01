@@ -9,9 +9,11 @@ import {
 
 const LOCAL_CHROME_PATH =
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+const TRUSTED_OIDC_HEADER = "x-vercel-trusted-oidc-idp-token";
+const PREVIEW_OIDC_PASSTHROUGH_HEADER =
+  "x-house-delivery-preview-oidc-token";
 const FORWARDED_PREVIEW_HEADERS = [
   "authorization",
-  "x-vercel-trusted-oidc-idp-token",
   "x-vercel-protection-bypass",
   "x-vercel-set-bypass-cookie",
 ] as const;
@@ -78,6 +80,14 @@ export async function createRequestAuthenticatedPage(
     for (const headerName of FORWARDED_PREVIEW_HEADERS) {
       const value = request.headers.get(headerName);
       if (value) requestHeaders[headerName] = value;
+    }
+    const trustedOidcToken =
+      request.headers.get(TRUSTED_OIDC_HEADER) ??
+      (process.env.VERCEL_ENV === "preview"
+        ? request.headers.get(PREVIEW_OIDC_PASSTHROUGH_HEADER)
+        : null);
+    if (trustedOidcToken) {
+      requestHeaders[TRUSTED_OIDC_HEADER] = trustedOidcToken;
     }
     await route.continue({ headers: requestHeaders });
   });
