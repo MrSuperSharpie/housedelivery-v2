@@ -11,6 +11,7 @@ const LOCAL_CHROME_PATH =
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const FORWARDED_PREVIEW_HEADERS = [
   "authorization",
+  "x-vercel-trusted-oidc-idp-token",
   "x-vercel-protection-bypass",
   "x-vercel-set-bypass-cookie",
 ] as const;
