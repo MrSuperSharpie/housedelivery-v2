@@ -12,12 +12,14 @@ import {
   communityWorkforceCapacityOptions,
   createDefaultPlannerState,
   createPlannerDesignVariation,
+  createPlannerProjectId,
   createOpportunityReportReference,
   defaultPlannerState,
   formatProjectReviewContext,
   firstNationsHousingUseOptions,
   firstNationsHousingUseQuestion,
   firstNationsHousingUseSupportingText,
+  firstNationsProjectReadinessQuestions,
   getAudienceFundingCorridors,
   getCommunityWorkforceCapacityLabels,
   getCulturalDesignReportRecords,
@@ -26,6 +28,7 @@ import {
   getOpportunityReportFundingCorridors,
   getPortfolioSummary,
   getReadinessProfile,
+  ensurePlannerProjectId,
   matchFundingCorridors,
   migratePlannerState,
   reassignPlannerDesignQuantity,
@@ -190,7 +193,7 @@ test("Opportunity Report carries every explicitly included funding corridor", ()
 test("scale facts and readiness information remain separate", () => {
   const state: PlannerState = {
     ...defaultPlannerState,
-    approximateHomes: "22",
+    approximateHomes: "24",
     portfolio,
   };
   const summary = getPortfolioSummary(
@@ -204,12 +207,20 @@ test("scale facts and readiness information remain separate", () => {
 
   assert.equal(summary.totalHomes, 22);
   assert.equal(
-    readiness.find((item) => item.label === "Land / site control")?.ready,
+    readiness.find((item) => item.label === "Land / Site Control")?.ready,
     false,
   );
   assert.equal(
-    readiness.find((item) => item.label === "Housing requirement")?.ready,
+    readiness.find((item) => item.label === "Housing Requirement")?.ready,
     true,
+  );
+  assert.equal(
+    readiness.find((item) => item.label === "Housing Requirement")?.detail,
+    "22 homes selected for this project",
+  );
+  assert.equal(
+    readiness.some((item) => item.detail.includes("24")),
+    false,
   );
 });
 
@@ -261,6 +272,253 @@ test("one design group represents all identical homes until a variation is reque
     balanced.designVariations.map((variation) => variation.assignedQuantity),
     [2, 2],
   );
+});
+
+test("Project Readiness exposes all six customer-sourced questions", () => {
+  assert.deepEqual(
+    firstNationsProjectReadinessQuestions.map((question) => question.label),
+    [
+      "Land / Site Control",
+      "Servicing",
+      "Affordability / Homeownership Pathway",
+      "Community Workforce & Capacity",
+      "Community Engagement",
+      "Funding / Financing Pathway",
+    ],
+  );
+  assert.equal(
+    firstNationsProjectReadinessQuestions.every(
+      (question) => question.options.length === 4,
+    ),
+    true,
+  );
+});
+
+test("the realistic 12-home project keeps portfolio, design groups, Look Books and readiness on one record", () => {
+  const langleyLineId = "langley-12-home-line";
+  const solaceLineId = "solace-12-home-line";
+  const splitLangley = reassignPlannerDesignQuantity(
+    addPlannerDesignVariation({
+      id: langleyLineId,
+      modelId: "custom:langley",
+      quantity: 10,
+      phase: "phase-1",
+      designVariations: [createPlannerDesignVariation(langleyLineId, 10)],
+    }),
+    `${langleyLineId}:design-a`,
+    6,
+  );
+  const langley = {
+    ...splitLangley,
+    designVariations: splitLangley.designVariations.map((variation, index) => ({
+      ...variation,
+      status: "complete" as const,
+      culturalExteriorInterest: index === 1,
+      designSelections: {
+        kitchen: index === 0 ? "premium-1" : "signature-2",
+      },
+      lookBookReference: `LANGLEY-GROUP-${index === 0 ? "A" : "B"}`,
+      projectDesignName: `Langley — Design Group ${index === 0 ? "A" : "B"}`,
+    })),
+  };
+  const solace = {
+    id: solaceLineId,
+    modelId: "custom:solace",
+    quantity: 2,
+    phase: "phase-2" as const,
+    designVariations: [
+      {
+        ...createPlannerDesignVariation(solaceLineId, 2),
+        status: "complete" as const,
+        designSelections: { kitchen: "premium-2" },
+        lookBookReference: "SOLACE-GROUP-A",
+        projectDesignName: "Solace — Design Group A",
+      },
+    ],
+  };
+  const state: PlannerState = {
+    ...defaultPlannerState,
+    projectId: "HDP-12-HOME-TEST",
+    community: "Example Nation",
+    location: "British Columbia",
+    approximateHomes: "24",
+    portfolio: [langley, solace],
+    readiness: {
+      landSiteControl: "potential",
+      servicing: "investigate",
+      affordabilityPathway: "developing",
+      communityWorkforce: "yes",
+      communityEngagement: "some",
+      fundingPathway: "options",
+    },
+  };
+  const restored = migratePlannerState(JSON.parse(JSON.stringify(state)));
+  assert.ok(restored);
+  const summary = getPortfolioSummary(
+    restored.portfolio,
+    firstNationsPlannerCatalog,
+  );
+  const progress = getPlannerDesignProgress(
+    restored.portfolio,
+    firstNationsPlannerCatalog,
+  );
+  const readiness = getReadinessProfile(
+    restored,
+    firstNationsPlannerCatalog,
+  );
+  const context = formatProjectReviewContext(
+    restored,
+    firstNationsPlannerCatalog,
+    firstNationsFundingCorridors,
+  );
+
+  assert.equal(summary.totalHomes, 12);
+  assert.equal(summary.modelCount, 2);
+  assert.equal(summary.phaseCount, 2);
+  assert.deepEqual(
+    restored.portfolio[0].designVariations.map(
+      (variation) => variation.assignedQuantity,
+    ),
+    [6, 4],
+  );
+  assert.equal(
+    restored.portfolio[0].designVariations.reduce(
+      (total, variation) => total + variation.assignedQuantity,
+      0,
+    ),
+    10,
+  );
+  assert.deepEqual(progress, {
+    completedDesigns: 3,
+    remainingDesignGroups: 0,
+    totalDesignGroups: 3,
+  });
+  assert.equal(
+    readiness.find((item) => item.id === "housingRequirement")?.detail,
+    "12 homes selected for this project",
+  );
+  assert.equal(readiness.some((item) => item.detail.includes("24")), false);
+  assert.match(context, /Housing requirement: 12 homes/);
+  assert.match(context, /Working portfolio: 12 homes \/ 2 model types \/ 2 delivery groups/);
+  assert.match(context, /Design groups: 3 design groups/);
+  assert.match(context, /Langley — Design Group A \/ Assigned to 6 homes \/ complete \/ Look Book LANGLEY-GROUP-A/);
+  assert.match(context, /Langley — Design Group B \/ Assigned to 4 homes \/ complete \/ Look Book LANGLEY-GROUP-B/);
+  assert.match(context, /Solace — Design Group A \/ Assigned to 2 homes \/ complete \/ Look Book SOLACE-GROUP-A/);
+  assert.match(context, /kitchen: premium-1/);
+  assert.match(context, /kitchen: signature-2/);
+  assert.match(context, /Indigenous Inspiration selected/);
+});
+
+test("readiness treats known, unknown, mixed servicing and workforce answers as information rather than pass/fail", () => {
+  const lineId = "readiness-solace";
+  const portfolioLine: PlannerPortfolioLine = {
+    id: lineId,
+    modelId: "custom:solace",
+    quantity: 1,
+    phase: "phase-1",
+    designVariations: [createPlannerDesignVariation(lineId, 1)],
+  };
+  const allKnown: PlannerState = {
+    ...defaultPlannerState,
+    portfolio: [portfolioLine],
+    readiness: {
+      landSiteControl: "confirmed",
+      servicing: "confirmed",
+      affordabilityPathway: "identified",
+      communityWorkforce: "no",
+      communityEngagement: "yes",
+      fundingPathway: "identified",
+    },
+  };
+  const mostlyUnknown: PlannerState = {
+    ...defaultPlannerState,
+    portfolio: [portfolioLine],
+  };
+  const mixed: PlannerState = {
+    ...mostlyUnknown,
+    readiness: {
+      ...mostlyUnknown.readiness,
+      landSiteControl: "potential",
+      servicing: "not-sure",
+      communityWorkforce: "yes",
+    },
+  };
+  const knownProfile = getReadinessProfile(
+    allKnown,
+    firstNationsPlannerCatalog,
+  );
+  const unknownProfile = getReadinessProfile(
+    mostlyUnknown,
+    firstNationsPlannerCatalog,
+  );
+  const mixedProfile = getReadinessProfile(
+    mixed,
+    firstNationsPlannerCatalog,
+  );
+
+  assert.equal(knownProfile.every((item) => item.ready), true);
+  assert.equal(
+    knownProfile.find((item) => item.id === "communityWorkforce")?.status,
+    "Identified",
+  );
+  assert.equal(unknownProfile.filter((item) => !item.ready).length, 6);
+  assert.deepEqual(
+    mixedProfile.find((item) => item.id === "landSiteControl"),
+    {
+      id: "landSiteControl",
+      label: "Land / Site Control",
+      detail: "Potential site identified",
+      status: "Partially Known",
+      ready: true,
+    },
+  );
+  assert.equal(
+    mixedProfile.find((item) => item.id === "servicing")?.status,
+    "Not Yet Determined",
+  );
+  assert.equal(
+    mixedProfile.find((item) => item.id === "communityWorkforce")?.status,
+    "Identified",
+  );
+  const context = formatProjectReviewContext(
+    mixed,
+    firstNationsPlannerCatalog,
+    firstNationsFundingCorridors,
+  );
+  assert.match(context, /KNOWN TODAY[\s\S]*Potential site identified/);
+  assert.match(context, /ITEMS TO CONFIRM[\s\S]*Servicing and site access not yet determined/);
+});
+
+test("project IDs and singular project-review language remain stable", () => {
+  const projectId = createPlannerProjectId(1234567890);
+  const identified = ensurePlannerProjectId(
+    createDefaultPlannerState("first-nations"),
+    1234567890,
+  );
+  const lineId = "single-home-line";
+  const state: PlannerState = {
+    ...identified,
+    portfolio: [
+      {
+        id: lineId,
+        modelId: "custom:solace",
+        quantity: 1,
+        phase: "phase-1",
+        designVariations: [createPlannerDesignVariation(lineId, 1)],
+      },
+    ],
+  };
+  const context = formatProjectReviewContext(
+    state,
+    firstNationsPlannerCatalog,
+    firstNationsFundingCorridors,
+  );
+
+  assert.equal(identified.projectId, projectId);
+  assert.match(context, /Housing requirement: 1 home/);
+  assert.match(context, /Working portfolio: 1 home \/ 1 model type \/ 1 delivery group/);
+  assert.match(context, /Design groups: 1 design group/);
+  assert.doesNotMatch(context, /1 homes|1 model types|1 delivery groups|1 design groups/);
 });
 
 test("review scenario preserves five homes and advances design progress by group", () => {
@@ -364,7 +622,7 @@ test("version one planner drafts migrate into one quantity-based design group", 
     ],
   });
 
-  assert.equal(migrated?.version, 4);
+  assert.equal(migrated?.version, 5);
   assert.deepEqual(migrated?.fundingCorridorDecisions, {});
   assert.deepEqual(migrated?.refinement.communityWorkforceCapacity, [
     "to-be-determined",
@@ -378,6 +636,31 @@ test("version one planner drafts migrate into one quantity-based design group", 
     migrated?.portfolio[0].designVariations[0].lookBookReference,
     "LEGACY-1",
   );
+});
+
+test("existing First Nations drafts migrate into the matching consolidated stage", () => {
+  const expectedSteps = new Map([
+    [0, 0],
+    [1, 1],
+    [2, 1],
+    [3, 1],
+    [4, 2],
+    [5, 3],
+    [6, 3],
+    [7, 5],
+    [8, 6],
+  ]);
+
+  for (const [legacyStep, consolidatedStep] of expectedSteps) {
+    const restored = migratePlannerState({
+      ...defaultPlannerState,
+      version: 4,
+      step: legacyStep,
+    });
+
+    assert.equal(restored?.step, consolidatedStep);
+    assert.equal(restored?.version, 5);
+  }
 });
 
 test("First Nations workforce and capacity choices persist without changing pricing", () => {
@@ -403,6 +686,10 @@ test("First Nations workforce and capacity choices persist without changing pric
     refinement: {
       ...defaultPlannerState.refinement,
       communityWorkforceCapacity: selections,
+    },
+    readiness: {
+      ...defaultPlannerState.readiness,
+      communityWorkforce: "yes",
     },
   };
   const estimateBefore = calculatePreliminaryEstimate(
@@ -431,12 +718,13 @@ test("First Nations workforce and capacity choices persist without changing pric
   ]);
   assert.deepEqual(
     readiness.find(
-      (item) => item.label === "Community workforce & capacity",
+      (item) => item.label === "Community Workforce & Capacity",
     ),
     {
-      label: "Community workforce & capacity",
-      detail:
-        "Interested in local assembly participation; Local trades / workforce already identified; Interested in project-based assembly training",
+      id: "communityWorkforce",
+      label: "Community Workforce & Capacity",
+      detail: "Community interest in local training and participation identified",
+      status: "Identified",
       ready: true,
     },
   );
@@ -660,6 +948,15 @@ test("project review context carries the complete multi-home Planner record", ()
     },
     opportunityReportReference: reference,
     projectNotes: "Coordinate local assembly training.",
+    projectId: "HDP-TEST-001",
+    readiness: {
+      landSiteControl: "potential",
+      servicing: "investigate",
+      affordabilityPathway: "developing",
+      communityWorkforce: "yes",
+      communityEngagement: "some",
+      fundingPathway: "options",
+    },
   };
 
   const context = formatProjectReviewContext(
@@ -670,13 +967,16 @@ test("project review context carries the complete multi-home Planner record", ()
 
   assert.match(context, new RegExp(reference));
   assert.match(context, /Community \/ project: WestBank/);
-  assert.match(context, /Working portfolio: 6 homes \/ 3 home types \/ 3 delivery groups/);
+  assert.match(context, /Project ID: HDP-TEST-001/);
+  assert.match(context, /Working portfolio: 6 homes \/ 3 model types \/ 3 delivery groups/);
   assert.match(context, /Solace — Design A \/ Assigned to 2 homes \/ complete \/ Look Book SOLACE-LOOK-001/);
   assert.match(context, /Include:.*CMHC|Include:.*On-Reserve/i);
   assert.match(context, /Not relevant: BC Builds/);
-  assert.match(context, /Land status: on reserve/);
-  assert.match(context, /Likely housing use: Community rental/);
-  assert.match(context, /SCALE & READINESS/);
+  assert.match(context, /PROJECT READINESS/);
+  assert.match(context, /KNOWN TODAY/);
+  assert.match(context, /ITEMS TO CONFIRM/);
+  assert.match(context, /Land \/ Site Control: Potential site identified \[Partially Known\]/);
+  assert.match(context, /Servicing: Servicing and site access require investigation \[To Confirm\]/);
   assert.match(context, /Coordinate local assembly training/);
   assert.match(context, /CULTURAL DESIGN DIRECTION/);
   assert.match(context, /Indigenous Inspiration selected/);
@@ -684,18 +984,7 @@ test("project review context carries the complete multi-home Planner record", ()
     context,
     /Exterior cultural expression to be developed with the Nation during project review/,
   );
-  assert.match(context, /COMMUNITY WORKFORCE & CAPACITY/);
-  assert.match(
-    context,
-    /Community workforce and capacity interests identified/,
-  );
-  assert.match(context, /Interested in local assembly participation/);
-  assert.match(context, /Interested in project-based assembly training/);
-  assert.match(context, /Need House Delivery support to coordinate local participation/);
-  assert.match(
-    context,
-    /Cultural design direction: Indigenous Inspiration selected/,
-  );
+  assert.match(context, /Community Workforce & Capacity: Community interest in local training and participation identified \[Identified\]/);
   assert.doesNotMatch(context, /Cultural priorities:/);
   assert.doesNotMatch(context, /Local labour:/);
   assert.doesNotMatch(context, /Training objectives:/);
@@ -799,7 +1088,7 @@ test("Save Look Book return completes the design group and carries Coastal exter
     firstNationsPlannerCatalog,
   );
 
-  assert.equal(completed.step, 4);
+  assert.equal(completed.step, 2);
   assert.equal(completedVariation?.status, "complete");
   assert.equal(completedVariation?.assignedQuantity, 2);
   assert.equal(completedVariation?.lookBookReference, "SOLACE-CULTURAL-001");
@@ -815,6 +1104,7 @@ test("Save Look Book return completes the design group and carries Coastal exter
 test("Planner Design My Home links preserve the design-group return context and exterior flag", () => {
   const session = {
     audience: "first-nations" as const,
+    projectId: "HDP-SESSION-001",
     projectName: "WestBank",
     lineId: "solace-line",
     variationId: "solace-line:design-a",
@@ -835,6 +1125,7 @@ test("Planner Design My Home links preserve the design-group return context and 
   assert.equal(parsed.pathname, "/homes/solace");
   assert.equal(parsed.hash, "#home-inclusions");
   assert.equal(parsed.searchParams.get("plannerProject"), "WestBank");
+  assert.equal(parsed.searchParams.get("plannerProjectId"), "HDP-SESSION-001");
   assert.equal(
     parsed.searchParams.get("plannerDeliveryGroup"),
     "Active / First Build",

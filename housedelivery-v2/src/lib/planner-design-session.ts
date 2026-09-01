@@ -35,6 +35,7 @@ export function getPlannerReturnHref(
 
 export type PlannerDesignSession = {
   audience: PlannerAudience;
+  projectId?: string;
   projectName: string;
   lineId: string;
   variationId: string;
@@ -54,6 +55,7 @@ export type PlannerDesignReturn = PlannerDesignSession & {
 
 export type PlannerHomeViewContext = {
   audience: PlannerAudience;
+  projectId?: string;
   projectName: string;
   totalHomes: number;
   modelId: string;
@@ -69,6 +71,14 @@ export function applyPlannerDesignReturn(
   state: PlannerState,
   returned: PlannerDesignReturn,
 ): PlannerState {
+  if (
+    returned.projectId &&
+    state.projectId &&
+    returned.projectId !== state.projectId
+  ) {
+    return state;
+  }
+
   const designSelections = Object.fromEntries(
     [
       ...Object.entries(returned.configuration.inclusionSelections),
@@ -108,7 +118,11 @@ export function applyPlannerDesignReturn(
       : line,
   );
 
-  return { ...state, portfolio, step: 4 };
+  return {
+    ...state,
+    portfolio,
+    step: state.audience === "first-nations" ? 2 : 4,
+  };
 }
 
 const plannerPhaseLabels: Record<PlannerPhase, string> = {
@@ -135,6 +149,9 @@ function setPlannerDesignSessionParams(
   url: URL,
   session: PlannerDesignSession,
 ) {
+  if (session.projectId) {
+    url.searchParams.set("plannerProjectId", session.projectId);
+  }
   url.searchParams.set("plannerProject", session.projectName);
   url.searchParams.set("plannerLine", session.lineId);
   url.searchParams.set("plannerVariation", session.variationId);
@@ -175,6 +192,9 @@ export function buildPlannerHomeViewHref(
   const url = new URL(baseHref, "https://www.housedelivery.ca");
   url.searchParams.set("planner", context.audience);
   url.searchParams.set("plannerView", "home");
+  if (context.projectId) {
+    url.searchParams.set("plannerProjectId", context.projectId);
+  }
   url.searchParams.set("plannerProject", context.projectName);
   url.searchParams.set("plannerTotalHomes", String(context.totalHomes));
   url.searchParams.set("plannerModel", context.modelId);
@@ -198,6 +218,7 @@ export function readPlannerHomeViewContext(
   const params = new URLSearchParams(search);
   const audience = params.get("planner");
   const projectName = params.get("plannerProject");
+  const projectId = params.get("plannerProjectId");
   const modelId = params.get("plannerModel");
   const homeName = params.get("plannerHome");
   const returnHref = params.get("plannerReturn");
@@ -239,6 +260,7 @@ export function readPlannerHomeViewContext(
 
   return {
     audience,
+    ...(projectId ? { projectId } : {}),
     projectName,
     totalHomes,
     modelId,
@@ -279,6 +301,7 @@ export function readPlannerDesignSession(
   if (!isPlannerAudience(audience)) return undefined;
 
   const projectName = params.get("plannerProject");
+  const projectId = params.get("plannerProjectId");
   const lineId = params.get("plannerLine");
   const variationId = params.get("plannerVariation");
   const modelId = params.get("plannerModel");
@@ -307,6 +330,7 @@ export function readPlannerDesignSession(
 
   return {
     audience,
+    ...(projectId ? { projectId } : {}),
     projectName,
     lineId,
     variationId,

@@ -156,10 +156,98 @@ export type ProjectRefinement = {
   targetTiming: string;
 };
 
+export const firstNationsProjectReadinessQuestions = [
+  {
+    key: "landSiteControl",
+    label: "Land / Site Control",
+    question:
+      "Has the community identified or confirmed the land/site for this housing project?",
+    options: [
+      ["confirmed", "Yes — site confirmed"],
+      ["potential", "Partially — potential site identified"],
+      ["not-yet", "Not yet"],
+      ["not-sure", "Not sure"],
+    ],
+  },
+  {
+    key: "servicing",
+    label: "Servicing",
+    question: "What is currently known about servicing and site access?",
+    options: [
+      ["confirmed", "Confirmed / available"],
+      ["partial", "Partially understood"],
+      ["investigate", "Needs investigation"],
+      ["not-sure", "Not sure"],
+    ],
+  },
+  {
+    key: "affordabilityPathway",
+    label: "Affordability / Homeownership Pathway",
+    question: "Has an affordability or homeownership approach been identified?",
+    options: [
+      ["identified", "Yes"],
+      ["developing", "In development"],
+      ["not-yet", "Not yet"],
+      ["not-sure", "Not sure"],
+    ],
+  },
+  {
+    key: "communityWorkforce",
+    label: "Community Workforce & Capacity",
+    question:
+      "Would the community like local members to participate in training, assembly, construction or long-term housing capacity development?",
+    options: [
+      ["yes", "Yes"],
+      ["explore", "Possibly / would like to explore"],
+      ["no", "No"],
+      ["undetermined", "Not determined"],
+    ],
+  },
+  {
+    key: "communityEngagement",
+    label: "Community Engagement",
+    question:
+      "Has the community begun engaging members about the housing need or proposed project?",
+    options: [
+      ["yes", "Yes"],
+      ["some", "Some engagement"],
+      ["not-yet", "Not yet"],
+      ["undetermined", "Not determined"],
+    ],
+  },
+  {
+    key: "fundingPathway",
+    label: "Funding / Financing Pathway",
+    question: "Has a funding or financing pathway been identified?",
+    options: [
+      ["identified", "Yes"],
+      ["options", "Some programs/options identified"],
+      ["not-yet", "Not yet"],
+      ["not-sure", "Not sure"],
+    ],
+  },
+] as const;
+
+export type ProjectReadinessKey =
+  (typeof firstNationsProjectReadinessQuestions)[number]["key"];
+export type ProjectReadinessValue =
+  (typeof firstNationsProjectReadinessQuestions)[number]["options"][number][0];
+export type FirstNationsProjectReadiness = Readonly<
+  Record<ProjectReadinessKey, ProjectReadinessValue>
+>;
+
+export type PlannerProjectContact = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+};
+
 export type FundingCorridorDecision = "include" | "not-relevant";
 
 export type PlannerState = {
-  version: 4;
+  version: 5;
+  projectId: string;
   audience: PlannerAudience;
   step: number;
   community: string;
@@ -173,6 +261,10 @@ export type PlannerState = {
   fundingCorridorDecisions: Readonly<
     Record<string, FundingCorridorDecision>
   >;
+  readiness: FirstNationsProjectReadiness;
+  contact: PlannerProjectContact;
+  reviewStatus: "draft" | "submitted";
+  louStatus: "not-started" | "project-review-requested";
   opportunityReportReference: string;
   projectNotes: string;
 };
@@ -220,11 +312,25 @@ export type ReportFundingCorridor = MatchedFundingCorridor & {
   decision?: FundingCorridorDecision;
 };
 
+export function createPlannerProjectId(now = Date.now()) {
+  return `HDP-${now.toString(36).toUpperCase()}`;
+}
+
+export function ensurePlannerProjectId(
+  state: PlannerState,
+  now = Date.now(),
+): PlannerState {
+  return state.projectId
+    ? state
+    : { ...state, projectId: createPlannerProjectId(now) };
+}
+
 export function createDefaultPlannerState(
   audience: PlannerAudience = "first-nations",
 ): PlannerState {
   return {
-    version: 4,
+    version: 5,
+    projectId: "",
     audience,
     step: 0,
     community: "",
@@ -249,6 +355,22 @@ export function createDefaultPlannerState(
       targetTiming: "unknown",
     },
     fundingCorridorDecisions: {},
+    readiness: {
+      landSiteControl: "not-sure",
+      servicing: "not-sure",
+      affordabilityPathway: "not-sure",
+      communityWorkforce: "undetermined",
+      communityEngagement: "undetermined",
+      fundingPathway: "not-sure",
+    },
+    contact: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+    },
+    reviewStatus: "draft",
+    louStatus: "not-started",
     opportunityReportReference: "",
     projectNotes: "",
   };
@@ -275,6 +397,88 @@ type LegacyPlannerState = Omit<
   fundingCorridorDecisions?: unknown;
   audienceContext?: unknown;
 };
+
+function normalizeFirstNationsReadiness(
+  value: unknown,
+  legacyWorkforceCapacity: readonly CommunityWorkforceCapacityId[],
+): FirstNationsProjectReadiness {
+  const defaults = createDefaultPlannerState().readiness;
+  const candidate =
+    value && typeof value === "object"
+      ? (value as Partial<Record<ProjectReadinessKey, unknown>>)
+      : {};
+  const readChoice = <T extends ProjectReadinessValue>(
+    key: ProjectReadinessKey,
+    choices: readonly T[],
+    fallback: T,
+  ) =>
+    choices.includes(candidate[key] as T)
+      ? (candidate[key] as T)
+      : fallback;
+
+  return {
+    landSiteControl: readChoice(
+      "landSiteControl",
+      ["confirmed", "potential", "not-yet", "not-sure"],
+      defaults.landSiteControl,
+    ),
+    servicing: readChoice(
+      "servicing",
+      ["confirmed", "partial", "investigate", "not-sure"],
+      defaults.servicing,
+    ),
+    affordabilityPathway: readChoice(
+      "affordabilityPathway",
+      ["identified", "developing", "not-yet", "not-sure"],
+      defaults.affordabilityPathway,
+    ),
+    communityWorkforce: readChoice(
+      "communityWorkforce",
+      ["yes", "explore", "no", "undetermined"],
+      hasCommunityWorkforceCapacityInterest(legacyWorkforceCapacity)
+        ? "yes"
+        : defaults.communityWorkforce,
+    ),
+    communityEngagement: readChoice(
+      "communityEngagement",
+      ["yes", "some", "not-yet", "undetermined"],
+      defaults.communityEngagement,
+    ),
+    fundingPathway: readChoice(
+      "fundingPathway",
+      ["identified", "options", "not-yet", "not-sure"],
+      defaults.fundingPathway,
+    ),
+  };
+}
+
+function normalizePlannerContact(value: unknown): PlannerProjectContact {
+  const candidate =
+    value && typeof value === "object"
+      ? (value as Partial<Record<keyof PlannerProjectContact, unknown>>)
+      : {};
+  const readContactValue = (key: keyof PlannerProjectContact) =>
+    typeof candidate[key] === "string" ? candidate[key] : "";
+
+  return {
+    firstName: readContactValue("firstName"),
+    lastName: readContactValue("lastName"),
+    email: readContactValue("email"),
+    phone: readContactValue("phone"),
+  };
+}
+
+function migrateFirstNationsStep(step: unknown, version: unknown) {
+  const currentStep = typeof step === "number" ? step : 0;
+  if (version === 5) return Math.min(Math.max(currentStep, 0), 6);
+
+  if (currentStep <= 1) return currentStep;
+  if (currentStep <= 3) return 1;
+  if (currentStep === 4) return 2;
+  if (currentStep <= 6) return 3;
+  if (currentStep === 7) return 5;
+  return 6;
+}
 
 function getDesignLetter(index: number) {
   return String.fromCharCode(65 + index);
@@ -336,7 +540,7 @@ export function createPlannerDesignVariation(
   const letter = getDesignLetter(index);
   return {
     id: `${lineId}:design-${letter.toLowerCase()}`,
-    label: `Design ${letter}`,
+    label: `Design Group ${letter}`,
     assignedQuantity: Math.max(1, assignedQuantity),
     status: "draft",
     designSelections: {},
@@ -419,12 +623,23 @@ export function migratePlannerState(value: unknown): PlannerState | undefined {
           ),
         )
       : {};
+  const communityWorkforceCapacity = normalizeCommunityWorkforceCapacity(
+    candidate.refinement?.communityWorkforceCapacity,
+  );
 
   return {
     ...defaults,
     ...candidate,
-    version: 4,
+    version: 5,
+    projectId:
+      typeof candidate.projectId === "string" ? candidate.projectId : "",
     audience: candidate.audience,
+    step:
+      candidate.audience === "first-nations"
+        ? migrateFirstNationsStep(candidate.step, candidate.version)
+        : typeof candidate.step === "number"
+          ? candidate.step
+          : 0,
     audienceContext:
       candidate.audienceContext && typeof candidate.audienceContext === "object"
         ? Object.fromEntries(
@@ -437,11 +652,20 @@ export function migratePlannerState(value: unknown): PlannerState | undefined {
     refinement: {
       ...defaults.refinement,
       ...(candidate.refinement ?? {}),
-      communityWorkforceCapacity: normalizeCommunityWorkforceCapacity(
-        candidate.refinement?.communityWorkforceCapacity,
-      ),
+      communityWorkforceCapacity,
     },
     fundingCorridorDecisions,
+    readiness: normalizeFirstNationsReadiness(
+      candidate.readiness,
+      communityWorkforceCapacity,
+    ),
+    contact: normalizePlannerContact(candidate.contact),
+    reviewStatus:
+      candidate.reviewStatus === "submitted" ? "submitted" : "draft",
+    louStatus:
+      candidate.louStatus === "project-review-requested"
+        ? "project-review-requested"
+        : "not-started",
   };
 }
 
@@ -785,123 +1009,310 @@ export function getOpportunityReportFundingCorridors(
   ];
 }
 
-export function getReadinessProfile(
+export type ReadinessInformationStatus =
+  | "Identified"
+  | "Partially Known"
+  | "To Confirm"
+  | "Not Yet Determined";
+
+export type PlannerReadinessItem = {
+  id: string;
+  label: string;
+  detail: string;
+  status: ReadinessInformationStatus;
+  ready: boolean;
+};
+
+function informationStatus(
+  status: ReadinessInformationStatus,
+): Pick<PlannerReadinessItem, "status" | "ready"> {
+  return {
+    status,
+    ready: status === "Identified" || status === "Partially Known",
+  };
+}
+
+function formatProjectCount(
+  count: number,
+  singular: string,
+  plural = `${singular}s`,
+) {
+  return `${count} ${count === 1 ? singular : plural}`;
+}
+
+function getFirstNationsReadinessProfile(
   state: PlannerState,
   catalog: readonly PlannerCatalogItem[],
-) {
+): readonly PlannerReadinessItem[] {
   const summary = getPortfolioSummary(state.portfolio, catalog);
-  const known = (value: string) => value !== "unknown" && value.trim() !== "";
-  const workforceCapacityLabels = getCommunityWorkforceCapacityLabels(
-    state.refinement.communityWorkforceCapacity,
+  const unitMix = summary.lines
+    .map(({ line, model }) => {
+      const homes = line.quantity * model.homesPerSelection;
+      return `${homes} ${model.name.replace(/^The\s+/i, "")} ${
+        homes === 1 ? "home" : "homes"
+      }`;
+    })
+    .join("; ");
+  const readinessDetails: Record<
+    ProjectReadinessKey,
+    Record<string, { detail: string; status: ReadinessInformationStatus }>
+  > = {
+    landSiteControl: {
+      confirmed: { detail: "Site confirmed", status: "Identified" },
+      potential: {
+        detail: "Potential site identified",
+        status: "Partially Known",
+      },
+      "not-yet": { detail: "Site not yet identified", status: "To Confirm" },
+      "not-sure": {
+        detail: "Site status not yet determined",
+        status: "Not Yet Determined",
+      },
+    },
+    servicing: {
+      confirmed: {
+        detail: "Servicing and site access confirmed / available",
+        status: "Identified",
+      },
+      partial: {
+        detail: "Servicing and site access partially understood",
+        status: "Partially Known",
+      },
+      investigate: {
+        detail: "Servicing and site access require investigation",
+        status: "To Confirm",
+      },
+      "not-sure": {
+        detail: "Servicing and site access not yet determined",
+        status: "Not Yet Determined",
+      },
+    },
+    affordabilityPathway: {
+      identified: {
+        detail: "Affordability / homeownership approach identified",
+        status: "Identified",
+      },
+      developing: {
+        detail: "Affordability / homeownership approach in development",
+        status: "Partially Known",
+      },
+      "not-yet": {
+        detail: "Affordability / homeownership approach not yet identified",
+        status: "To Confirm",
+      },
+      "not-sure": {
+        detail: "Affordability / homeownership approach not yet determined",
+        status: "Not Yet Determined",
+      },
+    },
+    communityWorkforce: {
+      yes: {
+        detail: "Community interest in local training and participation identified",
+        status: "Identified",
+      },
+      explore: {
+        detail: "Community would like to explore local training and participation",
+        status: "Partially Known",
+      },
+      no: {
+        detail: "Local training and participation are not requested at this stage",
+        status: "Identified",
+      },
+      undetermined: {
+        detail: "Community workforce and capacity interest not yet determined",
+        status: "Not Yet Determined",
+      },
+    },
+    communityEngagement: {
+      yes: {
+        detail: "Community engagement has begun",
+        status: "Identified",
+      },
+      some: {
+        detail: "Some community engagement has begun",
+        status: "Partially Known",
+      },
+      "not-yet": {
+        detail: "Community engagement has not yet begun",
+        status: "To Confirm",
+      },
+      undetermined: {
+        detail: "Community engagement status not yet determined",
+        status: "Not Yet Determined",
+      },
+    },
+    fundingPathway: {
+      identified: {
+        detail: "Funding / financing pathway identified",
+        status: "Identified",
+      },
+      options: {
+        detail: "Some funding / financing programs or options identified",
+        status: "Partially Known",
+      },
+      "not-yet": {
+        detail: "Funding / financing pathway not yet identified",
+        status: "To Confirm",
+      },
+      "not-sure": {
+        detail: "Funding / financing pathway not yet determined",
+        status: "Not Yet Determined",
+      },
+    },
+  };
+  const readinessItems = firstNationsProjectReadinessQuestions.map(
+    ({ key, label }) => {
+      const value = state.readiness[key];
+      const detail = readinessDetails[key][value];
+      return {
+        id: key,
+        label,
+        detail: detail.detail,
+        ...informationStatus(detail.status),
+      };
+    },
   );
-  const workforceCapacityIdentified = hasCommunityWorkforceCapacityInterest(
-    state.refinement.communityWorkforceCapacity,
-  );
-
-  const audienceReadiness =
-    state.audience === "first-nations"
-      ? {
-          label: "Community engagement",
-          detail:
-            state.refinement.householdPriorities.length > 0 &&
-            !state.refinement.householdPriorities.includes("unknown")
-              ? "Priority households identified"
-              : "Community priorities to confirm",
-          ready:
-            state.refinement.householdPriorities.length > 0 &&
-            !state.refinement.householdPriorities.includes("unknown"),
-        }
-      : state.audience === "developer"
-        ? {
-            label: "Development readiness",
-            detail: known(state.audienceContext.developmentReadiness ?? "")
-              ? state.audienceContext.developmentReadiness.replaceAll("-", " ")
-              : "Development readiness to confirm",
-            ready: known(state.audienceContext.developmentReadiness ?? ""),
-          }
-        : state.audience === "general-contractor"
-          ? {
-              label: "Procurement role",
-              detail: known(state.audienceContext.procurementRole ?? "")
-                ? state.audienceContext.procurementRole.replaceAll("-", " ")
-                : "Procurement role to confirm",
-              ready: known(state.audienceContext.procurementRole ?? ""),
-            }
-          : {
-              label: "Housing need",
-              detail: known(state.audienceContext.housingNeed ?? "")
-                ? state.audienceContext.housingNeed.replaceAll("-", " ")
-                : "Housing need to confirm",
-              ready: known(state.audienceContext.housingNeed ?? ""),
-            };
 
   return [
     {
-      label: "Housing requirement",
-      detail: state.approximateHomes
-        ? `Approximately ${state.approximateHomes} homes identified`
-        : "Housing requirement to confirm",
-      ready: Boolean(state.approximateHomes),
+      id: "housingRequirement",
+      label: "Housing Requirement",
+      detail: summary.totalHomes
+        ? `${formatProjectCount(summary.totalHomes, "home")} selected for this project`
+        : "No homes selected yet",
+      ...informationStatus(summary.totalHomes ? "Identified" : "To Confirm"),
     },
     {
+      id: "unitMix",
+      label: "Unit Mix",
+      detail: summary.modelCount
+        ? `${formatProjectCount(summary.modelCount, "model type")} · ${unitMix}`
+        : "Model mix to develop",
+      ...informationStatus(summary.modelCount ? "Identified" : "To Confirm"),
+    },
+    ...readinessItems,
+  ];
+}
+
+export function getReadinessProfile(
+  state: PlannerState,
+  catalog: readonly PlannerCatalogItem[],
+): readonly PlannerReadinessItem[] {
+  if (state.audience === "first-nations") {
+    return getFirstNationsReadinessProfile(state, catalog);
+  }
+
+  const summary = getPortfolioSummary(state.portfolio, catalog);
+  const known = (value: string) => value !== "unknown" && value.trim() !== "";
+  const audienceReadiness =
+    state.audience === "developer"
+      ? {
+          id: "developmentReadiness",
+          label: "Development readiness",
+          detail: known(state.audienceContext.developmentReadiness ?? "")
+            ? state.audienceContext.developmentReadiness.replaceAll("-", " ")
+            : "Development readiness to confirm",
+          ...informationStatus(
+            known(state.audienceContext.developmentReadiness ?? "")
+              ? "Identified"
+              : "To Confirm",
+          ),
+        }
+      : state.audience === "general-contractor"
+        ? {
+            id: "procurementRole",
+            label: "Procurement role",
+            detail: known(state.audienceContext.procurementRole ?? "")
+              ? state.audienceContext.procurementRole.replaceAll("-", " ")
+              : "Procurement role to confirm",
+            ...informationStatus(
+              known(state.audienceContext.procurementRole ?? "")
+                ? "Identified"
+                : "To Confirm",
+            ),
+          }
+        : {
+            id: "housingNeed",
+            label: "Housing need",
+            detail: known(state.audienceContext.housingNeed ?? "")
+              ? state.audienceContext.housingNeed.replaceAll("-", " ")
+              : "Housing need to confirm",
+            ...informationStatus(
+              known(state.audienceContext.housingNeed ?? "")
+                ? "Identified"
+                : "To Confirm",
+            ),
+          };
+
+  return [
+    {
+      id: "housingRequirement",
+      label: "Housing requirement",
+      detail: summary.totalHomes
+        ? `${formatProjectCount(summary.totalHomes, "home")} selected for this project`
+        : "Housing requirement to confirm",
+      ...informationStatus(summary.totalHomes ? "Identified" : "To Confirm"),
+    },
+    {
+      id: "unitMix",
       label: "Unit mix",
       detail: summary.modelCount
         ? `${summary.modelCount} model ${summary.modelCount === 1 ? "type" : "types"} in the working portfolio`
         : "Model mix to develop",
-      ready: summary.modelCount > 0,
+      ...informationStatus(summary.modelCount ? "Identified" : "To Confirm"),
     },
     {
+      id: "landSiteControl",
       label: "Land / site control",
       detail: known(state.refinement.landStatus)
         ? state.refinement.landStatus.replaceAll("-", " ")
         : "Land status to confirm",
-      ready: known(state.refinement.landStatus),
+      ...informationStatus(
+        known(state.refinement.landStatus) ? "Identified" : "To Confirm",
+      ),
     },
     {
+      id: "servicing",
       label: "Servicing",
       detail: known(state.refinement.servicing)
         ? state.refinement.servicing.replaceAll("-", " ")
         : "Servicing and access to confirm",
-      ready: known(state.refinement.servicing),
+      ...informationStatus(
+        known(state.refinement.servicing) ? "Identified" : "To Confirm",
+      ),
     },
     {
+      id: "affordabilityPathway",
       label: "Affordability pathway",
       detail: known(state.refinement.affordability)
         ? state.refinement.affordability.replaceAll("-", " ")
         : "Affordability approach to confirm",
-      ready: known(state.refinement.affordability),
+      ...informationStatus(
+        known(state.refinement.affordability) ? "Identified" : "To Confirm",
+      ),
     },
-    ...(state.audience === "first-nations"
-      ? []
-      : [
-          {
-            label: "Delivery capacity",
-            detail: known(state.refinement.localLabour)
-              ? state.refinement.localLabour.replaceAll("-", " ")
-              : "Local delivery capacity to confirm",
-            ready: known(state.refinement.localLabour),
-          },
-        ]),
-    ...(state.audience === "first-nations"
-      ? [
-          {
-            label: "Community workforce & capacity",
-            detail: workforceCapacityIdentified
-              ? workforceCapacityLabels.join("; ")
-              : "Community workforce and capacity interests to be determined",
-            ready: workforceCapacityIdentified,
-          },
-        ]
-      : []),
+    {
+      id: "deliveryCapacity",
+      label: "Delivery capacity",
+      detail: known(state.refinement.localLabour)
+        ? state.refinement.localLabour.replaceAll("-", " ")
+        : "Local delivery capacity to confirm",
+      ...informationStatus(
+        known(state.refinement.localLabour) ? "Identified" : "To Confirm",
+      ),
+    },
     audienceReadiness,
     {
+      id: "fundingPathway",
       label: "Funding pathway",
       detail: known(state.refinement.affordability)
         ? "Contextual corridors identified for discussion"
         : "More information required before corridor review",
-      ready: known(state.refinement.affordability),
+      ...informationStatus(
+        known(state.refinement.affordability) ? "Identified" : "To Confirm",
+      ),
     },
-  ] as const;
+  ];
 }
 
 export function createOpportunityReportReference(now = Date.now()) {
@@ -1037,23 +1448,28 @@ export function formatProjectReviewContext(
     (record) =>
       `${record.designName}: Indigenous Inspiration selected. Exterior cultural expression to be developed with the Nation during project review.`,
   );
-  const workforceCapacityLabels = getCommunityWorkforceCapacityLabels(
-    state.refinement.communityWorkforceCapacity,
+  const knownReadiness = readiness.filter((item) => item.ready);
+  const unresolvedReadiness = readiness.filter((item) => !item.ready);
+  const designGroupCount = state.portfolio.reduce(
+    (total, line) => total + line.designVariations.length,
+    0,
   );
-  const workforceCapacityIdentified = hasCommunityWorkforceCapacityInterest(
-    state.refinement.communityWorkforceCapacity,
+  const fundingReadiness = readiness.find(
+    (item) => item.id === "fundingPathway",
   );
 
   return [
     "HOUSE DELIVERY PLANNER PROJECT REVIEW",
+    `Project ID: ${state.projectId || "Pending"}`,
     `Opportunity Report: ${state.opportunityReportReference || "Reference pending"}`,
     ...(state.audience === "first-nations"
       ? []
       : [`Audience: ${plannerAudienceLabels[state.audience]}`]),
     `Community / project: ${state.community || "To confirm"}`,
     `Location: ${state.location || "To confirm"}`,
-    `Housing requirement: ${state.approximateHomes || "To confirm"}`,
-    `Working portfolio: ${summary.totalHomes} homes / ${summary.modelCount} home types / ${summary.phaseCount} delivery groups`,
+    `Housing requirement: ${formatProjectCount(summary.totalHomes, "home")}`,
+    `Working portfolio: ${formatProjectCount(summary.totalHomes, "home")} / ${formatProjectCount(summary.modelCount, "model type")} / ${formatProjectCount(summary.phaseCount, "delivery group")}`,
+    `Design groups: ${formatProjectCount(designGroupCount, "design group")}`,
     `Site pattern: ${formatProjectReviewValue(state.sitePattern)}`,
     `Delivery horizon: ${formatProjectReviewValue(state.deliveryHorizon)}`,
     "",
@@ -1063,19 +1479,35 @@ export function formatProjectReviewContext(
       ? ["", "CULTURAL DESIGN DIRECTION", ...culturalDesignLines]
       : []),
     "",
-    "REFINE YOUR PROJECT",
-    ...refinement.map(
-      ([label, value]) => `${label}: ${formatProjectReviewValue(value)}`,
-    ),
-    `Project notes: ${state.projectNotes || "None provided"}`,
     ...(state.audience === "first-nations"
       ? [
+          "PROJECT READINESS",
+          "KNOWN TODAY",
+          ...(knownReadiness.length
+            ? knownReadiness.map(
+                (item) => `${item.label}: ${item.detail} [${item.status}]`,
+              )
+            : ["No readiness information identified yet"]),
+          "ITEMS TO CONFIRM",
+          ...(unresolvedReadiness.length
+            ? unresolvedReadiness.map(
+                (item) => `${item.label}: ${item.detail} [${item.status}]`,
+              )
+            : ["No primary readiness items remain unresolved"]),
+        ]
+      : [
+          "REFINE YOUR PROJECT",
+          ...refinement.map(
+            ([label, value]) =>
+              `${label}: ${formatProjectReviewValue(value)}`,
+          ),
+        ]),
+    `Project notes: ${state.projectNotes || "None provided"}`,
+    ...(state.audience === "first-nations" && fundingReadiness
+      ? [
           "",
-          "COMMUNITY WORKFORCE & CAPACITY",
-          workforceCapacityIdentified
-            ? communityWorkforceCapacityReviewStatement
-            : "Community workforce and capacity interests remain to be determined during project review.",
-          `Selections: ${workforceCapacityLabels.join(", ")}`,
+          "FUNDING / FINANCING PATHWAY",
+          `${fundingReadiness.detail} [${fundingReadiness.status}]`,
         ]
       : []),
     "",
@@ -1090,10 +1522,14 @@ export function formatProjectReviewContext(
       ? excludedFunding.map((corridor) => `Not relevant: ${corridor.title}`)
       : []),
     "",
-    "SCALE & READINESS",
-    ...readiness.map(
-      (item) => `${item.ready ? "Ready" : "To confirm"}: ${item.label} — ${item.detail}`,
-    ),
+    ...(state.audience === "first-nations"
+      ? []
+      : [
+          "SCALE & READINESS",
+          ...readiness.map(
+            (item) => `${item.status}: ${item.label} — ${item.detail}`,
+          ),
+        ]),
   ].join("\n");
 }
 

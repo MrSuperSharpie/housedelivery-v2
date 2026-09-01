@@ -167,6 +167,7 @@ function PlannerDesignContext({
           </p>
           <p className="mt-3 text-sm text-white/62">
             Project: {session.projectName}
+            {session.projectId ? ` · ${session.projectId}` : ""}
           </p>
           <h2 className="mt-2 text-2xl font-medium tracking-[-0.04em] text-white/92 sm:text-3xl">
             {session.homeName} — {session.designLabel}
@@ -793,6 +794,7 @@ export function HomeConfigurator({
       data-home-configuration-version={configuration.schemaVersion}
       data-review-status={configuration.reviewStatus}
       data-planner-design-group={plannerSession?.variationId}
+      data-planner-project-id={plannerSession?.projectId}
       data-planner-project={plannerSession?.projectName}
       data-planner-delivery-group={plannerSession?.deliveryGroup}
       data-cultural-exterior-interest={
