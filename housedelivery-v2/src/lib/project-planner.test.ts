@@ -280,10 +280,10 @@ test("Project Readiness exposes all six customer-sourced questions", () => {
     [
       "Land / Site Control",
       "Servicing",
-      "Affordability / Homeownership Pathway",
+      "Housing Approach / Tenure",
       "Community Workforce & Capacity",
-      "Community Engagement",
-      "Funding / Financing Pathway",
+      "Project Alignment",
+      "Funding / Financing",
     ],
   );
   assert.equal(

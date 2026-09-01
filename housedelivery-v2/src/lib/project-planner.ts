@@ -237,12 +237,14 @@ export const firstNationsProjectReadinessQuestions = [
   },
   {
     key: "affordabilityPathway",
-    label: "Affordability / Homeownership Pathway",
-    question: "Has an affordability or homeownership approach been identified?",
+    label: "Housing Approach / Tenure",
+    question: "What is the current status of the housing approach for this project?",
+    helper:
+      "This may include Band-owned rental, individual homeownership, rent-to-own, affordable housing, staff housing, elder housing or another community-defined approach.",
     options: [
-      ["identified", "Yes"],
+      ["identified", "Defined"],
       ["developing", "In development"],
-      ["not-yet", "Not yet"],
+      ["not-yet", "Not yet determined"],
       ["not-sure", "Not sure"],
     ],
   },
@@ -260,24 +262,28 @@ export const firstNationsProjectReadinessQuestions = [
   },
   {
     key: "communityEngagement",
-    label: "Community Engagement",
+    label: "Project Alignment",
     question:
-      "Has the community begun engaging members about the housing need or proposed project?",
+      "What is the current status of internal project alignment?",
+    helper:
+      "This helps House Delivery understand whether the current project scope is ready for the next stage of review.",
     options: [
-      ["yes", "Yes"],
-      ["some", "Some engagement"],
-      ["not-yet", "Not yet"],
-      ["undetermined", "Not determined"],
+      ["yes", "Key project representatives are aligned"],
+      ["some", "Discussions are underway"],
+      ["not-yet", "Still being developed"],
+      ["undetermined", "Not sure"],
     ],
   },
   {
     key: "fundingPathway",
-    label: "Funding / Financing Pathway",
-    question: "Has a funding or financing pathway been identified?",
+    label: "Funding / Financing",
+    question: "What is the current status of funding or financing for this project?",
+    helper:
+      "This may include Nation funding, government programs, housing agencies, lender financing, member financing or a combination of sources.",
     options: [
-      ["identified", "Yes"],
-      ["options", "Some programs/options identified"],
-      ["not-yet", "Not yet"],
+      ["identified", "Pathway identified"],
+      ["options", "Options being explored"],
+      ["not-yet", "Not yet determined"],
       ["not-sure", "Not sure"],
     ],
   },

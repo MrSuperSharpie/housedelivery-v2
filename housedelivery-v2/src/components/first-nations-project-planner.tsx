@@ -1732,7 +1732,7 @@ function FirstNationsProjectReadinessStep({
       <StepHeader
         eyebrow="04 / Project readiness"
         title="Record what is known today."
-        intro="These answers organize the next conversation; they are not an eligibility score. Unknown information will not block the project or its Opportunity Report."
+        intro="Projects do not need to have every answer today. Record what is currently known so House Delivery can understand where the project stands and what may need to be explored next."
       />
 
       <section className="mt-14 border-y border-black/16 py-7">
@@ -1781,6 +1781,11 @@ function FirstNationsProjectReadinessStep({
             <p className="mt-2 text-base font-medium leading-7 tracking-[-0.02em]">
               {question.question}
             </p>
+            {"helper" in question ? (
+              <p className="mt-3 text-xs leading-5 text-black/48">
+                {question.helper}
+              </p>
+            ) : null}
             <div className="mt-5 grid gap-2">
               {question.options.map(([value, label]) => (
                 <label
