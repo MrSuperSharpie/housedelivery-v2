@@ -201,6 +201,8 @@ select {
   main,
   main > #home-configurator,
   main > .planner-shell,
+  main.internal-document-shell,
+  main.internal-document-shell > [data-internal-print-document],
   #home-configurator > #home-look-book {
     display: block !important;
   }
@@ -233,6 +235,23 @@ select {
     margin: 0 !important;
     padding: 14mm !important;
     background: #fff !important;
+  }
+
+  main.internal-document-shell {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 !important;
+    background: #fff !important;
+  }
+
+  main.internal-document-shell > [data-internal-print-document] {
+    width: 210mm;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 14mm !important;
+    background: #fff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   #home-configurator > #home-inclusions,

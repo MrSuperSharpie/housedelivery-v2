@@ -1,6 +1,9 @@
 import { createHash } from "node:crypto";
 
-import { firstNationsPlannerCatalog } from "@/data/first-nations-planner";
+import {
+  firstNationsFundingCorridors,
+  firstNationsPlannerCatalog,
+} from "@/data/first-nations-planner";
 import { models } from "@/data/models";
 import {
   LookBookValidationError,
@@ -14,13 +17,16 @@ import type {
   StoredLookBookSelection,
 } from "@/lib/lookbook/types";
 import {
-  getCommunityWorkforceCapacityLabels,
   getPortfolioSummary,
   getReadinessProfile,
   migratePlannerState,
   type PlannerPhase,
   type PlannerState,
 } from "@/lib/project-planner";
+import {
+  getPlannerFundingSummary,
+  getPlannerWorkforceSummary,
+} from "@/lib/planner-documents";
 
 const phaseLabels: Record<PlannerPhase, string> = {
   "phase-1": "Active / First Build",
@@ -54,6 +60,18 @@ export type PlannerProjectHandoff = {
   state: PlannerState;
   submissionId: string;
   packages: readonly PlannerHandoffPackage[];
+};
+
+export type PlannerHandoffEmailInput = {
+  state: PlannerState;
+  submissionId: string;
+  packages: readonly Omit<PlannerHandoffPackage, "record">[];
+};
+
+export type PlannerHandoffLinks = {
+  projectReviewUrl: string;
+  opportunityReportUrl: string;
+  opportunityReportPdfUrl: string;
 };
 
 function deterministicConfigurationId(projectId: string, variationId: string) {
@@ -250,7 +268,7 @@ export function parsePlannerProjectHandoff({
 }
 
 export function formatPlannerHandoffEmail(
-  handoff: PlannerProjectHandoff,
+  handoff: PlannerHandoffEmailInput,
   review: {
     firstName: string;
     lastName: string;
@@ -259,18 +277,18 @@ export function formatPlannerHandoffEmail(
     notes: string;
     timeline: string;
   },
+  links: PlannerHandoffLinks,
 ) {
   const { state, packages } = handoff;
   const summary = getPortfolioSummary(state.portfolio, firstNationsPlannerCatalog);
   const readiness = getReadinessProfile(state, firstNationsPlannerCatalog);
   const known = readiness.filter((item) => item.ready);
   const toConfirm = readiness.filter((item) => !item.ready);
-  const workforce = getCommunityWorkforceCapacityLabels(
-    state.refinement.communityWorkforceCapacity,
+  const workforce = getPlannerWorkforceSummary(state);
+  const funding = getPlannerFundingSummary(
+    state,
+    firstNationsFundingCorridors,
   );
-  const selectedFunding = Object.entries(state.fundingCorridorDecisions)
-    .filter(([, decision]) => decision === "include")
-    .map(([id]) => id);
   const portfolio = summary.lines.map(
     ({ line, model }) =>
       `${model.name}: ${line.quantity * model.homesPerSelection} home${line.quantity * model.homesPerSelection === 1 ? "" : "s"} / ${phaseLabels[line.phase]} / ${line.designVariations.length} Design Group${line.designVariations.length === 1 ? "" : "s"}`,
@@ -302,6 +320,9 @@ export function formatPlannerHandoffEmail(
     "PROJECT",
     `Project ID: ${state.projectId}`,
     `Opportunity Report ID: ${state.opportunityReportReference}`,
+    `Open Project Review: ${links.projectReviewUrl}`,
+    `View Opportunity Report: ${links.opportunityReportUrl}`,
+    `Download Opportunity Report PDF: ${links.opportunityReportPdfUrl}`,
     `Nation / community: ${state.community}`,
     `Authorized project representative: ${state.authorizedRepresentative.name || "To confirm"}`,
     `Representative title: ${state.authorizedRepresentative.title || "To confirm"}`,
@@ -331,12 +352,13 @@ export function formatPlannerHandoffEmail(
     ...toConfirm.map((item) => `${item.label}: ${item.detail} [${item.status}]`),
     "",
     "COMMUNITY WORKFORCE / TRAINING",
-    ...(workforce.length ? workforce : ["To be determined"]),
+    ...workforce.lines,
     "",
     "FUNDING / FINANCING",
-    selectedFunding.length
-      ? `Selected for review: ${selectedFunding.join(", ")}`
-      : "No funding corridor selected; pathway remains to confirm.",
+    "Project-reported status:",
+    funding.projectStatus,
+    "House Delivery funding-corridor review:",
+    ...funding.corridorReviewLines,
     "",
     "NEXT COMMERCIAL STEP",
     "HOUSE DELIVERY REVIEW",

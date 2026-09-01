@@ -24,6 +24,14 @@ import {
   formatPlannerHandoffEmail,
   parsePlannerProjectHandoff,
 } from "@/lib/planner-handoff";
+import { createPlannerLouDraft } from "@/lib/planner-documents";
+import type { StoredPlannerProject } from "@/lib/planner-project-record";
+import {
+  derivePlannerReviewToken,
+  hashPlannerReviewToken,
+  plannerReviewTokenMatches,
+  PlannerReviewAccessConfigurationError,
+} from "@/lib/planner-review-access";
 
 function completeConfiguration(
   definition: HomeConfiguratorDefinition,
@@ -79,6 +87,7 @@ function completedVariation({
   reference,
   designName,
   indigenous = false,
+  designNotes,
 }: {
   lineId: string;
   index: number;
@@ -88,6 +97,7 @@ function completedVariation({
   reference: string;
   designName: string;
   indigenous?: boolean;
+  designNotes?: string;
 }): PlannerDesignVariation {
   return {
     ...createPlannerDesignVariation(lineId, quantity, index),
@@ -96,9 +106,9 @@ function completedVariation({
     lookBookReference: reference,
     savedAt: "2026-08-31T12:00:00.000Z",
     culturalExteriorInterest: indigenous,
-    designNotes: indigenous
+    designNotes: designNotes ?? (indigenous
       ? "Carry the approved exterior inspiration into factory review."
-      : "Confirm durable family-home material mapping.",
+      : "Confirm durable family-home material mapping."),
     configuration: {
       ...completeConfiguration(
         definition,
@@ -184,6 +194,101 @@ function realisticProject() {
   } satisfies PlannerState;
 }
 
+function testNationThreeProject() {
+  const homes = [
+    ["langley", "Langley", "LOT B-09", "TEST3-LAN"],
+    ["solace", "Solace", "LOT B-22", "TEST3-SOL"],
+    ["timberline", "Timberline", "LOT B-17", "TEST3-TIM"],
+  ] as const;
+
+  const base = createDefaultPlannerState();
+  return {
+    ...base,
+    projectId: "HDP-TEST-NATION-3",
+    community: "Test Nation 3",
+    location: "British Columbia",
+    opportunityReportReference: "HD-OPP-TEST-NATION-3",
+    contact: {
+      firstName: "Tanya",
+      lastName: "Tester",
+      email: "tanya@example.test",
+      phone: "604 555 0103",
+    },
+    authorizedRepresentative: {
+      name: "Tanya Tester",
+      title: "Housing Manager",
+      councilAuthorizationStatus: "to-confirm" as const,
+    },
+    readiness: {
+      landSiteControl: "confirmed" as const,
+      servicing: "confirmed" as const,
+      affordabilityPathway: "not-yet" as const,
+      communityWorkforce: "explore" as const,
+      communityEngagement: "not-yet" as const,
+      fundingPathway: "identified" as const,
+    },
+    refinement: {
+      ...base.refinement,
+      communityWorkforceCapacity: ["to-be-determined"] as const,
+    },
+    fundingCorridorDecisions: {},
+    portfolio: homes.map(([slug, name, designNotes, reference], index) => {
+      const lineId = `${slug}-test-3-line`;
+      return {
+        id: lineId,
+        modelId: `custom:${slug}`,
+        quantity: 1,
+        phase: "phase-1" as const,
+        designVariations: [
+          completedVariation({
+            lineId,
+            index,
+            quantity: 1,
+            definition: getHomeConfiguratorRegistration("custom-home", slug)!
+              .definition!,
+            level: index === 1 ? "signature" : "premium",
+            reference,
+            designName: `${name} — Design Group A`,
+            designNotes,
+          }),
+        ],
+      };
+    }),
+  } satisfies PlannerState;
+}
+
+function storedProjectFromHandoff(
+  handoff: ReturnType<typeof parsePlannerProjectHandoff>,
+): StoredPlannerProject {
+  return {
+    id: handoff.state.projectId,
+    submissionId: handoff.submissionId,
+    opportunityReportReference: handoff.state.opportunityReportReference,
+    community: handoff.state.community,
+    lifecycleStatus: "submitted-for-review",
+    projectState: {
+      ...handoff.state,
+      reviewStatus: "submitted",
+      lifecycleStatus: "submitted-for-review",
+      louStatus: "project-review-requested",
+      submissionId: handoff.submissionId,
+      submittedAt: "2026-09-01T19:00:00.000Z",
+    },
+    designPackages: handoff.packages.map(({ record, ...designPackage }) => {
+      void record;
+      return designPackage;
+    }),
+    reviewTokenHash: "a".repeat(64),
+    internalReviewStatus: "pending",
+    reviewNotes: [],
+    louDrafts: [],
+    handoffEmailVersion: 0,
+    createdAt: "2026-09-01T19:00:00.000Z",
+    updatedAt: "2026-09-01T19:00:00.000Z",
+    submittedAt: "2026-09-01T19:00:00.000Z",
+  };
+}
+
 test("12 homes persist as three unique factory design outputs with real Look Book packages", () => {
   const state = realisticProject();
   const handoff = parsePlannerProjectHandoff({
@@ -253,6 +358,10 @@ test("House Delivery email contains every human-readable design package and the 
     phone: "",
     notes: "Please review phasing.",
     timeline: "2027",
+  }, {
+    projectReviewUrl: "https://preview.housedelivery.test/internal/project-review/secure-token",
+    opportunityReportUrl: "https://preview.housedelivery.test/internal/project-review/secure-token/opportunity-report",
+    opportunityReportPdfUrl: "https://preview.housedelivery.test/internal/project-review/secure-token/opportunity-report/pdf?disposition=attachment",
   });
 
   assert.match(email, /STATUS: SUBMITTED FOR HOUSE DELIVERY REVIEW/);
@@ -271,6 +380,107 @@ test("House Delivery email contains every human-readable design package and the 
   assert.match(email, /does not create an LOU, authorize or charge design-development work/);
   assert.doesNotMatch(email, /\$500/);
   assert.doesNotMatch(email, /kitchen-look-feel-premium-1/);
+});
+
+test("Test Nation 3 email keeps workforce and funding sources coherent and includes durable review links", () => {
+  const handoff = parsePlannerProjectHandoff({
+    plannerRecord: testNationThreeProject(),
+    contact: {
+      firstName: "Tanya",
+      email: "tanya@example.test",
+      phone: "604 555 0103",
+    },
+    origin: "https://preview.housedelivery.test",
+    submittedAt: "2026-09-01T19:00:00.000Z",
+  });
+  const links = {
+    projectReviewUrl: "https://preview.housedelivery.test/internal/project-review/project-capability",
+    opportunityReportUrl: "https://preview.housedelivery.test/internal/project-review/project-capability/opportunity-report",
+    opportunityReportPdfUrl: "https://preview.housedelivery.test/internal/project-review/project-capability/opportunity-report/pdf?disposition=attachment",
+  };
+  const email = formatPlannerHandoffEmail(handoff, {
+    firstName: "Tanya",
+    lastName: "Tester",
+    email: "tanya@example.test",
+    phone: "604 555 0103",
+    notes: "",
+    timeline: "",
+  }, links);
+
+  assert.equal(handoff.packages.length, 3);
+  assert.match(email, /Community interest in local training and participation has been identified/);
+  assert.match(email, /Specific participation, training scope, workforce availability, partners, costs and scheduling remain to be confirmed/);
+  assert.doesNotMatch(email, /COMMUNITY WORKFORCE \/ TRAINING\nTo be determined/);
+  assert.match(email, /Project-reported status:\nFunding \/ financing pathway identified\./);
+  assert.match(email, /No specific House Delivery funding corridor has been selected for review\./);
+  assert.doesNotMatch(email, /pathway remains to confirm/i);
+  assert.ok(email.includes(links.projectReviewUrl));
+  assert.ok(email.includes(links.opportunityReportUrl));
+  assert.ok(email.includes(links.opportunityReportPdfUrl));
+  for (const note of ["LOT B-09", "LOT B-22", "LOT B-17"]) {
+    assert.ok(email.includes(note));
+  }
+});
+
+test("Project review capability is stable, project-scoped, hashed at rest and rejects weak configuration", () => {
+  const secret = "planner-review-secret-with-at-least-32-characters";
+  const token = derivePlannerReviewToken("planner-submission-a", secret);
+  const repeated = derivePlannerReviewToken("planner-submission-a", secret);
+  const other = derivePlannerReviewToken("planner-submission-b", secret);
+
+  assert.equal(token.length, 43);
+  assert.equal(token, repeated);
+  assert.notEqual(token, other);
+  assert.equal(plannerReviewTokenMatches(token, hashPlannerReviewToken(token)), true);
+  assert.equal(plannerReviewTokenMatches(other, hashPlannerReviewToken(token)), false);
+  assert.throws(
+    () => derivePlannerReviewToken("planner-submission-a", "too-short"),
+    PlannerReviewAccessConfigurationError,
+  );
+});
+
+test("Test Nation 3 LOU is a versioned prepared draft with all schedules and no commercial authorization", () => {
+  const handoff = parsePlannerProjectHandoff({
+    plannerRecord: testNationThreeProject(),
+    contact: { firstName: "Tanya", email: "tanya@example.test" },
+    origin: "https://preview.housedelivery.test",
+    submittedAt: "2026-09-01T19:00:00.000Z",
+  });
+  const project = storedProjectFromHandoff(handoff);
+  const revisionOne = createPlannerLouDraft(
+    project,
+    1,
+    "2026-09-01T20:00:00.000Z",
+  );
+  const revisionTwo = createPlannerLouDraft(
+    { ...project, louDrafts: [revisionOne] },
+    2,
+    "2026-09-01T21:00:00.000Z",
+  );
+
+  assert.equal(revisionOne.status, "prepared");
+  assert.equal(revisionOne.revision, 1);
+  assert.equal(revisionTwo.revision, 2);
+  assert.equal(revisionOne.document.designDirections.length, 3);
+  for (const value of [
+    "HDP-TEST-NATION-3",
+    "HD-OPP-TEST-NATION-3",
+    "Langley",
+    "Solace",
+    "Timberline",
+    "LOT B-09",
+    "LOT B-22",
+    "LOT B-17",
+    "SCHEDULE A",
+    "SCHEDULE B",
+    "DRAFT — HOUSE DELIVERY REVIEW REQUIRED",
+    "NOT YET SENT TO NATION",
+  ]) {
+    assert.ok(revisionOne.text.includes(value));
+  }
+  assert.doesNotMatch(revisionOne.text, /\$500|invoice|payment due/i);
+  assert.match(revisionOne.text, /No chargeable Design Development work will commence without separate written authorization/);
+  assert.match(revisionOne.text, /does not establish final project pricing/);
 });
 
 test("LOU, payment and explicit release gates remain separate and factory output returns to its Design Group", () => {

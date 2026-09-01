@@ -12,11 +12,22 @@ import {
   PlannerHandoffValidationError,
   type PlannerProjectHandoff,
 } from "@/lib/planner-handoff";
-import { savePlannerProject } from "@/lib/planner-project-repository";
+import type { StoredPlannerProject } from "@/lib/planner-project-record";
+import {
+  createPlannerProject,
+  findPlannerProjectById,
+  updatePlannerProject,
+} from "@/lib/planner-project-repository";
+import {
+  derivePlannerReviewToken,
+  hashPlannerReviewToken,
+  PlannerReviewAccessConfigurationError,
+} from "@/lib/planner-review-access";
 
 const inquiryRecipient = "hello@housedelivery.ca";
 const inquiryRoute = "/api/inquiries";
 const maximumRequestBytes = 200_000;
+const plannerHandoffEmailVersion = 2;
 
 export const runtime = "nodejs";
 
@@ -221,8 +232,18 @@ export async function POST(request: Request) {
   }
 
   let plannerHandoff: PlannerProjectHandoff | undefined;
+  let storedPlannerProject: StoredPlannerProject | undefined;
+  let plannerReviewToken = "";
+  let plannerReviewLinks:
+    | {
+        projectReviewUrl: string;
+        opportunityReportUrl: string;
+        opportunityReportPdfUrl: string;
+      }
+    | undefined;
   if (payload.plannerRecord !== undefined) {
     try {
+      const publicOrigin = getLookBookPublicOrigin(request.url);
       plannerHandoff = parsePlannerProjectHandoff({
         plannerRecord: payload.plannerRecord,
         contact: {
@@ -230,28 +251,8 @@ export async function POST(request: Request) {
           email,
           ...(phone ? { phone } : {}),
         },
-        origin: getLookBookPublicOrigin(request.url),
+        origin: publicOrigin,
       });
-      const repository = getLookBookRepository();
-      for (const designPackage of plannerHandoff.packages) {
-        const existing = await repository.findById(
-          designPackage.configurationId,
-        );
-        if (existing && existing.homeSlug !== designPackage.homeSlug) {
-          throw new PlannerHandoffValidationError(
-            "A Design Group Look Book belongs to a different home.",
-          );
-        }
-        await repository.save({
-          ...designPackage.record,
-          ...(existing?.propertyFeasibility
-            ? { propertyFeasibility: existing.propertyFeasibility }
-            : {}),
-          createdAt: existing?.createdAt ?? designPackage.record.createdAt,
-          completedAt:
-            existing?.completedAt ?? designPackage.record.completedAt,
-        });
-      }
       const submittedAt =
         plannerHandoff.state.submittedAt ?? new Date().toISOString();
       plannerHandoff = {
@@ -265,23 +266,92 @@ export async function POST(request: Request) {
           submittedAt,
         },
       };
-      await savePlannerProject({
-        id: plannerHandoff.state.projectId,
-        submissionId: plannerHandoff.submissionId,
-        opportunityReportReference:
-          plannerHandoff.state.opportunityReportReference,
-        community: plannerHandoff.state.community,
-        lifecycleStatus: plannerHandoff.state.lifecycleStatus,
-        projectState: plannerHandoff.state,
-        designPackages: plannerHandoff.packages.map((item) => {
-          const { record, ...designPackage } = item;
-          void record;
-          return designPackage;
-        }),
-        createdAt: submittedAt,
-        updatedAt: submittedAt,
-        submittedAt,
-      });
+      const reviewSecret =
+        process.env.PLANNER_REVIEW_TOKEN_SECRET?.trim() ?? "";
+      plannerReviewToken = derivePlannerReviewToken(
+        plannerHandoff.submissionId,
+        reviewSecret,
+      );
+      const reviewTokenHash = hashPlannerReviewToken(plannerReviewToken);
+      const reviewBaseUrl = `${publicOrigin}/internal/project-review/${plannerReviewToken}`;
+      plannerReviewLinks = {
+        projectReviewUrl: reviewBaseUrl,
+        opportunityReportUrl: `${reviewBaseUrl}/opportunity-report`,
+        opportunityReportPdfUrl: `${reviewBaseUrl}/opportunity-report/pdf?disposition=attachment`,
+      };
+
+      const existingProject = await findPlannerProjectById(
+        plannerHandoff.state.projectId,
+      );
+      if (existingProject) {
+        if (existingProject.submissionId !== plannerHandoff.submissionId) {
+          throw new PlannerHandoffValidationError(
+            "This Project ID already has a submitted Opportunity Report. Start a new project record for a materially revised submission.",
+          );
+        }
+        if (
+          existingProject.reviewTokenHash &&
+          existingProject.reviewTokenHash !== reviewTokenHash
+        ) {
+          throw new PlannerReviewAccessConfigurationError(
+            "Planner review access configuration has changed.",
+          );
+        }
+        storedPlannerProject = existingProject.reviewTokenHash
+          ? existingProject
+          : await updatePlannerProject({
+              ...existingProject,
+              reviewTokenHash,
+              updatedAt: new Date().toISOString(),
+            });
+      } else {
+        const repository = getLookBookRepository();
+        for (const designPackage of plannerHandoff.packages) {
+          const existingLookBook = await repository.findById(
+            designPackage.configurationId,
+          );
+          if (
+            existingLookBook &&
+            existingLookBook.homeSlug !== designPackage.homeSlug
+          ) {
+            throw new PlannerHandoffValidationError(
+              "A Design Group Look Book belongs to a different home.",
+            );
+          }
+          await repository.save({
+            ...designPackage.record,
+            ...(existingLookBook?.propertyFeasibility
+              ? { propertyFeasibility: existingLookBook.propertyFeasibility }
+              : {}),
+            createdAt:
+              existingLookBook?.createdAt ?? designPackage.record.createdAt,
+            completedAt:
+              existingLookBook?.completedAt ?? designPackage.record.completedAt,
+          });
+        }
+        storedPlannerProject = await createPlannerProject({
+          id: plannerHandoff.state.projectId,
+          submissionId: plannerHandoff.submissionId,
+          opportunityReportReference:
+            plannerHandoff.state.opportunityReportReference,
+          community: plannerHandoff.state.community,
+          lifecycleStatus: plannerHandoff.state.lifecycleStatus,
+          projectState: plannerHandoff.state,
+          designPackages: plannerHandoff.packages.map((item) => {
+            const { record, ...designPackage } = item;
+            void record;
+            return designPackage;
+          }),
+          reviewTokenHash,
+          internalReviewStatus: "pending",
+          reviewNotes: [],
+          louDrafts: [],
+          handoffEmailVersion: 0,
+          createdAt: submittedAt,
+          updatedAt: submittedAt,
+          submittedAt,
+        });
+      }
     } catch (error) {
       const isValidation = error instanceof PlannerHandoffValidationError;
       logInquiryFailure("planner_handoff_failed", {
@@ -290,6 +360,8 @@ export async function POST(request: Request) {
         durationMs: Date.now() - startedAt,
         reason: isValidation
           ? "invalid_planner_handoff"
+          : error instanceof PlannerReviewAccessConfigurationError
+            ? "planner_review_access_not_configured"
           : error instanceof LookBookStorageUnavailableError
             ? "lookbook_storage_not_configured"
             : "lookbook_storage_failed",
@@ -306,12 +378,18 @@ export async function POST(request: Request) {
     }
   }
 
+  const shouldDeliverPlannerEmail =
+    !storedPlannerProject ||
+    storedPlannerProject.handoffEmailVersion < plannerHandoffEmailVersion;
+  const shouldDeliverEmail = plannerHandoff
+    ? shouldDeliverPlannerEmail
+    : true;
   const resendApiKey = process.env.RESEND_API_KEY?.trim();
   const fromEmail =
     process.env.INQUIRY_FROM_EMAIL?.trim() ||
     "House Delivery Website <inquiries@housedelivery.ca>";
 
-  if (!resendApiKey) {
+  if (shouldDeliverEmail && !resendApiKey) {
     logInquiryFailure("inquiry_configuration_failed", {
       requestId,
       status: 503,
@@ -325,15 +403,19 @@ export async function POST(request: Request) {
   }
 
   const isPlannerProjectReview = Boolean(plannerContext || plannerHandoff);
-  const message = plannerHandoff
-    ? formatPlannerHandoffEmail(plannerHandoff, {
+  const message = plannerHandoff && storedPlannerProject && plannerReviewLinks
+    ? formatPlannerHandoffEmail({
+        state: storedPlannerProject.projectState,
+        submissionId: storedPlannerProject.submissionId,
+        packages: storedPlannerProject.designPackages,
+      }, {
         firstName,
         lastName,
         email,
         phone,
         notes,
         timeline,
-      })
+      }, plannerReviewLinks)
     : isPlannerProjectReview
     ? [
         "New House Delivery Planner project review",
@@ -363,7 +445,9 @@ export async function POST(request: Request) {
         notes || "Not provided",
       ].join("\n");
 
-  const idempotencyKey = plannerHandoff?.submissionId ?? `project-inquiry-${createHash("sha256")
+  const idempotencyKey = plannerHandoff
+    ? `planner-handoff-v${plannerHandoffEmailVersion}-${plannerHandoff.submissionId}`
+    : `project-inquiry-${createHash("sha256")
     .update(
       JSON.stringify({
         firstName,
@@ -381,77 +465,101 @@ export async function POST(request: Request) {
     )
     .digest("hex")}`;
 
-  try {
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${resendApiKey}`,
-        "Content-Type": "application/json",
-        "Idempotency-Key": idempotencyKey,
-      },
-      body: JSON.stringify({
-        from: fromEmail,
-        to: [inquiryRecipient],
-        reply_to: email,
-        subject: isPlannerProjectReview
-          ? `Planner project review — ${plannerProject || `${firstName} ${lastName}`}${plannerReference ? ` — ${plannerReference}` : ""}`
-          : `Project inquiry — ${firstName} ${lastName}`,
-        text: message,
-      }),
-      signal: AbortSignal.timeout(10_000),
-    });
-
-    const providerResponse: unknown = await response.json().catch(() => null);
-
-    if (!response.ok) {
-      logInquiryFailure("inquiry_provider_failed", {
-        requestId,
-        status: 502,
-        durationMs: Date.now() - startedAt,
-        providerStatus: response.status,
-        providerError: providerErrorName(providerResponse),
-      });
-      return jsonResponse({ error: "Inquiry delivery failed." }, 502);
-    }
-
-    if (!providerMessageId(providerResponse)) {
-      logInquiryFailure("inquiry_provider_failed", {
-        requestId,
-        status: 502,
-        durationMs: Date.now() - startedAt,
-        reason: "missing_provider_message_id",
-        providerStatus: response.status,
-      });
-      return jsonResponse({ error: "Inquiry delivery failed." }, 502);
-    }
-
+  if (!shouldDeliverEmail) {
     console.info(
       JSON.stringify({
         level: "info",
-        event: "inquiry_delivery_accepted",
+        event: "inquiry_delivery_deduplicated",
         route: inquiryRoute,
         requestId,
         status: 200,
         durationMs: Date.now() - startedAt,
       }),
     );
-  } catch (error) {
-    logInquiryFailure("inquiry_provider_failed", {
-      requestId,
-      status: 502,
-      durationMs: Date.now() - startedAt,
-      errorType: error instanceof Error ? error.name : "UnknownError",
-    });
-    return jsonResponse({ error: "Inquiry delivery failed." }, 502);
+  } else {
+    try {
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${resendApiKey!}`,
+          "Content-Type": "application/json",
+          "Idempotency-Key": idempotencyKey,
+        },
+        body: JSON.stringify({
+          from: fromEmail,
+          to: [inquiryRecipient],
+          reply_to: email,
+          subject: isPlannerProjectReview
+            ? `Planner project review — ${plannerProject || `${firstName} ${lastName}`}${plannerReference ? ` — ${plannerReference}` : ""}`
+            : `Project inquiry — ${firstName} ${lastName}`,
+          text: message,
+        }),
+        signal: AbortSignal.timeout(10_000),
+      });
+
+      const providerResponse: unknown = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        logInquiryFailure("inquiry_provider_failed", {
+          requestId,
+          status: 502,
+          durationMs: Date.now() - startedAt,
+          providerStatus: response.status,
+          providerError: providerErrorName(providerResponse),
+        });
+        return jsonResponse({ error: "Inquiry delivery failed." }, 502);
+      }
+
+      if (!providerMessageId(providerResponse)) {
+        logInquiryFailure("inquiry_provider_failed", {
+          requestId,
+          status: 502,
+          durationMs: Date.now() - startedAt,
+          reason: "missing_provider_message_id",
+          providerStatus: response.status,
+        });
+        return jsonResponse({ error: "Inquiry delivery failed." }, 502);
+      }
+
+      if (storedPlannerProject) {
+        const deliveredAt = new Date().toISOString();
+        storedPlannerProject = await updatePlannerProject({
+          ...storedPlannerProject,
+          handoffEmailVersion: plannerHandoffEmailVersion,
+          handoffEmailSentAt: deliveredAt,
+          handoffEmailProviderId: providerMessageId(providerResponse),
+          updatedAt: deliveredAt,
+        });
+      }
+
+      console.info(
+        JSON.stringify({
+          level: "info",
+          event: "inquiry_delivery_accepted",
+          route: inquiryRoute,
+          requestId,
+          status: 200,
+          durationMs: Date.now() - startedAt,
+        }),
+      );
+    } catch (error) {
+      logInquiryFailure("inquiry_provider_failed", {
+        requestId,
+        status: 502,
+        durationMs: Date.now() - startedAt,
+        errorType: error instanceof Error ? error.name : "UnknownError",
+      });
+      return jsonResponse({ error: "Inquiry delivery failed." }, 502);
+    }
   }
 
   return jsonResponse({
     accepted: true,
-    ...(plannerHandoff
+    ...(storedPlannerProject
       ? {
-          projectStatus: "submitted-for-review",
-          submissionId: plannerHandoff.submissionId,
-          designGroups: plannerHandoff.packages.map((designPackage) => ({
+          projectStatus: storedPlannerProject.lifecycleStatus,
+          submissionId: storedPlannerProject.submissionId,
+          designGroups: storedPlannerProject.designPackages.map((designPackage) => ({
             variationId: designPackage.variationId,
             configurationId: designPackage.configurationId,
             lookBookUrl: designPackage.lookBookUrl,

@@ -16,6 +16,28 @@ const nextConfig: NextConfig = {
       "./node_modules/@sparticuz/chromium/bin/**/*",
       "./node_modules/playwright-core/browsers.json",
     ],
+    "/internal/project-review/*/opportunity-report/pdf": [
+      "./node_modules/@sparticuz/chromium/bin/**/*",
+      "./node_modules/playwright-core/browsers.json",
+    ],
+    "/internal/project-review/*/lou/*/pdf": [
+      "./node_modules/@sparticuz/chromium/bin/**/*",
+      "./node_modules/playwright-core/browsers.json",
+    ],
+  },
+  async headers() {
+    return [
+      {
+        source: "/internal/project-review/:path*",
+        headers: [
+          { key: "Cache-Control", value: "private, no-store, max-age=0" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+        ],
+      },
+    ];
   },
   turbopack: {
     root: __dirname,
