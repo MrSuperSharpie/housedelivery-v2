@@ -2,9 +2,9 @@ import { createHash } from "node:crypto";
 
 import type { StoredLookBook } from "@/lib/lookbook/types";
 
-const PDF_RENDERER_VERSION = 2;
-const DEFAULT_MAX_COMPLETED_ARTIFACTS = 3;
-const DEFAULT_MAX_COMPLETED_BYTES = 16 * 1024 * 1024;
+const PDF_RENDERER_VERSION = 3;
+const DEFAULT_MAX_COMPLETED_ARTIFACTS = 4;
+const DEFAULT_MAX_COMPLETED_BYTES = 48 * 1024 * 1024;
 
 type JsonValue =
   | null

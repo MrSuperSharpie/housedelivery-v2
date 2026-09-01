@@ -62,7 +62,7 @@ async function renderLookBookPdf(request: Request, sourceUrl: URL) {
     // serverless shared-memory area, so the PDF browser requests bounded
     // Next.js derivatives sized above the A4 page's CSS width.
     const authenticatedPage = await createRequestAuthenticatedPage(request, {
-      imageMaxWidth: 1080,
+      imageMaxWidth: 960,
     });
     close = authenticatedPage.close;
     const { page } = authenticatedPage;
