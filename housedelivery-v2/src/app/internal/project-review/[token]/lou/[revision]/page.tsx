@@ -27,7 +27,7 @@ export default async function PlannerLouDraftPage({
           <Link href={basePath} rel="noreferrer" className="text-[9px] font-semibold uppercase tracking-[0.16em]">← Project Review</Link>
           <div className="flex items-center gap-4">
             <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-[#e2c990]">Not yet sent to Nation</span>
-            <Link href={`${basePath}/lou/${revision}/pdf?disposition=attachment`} rel="noreferrer" className="border border-white/22 px-4 py-3 text-[9px] font-semibold uppercase tracking-[0.16em]">Download PDF</Link>
+            <Link href={`${basePath}/lou/${revision}/pdf?disposition=attachment`} prefetch={false} rel="noreferrer" className="border border-white/22 px-4 py-3 text-[9px] font-semibold uppercase tracking-[0.16em]">Download PDF</Link>
           </div>
         </div>
       </nav>

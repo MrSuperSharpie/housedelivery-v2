@@ -152,7 +152,7 @@ export default async function PlannerProjectReviewPage({
                 </div>
                 <div className="mt-6 flex flex-wrap gap-x-5 gap-y-3 text-[9px] font-semibold uppercase tracking-[0.15em]">
                   <Link href={designPackage.lookBookUrl} target="_blank" rel="noreferrer">View Look Book</Link>
-                  <Link href={designPackage.pdfUrl} target="_blank" rel="noreferrer">Download PDF</Link>
+                  <Link href={designPackage.pdfUrl} prefetch={false} target="_blank" rel="noreferrer">Download PDF</Link>
                   <Link href={designPackage.floorPlanUrl} target="_blank" rel="noreferrer">Home Plan</Link>
                 </div>
               </article>
@@ -195,10 +195,10 @@ export default async function PlannerProjectReviewPage({
         <ReviewSection eyebrow="07" title="Documents">
           <div className="flex flex-wrap gap-3">
             <Link href={`${basePath}/opportunity-report`} rel="noreferrer" className="border border-white/20 px-5 py-4 text-[9px] font-semibold uppercase tracking-[0.16em]">View Opportunity Report</Link>
-            <Link href={`${basePath}/opportunity-report/pdf?disposition=attachment`} rel="noreferrer" className="border border-white/20 px-5 py-4 text-[9px] font-semibold uppercase tracking-[0.16em]">Download Opportunity Report PDF</Link>
+            <Link href={`${basePath}/opportunity-report/pdf?disposition=attachment`} prefetch={false} rel="noreferrer" className="border border-white/20 px-5 py-4 text-[9px] font-semibold uppercase tracking-[0.16em]">Download Opportunity Report PDF</Link>
             {latestDraft ? <>
               <Link href={`${basePath}/lou/${latestDraft.revision}`} rel="noreferrer" className="border border-[#d7b774]/42 px-5 py-4 text-[9px] font-semibold uppercase tracking-[0.16em] text-[#e2c990]">View LOU Draft R{latestDraft.revision}</Link>
-              <Link href={`${basePath}/lou/${latestDraft.revision}/pdf?disposition=attachment`} rel="noreferrer" className="border border-[#d7b774]/42 px-5 py-4 text-[9px] font-semibold uppercase tracking-[0.16em] text-[#e2c990]">Download LOU Draft PDF</Link>
+              <Link href={`${basePath}/lou/${latestDraft.revision}/pdf?disposition=attachment`} prefetch={false} rel="noreferrer" className="border border-[#d7b774]/42 px-5 py-4 text-[9px] font-semibold uppercase tracking-[0.16em] text-[#e2c990]">Download LOU Draft PDF</Link>
             </> : null}
           </div>
         </ReviewSection>

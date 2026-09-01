@@ -116,7 +116,7 @@ export function PlannerLouDocument({
         <p>Submitted Opportunity Report {document.project.opportunityReportReference} is incorporated by reference as a preliminary project record.</p>
         <div className="planner-screen-only mt-5 flex flex-wrap gap-4">
           <Link href={`${reviewBase}/opportunity-report`} rel="noreferrer" className="text-[9px] font-semibold uppercase tracking-[0.16em] underline underline-offset-4">View</Link>
-          <Link href={`${reviewBase}/opportunity-report/pdf?disposition=attachment`} rel="noreferrer" className="text-[9px] font-semibold uppercase tracking-[0.16em] underline underline-offset-4">Download PDF</Link>
+          <Link href={`${reviewBase}/opportunity-report/pdf?disposition=attachment`} prefetch={false} rel="noreferrer" className="text-[9px] font-semibold uppercase tracking-[0.16em] underline underline-offset-4">Download PDF</Link>
         </div>
       </LouSection>
 
@@ -130,7 +130,7 @@ export function PlannerLouDocument({
               <p className="mt-2 text-xs text-black/56">{design.designNotes}</p>
               <div className="planner-screen-only mt-3 flex flex-wrap gap-4">
                 <Link href={design.lookBookUrl} target="_blank" rel="noreferrer" className="text-[9px] font-semibold uppercase tracking-[0.16em] underline underline-offset-4">View Look Book</Link>
-                <Link href={design.pdfUrl} target="_blank" rel="noreferrer" className="text-[9px] font-semibold uppercase tracking-[0.16em] underline underline-offset-4">Look Book PDF</Link>
+                <Link href={design.pdfUrl} prefetch={false} target="_blank" rel="noreferrer" className="text-[9px] font-semibold uppercase tracking-[0.16em] underline underline-offset-4">Look Book PDF</Link>
               </div>
             </div>
           ))}

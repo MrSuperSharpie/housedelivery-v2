@@ -22,7 +22,7 @@ export default async function SubmittedOpportunityReportPage({
       <nav className="planner-screen-only border-b border-white/14 bg-[#0b0c10] px-5 py-4 text-white sm:px-8">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4">
           <Link href={basePath} rel="noreferrer" className="text-[9px] font-semibold uppercase tracking-[0.16em]">← Project Review</Link>
-          <Link href={`${basePath}/opportunity-report/pdf?disposition=attachment`} rel="noreferrer" className="border border-white/22 px-4 py-3 text-[9px] font-semibold uppercase tracking-[0.16em]">Download PDF</Link>
+          <Link href={`${basePath}/opportunity-report/pdf?disposition=attachment`} prefetch={false} rel="noreferrer" className="border border-white/22 px-4 py-3 text-[9px] font-semibold uppercase tracking-[0.16em]">Download PDF</Link>
         </div>
       </nav>
       <main className="internal-document-shell mx-auto max-w-5xl bg-white py-8 sm:py-12">
