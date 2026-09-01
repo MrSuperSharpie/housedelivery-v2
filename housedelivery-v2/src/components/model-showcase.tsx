@@ -16,6 +16,7 @@ import { useRef, useState } from "react";
 import { HomeExteriorLightbox } from "@/components/home-exterior-lightbox";
 import { RevealText } from "@/components/reveal-text";
 import {
+  getHomeDetailHref,
   resolveHomeExteriorPresentation,
   type HomeExteriorPresentation,
   type ResolvedHomeExteriorPresentation,
@@ -236,6 +237,10 @@ export function ModelShowcase({
               const showIndigenousInspiredComingSoon =
                 viewMode === "exterior" &&
                 exterior.indigenousInspiredComingSoon;
+              const homeHref = getHomeDetailHref(
+                model.slug,
+                exteriorPresentation,
+              );
 
               const cardImage = (
                 <>
@@ -283,7 +288,7 @@ export function ModelShowcase({
                   className="group/card relative flex min-h-[620px] flex-col overflow-hidden border border-white/10 bg-[#0B0C10] p-7 transition-colors duration-500 hover:border-white/25 sm:p-8"
                 >
                   <Link
-                    href={`/homes/${model.slug}`}
+                    href={homeHref}
                     aria-label={`Explore ${model.name}`}
                     data-model-card-surface-navigation={model.slug}
                     data-model-card-image-navigation={model.slug}
@@ -298,7 +303,7 @@ export function ModelShowcase({
                     {model.locationLabel}
                     </span>
                     <Link
-                      href={`/homes/${model.slug}`}
+                      href={homeHref}
                       aria-label={`Explore ${model.name}`}
                       data-model-card-navigation={model.slug}
                       className="pointer-events-auto absolute right-5 top-5 z-20 grid size-11 place-items-center rounded-full border border-white/35 bg-black/20 text-white backdrop-blur-md transition-colors hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
@@ -342,7 +347,7 @@ export function ModelShowcase({
                     <div className="flex items-baseline justify-between gap-4">
                       <h3 className="text-[clamp(2rem,3vw,3.25rem)] font-medium leading-[0.94] tracking-[-0.055em] text-white/90">
                         <Link
-                          href={`/homes/${model.slug}`}
+                          href={homeHref}
                           className="relative z-20 transition-colors hover:text-white/65 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                         >
                           {model.name}

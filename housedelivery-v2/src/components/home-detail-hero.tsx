@@ -9,10 +9,20 @@ import {
 import { ArrowDown, ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRef } from "react";
+import { useSearchParams } from "next/navigation";
+import { useRef, useState } from "react";
+
+import {
+  getHomeExteriorPresentationFromExpression,
+  getIndigenousInspiredExteriorImage,
+  resolveHomeExteriorPresentation,
+  type HomeExteriorPresentation,
+} from "@/data/first-nations-cultural-design";
+import { cn } from "@/lib/cn";
 
 type HomeDetailHeroProps = {
   model: {
+    slug: string;
     name: string;
     heroImage: string;
     summary: string;
@@ -30,7 +40,25 @@ type HomeDetailHeroProps = {
   imageQuality?: number;
   unoptimized?: boolean;
   imagePresentation?: "full-bleed" | "contained";
+  initialExteriorPresentation?: HomeExteriorPresentation;
 };
+
+export function HomeDetailHeroFromQuery(
+  props: Omit<HomeDetailHeroProps, "initialExteriorPresentation">,
+) {
+  const searchParams = useSearchParams();
+
+  return (
+    <HomeDetailHero
+      {...props}
+      initialExteriorPresentation={
+        getHomeExteriorPresentationFromExpression(
+          searchParams.get("expression") ?? undefined,
+        )
+      }
+    />
+  );
+}
 
 export function HomeDetailHero({
   model,
@@ -45,8 +73,26 @@ export function HomeDetailHero({
   imageQuality = 100,
   unoptimized = true,
   imagePresentation = "full-bleed",
+  initialExteriorPresentation = "contemporary",
 }: HomeDetailHeroProps) {
   const sectionRef = useRef<HTMLElement>(null);
+  const supportsIndigenousInspired = Boolean(
+    getIndigenousInspiredExteriorImage(model.slug),
+  );
+  const [exteriorPresentation, setExteriorPresentation] =
+    useState<HomeExteriorPresentation>(
+      supportsIndigenousInspired
+        ? initialExteriorPresentation
+        : "contemporary",
+    );
+  const exterior = resolveHomeExteriorPresentation(
+    model.slug,
+    model.name,
+    model.heroImage,
+    exteriorPresentation,
+  );
+  const activeImageAlt =
+    exteriorPresentation === "contemporary" ? imageAlt : exterior.image.alt;
   const shouldReduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -55,10 +101,31 @@ export function HomeDetailHero({
   const imageY = useTransform(scrollYProgress, [0, 1], ["0%", "13%"]);
   const contentOpacity = useTransform(scrollYProgress, [0, 0.75], [1, 0]);
 
+  function changeExteriorPresentation(
+    presentation: HomeExteriorPresentation,
+  ) {
+    setExteriorPresentation(presentation);
+
+    const nextUrl = new URL(window.location.href);
+
+    if (presentation === "indigenous-inspired") {
+      nextUrl.searchParams.set("expression", "indigenous");
+    } else {
+      nextUrl.searchParams.delete("expression");
+    }
+
+    window.history.replaceState(
+      window.history.state,
+      "",
+      `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`,
+    );
+  }
+
   return (
     <section
       ref={sectionRef}
       id="top"
+      data-home-exterior-presentation={exteriorPresentation}
       className="relative h-[100svh] min-h-[760px] overflow-hidden border-b border-white/10 sm:min-h-[860px]"
     >
       {imagePresentation === "contained" ? (
@@ -68,11 +135,12 @@ export function HomeDetailHero({
         >
           <div
             data-hero-image-frame="contained"
+            data-home-exterior-image={exterior.image.src}
             className="relative h-[70svh] max-h-[700px] w-[calc(100%-1rem)] max-w-[980px] sm:w-[88vw] lg:h-[70vh] lg:w-[70vw]"
           >
             <Image
-              src={model.heroImage}
-              alt={imageAlt}
+              src={exterior.image.src}
+              alt={activeImageAlt}
               fill
               quality={imageQuality}
               unoptimized={unoptimized}
@@ -85,12 +153,13 @@ export function HomeDetailHero({
         </motion.div>
       ) : (
         <motion.div
+          data-home-exterior-image={exterior.image.src}
           className="absolute inset-x-0 -top-[10%] -bottom-[10%] bg-[#0b0c10]"
           style={{ y: imageY }}
         >
           <Image
-            src={model.heroImage}
-            alt={imageAlt}
+            src={exterior.image.src}
+            alt={activeImageAlt}
             fill
             quality={imageQuality}
             unoptimized={unoptimized}
@@ -124,6 +193,38 @@ export function HomeDetailHero({
         </div>
 
         <div>
+          {supportsIndigenousInspired ? (
+            <fieldset
+              className="mb-7 min-w-0"
+              data-home-exterior-presentation-toggle
+            >
+              <legend className="mb-2 text-[8px] font-semibold uppercase tracking-[0.18em] text-white/55">
+                Exterior expression
+              </legend>
+              <div className="inline-flex max-w-full border border-white/25 bg-black/15 p-1 backdrop-blur-md">
+                {([
+                  ["contemporary", "Contemporary"],
+                  ["indigenous-inspired", "Indigenous Inspired"],
+                ] as const).map(([presentation, label]) => (
+                  <button
+                    key={presentation}
+                    type="button"
+                    onClick={() => changeExteriorPresentation(presentation)}
+                    className={cn(
+                      "min-h-11 px-4 py-2.5 text-[9px] font-semibold uppercase leading-4 tracking-[0.14em] transition-colors sm:px-5",
+                      exteriorPresentation === presentation
+                        ? "bg-white text-black"
+                        : "text-white/60 hover:text-white",
+                    )}
+                    aria-pressed={exteriorPresentation === presentation}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+          ) : null}
+
           <div className="mb-8 flex flex-wrap items-center gap-3">
             <span className="border border-white/30 bg-black/15 px-3 py-2 text-[9px] font-semibold uppercase tracking-[0.18em] backdrop-blur-md">
               {model.locationLabel}

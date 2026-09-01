@@ -50,6 +50,26 @@ export function getIndigenousInspiredExteriorImage(homeId: string) {
   return culturalDesignImages[homeId];
 }
 
+export function getHomeExteriorPresentationFromExpression(
+  expression: string | string[] | undefined,
+): HomeExteriorPresentation {
+  const value = Array.isArray(expression) ? expression[0] : expression;
+
+  return value === "indigenous" ? "indigenous-inspired" : "contemporary";
+}
+
+export function getHomeDetailHref(
+  homeId: string,
+  presentation: HomeExteriorPresentation,
+) {
+  const pathname = `/homes/${homeId}`;
+
+  return presentation === "indigenous-inspired" &&
+    getIndigenousInspiredExteriorImage(homeId)
+    ? `${pathname}?expression=indigenous`
+    : pathname;
+}
+
 export function resolveHomeExteriorPresentation(
   homeId: string,
   homeName: string,

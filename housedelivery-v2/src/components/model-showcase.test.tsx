@@ -4,9 +4,12 @@ import test from "node:test";
 
 import { renderToStaticMarkup } from "react-dom/server";
 
+import { HomeDetailHero } from "@/components/home-detail-hero";
 import { HomeExteriorLightbox } from "@/components/home-exterior-lightbox";
 import { ModelShowcase } from "@/components/model-showcase";
 import {
+  getHomeDetailHref,
+  getHomeExteriorPresentationFromExpression,
   getIndigenousInspiredExteriorImage,
   resolveHomeExteriorPresentation,
 } from "@/data/first-nations-cultural-design";
@@ -108,7 +111,10 @@ test("Langley and Solace enlarged views use their exact resolved card image", ()
     );
     assert.ok(markup.includes(`src="${exterior.image.src}"`));
     assert.match(markup, /data-lightbox-exterior-toggle/);
-    assert.match(markup, new RegExp(`href="/homes/${slug}"`));
+    assert.match(
+      markup,
+      new RegExp(`href="/homes/${slug}\\?expression=indigenous"`),
+    );
     assert.doesNotMatch(markup, /data-lightbox-indigenous-coming-soon/);
   }
 });
@@ -142,6 +148,60 @@ test("Salt Spring Coming Soon enlarged view retains its Contemporary exterior", 
   assert.ok(markup.includes(`src="${saltSpring.images[0]}"`));
   assert.match(markup, />Indigenous Inspired</);
   assert.match(markup, />Coming Soon</);
+  assert.match(markup, /href="\/homes\/salt-spring"/);
+  assert.doesNotMatch(markup, /expression=indigenous/);
+});
+
+test("exterior-expression navigation preserves only supported Indigenous imagery", () => {
+  assert.equal(
+    getHomeDetailHref("langley", "contemporary"),
+    "/homes/langley",
+  );
+  assert.equal(
+    getHomeDetailHref("langley", "indigenous-inspired"),
+    "/homes/langley?expression=indigenous",
+  );
+  assert.equal(
+    getHomeDetailHref("solace", "indigenous-inspired"),
+    "/homes/solace?expression=indigenous",
+  );
+  assert.equal(
+    getHomeDetailHref("salt-spring", "indigenous-inspired"),
+    "/homes/salt-spring",
+  );
+  assert.equal(
+    getHomeExteriorPresentationFromExpression("indigenous"),
+    "indigenous-inspired",
+  );
+  assert.equal(
+    getHomeExteriorPresentationFromExpression(undefined),
+    "contemporary",
+  );
+});
+
+test("home-detail hero starts with the supported expression and exposes the same toggle", () => {
+  const langley = models.find((model) => model.slug === "langley");
+  assert.ok(langley);
+  const indigenousInspired = getIndigenousInspiredExteriorImage("langley");
+  assert.ok(indigenousInspired);
+
+  const markup = renderToStaticMarkup(
+    <HomeDetailHero
+      model={{ ...langley, heroImage: "/window.svg" }}
+      modelNumber={1}
+      modelCount={models.length}
+      initialExteriorPresentation="indigenous-inspired"
+    />,
+  );
+
+  assert.match(
+    markup,
+    /data-home-exterior-presentation="indigenous-inspired"/,
+  );
+  assert.ok(markup.includes(`data-home-exterior-image="${indigenousInspired.src}"`));
+  assert.match(markup, /data-home-exterior-presentation-toggle/);
+  assert.match(markup, />Contemporary</);
+  assert.match(markup, />Indigenous Inspired</);
 });
 
 test("approved Indigenous-inspired exteriors resolve from the shared registry", () => {

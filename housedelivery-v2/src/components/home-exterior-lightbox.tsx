@@ -7,6 +7,7 @@ import Link from "next/link";
 import { type MouseEvent, useEffect, useId, useRef } from "react";
 
 import {
+  getHomeDetailHref,
   type HomeExteriorPresentation,
   type ResolvedHomeExteriorPresentation,
 } from "@/data/first-nations-cultural-design";
@@ -162,7 +163,7 @@ export function HomeExteriorLightbox({
           </fieldset>
 
           <Link
-            href={`/homes/${model.slug}`}
+            href={getHomeDetailHref(model.slug, presentation)}
             className="mt-5 inline-flex min-h-12 items-center justify-between border border-white/20 px-4 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/80 transition-colors hover:border-white hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
           >
             View home

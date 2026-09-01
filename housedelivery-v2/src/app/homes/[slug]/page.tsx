@@ -3,11 +3,15 @@ import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
 import { HomeConfigurator } from "@/components/home-configurator";
 import { HomeDesignToolCallout } from "@/components/home-design-tool-callout";
-import { HomeDetailHero } from "@/components/home-detail-hero";
+import {
+  HomeDetailHero,
+  HomeDetailHeroFromQuery,
+} from "@/components/home-detail-hero";
 import { HomeEditorialGallery } from "@/components/home-editorial-gallery";
 import { HomeFloorPlanViewer } from "@/components/home-floor-plan-viewer";
 import { HomeDesignJourneyLink } from "@/components/inclusions-journey-links";
@@ -157,14 +161,31 @@ export default async function HomeDetailPage({
     <>
       <SiteHeader />
       <main className="bg-[#0b0c10] text-white">
-        <HomeDetailHero
-          model={model}
-          modelNumber={modelIndex + 1}
-          modelCount={models.length}
-          titleSuffix={getResidenceName(model) === model.name ? null : "House"}
-          imageAlt={`${getResidenceName(model)} exterior`}
-          {...sourceFidelityImageProps}
-        />
+        <Suspense
+          fallback={
+            <HomeDetailHero
+              model={model}
+              modelNumber={modelIndex + 1}
+              modelCount={models.length}
+              titleSuffix={
+                getResidenceName(model) === model.name ? null : "House"
+              }
+              imageAlt={`${getResidenceName(model)} exterior`}
+              {...sourceFidelityImageProps}
+            />
+          }
+        >
+          <HomeDetailHeroFromQuery
+            model={model}
+            modelNumber={modelIndex + 1}
+            modelCount={models.length}
+            titleSuffix={
+              getResidenceName(model) === model.name ? null : "House"
+            }
+            imageAlt={`${getResidenceName(model)} exterior`}
+            {...sourceFidelityImageProps}
+          />
+        </Suspense>
 
         <section
           id="overview"
