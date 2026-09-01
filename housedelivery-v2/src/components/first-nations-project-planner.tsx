@@ -779,13 +779,13 @@ function PortfolioStep({
         {catalog.map((item) => (
           <article key={item.id} className="border-t border-black/16 pt-4">
             {state.audience === "first-nations" &&
-            getCulturalDesignImage(item.id.replace(/^custom:/, "")) ? (
+            item.family === "custom-home" ? (
               <FirstNationsExteriorDirectionCard
                 homeName={getPlannerHomeName(item.name)}
                 standardImage={item.image}
-                coastalImage={
-                  getCulturalDesignImage(item.id.replace(/^custom:/, ""))!
-                }
+                coastalImage={getCulturalDesignImage(
+                  item.id.replace(/^custom:/, ""),
+                )}
                 culturalExteriorInterest={getCulturalExteriorInterest(item)}
                 onChange={(interest) =>
                   chooseCulturalExteriorDirection(item, interest)

@@ -90,6 +90,28 @@ test("Contemporary keeps the normal home-card image", () => {
   assert.doesNotMatch(markup, /Illustrative Exterior Inspiration/);
 });
 
+test("Contemporary-only homes keep the shared control dimensions and expose a disabled Coming Soon option", () => {
+  const markup = renderToStaticMarkup(
+    <FirstNationsExteriorDirectionCard
+      homeName="Dalton"
+      standardImage="/images/homes/dalton/exterior.jpg"
+      culturalExteriorInterest
+      onChange={noop}
+    />,
+  );
+
+  assert.match(markup, /data-indigenous-inspiration-available="false"/);
+  assert.match(markup, /data-cultural-exterior-interest="false"/);
+  assert.match(markup, /src="\/images\/homes\/dalton\/exterior\.jpg"/);
+  assert.match(markup, /Contemporary/);
+  assert.match(
+    markup,
+    /aria-disabled="true" aria-pressed="false" disabled=""[^>]*>[^<]*<span[^>]*><span>Indigenous Inspiration<\/span><span[^>]*>Coming Soon<\/span>/,
+  );
+  assert.equal((markup.match(/h-14/g) ?? []).length, 2);
+  assert.doesNotMatch(markup, /Illustrative Exterior Inspiration/);
+});
+
 test("Opportunity Report carries only the exterior cultural-direction note", () => {
   const markup = renderToStaticMarkup(
     <CulturalDesignReport
