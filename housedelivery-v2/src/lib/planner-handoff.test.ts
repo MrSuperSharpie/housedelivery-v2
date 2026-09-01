@@ -468,14 +468,42 @@ test("Project review mutations accept the trusted Preview alias and reject forei
     },
   );
 
-  assert.equal(
-    isTrustedPlannerReviewMutationRequest(trustedAliasRequest),
-    true,
+  const previousBranchUrl = process.env.VERCEL_BRANCH_URL;
+  process.env.VERCEL_BRANCH_URL = "branch-preview.vercel.app";
+  const canonicalizedPreviewRequest = new Request(
+    "https://immutable-preview.vercel.app/api/internal/project-review/token",
+    {
+      method: "POST",
+      headers: {
+        host: "immutable-preview.vercel.app",
+        origin: "https://branch-preview.vercel.app",
+        "sec-fetch-site": "same-origin",
+        "x-forwarded-host": "immutable-preview.vercel.app",
+        "x-forwarded-proto": "https",
+      },
+    },
   );
-  assert.equal(
-    isTrustedPlannerReviewMutationRequest(foreignOriginRequest),
-    false,
-  );
+
+  try {
+    assert.equal(
+      isTrustedPlannerReviewMutationRequest(trustedAliasRequest),
+      true,
+    );
+    assert.equal(
+      isTrustedPlannerReviewMutationRequest(canonicalizedPreviewRequest),
+      true,
+    );
+    assert.equal(
+      isTrustedPlannerReviewMutationRequest(foreignOriginRequest),
+      false,
+    );
+  } finally {
+    if (previousBranchUrl === undefined) {
+      delete process.env.VERCEL_BRANCH_URL;
+    } else {
+      process.env.VERCEL_BRANCH_URL = previousBranchUrl;
+    }
+  }
 });
 
 test("Test Nation 3 LOU is a versioned prepared draft with all schedules and no commercial authorization", () => {

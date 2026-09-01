@@ -64,7 +64,13 @@ export function isTrustedPlannerReviewMutationRequest(request: Request) {
     ?.trim();
   const expectedProtocol = forwardedProtocol || requestUrl.protocol.slice(0, -1);
   const expectedHosts = new Set(
-    [requestUrl.host, forwardedHost, host].filter(
+    [
+      requestUrl.host,
+      forwardedHost,
+      host,
+      process.env.VERCEL_BRANCH_URL,
+      process.env.VERCEL_URL,
+    ].filter(
       (candidate): candidate is string => Boolean(candidate),
     ),
   );
