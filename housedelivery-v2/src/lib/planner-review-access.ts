@@ -41,8 +41,15 @@ export function isTrustedPlannerReviewMutationRequest(request: Request) {
   const origin = request.headers.get("origin");
   const fetchSite = request.headers.get("sec-fetch-site");
 
+  // Fetch Metadata is set by the browser and cannot be overridden by a
+  // cross-site form. Prefer it to host equality because Vercel can present an
+  // immutable deployment host to the function while the browser uses the
+  // branch alias.
+  if (fetchSite === "same-origin") return true;
+  if (fetchSite === "cross-site") return false;
+
   if (!origin) {
-    return !fetchSite || fetchSite === "same-origin" || fetchSite === "none";
+    return !fetchSite || fetchSite === "none";
   }
 
   let originUrl: URL;
