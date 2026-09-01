@@ -18,6 +18,26 @@ const FORWARDED_PREVIEW_HEADERS = [
   "x-vercel-set-bypass-cookie",
 ] as const;
 
+type RequestBrowserOptions = {
+  imageMaxWidth?: number;
+};
+
+function getPrintImageUrl(url: URL, maxWidth?: number) {
+  if (
+    !maxWidth ||
+    !url.pathname.startsWith("/images/") ||
+    url.pathname.endsWith(".svg")
+  ) {
+    return url;
+  }
+
+  const optimizedUrl = new URL("/_next/image", url.origin);
+  optimizedUrl.searchParams.set("url", `${url.pathname}${url.search}`);
+  optimizedUrl.searchParams.set("w", String(maxWidth));
+  optimizedUrl.searchParams.set("q", "95");
+  return optimizedUrl;
+}
+
 function parseRequestCookies(cookieHeader: string | null, origin: string) {
   if (!cookieHeader) return [];
 
@@ -56,6 +76,7 @@ export function carryPreviewShareToken(requestUrl: URL, sourceUrl: URL) {
 
 export async function createRequestAuthenticatedPage(
   request: Request,
+  options: RequestBrowserOptions = {},
 ): Promise<{ browser: Browser; page: Page }> {
   const requestUrl = new URL(request.url);
   const browser = await launchBrowser();
@@ -89,7 +110,11 @@ export async function createRequestAuthenticatedPage(
     if (trustedOidcToken) {
       requestHeaders[TRUSTED_OIDC_HEADER] = trustedOidcToken;
     }
-    await route.continue({ headers: requestHeaders });
+    const printUrl = getPrintImageUrl(routeUrl, options.imageMaxWidth);
+    await route.continue({
+      headers: requestHeaders,
+      url: printUrl.href,
+    });
   });
   return { browser, page };
 }

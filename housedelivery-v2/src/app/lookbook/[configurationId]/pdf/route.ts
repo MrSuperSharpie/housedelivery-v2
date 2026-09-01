@@ -43,7 +43,13 @@ export async function GET(
   let browser;
 
   try {
-    const authenticatedPage = await createRequestAuthenticatedPage(request);
+    // The source boards are deliberately full-resolution in the online Look
+    // Book. Rendering all of them at source size exhausts Chromium's small
+    // serverless shared-memory area, so the PDF browser requests bounded
+    // Next.js derivatives sized above the A4 page's CSS width.
+    const authenticatedPage = await createRequestAuthenticatedPage(request, {
+      imageMaxWidth: 1080,
+    });
     browser = authenticatedPage.browser;
     const { page } = authenticatedPage;
 
