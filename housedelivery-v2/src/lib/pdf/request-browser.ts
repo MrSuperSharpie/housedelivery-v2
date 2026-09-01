@@ -4,6 +4,7 @@ import serverlessChromium from "@sparticuz/chromium";
 import {
   chromium as playwrightChromium,
   type Browser,
+  type BrowserContext,
   type Page,
 } from "playwright-core";
 
@@ -77,44 +78,58 @@ export function carryPreviewShareToken(requestUrl: URL, sourceUrl: URL) {
 export async function createRequestAuthenticatedPage(
   request: Request,
   options: RequestBrowserOptions = {},
-): Promise<{ browser: Browser; page: Page }> {
+): Promise<{ browser: Browser; page: Page; close: () => Promise<void> }> {
   const requestUrl = new URL(request.url);
   const browser = await launchBrowser();
-  const context = await browser.newContext({
-    viewport: { width: 1440, height: 1000 },
-  });
-  const requestCookies = parseRequestCookies(
-    request.headers.get("cookie"),
-    requestUrl.origin,
-  );
-  if (requestCookies.length > 0) {
-    await context.addCookies(requestCookies);
-  }
-  const page = await context.newPage();
-  await page.route("**/*", async (route) => {
-    const routeUrl = new URL(route.request().url());
-    if (routeUrl.origin !== requestUrl.origin) {
-      await route.continue();
-      return;
-    }
-    const requestHeaders = { ...route.request().headers() };
-    for (const headerName of FORWARDED_PREVIEW_HEADERS) {
-      const value = request.headers.get(headerName);
-      if (value) requestHeaders[headerName] = value;
-    }
-    const trustedOidcToken =
-      request.headers.get(TRUSTED_OIDC_HEADER) ??
-      (process.env.VERCEL_ENV === "preview"
-        ? request.headers.get(PREVIEW_OIDC_PASSTHROUGH_HEADER)
-        : null);
-    if (trustedOidcToken) {
-      requestHeaders[TRUSTED_OIDC_HEADER] = trustedOidcToken;
-    }
-    const printUrl = getPrintImageUrl(routeUrl, options.imageMaxWidth);
-    await route.continue({
-      headers: requestHeaders,
-      url: printUrl.href,
+  let context: BrowserContext | undefined;
+  let page: Page | undefined;
+
+  const close = async () => {
+    await page?.close().catch(() => undefined);
+    await context?.close().catch(() => undefined);
+    await browser.close().catch(() => undefined);
+  };
+
+  try {
+    context = await browser.newContext({
+      viewport: { width: 1440, height: 1000 },
     });
-  });
-  return { browser, page };
+    const requestCookies = parseRequestCookies(
+      request.headers.get("cookie"),
+      requestUrl.origin,
+    );
+    if (requestCookies.length > 0) {
+      await context.addCookies(requestCookies);
+    }
+    page = await context.newPage();
+    await page.route("**/*", async (route) => {
+      const routeUrl = new URL(route.request().url());
+      if (routeUrl.origin !== requestUrl.origin) {
+        await route.continue();
+        return;
+      }
+      const requestHeaders = { ...route.request().headers() };
+      for (const headerName of FORWARDED_PREVIEW_HEADERS) {
+        const value = request.headers.get(headerName);
+        if (value) requestHeaders[headerName] = value;
+      }
+      const trustedOidcToken =
+        request.headers.get(TRUSTED_OIDC_HEADER) ??
+        (process.env.VERCEL_ENV === "preview"
+          ? request.headers.get(PREVIEW_OIDC_PASSTHROUGH_HEADER)
+          : null);
+      if (trustedOidcToken) {
+        requestHeaders[TRUSTED_OIDC_HEADER] = trustedOidcToken;
+      }
+      const printUrl = getPrintImageUrl(routeUrl, options.imageMaxWidth);
+      await route.continue({
+        headers: requestHeaders,
+        url: printUrl.href,
+      });
+    });
+    return { browser, page, close };
+  } catch (error) {
+    await close();
+    throw error;
+  }
 }
