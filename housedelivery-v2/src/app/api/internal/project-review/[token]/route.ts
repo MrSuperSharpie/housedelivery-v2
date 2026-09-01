@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import { createPlannerLouDraft } from "@/lib/planner-documents";
 import { updatePlannerProject } from "@/lib/planner-project-repository";
+import { isTrustedPlannerReviewMutationRequest } from "@/lib/planner-review-access";
 import { getPlannerProjectForReviewToken } from "@/lib/planner-review-server";
 
 export const dynamic = "force-dynamic";
@@ -14,19 +15,11 @@ function noStoreResponse(body: string, status: number) {
   });
 }
 
-function validSameOriginRequest(request: Request) {
-  const expectedOrigin = new URL(request.url).origin;
-  const origin = request.headers.get("origin");
-  const fetchSite = request.headers.get("sec-fetch-site");
-  return (!origin || origin === expectedOrigin) &&
-    (!fetchSite || fetchSite === "same-origin" || fetchSite === "none");
-}
-
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ token: string }> },
 ) {
-  if (!validSameOriginRequest(request)) {
+  if (!isTrustedPlannerReviewMutationRequest(request)) {
     return noStoreResponse("Forbidden", 403);
   }
 

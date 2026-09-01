@@ -36,3 +36,39 @@ export function plannerReviewTokenMatches(token: string, expectedHash: string) {
     Buffer.from(expectedHash, "hex"),
   );
 }
+
+export function isTrustedPlannerReviewMutationRequest(request: Request) {
+  const origin = request.headers.get("origin");
+  const fetchSite = request.headers.get("sec-fetch-site");
+
+  if (!origin) {
+    return !fetchSite || fetchSite === "same-origin" || fetchSite === "none";
+  }
+
+  let originUrl: URL;
+  try {
+    originUrl = new URL(origin);
+  } catch {
+    return false;
+  }
+
+  const requestUrl = new URL(request.url);
+  const forwardedHost = request.headers
+    .get("x-forwarded-host")
+    ?.split(",")[0]
+    ?.trim();
+  const host = request.headers.get("host")?.trim();
+  const forwardedProtocol = request.headers
+    .get("x-forwarded-proto")
+    ?.split(",")[0]
+    ?.trim();
+  const expectedProtocol = forwardedProtocol || requestUrl.protocol.slice(0, -1);
+  const expectedHosts = new Set(
+    [requestUrl.host, forwardedHost, host].filter(
+      (candidate): candidate is string => Boolean(candidate),
+    ),
+  );
+
+  return originUrl.protocol === `${expectedProtocol}:` &&
+    expectedHosts.has(originUrl.host);
+}

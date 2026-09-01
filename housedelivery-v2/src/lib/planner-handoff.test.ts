@@ -29,6 +29,7 @@ import type { StoredPlannerProject } from "@/lib/planner-project-record";
 import {
   derivePlannerReviewToken,
   hashPlannerReviewToken,
+  isTrustedPlannerReviewMutationRequest,
   plannerReviewTokenMatches,
   PlannerReviewAccessConfigurationError,
 } from "@/lib/planner-review-access";
@@ -436,6 +437,44 @@ test("Project review capability is stable, project-scoped, hashed at rest and re
   assert.throws(
     () => derivePlannerReviewToken("planner-submission-a", "too-short"),
     PlannerReviewAccessConfigurationError,
+  );
+});
+
+test("Project review mutations accept the trusted Preview alias and reject foreign origins", () => {
+  const trustedAliasRequest = new Request(
+    "https://immutable-preview.vercel.app/api/internal/project-review/token",
+    {
+      method: "POST",
+      headers: {
+        host: "immutable-preview.vercel.app",
+        origin: "https://branch-preview.vercel.app",
+        "sec-fetch-site": "same-origin",
+        "x-forwarded-host": "branch-preview.vercel.app",
+        "x-forwarded-proto": "https",
+      },
+    },
+  );
+  const foreignOriginRequest = new Request(
+    "https://immutable-preview.vercel.app/api/internal/project-review/token",
+    {
+      method: "POST",
+      headers: {
+        host: "immutable-preview.vercel.app",
+        origin: "https://attacker.example",
+        "sec-fetch-site": "cross-site",
+        "x-forwarded-host": "branch-preview.vercel.app",
+        "x-forwarded-proto": "https",
+      },
+    },
+  );
+
+  assert.equal(
+    isTrustedPlannerReviewMutationRequest(trustedAliasRequest),
+    true,
+  );
+  assert.equal(
+    isTrustedPlannerReviewMutationRequest(foreignOriginRequest),
+    false,
   );
 });
 
