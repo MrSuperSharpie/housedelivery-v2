@@ -99,6 +99,7 @@ const firstNationsSteps = [
   { label: "Select Homes", eyebrow: "Build" },
   { label: "Design Project Homes", eyebrow: "Design" },
   { label: "Project Readiness", eyebrow: "Prepare" },
+  { label: "Funding & Grant Corridors", eyebrow: "Explore" },
   { label: "Review Project", eyebrow: "Review" },
   { label: "Opportunity Report", eyebrow: "Report" },
   { label: "Project Review / LOU", eyebrow: "Advance" },
@@ -142,7 +143,7 @@ function ensureOpportunityReportReference(state: PlannerState) {
 
 function preparePlannerStateForStep(state: PlannerState) {
   const withProjectId = state.step > 0 ? ensurePlannerProjectId(state) : state;
-  const opportunityReportStep = state.audience === "first-nations" ? 5 : 7;
+  const opportunityReportStep = state.audience === "first-nations" ? 6 : 7;
   return withProjectId.step >= opportunityReportStep
     ? ensureOpportunityReportReference(withProjectId)
     : withProjectId;
@@ -1641,7 +1642,7 @@ function FundingStep({
   return (
     <div>
       <StepHeader
-        eyebrow={state.audience === "first-nations" ? "06 / Funding pathways" : "06 / Funding and financing context"}
+        eyebrow={state.audience === "first-nations" ? "05 / Funding & grant corridors" : "06 / Funding and financing context"}
         title={state.audience === "first-nations" ? "Corridors to explore." : "Potential pathways to review."}
         intro={state.audience === "first-nations"
           ? "These contextual matches support an early funding conversation. They are not eligibility findings, approvals or guarantees, and no potential funding is deducted from project feasibility."
@@ -1849,7 +1850,7 @@ function FirstNationsProjectReviewSummary({
   return (
     <div data-project-review-summary>
       <StepHeader
-        eyebrow="05 / Review project"
+        eyebrow="06 / Review project"
         title="Review one project record."
         intro="Homes, quantities, delivery groups, design groups, Look Books and readiness answers below all come from the same saved project state. Edit any section before creating the Opportunity Report."
       />
@@ -2049,9 +2050,6 @@ function OpportunityReport({
   const workforceReadiness = readiness.find(
     (item) => item.id === "communityWorkforce",
   );
-  const fundingReadiness = readiness.find(
-    (item) => item.id === "fundingPathway",
-  );
   const knownReadiness = readiness.filter((item) => item.ready);
   const unresolvedReadiness = readiness.filter((item) => !item.ready);
   const majorRangeDrivers = state.audience === "first-nations"
@@ -2086,7 +2084,7 @@ function OpportunityReport({
   return (
     <div>
       <div className="planner-screen-only">
-        <StepHeader eyebrow={state.audience === "first-nations" ? "06 / Opportunity report" : "08 / Preliminary opportunity report"} title="A clearer next conversation." intro="This report carries the opportunity, portfolio, project design groups, readiness information and items to confirm into a structured House Delivery review." />
+        <StepHeader eyebrow={state.audience === "first-nations" ? "07 / Opportunity report" : "08 / Preliminary opportunity report"} title="A clearer next conversation." intro="This report carries the opportunity, portfolio, project design groups, readiness information and items to confirm into a structured House Delivery review." />
         <div data-planner-report-controls="top" className="mt-10 grid gap-3 lg:grid-cols-3">
           <button type="button" onClick={viewReport} className="inline-flex min-h-14 items-center justify-between gap-8 border border-black/28 px-5 text-left text-[9px] font-semibold uppercase tracking-[0.16em] text-black/68 transition-colors hover:border-black hover:text-black">View Opportunity Report <ArrowRight aria-hidden="true" className="size-4" /></button>
           <button type="button" onClick={printReport} data-planner-report-download="top" className="inline-flex min-h-14 items-center justify-between gap-8 border border-black px-5 text-left text-[9px] font-semibold uppercase tracking-[0.16em] text-black transition-colors hover:bg-black hover:text-white">Download Opportunity Report <FileDown aria-hidden="true" className="size-4" /></button>
@@ -2176,8 +2174,8 @@ function OpportunityReport({
           )}
         </ReportSection>
 
-        <ReportSection number="08" title={state.audience === "first-nations" ? "Funding corridors" : "Funding and financing context"}>
-          {state.audience === "first-nations" ? <div className="border-t border-black/16 pt-4"><p className="text-sm font-medium">{fundingReadiness?.detail ?? "Funding / financing pathway not yet determined"}</p><p className="mt-2 text-[9px] font-semibold uppercase tracking-[0.16em] text-black/42">{fundingReadiness?.status ?? "Not Yet Determined"}</p><p className="mt-4 max-w-3xl text-xs leading-5 text-black/50">House Delivery may assist with identifying potential funding and financing corridors during project review. No program eligibility or lender approval is implied.</p></div> : <div className="space-y-4">{funding.map((item) => <div key={item.id} className="border-t border-black/16 pt-3"><p className="text-[8px] font-semibold uppercase tracking-[0.15em] text-black/42">{item.relevance}{item.decision ? ` / ${fundingDecisionLabels[item.decision]}` : ""}</p><p className="mt-2 text-sm font-medium">{item.title}</p><p className="mt-1 text-xs leading-5 text-black/50">{item.confirmationNeeded}</p><p className="mt-1 break-all text-[9px] text-black/38">{item.officialSource}</p></div>)}</div>}
+        <ReportSection number="08" title={state.audience === "first-nations" ? "Funding & grant corridors" : "Funding and financing context"}>
+          <div className="space-y-4">{funding.map((item) => <div key={item.id} className="border-t border-black/16 pt-3"><p className="text-[8px] font-semibold uppercase tracking-[0.15em] text-black/42">{item.relevance}{item.decision ? ` / ${fundingDecisionLabels[item.decision]}` : ""}</p><p className="mt-2 text-sm font-medium">{item.title}</p><p className="mt-1 text-xs leading-5 text-black/50">{item.confirmationNeeded}</p><p className="mt-1 break-all text-[9px] text-black/38">{item.officialSource}</p></div>)}</div>
         </ReportSection>
 
         <ReportSection number="09" title="Assumptions, exclusions and missing information">
@@ -2502,7 +2500,7 @@ function ProjectReviewStep({
   return (
     <div data-planner-project-review>
       <StepHeader
-        eyebrow={state.audience === "first-nations" ? "07 / Project review / LOU" : "09 / Project review"}
+        eyebrow={state.audience === "first-nations" ? "08 / Project review / LOU" : "09 / Project review"}
         title="Carry the full project forward."
         intro={state.audience === "first-nations" ? "Submit the organized project record for House Delivery review. This opens the pathway toward an LOU; it does not itself create a legally binding agreement." : "Your opportunity, portfolio, delivery groups, design records, refinement answers, funding-review choices and readiness profile are attached to this project-aware request."}
       />
@@ -2788,6 +2786,7 @@ export function FirstNationsProjectPlanner({
         "Continue to Select Homes",
         "Continue to Design Project Homes",
         "Continue to Project Readiness",
+        "Continue to Funding & Grant Corridors",
         "Continue to Review Project",
         "Create Opportunity Report",
         "Continue to Project Review / LOU",
@@ -2799,6 +2798,7 @@ export function FirstNationsProjectPlanner({
         "Continue to Select Homes",
         "Continue to Design Project Homes",
         "Continue to Project Readiness",
+        "Continue to Funding & Grant Corridors",
         "Continue to Review Project",
         "Create Opportunity Report",
       ][state.step]
@@ -2860,9 +2860,10 @@ export function FirstNationsProjectPlanner({
         {state.step === 1 ? <PortfolioStep state={state} setState={setState} catalog={catalog} onContinueToDesign={() => goToStep(isFirstNationsProject ? 2 : 4)} /> : null}
         {isFirstNationsProject && state.step === 2 ? <DesignStep state={state} setState={setState} catalog={catalog} returnNotice={returnNotice} onContinue={() => goToStep(3)} /> : null}
         {isFirstNationsProject && state.step === 3 ? <FirstNationsProjectReadinessStep state={state} setState={setState} catalog={catalog} /> : null}
-        {isFirstNationsProject && state.step === 4 ? <FirstNationsProjectReviewSummary state={state} catalog={catalog} onEditHomes={() => goToStep(1)} onEditDesigns={() => goToStep(2)} onEditReadiness={() => goToStep(3)} /> : null}
-        {isFirstNationsProject && state.step === 5 ? <OpportunityReport state={state} onBeginReview={() => goToStep(6)} onEditProject={() => goToStep(1)} onPrevious={() => goToStep(4)} onReset={resetPlanner} catalog={catalog} corridors={fundingCorridors} /> : null}
-        {isFirstNationsProject && state.step === 6 ? <ProjectReviewStep state={state} setState={setState} catalog={catalog} corridors={fundingCorridors} onViewReport={() => goToStep(5, "planner-opportunity-report")} onEditProject={() => goToStep(1)} onEditReadiness={() => goToStep(3)} /> : null}
+        {isFirstNationsProject && state.step === 4 ? <FundingStep state={state} setState={setState} catalog={catalog} corridors={fundingCorridors} /> : null}
+        {isFirstNationsProject && state.step === 5 ? <FirstNationsProjectReviewSummary state={state} catalog={catalog} onEditHomes={() => goToStep(1)} onEditDesigns={() => goToStep(2)} onEditReadiness={() => goToStep(3)} /> : null}
+        {isFirstNationsProject && state.step === 6 ? <OpportunityReport state={state} onBeginReview={() => goToStep(7)} onEditProject={() => goToStep(1)} onPrevious={() => goToStep(5)} onReset={resetPlanner} catalog={catalog} corridors={fundingCorridors} /> : null}
+        {isFirstNationsProject && state.step === 7 ? <ProjectReviewStep state={state} setState={setState} catalog={catalog} corridors={fundingCorridors} onViewReport={() => goToStep(6, "planner-opportunity-report")} onEditProject={() => goToStep(1)} onEditReadiness={() => goToStep(3)} /> : null}
         {!isFirstNationsProject && state.step === 2 ? <EstimatePanel state={state} catalog={catalog} /> : null}
         {!isFirstNationsProject && state.step === 3 ? <RefineStep state={state} setState={setState} /> : null}
         {!isFirstNationsProject && state.step === 4 ? <DesignStep state={state} setState={setState} catalog={catalog} returnNotice={returnNotice} onContinue={() => goToStep(5)} /> : null}
@@ -2871,7 +2872,7 @@ export function FirstNationsProjectPlanner({
         {!isFirstNationsProject && state.step === 7 ? <OpportunityReport state={state} onBeginReview={() => goToStep(8)} onEditProject={() => goToStep(1)} onPrevious={() => goToStep(6)} onReset={resetPlanner} catalog={catalog} corridors={fundingCorridors} /> : null}
         {!isFirstNationsProject && state.step === 8 ? <ProjectReviewStep state={state} setState={setState} catalog={catalog} corridors={fundingCorridors} onViewReport={() => goToStep(7, "planner-opportunity-report")} onEditProject={() => goToStep(1)} onEditReadiness={() => goToStep(3)} /> : null}
 
-        {state.step < (isFirstNationsProject ? 5 : 7) ? <div className="planner-screen-only mt-20 flex flex-col-reverse gap-4 border-t border-black/16 pt-6 sm:flex-row sm:items-center sm:justify-between">
+        {state.step < (isFirstNationsProject ? 6 : 7) ? <div className="planner-screen-only mt-20 flex flex-col-reverse gap-4 border-t border-black/16 pt-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-5">
             <button type="button" onClick={() => goToStep(state.step - 1)} disabled={state.step === 0} className="inline-flex min-h-12 items-center gap-3 border border-black/30 bg-white/35 px-5 text-[9px] font-semibold uppercase tracking-[0.16em] transition-colors hover:border-black hover:bg-white disabled:cursor-not-allowed disabled:opacity-30"><ArrowLeft aria-hidden="true" className="size-4" /> Previous</button>
             <button type="button" onClick={resetPlanner} className="inline-flex min-h-12 items-center gap-2 text-[9px] font-semibold uppercase tracking-[0.15em] text-black/42 hover:text-black"><RotateCcw aria-hidden="true" className="size-3.5" /> Start again</button>

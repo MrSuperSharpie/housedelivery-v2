@@ -313,7 +313,7 @@ export type PlannerAuthorizedRepresentative = {
 export type FundingCorridorDecision = "include" | "not-relevant";
 
 export type PlannerState = {
-  version: 6;
+  version: 7;
   projectId: string;
   audience: PlannerAudience;
   step: number;
@@ -405,7 +405,7 @@ export function createDefaultPlannerState(
   audience: PlannerAudience = "first-nations",
 ): PlannerState {
   return {
-    version: 6,
+    version: 7,
     projectId: "",
     audience,
     step: 0,
@@ -553,16 +553,28 @@ function normalizePlannerContact(value: unknown): PlannerProjectContact {
 
 function migrateFirstNationsStep(step: unknown, version: unknown) {
   const currentStep = typeof step === "number" ? step : 0;
-  if (version === 5 || version === 6) {
-    return Math.min(Math.max(currentStep, 0), 6);
+  if (version === 7) {
+    return Math.min(Math.max(currentStep, 0), 7);
   }
 
-  if (currentStep <= 1) return currentStep;
-  if (currentStep <= 3) return 1;
-  if (currentStep === 4) return 2;
-  if (currentStep <= 6) return 3;
-  if (currentStep === 7) return 5;
-  return 6;
+  if (version === 5 || version === 6) {
+    const previousStep = Math.min(Math.max(currentStep, 0), 6);
+    return previousStep >= 4 ? previousStep + 1 : previousStep;
+  }
+
+  const previousStep =
+    currentStep <= 1
+      ? currentStep
+      : currentStep <= 3
+        ? 1
+        : currentStep === 4
+          ? 2
+          : currentStep <= 6
+            ? 3
+            : currentStep === 7
+              ? 5
+              : 6;
+  return previousStep >= 4 ? previousStep + 1 : previousStep;
 }
 
 function getDesignLetter(index: number) {
@@ -757,7 +769,7 @@ export function migratePlannerState(value: unknown): PlannerState | undefined {
   return {
     ...defaults,
     ...candidate,
-    version: 6,
+    version: 7,
     projectId:
       typeof candidate.projectId === "string" ? candidate.projectId : "",
     audience: candidate.audience,

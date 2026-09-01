@@ -351,8 +351,16 @@ test("the realistic 12-home project keeps portfolio, design groups, Look Books a
       communityEngagement: "some",
       fundingPathway: "options",
     },
+    fundingCorridorDecisions: {
+      "cmhc-section-95": "include",
+      "bc-builds": "not-relevant",
+    },
   };
-  const restored = migratePlannerState(JSON.parse(JSON.stringify(state)));
+  const restored = migratePlannerState({
+    ...JSON.parse(JSON.stringify(state)),
+    version: 6,
+    step: 4,
+  });
   assert.ok(restored);
   const summary = getPortfolioSummary(
     restored.portfolio,
@@ -371,7 +379,14 @@ test("the realistic 12-home project keeps portfolio, design groups, Look Books a
     firstNationsPlannerCatalog,
     firstNationsFundingCorridors,
   );
+  const funding = getOpportunityReportFundingCorridors(
+    restored,
+    firstNationsFundingCorridors,
+    firstNationsPlannerCatalog,
+  );
 
+  assert.equal(restored.version, 7);
+  assert.equal(restored.step, 5);
   assert.equal(summary.totalHomes, 12);
   assert.equal(summary.modelCount, 2);
   assert.equal(summary.phaseCount, 2);
@@ -407,6 +422,14 @@ test("the realistic 12-home project keeps portfolio, design groups, Look Books a
   assert.match(context, /kitchen: premium-1/);
   assert.match(context, /kitchen: signature-2/);
   assert.match(context, /Indigenous Inspiration selected/);
+  assert.deepEqual(restored.readiness, state.readiness);
+  assert.deepEqual(restored.fundingCorridorDecisions, {
+    "cmhc-section-95": "include",
+    "bc-builds": "not-relevant",
+  });
+  assert.equal(funding[0].id, "cmhc-section-95");
+  assert.equal(funding[0].decision, "include");
+  assert.equal(funding.some((corridor) => corridor.id === "bc-builds"), false);
 });
 
 test("readiness treats known, unknown, mixed servicing and workforce answers as information rather than pass/fail", () => {
@@ -622,7 +645,7 @@ test("version one planner drafts migrate into one quantity-based design group", 
     ],
   });
 
-  assert.equal(migrated?.version, 6);
+  assert.equal(migrated?.version, 7);
   assert.deepEqual(migrated?.fundingCorridorDecisions, {});
   assert.deepEqual(migrated?.refinement.communityWorkforceCapacity, [
     "to-be-determined",
@@ -647,8 +670,8 @@ test("existing First Nations drafts migrate into the matching consolidated stage
     [4, 2],
     [5, 3],
     [6, 3],
-    [7, 5],
-    [8, 6],
+    [7, 6],
+    [8, 7],
   ]);
 
   for (const [legacyStep, consolidatedStep] of expectedSteps) {
@@ -659,7 +682,30 @@ test("existing First Nations drafts migrate into the matching consolidated stage
     });
 
     assert.equal(restored?.step, consolidatedStep);
-    assert.equal(restored?.version, 6);
+    assert.equal(restored?.version, 7);
+  }
+});
+
+test("version six First Nations stages shift only after Project Readiness", () => {
+  const expectedSteps = new Map([
+    [0, 0],
+    [1, 1],
+    [2, 2],
+    [3, 3],
+    [4, 5],
+    [5, 6],
+    [6, 7],
+  ]);
+
+  for (const [savedStep, restoredStep] of expectedSteps) {
+    const restored = migratePlannerState({
+      ...defaultPlannerState,
+      version: 6,
+      step: savedStep,
+    });
+
+    assert.equal(restored?.step, restoredStep);
+    assert.equal(restored?.version, 7);
   }
 });
 
@@ -1236,6 +1282,10 @@ test("shared Planner audiences use isolated drafts while preserving the First Na
       `/project-portfolio-planner?audience=${audience}#planner-design-center`,
     );
     assert.equal(migratePlannerState(state)?.audience, audience);
+    assert.equal(
+      migratePlannerState({ ...state, version: 6, step: 5 })?.step,
+      5,
+    );
   }
 });
 
