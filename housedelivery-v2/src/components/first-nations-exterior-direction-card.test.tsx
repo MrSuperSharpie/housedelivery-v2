@@ -55,7 +55,11 @@ test("Indigenous Inspiration swaps the First Nations home card image and labels 
     />,
   );
 
-  assert.match(markup, /Solace-Coastal\.png/);
+  assert.match(
+    markup,
+    /src="\/images\/first-nations-inspired\/design-center\/Solace-Coastal\.png"/,
+  );
+  assert.doesNotMatch(markup, /\/_next\/image\?url=/);
   assert.match(markup, /Contemporary/);
   assert.match(markup, /Indigenous Inspiration/);
   assert.doesNotMatch(markup, /Coastal Inspiration/);
@@ -80,7 +84,8 @@ test("Contemporary keeps the normal home-card image", () => {
     />,
   );
 
-  assert.match(markup, /%2Fimages%2Fhomes%2Fsolace%2Fexterior\.jpg/);
+  assert.match(markup, /src="\/images\/homes\/solace\/exterior\.jpg"/);
+  assert.doesNotMatch(markup, /\/_next\/image\?url=/);
   assert.doesNotMatch(markup, /Solace-Coastal\.png/);
   assert.doesNotMatch(markup, /Illustrative Exterior Inspiration/);
 });

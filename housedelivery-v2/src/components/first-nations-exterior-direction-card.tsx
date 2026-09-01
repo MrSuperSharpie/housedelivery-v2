@@ -32,7 +32,7 @@ export function FirstNationsExteriorDirectionCard({
           src={image.src}
           alt={image.alt}
           fill
-          quality={95}
+          unoptimized
           sizes="(min-width: 1280px) 31vw, (min-width: 768px) 48vw, 100vw"
           className="object-cover"
         />

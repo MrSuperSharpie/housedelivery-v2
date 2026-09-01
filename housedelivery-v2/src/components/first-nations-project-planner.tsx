@@ -534,7 +534,7 @@ function PortfolioStep({
   catalog: readonly PlannerCatalogItem[];
 }) {
   const [family, setFamily] = useState<PlannerCatalogItem["family"]>(
-    "standardized-catalogue",
+    "custom-home",
   );
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [phases, setPhases] = useState<Record<string, PlannerPhase>>({});
@@ -732,18 +732,6 @@ function PortfolioStep({
       <div className="mt-16 flex flex-wrap gap-3">
         <button
           type="button"
-          onClick={() => setFamily("standardized-catalogue")}
-          className={cn(
-            "min-h-11 border px-5 text-[9px] font-semibold uppercase tracking-[0.17em]",
-            family === "standardized-catalogue"
-              ? "border-black bg-black text-white"
-              : unselectedControlClassName,
-          )}
-        >
-          CMHC Housing Design Catalogue
-        </button>
-        <button
-          type="button"
           onClick={() => setFamily("custom-home")}
           className={cn(
             "min-h-11 border px-5 text-[9px] font-semibold uppercase tracking-[0.17em]",
@@ -753,6 +741,18 @@ function PortfolioStep({
           )}
         >
           Custom Homes
+        </button>
+        <button
+          type="button"
+          onClick={() => setFamily("standardized-catalogue")}
+          className={cn(
+            "min-h-11 border px-5 text-[9px] font-semibold uppercase tracking-[0.17em]",
+            family === "standardized-catalogue"
+              ? "border-black bg-black text-white"
+              : unselectedControlClassName,
+          )}
+        >
+          CMHC Housing Design Catalogue
         </button>
         <button
           type="button"
@@ -797,7 +797,7 @@ function PortfolioStep({
                   src={item.image}
                   alt={`${item.name} exterior`}
                   fill
-                  quality={95}
+                  unoptimized
                   sizes="(min-width: 1280px) 31vw, (min-width: 768px) 48vw, 100vw"
                   className="object-cover"
                 />
