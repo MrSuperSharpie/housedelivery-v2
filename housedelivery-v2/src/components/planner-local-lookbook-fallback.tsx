@@ -33,7 +33,7 @@ function findLocalLookBook(configurationId: string): LocalLookBook | undefined {
       if (!serialized) continue;
 
       const state = migratePlannerState(JSON.parse(serialized));
-      if (state.audience !== audience) continue;
+      if (!state || state.audience !== audience) continue;
 
       for (const line of state.portfolio) {
         for (const variation of line.designVariations) {
