@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { PlannerLocalLookBookFallback } from "@/components/planner-local-lookbook-fallback";
 import { SavedLookBook } from "@/components/saved-lookbook";
 import { SiteHeader } from "@/components/site-header";
 import { getHomeConfiguratorRegistration } from "@/data/home-configurators";
@@ -15,6 +16,23 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+function localPlannerFallback(
+  configurationId: string,
+  storageReadFailed = false,
+) {
+  return (
+    <>
+      <SiteHeader />
+      <main className="bg-[#0b0c10] text-white">
+        <PlannerLocalLookBookFallback
+          configurationId={configurationId}
+          storageReadFailed={storageReadFailed}
+        />
+      </main>
+    </>
+  );
+}
+
 export default async function SavedLookBookPage({
   params,
 }: {
@@ -28,11 +46,9 @@ export default async function SavedLookBookPage({
   try {
     record = await getLookBookRepository().findById(configurationId);
   } catch {
-    // Do not expose storage details or distinguish unavailable records from
-    // unknown bearer URLs.
-    notFound();
+    return localPlannerFallback(configurationId, true);
   }
-  if (!record) notFound();
+  if (!record) return localPlannerFallback(configurationId);
 
   const registration = getHomeConfiguratorRegistration(
     record.homeFamily,
