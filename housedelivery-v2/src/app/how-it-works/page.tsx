@@ -4,18 +4,18 @@ import { HomeownerJourney } from "@/components/homeowner-journey";
 import { SiteHeader } from "@/components/site-header";
 
 export const metadata: Metadata = {
-  title: "Your House Delivery Journey",
+  title: "How House Delivery Works",
   description:
-    "Follow the individual homeowner journey from property review and home selection through site-specific design, light-gauge steel assembly, finishing and occupancy.",
+    "See the House Delivery process from site and home selection through design, approvals, manufacturing, local assembly and occupancy.",
   openGraph: {
-    title: "Your House Delivery Journey | House Delivery",
+    title: "How House Delivery Works | House Delivery",
     description:
-      "A clear, coordinated path from your property and home selection to project review, delivery, assembly and occupancy.",
+      "A coordinated path from site and home selection through design, approvals, manufacturing, assembly and occupancy.",
     type: "website",
     images: [
       {
         url: "/images/how-it-works/house-delivery-process.png",
-        alt: "The House Delivery homeowner journey",
+        alt: "The House Delivery process",
       },
     ],
   },
