@@ -165,7 +165,7 @@ function fromRow(row: SupabaseRow): StoredLookBook {
       : {}),
     ...(row.follow_up_source ? { followUpSource: row.follow_up_source } : {}),
     ...(row.property_feasibility
-      ? { propertyFeasibility: row.propertyFeasibility }
+      ? { propertyFeasibility: row.property_feasibility }
       : {}),
     attribution: row.attribution,
     createdAt: row.created_at,
