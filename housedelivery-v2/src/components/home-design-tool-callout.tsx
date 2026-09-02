@@ -201,8 +201,8 @@ export function HomeDesignToolCallout({
               )}
             >
               {isPrimary
-                ? `Choose the key kitchen, bathroom, wardrobe, flooring and finish directions that define your home. Create a personalized ${homeName} Look Book before moving into project-specific design.`
-                : `${homeName} includes an interactive design experience where you can shape the key spaces and finishes of your home.`}
+                ? `Choose the key finishes for ${homeName} and create your personal Look Book.`
+                : `Explore the design options for ${homeName}.`}
             </p>
             {activePlannerContext && !activePlannerContext.designSession ? (
               <button

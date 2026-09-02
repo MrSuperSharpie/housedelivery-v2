@@ -14,7 +14,6 @@ import {
 } from "@/components/home-detail-hero";
 import { HomeEditorialGallery } from "@/components/home-editorial-gallery";
 import { HomeFloorPlanViewer } from "@/components/home-floor-plan-viewer";
-import { HomeDesignJourneyLink } from "@/components/inclusions-journey-links";
 import { RevealText } from "@/components/reveal-text";
 import { SiteHeader } from "@/components/site-header";
 import { getHomeConfiguratorRegistration } from "@/data/home-configurators";
@@ -199,19 +198,13 @@ export default async function HomeDetailPage({
               <div>
                 <p className="eyebrow">Overview / {model.locationLabel}</p>
                 <h2 className="mt-7 max-w-4xl text-5xl font-medium leading-[0.92] tracking-[-0.06em] md:text-7xl">
-                  <RevealText text="A clearer way to" />
+                  {getResidenceName(model)}
                   <br />
-                  <span className="text-white/40">
-                    <RevealText
-                      text="build something lasting."
-                      delay={0.12}
-                    />
-                  </span>
+                  <span className="text-white/40">at a glance.</span>
                 </h2>
               </div>
 
               <div className="lg:pt-20">
-                {/* MODEL DESCRIPTION BLOCK — remove this div for a strictly visual layout. */}
                 <div
                   data-content-block="model-description"
                   className="max-w-prose"
@@ -315,8 +308,7 @@ export default async function HomeDetailPage({
                   </HeadlineReveal>
                 </div>
                 <p className="max-w-lg self-end text-sm leading-7 text-white/45 sm:justify-self-end">
-                  Move through the generous arrival, connected family spaces,
-                  private wing, and indoor-outdoor rooms of the Langley House.
+                  Walk through the home and experience its scale, circulation and connection to the outdoors.
                 </p>
               </div>
               <div className="aspect-video overflow-hidden border border-white/14 bg-[#090a0d]">
@@ -338,32 +330,24 @@ export default async function HomeDetailPage({
           className="scroll-mt-20 border-y border-white/12 px-5 py-24 sm:px-8 lg:px-12 lg:py-36"
         >
           <div className="mx-auto max-w-[1504px]">
-            <p className="eyebrow">Your land / Your timeline / Your home</p>
+            <p className="eyebrow">Ready to move forward?</p>
             <div className="mt-8 grid gap-12 lg:grid-cols-[1fr_auto] lg:items-end">
               <HeadlineReveal>
                 <h2 className="max-w-6xl text-[clamp(3.8rem,8.3vw,9rem)] font-medium leading-[0.84] tracking-[-0.075em]">
-                  Begin your
+                  Plan your
                   <br />
-                  <span className="text-white/40">project review.</span>
+                  <span className="text-white/40">housing project.</span>
                 </h2>
               </HeadlineReveal>
               <div className="max-w-sm border-l border-white/18 pl-6">
                 <p className="text-sm leading-6 text-white/48">
-                  Start with a project review. We’ll map feasibility, local
-                  requirements, model fit, financing context, and a realistic
-                  delivery sequence.
+                  Tell us who you are planning for and how many homes you need. We’ll guide you through the next steps.
                 </p>
-                <HomeDesignJourneyLink
-                  homeName={designToolDiscovery.homeName}
-                  href={designToolDiscovery.href}
-                  availability={designToolDiscovery.availability}
-                  className="mt-7"
-                />
                 <Link
-                  href="/#reserve"
-                  className="group mt-5 flex items-center justify-between bg-white px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.17em] text-black"
+                  href="/plan-a-housing-project"
+                  className="group mt-7 flex items-center justify-between bg-white px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.17em] text-black"
                 >
-                  Start your project review
+                  Plan a Housing Project
                   <ArrowRight
                     size={14}
                     className="transition-transform group-hover:translate-x-1"
@@ -410,23 +394,6 @@ export default async function HomeDetailPage({
               </div>
             </div>
           </Link>
-        </section>
-
-        <section className="border-t border-white/12 px-5 py-24 text-center sm:px-8">
-          <div className="mx-auto max-w-5xl">
-            <p className="eyebrow">Beyond the collection</p>
-            <HeadlineReveal variant="sweep" className="mx-auto mt-7 max-w-4xl">
-              <h2 className="text-4xl font-medium leading-tight tracking-[-0.05em] sm:text-6xl">
-                Can’t find your perfect plan? We’ve got hundreds more.
-              </h2>
-            </HeadlineReveal>
-            <Link
-              href="/#reserve"
-              className="mt-10 inline-flex items-center justify-center border border-white/45 px-7 py-4 text-[10px] font-semibold uppercase tracking-[0.18em] text-white transition-colors hover:bg-white hover:text-[#0b0c10]"
-            >
-              Contact Our Design Team
-            </Link>
-          </div>
         </section>
       </main>
     </>

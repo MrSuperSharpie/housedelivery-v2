@@ -5,7 +5,6 @@ import Image from "next/image";
 import { Fragment } from "react";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
-import { HomeDesignToolCallout } from "@/components/home-design-tool-callout";
 import {
   ContextualInclusionsLink,
   type ContextualInclusionDestination,
@@ -54,9 +53,6 @@ type HomeEditorialGalleryProps = {
   };
 };
 
-// Floor plan / footprint assets must never appear in the lifestyle gallery —
-// object-cover crops them into unreadable fragments. They live only in the
-// dedicated interactive floor plan section.
 const FLOOR_PLAN_PATTERNS = [
   "floorplan",
   "floor-plan",
@@ -157,12 +153,8 @@ export function HomeEditorialGallery({
   return (
     <section className="px-5 py-28 sm:px-8 lg:px-12 lg:py-40">
       <div className="mx-auto max-w-[1504px]">
-        <div className="mb-20 grid gap-8 border-t border-white/15 pt-7 md:grid-cols-2">
-          <p className="eyebrow">A study in space / {modelName}</p>
-          <p className="max-w-lg text-base leading-7 text-white/48 md:justify-self-end">
-            Architecture is experienced in sequence: arrival, gathering,
-            retreat, and the changing quality of light across the day.
-          </p>
+        <div className="mb-16 border-t border-white/15 pt-7 lg:mb-20">
+          <p className="eyebrow">Gallery / {modelName}</p>
         </div>
 
         <div className="space-y-20 sm:space-y-28 lg:space-y-40">
@@ -278,16 +270,6 @@ export function HomeEditorialGallery({
                     </div>
                   ) : null}
                 </article>
-                {designToolDiscovery &&
-                designToolDiscovery.showGalleryCallout !== false &&
-                rowIndex === 1 ? (
-                  <HomeDesignToolCallout
-                    homeName={designToolDiscovery.homeName}
-                    href={designToolDiscovery.href}
-                    variant="quiet"
-                    availability={designToolDiscovery.availability}
-                  />
-                ) : null}
               </Fragment>
             );
           })}
