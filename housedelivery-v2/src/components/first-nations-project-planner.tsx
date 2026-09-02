@@ -78,31 +78,31 @@ const plannerPhaseLabels = {
 } as const;
 
 const fundingDecisionLabels: Record<FundingCorridorDecision, string> = {
-  include: "Include in My Funding Review",
+  include: "Include for Review",
   "not-relevant": "Not Relevant",
 };
 
 const sharedSteps = [
-  { label: "Project Intake", eyebrow: "Start" },
-  { label: "My Project", eyebrow: "Build" },
-  { label: "Quick Estimate", eyebrow: "Understand" },
-  { label: "Refine Project", eyebrow: "Refine" },
-  { label: "Design Direction", eyebrow: "Shape" },
-  { label: "Funding Pathways", eyebrow: "Explore" },
-  { label: "Scale & Readiness", eyebrow: "Prepare" },
+  { label: "Project Basics", eyebrow: "Start" },
+  { label: "Choose Homes", eyebrow: "Build" },
+  { label: "Early Range", eyebrow: "Understand" },
+  { label: "Project Details", eyebrow: "Refine" },
+  { label: "Design Homes", eyebrow: "Shape" },
+  { label: "Funding", eyebrow: "Explore" },
+  { label: "Readiness", eyebrow: "Prepare" },
   { label: "Opportunity Report", eyebrow: "Review" },
-  { label: "Project Review", eyebrow: "Submit" },
+  { label: "Submit for Review", eyebrow: "Submit" },
 ] as const;
 
 const firstNationsSteps = [
-  { label: "Define Housing Need", eyebrow: "Start" },
-  { label: "Select Homes", eyebrow: "Build" },
-  { label: "Design Project Homes", eyebrow: "Design" },
-  { label: "Project Readiness", eyebrow: "Prepare" },
-  { label: "Funding & Grant Corridors", eyebrow: "Explore" },
-  { label: "Review Project", eyebrow: "Review" },
+  { label: "Housing Need", eyebrow: "Start" },
+  { label: "Choose Homes", eyebrow: "Build" },
+  { label: "Design Homes", eyebrow: "Design" },
+  { label: "Readiness", eyebrow: "Prepare" },
+  { label: "Funding & Grants", eyebrow: "Explore" },
+  { label: "Review", eyebrow: "Review" },
   { label: "Opportunity Report", eyebrow: "Report" },
-  { label: "Project Review / LOU", eyebrow: "Advance" },
+  { label: "Submit for Review", eyebrow: "Advance" },
 ] as const;
 
 const householdOptions = [
@@ -384,8 +384,7 @@ function PlannerHomeDetails({
               </div>
             </dl>
             <p className="mt-8 border-t border-black/16 pt-5 text-xs leading-5 text-black/48">
-              You remain inside the active project. Close this view to select a
-              quantity, delivery group and exterior direction.
+              Close this view to continue building your project.
             </p>
           </div>
         </div>
@@ -455,9 +454,6 @@ function SharedPlannerHomeActions({
         >
           View Home
         </PlannerLink>
-        <p className="mt-1 text-[10px] leading-4 text-black/42">
-          Architecture, plans and walkthrough
-        </p>
       </div>
       <div>
         {!item.buildMyHref ? (
@@ -473,9 +469,6 @@ function SharedPlannerHomeActions({
             Design My Home — Add to Project First
           </span>
         )}
-        <p className="mt-1 text-[10px] leading-4 text-black/42">
-          Choose the design direction
-        </p>
       </div>
       <div>
         {!item.lookBookHref ? (
@@ -488,12 +481,9 @@ function SharedPlannerHomeActions({
           </PlannerLink>
         ) : (
           <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-black/38">
-            My Look Book — Save a Design First
+            My Look Book — Complete Design First
           </span>
         )}
-        <p className="mt-1 text-[10px] leading-4 text-black/42">
-          Reopen saved design selections
-        </p>
       </div>
     </div>
   );
@@ -536,8 +526,8 @@ function StartStep({
     <div>
       <StepHeader
         eyebrow="01 / Define housing need"
-        title="Begin with the community need."
-        intro="Set an initial planning target for the community. The selected project portfolio becomes the source of truth for downstream home totals, design groups, readiness and reports."
+        title="What housing does your community need?"
+        intro="Start with what you know today. You can refine this later."
       />
       <div className="mt-16 grid border-l border-t border-black/16 sm:grid-cols-2">
         <label className="border-b border-r border-black/16 p-5 sm:p-7">
@@ -559,7 +549,7 @@ function StartStep({
           />
         </label>
         <label className="border-b border-r border-black/16 p-5 sm:p-7">
-          <FieldLabel>Initial homes needed / planning target</FieldLabel>
+          <FieldLabel>Approximate homes needed</FieldLabel>
           <input
             type="number"
             min="1"
@@ -571,7 +561,7 @@ function StartStep({
           />
         </label>
         <label className="border-b border-r border-black/16 p-5 sm:p-7">
-          <FieldLabel>Site pattern</FieldLabel>
+          <FieldLabel>Site arrangement</FieldLabel>
           <select
             value={state.sitePattern}
             onChange={(event) => update({ sitePattern: event.target.value })}
@@ -583,7 +573,7 @@ function StartStep({
           </select>
         </label>
         <label className="border-b border-r border-black/16 p-5 sm:col-span-2 sm:p-7">
-          <FieldLabel>Delivery horizon</FieldLabel>
+          <FieldLabel>Project timing</FieldLabel>
           <select
             value={state.deliveryHorizon}
             onChange={(event) => update({ deliveryHorizon: event.target.value })}
@@ -672,8 +662,8 @@ function AudienceStartStep({
     <div>
       <StepHeader
         eyebrow={`01 / ${plannerAudienceLabels[state.audience]}`}
-        title="Begin with the project."
-        intro="Create a short working picture of the site, housing programme and delivery readiness. Every answer can be refined as the project develops."
+        title="Tell us about the project."
+        intro="Start with what you know today. You can refine the project as it develops."
       />
       <div className="mt-16 grid border-l border-t border-black/16 sm:grid-cols-2">
         <label className="border-b border-r border-black/16 p-5 sm:p-7">
@@ -873,13 +863,13 @@ function PortfolioStep({
     <div>
       <StepHeader
         eyebrow="02 / Select homes"
-        title="Build the housing mix."
-        intro="Select the home models, quantities and delivery groups for this project. Architecture details stay in context; design configuration happens in the next dedicated project stage."
+        title="Choose the homes for this project."
+        intro="Add the home models and quantities you want to explore. You can change them later."
       />
 
       <div className="mt-14 grid gap-5 border-y border-black/16 py-7 sm:grid-cols-3">
         <div>
-          <p className="text-[9px] uppercase tracking-[0.18em] text-black/42">Working homes</p>
+          <p className="text-[9px] uppercase tracking-[0.18em] text-black/42">Homes selected</p>
           <p className="mt-2 text-3xl font-medium tracking-[-0.05em]">{summary.totalHomes}</p>
         </div>
         <div>
@@ -895,7 +885,7 @@ function PortfolioStep({
       {summary.lines.length ? (
         <div className="mt-12">
           <h3 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-black/50">
-            Project Overview / Homes &amp; Quantities
+            Homes in My Project
           </h3>
           <div className="mt-5 border-t border-black/16">
             {summary.lines.map(({ line, model }) => (
@@ -1081,8 +1071,7 @@ function PortfolioStep({
                     Preview Model
                   </p>
                   <p className="mt-2 text-xs leading-5 text-black/48">
-                    Available to explore. Project selection, Design My Home and Look Book
-                    configuration are coming soon.
+                    Available to explore. Project selection and design tools are coming soon.
                   </p>
                 </div>
               </div>
@@ -1196,8 +1185,8 @@ function EstimatePanel({ state, catalog }: { state: PlannerState; catalog: reado
     <div>
       <StepHeader
         eyebrow="03 / Preliminary feasibility"
-        title="A range, not a quotation."
-        intro="The estimate architecture separates Low, Base and High planning cases. No automatic finish uplift, volume discount, climate percentage, off-grid amount, appliance package, accessibility percentage or training formula is applied."
+        title="Early project range."
+        intro="An initial planning range based on the homes currently in your project. It will be refined as project requirements are confirmed."
       />
       <div className="mt-16 grid border-l border-t border-black/16 lg:grid-cols-3">
         {values.map(([label, value]) => (
@@ -1297,10 +1286,10 @@ function RefineStep({
     <div>
       <StepHeader
         eyebrow="04 / Refine project"
-        title="Refine Your Project"
+        title="Tell us what you know."
         intro={isFirstNations
-          ? "These answers help House Delivery better understand the community, site, delivery needs and funding context. Every answer can remain unknown while the project is still taking shape."
-          : "These answers help House Delivery better understand the site, housing approach, delivery responsibilities and commercial context. Every answer can remain unknown while the project is still taking shape."}
+          ? "Add the project details that are known today. Anything can be refined later."
+          : "Add the project details that are known today. Anything can be refined later."}
       />
       {isFirstNations ? <fieldset className="mt-16 border-t border-black/16 pt-6">
         <legend className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/46">Who should the housing serve?</legend>
@@ -1460,13 +1449,12 @@ function DesignStep({
     <div id="planner-design-center" className="scroll-mt-28">
       <StepHeader
         eyebrow={state.audience === "first-nations" ? "03 / Design project homes" : "05 / House Delivery design direction"}
-        title={state.audience === "first-nations" ? "Configure the homes in this project." : "Make the direction visible."}
-        intro={state.audience === "first-nations" ? "Apply one design to every matching home by default. Create another design group only when part of that model quantity needs a different exterior expression or package direction." : "Create one design per home type and assign it to every matching home by default. Add a design group only when part of that quantity needs a different direction."}
+        title={state.audience === "first-nations" ? "Design each home type." : "Design each home type."}
+        intro={state.audience === "first-nations" ? "Create one Look Book for each home type. Add another Design Group only when some homes need a different direction." : "Create one Look Book for each home type. Add another Design Group only when some homes need a different direction."}
       />
       {returnNotice ? (
         <div role="status" className="mt-10 border border-black bg-black p-5 text-white sm:p-6">
           <p className="flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.16em]"><Check aria-hidden="true" className="size-4" />{returnNotice}</p>
-          <p className="mt-3 text-sm leading-6 text-white/58">Your project totals and saved design assignments remain intact.</p>
         </div>
       ) : null}
       {designLines.length ? (
@@ -1490,7 +1478,7 @@ function DesignStep({
                 )}
                 newTab={false}
               >
-                Configure Next Design Group
+                Design Next Group
               </PlannerLink>
               <p className="mt-2 text-[10px] text-black/44">
                 Next: {getPlannerHomeName(nextDesign.model.name)} — {nextDesign.variation.label}
@@ -1548,11 +1536,11 @@ function DesignStep({
                       >
                         <div className="flex items-start justify-between gap-5">
                           <div>
-                            <p className="text-[9px] font-semibold uppercase tracking-[0.17em] text-black/42">Saved design group</p>
+                            <p className="text-[9px] font-semibold uppercase tracking-[0.17em] text-black/42">Design Group</p>
                             <h4 className="mt-2 text-2xl font-medium tracking-[-0.04em]">{variation.projectDesignName ?? `${getPlannerHomeName(model.name)} — ${variation.label}`}</h4>
                           </div>
                           <span className={cn("px-3 py-2 text-[8px] font-semibold uppercase tracking-[0.14em]", variation.status === "complete" ? "bg-black text-white" : "border border-black/18 text-black/46")}>
-                            {variation.status === "complete" ? "Design completed" : "Design remaining"}
+                            {variation.status === "complete" ? "Complete" : "Not complete"}
                           </span>
                         </div>
                         {line.designVariations.length > 1 ? (
@@ -1602,7 +1590,7 @@ function DesignStep({
                                 ),
                               }))
                             }
-                            placeholder="Optional notes that should travel with this design package"
+                            placeholder="Optional notes for this design group"
                             className="w-full border border-black/18 bg-transparent p-3 text-xs leading-5 text-black outline-none focus:border-black"
                           />
                         </label>
@@ -1616,7 +1604,7 @@ function DesignStep({
                           ) : (
                             <>
                               <PlannerLink href={buildHref} newTab={false}>Configure Design</PlannerLink>
-                              <span className="self-center text-[9px] font-semibold uppercase tracking-[0.15em] text-black/32">Look Book — Save this design first</span>
+                              <span className="self-center text-[9px] font-semibold uppercase tracking-[0.15em] text-black/32">Look Book available after design completion</span>
                             </>
                           )}
                         </div>
@@ -1642,11 +1630,6 @@ function DesignStep({
           <p className="mt-4 max-w-2xl text-sm leading-6 text-black/52">The current portfolio does not include a home with an approved Visual Guide. Design requirements can still be carried in the project notes without borrowing another home’s boards.</p>
         </div>
       )}
-      <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        {["Visual Direction", "Planning Allowance", "Supplier-Informed", "Technical Review Required", "Project-Specific Approval Required"].map((status) => (
-          <div key={status} className="border-t border-black/16 pt-4 text-[9px] font-semibold uppercase leading-5 tracking-[0.14em] text-black/46">{status}</div>
-        ))}
-      </div>
     </div>
   );
 }
@@ -1693,10 +1676,10 @@ function FundingStep({
     <div>
       <StepHeader
         eyebrow={state.audience === "first-nations" ? "05 / Funding & grant corridors" : "06 / Funding and financing context"}
-        title={state.audience === "first-nations" ? "Corridors to explore." : "Potential pathways to review."}
+        title={state.audience === "first-nations" ? "Funding and grant opportunities to explore." : "Funding opportunities to explore."}
         intro={state.audience === "first-nations"
-          ? "These contextual matches support an early funding conversation. They are not eligibility findings, approvals or guarantees, and no potential funding is deducted from project feasibility."
-          : "These contextual pathways support an early owner, proponent and financing conversation. They are not eligibility findings, approvals or guarantees, and no potential funding is deducted from project feasibility."}
+          ? "Based on what you have entered, these programs may be relevant. House Delivery can review them with you; eligibility and approval remain subject to each program."
+          : "Based on what you have entered, these programs may be relevant. House Delivery can review them with you; eligibility and approval remain subject to each program."}
       />
       <div className="mt-16 border-t border-black/16">
         {ordered.map((corridor) => (
@@ -1782,8 +1765,8 @@ function FirstNationsProjectReadinessStep({
     <div data-project-readiness-input>
       <StepHeader
         eyebrow="04 / Project readiness"
-        title="Record what is known today."
-        intro="Projects do not need to have every answer today. Record what is currently known so House Delivery can understand where the project stands and what may need to be explored next."
+        title="Tell us what you know today."
+        intro="You do not need every answer. Choose what best reflects the project today."
       />
 
       <section className="mt-14 border-y border-black/16 py-7">
@@ -1901,8 +1884,8 @@ function FirstNationsProjectReviewSummary({
     <div data-project-review-summary>
       <StepHeader
         eyebrow="06 / Review project"
-        title="Review one project record."
-        intro="Homes, quantities, delivery groups, design groups, Look Books and readiness answers below all come from the same saved project state. Edit any section before creating the Opportunity Report."
+        title="Review your project."
+        intro="Check your homes, Look Books and readiness answers. Edit anything before creating the Opportunity Report."
       />
 
       <div className="mt-14 grid gap-5 border-y border-black/16 py-7 sm:grid-cols-2 lg:grid-cols-5">
@@ -2026,8 +2009,8 @@ function ScaleReadinessStep({ state, catalog }: { state: PlannerState; catalog: 
     <div>
       <StepHeader
         eyebrow="07 / Scale and readiness"
-        title="Two different questions."
-        intro="Scale describes the opportunity. Readiness describes what is known today. Neither is a government, lender or funding-program score."
+        title="Review project readiness."
+        intro="See what is known today and what still needs to be confirmed."
       />
       <div className="mt-16 grid gap-14 lg:grid-cols-2 lg:gap-20">
         <section>
@@ -2134,11 +2117,11 @@ function OpportunityReport({
   return (
     <div>
       <div className="planner-screen-only">
-        <StepHeader eyebrow={state.audience === "first-nations" ? "07 / Opportunity report" : "08 / Preliminary opportunity report"} title="A clearer next conversation." intro="This report carries the opportunity, portfolio, project design groups, readiness information and items to confirm into a structured House Delivery review." />
+        <StepHeader eyebrow={state.audience === "first-nations" ? "07 / Opportunity report" : "08 / Preliminary opportunity report"} title="Your Opportunity Report is ready." intro="Review or download your project summary, then send it to House Delivery when you are ready." />
         <div data-planner-report-controls="top" className="mt-10 grid gap-3 lg:grid-cols-3">
           <button type="button" onClick={viewReport} className="inline-flex min-h-14 items-center justify-between gap-8 border border-black/28 px-5 text-left text-[9px] font-semibold uppercase tracking-[0.16em] text-black/68 transition-colors hover:border-black hover:text-black">View Opportunity Report <ArrowRight aria-hidden="true" className="size-4" /></button>
           <button type="button" onClick={printReport} data-planner-report-download="top" className="inline-flex min-h-14 items-center justify-between gap-8 border border-black px-5 text-left text-[9px] font-semibold uppercase tracking-[0.16em] text-black transition-colors hover:bg-black hover:text-white">Download Opportunity Report <FileDown aria-hidden="true" className="size-4" /></button>
-          <button type="button" onClick={onBeginReview} className="inline-flex min-h-14 items-center justify-between gap-8 bg-black px-5 text-left text-[9px] font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-black/78">{state.audience === "first-nations" ? "Continue to House Delivery Review" : "Begin Project Review"} <ArrowRight aria-hidden="true" className="size-4" /></button>
+          <button type="button" onClick={onBeginReview} className="inline-flex min-h-14 items-center justify-between gap-8 bg-black px-5 text-left text-[9px] font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-black/78">{state.audience === "first-nations" ? "Send to House Delivery Review" : "Begin Project Review"} <ArrowRight aria-hidden="true" className="size-4" /></button>
         </div>
       </div>
 
@@ -2249,7 +2232,7 @@ function OpportunityReport({
             onClick={onBeginReview}
             className="inline-flex min-h-16 items-center justify-between gap-8 bg-black px-6 text-left text-[10px] font-semibold uppercase tracking-[0.17em] text-white transition-colors hover:bg-black/78 lg:col-span-2"
           >
-            {state.audience === "first-nations" ? "Continue to House Delivery Review" : "Begin Project Review"} <ArrowRight aria-hidden="true" className="size-4" />
+            {state.audience === "first-nations" ? "Send to House Delivery Review" : "Begin Project Review"} <ArrowRight aria-hidden="true" className="size-4" />
           </button>
           <button
             type="button"
@@ -2551,8 +2534,8 @@ function ProjectReviewStep({
     <div data-planner-project-review>
       <StepHeader
         eyebrow={state.audience === "first-nations" ? "08 / Project review / LOU" : "09 / Project review"}
-        title="Carry the full project forward."
-        intro={state.audience === "first-nations" ? "Submit the organized project record for House Delivery review. This opens the pathway toward an LOU; it does not itself create a legally binding agreement." : "Your opportunity, portfolio, delivery groups, design records, refinement answers, funding-review choices and readiness profile are attached to this project-aware request."}
+        title="Send your project to House Delivery."
+        intro={state.audience === "first-nations" ? "Submit the project for House Delivery review. House Delivery will review it before preparing any LOU or next-stage authorization." : "Submit the project for House Delivery review. Your saved project details and design records will be included."}
       />
 
       <div className="mt-14 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -2635,7 +2618,7 @@ function ProjectReviewStep({
           <div role="status">
             <div className="max-w-3xl">
             <p className="inline-flex items-center gap-3 text-[9px] font-semibold uppercase tracking-[0.18em] text-black/48"><Check aria-hidden="true" className="size-4" /> Project review received</p>
-            <h3 className="mt-5 text-3xl font-medium tracking-[-0.045em] sm:text-5xl">The project record has moved forward intact.</h3>
+            <h3 className="mt-5 text-3xl font-medium tracking-[-0.045em] sm:text-5xl">Project received.</h3>
             <p className="mt-5 text-sm leading-6 text-black/55">House Delivery received project {state.projectId} with Opportunity Report {state.opportunityReportReference} and {completedDesigns.length} completed {completedDesigns.length === 1 ? "design package" : "design packages"}. The next step is House Delivery review before an LOU is prepared. Submission is not an LOU, a paid-design authorization, a factory release or final pricing.</p>
             </div>
             <SubmittedProjectJourney state={state} completedDesigns={completedDesigns} />
@@ -2790,21 +2773,6 @@ export function FirstNationsProjectPlanner({
   }, [hydrated, state, storageKey]);
 
   const projectSummary = getPortfolioSummary(state.portfolio, catalog);
-  const designProgress = getPlannerDesignProgress(state.portfolio, catalog);
-  const includedHomeTypes = projectSummary.lines.map(({ model }) =>
-    getPlannerHomeName(model.name),
-  );
-  const completedHomeTypes = projectSummary.lines.flatMap(({ line, model }) =>
-    line.designVariations.some((variation) => variation.status === "complete")
-      ? [getPlannerHomeName(model.name)]
-      : [],
-  );
-  const remainingHomeTypes = projectSummary.lines.flatMap(({ line, model }) =>
-    model.designChapters.length > 0 &&
-    line.designVariations.some((variation) => variation.status !== "complete")
-      ? [getPlannerHomeName(model.name)]
-      : [],
-  );
 
   const canContinue = useMemo(() => {
     if (state.step === 0) return Boolean(state.community.trim() && state.location.trim() && Number(state.approximateHomes) > 0);
@@ -2833,30 +2801,44 @@ export function FirstNationsProjectPlanner({
   const stickyNextStep = state.step < steps.length - 1 ? state.step + 1 : 1;
   const stickyActionLabel = isFirstNationsProject
     ? [
-        "Continue to Select Homes",
-        "Continue to Design Project Homes",
-        "Continue to Project Readiness",
-        "Continue to Funding & Grant Corridors",
-        "Continue to Review Project",
+        "Continue to Choose Homes",
+        "Continue to Design Homes",
+        "Continue to Readiness",
+        "Continue to Funding & Grants",
+        "Continue to Review",
         "Create Opportunity Report",
-        "Continue to Project Review / LOU",
+        "Continue to Project Review",
         "View / Edit Project Homes",
       ][state.step]
-    : "View / Edit My Project";
+    : [
+        "Continue to Choose Homes",
+        "Continue to Early Range",
+        "Continue to Project Details",
+        "Continue to Design Homes",
+        "Continue to Funding",
+        "Continue to Readiness",
+        "Create Opportunity Report",
+        "Continue to Project Review",
+        "View / Edit Project Homes",
+      ][state.step];
   const bottomActionLabel = isFirstNationsProject
     ? [
-        "Continue to Select Homes",
-        "Continue to Design Project Homes",
-        "Continue to Project Readiness",
-        "Continue to Funding & Grant Corridors",
-        "Continue to Review Project",
+        "Continue to Choose Homes",
+        "Continue to Design Homes",
+        "Continue to Readiness",
+        "Continue to Funding & Grants",
+        "Continue to Review",
         "Create Opportunity Report",
       ][state.step]
-    : state.step === 2
-      ? "Refine My Project"
-      : state.step === 6
-        ? "Create Opportunity Report"
-        : "Continue";
+    : [
+        "Continue to Choose Homes",
+        "Continue to Early Range",
+        "Continue to Project Details",
+        "Continue to Design Homes",
+        "Continue to Funding",
+        "Continue to Readiness",
+        "Create Opportunity Report",
+      ][state.step];
 
   function resetPlanner() {
     if (!window.confirm("Clear this local planner draft and start again?")) return;
@@ -2884,18 +2866,13 @@ export function FirstNationsProjectPlanner({
               Your Project{state.projectId ? ` / ${state.projectId}` : ""}
             </p>
             <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-black/72">
-              {projectSummary.totalHomes} {projectSummary.totalHomes === 1 ? "home" : "homes"} · {projectSummary.modelCount} {projectSummary.modelCount === 1 ? "model" : "models"} · {projectSummary.phaseCount} delivery {projectSummary.phaseCount === 1 ? "group" : "groups"} · {designProgress.completedDesigns} of {designProgress.totalDesignGroups} {designProgress.totalDesignGroups === 1 ? "design group" : "design groups"} complete
-            </p>
-            <p className="mt-2 text-[10px] leading-4 text-black/46">
-              {includedHomeTypes.length ? `Included: ${includedHomeTypes.join(", ")}.` : "No homes added yet."}
-              {completedHomeTypes.length ? ` Configured: ${completedHomeTypes.join(", ")}.` : ""}
-              {remainingHomeTypes.length ? ` Next: ${remainingHomeTypes.join(", ")}.` : ""}
+              {projectSummary.totalHomes} {projectSummary.totalHomes === 1 ? "home" : "homes"} · {projectSummary.modelCount} {projectSummary.modelCount === 1 ? "model" : "models"}
             </p>
           </div>
           <button
             type="button"
-            onClick={() => goToStep(isFirstNationsProject ? stickyNextStep : 1)}
-            disabled={isFirstNationsProject && !canContinue}
+            onClick={() => goToStep(stickyNextStep)}
+            disabled={!canContinue}
             data-continue-project
             className="inline-flex min-h-12 shrink-0 items-center justify-between gap-5 bg-black px-5 text-left text-[9px] font-semibold uppercase tracking-[0.15em] text-white transition-colors hover:bg-black/78 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black disabled:cursor-not-allowed disabled:bg-black/25"
           >
