@@ -37,6 +37,20 @@ function currentRevisionRedirect(requestUrl: URL, revision: string) {
   });
 }
 
+function localPlannerPdfFallback(requestUrl: URL, configurationId: string) {
+  const fallbackUrl = new URL(`/lookbook/${configurationId}`, requestUrl.origin);
+  fallbackUrl.searchParams.set("download", "1");
+  carryPreviewShareToken(requestUrl, fallbackUrl);
+  return new Response(null, {
+    status: 307,
+    headers: {
+      "Cache-Control": "private, no-store",
+      Location: fallbackUrl.href,
+      "X-Robots-Tag": "noindex, nofollow, noarchive",
+    },
+  });
+}
+
 function pdfErrorResponse() {
   return new Response(
     "We couldn’t prepare this Look Book PDF right now. Please retry the download. Your saved Look Book and selections are unchanged.",
@@ -119,15 +133,15 @@ export async function GET(
   const configurationId = parseConfigurationId(rawConfigurationId);
   if (!configurationId) return new Response("Not found", { status: 404 });
 
+  const requestUrl = new URL(request.url);
   let record;
   try {
     record = await getLookBookRepository().findById(configurationId);
   } catch {
-    return new Response("Not found", { status: 404 });
+    return localPlannerPdfFallback(requestUrl, configurationId);
   }
-  if (!record) return new Response("Not found", { status: 404 });
+  if (!record) return localPlannerPdfFallback(requestUrl, configurationId);
 
-  const requestUrl = new URL(request.url);
   const revision = getLookBookPdfRevision(record);
   if (requestUrl.searchParams.get(PDF_REVISION_PARAMETER) !== revision) {
     return currentRevisionRedirect(requestUrl, revision);
