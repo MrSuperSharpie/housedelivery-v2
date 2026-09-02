@@ -134,7 +134,7 @@ export function HomeDesignJourneyLink({
 }: {
   homeName: string;
   href?: string;
-  availability: "available" | "coming-soon";
+  availability: "available" | "coming-soon" | "preview-only";
   className?: string;
 }) {
   const plannerHomeContext = usePlannerHomeViewContext();
@@ -143,7 +143,7 @@ export function HomeDesignJourneyLink({
     plannerHomeContext?.homeName === homeName ? plannerHomeContext : undefined;
 
   function addHomeToProject() {
-    if (!activePlannerContext) return;
+    if (!activePlannerContext || availability === "preview-only") return;
     const session = addPlannerHomeViewContextToProject(activePlannerContext);
     if (!session) {
       setPlannerActionError("Return to My Project to add this home.");
@@ -157,6 +157,23 @@ export function HomeDesignJourneyLink({
 
     window.location.assign(
       buildPlannerDesignHref(`${window.location.pathname}${href}`, session),
+    );
+  }
+
+  if (availability === "preview-only") {
+    return (
+      <span
+        aria-disabled="true"
+        className={cn("inline-flex max-w-sm flex-col items-start", className)}
+      >
+        <span className="text-[10px] font-semibold uppercase tracking-[0.17em] text-white/48">
+          Preview Model
+        </span>
+        <span className="mt-2 text-xs leading-5 text-white/42">
+          Available to explore. Project selection, Design My Home and Look Book
+          configuration are coming soon.
+        </span>
+      </span>
     );
   }
 

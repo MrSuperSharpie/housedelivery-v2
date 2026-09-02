@@ -302,6 +302,7 @@ test("The Salt Spring Duplex uses its approved gallery and remains Lookbook comi
 
   assert.ok(saltSpring);
   assert.equal(saltSpring.name, "The Salt Spring Duplex");
+  assert.equal(saltSpring.projectSelectionStatus, "preview-only");
   assert.equal(saltSpring.squareFeet, 6073);
   assert.equal(saltSpring.squareMetres, 564.27);
   assert.equal(saltSpring.garageLabel, "2 garages");

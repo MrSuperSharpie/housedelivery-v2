@@ -1,6 +1,7 @@
 export type HomeModel = {
   slug: string;
   name: string;
+  projectSelectionStatus?: "preview-only";
   locationLabel: string;
   squareFeet: number;
   squareMetres?: number;
@@ -113,6 +114,7 @@ export const models = [
   {
     slug: "salt-spring",
     name: "The Salt Spring Duplex",
+    projectSelectionStatus: "preview-only",
     locationLabel: "Contemporary semi-detached duplex",
     squareFeet: 6073,
     squareMetres: 564.27,

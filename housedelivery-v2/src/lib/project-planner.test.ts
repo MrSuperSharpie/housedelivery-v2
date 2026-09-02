@@ -234,6 +234,25 @@ test("all current planner catalogue models have explicit planning-basis records"
   }
 });
 
+test("Salt Spring is the only view-only Planner model", () => {
+  const saltSpring = firstNationsPlannerCatalog.find(
+    (model) => model.id === "custom:salt-spring",
+  );
+
+  assert.ok(saltSpring);
+  assert.equal(saltSpring.selectionStatus, "preview-only");
+  assert.equal(saltSpring.viewHref, "/homes/salt-spring");
+  assert.equal(saltSpring.homesPerSelection, 1);
+  assert.equal(saltSpring.buildMyHref, undefined);
+  assert.equal(saltSpring.lookBookHref, undefined);
+  assert.deepEqual(
+    firstNationsPlannerCatalog
+      .filter((model) => model.selectionStatus === "preview-only")
+      .map((model) => model.id),
+    ["custom:salt-spring"],
+  );
+});
+
 test("Planner includes the existing Laneway and Carriage Home collection", () => {
   const carriageHomes = firstNationsPlannerCatalog.filter(
     (model) => model.family === "laneway-carriage-home",

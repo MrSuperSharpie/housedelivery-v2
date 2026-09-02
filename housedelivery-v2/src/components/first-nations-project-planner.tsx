@@ -766,6 +766,7 @@ function PortfolioStep({
   const summary = getPortfolioSummary(state.portfolio, plannerCatalog);
 
   function addItem(item: PlannerCatalogItem) {
+    if (item.selectionStatus === "preview-only") return;
     const quantity = Math.max(1, quantities[item.id] ?? 1);
     const phase = phases[item.id] ?? "phase-1";
     const existing = state.portfolio.find(
@@ -908,37 +909,50 @@ function PortfolioStep({
                     {model.homesPerSelection} {model.homesPerSelection === 1 ? "home" : "homes"} per selection
                   </p>
                 </div>
-                <label>
-                  <span className="sr-only">Quantity for {model.name}</span>
-                  <input
-                    type="number"
-                    min="1"
-                    value={line.quantity}
-                    onChange={(event) =>
-                      updateLine(line.id, {
-                        ...resizePlannerDesignVariations(
-                          line,
-                          Math.max(1, Number(event.target.value) || 1),
-                        ),
-                      })
-                    }
-                    className={inputControlClassName}
-                  />
-                </label>
-                <label>
-                  <span className="sr-only">Phase for {model.name}</span>
-                  <select
-                    value={line.phase}
-                    onChange={(event) =>
-                      updateLine(line.id, { phase: event.target.value as PlannerPhase })
-                    }
-                    className={selectClassName}
-                  >
-                    {Object.entries(plannerPhaseLabels).map(([value, label]) => (
-                      <option key={value} value={value}>{label}</option>
-                    ))}
-                  </select>
-                </label>
+                {model.selectionStatus === "preview-only" ? (
+                  <div role="status" className="md:col-span-2">
+                    <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-black/46">
+                      Preview Model
+                    </p>
+                    <p className="mt-1 text-xs leading-5 text-black/46">
+                      Project selection is coming soon.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <label>
+                      <span className="sr-only">Quantity for {model.name}</span>
+                      <input
+                        type="number"
+                        min="1"
+                        value={line.quantity}
+                        onChange={(event) =>
+                          updateLine(line.id, {
+                            ...resizePlannerDesignVariations(
+                              line,
+                              Math.max(1, Number(event.target.value) || 1),
+                            ),
+                          })
+                        }
+                        className={inputControlClassName}
+                      />
+                    </label>
+                    <label>
+                      <span className="sr-only">Phase for {model.name}</span>
+                      <select
+                        value={line.phase}
+                        onChange={(event) =>
+                          updateLine(line.id, { phase: event.target.value as PlannerPhase })
+                        }
+                        className={selectClassName}
+                      >
+                        {Object.entries(plannerPhaseLabels).map(([value, label]) => (
+                          <option key={value} value={value}>{label}</option>
+                        ))}
+                      </select>
+                    </label>
+                  </>
+                )}
                 <button
                   type="button"
                   onClick={() => removeLine(line.id)}
@@ -1040,7 +1054,22 @@ function PortfolioStep({
               </span>
             </div>
             <p className="mt-4 min-h-20 text-sm leading-6 text-black/52">{item.description}</p>
-            {state.audience === "first-nations" ? (
+            {item.selectionStatus === "preview-only" ? (
+              <div data-preview-model className="mt-5 border-t border-black/12 pt-4">
+                <PlannerLink href={item.viewHref} newTab={false}>
+                  View Home
+                </PlannerLink>
+                <div role="status" className="mt-4 border border-black/16 p-4">
+                  <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-black/48">
+                    Preview Model
+                  </p>
+                  <p className="mt-2 text-xs leading-5 text-black/48">
+                    Available to explore. Project selection, Design My Home and Look Book
+                    configuration are coming soon.
+                  </p>
+                </div>
+              </div>
+            ) : state.audience === "first-nations" ? (
               <>
                 <button
                   type="button"
@@ -1086,40 +1115,44 @@ function PortfolioStep({
                 requestedPhase={phases[item.id] ?? "phase-1"}
               />
             )}
-            <div className="mt-6 grid grid-cols-[5.5rem_1fr] gap-3">
-              <label>
-                <span className="sr-only">Quantity of {item.name}</span>
-                <input
-                  type="number"
-                  min="1"
-                  value={quantities[item.id] ?? 1}
-                  onChange={(event) => setQuantities((current) => ({ ...current, [item.id]: Math.max(1, Number(event.target.value) || 1) }))}
-                  className={inputControlClassName}
-                />
-              </label>
-              <label>
-                <span className="sr-only">Phase for {item.name}</span>
-                <select
-                  value={phases[item.id] ?? "phase-1"}
-                  onChange={(event) => setPhases((current) => ({ ...current, [item.id]: event.target.value as PlannerPhase }))}
-                  className={selectClassName}
+            {item.selectionStatus !== "preview-only" ? (
+              <>
+                <div className="mt-6 grid grid-cols-[5.5rem_1fr] gap-3">
+                  <label>
+                    <span className="sr-only">Quantity of {item.name}</span>
+                    <input
+                      type="number"
+                      min="1"
+                      value={quantities[item.id] ?? 1}
+                      onChange={(event) => setQuantities((current) => ({ ...current, [item.id]: Math.max(1, Number(event.target.value) || 1) }))}
+                      className={inputControlClassName}
+                    />
+                  </label>
+                  <label>
+                    <span className="sr-only">Phase for {item.name}</span>
+                    <select
+                      value={phases[item.id] ?? "phase-1"}
+                      onChange={(event) => setPhases((current) => ({ ...current, [item.id]: event.target.value as PlannerPhase }))}
+                      className={selectClassName}
+                    >
+                      {Object.entries(plannerPhaseLabels).map(([value, label]) => (
+                        <option key={value} value={value}>{label}</option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => addItem(item)}
+                  className="mt-3 inline-flex min-h-12 w-full items-center justify-between bg-black px-5 text-[9px] font-semibold uppercase tracking-[0.17em] text-white transition-colors hover:bg-black/78 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
                 >
-                  {Object.entries(plannerPhaseLabels).map(([value, label]) => (
-                    <option key={value} value={value}>{label}</option>
-                  ))}
-                </select>
-              </label>
-            </div>
-            <button
-              type="button"
-              onClick={() => addItem(item)}
-              className="mt-3 inline-flex min-h-12 w-full items-center justify-between bg-black px-5 text-[9px] font-semibold uppercase tracking-[0.17em] text-white transition-colors hover:bg-black/78 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
-            >
-              {state.audience === "first-nations" && getSelectedHomeCount(item) > 0
-                ? "Add More to Project"
-                : "Add to Project"}{" "}
-              <Plus aria-hidden="true" className="size-4" />
-            </button>
+                  {state.audience === "first-nations" && getSelectedHomeCount(item) > 0
+                    ? "Add More to Project"
+                    : "Add to Project"}{" "}
+                  <Plus aria-hidden="true" className="size-4" />
+                </button>
+              </>
+            ) : null}
           </article>
         ))}
       </div>

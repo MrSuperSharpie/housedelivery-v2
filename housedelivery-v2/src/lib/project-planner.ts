@@ -64,6 +64,7 @@ export type PlannerCatalogItem = {
     | "standardized-catalogue"
     | "laneway-carriage-home";
   name: string;
+  selectionStatus?: "preview-only";
   code?: string;
   squareFeet: number | null;
   homesPerSelection: number;

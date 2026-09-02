@@ -5,6 +5,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 import { HomeDesignToolCallout } from "@/components/home-design-tool-callout";
 import { HomeEditorialGallery } from "@/components/home-editorial-gallery";
+import { HomeDesignJourneyLink } from "@/components/inclusions-journey-links";
 
 test("unfinished homes render a non-navigating Lookbook Coming Soon entry point", () => {
   const markup = renderToStaticMarkup(
@@ -41,6 +42,33 @@ test("approved standalone homes use Design My Home terminology", () => {
 
   assert.match(markup, /Design My Solace/);
   assert.doesNotMatch(markup, /Build My Solace/);
+});
+
+test("a preview-only home stays viewable without project or design actions", () => {
+  const statusCopy =
+    "Available to explore. Project selection, Design My Home and Look Book configuration are coming soon.";
+  const calloutMarkup = renderToStaticMarkup(
+    <HomeDesignToolCallout
+      homeName="Salt Spring Duplex"
+      href="#home-inclusions"
+      variant="primary"
+      availability="preview-only"
+    />,
+  );
+  const journeyMarkup = renderToStaticMarkup(
+    <HomeDesignJourneyLink
+      homeName="Salt Spring Duplex"
+      href="#home-inclusions"
+      availability="preview-only"
+    />,
+  );
+
+  for (const markup of [calloutMarkup, journeyMarkup]) {
+    assert.match(markup, /Preview Model/i);
+    assert.match(markup, new RegExp(statusCopy.replaceAll(" ", "\\s*"), "i"));
+    assert.doesNotMatch(markup, /<button/);
+    assert.doesNotMatch(markup, /href="#home-inclusions"/);
+  }
 });
 
 test("a home can suppress only the gallery Lookbook callout", () => {

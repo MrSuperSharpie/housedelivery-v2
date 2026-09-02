@@ -115,15 +115,18 @@ export default async function HomeDetailPage({
   const hasApprovedLookBook =
     configuratorRegistration?.migrationStatus === "canonical" &&
     configuratorDefinition !== undefined;
+  const isPreviewModel = model.projectSelectionStatus === "preview-only";
   const designToolDiscovery = {
     homeName:
       configuratorDefinition?.residenceLabel ??
       configuratorRegistration?.homeName ??
       model.name.replace(/^The\s+/, ""),
     href: hasApprovedLookBook ? "#home-inclusions" : undefined,
-    availability: hasApprovedLookBook
-      ? ("available" as const)
-      : ("coming-soon" as const),
+    availability: isPreviewModel
+      ? ("preview-only" as const)
+      : hasApprovedLookBook
+        ? ("available" as const)
+        : ("coming-soon" as const),
     ...(["keats", "salt-spring"].includes(model.slug)
       ? { showGalleryCallout: false }
       : {}),

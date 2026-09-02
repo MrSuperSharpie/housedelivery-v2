@@ -49,7 +49,7 @@ type HomeEditorialGalleryProps = {
   designToolDiscovery?: {
     homeName: string;
     href?: string;
-    availability?: "available" | "coming-soon";
+    availability?: "available" | "coming-soon" | "preview-only";
     showGalleryCallout?: boolean;
   };
 };

@@ -15,7 +15,7 @@ type HomeDesignToolCalloutProps = {
   homeName: string;
   href?: string;
   variant: "primary" | "quiet";
-  availability?: "available" | "coming-soon";
+  availability?: "available" | "coming-soon" | "preview-only";
 };
 
 export function HomeDesignToolCallout({
@@ -25,6 +25,7 @@ export function HomeDesignToolCallout({
   availability = "available",
 }: HomeDesignToolCalloutProps) {
   const isPrimary = variant === "primary";
+  const isPreviewOnly = availability === "preview-only";
   const isComingSoon = availability === "coming-soon";
   const headingId = `home-design-tool-${variant}-heading`;
   const plannerHomeContext = usePlannerHomeViewContext();
@@ -33,7 +34,7 @@ export function HomeDesignToolCallout({
     plannerHomeContext?.homeName === homeName ? plannerHomeContext : undefined;
 
   function addHomeToProject() {
-    if (!activePlannerContext) return;
+    if (!activePlannerContext || isPreviewOnly) return;
     const session = addPlannerHomeViewContextToProject(activePlannerContext);
     if (!session) {
       setPlannerActionError(
@@ -66,7 +67,9 @@ export function HomeDesignToolCallout({
     >
       <div>
         <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/55">
-          {isComingSoon
+          {isPreviewOnly
+            ? "Preview Model"
+            : isComingSoon
             ? "Design Lookbook"
             : isPrimary
               ? "Interactive design experience"
@@ -81,7 +84,13 @@ export function HomeDesignToolCallout({
               : "max-w-xl text-[clamp(2.4rem,4.5vw,4.5rem)]",
           )}
         >
-          {isComingSoon ? (
+          {isPreviewOnly ? (
+            <>
+              Preview
+              <br />
+              <span className="text-white/45">model.</span>
+            </>
+          ) : isComingSoon ? (
             <>
               Coming
               <br />
@@ -104,7 +113,19 @@ export function HomeDesignToolCallout({
       </div>
 
       <div className={cn("max-w-2xl", isPrimary && "lg:justify-self-end")}>
-        {isComingSoon ? (
+        {isPreviewOnly ? (
+          <p
+            className={cn(
+              "text-white/52",
+              isPrimary
+                ? "text-base leading-8 lg:text-lg"
+                : "text-sm leading-7 sm:text-base",
+            )}
+          >
+            Available to explore. Project selection, Design My Home and Look Book
+            configuration are coming soon.
+          </p>
+        ) : isComingSoon ? (
           <>
             <div
               className={cn(

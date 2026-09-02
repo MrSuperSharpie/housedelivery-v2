@@ -74,6 +74,10 @@ const customHomes: readonly PlannerCatalogItem[] = models.map((model) => {
     id: `custom:${model.slug}`,
     family: "custom-home",
     name: model.name,
+    selectionStatus:
+      "projectSelectionStatus" in model
+        ? model.projectSelectionStatus
+        : undefined,
     squareFeet: model.squareFeet,
     homesPerSelection: 1,
     image: model.heroImage,
