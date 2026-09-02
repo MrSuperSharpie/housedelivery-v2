@@ -10,20 +10,13 @@ import type {
   HomeConfiguratorDefinition,
 } from "@/data/home-configurator";
 import {
-  getPlannerStorageKey,
   getPlannerReturnHref,
+  getPlannerStorageKey,
 } from "@/lib/planner-design-session";
 import {
   migratePlannerState,
-  type PlannerAudience,
+  plannerAudiences,
 } from "@/lib/project-planner";
-
-const plannerAudiences = [
-  "first-nations",
-  "developer",
-  "general-contractor",
-  "municipality-non-profit",
-] as const satisfies readonly PlannerAudience[];
 
 type LocalLookBook = {
   definition: HomeConfiguratorDefinition;
@@ -33,10 +26,12 @@ type LocalLookBook = {
 
 function findLocalLookBook(configurationId: string): LocalLookBook | undefined {
   for (const audience of plannerAudiences) {
-    const serialized = window.localStorage.getItem(getPlannerStorageKey(audience));
-    if (!serialized) continue;
-
     try {
+      const serialized = window.localStorage.getItem(
+        getPlannerStorageKey(audience),
+      );
+      if (!serialized) continue;
+
       const state = migratePlannerState(JSON.parse(serialized));
       if (state.audience !== audience) continue;
 
@@ -72,7 +67,7 @@ function findLocalLookBook(configurationId: string): LocalLookBook | undefined {
         }
       }
     } catch {
-      // Ignore a malformed local draft and continue checking other planner stores.
+      // Private browsing or a malformed local draft should not block recovery.
     }
   }
 
