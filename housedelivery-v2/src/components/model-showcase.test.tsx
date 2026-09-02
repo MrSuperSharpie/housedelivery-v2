@@ -204,6 +204,33 @@ test("home-detail hero starts with the supported expression and exposes the same
   assert.match(markup, />Indigenous Inspired</);
 });
 
+test("home-detail hero can replace Collection with the validated Planner return", () => {
+  const saltSpring = models.find((model) => model.slug === "salt-spring");
+  assert.ok(saltSpring);
+
+  const contextualMarkup = renderToStaticMarkup(
+    <HomeDetailHero
+      model={saltSpring}
+      modelNumber={2}
+      modelCount={models.length}
+      collectionHref="/first-nations-project-planner#planner-workspace"
+      collectionLabel="Back to My Project"
+    />,
+  );
+  const standaloneMarkup = renderToStaticMarkup(
+    <HomeDetailHero
+      model={saltSpring}
+      modelNumber={2}
+      modelCount={models.length}
+    />,
+  );
+
+  assert.match(contextualMarkup, /href="\/first-nations-project-planner#planner-workspace"/);
+  assert.match(contextualMarkup, />Back to My Project</);
+  assert.match(standaloneMarkup, /href="\/#models"/);
+  assert.match(standaloneMarkup, />Collection</);
+});
+
 test("approved Indigenous-inspired exteriors resolve from the shared registry", () => {
   const available = models
     .filter((model) => getIndigenousInspiredExteriorImage(model.slug))

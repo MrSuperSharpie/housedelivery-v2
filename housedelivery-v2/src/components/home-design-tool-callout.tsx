@@ -114,17 +114,32 @@ export function HomeDesignToolCallout({
 
       <div className={cn("max-w-2xl", isPrimary && "lg:justify-self-end")}>
         {isPreviewOnly ? (
-          <p
-            className={cn(
-              "text-white/52",
-              isPrimary
-                ? "text-base leading-8 lg:text-lg"
-                : "text-sm leading-7 sm:text-base",
-            )}
-          >
-            Available to explore. Project selection, Design My Home and Look Book
-            configuration are coming soon.
-          </p>
+          <>
+            <p
+              className={cn(
+                "text-white/52",
+                isPrimary
+                  ? "text-base leading-8 lg:text-lg"
+                  : "text-sm leading-7 sm:text-base",
+              )}
+            >
+              Available to explore. Project selection, Design My Home and Look Book
+              configuration are coming soon.
+            </p>
+            {activePlannerContext ? (
+              <Link
+                href={activePlannerContext.returnHref}
+                className="group mt-7 inline-flex min-h-12 items-center gap-3 border-b border-white/28 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/72 transition-[border-color,color] hover:border-white hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+              >
+                Return to My Project
+                <ArrowRight
+                  aria-hidden="true"
+                  className="size-4 transition-transform group-hover:translate-x-1"
+                  strokeWidth={1.5}
+                />
+              </Link>
+            ) : null}
+          </>
         ) : isComingSoon ? (
           <>
             <div

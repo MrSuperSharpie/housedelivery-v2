@@ -19,6 +19,7 @@ import {
   type HomeExteriorPresentation,
 } from "@/data/first-nations-cultural-design";
 import { cn } from "@/lib/cn";
+import { readPlannerHomeViewReturnHref } from "@/lib/planner-design-session";
 
 type HomeDetailHeroProps = {
   model: {
@@ -47,10 +48,18 @@ export function HomeDetailHeroFromQuery(
   props: Omit<HomeDetailHeroProps, "initialExteriorPresentation">,
 ) {
   const searchParams = useSearchParams();
+  const plannerReturnHref =
+    props.model.slug === "salt-spring"
+      ? readPlannerHomeViewReturnHref(searchParams.toString())
+      : undefined;
 
   return (
     <HomeDetailHero
       {...props}
+      collectionHref={plannerReturnHref ?? props.collectionHref}
+      collectionLabel={
+        plannerReturnHref ? "Back to My Project" : props.collectionLabel
+      }
       initialExteriorPresentation={
         getHomeExteriorPresentationFromExpression(
           searchParams.get("expression") ?? undefined,

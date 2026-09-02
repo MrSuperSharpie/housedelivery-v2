@@ -163,16 +163,30 @@ export function HomeDesignJourneyLink({
   if (availability === "preview-only") {
     return (
       <span
-        aria-disabled="true"
         className={cn("inline-flex max-w-sm flex-col items-start", className)}
       >
-        <span className="text-[10px] font-semibold uppercase tracking-[0.17em] text-white/48">
-          Preview Model
+        <span aria-disabled="true" className="inline-flex flex-col items-start">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.17em] text-white/48">
+            Preview Model
+          </span>
+          <span className="mt-2 text-xs leading-5 text-white/42">
+            Available to explore. Project selection, Design My Home and Look Book
+            configuration are coming soon.
+          </span>
         </span>
-        <span className="mt-2 text-xs leading-5 text-white/42">
-          Available to explore. Project selection, Design My Home and Look Book
-          configuration are coming soon.
-        </span>
+        {activePlannerContext ? (
+          <Link
+            href={activePlannerContext.returnHref}
+            className="group mt-4 inline-flex min-h-11 items-center gap-3 border-b border-white/20 py-2 text-[10px] font-semibold uppercase tracking-[0.17em] text-white/68 transition-[border-color,color] hover:border-white/55 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+          >
+            Return to My Project
+            <ArrowRight
+              aria-hidden="true"
+              className="size-3.5 transition-transform group-hover:translate-x-1"
+              strokeWidth={1.5}
+            />
+          </Link>
+        ) : null}
       </span>
     );
   }

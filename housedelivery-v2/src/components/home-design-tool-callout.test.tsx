@@ -68,6 +68,7 @@ test("a preview-only home stays viewable without project or design actions", () 
     assert.match(markup, new RegExp(statusCopy.replaceAll(" ", "\\s*"), "i"));
     assert.doesNotMatch(markup, /<button/);
     assert.doesNotMatch(markup, /href="#home-inclusions"/);
+    assert.doesNotMatch(markup, /Return to My Project/);
   }
 });
 

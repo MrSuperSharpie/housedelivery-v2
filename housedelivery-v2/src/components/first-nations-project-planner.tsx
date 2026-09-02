@@ -1056,7 +1056,24 @@ function PortfolioStep({
             <p className="mt-4 min-h-20 text-sm leading-6 text-black/52">{item.description}</p>
             {item.selectionStatus === "preview-only" ? (
               <div data-preview-model className="mt-5 border-t border-black/12 pt-4">
-                <PlannerLink href={item.viewHref} newTab={false}>
+                <PlannerLink
+                  href={buildPlannerHomeViewHref(item.viewHref, {
+                    audience: state.audience,
+                    ...(state.projectId ? { projectId: state.projectId } : {}),
+                    projectName: state.community,
+                    totalHomes: summary.totalHomes,
+                    modelId: item.id,
+                    homeName: getPlannerHomeName(item.name),
+                    homeQuantity: item.homesPerSelection,
+                    requestedQuantity: 1,
+                    phase: phases[item.id] ?? "phase-1",
+                    returnHref: getPlannerReturnHref(
+                      state.audience,
+                      "planner-workspace",
+                    ),
+                  })}
+                  newTab={false}
+                >
                   View Home
                 </PlannerLink>
                 <div role="status" className="mt-4 border border-black/16 p-4">
