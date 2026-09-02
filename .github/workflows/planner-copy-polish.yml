@@ -1,0 +1,409 @@
+name: Planner Copy Polish
+
+on:
+  push:
+    branches:
+      - feat/planner-copy-clarity
+
+permissions:
+  contents: write
+
+jobs:
+  polish:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply planner copy and direction cleanup
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          def replace_exact(text, old, new, expected=1, label=None):
+              count = text.count(old)
+              if count != expected:
+                  raise SystemExit(f"{label or old[:60]!r}: expected {expected} occurrence(s), found {count}")
+              return text.replace(old, new)
+
+          def replace_regex(text, pattern, replacement, expected=1, label=None, flags=0):
+              text2, count = re.subn(pattern, replacement, text, flags=flags)
+              if count != expected:
+                  raise SystemExit(f"{label or pattern[:60]!r}: expected {expected} match(es), found {count}")
+              return text2
+
+          router_path = Path('housedelivery-v2/src/components/project-planning-router.tsx')
+          router = router_path.read_text()
+          router = replace_exact(
+              router,
+              '<p className="eyebrow col-span-12 lg:col-span-3">Housing pathway / Start here</p>',
+              '<p className="eyebrow col-span-12 lg:col-span-3">Plan a Housing Project</p>',
+              label='router eyebrow',
+          )
+          router = replace_exact(
+              router,
+              '            What are you\n            <br />\n            <span className="text-white/38">planning?</span>',
+              '            Who are you\n            <br />\n            <span className="text-white/38">planning for?</span>',
+              label='router primary question',
+          )
+          router = replace_exact(
+              router,
+              '          <p className="mt-8 max-w-2xl text-base leading-7 text-white/58 sm:text-lg sm:leading-8">\n            Choose the path that best reflects who is planning and the scale of the housing need.\n          </p>\n',
+              '',
+              label='router explanatory paragraph',
+          )
+          router = replace_exact(router, '              Individual Home\n', '              Individual Homeowner\n', label='individual homeowner label')
+          router = replace_exact(router, '              Are you planning:\n', '              How many homes are you planning?\n', label='router quantity question')
+          router = replace_exact(router, ' /> Change planning group\n', ' /> Change selection\n', label='router change selection')
+          router_path.write_text(router)
+
+          planner_path = Path('housedelivery-v2/src/components/first-nations-project-planner.tsx')
+          planner = planner_path.read_text()
+
+          planner = replace_exact(planner, '  include: "Include in My Funding Review",', '  include: "Include for Review",', label='funding action label')
+
+          planner = replace_exact(
+              planner,
+              '''const sharedSteps = [
+            { label: "Project Intake", eyebrow: "Start" },
+            { label: "My Project", eyebrow: "Build" },
+            { label: "Quick Estimate", eyebrow: "Understand" },
+            { label: "Refine Project", eyebrow: "Refine" },
+            { label: "Design Direction", eyebrow: "Shape" },
+            { label: "Funding Pathways", eyebrow: "Explore" },
+            { label: "Scale & Readiness", eyebrow: "Prepare" },
+            { label: "Opportunity Report", eyebrow: "Review" },
+            { label: "Project Review", eyebrow: "Submit" },
+          ] as const;''',
+              '''const sharedSteps = [
+            { label: "Project Basics", eyebrow: "Start" },
+            { label: "Choose Homes", eyebrow: "Build" },
+            { label: "Early Range", eyebrow: "Understand" },
+            { label: "Project Details", eyebrow: "Refine" },
+            { label: "Design Homes", eyebrow: "Shape" },
+            { label: "Funding", eyebrow: "Explore" },
+            { label: "Readiness", eyebrow: "Prepare" },
+            { label: "Opportunity Report", eyebrow: "Review" },
+            { label: "Submit for Review", eyebrow: "Submit" },
+          ] as const;''',
+              label='shared progress labels',
+          )
+          planner = replace_exact(
+              planner,
+              '''const firstNationsSteps = [
+            { label: "Define Housing Need", eyebrow: "Start" },
+            { label: "Select Homes", eyebrow: "Build" },
+            { label: "Design Project Homes", eyebrow: "Design" },
+            { label: "Project Readiness", eyebrow: "Prepare" },
+            { label: "Funding & Grant Corridors", eyebrow: "Explore" },
+            { label: "Review Project", eyebrow: "Review" },
+            { label: "Opportunity Report", eyebrow: "Report" },
+            { label: "Project Review / LOU", eyebrow: "Advance" },
+          ] as const;''',
+              '''const firstNationsSteps = [
+            { label: "Housing Need", eyebrow: "Start" },
+            { label: "Choose Homes", eyebrow: "Build" },
+            { label: "Design Homes", eyebrow: "Design" },
+            { label: "Readiness", eyebrow: "Prepare" },
+            { label: "Funding & Grants", eyebrow: "Explore" },
+            { label: "Review", eyebrow: "Review" },
+            { label: "Opportunity Report", eyebrow: "Report" },
+            { label: "Submit for Review", eyebrow: "Advance" },
+          ] as const;''',
+              label='first nations progress labels',
+          )
+
+          planner = replace_exact(
+              planner,
+              '              You remain inside the active project. Close this view to select a\n              quantity, delivery group and exterior direction.',
+              '              Close this view to continue building your project.',
+              label='home details helper',
+          )
+
+          for block, label in [
+              ('        <p className="mt-1 text-[10px] leading-4 text-black/42">\n          Architecture, plans and walkthrough\n        </p>\n', 'view home helper'),
+              ('        <p className="mt-1 text-[10px] leading-4 text-black/42">\n          Choose the design direction\n        </p>\n', 'design my home helper'),
+              ('        <p className="mt-1 text-[10px] leading-4 text-black/42">\n          Reopen saved design selections\n        </p>\n', 'look book helper'),
+          ]:
+              planner = replace_exact(planner, block, '', label=label)
+
+          planner = replace_exact(planner, 'My Look Book — Save a Design First', 'My Look Book — Complete Design First', label='look book precompletion label')
+          planner = replace_exact(planner, 'Look Book — Save this design first', 'Look Book available after design completion', label='design precompletion label')
+
+          planner = replace_exact(planner, '        title="Begin with the community need."', '        title="What housing does your community need?"', label='first nations start title')
+          planner = replace_exact(
+              planner,
+              '        intro="Set an initial planning target for the community. The selected project portfolio becomes the source of truth for downstream home totals, design groups, readiness and reports."',
+              '        intro="Start with what you know today. You can refine this later."',
+              label='first nations start intro',
+          )
+          planner = replace_exact(planner, '<FieldLabel>Initial homes needed / planning target</FieldLabel>', '<FieldLabel>Approximate homes needed</FieldLabel>', label='homes needed label')
+          planner = replace_exact(planner, '<FieldLabel>Site pattern</FieldLabel>', '<FieldLabel>Site arrangement</FieldLabel>', label='site pattern label')
+          planner = replace_exact(planner, '<FieldLabel>Delivery horizon</FieldLabel>', '<FieldLabel>Project timing</FieldLabel>', label='delivery horizon label')
+
+          planner = replace_exact(planner, '        title="Begin with the project."', '        title="Tell us about the project."', label='shared start title')
+          planner = replace_exact(
+              planner,
+              '        intro="Create a short working picture of the site, housing programme and delivery readiness. Every answer can be refined as the project develops."',
+              '        intro="Start with what you know today. You can refine the project as it develops."',
+              label='shared start intro',
+          )
+
+          planner = replace_exact(planner, '        title="Build the housing mix."', '        title="Choose the homes for this project."', label='portfolio title')
+          planner = replace_exact(
+              planner,
+              '        intro="Select the home models, quantities and delivery groups for this project. Architecture details stay in context; design configuration happens in the next dedicated project stage."',
+              '        intro="Add the home models and quantities you want to explore. You can change them later."',
+              label='portfolio intro',
+          )
+          planner = replace_exact(planner, 'Working homes', 'Homes selected', expected=1, label='working homes label')
+          planner = replace_exact(planner, 'Project Overview / Homes &amp; Quantities', 'Homes in My Project', expected=1, label='portfolio overview label')
+          planner = replace_exact(
+              planner,
+              '                    Available to explore. Project selection, Design My Home and Look Book\n                    configuration are coming soon.',
+              '                    Available to explore. Project selection and design tools are coming soon.',
+              expected=1,
+              label='preview model helper',
+          )
+
+          planner = replace_exact(planner, '        title="A range, not a quotation."', '        title="Early project range."', label='estimate title')
+          planner = replace_exact(
+              planner,
+              '        intro="The estimate architecture separates Low, Base and High planning cases. No automatic finish uplift, volume discount, climate percentage, off-grid amount, appliance package, accessibility percentage or training formula is applied."',
+              '        intro="An initial planning range based on the homes currently in your project. It will be refined as project requirements are confirmed."',
+              label='estimate intro',
+          )
+
+          planner = replace_exact(planner, '        title="Refine Your Project"', '        title="Tell us what you know."', label='refine title')
+          planner = replace_exact(
+              planner,
+              '          ? "These answers help House Delivery better understand the community, site, delivery needs and funding context. Every answer can remain unknown while the project is still taking shape."',
+              '          ? "Add the project details that are known today. Anything can be refined later."',
+              label='first nations refine intro',
+          )
+          planner = replace_exact(
+              planner,
+              '          : "These answers help House Delivery better understand the site, housing approach, delivery responsibilities and commercial context. Every answer can remain unknown while the project is still taking shape."}',
+              '          : "Add the project details that are known today. Anything can be refined later."}',
+              label='shared refine intro',
+          )
+
+          planner = replace_exact(planner, '"Configure the homes in this project."', '"Design each home type."', label='first nations design title')
+          planner = replace_exact(planner, '"Make the direction visible."', '"Design each home type."', label='shared design title')
+          planner = replace_exact(
+              planner,
+              '"Apply one design to every matching home by default. Create another design group only when part of that model quantity needs a different exterior expression or package direction."',
+              '"Create one Look Book for each home type. Add another Design Group only when some homes need a different direction."',
+              label='first nations design intro',
+          )
+          planner = replace_exact(
+              planner,
+              '"Create one design per home type and assign it to every matching home by default. Add a design group only when part of that quantity needs a different direction."',
+              '"Create one Look Book for each home type. Add another Design Group only when some homes need a different direction."',
+              label='shared design intro',
+          )
+          planner = replace_exact(
+              planner,
+              '<p className="mt-3 text-sm leading-6 text-white/58">Your project totals and saved design assignments remain intact.</p>\n',
+              '',
+              label='design return helper',
+          )
+          planner = replace_exact(planner, 'Configure Next Design Group', 'Design Next Group', label='next design action')
+          planner = replace_exact(planner, 'Saved design group', 'Design Group', expected=1, label='design group label')
+          planner = replace_exact(planner, '"Design completed" : "Design remaining"', '"Complete" : "Not complete"', label='design completion status')
+          planner = replace_exact(planner, 'placeholder="Optional notes that should travel with this design package"', 'placeholder="Optional notes for this design group"', label='design notes placeholder')
+          planner = replace_regex(
+              planner,
+              r'\n      <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">\n        \{\["Visual Direction", "Planning Allowance", "Supplier-Informed", "Technical Review Required", "Project-Specific Approval Required"\]\.map\(\(status\) => \(\n          <div key=\{status\} className="border-t border-black/16 pt-4 text-\[9px\] font-semibold uppercase leading-5 tracking-\[0\.14em\] text-black/46">\{status\}</div>\n        \)\)\}\n      </div>',
+              '',
+              label='design technical status strip',
+          )
+
+          planner = replace_exact(planner, '"Corridors to explore."', '"Funding and grant opportunities to explore."', label='first nations funding title')
+          planner = replace_exact(planner, '"Potential pathways to review."', '"Funding opportunities to explore."', label='shared funding title')
+          planner = replace_exact(
+              planner,
+              '"These contextual matches support an early funding conversation. They are not eligibility findings, approvals or guarantees, and no potential funding is deducted from project feasibility."',
+              '"Based on what you have entered, these programs may be relevant. House Delivery can review them with you; eligibility and approval remain subject to each program."',
+              label='first nations funding intro',
+          )
+          planner = replace_exact(
+              planner,
+              '"These contextual pathways support an early owner, proponent and financing conversation. They are not eligibility findings, approvals or guarantees, and no potential funding is deducted from project feasibility."',
+              '"Based on what you have entered, these programs may be relevant. House Delivery can review them with you; eligibility and approval remain subject to each program."',
+              label='shared funding intro',
+          )
+
+          planner = replace_exact(planner, '        title="Record what is known today."', '        title="Tell us what you know today."', label='readiness title')
+          planner = replace_exact(
+              planner,
+              '        intro="Projects do not need to have every answer today. Record what is currently known so House Delivery can understand where the project stands and what may need to be explored next."',
+              '        intro="You do not need every answer. Choose what best reflects the project today."',
+              label='readiness intro',
+          )
+
+          planner = replace_exact(planner, '        title="Review one project record."', '        title="Review your project."', label='first nations review summary title')
+          planner = replace_exact(
+              planner,
+              '        intro="Homes, quantities, delivery groups, design groups, Look Books and readiness answers below all come from the same saved project state. Edit any section before creating the Opportunity Report."',
+              '        intro="Check your homes, Look Books and readiness answers. Edit anything before creating the Opportunity Report."',
+              label='first nations review summary intro',
+          )
+
+          planner = replace_exact(planner, '        title="Two different questions."', '        title="Review project readiness."', label='shared readiness title')
+          planner = replace_exact(
+              planner,
+              '        intro="Scale describes the opportunity. Readiness describes what is known today. Neither is a government, lender or funding-program score."',
+              '        intro="See what is known today and what still needs to be confirmed."',
+              label='shared readiness intro',
+          )
+
+          planner = replace_exact(planner, 'title="A clearer next conversation."', 'title="Your Opportunity Report is ready."', label='opportunity report title')
+          planner = replace_exact(
+              planner,
+              'intro="This report carries the opportunity, portfolio, project design groups, readiness information and items to confirm into a structured House Delivery review."',
+              'intro="Review or download your project summary, then send it to House Delivery when you are ready."',
+              label='opportunity report intro',
+          )
+          planner = replace_exact(planner, '"Continue to House Delivery Review"', '"Send to House Delivery Review"', expected=2, label='opportunity review action')
+
+          planner = replace_exact(planner, '        title="Carry the full project forward."', '        title="Send your project to House Delivery."', label='project review title')
+          planner = replace_exact(
+              planner,
+              '"Submit the organized project record for House Delivery review. This opens the pathway toward an LOU; it does not itself create a legally binding agreement."',
+              '"Submit the project for House Delivery review. House Delivery will review it before preparing any LOU or next-stage authorization."',
+              label='first nations project review intro',
+          )
+          planner = replace_exact(
+              planner,
+              '"Your opportunity, portfolio, delivery groups, design records, refinement answers, funding-review choices and readiness profile are attached to this project-aware request."',
+              '"Submit the project for House Delivery review. Your saved project details and design records will be included."',
+              label='shared project review intro',
+          )
+          planner = replace_exact(planner, 'The project record has moved forward intact.', 'Project received.', label='submitted title')
+
+          planner = replace_regex(
+              planner,
+              r'  const designProgress = getPlannerDesignProgress\(state\.portfolio, catalog\);\n  const includedHomeTypes = projectSummary\.lines\.map\(\(\{ model \}\) =>\n    getPlannerHomeName\(model\.name\),\n  \);\n  const completedHomeTypes = projectSummary\.lines\.flatMap\(\(\{ line, model \}\) =>\n    line\.designVariations\.some\(\(variation\) => variation\.status === "complete"\)\n      \? \[getPlannerHomeName\(model\.name\)\]\n      : \[\],\n  \);\n  const remainingHomeTypes = projectSummary\.lines\.flatMap\(\(\{ line, model \}\) =>\n    model\.designChapters\.length > 0 &&\n    line\.designVariations\.some\(\(variation\) => variation\.status !== "complete"\)\n      \? \[getPlannerHomeName\(model\.name\)\]\n      : \[\],\n  \);\n',
+              '',
+              label='sticky detail calculations',
+          )
+
+          planner = replace_exact(
+              planner,
+              '''  const stickyActionLabel = isFirstNationsProject
+            ? [
+                "Continue to Select Homes",
+                "Continue to Design Project Homes",
+                "Continue to Project Readiness",
+                "Continue to Funding & Grant Corridors",
+                "Continue to Review Project",
+                "Create Opportunity Report",
+                "Continue to Project Review / LOU",
+                "View / Edit Project Homes",
+              ][state.step]
+            : "View / Edit My Project";
+          const bottomActionLabel = isFirstNationsProject
+            ? [
+                "Continue to Select Homes",
+                "Continue to Design Project Homes",
+                "Continue to Project Readiness",
+                "Continue to Funding & Grant Corridors",
+                "Continue to Review Project",
+                "Create Opportunity Report",
+              ][state.step]
+            : state.step === 2
+              ? "Refine My Project"
+              : state.step === 6
+                ? "Create Opportunity Report"
+                : "Continue";''',
+              '''  const stickyActionLabel = isFirstNationsProject
+            ? [
+                "Continue to Choose Homes",
+                "Continue to Design Homes",
+                "Continue to Readiness",
+                "Continue to Funding & Grants",
+                "Continue to Review",
+                "Create Opportunity Report",
+                "Continue to Project Review",
+                "View / Edit Project Homes",
+              ][state.step]
+            : [
+                "Continue to Choose Homes",
+                "Continue to Early Range",
+                "Continue to Project Details",
+                "Continue to Design Homes",
+                "Continue to Funding",
+                "Continue to Readiness",
+                "Create Opportunity Report",
+                "Continue to Project Review",
+                "View / Edit Project Homes",
+              ][state.step];
+          const bottomActionLabel = isFirstNationsProject
+            ? [
+                "Continue to Choose Homes",
+                "Continue to Design Homes",
+                "Continue to Readiness",
+                "Continue to Funding & Grants",
+                "Continue to Review",
+                "Create Opportunity Report",
+              ][state.step]
+            : [
+                "Continue to Choose Homes",
+                "Continue to Early Range",
+                "Continue to Project Details",
+                "Continue to Design Homes",
+                "Continue to Funding",
+                "Continue to Readiness",
+                "Create Opportunity Report",
+              ][state.step];''',
+              label='planner action labels',
+          )
+
+          planner = replace_exact(
+              planner,
+              '            onClick={() => goToStep(isFirstNationsProject ? stickyNextStep : 1)}',
+              '            onClick={() => goToStep(stickyNextStep)}',
+              label='sticky action direction',
+          )
+          planner = replace_exact(
+              planner,
+              '            disabled={isFirstNationsProject && !canContinue}',
+              '            disabled={!canContinue}',
+              label='sticky action disabled state',
+          )
+          planner = replace_exact(
+              planner,
+              '              {projectSummary.totalHomes} {projectSummary.totalHomes === 1 ? "home" : "homes"} · {projectSummary.modelCount} {projectSummary.modelCount === 1 ? "model" : "models"} · {projectSummary.phaseCount} delivery {projectSummary.phaseCount === 1 ? "group" : "groups"} · {designProgress.completedDesigns} of {designProgress.totalDesignGroups} {designProgress.totalDesignGroups === 1 ? "design group" : "design groups"} complete',
+              '              {projectSummary.totalHomes} {projectSummary.totalHomes === 1 ? "home" : "homes"} · {projectSummary.modelCount} {projectSummary.modelCount === 1 ? "model" : "models"}',
+              label='sticky project summary',
+          )
+          planner = replace_regex(
+              planner,
+              r'\n            <p className="mt-2 text-\[10px\] leading-4 text-black/46">\n              \{includedHomeTypes\.length \? `Included: \$\{includedHomeTypes\.join\(", "\)\}\.` : "No homes added yet\."\}\n              \{completedHomeTypes\.length \? ` Configured: \$\{completedHomeTypes\.join\(", "\)\}\.` : ""\}\n              \{remainingHomeTypes\.length \? ` Next: \$\{remainingHomeTypes\.join\(", "\)\}\.` : ""\}\n            </p>',
+              '',
+              label='sticky detail sentence',
+          )
+
+          planner_path.write_text(planner)
+          PY
+
+      - name: Validate patch
+        shell: bash
+        run: |
+          git diff --check
+          test -n "$(git status --short housedelivery-v2/src/components/project-planning-router.tsx housedelivery-v2/src/components/first-nations-project-planner.tsx)"
+
+      - name: Commit polished planner copy
+        shell: bash
+        run: |
+          rm .github/workflows/planner-copy-polish.yml
+          git config user.name "House Delivery Automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add housedelivery-v2/src/components/project-planning-router.tsx housedelivery-v2/src/components/first-nations-project-planner.tsx .github/workflows/planner-copy-polish.yml
+          git commit -m "copy: simplify project planner journey"
+          git push origin HEAD:feat/planner-copy-clarity
