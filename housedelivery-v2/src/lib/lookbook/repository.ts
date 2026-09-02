@@ -4,26 +4,6 @@ import type { StoredLookBook } from "@/lib/lookbook/types";
 
 export class LookBookStorageUnavailableError extends Error {}
 
-export type LookBookStorageReadFailureReason =
-  | "timeout"
-  | "network"
-  | "rate_limited"
-  | "upstream"
-  | "http_error"
-  | "invalid_response";
-
-export class LookBookStorageReadError extends Error {
-  constructor(
-    message: string,
-    readonly reason: LookBookStorageReadFailureReason,
-    readonly status?: number,
-    readonly transient = false,
-  ) {
-    super(message);
-    this.name = "LookBookStorageReadError";
-  }
-}
-
 export interface LookBookRepository {
   findById(id: string): Promise<StoredLookBook | null>;
   save(record: StoredLookBook): Promise<StoredLookBook>;
@@ -49,81 +29,6 @@ type SupabaseRow = {
   completed_at: string;
   email_requested_at: string | null;
 };
-
-const readRetryDelaysMs = [0, 150, 400] as const;
-
-function sleep(milliseconds: number) {
-  return new Promise((resolve) => setTimeout(resolve, milliseconds));
-}
-
-function classifyHttpReadFailure(status: number) {
-  if (status === 429) {
-    return new LookBookStorageReadError(
-      `Look Book storage read failed (${status}).`,
-      "rate_limited",
-      status,
-      true,
-    );
-  }
-  if (status >= 500) {
-    return new LookBookStorageReadError(
-      `Look Book storage read failed (${status}).`,
-      "upstream",
-      status,
-      true,
-    );
-  }
-  return new LookBookStorageReadError(
-    `Look Book storage read failed (${status}).`,
-    "http_error",
-    status,
-    false,
-  );
-}
-
-function classifyThrownReadFailure(error: unknown) {
-  if (error instanceof LookBookStorageReadError) return error;
-
-  if (
-    error instanceof DOMException &&
-    (error.name === "TimeoutError" || error.name === "AbortError")
-  ) {
-    return new LookBookStorageReadError(
-      "Look Book storage read timed out.",
-      "timeout",
-      undefined,
-      true,
-    );
-  }
-
-  if (error instanceof TypeError) {
-    return new LookBookStorageReadError(
-      "Look Book storage network read failed.",
-      "network",
-      undefined,
-      true,
-    );
-  }
-
-  return new LookBookStorageReadError(
-    "Look Book storage returned an invalid response.",
-    "invalid_response",
-    undefined,
-    true,
-  );
-}
-
-function logReadRetry(error: LookBookStorageReadError, attempt: number) {
-  console.warn(
-    JSON.stringify({
-      level: "warning",
-      event: "lookbook_storage_read_retry",
-      reason: error.reason,
-      ...(error.status ? { status: error.status } : {}),
-      attempt,
-    }),
-  );
-}
 
 function toRow(record: StoredLookBook): SupabaseRow {
   return {
@@ -197,51 +102,18 @@ class SupabaseLookBookRepository implements LookBookRepository {
     url.searchParams.set("select", "*");
     url.searchParams.set("limit", "1");
 
-    for (let attempt = 0; attempt < readRetryDelaysMs.length; attempt += 1) {
-      const delay = readRetryDelaysMs[attempt];
-      if (delay > 0) await sleep(delay);
+    const response = await fetch(url, {
+      headers: this.headers(),
+      cache: "no-store",
+      signal: AbortSignal.timeout(8_000),
+    });
 
-      try {
-        const response = await fetch(url, {
-          headers: this.headers(),
-          cache: "no-store",
-          signal: AbortSignal.timeout(8_000),
-        });
-
-        if (!response.ok) {
-          throw classifyHttpReadFailure(response.status);
-        }
-
-        let rows: SupabaseRow[];
-        try {
-          rows = (await response.json()) as SupabaseRow[];
-        } catch {
-          throw new LookBookStorageReadError(
-            "Look Book storage returned an invalid response.",
-            "invalid_response",
-            undefined,
-            true,
-          );
-        }
-        return rows[0] ? fromRow(rows[0]) : null;
-      } catch (error) {
-        const readError = classifyThrownReadFailure(error);
-        const hasAnotherAttempt = attempt < readRetryDelaysMs.length - 1;
-
-        if (!readError.transient || !hasAnotherAttempt) {
-          throw readError;
-        }
-
-        logReadRetry(readError, attempt + 1);
-      }
+    if (!response.ok) {
+      throw new Error(`Look Book storage read failed (${response.status}).`);
     }
 
-    throw new LookBookStorageReadError(
-      "Look Book storage read failed.",
-      "network",
-      undefined,
-      true,
-    );
+    const rows = (await response.json()) as SupabaseRow[];
+    return rows[0] ? fromRow(rows[0]) : null;
   }
 
   async save(record: StoredLookBook) {
