@@ -43,46 +43,46 @@ export function SiteHeader({
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-[#0b0c10]/75 backdrop-blur-xl">
-      <div className="mx-auto flex h-[76px] max-w-[1600px] items-center justify-between px-5 sm:px-8 lg:px-12">
-        <Link
-          href="/"
-          className="group flex items-center"
-        >
+      <div className="mx-auto flex h-[76px] max-w-[1600px] items-center justify-between px-5 sm:px-8 lg:px-8 xl:px-10 2xl:px-12">
+        <Link href="/" className="group flex shrink-0 items-center">
           <Image
             src="/images/brand/house-delivery-logo-tan.png"
             alt="House Delivery Inc."
             width={1370}
             height={537}
-            sizes="(max-width: 639px) 96px, (max-width: 1279px) 128px, 140px"
+            sizes="(max-width: 639px) 96px, (max-width: 1023px) 128px, 140px"
             quality={100}
             unoptimized={true}
-            className="h-12 w-auto object-contain sm:h-16 xl:h-[70px]"
+            className="h-12 w-auto object-contain sm:h-16 lg:h-[58px] xl:h-16 2xl:h-[70px]"
           />
         </Link>
 
-        <nav className="hidden items-center gap-7 xl:flex" aria-label="Primary">
+        <nav
+          className="hidden items-center gap-4 lg:flex xl:gap-5 2xl:gap-7"
+          aria-label="Primary"
+        >
           {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="text-xs text-white/60 transition-colors hover:text-white"
+              className="whitespace-nowrap text-[11px] text-white/60 transition-colors hover:text-white xl:text-xs"
             >
               {link.label}
             </Link>
           ))}
         </nav>
 
-        <div className="hidden items-center gap-5 xl:flex">
+        <div className="hidden shrink-0 items-center gap-4 lg:flex xl:gap-5">
           <a
             href="mailto:hello@housedelivery.ca"
-            className="text-xs text-white/60 transition-colors hover:text-white"
+            className="hidden whitespace-nowrap text-[11px] text-white/60 transition-colors hover:text-white 2xl:block 2xl:text-xs"
           >
             hello@housedelivery.ca
           </a>
           {showProjectReviewAction ? (
             <Link
               href="/plan-a-housing-project"
-              className="border border-white bg-white px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#0b0c10] transition-colors hover:bg-transparent hover:text-white"
+              className="whitespace-nowrap border border-white bg-white px-4 py-3 text-[9px] font-semibold uppercase tracking-[0.14em] text-[#0b0c10] transition-colors hover:bg-transparent hover:text-white xl:px-5 xl:text-[10px] 2xl:text-[11px] 2xl:tracking-[0.16em]"
             >
               Plan a housing project
             </Link>
@@ -91,7 +91,7 @@ export function SiteHeader({
 
         <button
           type="button"
-          className="grid size-11 place-items-center xl:hidden"
+          className="grid size-11 place-items-center lg:hidden"
           onClick={() => setIsOpen((open) => !open)}
           aria-expanded={isOpen}
           aria-controls="mobile-navigation"
@@ -104,7 +104,7 @@ export function SiteHeader({
       <nav
         id="mobile-navigation"
         className={cn(
-          "overflow-hidden border-t border-white/10 bg-[#0b0c10] transition-[max-height,opacity] duration-300 xl:hidden",
+          "overflow-hidden border-t border-white/10 bg-[#0b0c10] transition-[max-height,opacity] duration-300 lg:hidden",
           isOpen
             ? "visible max-h-[32rem] opacity-100"
             : "invisible max-h-0 opacity-0",
