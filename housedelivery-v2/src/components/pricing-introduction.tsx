@@ -11,7 +11,7 @@ export function PricingIntroduction() {
           <h2 id="pricing-introduction-heading" className="text-4xl font-medium tracking-[-0.055em] sm:text-5xl">A clearer view of your budget.</h2>
         </HeadlineReveal>
         <p className="mt-6 max-w-3xl text-base leading-7 text-white/65">
-          Explore indicative custom-home budgets for Essential, Premium and Signature finishes, from the manufactured package to a completed build. Your site and selections determine the final price.
+          Explore indicative manufactured-package budgets for Essential, Premium and Signature finishes. Delivery and local construction are priced for your project. Your site and selections determine the final price.
         </p>
         <Link href="/pricing" className="mt-7 inline-flex min-h-11 items-center border-b border-white/30 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/75 transition-colors hover:text-white">View pricing guide</Link>
       </div>

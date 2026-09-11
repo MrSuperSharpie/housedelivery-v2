@@ -15,13 +15,17 @@ import {
   getConfigurationBudgetHref,
 } from "@/lib/budget-inquiry";
 
-test("the approved general ranges remain separate from model planning bases", () => {
+test("preliminary package ranges remain separate from unpriced delivery, construction and models", () => {
   assert.equal(pricingGuide.reviewedOn, "2026-09-10");
-  assert.deepEqual(pricingGuide.levels.map(({ manufactured, delivered, completed }) => [manufactured, delivered, completed]), [
-    [[150, 180], [215, 255], [450, 575]],
-    [[165, 205], [240, 300], [500, 650]],
-    [[190, 250], [270, 350], [550, 750]],
+  assert.deepEqual(pricingGuide.levels.map(({ manufactured }) => manufactured), [
+    [150, 180],
+    [165, 205],
+    [190, 250],
   ]);
+  for (const level of pricingGuide.levels) {
+    assert.equal("delivered" in level, false);
+    assert.equal("completed" in level, false);
+  }
   for (const model of firstNationsPlannerCatalog) {
     assert.equal(model.planningBasis.status, "under-review", model.id);
     assert.equal(model.planningBasis.low, null, model.id);
@@ -30,19 +34,25 @@ test("the approved general ranges remain separate from model planning bases", ()
   }
 });
 
-test("pricing presents completed budgets first and disclosures outside details", () => {
+test("pricing presents complete package budgets with explicit unpriced stages", () => {
   const markup = renderToStaticMarkup(<PricingPage />);
   const cards = markup.match(/<article\b[\s\S]*?<\/article>/g)!;
   assert.equal(cards.length, 3);
   for (const card of cards) {
-    assert.ok(card.indexOf("Estimated completed build") < card.indexOf("Delivered package"));
-    assert.ok(card.indexOf("Delivered package") < card.indexOf("<details"));
-    assert.match(card, /<summary[^>]*>Manufactured package/);
+    assert.ok(card.indexOf("Manufactured Package") < card.indexOf("Delivery"));
+    assert.match(card, /Calculated for your project location\./);
+    assert.match(card, /<summary[^>]*>Local builder quote required/);
+    assert.equal((card.match(/\$/g) ?? []).length, 1);
   }
   assert.ok(markup.indexOf(pricingGuide.disclosure) > markup.lastIndexOf("</details>"));
-  assert.match(markup, /alternative scope/);
+  assert.match(markup, /alternative complete manufactured-package budgets/);
+  assert.ok(markup.includes(pricingGuide.introduction));
+  assert.ok(markup.includes(pricingGuide.applicability));
+  for (const scope of Object.values(pricingGuide.scopes)) {
+    assert.ok(markup.includes(scope.description));
+  }
   assert.match(markup, /Essential is not currently a selectable package/);
-  assert.doesNotMatch(markup, /Starting from|120 days|20–30%/);
+  assert.doesNotMatch(markup, /Starting from|120 days|20–30%|Estimated completed build|Delivered package|\$(?:450–575|500–650|550–750|215–255|240–300|270–350)/);
 });
 
 test("every public home receives an enquiry link without a numerical model price", () => {

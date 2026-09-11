@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
-import { PricingManufacturedDetails } from "@/components/pricing-manufactured-details";
+import { PricingConstructionDetails } from "@/components/pricing-construction-details";
 import { SiteHeader } from "@/components/site-header";
 import { formatPricingRange, pricingGuide, productionTimingCopy } from "@/data/pricing";
 import { getBudgetInquiryHref } from "@/lib/budget-inquiry";
@@ -22,7 +22,7 @@ export default function PricingPage() {
           <HeadlineReveal className="mt-7">
             <h1 className="max-w-5xl text-[clamp(3.5rem,7vw,7.5rem)] font-medium leading-[0.92] tracking-[-0.065em]">Plan with clarity.</h1>
           </HeadlineReveal>
-          <p className="mt-8 max-w-3xl text-lg leading-8 text-white/70">{pricingGuide.introduction}</p>
+          <h2 className="mt-8 max-w-3xl text-lg leading-8 text-white/70">{pricingGuide.introduction}</h2>
           <div className="mt-10 max-w-4xl border-l border-white/25 pl-6">
             <p className="text-sm leading-7 text-white/65">{pricingGuide.applicability}</p>
             <p className="mt-3 text-xs leading-6 text-white/55">Reviewed <time dateTime={pricingGuide.reviewedOn}>{pricingGuide.reviewLabel}</time>.</p>
@@ -31,7 +31,7 @@ export default function PricingPage() {
           <section aria-labelledby="finish-budgets-heading" className="mt-16 lg:mt-24">
             <h2 id="finish-budgets-heading" className="text-3xl font-medium tracking-[-0.045em] sm:text-4xl">Three finish levels</h2>
             <p className="mt-5 max-w-3xl text-sm leading-7 text-white/65">
-              Each figure is an alternative scope for the same home—not three amounts to add together. All ranges are CAD per sq. ft.
+              {pricingGuide.tierScopeNote}
             </p>
             <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-3">
               {pricingGuide.levels.map((level) => (
@@ -40,15 +40,15 @@ export default function PricingPage() {
                   <h3 className="mt-5 text-4xl font-medium tracking-[-0.055em]">{level.name}</h3>
                   <p className="mt-5 min-h-21 text-sm leading-7 text-white/65">{level.description}</p>
                   <dl className="mt-8 border-t border-white/15 pt-7">
-                    <dt className="text-sm font-medium text-white/80">{pricingGuide.scopes.completed.label}</dt>
+                    <dt className="text-sm font-medium text-white/80">{pricingGuide.scopes.manufactured.label}</dt>
                     <dd className="mt-4">
-                      <span className="block text-[clamp(2.5rem,4vw,3.75rem)] font-medium leading-none tracking-[-0.055em]">{formatPricingRange(level.completed)}</span>
+                      <span className="block text-[clamp(2.5rem,4vw,3.75rem)] font-medium leading-none tracking-[-0.055em]">{formatPricingRange(level.manufactured)}</span>
                       <span className="mt-3 block text-sm text-white/60">CAD / sq. ft.</span>
                     </dd>
-                    <dt className="mt-8 border-t border-white/15 pt-6 text-xs text-white/65">{pricingGuide.scopes.delivered.label}</dt>
-                    <dd className="mt-3 text-xl font-medium tracking-[-0.03em]">{formatPricingRange(level.delivered)} <span className="text-xs font-normal text-white/60">/ sq. ft.</span></dd>
+                    <dt className="mt-8 border-t border-white/15 pt-6 text-xs text-white/65">{pricingGuide.scopes.delivery.label}</dt>
+                    <dd className="mt-3 text-xl font-medium tracking-[-0.03em]">{pricingGuide.scopes.delivery.budgetLabel}</dd>
                   </dl>
-                  <PricingManufacturedDetails id={level.id} range={level.manufactured} />
+                  <PricingConstructionDetails id={level.id} />
                 </article>
               ))}
             </div>
@@ -56,7 +56,7 @@ export default function PricingPage() {
           </section>
 
           <section aria-labelledby="pricing-scopes-heading" className="mt-20 border-t border-white/15 pt-10">
-            <h2 id="pricing-scopes-heading" className="text-3xl font-medium tracking-[-0.045em] sm:text-4xl">What each scope covers</h2>
+            <h2 id="pricing-scopes-heading" className="text-3xl font-medium tracking-[-0.045em] sm:text-4xl">Three project stages</h2>
             <dl className="mt-8 grid gap-8 lg:grid-cols-3">
               {Object.values(pricingGuide.scopes).map((scope) => (
                 <div key={scope.label} className="border-t border-white/15 pt-6">

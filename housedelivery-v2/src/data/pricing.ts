@@ -1,29 +1,35 @@
-// Approved public selling ranges only. These are not model quotation inputs.
+// Preliminary selling estimates for Preview review, not refreshed supplier
+// quotations or authorization to publish to Production. Never price a model
+// by multiplying these general ranges by its advertised area.
 export const pricingGuide = {
   currency: "CAD",
   reviewedOn: "2026-09-10",
   reviewLabel: "September 10, 2026",
   introduction:
-    "Understand the cost of your home—from the manufactured package to a completed build. These indicative budgets help you plan; your site and selections determine the final price.",
+    "Indicative manufactured-package budgets for selected custom homes of approximately 2,000–6,000 sq. ft. range from $150–$250 CAD/sq. ft., depending on design and specification.",
   applicability:
-    "Planning ranges for straightforward custom homes of approximately 2,000–6,000 sq. ft. on cleared, serviced Lower Mainland sites. They do not establish prices for individual models, ADUs, multiplexes, remote locations or difficult sites.",
+    "These preliminary planning ranges are based on Lower Mainland specification assumptions. They are not model-specific quotations and do not apply automatically to ADUs, multiplexes or other regional requirements.",
+  tierScopeNote:
+    "The tier ranges are alternative complete manufactured-package budgets, not upgrade charges to add to another base price.",
   disclosure:
-    "CAD planning estimates, reviewed September 2026. Package-only prices exclude applicable sales taxes. Completed-build budgets include material PST and exclude GST, land, municipal fees and development charges, additional professional services, demolition, major utility upgrades, difficult ground, retaining works and landscaping. Final pricing depends on confirmed specifications and site conditions.",
+    "Manufactured-package budgets exclude freight, insurance, import charges, delivery, applicable sales taxes, foundations, assembly, local trades, permits and site completion. Package inclusions and final pricing are confirmed for the selected design, specification and location.",
   scopes: {
     manufactured: {
-      label: "Manufactured package",
+      label: "Manufactured Package",
       description:
-        "Structure, envelope and specified supplied finishes, before freight and importation.",
+        "The selected housing system and specified supplied finishes.",
     },
-    delivered: {
-      label: "Delivered package",
+    delivery: {
+      label: "Delivery",
+      budgetLabel: "Calculated for your project location.",
       description:
-        "Manufactured package plus freight, insurance, applicable customs charges, ordinary Lower Mainland delivery and unloading.",
+        "Freight, importation and delivery are calculated for your actual project location.",
     },
-    completed: {
-      label: "Estimated completed build",
+    construction: {
+      label: "Local Construction",
+      budgetLabel: "Local builder quote required",
       description:
-        "Includes normal foundations and site work, Canadian assembly and finishing, plumbing, electrical, heating and ventilation, selected appliances and model/site engineering.",
+        "Foundations, assembly, Canadian trades and site completion are priced for your specific property by the local builder/project team.",
     },
   },
   levels: [
@@ -32,24 +38,18 @@ export const pricingGuide = {
       name: "Essential",
       description: "Attractive, durable materials and thoughtful finishes for everyday living.",
       manufactured: [150, 180],
-      delivered: [215, 255],
-      completed: [450, 575],
     },
     {
       id: "premium",
       name: "Premium",
       description: "A noticeable step up in materials, cabinetry, glazing and interior detailing.",
       manufactured: [165, 205],
-      delivered: [240, 300],
-      completed: [500, 650],
     },
     {
       id: "signature",
       name: "Signature",
       description: "High-end materials and coordinated detailing for a distinctive custom home.",
       manufactured: [190, 250],
-      delivered: [270, 350],
-      completed: [550, 750],
     },
   ],
 } as const;

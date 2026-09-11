@@ -27,14 +27,20 @@ try {
     assert.equal(await cards.count(), 3);
     const positions = await cards.evaluateAll((elements) => elements.map((element) => ({ x: element.getBoundingClientRect().x, y: element.getBoundingClientRect().y })));
     assert.equal(width >= 1024 ? positions[0].y === positions[1].y : positions[0].x === positions[1].x, true);
-    assert.equal(await page.getByText("CAD planning estimates, reviewed September 2026.", { exact: false }).isVisible(), true);
+    assert.equal(await page.getByText("Manufactured-package budgets exclude freight, insurance, import charges", { exact: false }).isVisible(), true);
+    for (const [index, range] of ["$150–180", "$165–205", "$190–250"].entries()) {
+      assert.equal(await cards.nth(index).getByText(range, { exact: true }).isVisible(), true);
+      assert.equal(await cards.nth(index).getByText("Calculated for your project location.", { exact: true }).isVisible(), true);
+      assert.equal(await cards.nth(index).getByText("Local builder quote required", { exact: true }).isVisible(), true);
+    }
+    assert.doesNotMatch(await page.locator("main").innerText(), /Estimated completed build|Delivered package|\$(?:450–575|500–650|550–750|215–255|240–300|270–350)/);
     const details = cards.first().locator("details");
     await details.locator("summary").focus();
     await page.keyboard.press("Enter");
     assert.equal(await details.getAttribute("open"), "");
     await page.waitForFunction(() => document.querySelector("[data-pricing-level] summary").getAttribute("aria-expanded") === "true");
     assert.match(await details.ariaSnapshot(), /expanded/);
-    assert.equal(await details.getByText("$150–180", { exact: false }).isVisible(), true);
+    assert.equal(await details.getByText("Foundations, assembly, Canadian trades and site completion", { exact: false }).isVisible(), true);
     await page.keyboard.press("Space");
     assert.equal(await details.getAttribute("open"), null);
     if (width === 390 || width === 1440) {
@@ -61,21 +67,23 @@ try {
   await page.locator('#custom-homes-grid article a[href="/pricing"]').first().click();
   await page.waitForURL("**/pricing");
 
-  for (const width of [390, 1440]) {
-    await page.setViewportSize({ width, height: 1000 });
-    await page.goto(`${baseUrl}/homes/saturna`, { waitUntil: "load" });
-    await noOverflow(`Saturna ${width}`);
-    const budget = page.getByRole("region", { name: "Plan your budget" });
-    assert.doesNotMatch(await budget.innerText(), /\$/);
-    const budgetBox = await budget.boundingBox();
-    const specifications = await page.locator("#overview dl").last().boundingBox();
-    const configuratorBox = await page.locator("#home-configurator").boundingBox();
-    assert.ok(budgetBox.y > specifications.y && budgetBox.y < configuratorBox.y);
-    await budget.getByRole("link", { name: "Get a site-specific budget" }).click();
-    await page.waitForURL("**/?inquiry=budget&model=saturna#reserve");
-    assert.equal(await page.locator('select[name="model"]').inputValue(), "saturna");
-    assert.match(await page.locator('textarea[name="notes"]').inputValue(), /site-specific budget/);
-    await noOverflow(`enquiry ${width}`);
+  for (const home of ["saturna", "solace"]) {
+    for (const width of [390, 1440]) {
+      await page.setViewportSize({ width, height: 1000 });
+      await page.goto(`${baseUrl}/homes/${home}`, { waitUntil: "load" });
+      await noOverflow(`${home} ${width}`);
+      const budget = page.getByRole("region", { name: "Plan your budget" });
+      assert.doesNotMatch(await budget.innerText(), /\$/);
+      const budgetBox = await budget.boundingBox();
+      const specifications = await page.locator("#overview dl").last().boundingBox();
+      const configuratorBox = await page.locator("#home-configurator").boundingBox();
+      assert.ok(budgetBox.y > specifications.y && budgetBox.y < configuratorBox.y);
+      await budget.getByRole("link", { name: "Get a site-specific budget" }).click();
+      await page.waitForURL(`**/?inquiry=budget&model=${home}#reserve`);
+      assert.equal(await page.locator('select[name="model"]').inputValue(), home);
+      assert.match(await page.locator('textarea[name="notes"]').inputValue(), /site-specific budget/);
+      await noOverflow(`enquiry ${width}`);
+    }
   }
 
   await page.setViewportSize({ width: 1440, height: 1000 });
