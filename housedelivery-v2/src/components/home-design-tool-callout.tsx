@@ -163,11 +163,13 @@ export function HomeDesignToolCallout({
                       disabled={isPreviewOnly || isComingSoon || !href}
                       onClick={() => openTierLookBook(tier)}
                       data-home-tier={tier}
-                      className="group mt-5 flex min-h-12 w-full items-center justify-between gap-3 border-b border-white/28 pb-2 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-white/72 transition-colors hover:border-white hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white disabled:cursor-not-allowed disabled:opacity-50"
+                      className="mt-5 flex min-h-16 w-full items-center justify-center border border-white bg-white px-4 py-4 text-center text-[11px] font-semibold uppercase leading-5 tracking-[0.06em] text-[#0b0c10] transition-colors hover:bg-white/90 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      {option.label} Look Book{isPreviewOnly || isComingSoon || !href ? " — Coming soon" : ""}
-                      <ArrowRight aria-hidden="true" className="size-4 shrink-0 transition-transform group-hover:translate-x-1" strokeWidth={1.5} />
+                      Design My {homeName} — {option.label}{isPreviewOnly || isComingSoon || !href ? " — Coming soon" : ""}
                     </button>
+                    <p className="mt-3 text-xs leading-5 text-white/55">
+                      Create your personalized House Look Book.
+                    </p>
                   </div>
                 );
               })}
