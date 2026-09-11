@@ -6,7 +6,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
-import { HomeConfigurator } from "@/components/home-configurator";
+import { HomeConfigurator, SolaceConfigurator } from "@/components/home-configurator";
 import { HomeDesignToolCallout } from "@/components/home-design-tool-callout";
 import {
   HomeDetailHero,
@@ -257,6 +257,7 @@ export default async function HomeDetailPage({
               href={designToolDiscovery.href}
               variant="primary"
               availability={designToolDiscovery.availability}
+              showSolacePricing={model.slug === "solace"}
             />
           </div>
         </section>
@@ -280,10 +281,16 @@ export default async function HomeDetailPage({
         />
 
         {configuratorDefinition ? (
-          <HomeConfigurator
-            definition={configuratorDefinition}
-            directSourceImages={useSourceFidelityImages}
-          />
+          model.slug === "solace" ? (
+            <Suspense fallback={<section id="home-inclusions" className="px-5 py-24 text-white/55">Loading Look Book options…</section>}>
+              <SolaceConfigurator definition={configuratorDefinition} />
+            </Suspense>
+          ) : (
+            <HomeConfigurator
+              definition={configuratorDefinition}
+              directSourceImages={useSourceFidelityImages}
+            />
+          )
         ) : null}
 
         <HomeFloorPlanViewer

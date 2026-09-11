@@ -4,6 +4,8 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
+import type { HomeInclusionLevel } from "@/data/home-configurator";
+import { solaceAreaSquareFeet, solacePricing } from "@/data/solace-pricing";
 import { cn } from "@/lib/cn";
 import {
   addPlannerHomeViewContextToProject,
@@ -16,6 +18,7 @@ type HomeDesignToolCalloutProps = {
   href?: string;
   variant: "primary" | "quiet";
   availability?: "available" | "coming-soon" | "preview-only";
+  showSolacePricing?: boolean;
 };
 
 export function HomeDesignToolCallout({
@@ -23,6 +26,7 @@ export function HomeDesignToolCallout({
   href,
   variant,
   availability = "available",
+  showSolacePricing = false,
 }: HomeDesignToolCalloutProps) {
   const isPrimary = variant === "primary";
   const isPreviewOnly = availability === "preview-only";
@@ -51,6 +55,25 @@ export function HomeDesignToolCallout({
     window.location.assign(
       buildPlannerDesignHref(`${window.location.pathname}${href}`, session),
     );
+  }
+
+  function openSolaceLookBook(tier: HomeInclusionLevel) {
+    const url = new URL(window.location.href);
+    url.searchParams.set("solaceTier", tier);
+    url.hash = "home-inclusions";
+    if (activePlannerContext) {
+      const session = activePlannerContext.designSession ??
+        addPlannerHomeViewContextToProject(activePlannerContext);
+      if (!session) {
+        setPlannerActionError(
+          "We couldn’t update this local project. Return to My Project and try again.",
+        );
+        return;
+      }
+      window.location.assign(buildPlannerDesignHref(url.href, session));
+      return;
+    }
+    window.location.assign(url.href);
   }
 
   return (
@@ -190,6 +213,46 @@ export function HomeDesignToolCallout({
               </Link>
             </div>
           </>
+        ) : showSolacePricing && isPrimary ? (
+          <div data-solace-pricing>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55">
+              Plan your budget
+            </p>
+            <p className="mt-3 text-sm leading-7 text-white/52">
+              Starting package prices for 5,405 sq. ft. All prices in CAD.
+            </p>
+            <div className="mt-7 grid gap-7 sm:grid-cols-2">
+              {(["premium", "signature"] as const).map((tier) => {
+                const option = solacePricing[tier];
+                return (
+                  <div key={tier} className="border-t border-white/20 pt-5">
+                    <h4 className="text-lg font-medium text-white/88">{option.label}</h4>
+                    <p className="mt-3 text-sm text-white/60">
+                      Starting from <span className="whitespace-nowrap">${option.rate} / sq. ft.</span>
+                    </p>
+                    <p className="mt-3 text-2xl tracking-[-0.04em] text-white/90">
+                      ${(option.rate * solaceAreaSquareFeet).toLocaleString("en-CA")}
+                    </p>
+                    <p className="mt-1 text-xs text-white/50">Starting total</p>
+                    <button
+                      type="button"
+                      onClick={() => openSolaceLookBook(tier)}
+                      data-solace-tier={tier}
+                      className="group mt-5 flex min-h-12 w-full items-center justify-between gap-3 border-b border-white/28 pb-2 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-white/72 transition-colors hover:border-white hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+                    >
+                      {option.label} Look Book
+                      <ArrowRight aria-hidden="true" className="size-4 shrink-0 transition-transform group-hover:translate-x-1" strokeWidth={1.5} />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-6 space-y-2 text-xs leading-6 text-white/55">
+              <p>Includes shipping and applicable import tariffs.</p>
+              <p>Excludes site work, foundations, on-site assembly, and sales taxes.</p>
+              <p>Assembly: Quoted separately.</p>
+            </div>
+          </div>
         ) : (
           <>
             <p

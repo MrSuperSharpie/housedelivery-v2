@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 import { HomeConfigurationProgress } from "@/components/home-configuration-progress";
 import { HomeConfigurationSummary } from "@/components/home-configuration-summary";
@@ -23,7 +24,9 @@ import {
   type HomeFlooringCategory as HomeFlooringCategoryData,
   type HomeInclusionCategory as HomeInclusionCategoryData,
   type HomeSelectableInclusionCategory,
+  type HomeInclusionLevel,
 } from "@/data/home-configurator";
+import { applySolaceTier, getSolaceTierDefinition, solacePricing } from "@/data/solace-pricing";
 import {
   createLookBookReference,
   type LookBookCustomer,
@@ -44,6 +47,7 @@ import {
 type HomeConfiguratorProps = {
   definition: HomeConfiguratorDefinition;
   directSourceImages?: boolean;
+  solaceTier?: HomeInclusionLevel;
 };
 
 type HomeImagePreviewTarget = {
@@ -201,15 +205,29 @@ function PlannerDesignContext({
   );
 }
 
+export function SolaceConfigurator(props: Omit<HomeConfiguratorProps, "solaceTier">) {
+  const searchParams = useSearchParams();
+  const value = searchParams.get("solaceTier");
+  const tier = value === "premium" || value === "signature" ? value : undefined;
+  return <HomeConfigurator key={tier ?? "default"} {...props} solaceTier={tier} />;
+}
+
 export function HomeConfigurator({
-  definition,
+  definition: originalDefinition,
   directSourceImages = false,
+  solaceTier,
 }: HomeConfiguratorProps) {
+  const selectedTier = originalDefinition.homeId === "solace" ? solaceTier : undefined;
+  const definition = useMemo(
+    () => selectedTier ? getSolaceTierDefinition(originalDefinition, selectedTier) : originalDefinition,
+    [originalDefinition, selectedTier],
+  );
   const useDirectSourceImages =
     directSourceImages || hasDesignBoardImages(definition);
-  const [configuration, setConfiguration] = useState<HomeConfiguration>(() =>
-    createDefaultHomeConfiguration(definition),
-  );
+  const [configuration, setConfiguration] = useState<HomeConfiguration>(() => {
+    const initial = createDefaultHomeConfiguration(originalDefinition);
+    return selectedTier ? applySolaceTier(definition, initial) : initial;
+  });
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(
     () => getHomeConfiguratorJourneyCategories(definition)[0]?.id ?? null,
   );
@@ -275,12 +293,15 @@ export function HomeConfigurator({
               (culturalDesignDirection
                 ? culturalDesignDirection.choice === "explore"
                 : undefined);
-            setConfiguration({
+            const restoredConfiguration = {
               ...currentConfiguration,
               ...(culturalExteriorInterest !== undefined
                 ? { culturalExteriorInterest }
                 : {}),
-            });
+            };
+            setConfiguration(selectedTier
+              ? applySolaceTier(definition, restoredConfiguration)
+              : restoredConfiguration);
           }
         } else if (session.culturalExteriorInterest !== undefined) {
           setConfiguration((current) => ({
@@ -297,7 +318,7 @@ export function HomeConfigurator({
     return () => {
       active = false;
     };
-  }, [definition.configurationVersion, definition.homeId]);
+  }, [definition, selectedTier]);
 
   useEffect(() => {
     const captured = captureFirstTouchAttribution();
@@ -854,8 +875,9 @@ export function HomeConfigurator({
                 Create the visual brief for your home in{" "}
                 {requiredCategories.length} controlled choices. Start with the
                 kitchen, then move through the major spaces and finishes that
-                define your {definition.homeName}. Begin with the Premium
-                baseline and selectively choose Signature upgrades.
+                define your {definition.homeName}. {selectedTier
+                  ? `Your ${solacePricing[selectedTier].label} selection shows only ${solacePricing[selectedTier].label} options.`
+                  : "Begin with the Premium baseline and selectively choose Signature upgrades."}
               </p>
               <p className="mt-5 border-t border-white/12 pt-5 text-[10px] leading-5 text-white/50">
                 {definition.disclaimer}
