@@ -2,7 +2,7 @@ import { Check, ChevronDown } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { getConfigurationBudgetHref } from "@/lib/budget-inquiry";
+import { getConfigurationBudgetHref, getConfigurationPlannerHref } from "@/lib/budget-inquiry";
 
 import {
   getHomeConfiguratorJourneyCategories,
@@ -170,6 +170,9 @@ export function HomeConfigurationSummary({
       </Link>
       <Link href="/pricing" className="flex min-h-11 items-center text-xs text-black/65 underline underline-offset-4">
         View pricing guide
+      </Link>
+      <Link href={getConfigurationPlannerHref(definition, configuration)} className="flex min-h-11 items-center text-xs text-black/65 underline underline-offset-4">
+        Plan with these selections
       </Link>
     </div>
   );

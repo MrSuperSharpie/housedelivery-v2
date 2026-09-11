@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
+
+import { HomeBudgetPlanner } from "@/components/home-budget-planner";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
 import { PricingConstructionDetails } from "@/components/pricing-construction-details";
 import { SiteHeader } from "@/components/site-header";
-import { formatPricingRange, pricingGuide, productionTimingCopy } from "@/data/pricing";
+import { pricingGuide, productionTimingCopy } from "@/data/pricing";
 import { getBudgetInquiryHref } from "@/lib/budget-inquiry";
 
 export const metadata: Metadata = {
@@ -36,14 +39,14 @@ export default function PricingPage() {
             <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-3">
               {pricingGuide.levels.map((level) => (
                 <article key={level.id} data-pricing-level={level.id} className="flex min-w-0 flex-col border border-white/15 bg-[#0e1014] p-7 sm:p-8">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55">Indicative budget</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55">Inclusions and finishes</p>
                   <h3 className="mt-5 text-4xl font-medium tracking-[-0.055em]">{level.name}</h3>
                   <p className="mt-5 min-h-21 text-sm leading-7 text-white/65">{level.description}</p>
                   <dl className="mt-8 border-t border-white/15 pt-7">
-                    <dt className="text-sm font-medium text-white/80">{pricingGuide.scopes.manufactured.label}</dt>
+                    <dt className="text-sm font-medium text-white/80">Package selection</dt>
                     <dd className="mt-4">
-                      <span className="block text-[clamp(2.5rem,4vw,3.75rem)] font-medium leading-none tracking-[-0.055em]">{formatPricingRange(level.manufactured)}</span>
-                      <span className="mt-3 block text-sm text-white/60">CAD / sq. ft.</span>
+                      <span className="block text-3xl font-medium leading-none tracking-[-0.055em]">{level.priceLabel}</span>
+                      <span className="mt-3 block text-sm text-white/60">Model-specific scope and quote</span>
                     </dd>
                     <dt className="mt-8 border-t border-white/15 pt-6 text-xs text-white/65">{pricingGuide.scopes.delivery.label}</dt>
                     <dd className="mt-3 text-xl font-medium tracking-[-0.03em]">{pricingGuide.scopes.delivery.budgetLabel}</dd>
@@ -70,7 +73,7 @@ export default function PricingPage() {
           <section aria-labelledby="pricing-selections-heading" className="mt-20 max-w-4xl border-t border-white/15 pt-10">
             <h2 id="pricing-selections-heading" className="text-3xl font-medium tracking-[-0.045em] sm:text-4xl">Your home, your selections</h2>
             <p className="mt-6 text-base leading-7 text-white/65">
-              Essential, Premium and Signature describe finish levels for budget planning. Available selections vary by home. The home configurator shows its supported options; Essential is not currently a selectable package. Individual rooms can combine Premium and Signature selections, with the final scope confirmed during project review.
+              Essential is included in each model’s base package. Premium and Signature are optional upgrades to inclusions and finishes. Your existing room selections can be retained for review, including a mix of Premium and Signature products. The final quote reconciles those selections against the included products without duplicate charges.
             </p>
             <p className="mt-5 text-sm leading-7 text-white/65">{productionTimingCopy}</p>
             <div className="mt-8 flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:gap-8">
@@ -78,6 +81,9 @@ export default function PricingPage() {
               <Link href="/#homes" className="inline-flex min-h-11 items-center border-b border-white/30 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/70 transition-colors hover:text-white">Explore the homes</Link>
             </div>
           </section>
+          <Suspense fallback={<p className="mt-10 text-white/65">Loading home budget planner…</p>}>
+            <HomeBudgetPlanner />
+          </Suspense>
         </div>
       </main>
     </>

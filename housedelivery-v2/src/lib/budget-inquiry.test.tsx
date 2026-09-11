@@ -13,46 +13,32 @@ import {
   getBudgetInquiryHref,
   getBudgetInquiryNotes,
   getConfigurationBudgetHref,
+  getConfigurationPlannerHref,
 } from "@/lib/budget-inquiry";
 
-test("preliminary package ranges remain separate from unpriced delivery, construction and models", () => {
-  assert.equal(pricingGuide.reviewedOn, "2026-09-10");
-  assert.deepEqual(pricingGuide.levels.map(({ manufactured }) => manufactured), [
-    [150, 180],
-    [165, 205],
-    [190, 250],
-  ]);
-  for (const level of pricingGuide.levels) {
-    assert.equal("delivered" in level, false);
-    assert.equal("completed" in level, false);
-  }
+test("finish levels are inclusion upgrades and current model prices remain unknown", () => {
+  assert.deepEqual(pricingGuide.levels.map((level) => level.priceLabel), ["Included in base", "Upgrade quote required", "Upgrade quote required"]);
+  assert.doesNotMatch(JSON.stringify(pricingGuide), /\$|manufactured-package budgets/);
   for (const model of firstNationsPlannerCatalog) {
-    assert.equal(model.planningBasis.status, "under-review", model.id);
-    assert.equal(model.planningBasis.low, null, model.id);
-    assert.equal(model.planningBasis.base, null, model.id);
-    assert.equal(model.planningBasis.high, null, model.id);
+    assert.equal(model.planningBasis.status, "under-review");
+    assert.equal(model.planningBasis.base, null);
   }
 });
 
-test("pricing presents complete package budgets with explicit unpriced stages", () => {
+test("pricing retains three cards with base-plus-upgrade policy and delivery scope", () => {
   const markup = renderToStaticMarkup(<PricingPage />);
   const cards = markup.match(/<article\b[\s\S]*?<\/article>/g)!;
   assert.equal(cards.length, 3);
   for (const card of cards) {
-    assert.ok(card.indexOf("Manufactured Package") < card.indexOf("Delivery"));
-    assert.match(card, /Calculated for your project location\./);
+    assert.match(card, /Request package pricing/);
     assert.match(card, /<summary[^>]*>Local builder quote required/);
-    assert.equal((card.match(/\$/g) ?? []).length, 1);
+    assert.doesNotMatch(card, /\$/);
   }
-  assert.ok(markup.indexOf(pricingGuide.disclosure) > markup.lastIndexOf("</details>"));
-  assert.match(markup, /alternative complete manufactured-package budgets/);
-  assert.ok(markup.includes(pricingGuide.introduction));
-  assert.ok(markup.includes(pricingGuide.applicability));
-  for (const scope of Object.values(pricingGuide.scopes)) {
-    assert.ok(markup.includes(scope.description));
-  }
-  assert.match(markup, /Essential is not currently a selectable package/);
-  assert.doesNotMatch(markup, /Starting from|120 days|20–30%|Estimated completed build|Delivered package|\$(?:450–575|500–650|550–750|215–255|240–300|270–350)/);
+  assert.match(markup, /alternative incremental upgrade above Essential/);
+  assert.match(markup, /freight, import charges, tariffs and delivery\/unloading/);
+  assert.match(markup, /Applicable sales taxes are extra/);
+  assert.match(markup, /Land, foundations, assembly/);
+  assert.doesNotMatch(markup, /Essential is not currently|CAD \/ sq. ft.|\$150/);
 });
 
 test("every public home receives an enquiry link without a numerical model price", () => {
@@ -83,6 +69,11 @@ test("budget enquiries carry mixed selections without inventing a home tier or c
   const query = new URL(getConfigurationBudgetHref(definition, configuration), "https://housedelivery.ca");
   assert.equal(query.searchParams.get("model"), "saturna");
   assert.equal(query.searchParams.get("finish"), null);
+  const planner = new URL(getConfigurationPlannerHref(definition, configuration), "https://housedelivery.ca");
+  assert.equal(planner.pathname, "/pricing");
+  assert.equal(planner.hash, "#budget-planner");
+  assert.equal(planner.searchParams.get("model"), "saturna");
+  assert.equal(planner.searchParams.get("selections"), query.searchParams.get("selections"));
   const notes = getBudgetInquiryNotes(query.searchParams);
   assert.match(notes, /\(premium\)/);
   assert.match(notes, /\(signature\)/);

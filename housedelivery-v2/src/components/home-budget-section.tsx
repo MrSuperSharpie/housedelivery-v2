@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
 import { modelBudgetCopy } from "@/data/pricing";
-import { getBudgetInquiryHref } from "@/lib/budget-inquiry";
+import { getBudgetInquiryHref, getBudgetPlannerHref } from "@/lib/budget-inquiry";
 
 export function HomeBudgetSection({ model }: { model: string }) {
   return (
@@ -22,6 +22,7 @@ export function HomeBudgetSection({ model }: { model: string }) {
           View pricing guide
         </Link>
       </div>
+      <Link href={getBudgetPlannerHref({ model })} className="mt-5 inline-flex min-h-11 items-center border-b border-white/30 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/70 transition-colors hover:text-white">Open home budget planner</Link>
     </section>
   );
 }

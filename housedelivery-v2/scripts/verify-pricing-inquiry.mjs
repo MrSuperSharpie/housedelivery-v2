@@ -18,6 +18,60 @@ registerHooks({
 const { POST } = await import("../src/app/api/inquiries/route.ts");
 const { inquiryModels } = await import("../src/data/inquiry-models.ts");
 
+test("structured planner handoff validates all homes and confirms provider acceptance", async (context) => {
+  const previousKey = process.env.RESEND_API_KEY;
+  process.env.RESEND_API_KEY = "pricing-test-only";
+  const deliveries = [];
+  let providerResult = { id: "planner-test-message" };
+  let providerStatus = 200;
+  context.mock.method(globalThis, "fetch", async (url, init) => {
+    assert.equal(url, "https://api.resend.com/emails");
+    deliveries.push({ message: JSON.parse(init.body), key: init.headers["Idempotency-Key"] });
+    return Response.json(providerResult, { status: providerStatus });
+  });
+  const budgetProject = {
+    version: 1,
+    homes: [
+      { id: "a", modelId: "solace", quantity: 2, finish: "signature", selections: "Kitchen: Premium; bathroom: Signature" },
+      { id: "b", modelId: "carriage:willow-nook", quantity: 1, finish: "undecided", selections: "" },
+      { id: "c", modelId: "catalog:the-micro", quantity: 1, finish: "essential", selections: "" },
+    ], location: "QA site, BC", requests: ["accessibility", "offGrid"], details: "Review step-free access",
+  };
+  const body = { firstName: "Planner", lastName: "QA", email: "qa@example.com", model: "solace", location: budgetProject.location, budgetProject };
+  const send = (payload) => POST(new Request("http://localhost/api/inquiries", { method: "POST", body: JSON.stringify(payload) }));
+  try {
+    const accepted = await send(body);
+    assert.equal(accepted.status, 200);
+    assert.deepEqual(await accepted.json(), { accepted: true });
+    assert.match(deliveries[0].message.text, /Solace × 2/);
+    assert.match(deliveries[0].message.text, /The Willow Nook × 1/);
+    assert.match(deliveries[0].message.text, /The Micro × 1/);
+    assert.match(deliveries[0].message.text, /Kitchen: Premium; bathroom: Signature/);
+    assert.match(deliveries[0].message.text, /Review step-free access/);
+    assert.match(deliveries[0].message.text, /Off-grid needs/);
+    assert.match(deliveries[0].message.text, /Request package pricing/);
+    assert.doesNotMatch(deliveries[0].message.text, /\$/);
+    const changed = { ...body, budgetProject: { ...budgetProject, homes: budgetProject.homes.map((line, index) => index ? line : { ...line, finish: "premium" }) } };
+    assert.equal((await send(changed)).status, 200);
+    assert.notEqual(deliveries[0].key, deliveries[1].key);
+    for (const update of [
+      { homes: [{ ...budgetProject.homes[0], modelId: "unknown" }] },
+      { homes: [{ ...budgetProject.homes[0], quantity: 0 }] },
+      { homes: [{ ...budgetProject.homes[0], finish: ["premium", "signature"] }] },
+      { location: "Conflicting site" },
+    ]) assert.equal((await send({ ...body, budgetProject: { ...budgetProject, ...update } })).status, 400);
+    assert.equal((await send({ ...body, plannerContext: "Conflicting planner" })).status, 400);
+    assert.equal(deliveries.length, 2);
+    providerResult = {};
+    assert.equal((await send(body)).status, 502, "provider ID is required for success");
+    providerStatus = 500;
+    assert.equal((await send(body)).status, 502, "provider failure is not accepted");
+  } finally {
+    if (previousKey === undefined) delete process.env.RESEND_API_KEY;
+    else process.env.RESEND_API_KEY = previousKey;
+  }
+});
+
 test("budget enquiries accept each home family and retain finish details in the handoff", async (context) => {
   const previousKey = process.env.RESEND_API_KEY;
   process.env.RESEND_API_KEY = "pricing-test-only";

@@ -8,11 +8,14 @@ import { FormEvent, useRef, useState } from "react";
 import { HeadlineReveal } from "@/components/headline-reveal";
 import type { InquiryModel } from "@/data/inquiry-models";
 import { getBudgetInquiryNotes } from "@/lib/budget-inquiry";
+import type { HomeBudgetProject } from "@/lib/home-budget-planner";
 
 type ReservationFormProps = {
   models: readonly InquiryModel[];
   defaultModel?: string;
   defaultNotes?: string;
+  budgetProject?: HomeBudgetProject;
+  onBudgetLocationChange?: (location: string) => void;
 };
 
 type InquiryFormValues = {
@@ -50,8 +53,10 @@ export function ReservationFormFromQuery({ models }: ReservationFormProps) {
   return <ReservationForm key={`${defaultModel}:${defaultNotes}`} models={models} defaultModel={defaultModel} defaultNotes={defaultNotes} />;
 }
 
-export function ReservationForm({ models, defaultModel = "", defaultNotes = "" }: ReservationFormProps) {
+export function ReservationForm({ models, defaultModel = "", defaultNotes = "", budgetProject, onBudgetLocationChange }: ReservationFormProps) {
   const [submitted, setSubmitted] = useState(false);
+  const [submittedBudget, setSubmittedBudget] = useState<string | null>(null);
+  const budgetUnchanged = !budgetProject || submittedBudget === JSON.stringify(budgetProject);
   const [submitting, setSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState("");
   const submissionInFlight = useRef(false);
@@ -70,7 +75,7 @@ export function ReservationForm({ models, defaultModel = "", defaultNotes = "" }
       lastName: readFormValue(formData, "lastName"),
       email: readFormValue(formData, "email"),
       phone: readFormValue(formData, "phone"),
-      model: readFormValue(formData, "model"),
+      model: budgetProject?.homes[0].modelId ?? readFormValue(formData, "model"),
       location: readFormValue(formData, "location"),
       timeline: readFormValue(formData, "timeline"),
       notes: readFormValue(formData, "notes"),
@@ -84,7 +89,7 @@ export function ReservationForm({ models, defaultModel = "", defaultNotes = "" }
       const response = await fetch("/api/inquiries", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(inquiry),
+        body: JSON.stringify({ ...inquiry, ...(budgetProject ? { budgetProject: { ...budgetProject, location: inquiry.location } } : {}) }),
       });
 
       const result: unknown = await response.json().catch(() => null);
@@ -93,6 +98,7 @@ export function ReservationForm({ models, defaultModel = "", defaultNotes = "" }
         throw new Error("Inquiry delivery failed.");
       }
 
+      setSubmittedBudget(budgetProject ? JSON.stringify(budgetProject) : null);
       setSubmitted(true);
     } catch {
       setSubmissionError(
@@ -138,7 +144,7 @@ export function ReservationForm({ models, defaultModel = "", defaultNotes = "" }
 
         <div className="border-t border-black/25 pt-8">
           <AnimatePresence mode="wait">
-            {submitted ? (
+            {submitted && budgetUnchanged ? (
               <motion.div
                 key="success"
                 initial={{ opacity: 0, y: 16 }}
@@ -169,6 +175,7 @@ export function ReservationForm({ models, defaultModel = "", defaultNotes = "" }
                 onSubmit={handleSubmit}
                 className="grid gap-x-6 gap-y-8 sm:grid-cols-2"
               >
+                {submitted && !budgetUnchanged ? <p role="status" className="sm:col-span-2 text-sm leading-6">Your plan has changed since the last enquiry. Submit this form to send the updated selections.</p> : null}
                 <label className="form-field">
                   <span>First name</span>
                   <input name="firstName" autoComplete="given-name" required />
@@ -190,7 +197,13 @@ export function ReservationForm({ models, defaultModel = "", defaultNotes = "" }
                   <span>Phone</span>
                   <input type="tel" name="phone" autoComplete="tel" />
                 </label>
-                <label className="form-field sm:col-span-2">
+                {budgetProject ? (
+                  <div className="form-field sm:col-span-2">
+                    <span>Selected homes</span>
+                    <p className="text-sm leading-6">{budgetProject.homes.map((line) => `${models.find((home) => home.slug === line.modelId)?.name} × ${line.quantity}`).join("; ")}</p>
+                    <a href="#budget-homes" className="inline-flex min-h-11 items-center text-xs underline">Edit homes and selections in your planner</a>
+                  </div>
+                ) : <label className="form-field sm:col-span-2">
                   <span>Preferred model</span>
                   <select name="model" defaultValue={defaultModel}>
                     <option value="">Still exploring</option>
@@ -200,11 +213,13 @@ export function ReservationForm({ models, defaultModel = "", defaultNotes = "" }
                       </option>
                     ))}
                   </select>
-                </label>
+                </label>}
                 <label className="form-field">
                   <span>Project location</span>
                   <input
                     name="location"
+                    maxLength={160}
+                    {...(budgetProject ? { value: budgetProject.location, onChange: (event: React.ChangeEvent<HTMLInputElement>) => onBudgetLocationChange?.(event.target.value) } : {})}
                     placeholder="City, province"
                     autoComplete="address-level2"
                   />

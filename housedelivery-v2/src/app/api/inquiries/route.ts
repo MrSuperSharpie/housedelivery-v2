@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 
 import { inquiryModels } from "@/data/inquiry-models";
+import { formatHomeBudgetProject, parseHomeBudgetProject, type HomeBudgetProject } from "@/lib/home-budget-planner";
 import { getLookBookPublicOrigin } from "@/lib/lookbook/email";
 import {
   getLookBookRepository,
@@ -45,6 +46,7 @@ type InquiryPayload = {
   plannerReference?: unknown;
   plannerContext?: unknown;
   plannerRecord?: unknown;
+  budgetProject?: unknown;
 };
 
 type InquiryLogContext = {
@@ -229,6 +231,18 @@ export async function POST(request: Request) {
       reason: "invalid_model",
     });
     return jsonResponse({ error: "Invalid model selection." }, 400);
+  }
+
+  let budgetProject: HomeBudgetProject | undefined;
+  if (payload.budgetProject !== undefined) {
+    try {
+      budgetProject = parseHomeBudgetProject(payload.budgetProject);
+      if (payload.plannerRecord !== undefined || plannerContext || plannerProject || plannerReference || budgetProject.homes[0].modelId !== modelSlug || budgetProject.location !== location) {
+        throw new Error("Conflicting project context.");
+      }
+    } catch {
+      return jsonResponse({ error: "Invalid home budget project. Please review your selections." }, 400);
+    }
   }
 
   let plannerHandoff: PlannerProjectHandoff | undefined;
@@ -443,6 +457,7 @@ export async function POST(request: Request) {
         "",
         "Project details:",
         notes || "Not provided",
+        ...(budgetProject ? ["", formatHomeBudgetProject(budgetProject)] : []),
       ].join("\n");
 
   const idempotencyKey = plannerHandoff
@@ -461,6 +476,7 @@ export async function POST(request: Request) {
         plannerProject,
         plannerReference,
         plannerContext,
+        budgetProject,
       }),
     )
     .digest("hex")}`;

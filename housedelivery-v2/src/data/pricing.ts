@@ -1,55 +1,53 @@
-// Preliminary selling estimates for Preview review, not refreshed supplier
-// quotations or authorization to publish to Production. Never price a model
-// by multiplying these general ranges by its advertised area.
+// Shared public pricing policy. Approved model selling prices belong in package-pricing.ts.
 export const pricingGuide = {
   currency: "CAD",
-  reviewedOn: "2026-09-10",
-  reviewLabel: "September 10, 2026",
+  reviewedOn: "2026-09-11",
+  reviewLabel: "September 11, 2026",
   introduction:
-    "Indicative manufactured-package budgets for selected custom homes of approximately 2,000–6,000 sq. ft. range from $150–$250 CAD/sq. ft., depending on design and specification.",
+    "Start with your home design. Its base package includes Essential inclusions and finishes, with optional Premium or Signature upgrades.",
   applicability:
-    "These preliminary planning ranges are based on Lower Mainland specification assumptions. They are not model-specific quotations and do not apply automatically to ADUs, multiplexes or other regional requirements.",
+    "The base price depends on the design, size and structural complexity. Essential, Premium and Signature describe inclusions and finishes; the light-gauge steel structure and core engineered house do not change tier.",
   tierScopeNote:
-    "The tier ranges are alternative complete manufactured-package budgets, not upgrade charges to add to another base price.",
+    "Essential is included in the model’s base package. Choose Premium or Signature as an alternative incremental upgrade above Essential. Upgrades are never stacked or charged again for included products.",
   disclosure:
-    "Manufactured-package budgets exclude freight, insurance, import charges, delivery, applicable sales taxes, foundations, assembly, local trades, permits and site completion. Package inclusions and final pricing are confirmed for the selected design, specification and location.",
+    "The Delivered Home Package includes the agreed home package, freight, import charges, tariffs and delivery/unloading within the agreed site scope. Applicable sales taxes are extra. Land, foundations, assembly, Canadian trades, permits and local completion are separate. Prices require confirmed specifications, delivery destination and site access; entering a location alone does not calculate freight.",
   scopes: {
     manufactured: {
-      label: "Manufactured Package",
+      label: "Base Home Package",
       description:
-        "The selected housing system and specified supplied finishes.",
+        "Your selected design and structural package, including Essential inclusions and finishes. Premium or Signature upgrades are quoted above this base.",
     },
     delivery: {
-      label: "Delivery",
-      budgetLabel: "Calculated for your project location.",
+      label: "Delivered Home Package",
+      budgetLabel: "Request package pricing",
       description:
-        "Freight, importation and delivery are calculated for your actual project location.",
+        "The base package, any selected upgrade, freight, import charges, tariffs and agreed delivery/unloading. Specification, destination and access assumptions are confirmed with the quote; applicable sales taxes are extra.",
     },
     construction: {
-      label: "Local Construction",
+      label: "Assembly and local completion",
       budgetLabel: "Local builder quote required",
       description:
-        "Foundations, assembly, Canadian trades and site completion are priced for your specific property by the local builder/project team.",
+        "Foundations, assembly, Canadian trades, permits and site completion are priced for your specific property by the local builder/project team. Land is excluded. This is separate from the Delivered Home Package.",
     },
   },
   levels: [
     {
       id: "essential",
       name: "Essential",
-      description: "Attractive, durable materials and thoughtful finishes for everyday living.",
-      manufactured: [150, 180],
+      description: "The included products and finishes for your chosen model, confirmed in its specification.",
+      priceLabel: "Included in base",
     },
     {
       id: "premium",
       name: "Premium",
-      description: "A noticeable step up in materials, cabinetry, glazing and interior detailing.",
-      manufactured: [165, 205],
+      description: "An optional upgrade to selected windows, doors, flooring, cabinetry, countertops, bathrooms, hardware, cladding or appliances.",
+      priceLabel: "Upgrade quote required",
     },
     {
       id: "signature",
       name: "Signature",
-      description: "High-end materials and coordinated detailing for a distinctive custom home.",
-      manufactured: [190, 250],
+      description: "An alternative upgrade above Essential for your preferred inclusions and finishes. Signature does not add a second Premium charge.",
+      priceLabel: "Upgrade quote required",
     },
   ],
 } as const;
@@ -61,7 +59,3 @@ export const modelBudgetCopy =
 
 export const productionTimingCopy =
   "Factory production is typically 40–45 days after approved drawings and payment. Your overall schedule also depends on site readiness, shipping, Canadian completion work and inspections.";
-
-export function formatPricingRange(range: readonly [number, number]) {
-  return `$${range[0]}–${range[1]}`;
-}

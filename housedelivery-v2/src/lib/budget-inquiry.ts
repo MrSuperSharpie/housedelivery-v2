@@ -50,3 +50,15 @@ export function getConfigurationBudgetHref(
     selections: selections.length ? `Current design selections (subject to review):\n${selections.join("\n")}` : undefined,
   });
 }
+
+export function getBudgetPlannerHref({ model, selections }: { model?: string; selections?: string } = {}) {
+  const query = new URLSearchParams();
+  if (model) query.set("model", model);
+  if (selections) query.set("selections", selections);
+  return `/pricing${query.size ? `?${query.toString()}` : ""}#budget-planner`;
+}
+
+export function getConfigurationPlannerHref(definition: HomeConfiguratorDefinition, configuration: HomeConfiguration) {
+  const inquiry = new URL(getConfigurationBudgetHref(definition, configuration), "https://housedelivery.ca");
+  return getBudgetPlannerHref({ model: definition.homeId, selections: inquiry.searchParams.get("selections") ?? undefined });
+}
