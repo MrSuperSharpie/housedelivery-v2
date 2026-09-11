@@ -11,6 +11,7 @@ import { usePlannerHomeViewContext } from "@/lib/use-planner-home-view-context";
 
 const links = [
   { label: "Homes", href: "/#models" },
+  { label: "Pricing", href: "/pricing" },
   { label: "Inclusions", href: "/inclusions" },
   { label: "How it works", href: "/how-it-works" },
   { label: "First Nations", href: "/first-nations-inspired" },
@@ -60,7 +61,7 @@ export function SiteHeader({
           />
         </Link>
 
-        <nav className="hidden items-center gap-7 xl:flex" aria-label="Primary">
+        <nav className="hidden items-center gap-4 xl:flex 2xl:gap-7" aria-label="Primary">
           {links.map((link) => (
             <Link
               key={link.href}
@@ -75,7 +76,7 @@ export function SiteHeader({
         <div className="hidden items-center gap-5 xl:flex">
           <a
             href="mailto:hello@housedelivery.ca"
-            className="text-xs text-white/60 transition-colors hover:text-white"
+            className="hidden text-xs text-white/60 transition-colors hover:text-white 2xl:block"
           >
             hello@housedelivery.ca
           </a>
@@ -106,7 +107,7 @@ export function SiteHeader({
         className={cn(
           "overflow-hidden border-t border-white/10 bg-[#0b0c10] transition-[max-height,opacity] duration-300 xl:hidden",
           isOpen
-            ? "visible max-h-[32rem] opacity-100"
+            ? "visible max-h-[calc(100dvh-76px)] overflow-y-auto opacity-100"
             : "invisible max-h-0 opacity-0",
         )}
         aria-label="Mobile"

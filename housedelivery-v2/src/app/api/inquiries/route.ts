@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 
-import { models } from "@/data/models";
+import { inquiryModels } from "@/data/inquiry-models";
 import { getLookBookPublicOrigin } from "@/lib/lookbook/email";
 import {
   getLookBookRepository,
@@ -218,7 +218,7 @@ export async function POST(request: Request) {
   }
 
   const selectedModel = modelSlug
-    ? models.find((model) => model.slug === modelSlug)
+    ? inquiryModels.find((model) => model.slug === modelSlug)
     : undefined;
 
   if (modelSlug && !selectedModel) {

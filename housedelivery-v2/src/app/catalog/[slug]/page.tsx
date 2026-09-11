@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { HomeBudgetSection } from "@/components/home-budget-section";
 import { HeadlineReveal } from "@/components/headline-reveal";
 import { HomeDesignJourneyLink } from "@/components/inclusions-journey-links";
 import { RevealText } from "@/components/reveal-text";
@@ -187,6 +188,12 @@ export default async function CatalogDetailPage({
             </div>
           </div>
         </section>
+
+        <div className="px-5 pb-16 sm:px-8 lg:px-12">
+          <div className="mx-auto max-w-[1504px]">
+            <HomeBudgetSection model={`catalog:${model.slug}`} />
+          </div>
+        </div>
 
         {/* Editorial description */}
         <section className="border-t border-white/10 px-5 py-28 sm:px-8 lg:px-12 lg:py-40">

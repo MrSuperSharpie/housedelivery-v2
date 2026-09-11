@@ -1,5 +1,7 @@
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
+
+import { productionTimingCopy } from "@/data/pricing";
 import Link from "next/link";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
@@ -503,9 +505,8 @@ export function HomeownerJourney() {
                     While site work progresses locally, the coordinated House
                     Delivery package can be prepared in parallel.
                   </p>
-                  <p className="mt-5 text-xs leading-6 text-white/34">
-                    The actual sequence is established after site, approval and
-                    procurement requirements are understood.
+                  <p className="mt-5 text-sm leading-7 text-white/65">
+                    {productionTimingCopy}
                   </p>
                 </div>
               </div>

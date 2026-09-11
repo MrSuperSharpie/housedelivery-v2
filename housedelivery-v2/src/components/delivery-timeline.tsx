@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { productionTimingCopy } from "@/data/pricing";
+
 import { RevealText } from "@/components/reveal-text";
 
 const milestones = [
@@ -143,10 +145,8 @@ export function DeliveryTimeline({
           </ol>
 
           <div className="mt-8 flex flex-col items-start gap-6 sm:flex-row sm:items-end sm:justify-between">
-            <p className="max-w-3xl text-xs leading-6 text-white/32">
-              Indicative project timing is established after site, design,
-              approval and procurement requirements are understood.
-              Workstreams may overlap.
+            <p className="max-w-3xl text-sm leading-7 text-white/65">
+              {productionTimingCopy}
             </p>
             {journeyHref ? (
               <Link

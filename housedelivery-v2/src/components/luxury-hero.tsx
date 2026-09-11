@@ -131,7 +131,7 @@ export function LuxuryHero({
 
         <div className="grid grid-cols-12 border-t border-white/25">
           {[
-            ["~120", "Days to delivery"],
+            ["One", "Coordinated home system"],
             ["13", "Architectural homes"],
             ["Built", "For belonging"],
           ].map(([value, label]) => (

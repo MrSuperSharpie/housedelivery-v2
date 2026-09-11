@@ -2,13 +2,17 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Check, ShieldCheck } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { FormEvent, useRef, useState } from "react";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
-import type { HomeModel } from "@/data/models";
+import type { InquiryModel } from "@/data/inquiry-models";
+import { getBudgetInquiryNotes } from "@/lib/budget-inquiry";
 
 type ReservationFormProps = {
-  models: readonly HomeModel[];
+  models: readonly InquiryModel[];
+  defaultModel?: string;
+  defaultNotes?: string;
 };
 
 type InquiryFormValues = {
@@ -37,7 +41,16 @@ function isAcceptedInquiryResponse(value: unknown): value is { accepted: true } 
   );
 }
 
-export function ReservationForm({ models }: ReservationFormProps) {
+export function ReservationFormFromQuery({ models }: ReservationFormProps) {
+  const searchParams = useSearchParams();
+  const query = new URLSearchParams(searchParams.toString());
+  const defaultModel = models.find((model) => model.slug === query.get("model"))?.slug ?? "";
+  const defaultNotes = getBudgetInquiryNotes(query);
+
+  return <ReservationForm key={`${defaultModel}:${defaultNotes}`} models={models} defaultModel={defaultModel} defaultNotes={defaultNotes} />;
+}
+
+export function ReservationForm({ models, defaultModel = "", defaultNotes = "" }: ReservationFormProps) {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState("");
@@ -179,11 +192,11 @@ export function ReservationForm({ models }: ReservationFormProps) {
                 </label>
                 <label className="form-field sm:col-span-2">
                   <span>Preferred model</span>
-                  <select name="model" defaultValue="">
+                  <select name="model" defaultValue={defaultModel}>
                     <option value="">Still exploring</option>
                     {models.map((model) => (
                       <option key={model.slug} value={model.slug}>
-                        {model.name} — {model.squareFeet.toLocaleString()} sq. ft.
+                        {model.name}{model.squareFeet ? ` — ${model.squareFeet.toLocaleString()} sq. ft.` : ""}
                       </option>
                     ))}
                   </select>
@@ -212,6 +225,7 @@ export function ReservationForm({ models }: ReservationFormProps) {
                   <span>What should we know?</span>
                   <textarea
                     name="notes"
+                    defaultValue={defaultNotes}
                     rows={3}
                     placeholder="Land status, project goals, permit or financing questions…"
                   />

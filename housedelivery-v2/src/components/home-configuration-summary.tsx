@@ -1,5 +1,8 @@
 import { Check, ChevronDown } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
+
+import { getConfigurationBudgetHref } from "@/lib/budget-inquiry";
 
 import {
   getHomeConfiguratorJourneyCategories,
@@ -160,6 +163,16 @@ export function HomeConfigurationSummary({
     : undefined;
   const visualBriefImage =
     visualBriefOption?.image ?? definition.architecturalImages[0];
+  const budgetLinks = (
+    <div className="mt-6 space-y-3 border-t border-black/15 pt-5">
+      <Link href={getConfigurationBudgetHref(definition, configuration)} className="flex min-h-11 items-center text-xs font-semibold text-black/80 underline underline-offset-4">
+        Get a site-specific budget
+      </Link>
+      <Link href="/pricing" className="flex min-h-11 items-center text-xs text-black/65 underline underline-offset-4">
+        View pricing guide
+      </Link>
+    </div>
+  );
 
   if (variant === "compact") {
     return (
@@ -188,6 +201,7 @@ export function HomeConfigurationSummary({
             configuration={configuration}
             directSourceImages={directSourceImages}
           />
+          {budgetLinks}
         </div>
       </details>
     );
@@ -247,6 +261,7 @@ export function HomeConfigurationSummary({
         complete. Final products and availability are confirmed during project
         review.
       </p>
+      {budgetLinks}
     </aside>
   );
 }

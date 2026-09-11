@@ -408,6 +408,9 @@ export function ModelShowcase({
                     </dd>
                   </div>
                 </dl>
+                <Link href="/pricing" className="relative z-20 mt-5 inline-flex min-h-11 w-fit items-center text-[9px] font-semibold uppercase tracking-[0.16em] text-white/60 underline underline-offset-4 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
+                  View pricing guide
+                </Link>
                 </motion.article>
               );
             })}

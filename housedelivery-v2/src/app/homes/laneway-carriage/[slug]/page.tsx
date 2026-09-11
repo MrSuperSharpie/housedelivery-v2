@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 
 import { CarriageEditorialGallery } from "@/components/carriage-editorial-gallery";
 import { CarriageHomeDetailHero } from "@/components/carriage-home-detail-hero";
+import { HomeBudgetSection } from "@/components/home-budget-section";
 import { HeadlineReveal } from "@/components/headline-reveal";
 import { HomeFloorPlanViewer } from "@/components/home-floor-plan-viewer";
 import { HomeDesignJourneyLink } from "@/components/inclusions-journey-links";
@@ -181,6 +182,12 @@ export default async function CarriageHomeDetailPage({
             </div>
           </div>
         </section>
+
+        <div className="px-5 pb-16 sm:px-8 lg:px-12">
+          <div className="mx-auto max-w-[1504px]">
+            <HomeBudgetSection model={`carriage:${model.slug}`} />
+          </div>
+        </div>
 
         <CarriageEditorialGallery
           model={model}

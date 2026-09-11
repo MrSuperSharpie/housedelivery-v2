@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+
 import { CarriageHomeShowcase } from "@/components/carriage-home-showcase";
 import { DeliveryTimeline } from "@/components/delivery-timeline";
 import { FinancialCorridors } from "@/components/financial-corridors";
@@ -10,9 +12,14 @@ import { LuxuryHero } from "@/components/luxury-hero";
 import { ModelShowcase } from "@/components/model-showcase";
 import { PortfolioCategoryNav } from "@/components/portfolio-category-nav";
 import { PreApprovedShowcase } from "@/components/pre-approved-showcase";
-import { ReservationForm } from "@/components/reservation-form";
+import {
+  ReservationForm,
+  ReservationFormFromQuery,
+} from "@/components/reservation-form";
+import { PricingIntroduction } from "@/components/pricing-introduction";
 import { SiteHeader } from "@/components/site-header";
 import { FundingValueSection } from "@/components/why-house-delivery-section";
+import { inquiryModels } from "@/data/inquiry-models";
 import { models } from "@/data/models";
 
 export default function Home() {
@@ -40,6 +47,7 @@ export default function Home() {
           introCopy="Each residence begins as a coordinated architectural system and is adapted to your land, local requirements, climate, priorities, and chosen level of finish."
           valueCopy="Begin with a proven design. Shape it around the life, land, and budget it needs to serve."
         />
+        <PricingIntroduction />
         <CarriageHomeShowcase />
         <PreApprovedShowcase />
         {langley?.video ? (
@@ -59,7 +67,9 @@ export default function Home() {
           journeyHref="/how-it-works"
         />
         <FinancialCorridors />
-        <ReservationForm models={models} />
+        <Suspense fallback={<ReservationForm models={inquiryModels} />}>
+          <ReservationFormFromQuery models={inquiryModels} />
+        </Suspense>
       </main>
     </>
   );

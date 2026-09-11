@@ -5,6 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
+import { HomeBudgetSection } from "@/components/home-budget-section";
 import { HeadlineReveal } from "@/components/headline-reveal";
 import { HomeConfigurator } from "@/components/home-configurator";
 import { HomeDesignToolCallout } from "@/components/home-design-tool-callout";
@@ -255,6 +256,8 @@ export default async function HomeDetailPage({
               </p>
               <p>Site engineering required</p>
             </div>
+
+            <HomeBudgetSection model={model.slug} />
 
             <HomeDesignToolCallout
               homeName={designToolDiscovery.homeName}
