@@ -4,19 +4,15 @@ import type {
   HomeInclusionLevel,
 } from "@/data/home-configurator";
 
-export const solaceAreaSquareFeet = 5_405;
-export const solacePricing = {
+export const homePricing = {
   premium: { label: "Premium", rate: 225 },
   signature: { label: "Signature", rate: 275 },
 } as const;
 
-export function getSolaceTierDefinition(
+export function getHomeTierDefinition(
   definition: HomeConfiguratorDefinition,
   tier: HomeInclusionLevel,
 ): HomeConfiguratorDefinition {
-  if (definition.homeId !== "solace") {
-    throw new Error("Solace tiers apply only to Solace.");
-  }
   return {
     ...definition,
     categories: definition.categories.map((category) => {
@@ -40,12 +36,12 @@ export function getSolaceTierDefinition(
 
 // Saved project choices must obey the selected tier too. Removing an incompatible
 // choice invalidates completion so it cannot survive in the summary or Look Book.
-export function applySolaceTier(
+export function applyHomeTier(
   definition: HomeConfiguratorDefinition,
   configuration: HomeConfiguration,
 ): HomeConfiguration {
-  if (definition.homeId !== "solace" || configuration.homeId !== "solace") {
-    throw new Error("Solace tiers apply only to Solace.");
+  if (definition.homeId !== configuration.homeId) {
+    throw new Error("The configuration must belong to the selected home.");
   }
   const inclusionSelections: HomeConfiguration["inclusionSelections"] = {};
   const flooringSelections: HomeConfiguration["flooringSelections"] = {};

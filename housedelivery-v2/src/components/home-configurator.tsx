@@ -26,7 +26,7 @@ import {
   type HomeSelectableInclusionCategory,
   type HomeInclusionLevel,
 } from "@/data/home-configurator";
-import { applySolaceTier, getSolaceTierDefinition, solacePricing } from "@/data/solace-pricing";
+import { applyHomeTier, getHomeTierDefinition, homePricing } from "@/data/home-pricing";
 import {
   createLookBookReference,
   type LookBookCustomer,
@@ -47,7 +47,7 @@ import {
 type HomeConfiguratorProps = {
   definition: HomeConfiguratorDefinition;
   directSourceImages?: boolean;
-  solaceTier?: HomeInclusionLevel;
+  inclusionTier?: HomeInclusionLevel;
 };
 
 type HomeImagePreviewTarget = {
@@ -205,28 +205,29 @@ function PlannerDesignContext({
   );
 }
 
-export function SolaceConfigurator(props: Omit<HomeConfiguratorProps, "solaceTier">) {
+export function TieredHomeConfigurator(props: Omit<HomeConfiguratorProps, "inclusionTier">) {
   const searchParams = useSearchParams();
-  const value = searchParams.get("solaceTier");
+  const value = searchParams.get("inclusionTier") ??
+    (props.definition.homeId === "solace" ? searchParams.get("solaceTier") : null);
   const tier = value === "premium" || value === "signature" ? value : undefined;
-  return <HomeConfigurator key={tier ?? "default"} {...props} solaceTier={tier} />;
+  return <HomeConfigurator key={tier ?? "default"} {...props} inclusionTier={tier} />;
 }
 
 export function HomeConfigurator({
   definition: originalDefinition,
   directSourceImages = false,
-  solaceTier,
+  inclusionTier,
 }: HomeConfiguratorProps) {
-  const selectedTier = originalDefinition.homeId === "solace" ? solaceTier : undefined;
+  const selectedTier = inclusionTier;
   const definition = useMemo(
-    () => selectedTier ? getSolaceTierDefinition(originalDefinition, selectedTier) : originalDefinition,
+    () => selectedTier ? getHomeTierDefinition(originalDefinition, selectedTier) : originalDefinition,
     [originalDefinition, selectedTier],
   );
   const useDirectSourceImages =
     directSourceImages || hasDesignBoardImages(definition);
   const [configuration, setConfiguration] = useState<HomeConfiguration>(() => {
     const initial = createDefaultHomeConfiguration(originalDefinition);
-    return selectedTier ? applySolaceTier(definition, initial) : initial;
+    return selectedTier ? applyHomeTier(definition, initial) : initial;
   });
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(
     () => getHomeConfiguratorJourneyCategories(definition)[0]?.id ?? null,
@@ -300,7 +301,7 @@ export function HomeConfigurator({
                 : {}),
             };
             setConfiguration(selectedTier
-              ? applySolaceTier(definition, restoredConfiguration)
+              ? applyHomeTier(definition, restoredConfiguration)
               : restoredConfiguration);
           }
         } else if (session.culturalExteriorInterest !== undefined) {
@@ -876,7 +877,7 @@ export function HomeConfigurator({
                 {requiredCategories.length} controlled choices. Start with the
                 kitchen, then move through the major spaces and finishes that
                 define your {definition.homeName}. {selectedTier
-                  ? `Your ${solacePricing[selectedTier].label} selection shows only ${solacePricing[selectedTier].label} options.`
+                  ? `Your ${homePricing[selectedTier].label} selection shows only ${homePricing[selectedTier].label} options.`
                   : "Begin with the Premium baseline and selectively choose Signature upgrades."}
               </p>
               <p className="mt-5 border-t border-white/12 pt-5 text-[10px] leading-5 text-white/50">
