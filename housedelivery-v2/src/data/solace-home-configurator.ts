@@ -1,3 +1,4 @@
+import { createLookBookDirections } from "@/data/look-book-directions";
 import type {
   HomeConfiguratorDefinition,
   HomeFlooringZone,
@@ -786,43 +787,34 @@ type SolaceVisualGuideChapter = {
   represents: readonly string[];
   materialRole: string;
   technicalNote?: string;
-  optionNames?: readonly [string, string, string, string];
 };
 
-const solaceVisualGuidePackages = [
+const solaceVisualGuidePackages: readonly SolaceVisualGuidePackage[] = createLookBookDirections([
   {
-    level: "premium",
-    optionNumber: "1",
     name: "Coastal Light Oak",
     filenameLabel: "Coastal-Light-Oak",
     descriptors: ["Coastal", "Luminous", "Natural"],
     storyFragments: ["pale natural oak", "a light, quietly layered palette"],
   },
   {
-    level: "premium",
-    optionNumber: "2",
     name: "Soft White",
     filenameLabel: "Soft-White",
     descriptors: ["Soft", "Calm", "Refined"],
     storyFragments: ["soft white surfaces", "restrained architectural detail"],
   },
   {
-    level: "signature",
-    optionNumber: "1",
     name: "Stone Wrapped Oak",
     filenameLabel: "Stone-Wrapped-Oak",
     descriptors: ["Layered", "Grounded", "Architectural"],
     storyFragments: ["expressive stone", "warm, enveloping oak"],
   },
   {
-    level: "signature",
-    optionNumber: "2",
     name: "Sculpted White",
     filenameLabel: "Sculpted-White",
     descriptors: ["Sculptural", "Luminous", "Polished"],
     storyFragments: ["sculpted pale surfaces", "precise tonal detailing"],
   },
-] as const satisfies readonly SolaceVisualGuidePackage[];
+] as const);
 
 function createSolaceVisualGuideChapter(
   source: SolaceVisualGuideChapter,
@@ -836,8 +828,8 @@ function createSolaceVisualGuideChapter(
     description: source.description,
     represents: source.represents,
     technicalNote: source.technicalNote,
-    options: solaceVisualGuidePackages.map((designPackage, index) => {
-      const name = source.optionNames?.[index] ?? designPackage.name;
+    options: solaceVisualGuidePackages.map((designPackage) => {
+      const name = designPackage.name;
 
       return {
         id: `${source.id}-${designPackage.level}-${designPackage.optionNumber}`,
@@ -952,12 +944,6 @@ const solaceVisualGuideChapters = [
     materialRole: "Exterior expression",
     technicalNote:
       "This selection changes finishes and appearance only. The Solace footprint, roof geometry, window placement and architectural massing remain unchanged.",
-    optionNames: [
-      "Warm White",
-      "Soft White",
-      "Stone Wrapped Oak",
-      "Sculpted White",
-    ],
   }),
   createSolaceVisualGuideChapter({
     id: "whole-home-flooring-stairs",
@@ -1010,7 +996,7 @@ const solaceAppliances = {
 } as const;
 
 export const solaceHomeConfigurator: HomeConfiguratorDefinition = {
-  configurationVersion: 4,
+  configurationVersion: 5,
   homeId: solaceModel.slug,
   homeName: "Solace",
   residenceLabel: "Solace House",

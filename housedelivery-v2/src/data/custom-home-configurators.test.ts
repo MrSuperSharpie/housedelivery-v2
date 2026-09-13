@@ -367,7 +367,7 @@ test("Keats House preserves its approved gallery alongside its Visual Guide", ()
   );
 });
 
-test("the next eight Custom Homes wire all 224 approved Visual Guide boards", () => {
+test("the next eight Custom Homes wire all approved Visual Guide boards", () => {
   const allImageSources = new Set<string>();
 
   for (const home of newVisualGuideHomes) {
@@ -397,13 +397,15 @@ test("the next eight Custom Homes wire all 224 approved Visual Guide boards", ()
 
       assert.deepEqual(
         category.options.map((option) => option.name),
-        home.packageNames,
+        home.id === "canmore" ? [...home.packageNames, ...home.packageNames] : home.packageNames,
       );
       assert.deepEqual(
         category.options.map(
           (option) => `${option.level}:${option.optionNumber}`,
         ),
-        ["premium:1", "premium:2", "signature:1", "signature:2"],
+        home.id === "canmore"
+          ? ["premium:1", "premium:2", "premium:3", "premium:4", "signature:1", "signature:2", "signature:3", "signature:4"]
+          : ["premium:1", "premium:2", "signature:1", "signature:2"],
       );
 
       for (const option of category.options) {
@@ -428,13 +430,13 @@ test("the next eight Custom Homes wire all 224 approved Visual Guide boards", ()
       }
     }
 
-    assert.equal(homeImageSources.size, 28, `${home.id} must use 28 boards`);
+    assert.equal(homeImageSources.size, home.id === "canmore" ? 56 : 28);
     const approvedAssets = readdirSync(
       join(process.cwd(), "public", home.assetRoot.replace(/^\//, "")),
     )
       .filter((filename) => filename.endsWith(".png"))
       .sort();
-    assert.equal(approvedAssets.length, 28);
+    assert.equal(approvedAssets.length, home.id === "canmore" ? 56 : 28);
     assert.deepEqual(
       [...homeImageSources].map((source) => basename(source)).sort(),
       approvedAssets,
@@ -446,7 +448,7 @@ test("the next eight Custom Homes wire all 224 approved Visual Guide boards", ()
     );
   }
 
-  assert.equal(allImageSources.size, 224);
+  assert.equal(allImageSources.size, 252);
 });
 
 test("the family policy locks finish-only personalization and optional smaller-home chapters", () => {
@@ -601,14 +603,18 @@ test("Solace uses exactly seven approved visual-guide chapters", () => {
     assert.equal(category.kind, "room-look");
     if (category.kind !== "room-look") continue;
 
-    assert.equal(category.options.length, 4);
+    assert.equal(category.options.length, 8);
     assert.deepEqual(
       category.options.map((option) => [option.level, option.optionNumber]),
       [
         ["premium", "1"],
         ["premium", "2"],
+        ["premium", "3"],
+        ["premium", "4"],
         ["signature", "1"],
         ["signature", "2"],
+        ["signature", "3"],
+        ["signature", "4"],
       ],
     );
     assert.ok(category.options.every((option) => option.image.fit === "contain"));
@@ -636,7 +642,7 @@ test("Solace uses exactly seven approved visual-guide chapters", () => {
   const approvedAssets = readdirSync(assetDirectory)
     .filter((filename) => filename.endsWith(".png"))
     .sort();
-  assert.equal(approvedAssets.length, 28);
+  assert.equal(approvedAssets.length, 56);
   assert.deepEqual(referencedAssets.toSorted(), approvedAssets);
 
   const selectionSectionIds = new Set(
@@ -767,7 +773,7 @@ test("Langley uses all 28 approved Visual Guide boards in seven chapters", () =>
   );
 });
 
-test("South Bay uses all 28 approved Visual Guide boards in seven chapters", () => {
+test("South Bay uses all 56 approved Visual Guide boards in seven chapters", () => {
   const definition = getHomeConfiguratorDefinition("south-bay");
   assert.ok(definition);
   const requiredCategories = getRequiredCategories(definition);
@@ -812,19 +818,23 @@ test("South Bay uses all 28 approved Visual Guide boards in seven chapters", () 
     assert.equal(category.kind, "room-look");
     if (category.kind !== "room-look") continue;
 
-    assert.equal(category.options.length, 4);
+    assert.equal(category.options.length, 8);
     assert.deepEqual(
       category.options.map((option) => [option.level, option.optionNumber]),
       [
         ["premium", "1"],
         ["premium", "2"],
+        ["premium", "3"],
+        ["premium", "4"],
         ["signature", "1"],
         ["signature", "2"],
+        ["signature", "3"],
+        ["signature", "4"],
       ],
     );
     assert.deepEqual(
       category.options.map((option) => option.name),
-      expectedOptionNames,
+      [...expectedOptionNames, ...expectedOptionNames],
     );
     assert.ok(
       category.options.every(
@@ -849,8 +859,8 @@ test("South Bay uses all 28 approved Visual Guide boards in seven chapters", () 
   const approvedAssets = readdirSync(assetDirectory)
     .filter((filename) => filename.endsWith(".png"))
     .sort();
-  assert.equal(approvedAssets.length, 28);
-  assert.equal(referencedAssets.length, 28);
+  assert.equal(approvedAssets.length, 56);
+  assert.equal(referencedAssets.length, 56);
   assert.deepEqual(referencedAssets.toSorted(), approvedAssets);
 
   const coordinated = getProjectCoordinatedCategories(definition);
@@ -1464,7 +1474,7 @@ test("Saturna remains on its dedicated seven-chapter Look Book", () => {
     assert.equal(category.kind, "room-look");
     if (category.kind !== "room-look") continue;
 
-    assert.equal(category.options.length, 4);
+    assert.equal(category.options.length, 8);
     assert.ok(category.options.every((option) => option.image.fit === "contain"));
     assert.ok(
       category.options.every((option) =>

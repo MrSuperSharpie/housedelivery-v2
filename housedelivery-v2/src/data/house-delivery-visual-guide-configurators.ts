@@ -1,3 +1,4 @@
+import { createLookBookDirections } from "@/data/look-book-directions";
 import type {
   HomeConfiguratorDefinition,
   HomeInclusionLevel,
@@ -12,12 +13,13 @@ import { models } from "@/data/models";
 
 type PackageSource = {
   level: HomeInclusionLevel;
-  optionNumber: "1" | "2";
+  optionNumber: string;
   name: string;
   filenameLabel: string;
 };
 
 type HomeSource = {
+  configurationVersion?: number;
   modelSlug: string;
   homeName: string;
   residenceLabel: string;
@@ -342,7 +344,7 @@ function createHomeConfigurator(source: HomeSource): HomeConfiguratorDefinition 
   } as const;
 
   return {
-    configurationVersion: 4,
+    configurationVersion: source.configurationVersion ?? 4,
     homeId: model.slug,
     homeName: source.homeName,
     residenceLabel: source.residenceLabel,
@@ -497,17 +499,18 @@ export const borealHomeConfigurator = createHomeConfigurator({
 });
 
 export const canmoreHomeConfigurator = createHomeConfigurator({
+  configurationVersion: 5,
   modelSlug: "canmore",
   homeName: "Canmore",
   residenceLabel: "Canmore House",
   assetHomeName: "Canmore",
   assetRoot: "/images/homes/canmore/visual-guide",
-  packages: packages(
-    ["Hearth Oak", "Hearth-Oak"],
-    ["Mineral Linen", "Mineral-Linen"],
-    ["Carbon Ridge", "Carbon-Ridge"],
-    ["Bronze Walnut", "Bronze-Walnut"],
-  ),
+  packages: createLookBookDirections([
+    { name: "Hearth Oak", filenameLabel: "Hearth-Oak" },
+    { name: "Mineral Linen", filenameLabel: "Mineral-Linen" },
+    { name: "Carbon Ridge", filenameLabel: "Carbon-Ridge" },
+    { name: "Bronze Walnut", filenameLabel: "Bronze-Walnut" },
+  ]),
 });
 
 export const cascadeHomeConfigurator = createHomeConfigurator({

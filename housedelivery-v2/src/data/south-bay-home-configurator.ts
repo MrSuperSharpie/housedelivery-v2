@@ -1,3 +1,4 @@
+import { createLookBookDirections } from "@/data/look-book-directions";
 import type {
   HomeConfiguratorDefinition,
   HomeInclusionLevel,
@@ -33,40 +34,32 @@ type ChapterSource = {
   technicalNote?: string;
 };
 
-const packageDirections = [
+const packageDirections = createLookBookDirections([
   {
-    level: "premium",
-    optionNumber: "1",
     name: "Shoreline Oak",
     filenameLabel: "Shoreline-Oak",
     descriptors: ["Shoreline", "Natural", "Warm"],
     storyFragments: ["shoreline oak", "a warm, naturally layered palette"],
   },
   {
-    level: "premium",
-    optionNumber: "2",
     name: "Mist Linen",
     filenameLabel: "Mist-Linen",
     descriptors: ["Mist", "Linen", "Soft"],
     storyFragments: ["mist-toned surfaces", "soft linen texture"],
   },
   {
-    level: "signature",
-    optionNumber: "1",
     name: "Basalt Frame",
     filenameLabel: "Basalt-Frame",
     descriptors: ["Basalt", "Defined", "Architectural"],
     storyFragments: ["basalt contrast", "a defined architectural frame"],
   },
   {
-    level: "signature",
-    optionNumber: "2",
     name: "Cove Bronze",
     filenameLabel: "Cove-Bronze",
     descriptors: ["Cove", "Bronze", "Polished"],
     storyFragments: ["quiet cove tones", "polished bronze detailing"],
   },
-] as const satisfies readonly PackageSource[];
+] as const);
 
 function createOption(
   chapter: Pick<ChapterSource, "id" | "title" | "assetPrefix" | "materialRole">,
@@ -329,7 +322,7 @@ if (!southBayModel) {
 }
 
 export const southBayHomeConfigurator: HomeConfiguratorDefinition = {
-  configurationVersion: 4,
+  configurationVersion: 5,
   homeId: southBayModel.slug,
   homeName: "South Bay",
   residenceLabel: "South Bay House",

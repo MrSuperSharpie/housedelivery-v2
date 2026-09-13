@@ -1,3 +1,4 @@
+import { createLookBookDirections } from "@/data/look-book-directions";
 import type {
   HomeConfiguratorDefinition,
   HomeInclusionLevel,
@@ -72,37 +73,34 @@ function createChapter(source: ChapterSource): HomeRoomLookCategory {
 
 const sharedPackageDirections = [
   {
-    level: "premium",
-    optionNumber: "1",
     name: "Warm Modern",
     descriptors: ["Warm", "Layered", "Architectural"],
     storyFragments: ["warm timber tones", "soft mineral surfaces"],
   },
   {
-    level: "premium",
-    optionNumber: "2",
     name: "Contemporary Cool",
     descriptors: ["Crisp", "Defined", "Contemporary"],
     storyFragments: ["cooler architectural contrast", "precise modern detailing"],
   },
   {
-    level: "signature",
-    optionNumber: "1",
     name: "Scandi Natural",
     descriptors: ["Natural", "Luminous", "Quiet"],
     storyFragments: ["a light natural palette", "restrained tactile texture"],
   },
   {
-    level: "signature",
-    optionNumber: "2",
     name: "Modern Earth",
     descriptors: ["Grounded", "Tactile", "Composed"],
     storyFragments: ["grounded earth tones", "rich natural texture"],
   },
 ] as const;
 
-function sharedOptions(prefix: string): readonly PackageSource[] {
-  return sharedPackageDirections.map((option) => ({
+type Direction = Pick<PackageSource, "name" | "descriptors" | "storyFragments">;
+
+function sharedOptions(
+  prefix: string,
+  directions: readonly [Direction, Direction, Direction, Direction] = sharedPackageDirections,
+): readonly PackageSource[] {
+  return createLookBookDirections(directions).map((option) => ({
     ...option,
     filename: `${prefix}_${option.level === "premium" ? "Premium" : "Signature"}-${option.optionNumber}_${option.name.replaceAll(" ", "-")}.png`,
   }));
@@ -110,100 +108,68 @@ function sharedOptions(prefix: string): readonly PackageSource[] {
 
 const kitchenOptions = [
   {
-    level: "premium",
-    optionNumber: "1",
     name: "Warm Modern",
-    filename: "Saturna_01_Kitchen_Premium-1_Warm-Modern.png",
     descriptors: ["Warm", "Layered", "Architectural"],
     storyFragments: ["warm timber tones", "softly expressive stone"],
   },
   {
-    level: "premium",
-    optionNumber: "2",
     name: "Contemporary Luxe",
-    filename: "Saturna_01_Kitchen_Premium-2_Contemporary-Luxe.png",
     descriptors: ["Polished", "Defined", "Contemporary"],
     storyFragments: ["precise contemporary detailing", "a refined surface palette"],
   },
   {
-    level: "signature",
-    optionNumber: "1",
     name: "Scandi Light",
-    filename: "Saturna_01_Kitchen_Signature-1_Scandi-Light.png",
     descriptors: ["Luminous", "Natural", "Quiet"],
     storyFragments: ["a soft, light-filled palette", "restrained natural texture"],
   },
   {
-    level: "signature",
-    optionNumber: "2",
     name: "Modern Earth",
-    filename: "Saturna_01_Kitchen_Signature-2_Modern-Earth.png",
     descriptors: ["Grounded", "Tactile", "Composed"],
     storyFragments: ["grounded earth tones", "rich tactile surfaces"],
   },
-] as const satisfies readonly PackageSource[];
+] as const;
 
 const ensuiteOptions = [
   {
-    level: "premium",
-    optionNumber: "1",
     name: "Coastal Calm",
-    filename: "Saturna_02_Primary-Ensuite_Premium-1_Coastal-Calm.png",
     descriptors: ["Calm", "Luminous", "Restorative"],
     storyFragments: ["a soft coastal palette", "quietly restorative surfaces"],
   },
   {
-    level: "premium",
-    optionNumber: "2",
     name: "Urban Luxe",
-    filename: "Saturna_02_Primary-Ensuite_Premium-2_Urban-Luxe.png",
     descriptors: ["Tailored", "Defined", "Polished"],
     storyFragments: ["tailored urban contrast", "polished architectural detail"],
   },
   {
-    level: "signature",
-    optionNumber: "1",
     name: "Warm Natural",
-    filename: "Saturna_02_Primary-Ensuite_Signature-1_Warm-Natural.png",
     descriptors: ["Warm", "Natural", "Tactile"],
     storyFragments: ["warm natural stone", "a grounded spa atmosphere"],
   },
   {
-    level: "signature",
-    optionNumber: "2",
     name: "Modern Cool",
-    filename: "Saturna_02_Primary-Ensuite_Signature-2_Modern-Cool.png",
     descriptors: ["Cool", "Crisp", "Contemporary"],
     storyFragments: ["cool mineral tones", "crisp modern definition"],
   },
-] as const satisfies readonly PackageSource[];
+] as const;
 
 const wardrobeOptions = [
   {
     ...sharedPackageDirections[0],
-    filename: "Saturna_03_Primary-Wardrobe_Premium-1_Warm-Modern.png",
   },
   {
-    level: "premium",
-    optionNumber: "2",
     name: "Contemporary Luxe",
-    filename: "Saturna_03_Primary-Wardrobe_Premium-2_Contemporary-Luxe.png",
     descriptors: ["Tailored", "Polished", "Contemporary"],
     storyFragments: ["tailored millwork", "precise contemporary detailing"],
   },
   {
-    level: "signature",
-    optionNumber: "1",
     name: "Scandi Light",
-    filename: "Saturna_03_Primary-Wardrobe_Signature-1_Scandi-Light.png",
     descriptors: ["Light", "Natural", "Ordered"],
     storyFragments: ["light natural millwork", "quietly ordered storage"],
   },
   {
     ...sharedPackageDirections[3],
-    filename: "Saturna_03_Primary-Wardrobe_Signature-2_Modern-Earth.png",
   },
-] as const satisfies readonly PackageSource[];
+] as const;
 
 const chapters = [
   createChapter({
@@ -222,7 +188,7 @@ const chapters = [
       "Decorative lighting / pendants",
     ],
     materialRole: "Kitchen palette",
-    options: kitchenOptions,
+    options: sharedOptions("Saturna_01_Kitchen", kitchenOptions),
   }),
   createChapter({
     id: "primary-ensuite-look-feel",
@@ -241,7 +207,7 @@ const chapters = [
       "Lighting",
     ],
     materialRole: "Ensuite palette",
-    options: ensuiteOptions,
+    options: sharedOptions("Saturna_02_Primary-Ensuite", ensuiteOptions),
   }),
   createChapter({
     id: "primary-wardrobe",
@@ -258,7 +224,7 @@ const chapters = [
       "Lighting",
     ],
     materialRole: "Wardrobe millwork",
-    options: wardrobeOptions,
+    options: sharedOptions("Saturna_03_Primary-Wardrobe", wardrobeOptions),
   }),
   createChapter({
     id: "interior-doors-details",
@@ -344,7 +310,7 @@ if (!saturnaModel) {
 }
 
 export const saturnaHomeConfigurator: HomeConfiguratorDefinition = {
-  configurationVersion: 4,
+  configurationVersion: 5,
   homeId: saturnaModel.slug,
   homeName: "Saturna",
   residenceLabel: "Saturna House",
