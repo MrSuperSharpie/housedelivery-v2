@@ -1,3 +1,4 @@
+import { getCompletedLookBookOptions } from "@/data/completed-look-book-assets";
 import type {
   HomeConfiguratorDefinition,
   HomeFlooringZone,
@@ -765,64 +766,16 @@ export const legacyCustomHomeConfiguratorTemplate: HomeConfiguratorDefinition = 
   },
 };
 
-const visualGuideAssetRoot = "/images/homes/solace/visual-guide";
-
-type SolaceVisualGuidePackage = {
-  level: HomeInclusionLevel;
-  optionNumber: string;
-  name: string;
-  filenameLabel: string;
-  descriptors: readonly string[];
-  storyFragments: readonly string[];
-};
-
 type SolaceVisualGuideChapter = {
   id: string;
   number: string;
   title: string;
   shortTitle?: string;
-  assetPrefix: string;
   description: string;
   represents: readonly string[];
   materialRole: string;
   technicalNote?: string;
-  optionNames?: readonly [string, string, string, string];
 };
-
-const solaceVisualGuidePackages = [
-  {
-    level: "premium",
-    optionNumber: "1",
-    name: "Coastal Light Oak",
-    filenameLabel: "Coastal-Light-Oak",
-    descriptors: ["Coastal", "Luminous", "Natural"],
-    storyFragments: ["pale natural oak", "a light, quietly layered palette"],
-  },
-  {
-    level: "premium",
-    optionNumber: "2",
-    name: "Soft White",
-    filenameLabel: "Soft-White",
-    descriptors: ["Soft", "Calm", "Refined"],
-    storyFragments: ["soft white surfaces", "restrained architectural detail"],
-  },
-  {
-    level: "signature",
-    optionNumber: "1",
-    name: "Stone Wrapped Oak",
-    filenameLabel: "Stone-Wrapped-Oak",
-    descriptors: ["Layered", "Grounded", "Architectural"],
-    storyFragments: ["expressive stone", "warm, enveloping oak"],
-  },
-  {
-    level: "signature",
-    optionNumber: "2",
-    name: "Sculpted White",
-    filenameLabel: "Sculpted-White",
-    descriptors: ["Sculptural", "Luminous", "Polished"],
-    storyFragments: ["sculpted pale surfaces", "precise tonal detailing"],
-  },
-] as const satisfies readonly SolaceVisualGuidePackage[];
 
 function createSolaceVisualGuideChapter(
   source: SolaceVisualGuideChapter,
@@ -836,28 +789,12 @@ function createSolaceVisualGuideChapter(
     description: source.description,
     represents: source.represents,
     technicalNote: source.technicalNote,
-    options: solaceVisualGuidePackages.map((designPackage, index) => {
-      const name = source.optionNames?.[index] ?? designPackage.name;
-
-      return {
-        id: `${source.id}-${designPackage.level}-${designPackage.optionNumber}`,
-        level: designPackage.level,
-        optionNumber: designPackage.optionNumber,
-        name,
-        editorial: {
-          descriptors: designPackage.descriptors,
-          storyFragments: designPackage.storyFragments,
-          materialRole: source.materialRole,
-        },
-        image: {
-          src: `${visualGuideAssetRoot}/${source.assetPrefix}_${designPackage.level === "premium" ? "Premium" : "Signature"}-${designPackage.optionNumber}_${designPackage.filenameLabel}.png`,
-          alt: `${designPackage.level === "premium" ? "Premium" : "Signature"} ${designPackage.optionNumber} — ${name}, ${source.title.toLowerCase()} design board for Solace House.`,
-          fit: "contain" as const,
-          role: "design-board" as const,
-          quality: 100 as const,
-        },
-      };
-    }),
+    options: getCompletedLookBookOptions(
+      "solace",
+      source.id,
+      source.title,
+      source.materialRole,
+    ),
   };
 }
 
@@ -867,7 +804,6 @@ const solaceVisualGuideChapters = [
     number: "01",
     title: "Kitchen Look & Feel",
     shortTitle: "Kitchen",
-    assetPrefix: "Solace_01_Kitchen",
     description:
       "Choose one coordinated kitchen package. Its complete design board carries the finish direction into My Solace.",
     represents: [
@@ -885,7 +821,6 @@ const solaceVisualGuideChapters = [
     number: "02",
     title: "Primary Ensuite Look & Feel",
     shortTitle: "Primary Ensuite",
-    assetPrefix: "Solace_02_Primary-Ensuite",
     description:
       "Choose one coordinated primary ensuite package, including surfaces, vanity, fixtures and lighting.",
     represents: [
@@ -902,7 +837,6 @@ const solaceVisualGuideChapters = [
     id: "primary-wardrobe",
     number: "03",
     title: "Primary Wardrobe",
-    assetPrefix: "Solace_03_Primary-Wardrobe",
     description:
       "Choose the coordinated wardrobe package for the Solace primary suite.",
     represents: [
@@ -920,7 +854,6 @@ const solaceVisualGuideChapters = [
     number: "04",
     title: "Interior Doors & Details",
     shortTitle: "Interior Details",
-    assetPrefix: "Solace_04_Interior-Doors-Details",
     description:
       "Choose one coordinated package for interior doors, trim and architectural detail.",
     represents: [
@@ -938,7 +871,6 @@ const solaceVisualGuideChapters = [
     number: "05",
     title: "Exterior Arrival & Openings",
     shortTitle: "Exterior Arrival",
-    assetPrefix: "Solace_05_Exterior-Arrival",
     description:
       "Choose a coordinated exterior finish direction for Solace's arrival and openings.",
     represents: [
@@ -952,19 +884,12 @@ const solaceVisualGuideChapters = [
     materialRole: "Exterior expression",
     technicalNote:
       "This selection changes finishes and appearance only. The Solace footprint, roof geometry, window placement and architectural massing remain unchanged.",
-    optionNames: [
-      "Warm White",
-      "Soft White",
-      "Stone Wrapped Oak",
-      "Sculpted White",
-    ],
   }),
   createSolaceVisualGuideChapter({
     id: "whole-home-flooring-stairs",
     number: "06",
     title: "Whole-Home Flooring & Stairs",
     shortTitle: "Flooring & Stairs",
-    assetPrefix: "Solace_06_Flooring-Stairs",
     description:
       "Choose one coordinated flooring and stair package for Solace's dry interior areas.",
     represents: [
@@ -983,7 +908,6 @@ const solaceVisualGuideChapters = [
     id: "window-coverings",
     number: "07",
     title: "Window Coverings",
-    assetPrefix: "Solace_07_Window-Coverings",
     description:
       "Choose one coordinated window-covering package for privacy, light control and textile character.",
     represents: [
@@ -1010,7 +934,7 @@ const solaceAppliances = {
 } as const;
 
 export const solaceHomeConfigurator: HomeConfiguratorDefinition = {
-  configurationVersion: 4,
+  configurationVersion: 5,
   homeId: solaceModel.slug,
   homeName: "Solace",
   residenceLabel: "Solace House",

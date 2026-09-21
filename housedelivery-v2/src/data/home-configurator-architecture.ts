@@ -131,6 +131,17 @@ const expandedWardrobePackageClassifications = [
   "signature:3",
 ] as const;
 
+const completedPackageClassifications = [
+  "premium:1",
+  "premium:2",
+  "premium:3",
+  "premium:4",
+  "signature:1",
+  "signature:2",
+  "signature:3",
+  "signature:4",
+] as const;
+
 export function getCanonicalHomeConfiguratorIssues(
   definition: HomeConfiguratorDefinition,
 ) {
@@ -177,8 +188,9 @@ export function getCanonicalHomeConfiguratorIssues(
         ? [
             canonicalPackageClassifications,
             expandedWardrobePackageClassifications,
+            completedPackageClassifications,
           ]
-        : [canonicalPackageClassifications];
+        : [canonicalPackageClassifications, completedPackageClassifications];
     const hasAllowedClassifications = allowedClassifications.some(
       (allowed) =>
         classifications.length === allowed.length &&
@@ -190,8 +202,8 @@ export function getCanonicalHomeConfiguratorIssues(
     if (!hasAllowedClassifications) {
       issues.push(
         category.id === "primary-wardrobe"
-          ? `${category.id} must provide two or three Premium and Signature options with matching option numbers.`
-          : `${category.id} must provide Premium 1, Premium 2, Signature 1 and Signature 2.`,
+          ? `${category.id} must provide two, three or four Premium and Signature options with matching option numbers.`
+          : `${category.id} must provide two or four Premium and Signature options with matching option numbers.`,
       );
     }
   }

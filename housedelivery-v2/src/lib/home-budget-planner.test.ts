@@ -69,8 +69,8 @@ test("handoff rejects invalid or stacked selections, quantities and models; igno
   const message = formatHomeBudgetProject({ ...project, homes: [{ ...project.homes[0], quantity: 2, finish: "signature", selections: "Kitchen: Premium; bathroom: Signature" }], requests: ["accessibility"], details: "Step-free entry request" });
   assert.match(message, /Solace × 2/);
   assert.match(message, /Kitchen: Premium; bathroom: Signature/);
-  assert.match(message, /Upgrade quote required/);
+  assert.match(message, /Final package scope and price require confirmation/);
   assert.match(message, /Accessibility needs/);
   assert.match(message, /Step-free entry request/);
-  assert.doesNotMatch(message, /\$/);
+  assert.match(message, /Premium \$225\/sq\. ft\.; Signature \$275\/sq\. ft\./);
 });

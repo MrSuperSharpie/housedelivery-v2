@@ -148,7 +148,7 @@ const stages: readonly JourneyStage[] = [
     number: "08",
     id: "delivery",
     title: "Coordinated Delivery",
-    lead: "Everything arrives as a coordinated project package.",
+    lead: "The home package arrives as a coordinated project package.",
     description:
       "House Delivery coordinates supplier production, consolidation, logistics, Canadian receiving and project sequencing around the requirements of the project.",
     bullets: [

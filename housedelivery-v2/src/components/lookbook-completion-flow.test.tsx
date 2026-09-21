@@ -146,7 +146,8 @@ test("every migrated home shares the Get My Look Book flow and House Delivery va
       /Final savings depend on site conditions, specification and local construction costs\./,
     );
     assert.doesNotMatch(markup, /data-look-book-validated-savings/);
-    assert.doesNotMatch(markup, /(?:20|30)%/);
+    // Check visible claims, not percent-encoded image URLs such as %20%26.
+    assert.doesNotMatch(markup.replace(/<[^>]*>/g, ""), /(?:20|30)%/);
     assert.doesNotMatch(
       markup,
       /data-save-look-book=\"top\"/,

@@ -1,3 +1,7 @@
+import {
+  getCompletedLookBookOptions,
+  type CompletedLookBookHome,
+} from "@/data/completed-look-book-assets";
 import type {
   HomeConfiguratorDefinition,
   HomeInclusionLevel,
@@ -23,8 +27,10 @@ type HomeSource = {
   residenceLabel: string;
   assetHomeName: string;
   assetRoot: string;
-  packages: readonly PackageSource[];
-};
+} & (
+  | { packages: readonly PackageSource[]; completedAssets?: never }
+  | { completedAssets: CompletedLookBookHome; packages?: never }
+);
 
 type ChapterSource = {
   id: string;
@@ -221,9 +227,16 @@ function createChapter(
     description: chapter.description(source.homeName),
     represents: chapter.represents,
     technicalNote: chapter.technicalNote?.(source.homeName),
-    options: source.packages.map((designPackage) =>
-      createOption(source, chapter, designPackage),
-    ),
+    options: source.completedAssets
+      ? getCompletedLookBookOptions(
+          source.completedAssets,
+          chapter.id,
+          chapter.title,
+          chapter.materialRole,
+        )
+      : source.packages.map((designPackage) =>
+          createOption(source, chapter, designPackage),
+        ),
   };
 }
 
@@ -342,7 +355,7 @@ function createHomeConfigurator(source: HomeSource): HomeConfiguratorDefinition 
   } as const;
 
   return {
-    configurationVersion: 4,
+    configurationVersion: source.completedAssets ? 5 : 4,
     homeId: model.slug,
     homeName: source.homeName,
     residenceLabel: source.residenceLabel,
@@ -502,12 +515,7 @@ export const canmoreHomeConfigurator = createHomeConfigurator({
   residenceLabel: "Canmore House",
   assetHomeName: "Canmore",
   assetRoot: "/images/homes/canmore/visual-guide",
-  packages: packages(
-    ["Hearth Oak", "Hearth-Oak"],
-    ["Mineral Linen", "Mineral-Linen"],
-    ["Carbon Ridge", "Carbon-Ridge"],
-    ["Bronze Walnut", "Bronze-Walnut"],
-  ),
+  completedAssets: "canmore",
 });
 
 export const cascadeHomeConfigurator = createHomeConfigurator({

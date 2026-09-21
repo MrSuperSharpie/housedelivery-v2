@@ -1,99 +1,21 @@
+import { getCompletedLookBookOptions } from "@/data/completed-look-book-assets";
 import type {
   HomeConfiguratorDefinition,
-  HomeInclusionLevel,
-  HomeInclusionOption,
   HomeRoomLookCategory,
 } from "@/data/home-configurator";
-import type {
-  LookBookOptionEditorial,
-  LookBookSection,
-} from "@/data/home-look-book";
+import type { LookBookSection } from "@/data/home-look-book";
 import { models } from "@/data/models";
-
-const assetRoot = "/images/homes/south-bay/visual-guide";
-
-type PackageSource = {
-  level: HomeInclusionLevel;
-  optionNumber: string;
-  name: string;
-  filenameLabel: string;
-  descriptors: readonly string[];
-  storyFragments: readonly string[];
-};
 
 type ChapterSource = {
   id: string;
   number: string;
   title: string;
   shortTitle?: string;
-  assetPrefix: string;
   description: string;
   represents: readonly string[];
   materialRole: string;
   technicalNote?: string;
 };
-
-const packageDirections = [
-  {
-    level: "premium",
-    optionNumber: "1",
-    name: "Shoreline Oak",
-    filenameLabel: "Shoreline-Oak",
-    descriptors: ["Shoreline", "Natural", "Warm"],
-    storyFragments: ["shoreline oak", "a warm, naturally layered palette"],
-  },
-  {
-    level: "premium",
-    optionNumber: "2",
-    name: "Mist Linen",
-    filenameLabel: "Mist-Linen",
-    descriptors: ["Mist", "Linen", "Soft"],
-    storyFragments: ["mist-toned surfaces", "soft linen texture"],
-  },
-  {
-    level: "signature",
-    optionNumber: "1",
-    name: "Basalt Frame",
-    filenameLabel: "Basalt-Frame",
-    descriptors: ["Basalt", "Defined", "Architectural"],
-    storyFragments: ["basalt contrast", "a defined architectural frame"],
-  },
-  {
-    level: "signature",
-    optionNumber: "2",
-    name: "Cove Bronze",
-    filenameLabel: "Cove-Bronze",
-    descriptors: ["Cove", "Bronze", "Polished"],
-    storyFragments: ["quiet cove tones", "polished bronze detailing"],
-  },
-] as const satisfies readonly PackageSource[];
-
-function createOption(
-  chapter: Pick<ChapterSource, "id" | "title" | "assetPrefix" | "materialRole">,
-  source: PackageSource,
-): HomeInclusionOption {
-  const editorial: LookBookOptionEditorial = {
-    descriptors: source.descriptors,
-    storyFragments: source.storyFragments,
-    materialRole: chapter.materialRole,
-  };
-  const levelLabel = source.level === "premium" ? "Premium" : "Signature";
-
-  return {
-    id: `${chapter.id}-${source.level}-${source.optionNumber}`,
-    level: source.level,
-    optionNumber: source.optionNumber,
-    name: source.name,
-    editorial,
-    image: {
-      src: `${assetRoot}/${chapter.assetPrefix}_${levelLabel}-${source.optionNumber}_${source.filenameLabel}.png`,
-      alt: `${levelLabel} ${source.optionNumber} — ${source.name}, ${chapter.title.toLowerCase()} design board for South Bay House.`,
-      fit: "contain",
-      role: "design-board",
-      quality: 100,
-    },
-  };
-}
 
 function createChapter(source: ChapterSource): HomeRoomLookCategory {
   return {
@@ -105,7 +27,12 @@ function createChapter(source: ChapterSource): HomeRoomLookCategory {
     description: source.description,
     represents: source.represents,
     technicalNote: source.technicalNote,
-    options: packageDirections.map((option) => createOption(source, option)),
+    options: getCompletedLookBookOptions(
+      "south-bay",
+      source.id,
+      source.title,
+      source.materialRole,
+    ),
   };
 }
 
@@ -115,7 +42,6 @@ const chapters = [
     number: "01",
     title: "Kitchen Look & Feel",
     shortTitle: "Kitchen",
-    assetPrefix: "South-Bay_01_Kitchen",
     description:
       "Choose one coordinated kitchen package. Its complete design board carries the finish direction into My South Bay.",
     represents: [
@@ -133,7 +59,6 @@ const chapters = [
     number: "02",
     title: "Primary Ensuite Look & Feel",
     shortTitle: "Primary Ensuite",
-    assetPrefix: "South-Bay_02_Primary-Ensuite",
     description:
       "Choose one coordinated primary ensuite package, including surfaces, vanity, fixtures and lighting.",
     represents: [
@@ -150,7 +75,6 @@ const chapters = [
     id: "primary-wardrobe",
     number: "03",
     title: "Primary Wardrobe",
-    assetPrefix: "South-Bay_03_Primary-Wardrobe",
     description:
       "Choose one coordinated wardrobe package for the South Bay primary suite.",
     represents: [
@@ -168,7 +92,6 @@ const chapters = [
     number: "04",
     title: "Interior Doors & Details",
     shortTitle: "Interior Details",
-    assetPrefix: "South-Bay_04_Interior-Doors-Details",
     description:
       "Choose one coordinated package for interior doors, trim and architectural detail.",
     represents: [
@@ -186,7 +109,6 @@ const chapters = [
     number: "05",
     title: "Exterior Arrival & Openings",
     shortTitle: "Exterior Arrival",
-    assetPrefix: "South-Bay_05_Exterior-Arrival-Openings",
     description:
       "Choose one coordinated exterior finish direction for South Bay's arrival and openings.",
     represents: [
@@ -206,7 +128,6 @@ const chapters = [
     number: "06",
     title: "Whole-Home Flooring & Stairs",
     shortTitle: "Flooring & Stairs",
-    assetPrefix: "South-Bay_06_Whole-Home-Flooring-Stairs",
     description:
       "Choose one coordinated flooring and stair package for South Bay's dry interior areas.",
     represents: [
@@ -225,7 +146,6 @@ const chapters = [
     id: "window-coverings",
     number: "07",
     title: "Window Coverings",
-    assetPrefix: "South-Bay_07_Window-Coverings",
     description:
       "Choose one coordinated window-covering package for privacy, light control and textile character.",
     represents: [
@@ -329,7 +249,7 @@ if (!southBayModel) {
 }
 
 export const southBayHomeConfigurator: HomeConfiguratorDefinition = {
-  configurationVersion: 4,
+  configurationVersion: 5,
   homeId: southBayModel.slug,
   homeName: "South Bay",
   residenceLabel: "South Bay House",

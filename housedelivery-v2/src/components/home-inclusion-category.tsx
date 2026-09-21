@@ -23,6 +23,7 @@ type HomeInclusionCategoryProps = {
   onConfirm: () => void;
   onEdit: () => void;
   directSourceImages?: boolean;
+  visibleOptionsPerTier?: number;
 };
 
 export function HomeInclusionCategory({
@@ -40,8 +41,49 @@ export function HomeInclusionCategory({
   onConfirm,
   onEdit,
   directSourceImages = false,
+  visibleOptionsPerTier,
 }: HomeInclusionCategoryProps) {
   const headingId = `home-${category.id}-heading`;
+  const premiumOptions = category.options.filter(
+    (option) => option.level === "premium",
+  );
+  const signatureOptions = category.options.filter(
+    (option) => option.level === "signature",
+  );
+  const visiblePremiumOptions = visibleOptionsPerTier
+    ? premiumOptions.slice(0, visibleOptionsPerTier)
+    : premiumOptions;
+  const visibleSignatureOptions = visibleOptionsPerTier
+    ? signatureOptions.slice(0, visibleOptionsPerTier)
+    : signatureOptions;
+  const usesExpandedTierCollections =
+    category.options.length === 8 &&
+    premiumOptions.length === 4 &&
+    signatureOptions.length === 4;
+
+  const renderOptionCard = (option: HomeInclusionOption) => (
+    <HomeInclusionOptionCard
+      key={option.id}
+      option={option}
+      homeName={houseName}
+      isSelected={option.id === selectedOption?.id}
+      onSelect={() => onSelectOption(option.id)}
+      onPreview={() => onPreviewOption(option.id)}
+      onConfirm={onConfirm}
+      confirmLabel={
+        nextCategoryTitle
+          ? isComplete
+            ? "Save & Continue"
+            : "Confirm & Continue"
+          : isComplete
+            ? "Save & Return to Look Book"
+            : `Complete My ${houseName}`
+      }
+      nextLabel={nextCategoryTitle}
+      confirmCategoryId={category.id}
+      directSourceImage={directSourceImages}
+    />
+  );
 
   if (isComplete && !isActive && selectedOption) {
     return (
@@ -172,35 +214,89 @@ export function HomeInclusionCategory({
         </div>
       </div>
 
-      <div
-        role="group"
-        aria-label={`${category.title} choices`}
-        className="mt-12 grid gap-5 md:grid-cols-2 lg:mt-16"
-      >
-        {category.options.map((option) => (
-          <HomeInclusionOptionCard
-            key={option.id}
-            option={option}
-            homeName={houseName}
-            isSelected={option.id === selectedOption?.id}
-            onSelect={() => onSelectOption(option.id)}
-            onPreview={() => onPreviewOption(option.id)}
-            onConfirm={onConfirm}
-            confirmLabel={
-              nextCategoryTitle
-                ? isComplete
-                  ? "Save & Continue"
-                  : "Confirm & Continue"
-                : isComplete
-                  ? "Save & Return to Look Book"
-                  : `Complete My ${houseName}`
-            }
-            nextLabel={nextCategoryTitle}
-            confirmCategoryId={category.id}
-            directSourceImage={directSourceImages}
-          />
-        ))}
-      </div>
+      {usesExpandedTierCollections ? (
+        <div data-option-tier-layout="premium-signature" className="mt-12 lg:mt-16">
+          <section
+            aria-labelledby={`${headingId}-premium`}
+            data-option-tier-section="premium"
+            data-tier-option-count={visiblePremiumOptions.length}
+            className="border-t border-white/20 pt-6 sm:pt-8"
+          >
+            <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(15rem,0.7fr)] sm:items-end">
+              <div>
+                <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/46">
+                  Included Collection
+                </p>
+                <h3
+                  id={`${headingId}-premium`}
+                  className="mt-3 text-3xl font-medium tracking-[-0.05em] text-white sm:text-4xl"
+                >
+                  PREMIUM
+                </h3>
+              </div>
+              <p className="text-sm leading-6 text-white/60 sm:text-right">
+                Included with Premium specification
+              </p>
+            </div>
+            <div
+              role="group"
+              aria-label={`${category.title} Premium choices`}
+              className="mt-7 grid gap-5 md:grid-cols-2 sm:mt-9"
+            >
+              {visiblePremiumOptions.map(renderOptionCard)}
+            </div>
+          </section>
+
+          <div
+            aria-hidden="true"
+            className="mt-14 flex items-center gap-4 sm:mt-18"
+          >
+            <span className="h-px flex-1 bg-gradient-to-r from-transparent via-[#d8c4a5]/30 to-[#d8c4a5]/60" />
+            <span className="size-2 rotate-45 border border-[#d8c4a5]/70 bg-[#0b0c10]" />
+            <span className="h-px flex-1 bg-gradient-to-l from-transparent via-[#d8c4a5]/30 to-[#d8c4a5]/60" />
+          </div>
+
+          <section
+            aria-labelledby={`${headingId}-signature`}
+            data-option-tier-section="signature"
+            data-tier-option-count={visibleSignatureOptions.length}
+            className="mt-8 border border-[#d8c4a5]/30 bg-[linear-gradient(145deg,rgba(216,196,165,0.09),rgba(216,196,165,0.025)_46%,rgba(255,255,255,0.015))] p-4 sm:p-7 lg:p-8"
+          >
+            <div className="grid gap-5 border-b border-[#d8c4a5]/20 pb-6 sm:grid-cols-[minmax(0,0.85fr)_minmax(17rem,1.15fr)] sm:items-end sm:pb-8">
+              <div>
+                <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[#d8c4a5]/72">
+                  Upgrade Collection
+                </p>
+                <h3
+                  id={`${headingId}-signature`}
+                  className="mt-3 text-3xl font-medium tracking-[-0.05em] text-[#eee4d5] sm:text-4xl"
+                >
+                  SIGNATURE
+                </h3>
+              </div>
+              <p className="text-sm leading-6 text-[#eee4d5]/68 sm:text-right">
+                Elevated materials, detailing and specification. Upgrade pricing
+                confirmed with the final home specification.
+              </p>
+            </div>
+            <div
+              role="group"
+              aria-label={`${category.title} Signature choices`}
+              className="mt-7 grid gap-5 md:grid-cols-2 sm:mt-9"
+            >
+              {visibleSignatureOptions.map(renderOptionCard)}
+            </div>
+          </section>
+        </div>
+      ) : (
+        <div
+          role="group"
+          aria-label={`${category.title} choices`}
+          className="mt-12 grid gap-5 md:grid-cols-2 lg:mt-16"
+        >
+          {category.options.map(renderOptionCard)}
+        </div>
+      )}
 
       {showInteractionGuidance ? (
         <p className="mt-8 max-w-2xl border-t border-white/14 pt-6 text-xs leading-6 text-white/55">

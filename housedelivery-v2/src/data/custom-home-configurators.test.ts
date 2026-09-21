@@ -81,16 +81,6 @@ const newVisualGuideHomes = [
     ],
   },
   {
-    id: "canmore",
-    assetRoot: "/images/homes/canmore/visual-guide",
-    packageNames: [
-      "Hearth Oak",
-      "Mineral Linen",
-      "Carbon Ridge",
-      "Bronze Walnut",
-    ],
-  },
-  {
     id: "cascade",
     assetRoot: "/images/homes/cascade/visual-guide",
     packageNames: [
@@ -366,7 +356,7 @@ test("Keats House preserves its approved gallery alongside its Visual Guide", ()
   );
 });
 
-test("the next eight Custom Homes wire all 224 approved Visual Guide boards", () => {
+test("the seven unchanged Custom Homes retain all 196 approved Visual Guide boards", () => {
   const allImageSources = new Set<string>();
 
   for (const home of newVisualGuideHomes) {
@@ -417,7 +407,7 @@ test("the next eight Custom Homes wire all 224 approved Visual Guide boards", ()
             join(
               process.cwd(),
               "public",
-              option.image.src.replace(/^\//, ""),
+              decodeURIComponent(option.image.src).replace(/^\//, ""),
             ),
           ),
           `Missing Visual Guide board: ${option.image.src}`,
@@ -445,7 +435,7 @@ test("the next eight Custom Homes wire all 224 approved Visual Guide boards", ()
     );
   }
 
-  assert.equal(allImageSources.size, 224);
+  assert.equal(allImageSources.size, 196);
 });
 
 test("the family policy locks finish-only personalization and optional smaller-home chapters", () => {
@@ -600,14 +590,18 @@ test("Solace uses exactly seven approved visual-guide chapters", () => {
     assert.equal(category.kind, "room-look");
     if (category.kind !== "room-look") continue;
 
-    assert.equal(category.options.length, 4);
+    assert.equal(category.options.length, 8);
     assert.deepEqual(
       category.options.map((option) => [option.level, option.optionNumber]),
       [
         ["premium", "1"],
         ["premium", "2"],
+        ["premium", "3"],
+        ["premium", "4"],
         ["signature", "1"],
         ["signature", "2"],
+        ["signature", "3"],
+        ["signature", "4"],
       ],
     );
     assert.ok(category.options.every((option) => option.image.fit === "contain"));
@@ -621,10 +615,10 @@ test("Solace uses exactly seven approved visual-guide chapters", () => {
     for (const option of category.options) {
       assert.ok(
         option.image.src.startsWith(
-          "/images/homes/solace/visual-guide/Solace_",
+          "/images/homes/solace/visual-guide/Solace%20-%20",
         ),
       );
-      referencedAssets.push(basename(option.image.src));
+      referencedAssets.push(basename(decodeURIComponent(option.image.src)));
     }
   }
 
@@ -635,7 +629,7 @@ test("Solace uses exactly seven approved visual-guide chapters", () => {
   const approvedAssets = readdirSync(assetDirectory)
     .filter((filename) => filename.endsWith(".png"))
     .sort();
-  assert.equal(approvedAssets.length, 28);
+  assert.equal(approvedAssets.length, 56);
   assert.deepEqual(referencedAssets.toSorted(), approvedAssets);
 
   const selectionSectionIds = new Set(
@@ -728,7 +722,7 @@ test("Langley uses all 28 approved Visual Guide boards in seven chapters", () =>
       ),
     );
     referencedAssets.push(
-      ...category.options.map((option) => basename(option.image.src)),
+      ...category.options.map((option) => basename(decodeURIComponent(option.image.src))),
     );
   }
 
@@ -811,19 +805,23 @@ test("South Bay uses all 28 approved Visual Guide boards in seven chapters", () 
     assert.equal(category.kind, "room-look");
     if (category.kind !== "room-look") continue;
 
-    assert.equal(category.options.length, 4);
+    assert.equal(category.options.length, 8);
     assert.deepEqual(
       category.options.map((option) => [option.level, option.optionNumber]),
       [
         ["premium", "1"],
         ["premium", "2"],
+        ["premium", "3"],
+        ["premium", "4"],
         ["signature", "1"],
         ["signature", "2"],
+        ["signature", "3"],
+        ["signature", "4"],
       ],
     );
     assert.deepEqual(
       category.options.map((option) => option.name),
-      expectedOptionNames,
+      [...expectedOptionNames, ...expectedOptionNames],
     );
     assert.ok(
       category.options.every(
@@ -832,12 +830,12 @@ test("South Bay uses all 28 approved Visual Guide boards in seven chapters", () 
           option.image.role === "design-board" &&
           option.image.quality === 100 &&
           option.image.src.startsWith(
-            "/images/homes/south-bay/visual-guide/South-Bay_",
+            "/images/homes/south-bay/visual-guide/South%20Bay%20-%20",
           ),
       ),
     );
     referencedAssets.push(
-      ...category.options.map((option) => basename(option.image.src)),
+      ...category.options.map((option) => basename(decodeURIComponent(option.image.src))),
     );
   }
 
@@ -848,8 +846,8 @@ test("South Bay uses all 28 approved Visual Guide boards in seven chapters", () 
   const approvedAssets = readdirSync(assetDirectory)
     .filter((filename) => filename.endsWith(".png"))
     .sort();
-  assert.equal(approvedAssets.length, 28);
-  assert.equal(referencedAssets.length, 28);
+  assert.equal(approvedAssets.length, 56);
+  assert.equal(referencedAssets.length, 56);
   assert.deepEqual(referencedAssets.toSorted(), approvedAssets);
 
   const coordinated = getProjectCoordinatedCategories(definition);
@@ -939,7 +937,7 @@ test("Dalton uses all 28 approved Visual Guide boards in seven chapters", () => 
       ),
     );
     referencedAssets.push(
-      ...category.options.map((option) => basename(option.image.src)),
+      ...category.options.map((option) => basename(decodeURIComponent(option.image.src))),
     );
   }
 
@@ -1045,7 +1043,7 @@ test("Laurentian uses all 28 approved Visual Guide boards in seven chapters", ()
       ),
     );
     referencedAssets.push(
-      ...category.options.map((option) => basename(option.image.src)),
+      ...category.options.map((option) => basename(decodeURIComponent(option.image.src))),
     );
   }
 
@@ -1137,7 +1135,7 @@ test("Maplewood uses exactly seven approved visual-guide chapters", () => {
           "/images/homes/maplewood/visual-guide/Maplewood_",
         ),
       );
-      referencedAssets.push(basename(option.image.src));
+      referencedAssets.push(basename(decodeURIComponent(option.image.src)));
     }
   }
 
@@ -1276,7 +1274,7 @@ test("Profile House uses all 30 approved Visual Guide assets and its requested j
       ),
     );
     referencedAssets.push(
-      ...category.options.map((option) => basename(option.image.src)),
+      ...category.options.map((option) => basename(decodeURIComponent(option.image.src))),
     );
   }
 
@@ -1399,7 +1397,7 @@ test("Timberline uses exactly seven approved visual-guide chapters", () => {
           "/images/homes/timberline/visual-guide/Timberline_",
         ),
       );
-      referencedAssets.push(basename(option.image.src));
+      referencedAssets.push(basename(decodeURIComponent(option.image.src)));
     }
   }
 
@@ -1463,11 +1461,11 @@ test("Saturna remains on its dedicated seven-chapter Look Book", () => {
     assert.equal(category.kind, "room-look");
     if (category.kind !== "room-look") continue;
 
-    assert.equal(category.options.length, 4);
+    assert.equal(category.options.length, 8);
     assert.ok(category.options.every((option) => option.image.fit === "contain"));
     assert.ok(
       category.options.every((option) =>
-        option.image.src.startsWith("/images/homes/saturna/configurator/Saturna_"),
+        option.image.src.startsWith("/images/homes/saturna/visual-guide/"),
       ),
     );
   }

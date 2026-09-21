@@ -106,7 +106,8 @@ const inclusions: readonly InclusionItem[] = [
     number: "11",
     title: "Optional Additions",
     points: [
-      "Canadian appliance & HVAC packages",
+      "Appliances selected and priced separately",
+      "Optional HVAC packages",
       "CSA A277 certification",
       "Custom finishes",
     ],
@@ -175,10 +176,10 @@ type InclusionGridProps = {
 };
 
 export function InclusionGrid({
-  eyebrow = "The complete package",
-  introCopy = "Every House Delivery Inc. home arrives as a coordinated, certified system—documented, engineered, and finished to a single standard.",
-  headlinePrimary = "Included with every",
-  headlineSecondary = "delivered home.",
+  eyebrow = "The coordinated home package",
+  introCopy = "Each House Delivery Inc. home package is a coordinated, certified system—documented, engineered and supplied to its confirmed specification. On-site work and separately selected items remain outside the home-package price.",
+  headlinePrimary = "Coordinated for each",
+  headlineSecondary = "delivered home package.",
   scopeNote,
 }: InclusionGridProps) {
   return (

@@ -93,11 +93,23 @@ function HomeConfigurationEntries({
               </p>
 
               {category.kind === "standard" || category.kind === "room-look" ? (
-                <p className="mt-1 text-[10px] leading-4 text-black/58">
-                  {previewOption
-                    ? `${previewOption.name} · ${getHomeInclusionLevelLabel(previewOption.level)}`
-                    : "Not yet selected"}
-                </p>
+                previewOption ? (
+                  <div className="mt-1">
+                    <p className="text-[10px] leading-4 text-black/58">
+                      {previewOption.name}
+                    </p>
+                    <p
+                      data-summary-option-tier={previewOption.level}
+                      className="mt-1 text-[8px] font-semibold uppercase leading-4 tracking-[0.12em] text-black/62"
+                    >
+                      {getHomeInclusionLevelLabel(previewOption.level)}
+                    </p>
+                  </div>
+                ) : (
+                  <p className="mt-1 text-[10px] leading-4 text-black/58">
+                    Not yet selected
+                  </p>
+                )
               ) : category.kind === "flooring" ? (
                 <ul className="mt-1 grid gap-1">
                   {category.zones.map((zone) => {

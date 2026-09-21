@@ -16,29 +16,31 @@ import {
   getConfigurationPlannerHref,
 } from "@/lib/budget-inquiry";
 
-test("finish levels are inclusion upgrades and current model prices remain unknown", () => {
-  assert.deepEqual(pricingGuide.levels.map((level) => level.priceLabel), ["Included in base", "Upgrade quote required", "Upgrade quote required"]);
-  assert.doesNotMatch(JSON.stringify(pricingGuide), /\$|manufactured-package budgets/);
+test("finish levels publish the approved home-package reference prices", () => {
+  assert.deepEqual(pricingGuide.levels.map((level) => level.priceLabel), ["Included in base", "$225 / sq. ft.", "$275 / sq. ft."]);
+  assert.match(pricingGuide.disclosure, /exclude on-site assembly and erection/);
+  assert.match(pricingGuide.disclosure, /Assembly, site work, foundations, services, local trades and land are separate/);
+  assert.match(pricingGuide.disclosure, /Appliances are selected and priced separately/);
   for (const model of firstNationsPlannerCatalog) {
     assert.equal(model.planningBasis.status, "under-review");
     assert.equal(model.planningBasis.base, null);
   }
 });
 
-test("pricing retains three cards with base-plus-upgrade policy and delivery scope", () => {
+test("pricing retains three cards and distinguishes home-package pricing from site scope", () => {
   const markup = renderToStaticMarkup(<PricingPage />);
   const cards = markup.match(/<article\b[\s\S]*?<\/article>/g)!;
   assert.equal(cards.length, 3);
   for (const card of cards) {
     assert.match(card, /Request package pricing/);
     assert.match(card, /<summary[^>]*>Local builder quote required/);
-    assert.doesNotMatch(card, /\$/);
   }
-  assert.match(markup, /alternative incremental upgrade above Essential/);
-  assert.match(markup, /freight, import charges, tariffs and delivery\/unloading/);
-  assert.match(markup, /Applicable sales taxes are extra/);
-  assert.match(markup, /Land, foundations, assembly/);
-  assert.doesNotMatch(markup, /Essential is not currently|CAD \/ sq. ft.|\$150/);
+  assert.match(markup, /\$225 \/ sq\. ft\./);
+  assert.match(markup, /\$275 \/ sq\. ft\./);
+  assert.match(markup, /applicable sales taxes are confirmed separately/);
+  assert.match(markup, /Assembly, site work, foundations, services, local trades and land are separate/);
+  assert.match(markup, /Appliances are selected and priced separately/);
+  assert.doesNotMatch(markup, /Essential is not currently|\$150/);
 });
 
 test("every public home receives an enquiry link without a numerical model price", () => {

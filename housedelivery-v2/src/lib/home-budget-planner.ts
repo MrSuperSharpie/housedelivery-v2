@@ -93,14 +93,14 @@ export function formatHomeBudgetProject(project: HomeBudgetProject) {
     ...project.homes.flatMap((line, index) => [
       `${index + 1}. ${inquiryModels.find((model) => model.slug === line.modelId)!.name} × ${line.quantity} (${line.modelId})`,
       `Inclusions / finishes: ${finishPreferences[line.finish]}`,
-      "Base package: Essential included. Premium OR Signature is an incremental upgrade above Essential.",
-      line.finish === "premium" || line.finish === "signature" ? "Upgrade quote required." : "",
+      "Reference home-package prices: Premium $225/sq. ft.; Signature $275/sq. ft. These are not cumulative charges.",
+      line.finish === "premium" || line.finish === "signature" ? "Final package scope and price require confirmation." : "",
       line.selections ? `Design selections / requests: ${line.selections}` : "",
     ]),
     `Delivery location: ${project.location || "To be confirmed"}`,
     "Delivered Home Package: Request package pricing. Location is a request, not a freight calculation.",
     "Delivered scope: base package, selected upgrade, freight, import charges, tariffs and agreed delivery/unloading. Applicable sales taxes extra.",
-    "Assembly and local completion: Local builder quote required. Land excluded. No completed-home total.",
+    "Separate scope: on-site assembly/erection, site work, foundations, services, local trades and land. Appliances are selected and priced separately. No completed-home total.",
     ...project.requests.map((key) => `Requested for separate review and quote: ${projectRequestLabels[key]}`),
     project.details ? `Project details: ${project.details}` : "",
   ].filter(Boolean).join("\n");

@@ -73,7 +73,7 @@ export default function PricingPage() {
           <section aria-labelledby="pricing-selections-heading" className="mt-20 max-w-4xl border-t border-white/15 pt-10">
             <h2 id="pricing-selections-heading" className="text-3xl font-medium tracking-[-0.045em] sm:text-4xl">Your home, your selections</h2>
             <p className="mt-6 text-base leading-7 text-white/65">
-              Essential is included in each model’s base package. Premium and Signature are optional upgrades to inclusions and finishes. Your existing room selections can be retained for review, including a mix of Premium and Signature products. The final quote reconciles those selections against the included products without duplicate charges.
+              Premium and Signature identify the selected home-package specification. Your existing room selections can be retained for review, including a mix of Premium and Signature products. Appliances are selected and priced separately. The final quote confirms the package specification and all separate project scope.
             </p>
             <p className="mt-5 text-sm leading-7 text-white/65">{productionTimingCopy}</p>
             <div className="mt-8 flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:gap-8">

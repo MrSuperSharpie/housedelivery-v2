@@ -4,18 +4,18 @@ export const pricingGuide = {
   reviewedOn: "2026-09-11",
   reviewLabel: "September 11, 2026",
   introduction:
-    "Start with your home design. Its base package includes Essential inclusions and finishes, with optional Premium or Signature upgrades.",
+    "Start with your home design, then choose the package specification that fits your project. Premium is $225 per sq. ft. and Signature is $275 per sq. ft.",
   applicability:
     "The base price depends on the design, size and structural complexity. Essential, Premium and Signature describe inclusions and finishes; the light-gauge steel structure and core engineered house do not change tier.",
   tierScopeNote:
-    "Essential is included in the model’s base package. Choose Premium or Signature as an alternative incremental upgrade above Essential. Upgrades are never stacked or charged again for included products.",
+    "Premium at $225 per sq. ft. and Signature at $275 per sq. ft. are home-package prices. They exclude on-site assembly and erection. Signature is the upgraded specification; its price is not added on top of Premium.",
   disclosure:
-    "The Delivered Home Package includes the agreed home package, freight, import charges, tariffs and delivery/unloading within the agreed site scope. Applicable sales taxes are extra. Land, foundations, assembly, Canadian trades, permits and local completion are separate. Prices require confirmed specifications, delivery destination and site access; entering a location alone does not calculate freight.",
+    "$225 Premium and $275 Signature are home-package prices per sq. ft. and exclude on-site assembly and erection. Assembly, site work, foundations, services, local trades and land are separate. Appliances are selected and priced separately. Freight, import charges, tariffs, delivery/unloading, permits, local completion and applicable sales taxes are confirmed separately for the project. Prices require confirmed specifications, delivery destination and site access; entering a location alone does not calculate freight.",
   scopes: {
     manufactured: {
       label: "Base Home Package",
       description:
-        "Your selected design and structural package, including Essential inclusions and finishes. Premium or Signature upgrades are quoted above this base.",
+        "Your selected design and structural package. Premium and Signature are complete home-package specifications; appliances are selected and priced separately.",
     },
     delivery: {
       label: "Delivered Home Package",
@@ -27,7 +27,7 @@ export const pricingGuide = {
       label: "Assembly and local completion",
       budgetLabel: "Local builder quote required",
       description:
-        "Foundations, assembly, Canadian trades, permits and site completion are priced for your specific property by the local builder/project team. Land is excluded. This is separate from the Delivered Home Package.",
+        "On-site assembly and erection, site work, foundations, services, local trades, permits and site completion are priced for your specific property by the local builder/project team. Land is excluded. This work is separate from the home package.",
     },
   },
   levels: [
@@ -40,14 +40,14 @@ export const pricingGuide = {
     {
       id: "premium",
       name: "Premium",
-      description: "An optional upgrade to selected windows, doors, flooring, cabinetry, countertops, bathrooms, hardware, cladding or appliances.",
-      priceLabel: "Upgrade quote required",
+      description: "A coordinated Premium home-package specification. Appliances are selected and priced separately.",
+      priceLabel: "$225 / sq. ft.",
     },
     {
       id: "signature",
       name: "Signature",
-      description: "An alternative upgrade above Essential for your preferred inclusions and finishes. Signature does not add a second Premium charge.",
-      priceLabel: "Upgrade quote required",
+      description: "An elevated Signature home-package specification. Appliances are selected and priced separately.",
+      priceLabel: "$275 / sq. ft.",
     },
   ],
 } as const;

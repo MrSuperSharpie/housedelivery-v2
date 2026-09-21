@@ -284,7 +284,8 @@ export function InclusionsLibrary() {
                 Flooring, cabinetry, windows, doors, bathrooms, lighting,
                 window coverings and appliances are brought together through
                 controlled package directions—not left as disconnected
-                purchasing decisions.
+                purchasing decisions. Appliances are selected and priced
+                separately.
               </p>
             </div>
           </div>

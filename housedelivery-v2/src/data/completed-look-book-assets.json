@@ -1,0 +1,1410 @@
+{
+  "canmore": {
+    "kitchen-look-feel": [
+      {
+        "level": "premium",
+        "optionNumber": "1",
+        "name": "Hearth Oak",
+        "path": "kitchen/Canmore - Kitchen - Premium 1.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "2",
+        "name": "Mineral Linen",
+        "path": "kitchen/Canmore - Kitchen - Premium 2.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "3",
+        "name": "Carbon Ridge",
+        "path": "kitchen/Canmore - Kitchen - Premium 3.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "4",
+        "name": "Bronze Walnut",
+        "path": "kitchen/Canmore - Kitchen - Premium 4.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "1",
+        "name": "Hearth Oak",
+        "path": "kitchen/Canmore - Kitchen - Signature 1.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "2",
+        "name": "Mineral Linen",
+        "path": "kitchen/Canmore - Kitchen - Signature 2.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "3",
+        "name": "Carbon Ridge",
+        "path": "kitchen/Canmore - Kitchen - Signature 3.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "4",
+        "name": "Bronze Walnut",
+        "path": "kitchen/Canmore - Kitchen - Signature 4.png"
+      }
+    ],
+    "primary-ensuite-look-feel": [
+      {
+        "level": "premium",
+        "optionNumber": "1",
+        "name": "Hearth Oak",
+        "path": "Ensuite/Canmore - Primary Ensuite - Premium 1.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "2",
+        "name": "Mineral Linen",
+        "path": "Ensuite/Canmore - Primary Ensuite - Premium 2.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "3",
+        "name": "Carbon Ridge",
+        "path": "Ensuite/Canmore - Primary Ensuite - Premium 3.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "4",
+        "name": "Bronze Walnut",
+        "path": "Ensuite/Canmore - Primary Ensuite - Premium 4.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "1",
+        "name": "Hearth Oak",
+        "path": "Ensuite/Canmore - Primary Ensuite - Signature 1.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "2",
+        "name": "Mineral Linen",
+        "path": "Ensuite/Canmore - Primary Ensuite - Signature 2.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "3",
+        "name": "Carbon Ridge",
+        "path": "Ensuite/Canmore - Primary Ensuite - Signature 3.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "4",
+        "name": "Bronze Walnut",
+        "path": "Ensuite/Canmore - Primary Ensuite - Signature 4.png"
+      }
+    ],
+    "primary-wardrobe": [
+      {
+        "level": "premium",
+        "optionNumber": "1",
+        "name": "Hearth Oak",
+        "path": "Primary Wardrobe/Canmore - Primary Wardrobe - Premium 1.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "2",
+        "name": "Mineral Linen",
+        "path": "Primary Wardrobe/Canmore - Primary Wardrobe - Premium 2.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "3",
+        "name": "Carbon Ridge",
+        "path": "Primary Wardrobe/Canmore - Primary Wardrobe - Premium 3.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "4",
+        "name": "Bronze Walnut",
+        "path": "Primary Wardrobe/Canmore - Primary Wardrobe - Premium 4.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "1",
+        "name": "Hearth Oak",
+        "path": "Primary Wardrobe/Canmore - Primary Wardrobe - Signature 1.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "2",
+        "name": "Mineral Linen",
+        "path": "Primary Wardrobe/Canmore - Primary Wardrobe - Signature 2.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "3",
+        "name": "Carbon Ridge",
+        "path": "Primary Wardrobe/Canmore - Primary Wardrobe - Signature 3.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "4",
+        "name": "Bronze Walnut",
+        "path": "Primary Wardrobe/Canmore - Primary Wardrobe - Signature 4.png"
+      }
+    ],
+    "interior-doors-details": [
+      {
+        "level": "premium",
+        "optionNumber": "1",
+        "name": "Hearth Oak",
+        "path": "Interior Doors/Canmore - Interior Doors & Details - Premium 1.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "2",
+        "name": "Mineral Linen",
+        "path": "Interior Doors/Canmore - Interior Doors & Details - Premium 2.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "3",
+        "name": "Carbon Ridge",
+        "path": "Interior Doors/Canmore - Interior Doors & Details - Premium 3.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "4",
+        "name": "Bronze Walnut",
+        "path": "Interior Doors/Canmore - Interior Doors & Details - Premium 4.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "1",
+        "name": "Hearth Oak",
+        "path": "Interior Doors/Canmore - Interior Doors & Details - Signature 1.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "2",
+        "name": "Mineral Linen",
+        "path": "Interior Doors/Canmore - Interior Doors & Details - Signature 2.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "3",
+        "name": "Carbon Ridge",
+        "path": "Interior Doors/Canmore - Interior Doors & Details - Signature 3.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "4",
+        "name": "Bronze Walnut",
+        "path": "Interior Doors/Canmore - Interior Doors & Details - Signature 4.png"
+      }
+    ],
+    "exterior-arrival-openings": [
+      {
+        "level": "premium",
+        "optionNumber": "1",
+        "name": "Hearth Oak",
+        "path": "Exterior Arrival/Canmore - Exterior Arrival - Premium 1.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "2",
+        "name": "Mineral Linen",
+        "path": "Exterior Arrival/Canmore - Exterior Arrival - Premium 2.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "3",
+        "name": "Carbon Ridge",
+        "path": "Exterior Arrival/Canmore - Exterior Arrival - Premium 3.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "4",
+        "name": "Bronze Walnut",
+        "path": "Exterior Arrival/Canmore - Exterior Arrival - Premium 4.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "1",
+        "name": "Hearth Oak",
+        "path": "Exterior Arrival/Canmore - Exterior Arrival - Signature 1.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "2",
+        "name": "Mineral Linen",
+        "path": "Exterior Arrival/Canmore - Exterior Arrival - Signature 2.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "3",
+        "name": "Carbon Ridge",
+        "path": "Exterior Arrival/Canmore - Exterior Arrival - Signature 3.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "4",
+        "name": "Bronze Walnut",
+        "path": "Exterior Arrival/Canmore - Exterior Arrival - Signature 4.png"
+      }
+    ],
+    "whole-home-flooring-stairs": [
+      {
+        "level": "premium",
+        "optionNumber": "1",
+        "name": "Hearth Oak",
+        "path": "Whole-Home-Flooring-Stairs/Canmore - Flooring & Stairs - Premium 1.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "2",
+        "name": "Mineral Linen",
+        "path": "Whole-Home-Flooring-Stairs/Canmore - Flooring & Stairs - Premium 2.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "3",
+        "name": "Carbon Ridge",
+        "path": "Whole-Home-Flooring-Stairs/Canmore - Flooring & Stairs - Premium 3.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "4",
+        "name": "Bronze Walnut",
+        "path": "Whole-Home-Flooring-Stairs/Canmore - Flooring & Stairs - Premium 4.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "1",
+        "name": "Hearth Oak",
+        "path": "Whole-Home-Flooring-Stairs/Canmore - Flooring & Stairs - Signature 1.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "2",
+        "name": "Mineral Linen",
+        "path": "Whole-Home-Flooring-Stairs/Canmore - Flooring & Stairs - Signature 2.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "3",
+        "name": "Carbon Ridge",
+        "path": "Whole-Home-Flooring-Stairs/Canmore - Flooring & Stairs - Signature 3.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "4",
+        "name": "Bronze Walnut",
+        "path": "Whole-Home-Flooring-Stairs/Canmore - Flooring & Stairs - Signature 4.png"
+      }
+    ],
+    "window-coverings": [
+      {
+        "level": "premium",
+        "optionNumber": "1",
+        "name": "Hearth Oak",
+        "path": "Window-Coverings/Canmore - Window Coverings - Premium 1.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "2",
+        "name": "Mineral Linen",
+        "path": "Window-Coverings/Canmore - Window Coverings - Premium 2.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "3",
+        "name": "Carbon Ridge",
+        "path": "Window-Coverings/Canmore - Window Coverings - Premium 3.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "4",
+        "name": "Bronze Walnut",
+        "path": "Window-Coverings/Canmore - Window Coverings - Premium 4.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "1",
+        "name": "Hearth Oak",
+        "path": "Window-Coverings/Canmore - Window Coverings - Signature 1.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "2",
+        "name": "Mineral Linen",
+        "path": "Window-Coverings/Canmore - Window Coverings - Signature 2.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "3",
+        "name": "Carbon Ridge",
+        "path": "Window-Coverings/Canmore - Window Coverings - Signature 3.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "4",
+        "name": "Bronze Walnut",
+        "path": "Window-Coverings/Canmore - Window Coverings - Signature 4.png"
+      }
+    ]
+  },
+  "saturna": {
+    "kitchen-look-feel": [
+      {
+        "level": "premium",
+        "optionNumber": "1",
+        "name": "Warm Modern",
+        "path": "Kitchen/Premium/Saturna_Kitchen_Premium-1_Warm-Modern.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "2",
+        "name": "Contemporary Luxe",
+        "path": "Kitchen/Premium/Saturna_Kitchen_Premium-2_Contemporary-Luxe.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "3",
+        "name": "Scandi Light",
+        "path": "Kitchen/Premium/Saturna_Kitchen_Premium-3_Scandi-Light.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "4",
+        "name": "Modern Earth",
+        "path": "Kitchen/Premium/Saturna_Kitchen_Premium-4_Modern-Earth.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "1",
+        "name": "Warm Modern",
+        "path": "Kitchen/Signature/Saturna_Kitchen_Signature-1_Warm-Modern.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "2",
+        "name": "Contemporary Luxe",
+        "path": "Kitchen/Signature/Saturna_Kitchen_Signature-2_Contemporary-Luxe.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "3",
+        "name": "Scandi Light",
+        "path": "Kitchen/Signature/Saturna_Kitchen_Signature-3_Scandi-Light.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "4",
+        "name": "Modern Earth",
+        "path": "Kitchen/Signature/Saturna_Kitchen_Signature-4_Modern-Earth.png"
+      }
+    ],
+    "primary-ensuite-look-feel": [
+      {
+        "level": "premium",
+        "optionNumber": "1",
+        "name": "Coastal Calm",
+        "path": "Primary Ensuite/Premium/Saturna_Primary-Ensuite_Premium-1_Coastal-Calm.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "2",
+        "name": "Urban Luxe",
+        "path": "Primary Ensuite/Premium/Saturna_Primary-Ensuite_Premium-2_Urban-Luxe.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "3",
+        "name": "Warm Natural",
+        "path": "Primary Ensuite/Premium/Saturna_Primary-Ensuite_Premium-3_Warm-Natural.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "4",
+        "name": "Modern Cool",
+        "path": "Primary Ensuite/Premium/Saturna_Primary-Ensuite_Premium-4_Modern-Cool.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "1",
+        "name": "Coastal Calm",
+        "path": "Primary Ensuite/Signature/Saturna_Primary-Ensuite_Signature-1_Coastal-Calm.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "2",
+        "name": "Urban Luxe",
+        "path": "Primary Ensuite/Signature/Saturna_Primary-Ensuite_Signature-2_Urban-Luxe.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "3",
+        "name": "Warm Natural",
+        "path": "Primary Ensuite/Signature/Saturna_Primary-Ensuite_Signature-3_Warm-Natural.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "4",
+        "name": "Modern Cool",
+        "path": "Primary Ensuite/Signature/Saturna_Primary-Ensuite_Signature-4_Modern-Cool.png"
+      }
+    ],
+    "primary-wardrobe": [
+      {
+        "level": "premium",
+        "optionNumber": "1",
+        "name": "Warm Modern",
+        "path": "Primary Wardrobe/Premium/Saturna_Primary-Wardrobe_Premium-1_Warm-Modern.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "2",
+        "name": "Contemporary Luxe",
+        "path": "Primary Wardrobe/Premium/Saturna_Primary-Wardrobe_Premium-2_Contemporary-Luxe.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "3",
+        "name": "Scandi Light",
+        "path": "Primary Wardrobe/Premium/Saturna_Primary-Wardrobe_Premium-3_Scandi-Light.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "4",
+        "name": "Modern Earth",
+        "path": "Primary Wardrobe/Premium/Saturna_Primary-Wardrobe_Premium-4_Modern-Earth.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "1",
+        "name": "Warm Modern",
+        "path": "Primary Wardrobe/Signature/Saturna_Primary-Wardrobe_Signature-1_Warm-Modern.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "2",
+        "name": "Contemporary Luxe",
+        "path": "Primary Wardrobe/Signature/Saturna_Primary-Wardrobe_Signature-2_Contemporary-Luxe.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "3",
+        "name": "Scandi Light",
+        "path": "Primary Wardrobe/Signature/Saturna_Primary-Wardrobe_Signature-3_Scandi-Light.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "4",
+        "name": "Modern Earth",
+        "path": "Primary Wardrobe/Signature/Saturna_Primary-Wardrobe_Signature-4_Modern-Earth.png"
+      }
+    ],
+    "interior-doors-details": [
+      {
+        "level": "premium",
+        "optionNumber": "1",
+        "name": "Warm Modern",
+        "path": "Interior Doors & Details/Premium/Saturna_Interior-Doors-Details_Premium-1_Warm-Modern.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "2",
+        "name": "Contemporary Cool",
+        "path": "Interior Doors & Details/Premium/Saturna_Interior-Doors-Details_Premium-2_Contemporary-Cool.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "3",
+        "name": "Scandi Natural",
+        "path": "Interior Doors & Details/Premium/Saturna_Interior-Doors-Details_Premium-3_Scandi-Natural.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "4",
+        "name": "Modern Earth",
+        "path": "Interior Doors & Details/Premium/Saturna_Interior-Doors-Details_Premium-4_Modern-Earth.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "1",
+        "name": "Warm Modern",
+        "path": "Interior Doors & Details/Signature/Saturna_Interior-Doors-Details_Signature-1_Warm-Modern.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "2",
+        "name": "Contemporary Cool",
+        "path": "Interior Doors & Details/Signature/Saturna_Interior-Doors-Details_Signature-2_Contemporary-Cool.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "3",
+        "name": "Scandi Natural",
+        "path": "Interior Doors & Details/Signature/Saturna_Interior-Doors-Details_Signature-3_Scandi-Natural.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "4",
+        "name": "Modern Earth",
+        "path": "Additional Images/Saturna - Interior Doors & Details - Signature 4 - Modern Earth.png"
+      }
+    ],
+    "exterior-arrival-openings": [
+      {
+        "level": "premium",
+        "optionNumber": "1",
+        "name": "Warm Modern",
+        "path": "Additional Images/Saturna - Exterior Arrival - Premium 1 - Warm Modern.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "2",
+        "name": "Contemporary Cool",
+        "path": "Additional Images/Saturna - Exterior Arrival - Premium 2 - Contemporary Luxe.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "3",
+        "name": "Scandi Natural",
+        "path": "Additional Images/Saturna - Exterior Arrival - Premium 3 - Scandi Light.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "4",
+        "name": "Modern Earth",
+        "path": "Additional Images/Saturna - Exterior Arrival - Premium 4 - Modern Earth.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "1",
+        "name": "Warm Modern",
+        "path": "Additional Images/Saturna - Exterior Arrival - Signature 1 - Warm Modern.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "2",
+        "name": "Contemporary Cool",
+        "path": "Additional Images/Saturna - Exterior Arrival - Signature 2 - Contemporary Luxe.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "3",
+        "name": "Scandi Natural",
+        "path": "Additional Images/Saturna - Exterior Arrival - Signature 3 - Scandi Light.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "4",
+        "name": "Modern Earth",
+        "path": "Additional Images/Saturna - Exterior Arrival - Signature 4 - Modern Earth.png"
+      }
+    ],
+    "whole-home-flooring-stairs": [
+      {
+        "level": "premium",
+        "optionNumber": "1",
+        "name": "Warm Modern",
+        "path": "Additional Images/Saturna - Flooring & Stairs - Premium 1 - Warm Modern.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "2",
+        "name": "Contemporary Cool",
+        "path": "Additional Images/Saturna - Flooring & Stairs - Premium 2 - Contemporary Luxe.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "3",
+        "name": "Scandi Natural",
+        "path": "Additional Images/Saturna - Flooring & Stairs - Premium 3 - Scandi Light.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "4",
+        "name": "Modern Earth",
+        "path": "Additional Images/Saturna - Flooring & Stairs - Premium 4 - Modern Earth.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "1",
+        "name": "Warm Modern",
+        "path": "Additional Images/Saturna - Flooring & Stairs - Signature 1 - Warm Modern.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "2",
+        "name": "Contemporary Cool",
+        "path": "Additional Images/Saturna - Flooring & Stairs - Signature 2 - Contemporary Luxe.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "3",
+        "name": "Scandi Natural",
+        "path": "Additional Images/Saturna - Flooring & Stairs - Signature 3 - Scandi Light.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "4",
+        "name": "Modern Earth",
+        "path": "Additional Images/Saturna - Flooring & Stairs - Signature 4 - Modern Earth.png"
+      }
+    ],
+    "window-coverings": [
+      {
+        "level": "premium",
+        "optionNumber": "1",
+        "name": "Warm Modern",
+        "path": "Additional Images/Saturna - Window Coverings - Premium 1 - Warm Modern.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "2",
+        "name": "Contemporary Cool",
+        "path": "Additional Images/Saturna - Window Coverings - Premium 2 - Contemporary Luxe.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "3",
+        "name": "Scandi Natural",
+        "path": "Additional Images/Saturna - Window Coverings - Premium 3 - Scandi Light.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "4",
+        "name": "Modern Earth",
+        "path": "Additional Images/Saturna - Window Coverings - Premium 4 - Modern Earth.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "1",
+        "name": "Warm Modern",
+        "path": "Additional Images/Saturna - Window Coverings - Signature 1 - Warm Modern.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "2",
+        "name": "Contemporary Cool",
+        "path": "Additional Images/Saturna - Window Coverings - Signature 2 - Contemporary Luxe.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "3",
+        "name": "Scandi Natural",
+        "path": "Additional Images/Saturna - Window Coverings - Signature 3 - Scandi Light.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "4",
+        "name": "Modern Earth",
+        "path": "Additional Images/Saturna - Window Coverings - Signature 4 - Modern Earth.png"
+      }
+    ]
+  },
+  "solace": {
+    "kitchen-look-feel": [
+      {
+        "level": "premium",
+        "optionNumber": "1",
+        "name": "Coastal Light Oak",
+        "path": "Solace - Kitchen - Premium 1 - Coastal Light Oak.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "2",
+        "name": "Soft White",
+        "path": "Solace - Kitchen - Premium 2 - Soft White.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "3",
+        "name": "Stone Wrapped Oak",
+        "path": "Solace - Kitchen - Premium 3 - Stone Wrapped Oak.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "4",
+        "name": "Sculpted White",
+        "path": "Solace - Kitchen - Premium 4 - Sculpted White.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "1",
+        "name": "Coastal Light Oak",
+        "path": "Solace - Kitchen - Signature 1 - Coastal Light Oak.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "2",
+        "name": "Soft White",
+        "path": "Solace - Kitchen - Signature 2 - Soft White.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "3",
+        "name": "Stone Wrapped Oak",
+        "path": "Solace - Kitchen - Signature 3 - Stone Wrapped Oak.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "4",
+        "name": "Sculpted White",
+        "path": "Solace - Kitchen - Signature 4 - Sculpted White.png"
+      }
+    ],
+    "primary-ensuite-look-feel": [
+      {
+        "level": "premium",
+        "optionNumber": "1",
+        "name": "Coastal Light Oak",
+        "path": "Solace - Primary Ensuite - Premium 1 - Coastal Light Oak.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "2",
+        "name": "Soft White",
+        "path": "Solace - Primary Ensuite - Premium 2 - Soft White.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "3",
+        "name": "Stone Wrapped Oak",
+        "path": "Solace - Primary Ensuite - Premium 3 - Stone Wrapped Oak.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "4",
+        "name": "Sculpted White",
+        "path": "Solace - Primary Ensuite - Premium 4 - Sculpted White.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "1",
+        "name": "Coastal Light Oak",
+        "path": "Solace - Primary Ensuite - Signature 1 - Coastal Light Oak.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "2",
+        "name": "Soft White",
+        "path": "Solace - Primary Ensuite - Signature 2 - Soft White.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "3",
+        "name": "Stone Wrapped Oak",
+        "path": "Solace - Primary Ensuite - Signature 3 - Stone Wrapped Oak.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "4",
+        "name": "Sculpted White",
+        "path": "Solace - Primary Ensuite - Signature 4 - Sculpted White.png"
+      }
+    ],
+    "primary-wardrobe": [
+      {
+        "level": "premium",
+        "optionNumber": "1",
+        "name": "Coastal Light Oak",
+        "path": "Solace - Primary Wardrobe - Premium 1 - Coastal Light Oak.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "2",
+        "name": "Soft White",
+        "path": "Solace - Primary Wardrobe - Premium 2 - Soft White.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "3",
+        "name": "Stone Wrapped Oak",
+        "path": "Solace - Primary Wardrobe - Premium 3 - Stone Wrapped Oak.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "4",
+        "name": "Sculpted White",
+        "path": "Solace - Primary Wardrobe - Premium 4 - Sculpted White.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "1",
+        "name": "Coastal Light Oak",
+        "path": "Solace - Primary Wardrobe - Signature 1 - Coastal Light Oak.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "2",
+        "name": "Soft White",
+        "path": "Solace - Primary Wardrobe - Signature 2 - Soft White.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "3",
+        "name": "Stone Wrapped Oak",
+        "path": "Solace - Primary Wardrobe - Signature 3 - Stone Wrapped Oak.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "4",
+        "name": "Sculpted White",
+        "path": "Solace - Primary Wardrobe - Signature 4 - Sculpted White.png"
+      }
+    ],
+    "interior-doors-details": [
+      {
+        "level": "premium",
+        "optionNumber": "1",
+        "name": "Coastal Light Oak",
+        "path": "Solace - Interior Doors & Details - Premium 1 - Coastal Light Oak.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "2",
+        "name": "Soft White",
+        "path": "Solace - Interior Doors & Details - Premium 2 - Soft White.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "3",
+        "name": "Stone Wrapped Oak",
+        "path": "Solace - Interior Doors & Details - Premium 3 - Stone Wrapped Oak.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "4",
+        "name": "Sculpted White",
+        "path": "Solace - Interior Doors & Details - Premium 4 - Sculpted White.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "1",
+        "name": "Coastal Light Oak",
+        "path": "Solace - Interior Doors & Details - Signature 1 - Coastal Light Oak.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "2",
+        "name": "Soft White",
+        "path": "Solace - Interior Doors & Details - Signature 2 - Soft White.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "3",
+        "name": "Stone Wrapped Oak",
+        "path": "Solace - Interior Doors & Details - Signature 3 - Stone Wrapped Oak.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "4",
+        "name": "Sculpted White",
+        "path": "Solace - Interior Doors & Details - Signature 4 - Sculpted White.png"
+      }
+    ],
+    "exterior-arrival-openings": [
+      {
+        "level": "premium",
+        "optionNumber": "1",
+        "name": "Coastal Light Oak",
+        "path": "Solace - Exterior Arrival - Premium 1 - Coastal Light Oak.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "2",
+        "name": "Soft White",
+        "path": "Solace - Exterior Arrival - Premium 2 - Soft White.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "3",
+        "name": "Stone Wrapped Oak",
+        "path": "Solace - Exterior Arrival - Premium 3 - Stone Wrapped Oak.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "4",
+        "name": "Sculpted White",
+        "path": "Solace - Exterior Arrival - Premium 4 - Sculpted White.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "1",
+        "name": "Coastal Light Oak",
+        "path": "Solace - Exterior Arrival - Signature 1 - Coastal Light Oak.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "2",
+        "name": "Soft White",
+        "path": "Solace - Exterior Arrival - Signature 2 - Soft White.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "3",
+        "name": "Stone Wrapped Oak",
+        "path": "Solace - Exterior Arrival - Signature 3 - Stone Wrapped Oak.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "4",
+        "name": "Sculpted White",
+        "path": "Solace - Exterior Arrival - Signature 4 - Sculpted White.png"
+      }
+    ],
+    "whole-home-flooring-stairs": [
+      {
+        "level": "premium",
+        "optionNumber": "1",
+        "name": "Coastal Light Oak",
+        "path": "Solace - Flooring & Stairs - Premium 1 - Coastal Light Oak.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "2",
+        "name": "Soft White",
+        "path": "Solace - Flooring & Stairs - Premium 2 - Soft White.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "3",
+        "name": "Stone Wrapped Oak",
+        "path": "Solace - Flooring & Stairs - Premium 3 - Stone Wrapped Oak.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "4",
+        "name": "Sculpted White",
+        "path": "Solace - Flooring & Stairs - Premium 4 - Sculpted White.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "1",
+        "name": "Coastal Light Oak",
+        "path": "Solace - Flooring & Stairs - Signature 1 - Coastal Light Oak.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "2",
+        "name": "Soft White",
+        "path": "Solace - Flooring & Stairs - Signature 2 - Soft White.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "3",
+        "name": "Stone Wrapped Oak",
+        "path": "Solace - Flooring & Stairs - Signature 3 - Stone Wrapped Oak.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "4",
+        "name": "Sculpted White",
+        "path": "Solace - Flooring & Stairs - Signature 4 - Sculpted White.png"
+      }
+    ],
+    "window-coverings": [
+      {
+        "level": "premium",
+        "optionNumber": "1",
+        "name": "Coastal Light Oak",
+        "path": "Solace - Window Coverings - Premium 1 - Coastal Light Oak.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "2",
+        "name": "Soft White",
+        "path": "Solace - Window Coverings - Premium 2 - Soft White.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "3",
+        "name": "Stone Wrapped Oak",
+        "path": "Solace - Window Coverings - Premium 3 - Stone Wrapped Oak.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "4",
+        "name": "Sculpted White",
+        "path": "Solace - Window Coverings - Premium 4 - Sculpted White.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "1",
+        "name": "Coastal Light Oak",
+        "path": "Solace - Window Coverings - Signature 1 - Coastal Light Oak.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "2",
+        "name": "Soft White",
+        "path": "Solace - Window Coverings - Signature 2 - Soft White.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "3",
+        "name": "Stone Wrapped Oak",
+        "path": "Solace - Window Coverings - Signature 3 - Stone Wrapped Oak.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "4",
+        "name": "Sculpted White",
+        "path": "Solace - Window Coverings - Signature 4 - Sculpted White.png"
+      }
+    ]
+  },
+  "south-bay": {
+    "kitchen-look-feel": [
+      {
+        "level": "premium",
+        "optionNumber": "1",
+        "name": "Shoreline Oak",
+        "path": "South Bay - Kitchen - Premium 1 - Shoreline Oak.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "2",
+        "name": "Mist Linen",
+        "path": "South Bay - Kitchen - Premium 2 - Mist Linen.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "3",
+        "name": "Basalt Frame",
+        "path": "South Bay - Kitchen - Premium 3 - Basalt Frame.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "4",
+        "name": "Cove Bronze",
+        "path": "South Bay - Kitchen - Premium 4 - Cove Bronze.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "1",
+        "name": "Shoreline Oak",
+        "path": "South Bay - Kitchen - Signature 1 - Shoreline Oak.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "2",
+        "name": "Mist Linen",
+        "path": "South Bay - Kitchen - Signature 2 - Mist Linen.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "3",
+        "name": "Basalt Frame",
+        "path": "South Bay - Kitchen - Signature 3 - Basalt Frame.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "4",
+        "name": "Cove Bronze",
+        "path": "South Bay - Kitchen - Signature 4 - Cove Bronze.png"
+      }
+    ],
+    "primary-ensuite-look-feel": [
+      {
+        "level": "premium",
+        "optionNumber": "1",
+        "name": "Shoreline Oak",
+        "path": "South Bay - Primary Ensuite - Premium 1 - Shoreline Oak.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "2",
+        "name": "Mist Linen",
+        "path": "South Bay - Primary Ensuite - Premium 2 - Mist Linen.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "3",
+        "name": "Basalt Frame",
+        "path": "South Bay - Primary Ensuite - Premium 3 - Basalt Frame.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "4",
+        "name": "Cove Bronze",
+        "path": "South Bay - Primary Ensuite - Premium 4 - Cove Bronze.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "1",
+        "name": "Shoreline Oak",
+        "path": "South Bay - Primary Ensuite - Signature 1 - Shoreline Oak.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "2",
+        "name": "Mist Linen",
+        "path": "South Bay - Primary Ensuite - Signature 2 - Mist Linen.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "3",
+        "name": "Basalt Frame",
+        "path": "South Bay - Primary Ensuite - Signature 3 - Basalt Frame.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "4",
+        "name": "Cove Bronze",
+        "path": "South Bay - Primary Ensuite - Signature 4 - Cove Bronze.png"
+      }
+    ],
+    "primary-wardrobe": [
+      {
+        "level": "premium",
+        "optionNumber": "1",
+        "name": "Shoreline Oak",
+        "path": "South Bay - Primary Wardrobe - Premium 1 - Shoreline Oak.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "2",
+        "name": "Mist Linen",
+        "path": "South Bay - Primary Wardrobe - Premium 2 - Mist Linen.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "3",
+        "name": "Basalt Frame",
+        "path": "South Bay - Primary Wardrobe - Premium 3 - Basalt Frame.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "4",
+        "name": "Cove Bronze",
+        "path": "South Bay - Primary Wardrobe - Premium 4 - Cove Bronze.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "1",
+        "name": "Shoreline Oak",
+        "path": "South Bay - Primary Wardrobe - Signature 1 - Shoreline Oak.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "2",
+        "name": "Mist Linen",
+        "path": "South Bay - Primary Wardrobe - Signature 2 - Mist Linen.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "3",
+        "name": "Basalt Frame",
+        "path": "South Bay - Primary Wardrobe - Signature 3 - Basalt Frame.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "4",
+        "name": "Cove Bronze",
+        "path": "South Bay - Primary Wardrobe - Signature 4 - Cove Bronze.png"
+      }
+    ],
+    "interior-doors-details": [
+      {
+        "level": "premium",
+        "optionNumber": "1",
+        "name": "Shoreline Oak",
+        "path": "South Bay - Interior Doors & Details - Premium 1 - Shoreline Oak.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "2",
+        "name": "Mist Linen",
+        "path": "South Bay - Interior Doors & Details - Premium 2 - Mist Linen.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "3",
+        "name": "Basalt Frame",
+        "path": "South Bay - Interior Doors & Details - Premium 3 - Basalt Frame.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "4",
+        "name": "Cove Bronze",
+        "path": "South Bay - Interior Doors & Details - Premium 4 - Cove Bronze.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "1",
+        "name": "Shoreline Oak",
+        "path": "South Bay - Interior Doors & Details - Signature 1 - Shoreline Oak.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "2",
+        "name": "Mist Linen",
+        "path": "South Bay - Interior Doors & Details - Signature 2 - Mist Linen.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "3",
+        "name": "Basalt Frame",
+        "path": "South Bay - Interior Doors & Details - Signature 3 - Basalt Frame.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "4",
+        "name": "Cove Bronze",
+        "path": "South Bay - Interior Doors & Details - Signature 4 - Cove Bronze.png"
+      }
+    ],
+    "exterior-arrival-openings": [
+      {
+        "level": "premium",
+        "optionNumber": "1",
+        "name": "Shoreline Oak",
+        "path": "South Bay - Exterior Arrival - Premium 1 - Shoreline Oak.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "2",
+        "name": "Mist Linen",
+        "path": "South Bay - Exterior Arrival - Premium 2 - Mist Linen.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "3",
+        "name": "Basalt Frame",
+        "path": "South Bay - Exterior Arrival - Premium 3 - Basalt Frame.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "4",
+        "name": "Cove Bronze",
+        "path": "South Bay - Exterior Arrival - Premium 4 - Cove Bronze.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "1",
+        "name": "Shoreline Oak",
+        "path": "South Bay - Exterior Arrival - Signature 1 - Shoreline Oak.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "2",
+        "name": "Mist Linen",
+        "path": "South Bay - Exterior Arrival - Signature 2 - Mist Linen.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "3",
+        "name": "Basalt Frame",
+        "path": "South Bay - Exterior Arrival - Signature 3 - Basalt Frame.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "4",
+        "name": "Cove Bronze",
+        "path": "South Bay - Exterior Arrival - Signature 4 - Cove Bronze.png"
+      }
+    ],
+    "whole-home-flooring-stairs": [
+      {
+        "level": "premium",
+        "optionNumber": "1",
+        "name": "Shoreline Oak",
+        "path": "South Bay - Flooring & Stairs - Premium 1 - Shoreline Oak.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "2",
+        "name": "Mist Linen",
+        "path": "South Bay - Flooring & Stairs - Premium 2 - Mist Linen.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "3",
+        "name": "Basalt Frame",
+        "path": "South Bay - Flooring & Stairs - Premium 3 - Basalt Frame.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "4",
+        "name": "Cove Bronze",
+        "path": "South Bay - Flooring & Stairs - Premium 4 - Cove Bronze.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "1",
+        "name": "Shoreline Oak",
+        "path": "South Bay - Flooring & Stairs - Signature 1 - Shoreline Oak.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "2",
+        "name": "Mist Linen",
+        "path": "South Bay - Flooring & Stairs - Signature 2 - Mist Linen.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "3",
+        "name": "Basalt Frame",
+        "path": "South Bay - Flooring & Stairs - Signature 3 - Basalt Frame.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "4",
+        "name": "Cove Bronze",
+        "path": "South Bay - Flooring & Stairs - Signature 4 - Cove Bronze.png"
+      }
+    ],
+    "window-coverings": [
+      {
+        "level": "premium",
+        "optionNumber": "1",
+        "name": "Shoreline Oak",
+        "path": "South Bay - Window Coverings - Premium 1 - Shoreline Oak.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "2",
+        "name": "Mist Linen",
+        "path": "South Bay - Window Coverings - Premium 2 - Mist Linen.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "3",
+        "name": "Basalt Frame",
+        "path": "South Bay - Window Coverings - Premium 3 - Basalt Frame.png"
+      },
+      {
+        "level": "premium",
+        "optionNumber": "4",
+        "name": "Cove Bronze",
+        "path": "South Bay - Window Coverings - Premium 4 - Cove Bronze.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "1",
+        "name": "Shoreline Oak",
+        "path": "South Bay - Window Coverings - Signature 1 - Shoreline Oak.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "2",
+        "name": "Mist Linen",
+        "path": "South Bay - Window Coverings - Signature 2 - Mist Linen.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "3",
+        "name": "Basalt Frame",
+        "path": "South Bay - Window Coverings - Signature 3 - Basalt Frame.png"
+      },
+      {
+        "level": "signature",
+        "optionNumber": "4",
+        "name": "Cove Bronze",
+        "path": "South Bay - Window Coverings - Signature 4 - Cove Bronze.png"
+      }
+    ]
+  }
+}

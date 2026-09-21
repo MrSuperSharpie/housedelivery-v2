@@ -53,6 +53,25 @@ type HomeImagePreviewTarget = {
   returnFocusId: string;
 };
 
+const condensedLookBookHomeIds = new Set([
+  "canmore",
+  "saturna",
+  "solace",
+  "south-bay",
+]);
+
+function getPublicInclusionOptions(
+  homeId: string,
+  category: HomeSelectableInclusionCategory,
+) {
+  if (!condensedLookBookHomeIds.has(homeId)) return category.options;
+
+  return [
+    ...category.options.filter((option) => option.level === "premium").slice(0, 2),
+    ...category.options.filter((option) => option.level === "signature").slice(0, 2),
+  ];
+}
+
 function getCategoryImagePreviewTarget(
   category: HomeInclusionCategoryData,
   configuration: HomeConfiguration,
@@ -207,6 +226,7 @@ export function HomeConfigurator({
 }: HomeConfiguratorProps) {
   const useDirectSourceImages =
     directSourceImages || hasDesignBoardImages(definition);
+  const usesCondensedLookBook = condensedLookBookHomeIds.has(definition.homeId);
   const [configuration, setConfiguration] = useState<HomeConfiguration>(() =>
     createDefaultHomeConfiguration(definition),
   );
@@ -421,7 +441,7 @@ export function HomeConfigurator({
   const imagePreviewOptions = imagePreview
     ? imagePreview.category.kind === "flooring"
       ? (imagePreview.zone?.options ?? [])
-      : imagePreview.category.options
+      : getPublicInclusionOptions(definition.homeId, imagePreview.category)
     : [];
   const imagePreviewOptionIndex = imagePreview
     ? imagePreviewOptions.findIndex(
@@ -1023,6 +1043,9 @@ export function HomeConfigurator({
                       onConfirm={() => confirmInclusionCategory(category)}
                       onEdit={() => editCategory(category.id)}
                       directSourceImages={useDirectSourceImages}
+                      visibleOptionsPerTier={
+                        usesCondensedLookBook ? 2 : undefined
+                      }
                     />
                   );
                 })}
