@@ -6,6 +6,7 @@ import { FormEvent, useRef, useState } from "react";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
 import type { HomeModel } from "@/data/models";
+import { trackAnalyticsEvent } from "@/lib/analytics";
 
 type ReservationFormProps = {
   models: readonly HomeModel[];
@@ -81,6 +82,10 @@ export function ReservationForm({ models }: ReservationFormProps) {
       }
 
       setSubmitted(true);
+      trackAnalyticsEvent("quote_form_submitted", {
+        form_name: "project_review",
+        model_selected: Boolean(inquiry.model),
+      });
     } catch {
       setSubmissionError(
         "We couldn’t submit your project details right now. Please try again shortly.",

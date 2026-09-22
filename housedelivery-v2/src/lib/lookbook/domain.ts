@@ -93,6 +93,7 @@ export function parseAttribution(value: unknown): LookBookAttribution {
   const utmCampaign = optionalSingleLine(value.utmCampaign, 300);
   const utmContent = optionalSingleLine(value.utmContent, 300);
   const utmTerm = optionalSingleLine(value.utmTerm, 300);
+  const utmId = optionalSingleLine(value.utmId, 300);
 
   return {
     anonymousSessionId,
@@ -103,6 +104,7 @@ export function parseAttribution(value: unknown): LookBookAttribution {
     ...(utmCampaign ? { utmCampaign } : {}),
     ...(utmContent ? { utmContent } : {}),
     ...(utmTerm ? { utmTerm } : {}),
+    ...(utmId ? { utmId } : {}),
   };
 }
 

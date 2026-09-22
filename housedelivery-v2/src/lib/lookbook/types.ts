@@ -24,6 +24,7 @@ export type LookBookAttribution = {
   utmCampaign?: string;
   utmContent?: string;
   utmTerm?: string;
+  utmId?: string;
 };
 
 export type LookBookContact = {

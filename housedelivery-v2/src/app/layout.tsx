@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Suspense } from "react";
 
+import { AnalyticsManager } from "@/components/analytics-manager";
 import { SiteFooter } from "@/components/site-footer";
 
 import "./globals.css";
@@ -49,6 +51,9 @@ export default function RootLayout({
       <body className="flex min-h-full flex-col">
         {children}
         <SiteFooter />
+        <Suspense fallback={null}>
+          <AnalyticsManager />
+        </Suspense>
       </body>
     </html>
   );

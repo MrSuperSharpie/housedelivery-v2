@@ -1,5 +1,6 @@
 "use client";
 
+import { trackAnalyticsEvent } from "@/lib/analytics";
 import type { LookBookAttribution } from "@/lib/lookbook/types";
 
 export type LookBookAnalyticsEvent =
@@ -25,13 +26,10 @@ type EventProperties = {
   utm_source?: string;
   utm_medium?: string;
   utm_campaign?: string;
+  utm_content?: string;
+  utm_term?: string;
+  utm_id?: string;
 };
-
-declare global {
-  interface Window {
-    dataLayer?: Record<string, unknown>[];
-  }
-}
 
 export function attributionEventProperties(
   attribution: LookBookAttribution,
@@ -42,6 +40,9 @@ export function attributionEventProperties(
     ...(attribution.utmCampaign
       ? { utm_campaign: attribution.utmCampaign }
       : {}),
+    ...(attribution.utmContent ? { utm_content: attribution.utmContent } : {}),
+    ...(attribution.utmTerm ? { utm_term: attribution.utmTerm } : {}),
+    ...(attribution.utmId ? { utm_id: attribution.utmId } : {}),
   };
 }
 
@@ -49,13 +50,7 @@ export function trackLookBookEvent(
   event: LookBookAnalyticsEvent,
   properties: EventProperties,
 ) {
-  const detail = { event, ...properties };
-
-  // This is deliberately provider-neutral. Existing/future analytics can listen
-  // for the browser event or use a conventional dataLayer without changing the
-  // configurator. Never add contact or exact-property fields here.
-  window.dispatchEvent(
-    new CustomEvent("house-delivery:analytics", { detail }),
-  );
-  window.dataLayer?.push(detail);
+  // The shared analytics manager is the only provider bridge. Keeping this
+  // provider-neutral prevents duplicate delivery and keeps PII out of vendors.
+  trackAnalyticsEvent(event, properties);
 }

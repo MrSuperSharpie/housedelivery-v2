@@ -204,6 +204,7 @@ test("first-touch attribution is normalized without contact information", () => 
       utmSource: "linkedin",
       utmMedium: "direct-outreach",
       utmCampaign: "developers-august",
+      utmId: "li-10059612",
     }),
     {
       anonymousSessionId: recordIdForAttribution,
@@ -213,6 +214,7 @@ test("first-touch attribution is normalized without contact information", () => 
       utmSource: "linkedin",
       utmMedium: "direct-outreach",
       utmCampaign: "developers-august",
+      utmId: "li-10059612",
     },
   );
 });

@@ -18,6 +18,7 @@ import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { CulturalDesignReport } from "@/components/cultural-design-report";
 import { FirstNationsExteriorDirectionCard } from "@/components/first-nations-exterior-direction-card";
 import { getCulturalDesignImage } from "@/data/first-nations-cultural-design";
+import { trackAnalyticsEvent } from "@/lib/analytics";
 import { cn } from "@/lib/cn";
 import {
   addPlannerDesignVariation,
@@ -2520,6 +2521,11 @@ function ProjectReviewStep({
         submittedAt,
       }));
       setSubmitted(true);
+      trackAnalyticsEvent("project_review_submitted", {
+        audience: state.audience,
+        home_count: summary.totalHomes,
+        design_group_count: completedDesigns.length,
+      });
     } catch {
       setSubmissionError(
         "We couldn’t send this project review right now. Your Planner remains saved on this device; please try again shortly.",
