@@ -177,7 +177,9 @@ export function HomeDesignToolCallout({
             <div className="mt-6 space-y-2 text-xs leading-6 text-white/55">
               <p>Includes shipping and applicable import tariffs.</p>
               <p>Excludes site work, foundations, on-site assembly, and sales taxes.</p>
-              <p>Assembly: Quoted separately.</p>
+              <p>Appliances are selected and priced separately.</p>
+              <p>Land, site services and local trade work are separate.</p>
+              <p>Assembly &amp; erection is quoted separately on a project-specific basis.</p>
             </div>
             {isPreviewOnly ? (
               <div className="mt-6 text-sm leading-7 text-white/52">
