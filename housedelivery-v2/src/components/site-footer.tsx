@@ -58,7 +58,15 @@ export function SiteFooter() {
         </div>
 
         <div className="flex flex-col gap-3 pt-7 text-[9px] uppercase tracking-[0.16em] text-white/28 sm:flex-row sm:items-center sm:justify-between">
-          <p>© 2026 House Delivery Inc. All rights reserved.</p>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <p>© 2026 House Delivery Inc. All rights reserved.</p>
+            <Link
+              className="transition-colors hover:text-white/70"
+              href="/privacy"
+            >
+              Privacy &amp; Cookies
+            </Link>
+          </div>
           <p>Homes delivered, not just built.</p>
         </div>
 

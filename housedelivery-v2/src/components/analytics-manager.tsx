@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import Script from "next/script";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -229,7 +230,13 @@ export function AnalyticsManager() {
           <p className="max-w-xl text-sm leading-6 text-white/68">
             House Delivery uses analytics and campaign measurement to understand
             which pages and project tools are useful. Contact details and form
-            contents are not sent to analytics services.
+            contents are not sent to analytics services.{" "}
+            <Link
+              href="/privacy"
+              className="whitespace-nowrap text-white underline decoration-white/35 underline-offset-4 transition-colors hover:decoration-white"
+            >
+              Privacy &amp; Cookies
+            </Link>
           </p>
           <div className="mt-5 flex shrink-0 gap-3 sm:mt-0">
             <button
