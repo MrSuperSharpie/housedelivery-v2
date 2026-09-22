@@ -73,11 +73,11 @@ test("Solace starting totals and scope appear only in its primary callout", () =
   assert.match(markup, /275/);
   assert.match(markup, /1,216,125/);
   assert.match(markup, /1,486,375/);
-  assert.match(markup, /Includes shipping and applicable import tariffs/);
-  assert.match(markup, /Excludes site work, foundations, on-site assembly, and sales taxes/);
-  assert.match(markup, /Appliances are selected and priced separately/);
-  assert.match(markup, /Land, site services and local trade work are separate/);
-  assert.match(markup, /Assembly &amp; erection is quoted separately on a project-specific basis/);
+  assert.match(markup, /<strong>Package pricing includes coordinated shipping to your project location and applicable import tariffs\.<\/strong>/);
+  assert.match(markup, /Appliances are selected separately/);
+  assert.match(markup, /<strong>Assembly &amp; erection can be provided as a separate project-specific package\.<\/strong>/);
+  assert.match(markup, /factory production typically completed in 40–45 days after approved drawings and payment/);
+  assert.match(markup, /Site work, foundations, services and local trades are project-specific\. Applicable sales taxes are extra/);
   assert.equal((markup.match(/data-home-tier=/g) ?? []).length, 2);
   for (const props of [
     { homeName: "Langley House", variant: "primary" as const },
