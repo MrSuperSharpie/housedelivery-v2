@@ -83,8 +83,9 @@ export function CarriageHomeShowcase() {
 
   const lanewayPropertyReviewFeature = (
     <aside
+      id="laneway-property-review"
       aria-labelledby="laneway-property-review-heading"
-      className="overflow-hidden border border-white/10 bg-[#d9d1c3] text-[#0b0c10] md:col-span-2 lg:grid lg:grid-cols-[0.94fr_1.06fr]"
+      className="scroll-mt-24 overflow-hidden border border-white/10 bg-[#d9d1c3] text-[#0b0c10] md:col-span-2 lg:grid lg:grid-cols-[0.94fr_1.06fr]"
     >
       <div className="relative min-h-[300px] sm:min-h-[360px] lg:min-h-[500px]">
         <Image
@@ -186,11 +187,12 @@ export function CarriageHomeShowcase() {
 
   return (
     <section
-      id="carriage-homes"
+      id="laneway-carriage-homes"
       aria-labelledby="carriage-homes-heading"
       className="scroll-mt-20 bg-[#0B0C10] px-5 py-28 sm:px-8 lg:px-12 lg:py-40"
     >
         <div className="mx-auto max-w-[1504px]">
+          <span id="carriage-homes" className="block scroll-mt-20" aria-hidden="true" />
           <div className="grid gap-12 border-t border-white/10 pt-7 lg:grid-cols-[0.72fr_1.28fr] lg:items-end lg:gap-20">
             <div>
               <p className="eyebrow">
