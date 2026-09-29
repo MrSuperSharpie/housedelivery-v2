@@ -10,7 +10,7 @@ import { readPlannerHomeViewReturnHref } from "@/lib/planner-design-session";
 import { usePlannerHomeViewContext } from "@/lib/use-planner-home-view-context";
 
 const links = [
-  { label: "Homes", href: "/#models" },
+  { label: "Homes", href: "/#home-types" },
   { label: "Inclusions", href: "/inclusions" },
   { label: "How it works", href: "/how-it-works" },
   { label: "First Nations", href: "/first-nations-inspired" },
