@@ -25,7 +25,7 @@ import {
 } from "@/lib/planner-review-access";
 
 const inquiryRecipient = "hello@housedelivery.ca";
-const lanewayPropertyReviewCopyRecipient = "briandustinfong@gmail.com";
+const lanewayPropertyReviewCopyRecipient = "bfong@housedelivery.ca";
 const inquiryRoute = "/api/inquiries";
 const maximumRequestBytes = 200_000;
 const plannerHandoffEmailVersion = 2;
