@@ -111,10 +111,11 @@ export function ModelShowcase({
 
   return (
     <section
-      id="models"
+      id="custom-homes"
       data-exterior-presentation={exteriorPresentation}
       className="scroll-mt-20 bg-[#0B0C10] px-5 pb-24 pt-28 sm:px-8 lg:px-12 lg:pb-32 lg:pt-40"
     >
+      <span id="models" className="block scroll-mt-20" aria-hidden="true" />
       <span id="homes" className="block scroll-mt-20" aria-hidden="true" />
       <div className="mx-auto max-w-[1504px]">
         <div className="grid gap-12 border-b border-white/10 pb-12 lg:grid-cols-[1fr_1fr] lg:items-end">
