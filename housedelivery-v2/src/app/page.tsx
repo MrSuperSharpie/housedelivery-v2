@@ -28,8 +28,9 @@ export default function Home() {
           supportingCopy="Exceptional design. A smarter path to ownership. A coordinated home system built to reduce delay, waste, and uncertainty—so more of your investment can remain in the home itself."
         />
         <section
+          id="home-types"
           aria-label="Housing categories"
-          className="bg-[#0B0C10] px-5 sm:px-8 lg:px-12"
+          className="scroll-mt-20 bg-[#0B0C10] px-5 sm:px-8 lg:px-12"
         >
           <div className="mx-auto max-w-[1504px]">
             <PortfolioCategoryNav />
