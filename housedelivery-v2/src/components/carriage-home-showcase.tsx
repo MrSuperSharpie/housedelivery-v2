@@ -132,66 +132,87 @@ export function CarriageHomeShowcase() {
             </div>
           </div>
 
-          <div className="mt-14 border-y border-white/10 py-10 lg:py-12">
-            <div className="grid gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:gap-20">
-              <div>
-                <p className="eyebrow">Free Property Potential Review</p>
+          <div className="mt-16 overflow-hidden border border-white/10 bg-[#d9d1c3] text-[#0b0c10] lg:grid lg:grid-cols-[1.02fr_0.98fr]">
+            <div className="relative min-h-[360px] sm:min-h-[460px] lg:min-h-[680px]">
+              <Image
+                src="/images/inclusions/kitchen-cabinetry/products/hd-kitchen-cabinetry-signature-02-luminous-oak-gallery.jpg"
+                alt="Warm contemporary House Delivery kitchen interior with light oak cabinetry, integrated lighting and central island"
+                fill
+                quality={95}
+                sizes="(max-width: 1023px) 100vw, 52vw"
+                className="object-cover"
+              />
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent px-6 pb-6 pt-20 text-white sm:px-8 sm:pb-8">
+                <p className="text-[9px] font-semibold uppercase tracking-[0.19em] text-white/72">
+                  House Delivery / Interior possibilities
+                </p>
               </div>
+            </div>
+
+            <div className="flex flex-col justify-between p-7 sm:p-10 lg:p-12 xl:p-14">
               <div>
-                <h3 className="max-w-5xl text-[clamp(2.6rem,5.4vw,5.8rem)] font-medium leading-[0.9] tracking-[-0.065em] text-white/94">
+                <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-black/42">
+                  Free Property Potential Review
+                </p>
+                <h3 className="mt-6 max-w-2xl text-[clamp(2.7rem,4.8vw,5.5rem)] font-medium leading-[0.9] tracking-[-0.065em]">
                   What could your
                   <br />
-                  <span className="text-white/38">property become?</span>
+                  <span className="text-black/35">property become?</span>
                 </h3>
-                <p className="mt-7 max-w-3xl text-base leading-7 text-white/58 lg:text-lg lg:leading-8">
+                <p className="mt-7 max-w-xl text-base leading-7 text-black/62">
                   Before you choose a home, understand what your property may
-                  support. House Delivery will complete a preliminary review and
-                  identify the housing options worth exploring.
+                  support. We’ll complete a preliminary review and identify the
+                  housing options worth exploring.
                 </p>
 
-                <div className="mt-10 grid gap-8 border-t border-white/10 pt-8 md:grid-cols-2 md:gap-12">
-                  <div>
-                    <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/34">
-                      Your review considers
-                    </p>
-                    <ul className="mt-5 space-y-3 text-sm leading-6 text-white/56">
-                      <li>Property and lot characteristics</li>
-                      <li>Local zoning and basic planning requirements</li>
-                      <li>Laneway, carriage, backyard-home or garden-suite potential</li>
-                      <li>House Delivery models worth considering</li>
-                      <li>Obvious site constraints or questions requiring further review</li>
-                    </ul>
-                  </div>
-
-                  <div className="flex flex-col justify-between gap-8">
-                    <div className="space-y-5">
-                      {[
-                        ["01", "Send us the property", "Address and what you are considering."],
-                        ["02", "We review the opportunity", "Property context, local requirements and possible home options."],
-                        ["03", "See what may work", "A preliminary Property Potential Review and recommended next step."],
-                      ].map(([number, title, body]) => (
-                        <div key={number} className="grid grid-cols-[2rem_1fr] gap-4 border-t border-white/10 pt-4 first:border-t-0 first:pt-0">
-                          <span className="text-[9px] font-semibold tracking-[0.18em] text-white/28">
-                            {number}
-                          </span>
-                          <div>
-                            <p className="text-sm font-medium text-white/82">{title}</p>
-                            <p className="mt-1 text-xs leading-5 text-white/42">{body}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={openFitCheck}
-                      className="group inline-flex min-h-14 w-full items-center justify-between border border-white bg-white px-6 text-[10px] font-semibold uppercase tracking-[0.17em] text-[#0b0c10] transition-colors hover:bg-transparent hover:text-white"
-                    >
-                      Get my free property potential review
-                      <ArrowRight aria-hidden="true" className="size-4 shrink-0 transition-transform group-hover:translate-x-1" />
-                    </button>
+                <div className="mt-9 border-t border-black/16 pt-7">
+                  <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/38">
+                    Your review considers
+                  </p>
+                  <div className="mt-5 grid gap-x-6 gap-y-3 sm:grid-cols-2">
+                    {[
+                      "Property and lot characteristics",
+                      "Local zoning and basic planning requirements",
+                      "Laneway, carriage, backyard-home or garden-suite potential",
+                      "House Delivery models worth considering",
+                      "Obvious site constraints or questions requiring further review",
+                    ].map((item) => (
+                      <div key={item} className="flex gap-3 text-sm leading-6 text-black/62">
+                        <span aria-hidden="true" className="mt-[11px] h-px w-4 shrink-0 bg-black/30" />
+                        <span>{item}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
+              </div>
+
+              <div className="mt-10">
+                <div className="grid gap-0 border-y border-black/16">
+                  {[
+                    ["01", "Send us the property", "Address and what you are considering."],
+                    ["02", "We review the opportunity", "Property context, local requirements and possible home options."],
+                    ["03", "See what may work", "A preliminary Property Potential Review and recommended next step."],
+                  ].map(([number, title, body]) => (
+                    <div key={number} className="grid grid-cols-[2.4rem_1fr] gap-4 border-b border-black/12 py-5 last:border-b-0">
+                      <span className="pt-0.5 text-[9px] font-semibold tracking-[0.18em] text-black/32">
+                        {number}
+                      </span>
+                      <div>
+                        <p className="text-sm font-medium text-black/82">{title}</p>
+                        <p className="mt-1 text-xs leading-5 text-black/48">{body}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={openFitCheck}
+                  className="group mt-8 inline-flex min-h-16 w-full items-center justify-between bg-[#0b0c10] px-6 text-[10px] font-semibold uppercase tracking-[0.17em] text-white transition-colors hover:bg-[#24252a]"
+                >
+                  Get my free property potential review
+                  <ArrowRight aria-hidden="true" className="size-4 shrink-0 transition-transform group-hover:translate-x-1" />
+                </button>
               </div>
             </div>
           </div>
