@@ -25,6 +25,7 @@ import {
 } from "@/lib/planner-review-access";
 
 const inquiryRecipient = "hello@housedelivery.ca";
+const lanewayPropertyReviewCopyRecipient = "briandustinfong@gmail.com";
 const inquiryRoute = "/api/inquiries";
 const maximumRequestBytes = 200_000;
 const plannerHandoffEmailVersion = 2;
@@ -36,6 +37,7 @@ type InquiryPayload = {
   lastName?: unknown;
   email?: unknown;
   phone?: unknown;
+  source?: unknown;
   model?: unknown;
   location?: unknown;
   timeline?: unknown;
@@ -196,6 +198,7 @@ export async function POST(request: Request) {
   const lastName = singleLine(payload.lastName, 80);
   const email = singleLine(payload.email, 254).toLowerCase();
   const phone = singleLine(payload.phone, 50);
+  const source = singleLine(payload.source, 100);
   const modelSlug = singleLine(payload.model, 100);
   const location = singleLine(payload.location, 160);
   const timeline = singleLine(payload.timeline, 80);
@@ -403,6 +406,8 @@ export async function POST(request: Request) {
   }
 
   const isPlannerProjectReview = Boolean(plannerContext || plannerHandoff);
+  const isLanewayPropertyReview =
+    source === "laneway_carriage_property_review";
   const message = plannerHandoff && storedPlannerProject && plannerReviewLinks
     ? formatPlannerHandoffEmail({
         state: storedPlannerProject.projectState,
@@ -454,6 +459,7 @@ export async function POST(request: Request) {
         lastName,
         email,
         phone,
+        source,
         modelSlug,
         location,
         timeline,
@@ -488,10 +494,15 @@ export async function POST(request: Request) {
         body: JSON.stringify({
           from: fromEmail,
           to: [inquiryRecipient],
+          ...(isLanewayPropertyReview
+            ? { cc: [lanewayPropertyReviewCopyRecipient] }
+            : {}),
           reply_to: email,
           subject: isPlannerProjectReview
             ? `Planner project review — ${plannerProject || `${firstName} ${lastName}`}${plannerReference ? ` — ${plannerReference}` : ""}`
-            : `Project inquiry — ${firstName} ${lastName}`,
+            : isLanewayPropertyReview
+              ? `Laneway / carriage property review — ${firstName} ${lastName}`
+              : `Project inquiry — ${firstName} ${lastName}`,
           text: message,
         }),
         signal: AbortSignal.timeout(10_000),
