@@ -11,13 +11,13 @@ const collections = [
     id: "custom" as const,
     number: "01",
     label: "Custom Homes",
-    href: "#models",
+    href: "#custom-homes",
   },
   {
     id: "carriage" as const,
     number: "02",
     label: "Laneway & Carriage Homes",
-    href: "#carriage-homes",
+    href: "#laneway-carriage-homes",
   },
   {
     id: "pre-approved" as const,
