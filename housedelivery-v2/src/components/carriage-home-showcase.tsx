@@ -4,7 +4,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, ArrowUpRight, Check, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { FormEvent, useRef, useState } from "react";
+import { FormEvent, Fragment, useRef, useState } from "react";
 
 import { carriageHomes } from "@/data/carriage-homes";
 import { trackAnalyticsEvent } from "@/lib/analytics";
@@ -48,7 +48,7 @@ export function CarriageHomeShowcase() {
           email,
           phone,
           location: address,
-          notes: `Property Potential Review — Considering: ${considering} — Property status: ${ownership}`,
+          notes: `Laneway & Carriage Property Review — Considering: ${considering} — Property status: ${ownership}`,
           company,
         }),
       });
@@ -60,7 +60,7 @@ export function CarriageHomeShowcase() {
 
       setFitCheckSubmitted(true);
       trackAnalyticsEvent("quote_form_submitted", {
-        form_name: "property_fit_check",
+        form_name: "laneway_carriage_property_review",
       });
     } catch {
       setFitCheckError(
@@ -77,9 +77,112 @@ export function CarriageHomeShowcase() {
     setFitCheckSubmitted(false);
     setFitCheckError("");
     trackAnalyticsEvent("quote_cta_click", {
-      form_name: "property_fit_check",
+      form_name: "laneway_carriage_property_review",
     });
   }
+
+  const lanewayPropertyReviewFeature = (
+    <aside
+      aria-labelledby="laneway-property-review-heading"
+      className="overflow-hidden border border-white/10 bg-[#d9d1c3] text-[#0b0c10] md:col-span-2 lg:grid lg:grid-cols-[0.94fr_1.06fr]"
+    >
+      <div className="relative min-h-[300px] sm:min-h-[360px] lg:min-h-[500px]">
+        <Image
+          src="/images/inclusions/kitchen-cabinetry/products/hd-kitchen-cabinetry-signature-02-luminous-oak-gallery.jpg"
+          alt="Warm contemporary kitchen interior from the House Delivery inclusions library"
+          fill
+          quality={95}
+          sizes="(max-width: 1023px) 100vw, 47vw"
+          className="object-cover"
+        />
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent px-6 pb-6 pt-16 text-white sm:px-8">
+          <p className="text-[9px] font-semibold uppercase tracking-[0.19em] text-white/72">
+            House Delivery / Laneway &amp; carriage living
+          </p>
+        </div>
+      </div>
+
+      <div className="flex flex-col justify-between p-7 sm:p-9 lg:p-10 xl:p-12">
+        <div>
+          <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-black/42">
+            Free Laneway &amp; Carriage Property Review
+          </p>
+          <h3
+            id="laneway-property-review-heading"
+            className="mt-5 max-w-3xl text-[clamp(2.35rem,4.1vw,4.6rem)] font-medium leading-[0.9] tracking-[-0.06em]"
+          >
+            Could a laneway or carriage home
+            <br />
+            <span className="text-black/35">work on your property?</span>
+          </h3>
+          <p className="mt-6 max-w-2xl text-sm leading-7 text-black/62 sm:text-base">
+            Already own a home or property? Send us the address and we’ll take
+            an initial look at the lot, local requirements and which House
+            Delivery laneway or carriage home options may be worth exploring.
+          </p>
+
+          <div className="mt-7 border-t border-black/16 pt-6">
+            <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/38">
+              We’ll look at
+            </p>
+            <div className="mt-4 grid gap-x-6 gap-y-2.5 sm:grid-cols-2">
+              {[
+                "Lot size and basic property characteristics",
+                "Laneway or rear-yard access potential",
+                "Local zoning and basic planning requirements",
+                "House Delivery laneway and carriage models worth considering",
+                "Obvious site constraints requiring further review",
+              ].map((item) => (
+                <div
+                  key={item}
+                  className="flex gap-3 text-xs leading-5 text-black/60 sm:text-sm sm:leading-6"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="mt-[10px] h-px w-4 shrink-0 bg-black/28"
+                  />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-8">
+          <div className="grid border-y border-black/16 sm:grid-cols-3">
+            {[
+              ["01", "Send the address", "Tell us where the property is."],
+              ["02", "We check the basics", "Lot context, access and local requirements."],
+              ["03", "See what may work", "We identify laneway or carriage options worth exploring."],
+            ].map(([number, title, body], stepIndex) => (
+              <div
+                key={number}
+                className={`py-4 sm:px-5 sm:first:pl-0 sm:last:pr-0 ${stepIndex > 0 ? "border-t border-black/12 sm:border-l sm:border-t-0" : ""}`}
+              >
+                <span className="text-[9px] font-semibold tracking-[0.18em] text-black/30">
+                  {number}
+                </span>
+                <p className="mt-2 text-sm font-medium text-black/82">{title}</p>
+                <p className="mt-1 text-xs leading-5 text-black/47">{body}</p>
+              </div>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={openFitCheck}
+            className="group mt-7 inline-flex min-h-14 w-full items-center justify-between bg-[#0b0c10] px-6 text-[10px] font-semibold uppercase tracking-[0.17em] text-white transition-colors hover:bg-[#24252a]"
+          >
+            Check my property
+            <ArrowRight
+              aria-hidden="true"
+              className="size-4 shrink-0 transition-transform group-hover:translate-x-1"
+            />
+          </button>
+        </div>
+      </div>
+    </aside>
+  );
 
   return (
     <section
@@ -132,91 +235,6 @@ export function CarriageHomeShowcase() {
             </div>
           </div>
 
-          <div className="mt-16 overflow-hidden border border-white/10 bg-[#d9d1c3] text-[#0b0c10] lg:grid lg:grid-cols-[1.02fr_0.98fr]">
-            <div className="relative min-h-[360px] sm:min-h-[460px] lg:min-h-[680px]">
-              <Image
-                src="/images/inclusions/kitchen-cabinetry/products/hd-kitchen-cabinetry-signature-02-luminous-oak-gallery.jpg"
-                alt="Warm contemporary House Delivery kitchen interior with light oak cabinetry, integrated lighting and central island"
-                fill
-                quality={95}
-                sizes="(max-width: 1023px) 100vw, 52vw"
-                className="object-cover"
-              />
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent px-6 pb-6 pt-20 text-white sm:px-8 sm:pb-8">
-                <p className="text-[9px] font-semibold uppercase tracking-[0.19em] text-white/72">
-                  House Delivery / Interior possibilities
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-col justify-between p-7 sm:p-10 lg:p-12 xl:p-14">
-              <div>
-                <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-black/42">
-                  Free Property Potential Review
-                </p>
-                <h3 className="mt-6 max-w-2xl text-[clamp(2.7rem,4.8vw,5.5rem)] font-medium leading-[0.9] tracking-[-0.065em]">
-                  What could your
-                  <br />
-                  <span className="text-black/35">property become?</span>
-                </h3>
-                <p className="mt-7 max-w-xl text-base leading-7 text-black/62">
-                  Before you choose a home, understand what your property may
-                  support. We’ll complete a preliminary review and identify the
-                  housing options worth exploring.
-                </p>
-
-                <div className="mt-9 border-t border-black/16 pt-7">
-                  <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/38">
-                    Your review considers
-                  </p>
-                  <div className="mt-5 grid gap-x-6 gap-y-3 sm:grid-cols-2">
-                    {[
-                      "Property and lot characteristics",
-                      "Local zoning and basic planning requirements",
-                      "Laneway, carriage, backyard-home or garden-suite potential",
-                      "House Delivery models worth considering",
-                      "Obvious site constraints or questions requiring further review",
-                    ].map((item) => (
-                      <div key={item} className="flex gap-3 text-sm leading-6 text-black/62">
-                        <span aria-hidden="true" className="mt-[11px] h-px w-4 shrink-0 bg-black/30" />
-                        <span>{item}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-10">
-                <div className="grid gap-0 border-y border-black/16">
-                  {[
-                    ["01", "Send us the property", "Address and what you are considering."],
-                    ["02", "We review the opportunity", "Property context, local requirements and possible home options."],
-                    ["03", "See what may work", "A preliminary Property Potential Review and recommended next step."],
-                  ].map(([number, title, body]) => (
-                    <div key={number} className="grid grid-cols-[2.4rem_1fr] gap-4 border-b border-black/12 py-5 last:border-b-0">
-                      <span className="pt-0.5 text-[9px] font-semibold tracking-[0.18em] text-black/32">
-                        {number}
-                      </span>
-                      <div>
-                        <p className="text-sm font-medium text-black/82">{title}</p>
-                        <p className="mt-1 text-xs leading-5 text-black/48">{body}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={openFitCheck}
-                  className="group mt-8 inline-flex min-h-16 w-full items-center justify-between bg-[#0b0c10] px-6 text-[10px] font-semibold uppercase tracking-[0.17em] text-white transition-colors hover:bg-[#24252a]"
-                >
-                  Get my free property potential review
-                  <ArrowRight aria-hidden="true" className="size-4 shrink-0 transition-transform group-hover:translate-x-1" />
-                </button>
-              </div>
-            </div>
-          </div>
-
           <div
             id="carriage-homes-grid"
             className="mt-16 grid gap-8 md:grid-cols-2 md:gap-12 lg:mt-24"
@@ -225,8 +243,8 @@ export function CarriageHomeShowcase() {
               const mainImage = model.images[0];
 
               return (
-                <motion.article
-                  key={model.slug}
+                <Fragment key={model.slug}>
+                  <motion.article
                   initial={
                     shouldReduceMotion
                       ? false
@@ -291,7 +309,9 @@ export function CarriageHomeShowcase() {
                       <ArrowUpRight size={13} aria-hidden="true" />
                     </span>
                   </div>
-                </motion.article>
+                  </motion.article>
+                  {index === 1 ? lanewayPropertyReviewFeature : null}
+                </Fragment>
               );
             })}
           </div>
@@ -335,27 +355,27 @@ export function CarriageHomeShowcase() {
                     <Check size={18} />
                   </div>
                   <p className="mt-10 text-[9px] font-semibold uppercase tracking-[0.18em] text-black/42">
-                    Property Potential Review
+                    Laneway & Carriage Property Review
                   </p>
                   <h3
                     id="property-fit-check-title"
                     className="mt-4 text-[clamp(2.5rem,6vw,4.5rem)] font-medium leading-[0.9] tracking-[-0.065em]"
                   >
-                    Your property review has started.
+                    Your laneway & carriage review has started.
                   </h3>
                   <p className="mt-6 max-w-xl text-sm leading-7 text-black/58">
-                    We’ll take an initial look at the property, applicable local
-                    requirements and the House Delivery homes that may be worth
-                    considering.
+                    We’ll take an initial look at the property, rear-yard or
+                    laneway potential, applicable local requirements and the
+                    House Delivery laneway or carriage homes worth considering.
                   </p>
                   <div className="mt-8 border-y border-black/14 py-6">
                     <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/38">
                       Your preliminary review will identify
                     </p>
                     <ul className="mt-4 space-y-2 text-sm leading-6 text-black/58">
-                      <li>Potential housing opportunities</li>
+                      <li>Laneway or carriage-home potential</li>
                       <li>Obvious constraints or questions to investigate</li>
-                      <li>House Delivery options worth exploring</li>
+                      <li>House Delivery laneway or carriage options worth exploring</li>
                       <li>A recommended next step</li>
                     </ul>
                   </div>
@@ -370,18 +390,18 @@ export function CarriageHomeShowcase() {
               ) : (
                 <>
                   <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/42">
-                    Free Property Potential Review
+                    Free Laneway & Carriage Property Review
                   </p>
                   <h3
                     id="property-fit-check-title"
                     className="mt-4 pr-12 text-[clamp(2.5rem,6vw,4.5rem)] font-medium leading-[0.9] tracking-[-0.065em]"
                   >
-                    Let’s start with your property.
+                    Could your property support one of these homes?
                   </h3>
                   <p className="mt-5 max-w-xl text-sm leading-7 text-black/56">
-                    Tell us where the property is and what you are considering.
-                    We’ll use this information to prepare your preliminary
-                    Property Potential Review.
+                    Tell us where the property is and whether you’re considering
+                    a laneway, carriage or backyard home. We’ll use this
+                    information to prepare a preliminary property review.
                   </p>
 
                   <form onSubmit={handleFitCheckSubmit} className="mt-9 grid gap-x-5 gap-y-7 sm:grid-cols-2">
@@ -402,8 +422,7 @@ export function CarriageHomeShowcase() {
                         <option>Laneway / backyard home</option>
                         <option>Carriage home</option>
                         <option>Garden suite / ADU</option>
-                        <option>Another type of home</option>
-                        <option>Not sure yet</option>
+                        <option>Not sure which option fits</option>
                       </select>
                     </label>
 
@@ -446,7 +465,7 @@ export function CarriageHomeShowcase() {
                         aria-busy={fitCheckSubmitting}
                         className="group flex w-full items-center justify-between bg-[#0b0c10] px-6 py-5 text-left text-xs font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-[#20232a] disabled:cursor-wait disabled:opacity-70"
                       >
-                        {fitCheckSubmitting ? "Sending…" : "Start my property review"}
+                        {fitCheckSubmitting ? "Sending…" : "Check my property"}
                         <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
                       </button>
                       {fitCheckError ? (
