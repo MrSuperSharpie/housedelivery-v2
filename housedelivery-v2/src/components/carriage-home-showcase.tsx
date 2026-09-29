@@ -35,6 +35,7 @@ export function CarriageHomeShowcase() {
     const phone = String(formData.get("phone") ?? "").trim();
     const address = String(formData.get("address") ?? "").trim();
     const considering = String(formData.get("considering") ?? "").trim();
+    const ownership = String(formData.get("ownership") ?? "").trim();
     const company = String(formData.get("company") ?? "").trim();
 
     try {
@@ -47,7 +48,7 @@ export function CarriageHomeShowcase() {
           email,
           phone,
           location: address,
-          notes: `Property Fit Check — Considering: ${considering}`,
+          notes: `Property Potential Review — Considering: ${considering} — Property status: ${ownership}`,
           company,
         }),
       });
@@ -131,25 +132,67 @@ export function CarriageHomeShowcase() {
             </div>
           </div>
 
-          <div className="mt-12 grid gap-6 border-y border-white/10 py-8 lg:grid-cols-[0.72fr_1.28fr] lg:gap-20">
-            <p className="eyebrow">Already own a property?</p>
-            <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-end sm:justify-between">
-              <div className="max-w-2xl">
-                <h3 className="text-[clamp(2rem,4vw,3.8rem)] font-medium leading-[0.95] tracking-[-0.055em] text-white/92">
-                  See what may fit.
-                </h3>
-                <p className="mt-4 max-w-xl text-sm leading-7 text-white/52">
-                  Free preliminary property review. Find out what type of home may work on land you already own.
-                </p>
+          <div className="mt-14 border-y border-white/10 py-10 lg:py-12">
+            <div className="grid gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:gap-20">
+              <div>
+                <p className="eyebrow">Free Property Potential Review</p>
               </div>
-              <button
-                type="button"
-                onClick={openFitCheck}
-                className="group inline-flex min-h-14 shrink-0 items-center gap-5 border border-white bg-white px-6 text-[10px] font-semibold uppercase tracking-[0.17em] text-[#0b0c10] transition-colors hover:bg-transparent hover:text-white"
-              >
-                Check my property
-                <ArrowRight aria-hidden="true" className="size-4 transition-transform group-hover:translate-x-1" />
-              </button>
+              <div>
+                <h3 className="max-w-5xl text-[clamp(2.6rem,5.4vw,5.8rem)] font-medium leading-[0.9] tracking-[-0.065em] text-white/94">
+                  What could your
+                  <br />
+                  <span className="text-white/38">property become?</span>
+                </h3>
+                <p className="mt-7 max-w-3xl text-base leading-7 text-white/58 lg:text-lg lg:leading-8">
+                  Before you choose a home, understand what your property may
+                  support. House Delivery will complete a preliminary review and
+                  identify the housing options worth exploring.
+                </p>
+
+                <div className="mt-10 grid gap-8 border-t border-white/10 pt-8 md:grid-cols-2 md:gap-12">
+                  <div>
+                    <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/34">
+                      Your review considers
+                    </p>
+                    <ul className="mt-5 space-y-3 text-sm leading-6 text-white/56">
+                      <li>Property and lot characteristics</li>
+                      <li>Local zoning and basic planning requirements</li>
+                      <li>Laneway, carriage, backyard-home or garden-suite potential</li>
+                      <li>House Delivery models worth considering</li>
+                      <li>Obvious site constraints or questions requiring further review</li>
+                    </ul>
+                  </div>
+
+                  <div className="flex flex-col justify-between gap-8">
+                    <div className="space-y-5">
+                      {[
+                        ["01", "Send us the property", "Address and what you are considering."],
+                        ["02", "We review the opportunity", "Property context, local requirements and possible home options."],
+                        ["03", "See what may work", "A preliminary Property Potential Review and recommended next step."],
+                      ].map(([number, title, body]) => (
+                        <div key={number} className="grid grid-cols-[2rem_1fr] gap-4 border-t border-white/10 pt-4 first:border-t-0 first:pt-0">
+                          <span className="text-[9px] font-semibold tracking-[0.18em] text-white/28">
+                            {number}
+                          </span>
+                          <div>
+                            <p className="text-sm font-medium text-white/82">{title}</p>
+                            <p className="mt-1 text-xs leading-5 text-white/42">{body}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={openFitCheck}
+                      className="group inline-flex min-h-14 w-full items-center justify-between border border-white bg-white px-6 text-[10px] font-semibold uppercase tracking-[0.17em] text-[#0b0c10] transition-colors hover:bg-transparent hover:text-white"
+                    >
+                      Get my free property potential review
+                      <ArrowRight aria-hidden="true" className="size-4 shrink-0 transition-transform group-hover:translate-x-1" />
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -271,17 +314,30 @@ export function CarriageHomeShowcase() {
                     <Check size={18} />
                   </div>
                   <p className="mt-10 text-[9px] font-semibold uppercase tracking-[0.18em] text-black/42">
-                    Property details received
+                    Property Potential Review
                   </p>
                   <h3
                     id="property-fit-check-title"
                     className="mt-4 text-[clamp(2.5rem,6vw,4.5rem)] font-medium leading-[0.9] tracking-[-0.065em]"
                   >
-                    We’ll take a first look.
+                    Your property review has started.
                   </h3>
                   <p className="mt-6 max-w-xl text-sm leading-7 text-black/58">
-                    We’ve received your property information. House Delivery will complete a preliminary review and follow up with you about the most sensible next step.
+                    We’ll take an initial look at the property, applicable local
+                    requirements and the House Delivery homes that may be worth
+                    considering.
                   </p>
+                  <div className="mt-8 border-y border-black/14 py-6">
+                    <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/38">
+                      Your preliminary review will identify
+                    </p>
+                    <ul className="mt-4 space-y-2 text-sm leading-6 text-black/58">
+                      <li>Potential housing opportunities</li>
+                      <li>Obvious constraints or questions to investigate</li>
+                      <li>House Delivery options worth exploring</li>
+                      <li>A recommended next step</li>
+                    </ul>
+                  </div>
                   <button
                     type="button"
                     onClick={() => setFitCheckOpen(false)}
@@ -293,16 +349,18 @@ export function CarriageHomeShowcase() {
               ) : (
                 <>
                   <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/42">
-                    Free preliminary property review
+                    Free Property Potential Review
                   </p>
                   <h3
                     id="property-fit-check-title"
                     className="mt-4 pr-12 text-[clamp(2.5rem,6vw,4.5rem)] font-medium leading-[0.9] tracking-[-0.065em]"
                   >
-                    See what may fit your property.
+                    Let’s start with your property.
                   </h3>
                   <p className="mt-5 max-w-xl text-sm leading-7 text-black/56">
-                    Send us the property address and what you are considering. We’ll review the basics and identify a sensible starting point.
+                    Tell us where the property is and what you are considering.
+                    We’ll use this information to prepare your preliminary
+                    Property Potential Review.
                   </p>
 
                   <form onSubmit={handleFitCheckSubmit} className="mt-9 grid gap-x-5 gap-y-7 sm:grid-cols-2">
@@ -325,6 +383,16 @@ export function CarriageHomeShowcase() {
                         <option>Garden suite / ADU</option>
                         <option>Another type of home</option>
                         <option>Not sure yet</option>
+                      </select>
+                    </label>
+
+                    <label className="form-field sm:col-span-2">
+                      <span>Do you own this property?</span>
+                      <select name="ownership" defaultValue="" required>
+                        <option value="" disabled>Select one</option>
+                        <option>Yes — I own it</option>
+                        <option>Under contract</option>
+                        <option>No — I’m currently looking</option>
                       </select>
                     </label>
 
@@ -357,7 +425,7 @@ export function CarriageHomeShowcase() {
                         aria-busy={fitCheckSubmitting}
                         className="group flex w-full items-center justify-between bg-[#0b0c10] px-6 py-5 text-left text-xs font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-[#20232a] disabled:cursor-wait disabled:opacity-70"
                       >
-                        {fitCheckSubmitting ? "Sending…" : "Request my free property review"}
+                        {fitCheckSubmitting ? "Sending…" : "Start my property review"}
                         <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
                       </button>
                       {fitCheckError ? (
@@ -366,7 +434,7 @@ export function CarriageHomeShowcase() {
                         </p>
                       ) : null}
                       <p className="mt-4 text-[10px] leading-5 text-black/42">
-                        Preliminary review only. Final feasibility depends on zoning, site conditions, servicing, municipal requirements, and professional review.
+                        Preliminary review only. It is not a permit, zoning determination, survey, engineering opinion, or guarantee of approval. Final feasibility depends on municipal review and site-specific conditions.
                       </p>
                     </div>
                   </form>
