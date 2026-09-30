@@ -22,6 +22,7 @@ import {
   appendPropertyReviewToLeadEmail,
   buildPropertyCustomerEmail,
 } from "@/lib/property-review/email";
+import { buildPublicPropertySnapshot } from "@/lib/property-review/snapshot";
 import type {
   PropertyReviewProvider,
   PropertyReviewResult,
@@ -581,4 +582,119 @@ test("municipal zoning lookup safely rejects conflicting polygons", async () => 
   if (result.status === "UNAVAILABLE") {
     assert.equal(result.failureCode, "MUNICIPAL_DATA_CONFLICT");
   }
+});
+
+test("PARTIAL provider keeps a zoning-service failure Yellow and records the queried source", async () => {
+  const result = await createLowerMainlandPropertyReviewProvider({
+    router: routerFor("burnaby"),
+    zoningLookup: async () => ({
+      status: "UNAVAILABLE",
+      reason: "The official municipal zoning service was unavailable.",
+      failureCode: "MUNICIPAL_DATA_UNAVAILABLE",
+    }),
+    now: () => new Date(checkedAt),
+    logger: silentLogger,
+  }).review(auditAddresses.burnaby);
+
+  assert.equal(result.leadState, "YELLOW");
+  assert.equal(result.failureCode, "MUNICIPAL_DATA_UNAVAILABLE");
+  assert.equal(result.zoningDistrict, undefined);
+  assert.match(result.reason, /official municipal zoning service/i);
+  assert.equal(
+    result.sourceEvidence?.find((source) => source.kind === "PROPERTY")?.usage,
+    "REFERENCE",
+  );
+  assert.equal(
+    result.sourceEvidence?.find((source) => source.kind === "ZONING")?.usage,
+    "QUERIED",
+  );
+});
+
+test("SPECIAL_JURISDICTION never calls or inherits municipal zoning", async () => {
+  let zoningCalls = 0;
+  const result = await createLowerMainlandPropertyReviewProvider({
+    router: routerFor("tsawwassen-first-nation"),
+    zoningLookup: async () => {
+      zoningCalls += 1;
+      return {
+        status: "MATCHED",
+        zoningDistrict: "NEIGHBOURING-MUNICIPAL-ZONE",
+      };
+    },
+    logger: silentLogger,
+  }).review(auditAddresses["tsawwassen-first-nation"]);
+
+  assert.equal(zoningCalls, 0);
+  assert.equal(result.leadState, "YELLOW");
+  assert.equal(result.failureCode, "SPECIAL_JURISDICTION_REVIEW");
+  assert.equal(result.zoningDistrict, undefined);
+  assert.match(result.reason, /No neighbouring municipal zoning logic was applied/);
+});
+
+test("unresolved results do not claim that a jurisdiction was resolved", async () => {
+  const result = await createLowerMainlandPropertyReviewProvider({
+    router: {
+      route: async () => ({
+        ok: false,
+        normalizedAddress: "Outside address",
+        municipality: "Outside the Lower Mainland Phase 3 service area",
+        reason: "The official address resolved outside the supported region.",
+        failureCode: "OUTSIDE_REGIONAL_SCOPE",
+        sourceEvidence: [
+          {
+            name: "Province of British Columbia Address Geocoder",
+            url: "https://digital.gov.bc.ca/bcgov-common-components/bc-address-geocoder/",
+            kind: "ADDRESS",
+            usage: "QUERIED",
+            checkedAt,
+            confidence: "HIGH",
+          },
+        ],
+      }),
+    },
+    logger: silentLogger,
+  }).review("Outside address");
+  const snapshot = buildPublicPropertySnapshot(result);
+
+  assert.equal(result.leadState, "YELLOW");
+  assert.equal(result.jurisdiction, undefined);
+  assert.equal(snapshot.sourceAttribution, undefined);
+});
+
+test("registry identifiers and official source URLs are complete and unique", () => {
+  assert.equal(lowerMainlandJurisdictions.length, 31);
+  assert.equal(
+    new Set(lowerMainlandJurisdictions.map((jurisdiction) => jurisdiction.id))
+      .size,
+    lowerMainlandJurisdictions.length,
+  );
+  for (const jurisdiction of lowerMainlandJurisdictions) {
+    assert.match(jurisdiction.propertySource.url, /^https:\/\//);
+    assert.match(jurisdiction.zoningSource.url, /^https:\/\//);
+    assert.match(jurisdiction.ruleSource.url, /^https:\/\//);
+    assert.equal(jurisdiction.lastChecked, "2026-09-29");
+  }
+});
+
+test("provider-health logs omit submitted addresses and URL query values", async () => {
+  const entries: string[] = [];
+  const client = createGovernmentDataClient({
+    fetchImpl: async () => Response.json({ ok: true }),
+    logger: {
+      info: (entry) => entries.push(String(entry)),
+      error: (entry) => entries.push(String(entry)),
+    },
+  });
+  const url = new URL("https://government.example.test/lookup");
+  url.searchParams.set("address", "3193 Kitchener Street");
+
+  await client.getJson(url, {
+    provider: "Official test provider",
+    operation: "address_lookup",
+    cacheKey: "privacy-test",
+  });
+
+  assert.ok(entries.length > 0);
+  assert.doesNotMatch(entries.join("\n"), /3193|Kitchener|address=/i);
+  assert.match(entries.join("\n"), /government\.example\.test/);
 });

@@ -1,5 +1,6 @@
 import { createJurisdictionRouter } from "../src/lib/property-review/jurisdiction-router";
 import { createGovernmentDataClient } from "../src/lib/property-review/government-data-client";
+import { createLowerMainlandPropertyReviewProvider } from "../src/lib/property-review/providers/lower-mainland";
 import { createMunicipalZoningLookup } from "../src/lib/property-review/providers/municipal-zoning";
 import type { LowerMainlandJurisdictionId } from "../src/lib/property-review/provider-registry";
 
@@ -44,10 +45,16 @@ async function main() {
   const dataClient = createGovernmentDataClient();
   const router = createJurisdictionRouter({ dataClient });
   const zoningLookup = createMunicipalZoningLookup(dataClient);
+  const provider = createLowerMainlandPropertyReviewProvider({
+    dataClient,
+    router,
+    zoningLookup,
+  });
   const results: Array<{
     expected: string;
     actual: string;
     zoning: string;
+    lead: string;
     ok: boolean;
   }> = [];
 
@@ -60,6 +67,18 @@ async function main() {
       result.ok && result.resolution.descriptor.status === "PARTIAL"
         ? await zoningLookup(result.resolution)
         : undefined;
+    const review = await provider.review(checkpoint.address);
+    const expectedLead = checkpoint.id === "vancouver" ? "GREEN" : "YELLOW";
+    const expectedFailureCode = result.ok
+      ? result.resolution.descriptor.status === "SPECIAL_JURISDICTION"
+        ? "SPECIAL_JURISDICTION_REVIEW"
+        : result.resolution.descriptor.status === "FULL"
+          ? undefined
+          : "MUNICIPAL_RULE_REVIEW_REQUIRED"
+      : undefined;
+    const zoningMatches =
+      zoning?.status !== "MATCHED" ||
+      review.zoningDistrict === zoning.zoningDistrict;
     results.push({
       expected: checkpoint.id,
       actual,
@@ -69,13 +88,33 @@ async function main() {
           : zoning?.status === "UNAVAILABLE"
             ? `${zoning.failureCode}: ${zoning.reason}`
             : "—",
+      lead: review.leadState,
       ok:
         result.ok &&
         actual === checkpoint.id &&
+        review.jurisdiction === result.resolution.descriptor.name &&
+        review.providerStatus === result.resolution.descriptor.status &&
+        review.leadState === expectedLead &&
+        review.failureCode === expectedFailureCode &&
+        zoningMatches &&
         (result.resolution.descriptor.status !== "PARTIAL" ||
           zoning?.status === "MATCHED"),
     });
   }
+
+  const vancouverStrata = await provider.review(
+    "1288 Marinaside Crescent #106, Vancouver, BC",
+  );
+  results.push({
+    expected: "vancouver-strata-regression",
+    actual: vancouverStrata.matchedRules[0]?.ruleId ?? "No rule",
+    zoning: vancouverStrata.zoningDistrict ?? "—",
+    lead: vancouverStrata.leadState,
+    ok:
+      vancouverStrata.jurisdiction === "City of Vancouver" &&
+      vancouverStrata.leadState === "RED" &&
+      vancouverStrata.matchedRules[0]?.ruleId === "VAN-RED-STRATA-001",
+  });
 
   console.table(results);
   if (results.some((result) => !result.ok)) process.exitCode = 1;
