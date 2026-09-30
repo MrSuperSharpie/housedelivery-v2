@@ -17,6 +17,12 @@ export function buildPublicPropertySnapshot(
   const shared = {
     address: review.normalizedAddress || review.submittedAddress,
     municipality: review.municipality,
+    ...(review.jurisdiction ? { jurisdiction: review.jurisdiction } : {}),
+    ...(review.jurisdiction && review.sourceEvidence?.length
+      ? {
+          sourceAttribution: "Jurisdiction resolved from official government data",
+        }
+      : {}),
     ...(review.zoningDistrict ? { zoning: review.zoningDistrict } : {}),
     propertyType: review.propertyType,
     ...(formatPropertyArea(review.approximateParcelAreaSquareMetres)
@@ -55,9 +61,9 @@ export function buildPublicPropertySnapshot(
     ...shared,
     status: "yellow",
     statusLabel: "REVIEW IN PROGRESS",
-    headline: "Your property needs a closer look.",
+    headline: "We’re taking a closer look.",
     opportunity: "Human review required before a recommendation",
     message:
-      "The first automated review found details that need a closer look. Nothing is required from you right now; our team will determine the most useful next step.",
+      "We found your property, but there are details that need to be reviewed before we make a recommendation. Nothing is required from you right now. Our team will review the property and determine the next step.",
   };
 }

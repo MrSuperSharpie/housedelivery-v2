@@ -1,10 +1,8 @@
-import { createVancouverPropertyReviewProvider } from "@/lib/property-review/providers/vancouver";
+import { createLowerMainlandPropertyReviewProvider } from "@/lib/property-review/providers/lower-mainland";
 import type {
   PropertyReviewProvider,
   PropertyReviewResult,
 } from "@/lib/property-review/types";
-
-const unsupportedMunicipality = "MUNICIPALITY NOT YET SUPPORTED";
 
 function needsReviewResult({
   address,
@@ -50,7 +48,7 @@ function needsReviewResult({
 
 export function createPropertyReviewWorkflow(
   providers: PropertyReviewProvider[] = [
-    createVancouverPropertyReviewProvider(),
+    createLowerMainlandPropertyReviewProvider(),
   ],
 ) {
   return {
@@ -83,9 +81,9 @@ export function createPropertyReviewWorkflow(
       if (!provider) {
         return needsReviewResult({
           address: submittedAddress,
-          municipality: unsupportedMunicipality,
+          municipality: "Lower Mainland jurisdiction requires review",
           reason:
-            "The submitted property appears to be outside the City of Vancouver. Automated municipal review is not yet supported for this location.",
+            "The submitted address did not match a configured municipal provider and requires jurisdiction review.",
           failureCode: "MUNICIPALITY_NOT_SUPPORTED",
         });
       }
@@ -105,6 +103,8 @@ export function createPropertyReviewWorkflow(
   };
 }
 
+const defaultPropertyReviewWorkflow = createPropertyReviewWorkflow();
+
 export async function reviewPropertyAddress(address: string) {
-  return createPropertyReviewWorkflow().review(address);
+  return defaultPropertyReviewWorkflow.review(address);
 }

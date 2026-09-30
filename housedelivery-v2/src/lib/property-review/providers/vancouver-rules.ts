@@ -15,6 +15,78 @@ export const vancouverRuleSources = {
     "City of Vancouver — Housing options in lower density areas (https://vancouver.ca/people-programs/housing-options-in-lower-density-areas.aspx) and R1-1 District Schedule (https://bylaws.vancouver.ca/zoning/zoning-by-law-district-schedule-r1-1.pdf)",
 } as const;
 
+const vancouverRuleLastChecked = "2026-09-29";
+
+function auditedVancouverRule(
+  rule: PropertyRuleResult,
+): PropertyRuleResult {
+  const shared = {
+    ...rule,
+    municipality: "City of Vancouver",
+    sourceAuthority: "City of Vancouver",
+    lastChecked: vancouverRuleLastChecked,
+  };
+  if (rule.ruleId === "VAN-GREEN-R1-001") {
+    return {
+      ...shared,
+      sourceDocument:
+        "R1-1 District Schedule and Housing options in lower-density areas",
+      sourceSection: "R1-1 laneway-house use and regulation guidance",
+      machineCondition:
+        "One exact non-strata LAND parcel; residential-inclusive R1/RS zoning; no CD-1 or geometry complexity flag.",
+    };
+  }
+  if (rule.ruleId === "VAN-RED-STRATA-001") {
+    return {
+      ...shared,
+      sourceDocument:
+        "Property Parcel Polygons and Property Tax Report datasets",
+      sourceSection: "site_id and legal_type fields",
+      machineCondition:
+        "legal_type is STRATA or site_id contains both letters and digits.",
+    };
+  }
+  if (
+    rule.ruleId === "VAN-RED-COMMERCIAL-001" ||
+    rule.ruleId === "VAN-RED-INDUSTRIAL-001"
+  ) {
+    return {
+      ...shared,
+      sourceDocument: "Zoning Districts and Labels dataset",
+      sourceSection:
+        "zoning_classification, zoning_category and zoning_district fields",
+      machineCondition:
+        "Official zoning fields identify a commercial-only or industrial-only classification.",
+    };
+  }
+  if (rule.ruleId === "VAN-YELLOW-CD1-001") {
+    return {
+      ...shared,
+      sourceDocument: "Zoning Districts and Labels dataset",
+      sourceSection: "cd_1_number, zoning_category and zoning_district fields",
+      machineCondition:
+        "A CD-1 designation or comprehensive-development zoning requires site-specific review.",
+    };
+  }
+  if (rule.ruleId === "VAN-YELLOW-PARCEL-001") {
+    return {
+      ...shared,
+      sourceDocument: "Property Parcel Polygons dataset",
+      sourceSection: "parcel geometry and calculated area checks",
+      machineCondition:
+        "Parcel geometry is missing, multipart, unusually detailed or outside the conservative area range.",
+    };
+  }
+  return {
+    ...shared,
+    sourceDocument:
+      "Property Tax Report and Zoning Districts and Labels datasets",
+    sourceSection: "legal_type and zoning classification cross-check",
+    machineCondition:
+      "Official data resolves, but no reviewed Green or Red rule applies.",
+  };
+}
+
 type VancouverRuleInput = {
   zoningDistrict: string;
   zoningClassification: string;
@@ -83,7 +155,7 @@ function assessment(
     ...resultForState(state),
     ...property,
     reason: rule.explanation,
-    matchedRules: [rule],
+    matchedRules: [auditedVancouverRule(rule)],
   };
 }
 

@@ -335,7 +335,7 @@ test("does not choose between ambiguous official parcel matches", async () => {
   assert.equal(requests.length, 1);
 });
 
-test("identifies an explicitly outside-Vancouver address as unsupported", async () => {
+test("keeps an address that does not match an explicitly supplied provider", async () => {
   let called = false;
   const provider = createVancouverPropertyReviewProvider({
     apiBaseUrl,
@@ -349,7 +349,10 @@ test("identifies an explicitly outside-Vancouver address as unsupported", async 
   const result = await workflow.review("1234 Hastings Street, Burnaby, BC");
 
   assert.equal(result.screening, "NEEDS REVIEW");
-  assert.equal(result.municipality, "MUNICIPALITY NOT YET SUPPORTED");
+  assert.equal(
+    result.municipality,
+    "Lower Mainland jurisdiction requires review",
+  );
   assert.equal(result.failureCode, "MUNICIPALITY_NOT_SUPPORTED");
   assert.equal(called, false);
   const customerEmail = buildPropertyCustomerEmail({

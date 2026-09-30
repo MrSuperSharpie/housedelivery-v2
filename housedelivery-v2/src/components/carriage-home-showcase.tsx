@@ -89,11 +89,20 @@ export function CarriageHomeShowcase() {
 
       setFitCheckSnapshot(propertySnapshot);
       setFitCheckSubmitted(true);
+      const propertyMetadata = {
+        municipality: propertySnapshot.municipality,
+        jurisdiction:
+          propertySnapshot.jurisdiction ?? propertySnapshot.municipality,
+      };
       trackAnalyticsEvent("quote_form_submitted", {
         form_name: "laneway_carriage_property_review",
+        ...propertyMetadata,
       });
-      trackAnalyticsEvent("check_property_submitted");
-      trackAnalyticsEvent(`property_result_${propertySnapshot.status}`);
+      trackAnalyticsEvent("check_property_submitted", propertyMetadata);
+      trackAnalyticsEvent(
+        `property_result_${propertySnapshot.status}`,
+        propertyMetadata,
+      );
     } catch {
       setFitCheckError(
         "We couldn’t send your property details right now. Please try again shortly.",
@@ -116,15 +125,30 @@ export function CarriageHomeShowcase() {
   }
 
   function checkAnotherProperty() {
+    const propertyMetadata = fitCheckSnapshot
+      ? {
+          municipality: fitCheckSnapshot.municipality,
+          jurisdiction:
+            fitCheckSnapshot.jurisdiction ?? fitCheckSnapshot.municipality,
+        }
+      : {};
     setFitCheckSubmitted(false);
     setFitCheckSnapshot(undefined);
     setFitCheckError("");
-    trackAnalyticsEvent("check_another_property_clicked");
+    trackAnalyticsEvent("check_another_property_clicked", propertyMetadata);
   }
 
   function followPropertyReviewCta() {
     setFitCheckOpen(false);
-    trackAnalyticsEvent("property_review_cta_clicked");
+    trackAnalyticsEvent("property_review_cta_clicked", {
+      ...(fitCheckSnapshot
+        ? {
+            municipality: fitCheckSnapshot.municipality,
+            jurisdiction:
+              fitCheckSnapshot.jurisdiction ?? fitCheckSnapshot.municipality,
+          }
+        : {}),
+    });
   }
 
   const lanewayPropertyReviewFeature = (

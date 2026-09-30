@@ -58,6 +58,11 @@ export function PropertySnapshot({
         <br />
         {snapshot.municipality}
       </p>
+      {snapshot.sourceAttribution ? (
+        <p className="mt-2 text-[10px] leading-5 text-black/38">
+          {snapshot.sourceAttribution}
+        </p>
+      ) : null}
 
       <div className="mt-8 grid border-l border-t border-black/14 sm:grid-cols-2">
         {facts.map(([label, value]) => (

@@ -12,9 +12,38 @@ export type PropertyLeadState = (typeof propertyLeadStates)[number];
 
 export type PropertyRuleResult = {
   ruleId: string;
+  municipality?: string;
   source: string;
+  sourceAuthority?: string;
+  sourceDocument?: string;
+  sourceSection?: string;
+  effectiveDate?: string;
+  lastChecked?: string;
+  machineCondition?: string;
   explanation: string;
   result: PropertyLeadState;
+  confidence: "HIGH" | "MEDIUM" | "LOW";
+};
+
+export const propertyProviderStatuses = [
+  "FULL",
+  "PARTIAL",
+  "LOOKUP_ONLY",
+  "SPECIAL_JURISDICTION",
+] as const;
+
+export type PropertyProviderStatus =
+  (typeof propertyProviderStatuses)[number];
+
+export type PropertyDataSourceEvidence = {
+  name: string;
+  url: string;
+  kind: "ADDRESS" | "BOUNDARY" | "PROPERTY" | "ZONING" | "RULE";
+  usage?: "QUERIED" | "REFERENCE";
+  checkedAt: string;
+  datasetUpdatedAt?: string;
+  bylawVersion?: string;
+  effectiveDate?: string;
   confidence: "HIGH" | "MEDIUM" | "LOW";
 };
 
@@ -29,6 +58,11 @@ export type PropertyReviewResult = {
   primaryCivicAddress?: string;
   submittedUnit?: string;
   municipality: string;
+  jurisdiction?: string;
+  identifiedAuthority?: string;
+  regionalArea?: string;
+  providerStatus?: PropertyProviderStatus;
+  addressSiteId?: string;
   zoningDistrict?: string;
   zoningClassification?: string;
   zoningCategory?: string;
@@ -41,8 +75,17 @@ export type PropertyReviewResult = {
   };
   parcelGeometry?: GeoJsonGeometry;
   approximateParcelAreaSquareMetres?: number;
+  approximateFrontageMetres?: number;
+  approximateDepthMetres?: number;
   legalType?: string;
+  legalParcel?: string;
   propertyType: string;
+  existingHousingType?: string;
+  rearAccessIndicator?: "YES" | "NO" | "NOT DETERMINED";
+  alrIndicator?: "YES" | "NO" | "NOT DETERMINED";
+  floodplainIndicator?: "YES" | "NO" | "NOT DETERMINED";
+  environmentalConstraintIndicator?: "YES" | "NO" | "NOT DETERMINED";
+  developmentPermitAreaIndicator?: "YES" | "NO" | "NOT DETERMINED";
   strataIndicator: "YES" | "NO" | "NOT CONFIDENTLY DETERMINED";
   multifamilyIndicator: boolean;
   commercialIndicator: boolean;
@@ -56,11 +99,17 @@ export type PropertyReviewResult = {
   screening: PropertyScreening;
   reason: string;
   dataSources: string[];
+  sourceEvidence?: PropertyDataSourceEvidence[];
   failureCode?:
     | "ADDRESS_INVALID"
     | "ADDRESS_NOT_FOUND"
     | "AMBIGUOUS_PARCEL"
     | "MUNICIPALITY_NOT_SUPPORTED"
+    | "JURISDICTION_NOT_FOUND"
+    | "JURISDICTION_AMBIGUOUS"
+    | "OUTSIDE_REGIONAL_SCOPE"
+    | "SPECIAL_JURISDICTION_REVIEW"
+    | "MUNICIPAL_RULE_REVIEW_REQUIRED"
     | "MUNICIPAL_DATA_UNAVAILABLE"
     | "MUNICIPAL_DATA_CONFLICT"
     | "UNEXPECTED_ERROR";
@@ -78,6 +127,8 @@ export type PublicPropertySnapshot = {
   headline: string;
   address: string;
   municipality: string;
+  jurisdiction?: string;
+  sourceAttribution?: string;
   zoning?: string;
   propertyType: string;
   approximateLotSize?: string;
@@ -101,6 +152,10 @@ export function isPublicPropertySnapshot(
     typeof candidate.headline === "string" &&
     typeof candidate.address === "string" &&
     typeof candidate.municipality === "string" &&
+    (candidate.jurisdiction === undefined ||
+      typeof candidate.jurisdiction === "string") &&
+    (candidate.sourceAttribution === undefined ||
+      typeof candidate.sourceAttribution === "string") &&
     typeof candidate.propertyType === "string" &&
     typeof candidate.opportunity === "string" &&
     typeof candidate.message === "string" &&
