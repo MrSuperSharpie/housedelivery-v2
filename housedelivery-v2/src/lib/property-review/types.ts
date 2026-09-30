@@ -6,6 +6,18 @@ export const propertyScreenings = [
 
 export type PropertyScreening = (typeof propertyScreenings)[number];
 
+export const propertyLeadStates = ["GREEN", "YELLOW", "RED"] as const;
+
+export type PropertyLeadState = (typeof propertyLeadStates)[number];
+
+export type PropertyRuleResult = {
+  ruleId: string;
+  source: string;
+  explanation: string;
+  result: PropertyLeadState;
+  confidence: "HIGH" | "MEDIUM" | "LOW";
+};
+
 export type GeoJsonGeometry = {
   type: "Polygon" | "MultiPolygon";
   coordinates: unknown;
@@ -14,6 +26,8 @@ export type GeoJsonGeometry = {
 export type PropertyReviewResult = {
   submittedAddress: string;
   normalizedAddress: string;
+  primaryCivicAddress?: string;
+  submittedUnit?: string;
   municipality: string;
   zoningDistrict?: string;
   zoningClassification?: string;
@@ -28,8 +42,17 @@ export type PropertyReviewResult = {
   parcelGeometry?: GeoJsonGeometry;
   approximateParcelAreaSquareMetres?: number;
   legalType?: string;
+  propertyType: string;
+  strataIndicator: "YES" | "NO" | "NOT CONFIDENTLY DETERMINED";
+  multifamilyIndicator: boolean;
+  commercialIndicator: boolean;
+  industrialIndicator: boolean;
   appearsUnusuallyComplex: boolean;
   complexityReasons: string[];
+  leadState: PropertyLeadState;
+  leadStateLabel: string;
+  recommendedNextAction: string;
+  matchedRules: PropertyRuleResult[];
   screening: PropertyScreening;
   reason: string;
   dataSources: string[];
@@ -48,3 +71,39 @@ export type PropertyReviewProvider = {
   supports(address: string): boolean;
   review(address: string): Promise<PropertyReviewResult>;
 };
+
+export type PublicPropertySnapshot = {
+  status: "green" | "yellow" | "red";
+  statusLabel: string;
+  headline: string;
+  address: string;
+  municipality: string;
+  zoning?: string;
+  propertyType: string;
+  approximateLotSize?: string;
+  opportunity: string;
+  message: string;
+  modelMatchStatus: "REVIEW_PENDING";
+};
+
+export function isPublicPropertySnapshot(
+  value: unknown,
+): value is PublicPropertySnapshot {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return false;
+  }
+  const candidate = value as Partial<PublicPropertySnapshot>;
+  return (
+    (candidate.status === "green" ||
+      candidate.status === "yellow" ||
+      candidate.status === "red") &&
+    typeof candidate.statusLabel === "string" &&
+    typeof candidate.headline === "string" &&
+    typeof candidate.address === "string" &&
+    typeof candidate.municipality === "string" &&
+    typeof candidate.propertyType === "string" &&
+    typeof candidate.opportunity === "string" &&
+    typeof candidate.message === "string" &&
+    candidate.modelMatchStatus === "REVIEW_PENDING"
+  );
+}

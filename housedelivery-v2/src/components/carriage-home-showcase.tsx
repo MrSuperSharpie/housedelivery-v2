@@ -1,13 +1,18 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, ArrowUpRight, Check, X } from "lucide-react";
+import { ArrowRight, ArrowUpRight, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { FormEvent, Fragment, useRef, useState } from "react";
+import { FormEvent, Fragment, useEffect, useRef, useState } from "react";
 
 import { carriageHomes } from "@/data/carriage-homes";
+import { PropertySnapshot } from "@/components/property-snapshot";
 import { trackAnalyticsEvent } from "@/lib/analytics";
+import {
+  isPublicPropertySnapshot,
+  type PublicPropertySnapshot,
+} from "@/lib/property-review/types";
 
 const revealViewport = { once: true, margin: "-100px" } as const;
 const luxuryEase: [number, number, number, number] = [0.16, 1, 0.3, 1];
@@ -16,9 +21,18 @@ export function CarriageHomeShowcase() {
   const shouldReduceMotion = useReducedMotion();
   const [fitCheckOpen, setFitCheckOpen] = useState(false);
   const [fitCheckSubmitted, setFitCheckSubmitted] = useState(false);
+  const [fitCheckSnapshot, setFitCheckSnapshot] =
+    useState<PublicPropertySnapshot>();
   const [fitCheckSubmitting, setFitCheckSubmitting] = useState(false);
   const [fitCheckError, setFitCheckError] = useState("");
   const fitCheckInFlight = useRef(false);
+  const fitCheckDialogRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (fitCheckSubmitted) {
+      fitCheckDialogRef.current?.scrollTo({ top: 0 });
+    }
+  }, [fitCheckSubmitted]);
 
   async function handleFitCheckSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -50,19 +64,36 @@ export function CarriageHomeShowcase() {
           location: address,
           source: "laneway_carriage_property_review",
           notes: `Laneway & Carriage Property Review — Considering: ${considering} — Property status: ${ownership}`,
+          considering,
+          ownership,
           company,
         }),
       });
 
-      const result = await response.json().catch(() => null);
-      if (!response.ok || !result || result.accepted !== true) {
+      const result: unknown = await response.json().catch(() => null);
+      const accepted =
+        result && typeof result === "object" && !Array.isArray(result)
+          ? (result as { accepted?: unknown }).accepted
+          : undefined;
+      const propertySnapshot =
+        result && typeof result === "object" && !Array.isArray(result)
+          ? (result as { propertySnapshot?: unknown }).propertySnapshot
+          : undefined;
+      if (
+        !response.ok ||
+        accepted !== true ||
+        !isPublicPropertySnapshot(propertySnapshot)
+      ) {
         throw new Error("Property fit check delivery failed.");
       }
 
+      setFitCheckSnapshot(propertySnapshot);
       setFitCheckSubmitted(true);
       trackAnalyticsEvent("quote_form_submitted", {
         form_name: "laneway_carriage_property_review",
       });
+      trackAnalyticsEvent("check_property_submitted");
+      trackAnalyticsEvent(`property_result_${propertySnapshot.status}`);
     } catch {
       setFitCheckError(
         "We couldn’t send your property details right now. Please try again shortly.",
@@ -76,10 +107,24 @@ export function CarriageHomeShowcase() {
   function openFitCheck() {
     setFitCheckOpen(true);
     setFitCheckSubmitted(false);
+    setFitCheckSnapshot(undefined);
     setFitCheckError("");
     trackAnalyticsEvent("quote_cta_click", {
       form_name: "laneway_carriage_property_review",
     });
+    trackAnalyticsEvent("check_property_started");
+  }
+
+  function checkAnotherProperty() {
+    setFitCheckSubmitted(false);
+    setFitCheckSnapshot(undefined);
+    setFitCheckError("");
+    trackAnalyticsEvent("check_another_property_clicked");
+  }
+
+  function followPropertyReviewCta() {
+    setFitCheckOpen(false);
+    trackAnalyticsEvent("property_review_cta_clicked");
   }
 
   const lanewayPropertyReviewFeature = (
@@ -338,6 +383,7 @@ export function CarriageHomeShowcase() {
             }}
           >
             <div
+              ref={fitCheckDialogRef}
               role="dialog"
               aria-modal="true"
               aria-labelledby="property-fit-check-title"
@@ -352,44 +398,13 @@ export function CarriageHomeShowcase() {
                 <X size={17} />
               </button>
 
-              {fitCheckSubmitted ? (
-                <div className="py-10 sm:py-14">
-                  <div className="grid size-12 place-items-center rounded-full bg-[#0b0c10] text-white">
-                    <Check size={18} />
-                  </div>
-                  <p className="mt-10 text-[9px] font-semibold uppercase tracking-[0.18em] text-black/42">
-                    Laneway & Carriage Property Review
-                  </p>
-                  <h3
-                    id="property-fit-check-title"
-                    className="mt-4 text-[clamp(2.5rem,6vw,4.5rem)] font-medium leading-[0.9] tracking-[-0.065em]"
-                  >
-                    Your laneway & carriage review has started.
-                  </h3>
-                  <p className="mt-6 max-w-xl text-sm leading-7 text-black/58">
-                    We’ll take an initial look at the property, rear-yard or
-                    laneway potential, applicable local requirements and the
-                    House Delivery laneway or carriage homes worth considering.
-                  </p>
-                  <div className="mt-8 border-y border-black/14 py-6">
-                    <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/38">
-                      Your preliminary review will identify
-                    </p>
-                    <ul className="mt-4 space-y-2 text-sm leading-6 text-black/58">
-                      <li>Laneway or carriage-home potential</li>
-                      <li>Obvious constraints or questions to investigate</li>
-                      <li>House Delivery laneway or carriage options worth exploring</li>
-                      <li>A recommended next step</li>
-                    </ul>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setFitCheckOpen(false)}
-                    className="mt-10 border border-black bg-black px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.16em] text-white"
-                  >
-                    Close
-                  </button>
-                </div>
+              {fitCheckSubmitted && fitCheckSnapshot ? (
+                <PropertySnapshot
+                  snapshot={fitCheckSnapshot}
+                  onClose={() => setFitCheckOpen(false)}
+                  onCheckAnother={checkAnotherProperty}
+                  onReviewCta={followPropertyReviewCta}
+                />
               ) : (
                 <>
                   <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/42">

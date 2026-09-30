@@ -2,8 +2,8 @@ import type {
   GeoJsonGeometry,
   PropertyReviewProvider,
   PropertyReviewResult,
-  PropertyScreening,
 } from "@/lib/property-review/types";
+import { assessVancouverProperty } from "@/lib/property-review/providers/vancouver-rules";
 
 const defaultApiBaseUrl =
   "https://opendata.vancouver.ca/api/explore/v2.1/catalog/datasets";
@@ -45,7 +45,9 @@ type DatasetResponse = {
 type ParsedAddress = {
   civicNumber: string;
   streetName: string;
+  streetSearchName: string;
   normalizedAddress: string;
+  unitNumber?: string;
 };
 
 type ParcelRecord = {
@@ -104,69 +106,129 @@ function normalizeSubmittedAddress(address: string) {
 function removeAddressContext(address: string) {
   return address
     .toUpperCase()
-    .replace(/[.,]/g, " ")
     .replace(
       /\b[ABCEGHJ-NPRSTVXY]\d[ABCEGHJ-NPRSTVWXYZ][ -]?\d[ABCEGHJ-NPRSTVWXYZ]\d\b/g,
       " ",
     )
-    .replace(/\b(?:CANADA|BRITISH COLUMBIA|BC|VANCOUVER)\b/g, " ")
+    .replace(/\s*,?\s*\b(?:CANADA|BRITISH COLUMBIA|BC|VANCOUVER)\b\s*,?/g, " ")
     .replace(/\s+/g, " ")
+    .replace(/^\s*,|,\s*$/g, "")
     .trim();
 }
 
-function normalizeStreetName(street: string) {
-  const directionAliases: Record<string, string> = {
-    EAST: "E",
-    NORTH: "N",
-    SOUTH: "S",
-    WEST: "W",
-  };
-  const suffixAliases: Record<string, string> = {
-    AVENUE: "AV",
-    BOULEVARD: "BLVD",
-    CIRCLE: "CIR",
-    COURT: "CT",
-    CRESCENT: "CRES",
-    DRIVE: "DR",
-    HIGHWAY: "HWY",
-    LANE: "LN",
-    PLACE: "PL",
-    ROAD: "RD",
-    STREET: "ST",
-    TERRACE: "TERR",
-  };
-  const tokens = street
+const directionAliases: Record<string, string> = {
+  EAST: "E",
+  NORTH: "N",
+  SOUTH: "S",
+  WEST: "W",
+};
+
+const suffixAliases: Record<string, string> = {
+  AVENUE: "AV",
+  AVE: "AV",
+  BOULEVARD: "BLVD",
+  CIRCLE: "CIR",
+  COURT: "CT",
+  CRESCENT: "CRES",
+  DRIVE: "DR",
+  HIGHWAY: "HWY",
+  LANE: "LN",
+  PLACE: "PL",
+  ROAD: "RD",
+  STREET: "ST",
+  TERRACE: "TERR",
+};
+
+const recognizedStreetSuffixes = new Set([
+  ...Object.keys(suffixAliases),
+  ...Object.values(suffixAliases),
+]);
+
+function streetTokens(street: string) {
+  return street
+    .toUpperCase()
     .replace(/[^A-Z0-9 ]/g, " ")
     .replace(/\s+/g, " ")
     .trim()
     .split(" ")
-    .filter(Boolean);
-  if (!tokens.length) return "";
-  tokens[0] = directionAliases[tokens[0]] ?? tokens[0];
-  const lastIndex = tokens.length - 1;
-  tokens[lastIndex] =
-    suffixAliases[tokens[lastIndex]] ??
-    directionAliases[tokens[lastIndex]] ??
-    tokens[lastIndex];
+    .filter(Boolean)
+    .map((token) => directionAliases[token] ?? suffixAliases[token] ?? token);
+}
+
+function normalizeStreetName(street: string) {
+  return streetTokens(street).join(" ");
+}
+
+function streetSearchName(street: string) {
+  const tokens = streetTokens(street).filter(
+    (token) => !recognizedStreetSuffixes.has(token),
+  );
   return tokens.join(" ");
 }
 
 export function parseVancouverAddress(address: string): ParsedAddress | null {
   const submitted = normalizeSubmittedAddress(address);
   if (!submitted) return null;
-  let localAddress = removeAddressContext(submitted);
-  localAddress = localAddress
-    .replace(/^(?:UNIT|SUITE)\s+[A-Z0-9-]+\s+/i, "")
-    .replace(/^#?[A-Z0-9]+\s*-\s*(?=\d)/i, "");
+  let localAddress = removeAddressContext(submitted)
+    .replace(/[–—]/g, "-")
+    .trim();
+  let unitNumber = "";
+
+  const labelledPrefix = localAddress.match(
+    /^(?:UNIT|SUITE|APT|APARTMENT)\s*#?\s*([A-Z0-9-]+)\s*,?\s+(?=\d{2,6}[A-Z]?\s)/i,
+  );
+  if (labelledPrefix) {
+    unitNumber = labelledPrefix[1];
+    localAddress = localAddress.slice(labelledPrefix[0].length);
+  } else {
+    const hashPrefix = localAddress.match(
+      /^#\s*([A-Z0-9-]+)\s*[-,]\s*(?=\d{2,6}[A-Z]?\s)/i,
+    );
+    if (hashPrefix) {
+      unitNumber = hashPrefix[1];
+      localAddress = localAddress.slice(hashPrefix[0].length);
+    } else {
+      const hyphenPrefix = localAddress.match(
+        /^([A-Z0-9]+)\s*-\s*(?=\d{2,6}[A-Z]?\s)/i,
+      );
+      if (hyphenPrefix) {
+        unitNumber = hyphenPrefix[1];
+        localAddress = localAddress.slice(hyphenPrefix[0].length);
+      }
+    }
+  }
+
   const match = localAddress.match(/^(\d+[A-Z]?)\s+(.+)$/);
   if (!match) return null;
   const civicNumber = match[1];
-  const streetName = normalizeStreetName(match[2]);
-  if (!/^\d+[A-Z]?$/.test(civicNumber) || !streetName) return null;
+  let streetInput = match[2].trim();
+  const trailingUnit = streetInput.match(
+    /^(.+?\b(?:AVENUE|AVE|AV|BOULEVARD|BLVD|CIRCLE|CIR|COURT|CT|CRESCENT|CRES|DRIVE|DR|HIGHWAY|HWY|LANE|LN|PLACE|PL|ROAD|RD|STREET|ST|TERRACE|TERR))\s*(?:,\s*|#\s*)(?:UNIT|SUITE|APT|APARTMENT)?\s*#?\s*([A-Z0-9-]+)$/i,
+  );
+  if (trailingUnit) {
+    if (unitNumber && unitNumber !== trailingUnit[2].toUpperCase()) {
+      return null;
+    }
+    streetInput = trailingUnit[1];
+    unitNumber = trailingUnit[2];
+  }
+
+  const streetName = normalizeStreetName(streetInput);
+  const searchName = streetSearchName(streetInput);
+  if (
+    !/^\d+[A-Z]?$/.test(civicNumber) ||
+    !streetName ||
+    !searchName ||
+    /,|#/.test(streetInput)
+  ) {
+    return null;
+  }
   return {
     civicNumber,
     streetName,
+    streetSearchName: searchName,
     normalizedAddress: `${civicNumber} ${streetName}, Vancouver, BC`,
+    ...(unitNumber ? { unitNumber: unitNumber.toUpperCase() } : {}),
   };
 }
 
@@ -436,74 +498,17 @@ function geometryComplexityReasons(
   return reasons;
 }
 
-function determineScreening({
-  zoning,
-  tax,
-  complexityReasons,
-}: {
-  zoning: ZoningRecord;
-  tax: TaxSummary;
-  complexityReasons: string[];
-}): { screening: PropertyScreening; reason: string } {
-  const classification = zoning.classification.toUpperCase();
-  const category = zoning.category.toUpperCase();
-  const legalType = tax.legalType.toUpperCase();
-
-  if (zoning.cd1Designation || category === "CD") {
-    return {
-      screening: "NEEDS REVIEW",
-      reason: `The parcel is in ${zoning.district} ${zoning.classification} zoning. Site-specific CD-1 controls require manual review before any conventional laneway or carriage-home assessment.`,
-    };
-  }
-  if (legalType === "STRATA" || legalType === "OTHER") {
-    return {
-      screening: "NEEDS REVIEW",
-      reason: `The current City property record identifies the legal type as ${tax.legalType}. Ownership and parcel context require manual review.`,
-    };
-  }
-  if (complexityReasons.length) {
-    return {
-      screening: "NEEDS REVIEW",
-      reason: `The official parcel was found, but ${complexityReasons.join("; ")}. The site requires manual review.`,
-    };
-  }
-  if (
-    classification.includes("COMMERCIAL") ||
-    classification.includes("INDUSTRIAL") ||
-    ["C", "I", "IC", "MC"].includes(category)
-  ) {
-    return {
-      screening: "UNLIKELY CONVENTIONAL CANDIDATE",
-      reason: `The official zoning is ${zoning.district} (${zoning.classification}), which is clearly inconsistent with a conventional detached-property laneway or carriage-home lead.`,
-    };
-  }
-  if (
-    legalType === "LAND" &&
-    (category === "R1" ||
-      category === "RS" ||
-      zoning.district.toUpperCase().startsWith("R1-") ||
-      zoning.district.toUpperCase().startsWith("RS-"))
-  ) {
-    return {
-      screening: "LIKELY CANDIDATE",
-      reason: `One parcel matched City records. Its ${zoning.district} ${zoning.classification} zoning and LAND legal type make it appropriate for further House Delivery review. This is not a determination of development permission.`,
-    };
-  }
-  return {
-    screening: "NEEDS REVIEW",
-    reason: `The official parcel and ${zoning.district} zoning were identified, but the available data is not specific enough for a conservative conventional-property classification.`,
-  };
-}
-
 function failureResult({
   submittedAddress,
   normalizedAddress,
+  submittedUnit,
   reason,
   failureCode,
   dataSources = [parcelSource],
 }: {
   submittedAddress: string;
   normalizedAddress?: string;
+  submittedUnit?: string;
   reason: string;
   failureCode: PropertyReviewResult["failureCode"];
   dataSources?: string[];
@@ -511,9 +516,28 @@ function failureResult({
   return {
     submittedAddress,
     normalizedAddress: normalizedAddress || submittedAddress,
+    ...(normalizedAddress ? { primaryCivicAddress: normalizedAddress } : {}),
+    ...(submittedUnit ? { submittedUnit } : {}),
     municipality,
+    propertyType: "Property type requires review",
+    strataIndicator: "NOT CONFIDENTLY DETERMINED",
+    multifamilyIndicator: false,
+    commercialIndicator: false,
+    industrialIndicator: false,
     appearsUnusuallyComplex: true,
     complexityReasons: [reason],
+    leadState: "YELLOW",
+    leadStateLabel: "HUMAN REVIEW REQUIRED",
+    recommendedNextAction: "MANUAL PROPERTY REVIEW REQUIRED",
+    matchedRules: [
+      {
+        ruleId: `VAN-YELLOW-${failureCode ?? "UNKNOWN"}`,
+        source: dataSources.join("; ") || "Property review workflow",
+        explanation: reason,
+        result: "YELLOW",
+        confidence: "HIGH",
+      },
+    ],
     screening: "NEEDS REVIEW",
     reason,
     dataSources,
@@ -589,34 +613,42 @@ export function createVancouverPropertyReviewProvider(
         const parcelResponse = await queryDataset(
           "property-parcel-polygons",
           {
-            where: `civic_number="${parsedAddress.civicNumber}" AND streetname="${parsedAddress.streetName}"`,
-            limit: "10",
+            where: `civic_number="${parsedAddress.civicNumber}" AND search(streetname,"${parsedAddress.streetSearchName}")`,
+            limit: "20",
             select:
               "civic_number,streetname,tax_coord,site_id,geom,geo_point_2d",
           },
         );
-        if (parcelResponse.totalCount === 0) {
+        const matchingParcels = parcelResponse.results.filter((record) => {
+          if (!isRecord(record)) return false;
+          return (
+            readString(record.civic_number).toUpperCase() ===
+              parsedAddress.civicNumber.toUpperCase() &&
+            normalizeStreetName(readString(record.streetname)) ===
+              parsedAddress.streetName
+          );
+        });
+        if (matchingParcels.length === 0) {
           return failureResult({
             submittedAddress,
             normalizedAddress: parsedAddress.normalizedAddress,
+            submittedUnit: parsedAddress.unitNumber,
             reason:
               "No exact parcel match was found in the City of Vancouver property parcel dataset.",
             failureCode: "ADDRESS_NOT_FOUND",
           });
         }
-        if (
-          parcelResponse.totalCount !== 1 ||
-          parcelResponse.results.length !== 1
-        ) {
+        if (matchingParcels.length !== 1) {
           return failureResult({
             submittedAddress,
             normalizedAddress: parsedAddress.normalizedAddress,
-            reason: `${parcelResponse.totalCount} parcel records matched the submitted address, so the correct parcel cannot be selected automatically.`,
+            submittedUnit: parsedAddress.unitNumber,
+            reason: `${matchingParcels.length} parcel records matched the submitted address, so the correct parcel cannot be selected automatically.`,
             failureCode: "AMBIGUOUS_PARCEL",
           });
         }
 
-        const parcel = parseParcel(parcelResponse.results[0]);
+        const parcel = parseParcel(matchingParcels[0]);
         const pointExpression = `geom'POINT(${parcel.centroid.longitude} ${parcel.centroid.latitude})'`;
         const [zoningResponse, taxResponse] = await Promise.all([
           queryDataset("zoning-districts-and-labels", {
@@ -678,15 +710,24 @@ export function createVancouverPropertyReviewProvider(
           );
         }
         const uniqueComplexityReasons = [...new Set(complexityReasons)];
-        const screening = determineScreening({
-          zoning,
-          tax,
+        const assessment = assessVancouverProperty({
+          zoningDistrict: zoning.district,
+          zoningClassification: zoning.classification,
+          zoningCategory: zoning.category,
+          cd1Designation: zoning.cd1Designation,
+          legalType: tax.legalType,
+          siteId: parcel.siteId,
+          submittedUnit: parsedAddress.unitNumber,
           complexityReasons: uniqueComplexityReasons,
         });
 
         return {
           submittedAddress,
           normalizedAddress: `${parcel.civicNumber} ${parcel.streetName}, Vancouver, BC`,
+          primaryCivicAddress: `${parcel.civicNumber} ${parcel.streetName}, Vancouver, BC`,
+          ...(parsedAddress.unitNumber
+            ? { submittedUnit: parsedAddress.unitNumber }
+            : {}),
           municipality,
           zoningDistrict: zoning.district,
           zoningClassification: zoning.classification,
@@ -702,10 +743,19 @@ export function createVancouverPropertyReviewProvider(
             ? { approximateParcelAreaSquareMetres }
             : {}),
           legalType: tax.legalType,
+          propertyType: assessment.propertyType,
+          strataIndicator: assessment.strataIndicator,
+          multifamilyIndicator: assessment.multifamilyIndicator,
+          commercialIndicator: assessment.commercialIndicator,
+          industrialIndicator: assessment.industrialIndicator,
           appearsUnusuallyComplex: uniqueComplexityReasons.length > 0,
           complexityReasons: uniqueComplexityReasons,
-          screening: screening.screening,
-          reason: screening.reason,
+          leadState: assessment.leadState,
+          leadStateLabel: assessment.leadStateLabel,
+          recommendedNextAction: assessment.recommendedNextAction,
+          matchedRules: assessment.matchedRules,
+          screening: assessment.screening,
+          reason: assessment.reason,
           dataSources: [parcelSource, zoningSource, taxSource],
         };
       } catch (error) {
@@ -713,6 +763,7 @@ export function createVancouverPropertyReviewProvider(
           return failureResult({
             submittedAddress,
             normalizedAddress: parsedAddress.normalizedAddress,
+            submittedUnit: parsedAddress.unitNumber,
             reason: error.message,
             failureCode: error.failureCode,
             dataSources: [parcelSource, zoningSource, taxSource],
@@ -721,6 +772,7 @@ export function createVancouverPropertyReviewProvider(
         return failureResult({
           submittedAddress,
           normalizedAddress: parsedAddress.normalizedAddress,
+          submittedUnit: parsedAddress.unitNumber,
           reason:
             "An unexpected error prevented the municipal property review from completing.",
           failureCode: "UNEXPECTED_ERROR",
