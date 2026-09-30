@@ -23,6 +23,8 @@ import {
   hashPlannerReviewToken,
   PlannerReviewAccessConfigurationError,
 } from "@/lib/planner-review-access";
+import { appendPropertyReviewToLeadEmail } from "@/lib/property-review/email";
+import { reviewPropertyAddress } from "@/lib/property-review/workflow";
 
 const inquiryRecipient = "hello@housedelivery.ca";
 const lanewayPropertyReviewCopyRecipient = "bfong@housedelivery.ca";
@@ -408,7 +410,7 @@ export async function POST(request: Request) {
   const isPlannerProjectReview = Boolean(plannerContext || plannerHandoff);
   const isLanewayPropertyReview =
     source === "laneway_carriage_property_review";
-  const message = plannerHandoff && storedPlannerProject && plannerReviewLinks
+  const baseMessage = plannerHandoff && storedPlannerProject && plannerReviewLinks
     ? formatPlannerHandoffEmail({
         state: storedPlannerProject.projectState,
         submissionId: storedPlannerProject.submissionId,
@@ -449,6 +451,12 @@ export async function POST(request: Request) {
         "Project details:",
         notes || "Not provided",
       ].join("\n");
+  const message = isLanewayPropertyReview
+    ? appendPropertyReviewToLeadEmail(
+        baseMessage,
+        await reviewPropertyAddress(location),
+      )
+    : baseMessage;
 
   const idempotencyKey = plannerHandoff
     ? `planner-handoff-v${plannerHandoffEmailVersion}-${plannerHandoff.submissionId}`
