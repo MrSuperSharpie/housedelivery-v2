@@ -2101,6 +2101,7 @@ function OpportunityReport({
         ["Timing and phasing", labelValue(state.refinement.targetTiming)],
       ];
   const missingInformation = readiness.filter((item) => !item.ready).map((item) => item.label);
+  const coverLines = summary.lines.slice(0, 4);
 
   function printReport() {
     const previousTitle = document.title;
@@ -2173,16 +2174,24 @@ function OpportunityReport({
           </div>
 
           <div className="mt-9 grid grid-cols-12 gap-2">
-            {summary.lines.slice(0, 3).map(({ line, model }, index) => {
+            {coverLines.map(({ line, model }, index) => {
               const homes = line.quantity * model.homesPerSelection;
+              const coverClass =
+                coverLines.length === 1
+                  ? "col-span-12 h-64 sm:h-[18rem]"
+                  : coverLines.length === 2
+                    ? "col-span-6 h-44 sm:h-[13rem]"
+                    : coverLines.length === 3
+                      ? index === 0
+                        ? "col-span-12 h-64 sm:col-span-7 sm:h-[18rem]"
+                        : "col-span-6 h-36 sm:col-span-5 sm:h-[8.75rem]"
+                      : "col-span-6 h-36 sm:h-[9rem]";
               return (
                 <figure
                   key={line.id}
                   className={cn(
                     "relative overflow-hidden bg-black/8",
-                    index === 0
-                      ? "col-span-12 h-64 sm:col-span-7 sm:h-[18rem]"
-                      : "col-span-6 h-36 sm:col-span-5 sm:h-[8.75rem]",
+                    coverClass,
                   )}
                 >
                   <Image
@@ -2190,7 +2199,13 @@ function OpportunityReport({
                     alt={`${model.name} exterior`}
                     fill
                     unoptimized
-                    sizes={index === 0 ? "(min-width: 640px) 58vw, 100vw" : "(min-width: 640px) 42vw, 50vw"}
+                    sizes={
+                      coverLines.length >= 4
+                        ? "(min-width: 640px) 50vw, 100vw"
+                        : index === 0
+                          ? "(min-width: 640px) 58vw, 100vw"
+                          : "(min-width: 640px) 42vw, 50vw"
+                    }
                     className="object-cover"
                   />
                   <figcaption className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 bg-gradient-to-t from-black/75 via-black/20 to-transparent px-4 pb-4 pt-12 text-white">
@@ -2320,74 +2335,39 @@ function OpportunityReport({
                   Project readiness
                 </p>
                 <h4 className="mt-2 text-2xl font-medium tracking-[-0.045em]">
-                  Known today
+                  Known today / Items to confirm
                 </h4>
               </div>
-              <span className="text-[8px] font-semibold uppercase tracking-[0.14em] text-black/34">
+              <span className="text-right text-[8px] font-semibold uppercase leading-4 tracking-[0.14em] text-black/34">
                 {knownReadiness.length} identified
-              </span>
-            </div>
-            <div className="grid gap-x-7 sm:grid-cols-2">
-              {knownReadiness.length ? (
-                knownReadiness.map((item) => (
-                  <div
-                    key={item.id}
-                    className="grid grid-cols-[1fr_auto] gap-3 border-b border-black/13 py-2.5"
-                  >
-                    <div>
-                      <p className="text-[13px] font-medium">{item.label}</p>
-                      <p className="mt-1 text-[9px] leading-4 text-black/48">
-                        {item.detail}
-                      </p>
-                    </div>
-                    <span className="self-start bg-black px-2 py-1 text-[6.5px] font-semibold uppercase tracking-[0.11em] text-white">
-                      {item.status}
-                    </span>
-                  </div>
-                ))
-              ) : (
-                <p className="py-4 text-sm text-black/48">
-                  No readiness items identified yet.
-                </p>
-              )}
-            </div>
-
-            <div className="mt-6 flex items-end justify-between gap-4 border-b border-black/18 pb-3">
-              <div>
-                <p className="text-[8px] font-semibold uppercase tracking-[0.18em] text-black/40">
-                  Project readiness
-                </p>
-                <h4 className="mt-2 text-xl font-medium tracking-[-0.04em]">
-                  Items to confirm
-                </h4>
-              </div>
-              <span className="text-[8px] font-semibold uppercase tracking-[0.14em] text-black/34">
+                <br />
                 {unresolvedReadiness.length} open
               </span>
             </div>
             <div className="grid gap-x-7 sm:grid-cols-2">
-              {unresolvedReadiness.length ? (
-                unresolvedReadiness.map((item) => (
-                  <div
-                    key={item.id}
-                    className="grid grid-cols-[1fr_auto] gap-3 border-b border-black/13 py-2.5"
-                  >
-                    <div>
-                      <p className="text-[13px] font-medium">{item.label}</p>
-                      <p className="mt-1 text-[9px] leading-4 text-black/48">
-                        {item.detail}
-                      </p>
-                    </div>
-                    <span className="self-start border border-black/18 px-2 py-1 text-[6.5px] font-semibold uppercase tracking-[0.11em] text-black/42">
-                      {item.status}
-                    </span>
+              {readiness.map((item) => (
+                <div
+                  key={item.id}
+                  className="grid grid-cols-[1fr_auto] gap-3 border-b border-black/13 py-2.5"
+                >
+                  <div>
+                    <p className="text-[13px] font-medium">{item.label}</p>
+                    <p className="mt-1 text-[9px] leading-4 text-black/48">
+                      {item.detail}
+                    </p>
                   </div>
-                ))
-              ) : (
-                <p className="py-4 text-sm text-black/48">
-                  No primary readiness items remain unresolved.
-                </p>
-              )}
+                  <span
+                    className={cn(
+                      "self-start px-2 py-1 text-[6.5px] font-semibold uppercase tracking-[0.11em]",
+                      item.ready
+                        ? "bg-black text-white"
+                        : "border border-black/18 text-black/42",
+                    )}
+                  >
+                    {item.status}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </section>
@@ -2473,26 +2453,23 @@ function OpportunityReport({
           )}
 
           {culturalDesigns.length ? (
-            <div className="mt-9 border-t border-black/18 pt-6">
-              <p className="text-[8px] font-semibold uppercase tracking-[0.18em] text-black/40">
+            <div className="mt-4 border-t border-black/16 pt-3">
+              <p className="text-[7px] font-semibold uppercase tracking-[0.16em] text-black/38">
                 Cultural design direction
               </p>
-              <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="mt-2 grid gap-x-6 gap-y-2 sm:grid-cols-2">
                 {culturalDesigns.map((record) => (
-                  <div key={record.id} className="border-t border-black/16 pt-3">
-                    <p className="text-sm font-medium">{record.designName}</p>
-                    <p className="mt-2 text-[10px] leading-4 text-black/48">
-                      Indigenous Inspiration selected. Exterior cultural
-                      expression to be developed with the Nation during project
-                      review.
-                    </p>
-                  </div>
+                  <p key={record.id} className="text-[9px] leading-4 text-black/48">
+                    <span className="font-medium text-black/66">{record.designName}</span>
+                    {" — "}Indigenous Inspiration selected. Exterior cultural expression
+                    to be developed with the Nation during project review.
+                  </p>
                 ))}
               </div>
             </div>
           ) : null}
 
-          <p className="mt-5 max-w-4xl border-t border-black/16 pt-4 text-[9px] leading-4 text-black/48">
+          <p className="mt-3 max-w-4xl border-t border-black/16 pt-3 text-[8px] leading-4 text-black/44">
             Factory design-development and virtual walkthrough services are a
             separate paid next-stage service and are not included simply by
             completing this Opportunity Report. No fee is due unless it is
