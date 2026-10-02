@@ -44,6 +44,9 @@ export function SiteFooter() {
               Connect
             </p>
             <div className="mt-5 space-y-3 text-sm text-white/62">
+              <Link className="block hover:text-white" href="/warranty">
+                Warranty &amp; Support
+              </Link>
               <a
                 className="block hover:text-white"
                 href="mailto:hello@housedelivery.ca"
