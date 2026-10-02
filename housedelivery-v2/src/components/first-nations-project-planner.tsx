@@ -2075,7 +2075,7 @@ function OpportunityReport({
   const savedDesigns = summary.lines.flatMap(({ line, model }) =>
     line.designVariations.flatMap((variation) =>
       variation.status === "complete"
-        ? [{ model: model.name, variation }]
+        ? [{ model, variation }]
         : [],
     ),
   );
@@ -2126,101 +2126,565 @@ function OpportunityReport({
         </div>
       </div>
 
-      <article id="planner-opportunity-report" tabIndex={-1} data-planner-report className="mt-16 scroll-mt-28 bg-white px-6 text-black outline-none sm:px-10 lg:px-16 xl:px-20 print:mt-0">
-        <header className="border-y border-black/18 py-9">
-          <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-black/45">House Delivery / Preliminary Opportunity Report</p>
-          {state.audience !== "first-nations" ? <p className="mt-5 text-[9px] font-semibold uppercase tracking-[0.18em] text-black/42">{plannerAudienceLabels[state.audience]}</p> : null}
-          <h2 className="mt-6 max-w-5xl text-[clamp(3.4rem,7vw,7.5rem)] font-medium leading-[0.82] tracking-[-0.075em]">{state.community || (state.audience === "first-nations" ? "Community housing opportunity" : "Housing project opportunity")}</h2>
-          <div className="mt-8 grid gap-3 text-xs uppercase tracking-[0.13em] text-black/48 sm:grid-cols-4"><p>{state.location || "Location to confirm"}</p><p>{summary.totalHomes} working {summary.totalHomes === 1 ? "home" : "homes"}</p><p>Project / {state.projectId || "Pending"}</p><p>{state.opportunityReportReference || "Reference pending"}</p></div>
-        </header>
-
-        <ReportSection number="01" title="Opportunity">
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {[["Housing requirement", `${summary.totalHomes} ${summary.totalHomes === 1 ? "home" : "homes"}`], ["Model mix", `${summary.modelCount} ${summary.modelCount === 1 ? "model type" : "model types"}`], ["Sites", labelValue(state.sitePattern)], ["Horizon", labelValue(state.deliveryHorizon)]].map(([label, value]) => <dl key={label} className="border-t border-black/16 pt-4"><dt className="text-[8px] uppercase tracking-[0.16em] text-black/42">{label}</dt><dd className="mt-3 text-xl font-medium tracking-[-0.03em]">{value}</dd></dl>)}
+      <article
+        id="planner-opportunity-report"
+        tabIndex={-1}
+        data-planner-report
+        data-opportunity-report-polished
+        className="opportunity-report-document mt-16 scroll-mt-28 overflow-hidden bg-[#e7e3d8] text-black outline-none print:mt-0"
+      >
+        <section
+          data-opportunity-report-page
+          className="opportunity-report-page bg-[#e7e3d8] px-6 py-10 sm:px-10 sm:py-12 lg:px-14"
+        >
+          <div className="flex items-start justify-between gap-6 border-t border-black/22 pt-4">
+            <div>
+              <p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-black/50">
+                House Delivery / Preliminary Opportunity Report
+              </p>
+              <p className="mt-2 text-[8px] font-semibold uppercase tracking-[0.18em] text-black/34">
+                Working project record / Non-binding
+              </p>
+            </div>
+            <p className="max-w-48 text-right font-mono text-[8px] uppercase leading-5 tracking-[0.12em] text-black/38">
+              {state.opportunityReportReference || "Reference pending"}
+            </p>
           </div>
-          {state.audience !== "first-nations" && Object.keys(state.audienceContext).length ? (
-            <div className="mt-8 grid gap-5 border-t border-black/16 pt-6 sm:grid-cols-2 lg:grid-cols-3">
+
+          <div className="mt-10 grid gap-7 lg:grid-cols-[1.22fr_0.78fr] lg:items-end">
+            <div>
+              {state.audience !== "first-nations" ? (
+                <p className="mb-4 text-[9px] font-semibold uppercase tracking-[0.18em] text-black/42">
+                  {plannerAudienceLabels[state.audience]}
+                </p>
+              ) : null}
+              <h2 className="max-w-4xl text-[clamp(3.2rem,7vw,6.8rem)] font-medium leading-[0.84] tracking-[-0.07em]">
+                {state.community ||
+                  (state.audience === "first-nations"
+                    ? "Community housing opportunity"
+                    : "Housing project opportunity")}
+              </h2>
+            </div>
+            <p className="max-w-md border-t border-black/18 pt-4 text-sm leading-6 text-black/58">
+              A preliminary House Delivery project snapshot bringing the housing
+              requirement, selected homes, design direction, readiness and
+              potential next pathways into one working record.
+            </p>
+          </div>
+
+          <div className="mt-9 grid grid-cols-12 gap-2">
+            {summary.lines.slice(0, 3).map(({ line, model }, index) => {
+              const homes = line.quantity * model.homesPerSelection;
+              return (
+                <figure
+                  key={line.id}
+                  className={cn(
+                    "relative overflow-hidden bg-black/8",
+                    index === 0
+                      ? "col-span-12 h-72 sm:col-span-7 sm:h-[22rem]"
+                      : "col-span-6 h-44 sm:col-span-5 sm:h-[10.75rem]",
+                  )}
+                >
+                  <Image
+                    src={model.image}
+                    alt={`${model.name} exterior`}
+                    fill
+                    unoptimized
+                    sizes={index === 0 ? "(min-width: 640px) 58vw, 100vw" : "(min-width: 640px) 42vw, 50vw"}
+                    className="object-cover"
+                  />
+                  <figcaption className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 bg-gradient-to-t from-black/75 via-black/20 to-transparent px-4 pb-4 pt-12 text-white">
+                    <span className="text-sm font-medium">{model.name}</span>
+                    <span className="text-[8px] uppercase tracking-[0.14em] text-white/72">
+                      {homes} {homes === 1 ? "home" : "homes"}
+                    </span>
+                  </figcaption>
+                </figure>
+              );
+            })}
+          </div>
+
+          <div className="mt-8 grid border-l border-t border-black/16 sm:grid-cols-4">
+            {[
+              ["Housing requirement", `${summary.totalHomes} ${summary.totalHomes === 1 ? "home" : "homes"}`],
+              ["Model mix", `${summary.modelCount} ${summary.modelCount === 1 ? "model" : "models"}`],
+              ["Sites", labelValue(state.sitePattern)],
+              ["Horizon", labelValue(state.deliveryHorizon)],
+            ].map(([label, value]) => (
+              <dl key={label} className="border-b border-r border-black/16 p-4">
+                <dt className="text-[7px] font-semibold uppercase tracking-[0.16em] text-black/38">
+                  {label}
+                </dt>
+                <dd className="mt-3 text-base font-medium tracking-[-0.025em]">
+                  {value}
+                </dd>
+              </dl>
+            ))}
+          </div>
+
+          <div className="mt-8 border-t border-black/18 pt-5">
+            <p className="text-[8px] font-semibold uppercase tracking-[0.18em] text-black/40">
+              Working portfolio
+            </p>
+            <div className="mt-4 grid gap-x-7 gap-y-4 sm:grid-cols-3">
+              {summary.lines.map(({ line, model }) => {
+                const homes = line.quantity * model.homesPerSelection;
+                return (
+                  <div key={line.id} className="border-t border-black/16 pt-3">
+                    <p className="text-sm font-medium">{model.name}</p>
+                    <p className="mt-1 text-[10px] leading-4 text-black/48">
+                      {model.family === "standardized-catalogue"
+                        ? "Standardized Catalogue Design"
+                        : model.family === "laneway-carriage-home"
+                          ? "Laneway / Carriage Home"
+                          : "Custom Home"}
+                      {model.squareFeet
+                        ? ` / ${model.squareFeet.toLocaleString()} sq. ft.`
+                        : ""}
+                    </p>
+                    <p className="mt-2 text-[9px] uppercase tracking-[0.12em] text-black/42">
+                      {homes} {homes === 1 ? "home" : "homes"} / {plannerPhaseLabels[line.phase]}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        <section
+          data-opportunity-report-page
+          className="opportunity-report-page bg-white px-6 py-10 sm:px-10 sm:py-12 lg:px-14"
+        >
+          <div className="grid gap-8 border-t border-black/20 pt-4 lg:grid-cols-[0.36fr_1fr]">
+            <div>
+              <p className="font-mono text-[9px] text-black/34">01-03</p>
+              <p className="mt-3 text-[8px] font-semibold uppercase tracking-[0.18em] text-black/40">
+                Opportunity / Feasibility
+              </p>
+            </div>
+            <div>
+              <h3 className="max-w-3xl text-[clamp(2.6rem,5vw,5rem)] font-medium leading-[0.9] tracking-[-0.06em]">
+                What we know now,
+                <br />
+                <span className="text-black/32">and what still needs work.</span>
+              </h3>
+            </div>
+          </div>
+
+          <div className="mt-10 grid border-l border-t border-black/16 sm:grid-cols-3">
+            {[
+              ["Low", estimate.low],
+              ["Base planning case", estimate.base],
+              ["High", estimate.high],
+            ].map(([label, value]) => (
+              <dl
+                key={label as string}
+                className="border-b border-r border-black/16 bg-[#f2efe7] p-5"
+              >
+                <dt className="text-[7px] font-semibold uppercase tracking-[0.16em] text-black/38">
+                  {label}
+                </dt>
+                <dd className="mt-8 text-xl font-medium leading-tight tracking-[-0.03em]">
+                  {formatPlanningValue(value as number | null)}
+                </dd>
+              </dl>
+            ))}
+          </div>
+          <p className="mt-4 max-w-4xl text-[10px] leading-5 text-black/46">
+            Preliminary feasibility only - not a quotation. Potential funding
+            has not been deducted. Design direction does not change pricing
+            without a controlled commercial delta.
+          </p>
+
+          <div className="mt-10">
+            <p className="text-[8px] font-semibold uppercase tracking-[0.18em] text-black/40">
+              Major range drivers
+            </p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              {majorRangeDrivers.map(([label, value]) => (
+                <div key={label} className="border border-black/14 p-4">
+                  <p className="text-[7px] font-semibold uppercase tracking-[0.15em] text-black/36">
+                    {label}
+                  </p>
+                  <p className="mt-3 text-sm leading-5">{value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-10 grid gap-8 lg:grid-cols-2">
+            <div>
+              <div className="flex items-end justify-between gap-4 border-b border-black/18 pb-3">
+                <div>
+                  <p className="text-[8px] font-semibold uppercase tracking-[0.18em] text-black/40">
+                    Project readiness
+                  </p>
+                  <h4 className="mt-2 text-2xl font-medium tracking-[-0.045em]">
+                    Known today
+                  </h4>
+                </div>
+                <span className="text-[8px] font-semibold uppercase tracking-[0.14em] text-black/34">
+                  {knownReadiness.length} identified
+                </span>
+              </div>
+              <div>
+                {knownReadiness.length ? (
+                  knownReadiness.map((item) => (
+                    <div
+                      key={item.id}
+                      className="grid grid-cols-[1fr_auto] gap-4 border-b border-black/13 py-3"
+                    >
+                      <div>
+                        <p className="text-sm font-medium">{item.label}</p>
+                        <p className="mt-1 text-[10px] leading-4 text-black/48">
+                          {item.detail}
+                        </p>
+                      </div>
+                      <span className="self-start bg-black px-2 py-1 text-[7px] font-semibold uppercase tracking-[0.12em] text-white">
+                        {item.status}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="py-4 text-sm text-black/48">
+                    No readiness items identified yet.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-end justify-between gap-4 border-b border-black/18 pb-3">
+                <div>
+                  <p className="text-[8px] font-semibold uppercase tracking-[0.18em] text-black/40">
+                    Project readiness
+                  </p>
+                  <h4 className="mt-2 text-2xl font-medium tracking-[-0.045em]">
+                    Items to confirm
+                  </h4>
+                </div>
+                <span className="text-[8px] font-semibold uppercase tracking-[0.14em] text-black/34">
+                  {unresolvedReadiness.length} open
+                </span>
+              </div>
+              <div>
+                {unresolvedReadiness.length ? (
+                  unresolvedReadiness.map((item) => (
+                    <div
+                      key={item.id}
+                      className="grid grid-cols-[1fr_auto] gap-4 border-b border-black/13 py-3"
+                    >
+                      <div>
+                        <p className="text-sm font-medium">{item.label}</p>
+                        <p className="mt-1 text-[10px] leading-4 text-black/48">
+                          {item.detail}
+                        </p>
+                      </div>
+                      <span className="self-start border border-black/18 px-2 py-1 text-[7px] font-semibold uppercase tracking-[0.12em] text-black/42">
+                        {item.status}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="py-4 text-sm text-black/48">
+                    No primary readiness items remain unresolved.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          data-opportunity-report-page
+          className="opportunity-report-page bg-[#e7e3d8] px-6 py-10 sm:px-10 sm:py-12 lg:px-14"
+        >
+          <div className="grid gap-8 border-t border-black/20 pt-4 lg:grid-cols-[0.36fr_1fr]">
+            <div>
+              <p className="font-mono text-[9px] text-black/34">04</p>
+              <p className="mt-3 text-[8px] font-semibold uppercase tracking-[0.18em] text-black/40">
+                Design direction
+              </p>
+            </div>
+            <div>
+              <h3 className="max-w-4xl text-[clamp(2.6rem,5vw,5rem)] font-medium leading-[0.9] tracking-[-0.06em]">
+                The homes are selected.
+                <br />
+                <span className="text-black/32">The design direction is taking shape.</span>
+              </h3>
+              <p className="mt-5 max-w-3xl text-sm leading-6 text-black/54">
+                {savedDesigns.length} completed{" "}
+                {savedDesigns.length === 1 ? "Design Group" : "Design Groups"}.
+                The completed Look Book establishes the preliminary design
+                direction for each Design Group and can move forward following
+                House Delivery review and the appropriate project authorization.
+              </p>
+            </div>
+          </div>
+
+          {savedDesigns.length ? (
+            <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {savedDesigns.map(({ model, variation }) => {
+                const selectionLevels = getDesignSelectionLevelLabels(variation);
+                return (
+                  <article
+                    key={variation.id}
+                    className="overflow-hidden border border-black/14 bg-white/45"
+                  >
+                    <div className="relative aspect-[4/3] bg-black/6">
+                      <Image
+                        src={model.image}
+                        alt={`${model.name} exterior`}
+                        fill
+                        unoptimized
+                        sizes="(min-width: 1024px) 30vw, (min-width: 640px) 50vw, 100vw"
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="p-4">
+                      <p className="text-[7px] font-semibold uppercase tracking-[0.15em] text-black/38">
+                        {variation.culturalExteriorInterest
+                          ? "Indigenous Inspiration"
+                          : "Contemporary"}
+                      </p>
+                      <h4 className="mt-2 text-lg font-medium leading-6 tracking-[-0.035em]">
+                        {variation.projectDesignName ??
+                          `${getPlannerHomeName(model.name)} - ${variation.label}`}
+                      </h4>
+                      <p className="mt-3 text-[10px] leading-4 text-black/50">
+                        Assigned to {variation.assignedQuantity}{" "}
+                        {variation.assignedQuantity === 1 ? "home" : "homes"}
+                        {selectionLevels.length
+                          ? ` / ${selectionLevels.join(" / ")} selections`
+                          : ""}
+                      </p>
+                      {variation.lookBookReference ? (
+                        <p className="mt-3 font-mono text-[8px] uppercase tracking-[0.12em] text-black/38">
+                          Look Book / {variation.lookBookReference}
+                        </p>
+                      ) : null}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="mt-9 border-y border-black/16 py-8 text-sm text-black/52">
+              Design direction has not yet been recorded. Technical and
+              project-specific approvals remain separate.
+            </p>
+          )}
+
+          {culturalDesigns.length ? (
+            <div className="mt-9 border-t border-black/18 pt-6">
+              <p className="text-[8px] font-semibold uppercase tracking-[0.18em] text-black/40">
+                Cultural design direction
+              </p>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {culturalDesigns.map((record) => (
+                  <div key={record.id} className="border-t border-black/16 pt-3">
+                    <p className="text-sm font-medium">{record.designName}</p>
+                    <p className="mt-2 text-[10px] leading-4 text-black/48">
+                      Indigenous Inspiration selected. Exterior cultural
+                      expression to be developed with the Nation during project
+                      review.
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          <p className="mt-8 max-w-4xl border-t border-black/16 pt-5 text-[10px] leading-5 text-black/48">
+            Factory design-development and virtual walkthrough services are a
+            separate paid next-stage service and are not included simply by
+            completing this Opportunity Report. No fee is due unless it is
+            separately disclosed and authorized.
+          </p>
+        </section>
+
+        <section
+          data-opportunity-report-page
+          className="opportunity-report-page bg-white px-6 py-10 sm:px-10 sm:py-12 lg:px-14"
+        >
+          <div className="grid gap-8 border-t border-black/20 pt-4 lg:grid-cols-[0.36fr_1fr]">
+            <div>
+              <p className="font-mono text-[9px] text-black/34">07-08</p>
+              <p className="mt-3 text-[8px] font-semibold uppercase tracking-[0.18em] text-black/40">
+                Capacity / Funding
+              </p>
+            </div>
+            <div>
+              <h3 className="max-w-4xl text-[clamp(2.6rem,5vw,5rem)] font-medium leading-[0.9] tracking-[-0.06em]">
+                Build the project pathway,
+                <br />
+                <span className="text-black/32">not just the homes.</span>
+              </h3>
+            </div>
+          </div>
+
+          <div className="mt-9 grid gap-5 border-y border-black/18 py-6 lg:grid-cols-[0.32fr_1fr]">
+            <div>
+              <p className="text-[8px] font-semibold uppercase tracking-[0.18em] text-black/40">
+                {state.audience === "first-nations"
+                  ? "Community workforce & capacity"
+                  : "Delivery capability"}
+              </p>
+              <p className="mt-2 text-[8px] font-semibold uppercase tracking-[0.15em] text-black/32">
+                {state.audience === "first-nations"
+                  ? workforceReadiness?.status ?? "Not Yet Determined"
+                  : "Project review"}
+              </p>
+            </div>
+            <p className="max-w-3xl text-sm leading-6 text-black/56">
+              {state.audience === "first-nations"
+                ? workforceReadiness?.detail ??
+                  "Community workforce and capacity interest not yet determined."
+                : `Delivery / trade capacity: ${labelValue(state.refinement.localLabour)}. Assembly / maintenance responsibilities: ${labelValue(state.refinement.trainingObjectives)}.`}
+            </p>
+          </div>
+
+          <div className="mt-9">
+            <div className="flex items-end justify-between gap-5">
+              <div>
+                <p className="text-[8px] font-semibold uppercase tracking-[0.18em] text-black/40">
+                  {state.audience === "first-nations"
+                    ? "Funding & grant corridors"
+                    : "Funding and financing context"}
+                </p>
+                <h4 className="mt-2 text-2xl font-medium tracking-[-0.045em]">
+                  Potential corridors for review
+                </h4>
+              </div>
+              <p className="text-right text-[8px] uppercase leading-4 tracking-[0.13em] text-black/32">
+                Program eligibility
+                <br />
+                remains subject to review
+              </p>
+            </div>
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              {funding.map((item) => (
+                <article key={item.id} className="border border-black/14 p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <p className="text-[7px] font-semibold uppercase tracking-[0.14em] text-black/38">
+                      {item.relevance}
+                      {item.decision
+                        ? ` / ${fundingDecisionLabels[item.decision]}`
+                        : ""}
+                    </p>
+                    <span className="text-[7px] uppercase tracking-[0.12em] text-black/28">
+                      {item.organization}
+                    </span>
+                  </div>
+                  <h5 className="mt-3 text-base font-medium leading-5 tracking-[-0.03em]">
+                    {item.title}
+                  </h5>
+                  <p className="mt-3 text-[10px] leading-4 text-black/50">
+                    {item.confirmationNeeded}
+                  </p>
+                  <a
+                    href={item.officialSource}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-4 inline-block border-b border-black/24 pb-1 text-[7px] font-semibold uppercase tracking-[0.14em] text-black/45"
+                  >
+                    Official program source
+                  </a>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section
+          data-opportunity-report-page
+          className="opportunity-report-page bg-[#e7e3d8] px-6 py-10 sm:px-10 sm:py-12 lg:px-14"
+        >
+          <div className="grid gap-8 border-t border-black/20 pt-4 lg:grid-cols-[0.36fr_1fr]">
+            <div>
+              <p className="font-mono text-[9px] text-black/34">09</p>
+              <p className="mt-3 text-[8px] font-semibold uppercase tracking-[0.18em] text-black/40">
+                Assumptions / Next
+              </p>
+            </div>
+            <div>
+              <h3 className="max-w-4xl text-[clamp(2.6rem,5vw,5rem)] font-medium leading-[0.9] tracking-[-0.06em]">
+                A clearer basis
+                <br />
+                <span className="text-black/32">for the next conversation.</span>
+              </h3>
+            </div>
+          </div>
+
+          <div className="mt-10 grid gap-4 lg:grid-cols-3">
+            {[
+              ["Assumptions", estimate.assumptions],
+              ["Exclusions", estimate.exclusions],
+              [
+                "Missing information",
+                missingInformation.length
+                  ? missingInformation
+                  : ["No primary information gaps flagged at this stage."],
+              ],
+            ].map(([title, items]) => (
+              <section key={title as string} className="border-t border-black/18 pt-4">
+                <p className="text-[8px] font-semibold uppercase tracking-[0.16em] text-black/40">
+                  {title as string}
+                </p>
+                <ul className="mt-4 space-y-3 text-[10px] leading-5 text-black/52">
+                  {(items as readonly string[]).map((item) => (
+                    <li key={item} className="grid grid-cols-[auto_1fr] gap-3">
+                      <span className="text-black/24">—</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+          </div>
+
+          {state.audience !== "first-nations" &&
+          Object.keys(state.audienceContext).length ? (
+            <div className="mt-9 grid gap-4 border-t border-black/18 pt-5 sm:grid-cols-3">
               {Object.entries(state.audienceContext).map(([key, value]) => (
-                <p key={key} className="text-sm">
-                  <span className="text-black/42">{audienceContextLabel(key)}</span>
+                <p key={key} className="text-[10px] leading-5">
+                  <span className="text-black/40">{audienceContextLabel(key)}</span>
                   <br />
                   {labelValue(value)}
                 </p>
               ))}
             </div>
           ) : null}
-        </ReportSection>
 
-        <ReportSection number="02" title="Portfolio and phases">
-          <div className="border-t border-black/16">
-            {summary.lines.map(({ line, model }) => <div key={line.id} className="grid grid-cols-[1fr_auto] gap-5 border-b border-black/16 py-4 text-sm"><div><p className="font-medium">{model.name}</p><p className="mt-1 text-xs text-black/45">{model.family === "standardized-catalogue" ? "Standardized Catalogue Design" : model.family === "laneway-carriage-home" ? "Laneway / Carriage Home" : "Custom Home"}{model.squareFeet ? ` / ${model.squareFeet.toLocaleString()} sq. ft.` : ""}</p></div><p className="text-right">{line.quantity} × {model.homesPerSelection} {model.homesPerSelection === 1 ? "home" : "homes"}<br /><span className="text-xs text-black/45">{plannerPhaseLabels[line.phase]}</span></p></div>)}
-          </div>
-        </ReportSection>
-
-        <ReportSection number="03" title="Preliminary feasibility">
-          <div className="grid border-l border-t border-black/16 sm:grid-cols-3">{[["Low", estimate.low], ["Base planning case", estimate.base], ["High", estimate.high]].map(([label, value]) => <dl key={label as string} className="border-b border-r border-black/16 p-5"><dt className="text-[8px] uppercase tracking-[0.16em] text-black/42">{label}</dt><dd className="mt-8 text-xl font-medium leading-tight">{formatPlanningValue(value as number | null)}</dd></dl>)}</div>
-          <p className="mt-5 text-xs leading-5 text-black/52">Preliminary feasibility only—not a quotation. Potential funding has not been deducted. Design direction does not change pricing without a controlled commercial delta.</p>
-        </ReportSection>
-
-        <ReportSection number="04" title="Design direction">
-          <p className="mb-6 max-w-4xl text-sm leading-6 text-black/58">
-            {savedDesigns.length} completed {savedDesigns.length === 1 ? "Design Group" : "Design Groups"}. The completed Look Book establishes the preliminary design direction for each Design Group. Following House Delivery review and the appropriate project authorization, these selections can be used for factory design development, virtual walkthrough preparation and project-specific specification review.
-          </p>
-          {savedDesigns.length ? <div className="grid gap-3 sm:grid-cols-2">{savedDesigns.map(({ model, variation }) => { const selectionLevels = getDesignSelectionLevelLabels(variation); return <p key={variation.id} className="border-t border-black/16 pt-3 text-sm"><span className="text-black/42">{variation.projectDesignName ?? `${getPlannerHomeName(model)} — ${variation.label}`}</span><br />Assigned to {variation.assignedQuantity} {variation.assignedQuantity === 1 ? "home" : "homes"} · {variation.culturalExteriorInterest ? "Indigenous Inspiration" : "Contemporary"}{selectionLevels.length ? ` · ${selectionLevels.join(" / ")} selections` : ""}{variation.lookBookReference ? ` · Look Book ${variation.lookBookReference}` : ""}</p>; })}</div> : <p className="text-sm text-black/52">Design direction has not yet been recorded. Technical and project-specific approvals remain separate.</p>}
-          <CulturalDesignReport records={culturalDesigns} />
-          <p className="mt-7 max-w-4xl border-t border-black/16 pt-5 text-xs leading-5 text-black/52">
-            Factory design-development and virtual walkthrough services are a separate paid next-stage service and are not included simply by completing this Opportunity Report. No fee is due unless it is separately disclosed and authorized.
-          </p>
-        </ReportSection>
-
-        <ReportSection number="05" title="Major range drivers">
-          <div className="grid gap-3 sm:grid-cols-2">{majorRangeDrivers.map(([label, value]) => <p key={label} className="border-t border-black/16 pt-3 text-sm"><span className="text-black/42">{label}</span><br />{value}</p>)}</div>
-        </ReportSection>
-
-        <ReportSection number="06" title="Project readiness">
-          <div className="grid gap-10 lg:grid-cols-2">
-            <div><p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/44">Known Today</p><div className="mt-4">{knownReadiness.length ? knownReadiness.map((item) => <div key={item.id} className="border-t border-black/16 py-3"><div className="flex items-start justify-between gap-4"><p className="text-sm font-medium">{item.label}</p><span className="text-[8px] font-semibold uppercase tracking-[0.14em] text-black/42">{item.status}</span></div><p className="mt-2 text-xs text-black/48">{item.detail}</p></div>) : <p className="text-sm text-black/48">No readiness items identified yet.</p>}</div></div>
-            <div><p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/44">Items to Confirm</p><div className="mt-4">{unresolvedReadiness.length ? unresolvedReadiness.map((item) => <div key={item.id} className="border-t border-black/16 py-3"><div className="flex items-start justify-between gap-4"><p className="text-sm font-medium">{item.label}</p><span className="text-[8px] font-semibold uppercase tracking-[0.14em] text-black/42">{item.status}</span></div><p className="mt-2 text-xs text-black/48">{item.detail}</p></div>) : <p className="text-sm text-black/48">No primary readiness items remain unresolved.</p>}</div></div>
-          </div>
-        </ReportSection>
-
-        <ReportSection number="07" title={state.audience === "first-nations" ? "Community workforce & capacity" : state.audience === "developer" ? "Development and delivery capability" : state.audience === "general-contractor" ? "Procurement, logistics and delivery capability" : "Community delivery and operating capability"}>
-          {state.audience === "first-nations" ? (
-            <div
-              data-report-community-workforce-capacity
-            >
-              <p className="max-w-4xl text-sm leading-6 text-black/60">
-                {workforceReadiness?.detail ?? "Community workforce and capacity interest not yet determined."}
+          <div className="mt-12 bg-[#0b0c10] p-6 text-white sm:p-8">
+            <p className="text-[8px] font-semibold uppercase tracking-[0.19em] text-white/42">
+              Next pathway
+            </p>
+            <p className="mt-5 max-w-4xl text-[clamp(1.55rem,3vw,2.7rem)] font-medium leading-[1.08] tracking-[-0.04em]">
+              House Delivery Review <span className="text-white/30">→</span> LOU{" "}
+              <span className="text-white/30">→</span> Separate Design Development
+              Authorization <span className="text-white/30">→</span> Factory
+              Virtual Walkthrough &amp; Specification Development{" "}
+              <span className="text-white/30">→</span> Final / Refined Project
+              Pricing <span className="text-white/30">→</span> Definitive Agreement
+            </p>
+            <div className="mt-8 grid gap-5 border-t border-white/14 pt-5 lg:grid-cols-[1fr_auto] lg:items-end">
+              <p className="max-w-3xl text-[10px] leading-5 text-white/46">
+                This preliminary report is for early opportunity planning only.
+                It is not a quotation, funding decision, technical approval,
+                permit opinion or commitment to deliver. Project-specific
+                professional review, adaptation and jurisdictional approval are
+                required.
               </p>
-              <p className="mt-5 text-[9px] font-semibold uppercase tracking-[0.16em] text-black/42">{workforceReadiness?.status ?? "Not Yet Determined"}</p>
+              <div className="text-right font-mono text-[8px] uppercase leading-5 tracking-[0.12em] text-white/34">
+                <p>Project / {state.projectId || "Pending"}</p>
+                <p>{state.opportunityReportReference || "Reference pending"}</p>
+              </div>
             </div>
-          ) : (
-            <div className="grid gap-5 sm:grid-cols-2">
-              {[
-                ["Delivery / trade capacity", labelValue(state.refinement.localLabour)],
-                ["Assembly / maintenance responsibilities", labelValue(state.refinement.trainingObjectives)],
-              ].map(([label, value]) => (
-                <p key={label} className="border-t border-black/16 pt-3 text-sm">
-                  <span className="text-black/42">{label}</span><br />{value}
-                </p>
-              ))}
-            </div>
-          )}
-        </ReportSection>
-
-        <ReportSection number="08" title={state.audience === "first-nations" ? "Funding & grant corridors" : "Funding and financing context"}>
-          <div className="space-y-4">{funding.map((item) => <div key={item.id} className="border-t border-black/16 pt-3"><p className="text-[8px] font-semibold uppercase tracking-[0.15em] text-black/42">{item.relevance}{item.decision ? ` / ${fundingDecisionLabels[item.decision]}` : ""}</p><p className="mt-2 text-sm font-medium">{item.title}</p><p className="mt-1 text-xs leading-5 text-black/50">{item.confirmationNeeded}</p><p className="mt-1 break-all text-[9px] text-black/38">{item.officialSource}</p></div>)}</div>
-        </ReportSection>
-
-        <ReportSection number="09" title="Assumptions, exclusions and missing information">
-          <div className="grid gap-8 lg:grid-cols-3"><div><p className="text-[8px] font-semibold uppercase tracking-[0.16em] text-black/42">Assumptions</p><ul className="mt-4 space-y-2 text-xs leading-5 text-black/55">{estimate.assumptions.map((item) => <li key={item}>— {item}</li>)}</ul></div><div><p className="text-[8px] font-semibold uppercase tracking-[0.16em] text-black/42">Exclusions</p><ul className="mt-4 space-y-2 text-xs leading-5 text-black/55">{estimate.exclusions.map((item) => <li key={item}>— {item}</li>)}</ul></div><div><p className="text-[8px] font-semibold uppercase tracking-[0.16em] text-black/42">Missing information</p><ul className="mt-4 space-y-2 text-xs leading-5 text-black/55">{missingInformation.length ? missingInformation.map((item) => <li key={item}>— {item}</li>) : <li>— No primary information gaps flagged at this stage.</li>}</ul></div></div>
-        </ReportSection>
-
-        <footer className="mt-14 bg-[#0b0c10] p-6 text-white sm:p-9">
-          <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/45">Next pathway</p>
-          <p className="mt-5 text-xl font-medium leading-8 tracking-[-0.025em]">House Delivery Review → LOU → Separate Design Development Authorization → Factory Virtual Walkthrough &amp; Specification Development → Final / Refined Project Pricing → Definitive Agreement</p>
-          <p className="mt-7 max-w-4xl text-xs leading-5 text-white/48">This preliminary report is for early opportunity planning only. It is not a quotation, funding decision, technical approval, permit opinion or commitment to deliver. Project-specific professional review, adaptation and jurisdictional approval are required.</p>
-        </footer>
+          </div>
+        </section>
       </article>
 
       <div data-planner-completion-actions className="planner-screen-only mt-10 border-y border-black/18 py-8 sm:py-10">
@@ -2670,10 +3134,6 @@ function ProjectReviewStep({
       <span className="sr-only">{completedDesigns.length} completed {completedDesigns.length === 1 ? "design group" : "design groups"} carried into project review.</span>
     </div>
   );
-}
-
-function ReportSection({ number, title, children }: { number: string; title: string; children: React.ReactNode }) {
-  return <section className="border-b border-black/16 py-10 print:break-inside-avoid"><div className="mb-7 grid gap-3 sm:grid-cols-[4rem_1fr]"><p className="font-mono text-[9px] text-black/35">{number}</p><h3 className="text-2xl font-medium tracking-[-0.04em]">{title}</h3></div>{children}</section>;
 }
 
 export function FirstNationsProjectPlanner({
