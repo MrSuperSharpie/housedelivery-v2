@@ -512,6 +512,33 @@ select {
     font-size: 5mm !important;
   }
 
+  [data-opportunity-report-polished] {
+    width: 210mm !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
+
+  [data-opportunity-report-polished] > [data-opportunity-report-page] {
+    width: 210mm !important;
+    min-height: 297mm !important;
+    margin: 0 !important;
+    padding: 14mm !important;
+    break-after: page;
+    page-break-after: always;
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  [data-opportunity-report-polished] > [data-opportunity-report-page]:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
   #home-look-book p {
     orphans: 3;
     widows: 3;
