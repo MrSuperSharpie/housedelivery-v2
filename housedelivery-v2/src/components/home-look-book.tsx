@@ -82,7 +82,7 @@ function CoastalLookBookSummary({
   return (
     <section
       data-look-book-cultural-summary
-      data-look-book-design-direction="contemporary-coastal"
+      data-look-book-design-direction="indigenous-inspiration"
       data-look-book-print-page
       className="bg-[#e7e3d8] text-[#111216]"
     >
@@ -101,9 +101,9 @@ function CoastalLookBookSummary({
               </h3>
             </div>
             <p className="max-w-xl text-sm leading-7 text-black/56 lg:justify-self-end">
-              A project-level exterior and cultural direction for {homeName}.
-              The Premium and Signature design selections remain as shown in
-              the following pages.
+              Indigenous Inspiration is the selected exterior direction for
+              {homeName}. The Premium and Signature interior selections remain
+              as shown in the following pages.
             </p>
           </div>
         </header>
@@ -124,7 +124,7 @@ function CoastalLookBookSummary({
             />
           </div>
           <figcaption className="mt-4 text-[9px] font-semibold uppercase tracking-[0.18em] text-black/52">
-            Illustrative Exterior Inspiration
+            Illustrative Indigenous-Inspired Exterior Direction
           </figcaption>
         </figure>
 
@@ -133,7 +133,7 @@ function CoastalLookBookSummary({
           className="mt-8 border-y border-black/18 py-5"
         >
           <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/58">
-            Indigenous Influence Notice
+            Artwork & Cultural Elements / Additional Cost
           </p>
           <p className="mt-3 max-w-5xl text-sm leading-7 text-black/58">
             {coastalInfluenceNotice}
@@ -1194,10 +1194,11 @@ export function HomeLookBook({
   const preparedDate = formatLookBookPreparedDate(personalization.preparedAt);
   const isSubmitted = configuration.reviewStatus === "ready-for-review";
   const selectionSections = getLookBookSelectionSections(lookBook.sections);
-  const coastalImage =
-    plannerContext && configuration.culturalExteriorInterest
+  const projectCulturalImage =
+    configuration.culturalExteriorInterest && (plannerContext || projectRecord)
       ? getCulturalDesignImage(definition.homeId)
       : undefined;
+  const coverImage = projectCulturalImage ?? lookBook.home.heroImage;
   const context: EditorialContext = {
     definition,
     configuration,
@@ -1270,8 +1271,8 @@ export function HomeLookBook({
 
       <article id="home-look-book-content" data-look-book-cover data-look-book-layout="cover" data-look-book-print-page className="look-book-cover scroll-mt-20 relative min-h-[min(920px,100svh)] overflow-hidden bg-[#111216] text-white">
         <Image
-          src={lookBook.home.heroImage.src}
-          alt={lookBook.home.heroImage.alt}
+          src={coverImage.src}
+          alt={coverImage.alt}
           fill
           loading={directSourceImages ? "lazy" : "eager"}
           quality={100}
@@ -1289,6 +1290,14 @@ export function HomeLookBook({
           </div>
           <div>
             <p className="text-[9px] font-semibold uppercase tracking-[0.23em] text-white/68">{lookBook.home.residenceLabel}</p>
+            {projectCulturalImage ? (
+              <p
+                data-look-book-exterior-direction="indigenous-inspiration"
+                className="mt-4 text-[9px] font-semibold uppercase tracking-[0.2em] text-white/78"
+              >
+                Exterior Direction / Indigenous Inspiration
+              </p>
+            ) : null}
             <h2 id="home-look-book-heading" className="mt-6 max-w-6xl text-[clamp(4.2rem,11.5vw,11.5rem)] font-medium uppercase leading-[0.78] tracking-[-0.082em]">
               {personalTitle}
             </h2>
@@ -1300,10 +1309,10 @@ export function HomeLookBook({
         </div>
       </article>
 
-      {coastalImage ? (
+      {projectCulturalImage ? (
         <CoastalLookBookSummary
           homeName={definition.residenceLabel}
-          image={coastalImage}
+          image={projectCulturalImage}
         />
       ) : null}
 

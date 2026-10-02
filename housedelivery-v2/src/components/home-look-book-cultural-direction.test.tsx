@@ -14,6 +14,7 @@ const noop = () => {};
 
 function createCompleteSolaceConfiguration(
   culturalExteriorInterest: boolean,
+  includeProjectRecord = false,
 ): HomeConfiguration {
   const inclusionSelections: HomeConfiguration["inclusionSelections"] = {};
   const flooringSelections: HomeConfiguration["flooringSelections"] = {};
@@ -45,6 +46,22 @@ function createCompleteSolaceConfiguration(
     reviewStatus: "ready-for-review",
     lookBookPersonalization: {
       projectDesignName: "Solace — Design A",
+      ...(includeProjectRecord
+        ? {
+            project: {
+              id: "HDP-TEST",
+              name: "WestBank Housing Project",
+              designGroupId: "design-a",
+              designGroupName: "Solace — Design A",
+              assignedQuantity: 2,
+              deliveryGroup: "Active / First Build",
+              exteriorExpression: culturalExteriorInterest
+                ? ("Indigenous Inspiration" as const)
+                : ("Contemporary" as const),
+              revision: 1,
+            },
+          }
+        : {}),
       preparedAt: "2026-08-23T12:00:00.000Z",
       reference: "SOL-COASTAL-001",
     },
@@ -81,20 +98,40 @@ test("Indigenous Inspiration project Look Book and print output use the approved
   assert.doesNotMatch(markup, /House Delivery Blk\.png/);
   assert.match(markup, /data-look-book-cultural-summary="true"/);
   assert.match(markup, /data-look-book-print-page="true"/);
-  assert.match(markup, /Solace-Coastal\.png/);
+  assert.ok((markup.match(/Solace-Coastal\.png/g) ?? []).length >= 2);
   assert.match(markup, /Design Direction/);
-  assert.match(markup, /Contemporary \+ Indigenous Inspiration/);
-  assert.match(markup, /Indigenous Influence Notice/);
+  assert.match(markup, /Exterior Direction \/ Indigenous Inspiration/);
+  assert.match(markup, /Artwork &amp; Cultural Elements \/ Additional Cost/);
   assert.doesNotMatch(markup, /Coastal Inspiration/);
   assert.match(
     markup,
-    /Cultural and place-based influence and artistry are identified for project review/,
+    /additional-cost items and are not included in the standard home price/,
   );
   assert.match(
     markup,
-    /Final scope, artist collaboration, product integration, additional cost and timeline are to be confirmed separately/,
+    /not final Nation-specific artwork or approved cultural designs/,
   );
   assert.match(markup, /object-contain/);
+});
+
+test("saved project Look Books preserve Indigenous Inspiration without live planner context", () => {
+  const markup = renderToStaticMarkup(
+    <HomeLookBook
+      definition={solaceHomeConfigurator}
+      configuration={createCompleteSolaceConfiguration(true, true)}
+      onCreateLookBook={noop}
+      onEditCategory={noop}
+      onPreviewOption={noop}
+      onSubmit={noop}
+      readOnly
+      savedView
+    />,
+  );
+
+  assert.match(markup, /data-look-book-cultural-summary="true"/);
+  assert.match(markup, /data-look-book-exterior-direction="indigenous-inspiration"/);
+  assert.ok((markup.match(/Solace-Coastal\.png/g) ?? []).length >= 2);
+  assert.match(markup, /additional-cost items and are not included in the standard home price/);
 });
 
 test("Contemporary-only project and standalone Look Books remain unchanged", () => {
@@ -113,6 +150,6 @@ test("Contemporary-only project and standalone Look Books remain unchanged", () 
   for (const markup of [projectMarkup, standaloneMarkup]) {
     assert.doesNotMatch(markup, /data-look-book-cultural-summary/);
     assert.doesNotMatch(markup, /Solace-Coastal\.png/);
-    assert.doesNotMatch(markup, /Indigenous Influence Notice/);
+    assert.doesNotMatch(markup, /Artwork &amp; Cultural Elements/);
   }
 });

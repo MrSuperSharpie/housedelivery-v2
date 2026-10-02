@@ -17,7 +17,10 @@ import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import { CulturalDesignReport } from "@/components/cultural-design-report";
 import { FirstNationsExteriorDirectionCard } from "@/components/first-nations-exterior-direction-card";
-import { getCulturalDesignImage } from "@/data/first-nations-cultural-design";
+import {
+  getCulturalDesignImage,
+  indigenousArtworkCostNotice,
+} from "@/data/first-nations-cultural-design";
 import { trackAnalyticsEvent } from "@/lib/analytics";
 import { cn } from "@/lib/cn";
 import {
@@ -2468,6 +2471,9 @@ function OpportunityReport({
                 <div className="mt-6 grid gap-3 sm:grid-cols-2">
                   {designPage.map(({ model, variation }) => {
                     const selectionLevels = getDesignSelectionLevelLabels(variation);
+                    const culturalImage = variation.culturalExteriorInterest
+                      ? getCulturalDesignImage(model.id.replace(/^custom:/, ""))
+                      : undefined;
                     return (
                       <article
                         key={variation.id}
@@ -2475,8 +2481,8 @@ function OpportunityReport({
                       >
                         <div className="relative aspect-[2/1] bg-black/6">
                           <Image
-                            src={model.image}
-                            alt={`${model.name} exterior`}
+                            src={culturalImage?.src ?? model.image}
+                            alt={culturalImage?.alt ?? `${model.name} exterior`}
                             fill
                             unoptimized
                             sizes="(min-width: 640px) 50vw, 100vw"
@@ -2526,11 +2532,14 @@ function OpportunityReport({
                     {culturalDesigns.map((record) => (
                       <p key={record.id} className="text-[8px] leading-4 text-black/48">
                         <span className="font-medium text-black/66">{record.designName}</span>
-                        {" — "}Indigenous Inspiration selected. Exterior cultural
-                        expression to be developed with the Nation during project review.
+                        {" — "}Indigenous Inspiration selected and carried into the
+                        project Look Book.
                       </p>
                     ))}
                   </div>
+                  <p className="mt-2 border-t border-black/12 pt-2 text-[7.5px] leading-4 text-black/42">
+                    {indigenousArtworkCostNotice}
+                  </p>
                 </div>
               ) : null}
 

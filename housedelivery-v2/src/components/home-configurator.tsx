@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 
 import { HomeConfigurationProgress } from "@/components/home-configuration-progress";
@@ -26,6 +27,11 @@ import {
   type HomeSelectableInclusionCategory,
   type HomeInclusionLevel,
 } from "@/data/home-configurator";
+import {
+  getCulturalDesignImage,
+  indigenousArtworkCostNotice,
+  indigenousIllustrativeNotice,
+} from "@/data/first-nations-cultural-design";
 import { applyHomeTier, getHomeTierDefinition, homePricing } from "@/data/home-pricing";
 import {
   createLookBookReference,
@@ -159,6 +165,10 @@ function PlannerDesignContext({
 }: {
   session: PlannerDesignSession;
 }) {
+  const culturalImage = session.culturalExteriorInterest
+    ? getCulturalDesignImage(session.modelId.replace(/^custom:/, ""))
+    : undefined;
+
   return (
     <aside
       data-planner-design-context
@@ -195,6 +205,50 @@ function PlannerDesignContext({
           </div>
         </dl>
       </div>
+
+      {culturalImage ? (
+        <section
+          data-planner-exterior-direction="indigenous-inspiration"
+          className="mt-6 grid overflow-hidden border border-white/16 bg-black/20 lg:grid-cols-[0.72fr_1.28fr]"
+        >
+          <div className="relative min-h-52 bg-white/5 lg:min-h-60">
+            <Image
+              src={culturalImage.src}
+              alt={culturalImage.alt}
+              fill
+              unoptimized
+              sizes="(min-width: 1024px) 38vw, 100vw"
+              className="object-cover"
+            />
+          </div>
+          <div className="p-5 sm:p-6">
+            <p className="text-[8px] font-semibold uppercase tracking-[0.18em] text-white/44">
+              Exterior Direction / Carried Through This Design
+            </p>
+            <h3 className="mt-3 text-2xl font-medium tracking-[-0.04em] text-white/92">
+              Indigenous Inspiration
+            </h3>
+            <p className="mt-3 max-w-2xl text-xs leading-6 text-white/58">
+              This selected exterior direction remains attached to this Design
+              Group while the interior finishes, fixtures and materials are
+              configured below. It will also carry into the project Look Book
+              and Opportunity Report.
+            </p>
+            <div className="mt-5 border-t border-white/14 pt-4">
+              <p className="text-[8px] font-semibold uppercase tracking-[0.16em] text-white/52">
+                Artwork &amp; Cultural Elements / Additional Cost
+              </p>
+              <p className="mt-2 max-w-3xl text-[11px] leading-5 text-white/52">
+                {indigenousArtworkCostNotice}
+              </p>
+              <p className="mt-2 max-w-3xl text-[10px] leading-5 text-white/38">
+                {indigenousIllustrativeNotice}
+              </p>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       <a
         href={session.returnHref}
         className="mt-5 inline-flex min-h-10 items-center border-b border-white/28 text-[9px] font-semibold uppercase tracking-[0.16em] text-white/62 transition-colors hover:border-white hover:text-white"

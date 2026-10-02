@@ -12,11 +12,16 @@ export type ResolvedHomeExteriorPresentation = {
   indigenousInspiredComingSoon: boolean;
 };
 
-export const coastalDesignDirectionLabel =
-  "Contemporary + Indigenous Inspiration";
+export const coastalDesignDirectionLabel = "Indigenous Inspiration";
+
+export const indigenousArtworkCostNotice =
+  "Indigenous-inspired artwork, carvings, decorative panels, graphics, artist collaboration, fabrication and installation are additional-cost items and are not included in the standard home price. Final artwork, cultural direction, participating artists, scope, pricing and timeline will be developed with the Nation and confirmed separately during project review.";
+
+export const indigenousIllustrativeNotice =
+  "Exterior images are illustrative design references only and are not final Nation-specific artwork or approved cultural designs.";
 
 export const coastalInfluenceNotice =
-  "Cultural and place-based influence and artistry are identified for project review. Final scope, artist collaboration, product integration, additional cost and timeline are to be confirmed separately.";
+  `${indigenousArtworkCostNotice} ${indigenousIllustrativeNotice}`;
 
 const culturalDesignImages: Readonly<Record<string, CulturalDesignImage>> = {
   aurora: createCulturalDesignImage("Aurora"),
@@ -38,7 +43,7 @@ const culturalDesignImages: Readonly<Record<string, CulturalDesignImage>> = {
 function createCulturalDesignImage(homeName: string): CulturalDesignImage {
   return {
     src: `/images/first-nations-inspired/design-center/${homeName}-Coastal.png`,
-    alt: `Illustrative Indigenous exterior inspiration for ${homeName}.`,
+    alt: `Illustrative Indigenous-inspired exterior direction for ${homeName}.`,
   };
 }
 
