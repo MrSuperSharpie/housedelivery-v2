@@ -2181,8 +2181,8 @@ function OpportunityReport({
                   className={cn(
                     "relative overflow-hidden bg-black/8",
                     index === 0
-                      ? "col-span-12 h-72 sm:col-span-7 sm:h-[22rem]"
-                      : "col-span-6 h-44 sm:col-span-5 sm:h-[10.75rem]",
+                      ? "col-span-12 h-64 sm:col-span-7 sm:h-[18rem]"
+                      : "col-span-6 h-36 sm:col-span-5 sm:h-[8.75rem]",
                   )}
                 >
                   <Image
@@ -2226,7 +2226,7 @@ function OpportunityReport({
             <p className="text-[8px] font-semibold uppercase tracking-[0.18em] text-black/40">
               Working portfolio
             </p>
-            <div className="mt-4 grid gap-x-7 gap-y-4 sm:grid-cols-3">
+            <div className="mt-3 grid gap-x-5 gap-y-3 sm:grid-cols-4">
               {summary.lines.map(({ line, model }) => {
                 const homes = line.quantity * model.homesPerSelection;
                 return (
@@ -2242,7 +2242,7 @@ function OpportunityReport({
                         ? ` / ${model.squareFeet.toLocaleString()} sq. ft.`
                         : ""}
                     </p>
-                    <p className="mt-2 text-[9px] uppercase tracking-[0.12em] text-black/42">
+                    <p className="mt-1.5 text-[8px] uppercase tracking-[0.11em] text-black/42">
                       {homes} {homes === 1 ? "home" : "homes"} / {plannerPhaseLabels[line.phase]}
                     </p>
                   </div>
@@ -2313,85 +2313,81 @@ function OpportunityReport({
             </div>
           </div>
 
-          <div className="mt-10 grid gap-8 sm:grid-cols-2">
-            <div>
-              <div className="flex items-end justify-between gap-4 border-b border-black/18 pb-3">
-                <div>
-                  <p className="text-[8px] font-semibold uppercase tracking-[0.18em] text-black/40">
-                    Project readiness
-                  </p>
-                  <h4 className="mt-2 text-2xl font-medium tracking-[-0.045em]">
-                    Known today
-                  </h4>
-                </div>
-                <span className="text-[8px] font-semibold uppercase tracking-[0.14em] text-black/34">
-                  {knownReadiness.length} identified
-                </span>
-              </div>
+          <div className="mt-8">
+            <div className="flex items-end justify-between gap-4 border-b border-black/18 pb-3">
               <div>
-                {knownReadiness.length ? (
-                  knownReadiness.map((item) => (
-                    <div
-                      key={item.id}
-                      className="grid grid-cols-[1fr_auto] gap-4 border-b border-black/13 py-3"
-                    >
-                      <div>
-                        <p className="text-sm font-medium">{item.label}</p>
-                        <p className="mt-1 text-[10px] leading-4 text-black/48">
-                          {item.detail}
-                        </p>
-                      </div>
-                      <span className="self-start bg-black px-2 py-1 text-[7px] font-semibold uppercase tracking-[0.12em] text-white">
-                        {item.status}
-                      </span>
-                    </div>
-                  ))
-                ) : (
-                  <p className="py-4 text-sm text-black/48">
-                    No readiness items identified yet.
-                  </p>
-                )}
+                <p className="text-[8px] font-semibold uppercase tracking-[0.18em] text-black/40">
+                  Project readiness
+                </p>
+                <h4 className="mt-2 text-2xl font-medium tracking-[-0.045em]">
+                  Known today
+                </h4>
               </div>
+              <span className="text-[8px] font-semibold uppercase tracking-[0.14em] text-black/34">
+                {knownReadiness.length} identified
+              </span>
+            </div>
+            <div className="grid gap-x-7 sm:grid-cols-2">
+              {knownReadiness.length ? (
+                knownReadiness.map((item) => (
+                  <div
+                    key={item.id}
+                    className="grid grid-cols-[1fr_auto] gap-3 border-b border-black/13 py-2.5"
+                  >
+                    <div>
+                      <p className="text-[13px] font-medium">{item.label}</p>
+                      <p className="mt-1 text-[9px] leading-4 text-black/48">
+                        {item.detail}
+                      </p>
+                    </div>
+                    <span className="self-start bg-black px-2 py-1 text-[6.5px] font-semibold uppercase tracking-[0.11em] text-white">
+                      {item.status}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <p className="py-4 text-sm text-black/48">
+                  No readiness items identified yet.
+                </p>
+              )}
             </div>
 
-            <div>
-              <div className="flex items-end justify-between gap-4 border-b border-black/18 pb-3">
-                <div>
-                  <p className="text-[8px] font-semibold uppercase tracking-[0.18em] text-black/40">
-                    Project readiness
-                  </p>
-                  <h4 className="mt-2 text-2xl font-medium tracking-[-0.045em]">
-                    Items to confirm
-                  </h4>
-                </div>
-                <span className="text-[8px] font-semibold uppercase tracking-[0.14em] text-black/34">
-                  {unresolvedReadiness.length} open
-                </span>
-              </div>
+            <div className="mt-6 flex items-end justify-between gap-4 border-b border-black/18 pb-3">
               <div>
-                {unresolvedReadiness.length ? (
-                  unresolvedReadiness.map((item) => (
-                    <div
-                      key={item.id}
-                      className="grid grid-cols-[1fr_auto] gap-4 border-b border-black/13 py-3"
-                    >
-                      <div>
-                        <p className="text-sm font-medium">{item.label}</p>
-                        <p className="mt-1 text-[10px] leading-4 text-black/48">
-                          {item.detail}
-                        </p>
-                      </div>
-                      <span className="self-start border border-black/18 px-2 py-1 text-[7px] font-semibold uppercase tracking-[0.12em] text-black/42">
-                        {item.status}
-                      </span>
-                    </div>
-                  ))
-                ) : (
-                  <p className="py-4 text-sm text-black/48">
-                    No primary readiness items remain unresolved.
-                  </p>
-                )}
+                <p className="text-[8px] font-semibold uppercase tracking-[0.18em] text-black/40">
+                  Project readiness
+                </p>
+                <h4 className="mt-2 text-xl font-medium tracking-[-0.04em]">
+                  Items to confirm
+                </h4>
               </div>
+              <span className="text-[8px] font-semibold uppercase tracking-[0.14em] text-black/34">
+                {unresolvedReadiness.length} open
+              </span>
+            </div>
+            <div className="grid gap-x-7 sm:grid-cols-2">
+              {unresolvedReadiness.length ? (
+                unresolvedReadiness.map((item) => (
+                  <div
+                    key={item.id}
+                    className="grid grid-cols-[1fr_auto] gap-3 border-b border-black/13 py-2.5"
+                  >
+                    <div>
+                      <p className="text-[13px] font-medium">{item.label}</p>
+                      <p className="mt-1 text-[9px] leading-4 text-black/48">
+                        {item.detail}
+                      </p>
+                    </div>
+                    <span className="self-start border border-black/18 px-2 py-1 text-[6.5px] font-semibold uppercase tracking-[0.11em] text-black/42">
+                      {item.status}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <p className="py-4 text-sm text-black/48">
+                  No primary readiness items remain unresolved.
+                </p>
+              )}
             </div>
           </div>
         </section>
@@ -2424,7 +2420,7 @@ function OpportunityReport({
           </div>
 
           {savedDesigns.length ? (
-            <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-7 grid gap-3 sm:grid-cols-2">
               {savedDesigns.map(({ model, variation }) => {
                 const selectionLevels = getDesignSelectionLevelLabels(variation);
                 return (
@@ -2432,7 +2428,7 @@ function OpportunityReport({
                     key={variation.id}
                     className="overflow-hidden border border-black/14 bg-white/45"
                   >
-                    <div className="relative aspect-[4/3] bg-black/6">
+                    <div className="relative aspect-[16/9] bg-black/6">
                       <Image
                         src={model.image}
                         alt={`${model.name} exterior`}
@@ -2442,7 +2438,7 @@ function OpportunityReport({
                         className="object-cover"
                       />
                     </div>
-                    <div className="p-4">
+                    <div className="p-3">
                       <p className="text-[7px] font-semibold uppercase tracking-[0.15em] text-black/38">
                         {variation.culturalExteriorInterest
                           ? "Indigenous Inspiration"
@@ -2452,7 +2448,7 @@ function OpportunityReport({
                         {variation.projectDesignName ??
                           `${getPlannerHomeName(model.name)} - ${variation.label}`}
                       </h4>
-                      <p className="mt-3 text-[10px] leading-4 text-black/50">
+                      <p className="mt-2 text-[9px] leading-4 text-black/50">
                         Assigned to {variation.assignedQuantity}{" "}
                         {variation.assignedQuantity === 1 ? "home" : "homes"}
                         {selectionLevels.length
@@ -2460,7 +2456,7 @@ function OpportunityReport({
                           : ""}
                       </p>
                       {variation.lookBookReference ? (
-                        <p className="mt-3 font-mono text-[8px] uppercase tracking-[0.12em] text-black/38">
+                        <p className="mt-2 font-mono text-[7px] uppercase tracking-[0.11em] text-black/38">
                           Look Book / {variation.lookBookReference}
                         </p>
                       ) : null}
@@ -2496,7 +2492,7 @@ function OpportunityReport({
             </div>
           ) : null}
 
-          <p className="mt-8 max-w-4xl border-t border-black/16 pt-5 text-[10px] leading-5 text-black/48">
+          <p className="mt-5 max-w-4xl border-t border-black/16 pt-4 text-[9px] leading-4 text-black/48">
             Factory design-development and virtual walkthrough services are a
             separate paid next-stage service and are not included simply by
             completing this Opportunity Report. No fee is due unless it is
