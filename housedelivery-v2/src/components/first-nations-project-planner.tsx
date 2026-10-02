@@ -2313,7 +2313,7 @@ function OpportunityReport({
             </div>
           </div>
 
-          <div className="mt-10 grid gap-8 lg:grid-cols-2">
+          <div className="mt-10 grid gap-8 sm:grid-cols-2">
             <div>
               <div className="flex items-end justify-between gap-4 border-b border-black/18 pb-3">
                 <div>
