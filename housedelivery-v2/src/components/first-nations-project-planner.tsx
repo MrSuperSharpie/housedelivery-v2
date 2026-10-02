@@ -2101,7 +2101,16 @@ function OpportunityReport({
         ["Timing and phasing", labelValue(state.refinement.targetTiming)],
       ];
   const missingInformation = readiness.filter((item) => !item.ready).map((item) => item.label);
-  const coverLines = summary.lines.slice(0, 4);
+  const portfolioPages = Array.from(
+    { length: Math.max(1, Math.ceil(summary.lines.length / 8)) },
+    (_, pageIndex) => summary.lines.slice(pageIndex * 8, pageIndex * 8 + 8),
+  );
+  const designPages = savedDesigns.length
+    ? Array.from(
+        { length: Math.ceil(savedDesigns.length / 4) },
+        (_, pageIndex) => savedDesigns.slice(pageIndex * 4, pageIndex * 4 + 4),
+      )
+    : [savedDesigns];
 
   function printReport() {
     const previousTitle = document.title;
@@ -2173,53 +2182,30 @@ function OpportunityReport({
             </p>
           </div>
 
-          <div className="mt-9 grid grid-cols-12 gap-2">
-            {coverLines.map(({ line, model }, index) => {
-              const homes = line.quantity * model.homesPerSelection;
-              const coverClass =
-                coverLines.length === 1
-                  ? "col-span-12 h-64 sm:h-[18rem]"
-                  : coverLines.length === 2
-                    ? "col-span-6 h-44 sm:h-[13rem]"
-                    : coverLines.length === 3
-                      ? index === 0
-                        ? "col-span-12 h-64 sm:col-span-7 sm:h-[18rem]"
-                        : "col-span-6 h-36 sm:col-span-5 sm:h-[8.75rem]"
-                      : "col-span-6 h-36 sm:h-[9rem]";
-              return (
-                <figure
-                  key={line.id}
-                  className={cn(
-                    "relative overflow-hidden bg-black/8",
-                    coverClass,
-                  )}
-                >
-                  <Image
-                    src={model.image}
-                    alt={`${model.name} exterior`}
-                    fill
-                    unoptimized
-                    sizes={
-                      coverLines.length >= 4
-                        ? "(min-width: 640px) 50vw, 100vw"
-                        : index === 0
-                          ? "(min-width: 640px) 58vw, 100vw"
-                          : "(min-width: 640px) 42vw, 50vw"
-                    }
-                    className="object-cover"
-                  />
-                  <figcaption className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 bg-gradient-to-t from-black/75 via-black/20 to-transparent px-4 pb-4 pt-12 text-white">
-                    <span className="text-sm font-medium">{model.name}</span>
-                    <span className="text-[8px] uppercase tracking-[0.14em] text-white/72">
-                      {homes} {homes === 1 ? "home" : "homes"}
-                    </span>
-                  </figcaption>
-                </figure>
-              );
-            })}
-          </div>
+          <figure className="mt-9">
+            <div className="relative h-[19rem] overflow-hidden bg-black/8">
+              <Image
+                src="/images/opportunity-report/opportunity-report-cover.jpg"
+                alt="Representative House Delivery interior design reference"
+                fill
+                unoptimized
+                sizes="100vw"
+                className="object-cover"
+              />
+            </div>
+            <figcaption className="mt-3 flex flex-col gap-1 border-t border-black/16 pt-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+              <span className="text-[8px] font-semibold uppercase tracking-[0.16em] text-black/42">
+                Visual reference only / Representative interior design inspiration
+              </span>
+              <span className="max-w-md text-[9px] leading-4 text-black/46 sm:text-right">
+                This image is not a depiction of the selected project homes.
+                Project-specific homes appear in the Working Portfolio and Design
+                Direction sections.
+              </span>
+            </figcaption>
+          </figure>
 
-          <div className="mt-8 grid border-l border-t border-black/16 sm:grid-cols-4">
+          <div className="mt-7 grid border-l border-t border-black/16 sm:grid-cols-4">
             {[
               ["Housing requirement", `${summary.totalHomes} ${summary.totalHomes === 1 ? "home" : "homes"}`],
               ["Model mix", `${summary.modelCount} ${summary.modelCount === 1 ? "model" : "models"}`],
@@ -2236,36 +2222,95 @@ function OpportunityReport({
               </dl>
             ))}
           </div>
+        </section>
 
-          <div className="mt-8 border-t border-black/18 pt-5">
-            <p className="text-[8px] font-semibold uppercase tracking-[0.18em] text-black/40">
-              Working portfolio
-            </p>
-            <div className="mt-3 grid gap-x-5 gap-y-3 sm:grid-cols-4">
-              {summary.lines.map(({ line, model }) => {
+        {portfolioPages.map((portfolioPage, pageIndex) => (
+          <section
+            key={`portfolio-page-${pageIndex}`}
+            data-opportunity-report-page
+            className="opportunity-report-page bg-white px-6 py-10 sm:px-10 sm:py-12 lg:px-14"
+          >
+            <div className="grid gap-8 border-t border-black/20 pt-4 lg:grid-cols-[0.36fr_1fr]">
+              <div>
+                <p className="font-mono text-[9px] text-black/34">
+                  01{pageIndex ? " / CONT." : ""}
+                </p>
+                <p className="mt-3 text-[8px] font-semibold uppercase tracking-[0.18em] text-black/40">
+                  Working portfolio
+                </p>
+              </div>
+              <div>
+                <h3 className="max-w-4xl text-[clamp(2.6rem,5vw,5rem)] font-medium leading-[0.9] tracking-[-0.06em]">
+                  {pageIndex === 0 ? (
+                    <>
+                      The project homes,
+                      <br />
+                      <span className="text-black/32">clearly documented.</span>
+                    </>
+                  ) : (
+                    <>
+                      Working portfolio,
+                      <br />
+                      <span className="text-black/32">continued.</span>
+                    </>
+                  )}
+                </h3>
+                {pageIndex === 0 ? (
+                  <p className="mt-5 max-w-3xl text-sm leading-6 text-black/54">
+                    This is the actual working portfolio recorded for the project.
+                    The cover image is visual inspiration only and does not replace
+                    these selected project homes.
+                  </p>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="mt-10 grid gap-x-8 gap-y-0 sm:grid-cols-2">
+              {portfolioPage.map(({ line, model }) => {
                 const homes = line.quantity * model.homesPerSelection;
                 return (
-                  <div key={line.id} className="border-t border-black/16 pt-3">
-                    <p className="text-sm font-medium">{model.name}</p>
-                    <p className="mt-1 text-[10px] leading-4 text-black/48">
-                      {model.family === "standardized-catalogue"
-                        ? "Standardized Catalogue Design"
-                        : model.family === "laneway-carriage-home"
-                          ? "Laneway / Carriage Home"
-                          : "Custom Home"}
-                      {model.squareFeet
-                        ? ` / ${model.squareFeet.toLocaleString()} sq. ft.`
-                        : ""}
-                    </p>
-                    <p className="mt-1.5 text-[8px] uppercase tracking-[0.11em] text-black/42">
-                      {homes} {homes === 1 ? "home" : "homes"} / {plannerPhaseLabels[line.phase]}
-                    </p>
-                  </div>
+                  <article key={line.id} className="border-t border-black/16 py-5">
+                    <div className="flex items-start justify-between gap-5">
+                      <div>
+                        <p className="text-xl font-medium tracking-[-0.035em]">
+                          {model.name}
+                        </p>
+                        <p className="mt-2 text-[10px] leading-5 text-black/48">
+                          {model.family === "standardized-catalogue"
+                            ? "Standardized Catalogue Design"
+                            : model.family === "laneway-carriage-home"
+                              ? "Laneway / Carriage Home"
+                              : "Custom Home"}
+                          {model.squareFeet
+                            ? ` / ${model.squareFeet.toLocaleString()} sq. ft.`
+                            : ""}
+                        </p>
+                      </div>
+                      <p className="text-right text-[8px] font-semibold uppercase leading-4 tracking-[0.12em] text-black/40">
+                        {homes} {homes === 1 ? "home" : "homes"}
+                        <br />
+                        {plannerPhaseLabels[line.phase]}
+                      </p>
+                    </div>
+                    {line.designVariations.length ? (
+                      <div className="mt-4 space-y-2 border-t border-black/10 pt-3">
+                        {line.designVariations.map((variation) => (
+                          <p key={variation.id} className="text-[9px] leading-4 text-black/46">
+                            {variation.projectDesignName ??
+                              `${getPlannerHomeName(model.name)} - ${variation.label}`}
+                            {" / "}
+                            {variation.assignedQuantity} assigned
+                            {variation.status === "complete" ? " / Look Book complete" : " / Design to configure"}
+                          </p>
+                        ))}
+                      </div>
+                    ) : null}
+                  </article>
                 );
               })}
             </div>
-          </div>
-        </section>
+          </section>
+        ))}
 
         <section
           data-opportunity-report-page
@@ -2372,110 +2417,134 @@ function OpportunityReport({
           </div>
         </section>
 
-        <section
-          data-opportunity-report-page
-          className="opportunity-report-page bg-[#e7e3d8] px-6 py-10 sm:px-10 sm:py-12 lg:px-14"
-        >
-          <div className="grid gap-8 border-t border-black/20 pt-4 lg:grid-cols-[0.36fr_1fr]">
-            <div>
-              <p className="font-mono text-[9px] text-black/34">04</p>
-              <p className="mt-3 text-[8px] font-semibold uppercase tracking-[0.18em] text-black/40">
-                Design direction
-              </p>
-            </div>
-            <div>
-              <h3 className="max-w-4xl text-[clamp(2.6rem,5vw,5rem)] font-medium leading-[0.9] tracking-[-0.06em]">
-                The homes are selected.
-                <br />
-                <span className="text-black/32">The design direction is taking shape.</span>
-              </h3>
-              <p className="mt-5 max-w-3xl text-sm leading-6 text-black/54">
-                {savedDesigns.length} completed{" "}
-                {savedDesigns.length === 1 ? "Design Group" : "Design Groups"}.
-                The completed Look Book establishes the preliminary design
-                direction for each Design Group and can move forward following
-                House Delivery review and the appropriate project authorization.
-              </p>
-            </div>
-          </div>
-
-          {savedDesigns.length ? (
-            <div className="mt-7 grid gap-3 sm:grid-cols-2">
-              {savedDesigns.map(({ model, variation }) => {
-                const selectionLevels = getDesignSelectionLevelLabels(variation);
-                return (
-                  <article
-                    key={variation.id}
-                    className="overflow-hidden border border-black/14 bg-white/45"
-                  >
-                    <div className="relative aspect-[16/9] bg-black/6">
-                      <Image
-                        src={model.image}
-                        alt={`${model.name} exterior`}
-                        fill
-                        unoptimized
-                        sizes="(min-width: 1024px) 30vw, (min-width: 640px) 50vw, 100vw"
-                        className="object-cover"
-                      />
-                    </div>
-                    <div className="p-3">
-                      <p className="text-[7px] font-semibold uppercase tracking-[0.15em] text-black/38">
-                        {variation.culturalExteriorInterest
-                          ? "Indigenous Inspiration"
-                          : "Contemporary"}
-                      </p>
-                      <h4 className="mt-2 text-lg font-medium leading-6 tracking-[-0.035em]">
-                        {variation.projectDesignName ??
-                          `${getPlannerHomeName(model.name)} - ${variation.label}`}
-                      </h4>
-                      <p className="mt-2 text-[9px] leading-4 text-black/50">
-                        Assigned to {variation.assignedQuantity}{" "}
-                        {variation.assignedQuantity === 1 ? "home" : "homes"}
-                        {selectionLevels.length
-                          ? ` / ${selectionLevels.join(" / ")} selections`
-                          : ""}
-                      </p>
-                      {variation.lookBookReference ? (
-                        <p className="mt-2 font-mono text-[7px] uppercase tracking-[0.11em] text-black/38">
-                          Look Book / {variation.lookBookReference}
-                        </p>
-                      ) : null}
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          ) : (
-            <p className="mt-9 border-y border-black/16 py-8 text-sm text-black/52">
-              Design direction has not yet been recorded. Technical and
-              project-specific approvals remain separate.
-            </p>
-          )}
-
-          {culturalDesigns.length ? (
-            <div className="mt-4 border-t border-black/16 pt-3">
-              <p className="text-[7px] font-semibold uppercase tracking-[0.16em] text-black/38">
-                Cultural design direction
-              </p>
-              <div className="mt-2 grid gap-x-6 gap-y-2 sm:grid-cols-2">
-                {culturalDesigns.map((record) => (
-                  <p key={record.id} className="text-[9px] leading-4 text-black/48">
-                    <span className="font-medium text-black/66">{record.designName}</span>
-                    {" — "}Indigenous Inspiration selected. Exterior cultural expression
-                    to be developed with the Nation during project review.
+        {designPages.map((designPage, pageIndex) => {
+          const isLastDesignPage = pageIndex === designPages.length - 1;
+          return (
+            <section
+              key={`design-page-${pageIndex}`}
+              data-opportunity-report-page
+              className="opportunity-report-page bg-[#e7e3d8] px-6 py-10 sm:px-10 sm:py-12 lg:px-14"
+            >
+              <div className="grid gap-8 border-t border-black/20 pt-4 lg:grid-cols-[0.36fr_1fr]">
+                <div>
+                  <p className="font-mono text-[9px] text-black/34">
+                    04{pageIndex ? " / CONT." : ""}
                   </p>
-                ))}
+                  <p className="mt-3 text-[8px] font-semibold uppercase tracking-[0.18em] text-black/40">
+                    Design direction
+                  </p>
+                </div>
+                <div>
+                  <h3 className="max-w-4xl text-[clamp(2.5rem,4.7vw,4.6rem)] font-medium leading-[0.9] tracking-[-0.06em]">
+                    {pageIndex === 0 ? (
+                      <>
+                        The homes are selected.
+                        <br />
+                        <span className="text-black/32">
+                          The design direction is taking shape.
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        Design direction,
+                        <br />
+                        <span className="text-black/32">continued.</span>
+                      </>
+                    )}
+                  </h3>
+                  {pageIndex === 0 ? (
+                    <p className="mt-4 max-w-3xl text-[12px] leading-5 text-black/54">
+                      {savedDesigns.length} completed{" "}
+                      {savedDesigns.length === 1 ? "Design Group" : "Design Groups"}.
+                      The completed Look Book establishes the preliminary design
+                      direction for each Design Group and can move forward following
+                      House Delivery review and the appropriate project authorization.
+                    </p>
+                  ) : null}
+                </div>
               </div>
-            </div>
-          ) : null}
 
-          <p className="mt-3 max-w-4xl border-t border-black/16 pt-3 text-[8px] leading-4 text-black/44">
-            Factory design-development and virtual walkthrough services are a
-            separate paid next-stage service and are not included simply by
-            completing this Opportunity Report. No fee is due unless it is
-            separately disclosed and authorized.
-          </p>
-        </section>
+              {designPage.length ? (
+                <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                  {designPage.map(({ model, variation }) => {
+                    const selectionLevels = getDesignSelectionLevelLabels(variation);
+                    return (
+                      <article
+                        key={variation.id}
+                        className="overflow-hidden border border-black/14 bg-white/45"
+                      >
+                        <div className="relative aspect-[2/1] bg-black/6">
+                          <Image
+                            src={model.image}
+                            alt={`${model.name} exterior`}
+                            fill
+                            unoptimized
+                            sizes="(min-width: 640px) 50vw, 100vw"
+                            className="object-cover"
+                          />
+                        </div>
+                        <div className="p-3">
+                          <p className="text-[7px] font-semibold uppercase tracking-[0.15em] text-black/38">
+                            {variation.culturalExteriorInterest
+                              ? "Indigenous Inspiration"
+                              : "Contemporary"}
+                          </p>
+                          <h4 className="mt-1.5 text-base font-medium leading-5 tracking-[-0.03em]">
+                            {variation.projectDesignName ??
+                              `${getPlannerHomeName(model.name)} - ${variation.label}`}
+                          </h4>
+                          <p className="mt-1.5 text-[8px] leading-4 text-black/50">
+                            Assigned to {variation.assignedQuantity}{" "}
+                            {variation.assignedQuantity === 1 ? "home" : "homes"}
+                            {selectionLevels.length
+                              ? ` / ${selectionLevels.join(" / ")} selections`
+                              : ""}
+                          </p>
+                          {variation.lookBookReference ? (
+                            <p className="mt-1.5 font-mono text-[7px] uppercase tracking-[0.1em] text-black/38">
+                              Look Book / {variation.lookBookReference}
+                            </p>
+                          ) : null}
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="mt-9 border-y border-black/16 py-8 text-sm text-black/52">
+                  Design direction has not yet been recorded. Technical and
+                  project-specific approvals remain separate.
+                </p>
+              )}
+
+              {isLastDesignPage && culturalDesigns.length ? (
+                <div className="mt-3 border-t border-black/16 pt-3">
+                  <p className="text-[7px] font-semibold uppercase tracking-[0.16em] text-black/38">
+                    Cultural design direction
+                  </p>
+                  <div className="mt-2 grid gap-x-6 gap-y-1.5 sm:grid-cols-2">
+                    {culturalDesigns.map((record) => (
+                      <p key={record.id} className="text-[8px] leading-4 text-black/48">
+                        <span className="font-medium text-black/66">{record.designName}</span>
+                        {" — "}Indigenous Inspiration selected. Exterior cultural
+                        expression to be developed with the Nation during project review.
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {isLastDesignPage ? (
+                <p className="mt-3 max-w-4xl border-t border-black/16 pt-3 text-[8px] leading-4 text-black/44">
+                  Factory design-development and virtual walkthrough services are a
+                  separate paid next-stage service and are not included simply by
+                  completing this Opportunity Report. No fee is due unless it is
+                  separately disclosed and authorized.
+                </p>
+              ) : null}
+            </section>
+          );
+        })}
 
         <section
           data-opportunity-report-page
