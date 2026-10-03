@@ -66,9 +66,13 @@ export function ModelShowcase({
   const [selectedExterior, setSelectedExterior] =
     useState<SelectedExterior | null>(null);
   const activeLightboxTriggerRef = useRef<HTMLButtonElement>(null);
-  const filteredModels = models.filter((model) =>
-    filters[activeFilter].test(model.squareFeet),
-  );
+  const filteredModels = models
+    .filter((model) => filters[activeFilter].test(model.squareFeet))
+    .sort(
+      (a, b) =>
+        Number(a.projectSelectionStatus === "preview-only") -
+        Number(b.projectSelectionStatus === "preview-only"),
+    );
 
   function openExteriorLightbox(
     model: HomeModel,
@@ -222,6 +226,8 @@ export function ModelShowcase({
         >
           <AnimatePresence mode="popLayout">
             {filteredModels.map((model, index) => {
+              const isProjectSpecific =
+                model.projectSelectionStatus === "preview-only";
               const exterior = resolveHomeExteriorPresentation(
                 model.slug,
                 model.name,
@@ -364,6 +370,20 @@ export function ModelShowcase({
                     <p className="mt-3 max-w-2xl text-sm leading-6 text-white/46">
                       {model.summary}
                     </p>
+                    {isProjectSpecific ? (
+                      <div
+                        data-model-project-specific={model.slug}
+                        className="mt-5 border-t border-white/10 pt-4"
+                      >
+                        <p className="text-[9px] font-semibold uppercase tracking-[0.17em] text-white/58">
+                          Duplex / Two residences
+                        </p>
+                        <p className="mt-2 text-xs leading-5 text-white/42">
+                          Project-specific design · My Look Book is not currently
+                          available for this duplex model.
+                        </p>
+                      </div>
+                    ) : null}
                   </div>
 
                   <div className="hidden text-right xl:block">
