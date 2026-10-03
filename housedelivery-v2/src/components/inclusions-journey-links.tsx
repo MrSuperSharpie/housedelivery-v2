@@ -161,17 +161,22 @@ export function HomeDesignJourneyLink({
   }
 
   if (availability === "preview-only") {
+    const isProjectSpecificDuplex = homeName
+      .toLowerCase()
+      .includes("salt spring");
+
     return (
       <span
         className={cn("inline-flex max-w-sm flex-col items-start", className)}
       >
         <span aria-disabled="true" className="inline-flex flex-col items-start">
           <span className="text-[10px] font-semibold uppercase tracking-[0.17em] text-white/48">
-            Preview Model
+            {isProjectSpecificDuplex ? "Project-Specific Duplex" : "Preview Model"}
           </span>
           <span className="mt-2 text-xs leading-5 text-white/42">
-            Available to explore. Project selection, Design My Home and Look Book
-            configuration are coming soon.
+            {isProjectSpecificDuplex
+              ? "My Look Book is not currently offered for this duplex model. Design and pricing are coordinated during project review."
+              : "Available to explore. Project selection, Design My Home and Look Book configuration are coming soon."}
           </span>
         </span>
         {activePlannerContext ? (
