@@ -30,6 +30,8 @@ export function HomeDesignToolCallout({
 }: HomeDesignToolCalloutProps) {
   const isPrimary = variant === "primary";
   const isPreviewOnly = availability === "preview-only";
+  const isProjectSpecificDuplex =
+    isPreviewOnly && homeName.toLowerCase().includes("salt spring");
   const isComingSoon = availability === "coming-soon";
   const headingId = `home-design-tool-${variant}-heading`;
   const plannerHomeContext = usePlannerHomeViewContext();
@@ -92,7 +94,9 @@ export function HomeDesignToolCallout({
       <div>
         <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/55">
           {isPreviewOnly
-            ? "Preview Model"
+            ? isProjectSpecificDuplex
+              ? "Project-Specific Duplex"
+              : "Preview Model"
             : isComingSoon
             ? "Design Lookbook"
             : isPrimary
@@ -109,11 +113,19 @@ export function HomeDesignToolCallout({
           )}
         >
           {isPreviewOnly ? (
-            <>
-              Preview
-              <br />
-              <span className="text-white/45">model.</span>
-            </>
+            isProjectSpecificDuplex ? (
+              <>
+                Duplex design
+                <br />
+                <span className="text-white/45">review.</span>
+              </>
+            ) : (
+              <>
+                Preview
+                <br />
+                <span className="text-white/45">model.</span>
+              </>
+            )
           ) : isComingSoon ? (
             <>
               Coming
@@ -200,17 +212,36 @@ export function HomeDesignToolCallout({
           </div>
         ) : isPreviewOnly ? (
           <>
-            <p
+            <div
               className={cn(
-                "text-white/52",
+                "space-y-4 text-white/52",
                 isPrimary
                   ? "text-base leading-8 lg:text-lg"
                   : "text-sm leading-7 sm:text-base",
               )}
             >
-              Available to explore. Project selection, Design My Home and Look Book
-              configuration are coming soon.
-            </p>
+              {isProjectSpecificDuplex ? (
+                <>
+                  <p>
+                    The Salt Spring contains two independent residences and is
+                    configured on a project-specific basis. House Delivery will
+                    coordinate finishes, inclusions and design direction with the
+                    purchaser during project review.
+                  </p>
+                  <p>
+                    My Look Book is not currently offered for this duplex model.
+                  </p>
+                  <p className="font-medium text-white/72">
+                    Pricing is project-specific.
+                  </p>
+                </>
+              ) : (
+                <p>
+                  Available to explore. Project selection, Design My Home and Look Book
+                  configuration are coming soon.
+                </p>
+              )}
+            </div>
             {activePlannerContext ? (
               <Link
                 href={activePlannerContext.returnHref}
