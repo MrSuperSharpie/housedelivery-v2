@@ -44,9 +44,7 @@ test("approved standalone homes use Design My Home terminology", () => {
   assert.doesNotMatch(markup, /Build My Solace/);
 });
 
-test("a preview-only home stays viewable without project or design actions", () => {
-  const statusCopy =
-    "Available to explore. Project selection, Design My Home and Look Book configuration are coming soon.";
+test("Salt Spring stays viewable as a project-specific duplex without Look Book actions", () => {
   const calloutMarkup = renderToStaticMarkup(
     <HomeDesignToolCallout
       homeName="Salt Spring Duplex"
@@ -64,12 +62,14 @@ test("a preview-only home stays viewable without project or design actions", () 
   );
 
   for (const markup of [calloutMarkup, journeyMarkup]) {
-    assert.match(markup, /Preview Model/i);
-    assert.match(markup, new RegExp(statusCopy.replaceAll(" ", "\\s*"), "i"));
-    assert.doesNotMatch(markup, /<button/);
+    assert.match(markup, /Project-Specific Duplex/i);
+    assert.match(markup, /My Look Book is not currently/);
     assert.doesNotMatch(markup, /href="#home-inclusions"/);
-    assert.doesNotMatch(markup, /Return to My Project/);
+    assert.doesNotMatch(markup, /Design My Salt Spring Duplex/);
   }
+
+  assert.match(calloutMarkup, /Pricing is project-specific/);
+  assert.match(calloutMarkup, /two independent residences/);
 });
 
 test("a home can suppress only the gallery Lookbook callout", () => {
