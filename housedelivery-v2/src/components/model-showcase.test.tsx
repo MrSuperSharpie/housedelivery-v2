@@ -281,3 +281,22 @@ test("missing alternate exteriors retain the Contemporary image and become Comin
     }
   }
 });
+
+
+test("preview-only models are placed after configurable homes in the collection", () => {
+  const saltSpring = models.find((model) => model.slug === "salt-spring");
+  const langley = models.find((model) => model.slug === "langley");
+  const solace = models.find((model) => model.slug === "solace");
+  assert.ok(saltSpring);
+  assert.ok(langley);
+  assert.ok(solace);
+
+  const markup = renderToStaticMarkup(
+    <ModelShowcase models={[saltSpring, langley, solace]} />,
+  );
+
+  assert.ok(markup.indexOf('data-model-card="langley"') < markup.indexOf('data-model-card="salt-spring"'));
+  assert.ok(markup.indexOf('data-model-card="solace"') < markup.indexOf('data-model-card="salt-spring"'));
+  assert.match(markup, /Project-specific design/);
+  assert.match(markup, /My Look Book is not currently available for this duplex model/);
+});
