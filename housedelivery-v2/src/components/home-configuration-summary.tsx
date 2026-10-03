@@ -1,6 +1,7 @@
 import { Check, ChevronDown } from "lucide-react";
 import Image from "next/image";
 
+import { getCulturalDesignImage } from "@/data/first-nations-cultural-design";
 import {
   getHomeConfiguratorJourneyCategories,
   getHomeInclusionLevelLabel,
@@ -158,8 +159,20 @@ export function HomeConfigurationSummary({
   const visualBriefOption = firstCompletedRoomLook
     ? getSelectedInclusionOption(firstCompletedRoomLook, configuration)
     : undefined;
-  const visualBriefImage =
-    visualBriefOption?.image ?? definition.architecturalImages[0];
+  const culturalVisualBriefImage = configuration.culturalExteriorInterest
+    ? getCulturalDesignImage(definition.homeId)
+    : undefined;
+  const visualBriefImage = culturalVisualBriefImage
+    ? { ...culturalVisualBriefImage, fit: "cover" as const }
+    : visualBriefOption?.image ?? definition.architecturalImages[0];
+  const visualBriefEyebrow = culturalVisualBriefImage
+    ? "Exterior direction"
+    : visualBriefOption
+      ? "Visual brief begins with"
+      : "Residence";
+  const visualBriefLabel = culturalVisualBriefImage
+    ? "Indigenous Inspiration"
+    : visualBriefOption?.name ?? definition.residenceLabel;
 
   if (variant === "compact") {
     return (
@@ -227,10 +240,10 @@ export function HomeConfigurationSummary({
         <div className="absolute inset-0 bg-gradient-to-t from-black/78 via-black/8 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 p-5 text-white">
           <p className="text-[8px] font-semibold uppercase tracking-[0.17em] text-white/64">
-            {visualBriefOption ? "Visual brief begins with" : "Residence"}
+            {visualBriefEyebrow}
           </p>
           <p className="mt-2 text-xl font-medium tracking-[-0.04em]">
-            {visualBriefOption?.name ?? definition.residenceLabel}
+            {visualBriefLabel}
           </p>
         </div>
       </div>
