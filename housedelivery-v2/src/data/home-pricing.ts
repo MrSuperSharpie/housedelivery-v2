@@ -5,8 +5,8 @@ import type {
 } from "@/data/home-configurator";
 
 export const homePricing = {
-  premium: { label: "Premium", rate: 225 },
-  signature: { label: "Signature", rate: 275 },
+  premium: { label: "Premium", rate: 250 },
+  signature: { label: "Signature", rate: 300 },
 } as const;
 
 export function getHomeTierDefinition(

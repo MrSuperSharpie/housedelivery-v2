@@ -187,10 +187,10 @@ export function HomeDesignToolCallout({
               })}
             </div>
             <div className="mt-6 space-y-2 text-xs leading-6 text-white/55">
-              <p><strong>Package pricing includes coordinated shipping to your project location and applicable import tariffs.</strong></p>
+              <p><strong>Package pricing includes the coordinated building package, standard project logistics and applicable import tariffs based on the confirmed project scope.</strong></p>
               <p>Appliances are selected separately.</p>
               <p><strong>Assembly &amp; erection can be provided as a separate project-specific package.</strong> With factory production typically completed in 40–45 days after approved drawings and payment, and site preparation progressing in parallel, House Delivery is designed to move projects from approval to assembly in months, subject to site readiness, shipping and local requirements.</p>
-              <p>Site work, foundations, services and local trades are project-specific. Applicable sales taxes are extra.</p>
+              <p>Remote, island, northern and special-access delivery requirements are quoted separately. Site work, foundations, services and local trades are project-specific. Applicable sales taxes are extra.</p>
             </div>
             {isPreviewOnly ? (
               <div className="mt-6 text-sm leading-7 text-white/52">

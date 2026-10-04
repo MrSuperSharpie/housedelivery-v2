@@ -12,8 +12,8 @@ import { parseCompletedLookBook } from "@/lib/lookbook/domain";
 const solace = getHomeConfiguratorDefinition("solace")!;
 
 test("every custom home uses its stored area and the reference rates", () => {
-  assert.equal(homePricing.premium.rate, 225);
-  assert.equal(homePricing.signature.rate, 275);
+  assert.equal(homePricing.premium.rate, 250);
+  assert.equal(homePricing.signature.rate, 300);
   for (const model of models) {
     const definition = getHomeConfiguratorDefinition(model.slug);
     const markup = renderToStaticMarkup(
@@ -26,7 +26,7 @@ test("every custom home uses its stored area and the reference rates", () => {
       />,
     );
     assert.ok(markup.includes(model.squareFeet.toLocaleString("en-CA")), model.slug);
-    for (const rate of [225, 275]) {
+    for (const rate of [250, 300]) {
       assert.ok(markup.includes((model.squareFeet * rate).toLocaleString("en-CA")), `${model.slug}: ${rate}`);
     }
     assert.equal((markup.match(/data-home-tier=/g) ?? []).length, 2);
@@ -69,15 +69,15 @@ test("Solace starting totals and scope appear only in its primary callout", () =
   );
   assert.match(markup, /5,405 sq. ft./);
   assert.match(markup, /All prices in CAD/);
-  assert.match(markup, /225/);
-  assert.match(markup, /275/);
-  assert.match(markup, /1,216,125/);
-  assert.match(markup, /1,486,375/);
-  assert.match(markup, /<strong>Package pricing includes coordinated shipping to your project location and applicable import tariffs\.<\/strong>/);
+  assert.match(markup, /250/);
+  assert.match(markup, /300/);
+  assert.match(markup, /1,351,250/);
+  assert.match(markup, /1,621,500/);
+  assert.match(markup, /<strong>Package pricing includes the coordinated building package, standard project logistics and applicable import tariffs based on the confirmed project scope\.<\/strong>/);
   assert.match(markup, /Appliances are selected separately/);
   assert.match(markup, /<strong>Assembly &amp; erection can be provided as a separate project-specific package\.<\/strong>/);
   assert.match(markup, /factory production typically completed in 40–45 days after approved drawings and payment/);
-  assert.match(markup, /Site work, foundations, services and local trades are project-specific\. Applicable sales taxes are extra/);
+  assert.match(markup, /Remote, island, northern and special-access delivery requirements are quoted separately\. Site work, foundations, services and local trades are project-specific\. Applicable sales taxes are extra/);
   assert.equal((markup.match(/data-home-tier=/g) ?? []).length, 2);
   for (const props of [
     { homeName: "Langley House", variant: "primary" as const },
