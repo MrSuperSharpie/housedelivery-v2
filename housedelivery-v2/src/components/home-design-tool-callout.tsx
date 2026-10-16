@@ -155,7 +155,7 @@ export function HomeDesignToolCallout({
               Plan your budget
             </p>
             <p className="mt-3 text-sm leading-7 text-white/52">
-              Starting House Delivery housing-package pricing for {pricingSquareFeet.toLocaleString("en-CA")} sq. ft. All prices in CAD.
+              Starting House Delivery housing-package pricing for this {pricingSquareFeet.toLocaleString("en-CA")} sq. ft. home. All prices in CAD.
             </p>
             <p className="mt-4 text-sm leading-7 text-white/70">
               These are starting prices for the House Delivery housing package, not the completed cost of a finished home.

@@ -67,7 +67,7 @@ test("Solace starting housing-package pricing and scope appear only in its prima
   const markup = renderToStaticMarkup(
     <HomeDesignToolCallout homeName="Solace House" variant="primary" href="#home-inclusions" pricingSquareFeet={5405} />,
   );
-  assert.match(markup, /Starting House Delivery housing-package pricing for 5,405 sq. ft\. All prices in CAD/);
+  assert.match(markup, /Starting House Delivery housing-package pricing for this 5,405 sq. ft\. home\. All prices in CAD/);
   assert.match(markup, /These are starting prices for the House Delivery housing package, not the completed cost of a finished home/);
   assert.match(markup, /250/);
   assert.match(markup, /300/);
