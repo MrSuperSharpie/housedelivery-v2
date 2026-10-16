@@ -155,7 +155,10 @@ export function HomeDesignToolCallout({
               Plan your budget
             </p>
             <p className="mt-3 text-sm leading-7 text-white/52">
-              Starting package prices for {pricingSquareFeet.toLocaleString("en-CA")} sq. ft. All prices in CAD.
+              Starting House Delivery housing-package pricing for {pricingSquareFeet.toLocaleString("en-CA")} sq. ft. All prices in CAD.
+            </p>
+            <p className="mt-4 text-sm leading-7 text-white/70">
+              These are starting prices for the House Delivery housing package, not the completed cost of a finished home.
             </p>
             <div className="mt-7 grid gap-7 sm:grid-cols-2">
               {(["premium", "signature"] as const).map((tier) => {
@@ -164,12 +167,12 @@ export function HomeDesignToolCallout({
                   <div key={tier} className="border-t border-white/20 pt-5">
                     <h4 className="text-lg font-medium text-white/88">{option.label}</h4>
                     <p className="mt-3 text-sm text-white/60">
-                      Starting from <span className="whitespace-nowrap">${option.rate} / sq. ft.</span>
+                      Housing package from <span className="whitespace-nowrap">${option.rate} / sq. ft.</span>
                     </p>
                     <p className="mt-3 text-2xl tracking-[-0.04em] text-white/90">
                       ${(option.rate * pricingSquareFeet).toLocaleString("en-CA")}
                     </p>
-                    <p className="mt-1 text-xs text-white/50">Starting total</p>
+                    <p className="mt-1 text-xs text-white/50">Starting housing package</p>
                     <button
                       type="button"
                       disabled={isPreviewOnly || isComingSoon || !href}
@@ -187,6 +190,7 @@ export function HomeDesignToolCallout({
               })}
             </div>
             <div className="mt-6 space-y-2 text-xs leading-6 text-white/55">
+              <p>Final housing-package pricing varies with design selections, architectural complexity, glazing, structural requirements, project location and logistics. Highly customized homes and alternate structural systems, including timber, are priced project-specifically following review of the plans and specifications.</p>
               <p><strong>Package pricing includes the coordinated building package, standard project logistics and applicable import tariffs based on the confirmed project scope.</strong></p>
               <p>Appliances are selected separately.</p>
               <p><strong>Assembly &amp; erection can be provided as a separate project-specific package.</strong> With factory production typically completed in 40–45 days after approved drawings and payment, and site preparation progressing in parallel, House Delivery is designed to move projects from approval to assembly in months, subject to site readiness, shipping and local requirements.</p>

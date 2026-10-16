@@ -63,16 +63,21 @@ test("both tiers remain selectable and create valid Look Books for every active 
   }
 });
 
-test("Solace starting totals and scope appear only in its primary callout", () => {
+test("Solace starting housing-package pricing and scope appear only in its primary callout", () => {
   const markup = renderToStaticMarkup(
     <HomeDesignToolCallout homeName="Solace House" variant="primary" href="#home-inclusions" pricingSquareFeet={5405} />,
   );
-  assert.match(markup, /5,405 sq. ft./);
-  assert.match(markup, /All prices in CAD/);
+  assert.match(markup, /Starting House Delivery housing-package pricing for 5,405 sq. ft\. All prices in CAD/);
+  assert.match(markup, /These are starting prices for the House Delivery housing package, not the completed cost of a finished home/);
   assert.match(markup, /250/);
   assert.match(markup, /300/);
   assert.match(markup, /1,351,250/);
   assert.match(markup, /1,621,500/);
+  assert.match(markup, /Housing package from <span class="whitespace-nowrap">\$250 \/ sq\. ft\.<\/span>/);
+  assert.match(markup, /Housing package from <span class="whitespace-nowrap">\$300 \/ sq\. ft\.<\/span>/);
+  assert.equal((markup.match(/Starting housing package/g) ?? []).length, 2);
+  assert.doesNotMatch(markup, /Starting from|Starting total/);
+  assert.match(markup, /Final housing-package pricing varies with design selections, architectural complexity, glazing, structural requirements, project location and logistics\. Highly customized homes and alternate structural systems, including timber, are priced project-specifically following review of the plans and specifications\./);
   assert.match(markup, /<strong>Package pricing includes the coordinated building package, standard project logistics and applicable import tariffs based on the confirmed project scope\.<\/strong>/);
   assert.match(markup, /Appliances are selected separately/);
   assert.match(markup, /<strong>Assembly &amp; erection can be provided as a separate project-specific package\.<\/strong>/);
