@@ -4,7 +4,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowDown, ArrowUpRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
 
@@ -20,12 +20,60 @@ export function LuxuryHero({
   supportingCopy = "Exceptional design. Remarkable value. A faster way into a place that is proudly yours.",
 }: LuxuryHeroProps) {
   const heroRef = useRef<HTMLElement>(null);
+  const vimeoIframeRef = useRef<HTMLIFrameElement>(null);
+  const [isVimeoPlaying, setIsVimeoPlaying] = useState(false);
   const { scrollYProgress } = useScroll({
     target: heroRef,
     offset: ["start start", "end start"],
   });
   const imageY = useTransform(scrollYProgress, [0, 1], ["0%", "16%"]);
   const contentOpacity = useTransform(scrollYProgress, [0, 0.72], [1, 0]);
+
+  useEffect(() => {
+    function handleVimeoMessage(event: MessageEvent) {
+      if (
+        event.origin !== "https://player.vimeo.com" ||
+        event.source !== vimeoIframeRef.current?.contentWindow
+      ) {
+        return;
+      }
+
+      let data: unknown = event.data;
+      if (typeof data === "string") {
+        try {
+          data = JSON.parse(data);
+        } catch {
+          return;
+        }
+      }
+      if (!data || typeof data !== "object") return;
+
+      const message = data as {
+        event?: string;
+        method?: string;
+        value?: unknown;
+      };
+      if (
+        message.event === "play" ||
+        (message.method === "getPaused" && message.value === false)
+      ) {
+        setIsVimeoPlaying(true);
+      }
+    }
+
+    window.addEventListener("message", handleVimeoMessage);
+    return () => window.removeEventListener("message", handleVimeoMessage);
+  }, []);
+
+  function handleVimeoLoad() {
+    const player = vimeoIframeRef.current?.contentWindow;
+    if (!player) return;
+    player.postMessage(
+      { method: "addEventListener", value: "play" },
+      "https://player.vimeo.com",
+    );
+    player.postMessage({ method: "getPaused" }, "https://player.vimeo.com");
+  }
 
   return (
     <section
@@ -48,17 +96,19 @@ export function LuxuryHero({
           sizes="100vw"
           className="object-cover object-center"
         />
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
+        <iframe
+          ref={vimeoIframeRef}
+          src="https://player.vimeo.com/video/1137960442?h=9196f7ce1c&autoplay=1&muted=1&loop=1&background=1&autopause=0&playsinline=1"
+          title="House Delivery homepage background video"
           tabIndex={-1}
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 w-full h-full object-cover object-center motion-reduce:hidden"
-        >
-          <source src="/hero-video.mp4" type="video/mp4" />
-        </video>
+          allow="autoplay"
+          referrerPolicy="strict-origin-when-cross-origin"
+          onLoad={handleVimeoLoad}
+          className={`pointer-events-none absolute left-1/2 top-1/2 aspect-video h-full w-auto min-w-full -translate-x-1/2 -translate-y-1/2 border-0 transition-opacity duration-500 motion-reduce:hidden ${
+            isVimeoPlaying ? "opacity-100" : "opacity-0"
+          }`}
+        />
       </motion.div>
       <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(11,12,16,.70)_0%,rgba(11,12,16,.60)_48%,rgba(11,12,16,.50)_100%)]" />
       <div className="noise absolute inset-0 opacity-[0.08]" />
