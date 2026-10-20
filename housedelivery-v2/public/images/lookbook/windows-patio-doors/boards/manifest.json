@@ -4,1295 +4,1439 @@
     "tier": "premium",
     "option": "1",
     "image": "langley-premium-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 306110
-  },
-  {
-    "home": "langley",
-    "tier": "premium",
-    "option": "2",
-    "image": "langley-premium-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 286370
-  },
-  {
-    "home": "langley",
-    "tier": "premium",
-    "option": "3",
-    "image": "langley-premium-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 294636
-  },
-  {
-    "home": "langley",
-    "tier": "premium",
-    "option": "4",
-    "image": "langley-premium-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 336476
-  },
-  {
-    "home": "langley",
-    "tier": "signature",
-    "option": "1",
-    "image": "langley-signature-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 318916
-  },
-  {
-    "home": "langley",
-    "tier": "signature",
-    "option": "2",
-    "image": "langley-signature-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 310292
-  },
-  {
-    "home": "langley",
-    "tier": "signature",
-    "option": "3",
-    "image": "langley-signature-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 292678
-  },
-  {
-    "home": "langley",
-    "tier": "signature",
-    "option": "4",
-    "image": "langley-signature-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 337314
+    "windowModel": "DERCHI WY-100",
+    "doorModel": "DERCHI WT-135D",
+    "catalogSource": "DERCHI pp. 019–020, 037–038",
+    "bytes": 153600
   },
   {
     "home": "salt-spring",
     "tier": "premium",
     "option": "1",
     "image": "salt-spring-premium-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 307036
-  },
-  {
-    "home": "salt-spring",
-    "tier": "premium",
-    "option": "2",
-    "image": "salt-spring-premium-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 287524
-  },
-  {
-    "home": "salt-spring",
-    "tier": "premium",
-    "option": "3",
-    "image": "salt-spring-premium-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 295494
-  },
-  {
-    "home": "salt-spring",
-    "tier": "premium",
-    "option": "4",
-    "image": "salt-spring-premium-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 332926
-  },
-  {
-    "home": "salt-spring",
-    "tier": "signature",
-    "option": "1",
-    "image": "salt-spring-signature-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 320252
-  },
-  {
-    "home": "salt-spring",
-    "tier": "signature",
-    "option": "2",
-    "image": "salt-spring-signature-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 311636
-  },
-  {
-    "home": "salt-spring",
-    "tier": "signature",
-    "option": "3",
-    "image": "salt-spring-signature-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 293610
-  },
-  {
-    "home": "salt-spring",
-    "tier": "signature",
-    "option": "4",
-    "image": "salt-spring-signature-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 338404
+    "windowModel": "DERCHI WY-100",
+    "doorModel": "DERCHI WT-135D",
+    "catalogSource": "DERCHI pp. 019–020, 037–038",
+    "bytes": 152338
   },
   {
     "home": "solace",
     "tier": "premium",
     "option": "1",
     "image": "solace-premium-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 305564
-  },
-  {
-    "home": "solace",
-    "tier": "premium",
-    "option": "2",
-    "image": "solace-premium-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 286212
-  },
-  {
-    "home": "solace",
-    "tier": "premium",
-    "option": "3",
-    "image": "solace-premium-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 294308
-  },
-  {
-    "home": "solace",
-    "tier": "premium",
-    "option": "4",
-    "image": "solace-premium-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 335870
-  },
-  {
-    "home": "solace",
-    "tier": "signature",
-    "option": "1",
-    "image": "solace-signature-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 318804
-  },
-  {
-    "home": "solace",
-    "tier": "signature",
-    "option": "2",
-    "image": "solace-signature-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 309940
-  },
-  {
-    "home": "solace",
-    "tier": "signature",
-    "option": "3",
-    "image": "solace-signature-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 292552
-  },
-  {
-    "home": "solace",
-    "tier": "signature",
-    "option": "4",
-    "image": "solace-signature-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 337228
+    "windowModel": "DERCHI WY-100",
+    "doorModel": "DERCHI WT-135D",
+    "catalogSource": "DERCHI pp. 019–020, 037–038",
+    "bytes": 151076
   },
   {
     "home": "timberline",
     "tier": "premium",
     "option": "1",
     "image": "timberline-premium-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 306692
-  },
-  {
-    "home": "timberline",
-    "tier": "premium",
-    "option": "2",
-    "image": "timberline-premium-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 287108
-  },
-  {
-    "home": "timberline",
-    "tier": "premium",
-    "option": "3",
-    "image": "timberline-premium-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 296088
-  },
-  {
-    "home": "timberline",
-    "tier": "premium",
-    "option": "4",
-    "image": "timberline-premium-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 337106
-  },
-  {
-    "home": "timberline",
-    "tier": "signature",
-    "option": "1",
-    "image": "timberline-signature-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 320304
-  },
-  {
-    "home": "timberline",
-    "tier": "signature",
-    "option": "2",
-    "image": "timberline-signature-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 311256
-  },
-  {
-    "home": "timberline",
-    "tier": "signature",
-    "option": "3",
-    "image": "timberline-signature-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 293432
-  },
-  {
-    "home": "timberline",
-    "tier": "signature",
-    "option": "4",
-    "image": "timberline-signature-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 338046
+    "windowModel": "DERCHI WY-100",
+    "doorModel": "DERCHI WT-135D",
+    "catalogSource": "DERCHI pp. 019–020, 037–038",
+    "bytes": 154802
   },
   {
     "home": "profile",
     "tier": "premium",
     "option": "1",
     "image": "profile-premium-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 305592
-  },
-  {
-    "home": "profile",
-    "tier": "premium",
-    "option": "2",
-    "image": "profile-premium-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 285772
-  },
-  {
-    "home": "profile",
-    "tier": "premium",
-    "option": "3",
-    "image": "profile-premium-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 294212
-  },
-  {
-    "home": "profile",
-    "tier": "premium",
-    "option": "4",
-    "image": "profile-premium-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 331436
-  },
-  {
-    "home": "profile",
-    "tier": "signature",
-    "option": "1",
-    "image": "profile-signature-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 318450
-  },
-  {
-    "home": "profile",
-    "tier": "signature",
-    "option": "2",
-    "image": "profile-signature-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 309820
-  },
-  {
-    "home": "profile",
-    "tier": "signature",
-    "option": "3",
-    "image": "profile-signature-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 291998
-  },
-  {
-    "home": "profile",
-    "tier": "signature",
-    "option": "4",
-    "image": "profile-signature-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 336882
+    "windowModel": "DERCHI WY-100",
+    "doorModel": "DERCHI WT-135D",
+    "catalogSource": "DERCHI pp. 019–020, 037–038",
+    "bytes": 153394
   },
   {
     "home": "laurentian",
     "tier": "premium",
     "option": "1",
     "image": "laurentian-premium-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 306600
-  },
-  {
-    "home": "laurentian",
-    "tier": "premium",
-    "option": "2",
-    "image": "laurentian-premium-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 287212
-  },
-  {
-    "home": "laurentian",
-    "tier": "premium",
-    "option": "3",
-    "image": "laurentian-premium-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 295260
-  },
-  {
-    "home": "laurentian",
-    "tier": "premium",
-    "option": "4",
-    "image": "laurentian-premium-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 336934
-  },
-  {
-    "home": "laurentian",
-    "tier": "signature",
-    "option": "1",
-    "image": "laurentian-signature-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 319698
-  },
-  {
-    "home": "laurentian",
-    "tier": "signature",
-    "option": "2",
-    "image": "laurentian-signature-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 311080
-  },
-  {
-    "home": "laurentian",
-    "tier": "signature",
-    "option": "3",
-    "image": "laurentian-signature-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 293620
-  },
-  {
-    "home": "laurentian",
-    "tier": "signature",
-    "option": "4",
-    "image": "laurentian-signature-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 338178
+    "windowModel": "DERCHI WY-100",
+    "doorModel": "DERCHI WT-135D",
+    "catalogSource": "DERCHI pp. 019–020, 037–038",
+    "bytes": 154578
   },
   {
     "home": "dalton",
     "tier": "premium",
     "option": "1",
     "image": "dalton-premium-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 305600
-  },
-  {
-    "home": "dalton",
-    "tier": "premium",
-    "option": "2",
-    "image": "dalton-premium-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 286206
-  },
-  {
-    "home": "dalton",
-    "tier": "premium",
-    "option": "3",
-    "image": "dalton-premium-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 294860
-  },
-  {
-    "home": "dalton",
-    "tier": "premium",
-    "option": "4",
-    "image": "dalton-premium-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 331528
-  },
-  {
-    "home": "dalton",
-    "tier": "signature",
-    "option": "1",
-    "image": "dalton-signature-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 318588
-  },
-  {
-    "home": "dalton",
-    "tier": "signature",
-    "option": "2",
-    "image": "dalton-signature-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 310052
-  },
-  {
-    "home": "dalton",
-    "tier": "signature",
-    "option": "3",
-    "image": "dalton-signature-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 292316
-  },
-  {
-    "home": "dalton",
-    "tier": "signature",
-    "option": "4",
-    "image": "dalton-signature-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 336880
+    "windowModel": "DERCHI WY-100",
+    "doorModel": "DERCHI WT-135D",
+    "catalogSource": "DERCHI pp. 019–020, 037–038",
+    "bytes": 153300
   },
   {
     "home": "south-bay",
     "tier": "premium",
     "option": "1",
     "image": "south-bay-premium-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 306746
-  },
-  {
-    "home": "south-bay",
-    "tier": "premium",
-    "option": "2",
-    "image": "south-bay-premium-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 286786
-  },
-  {
-    "home": "south-bay",
-    "tier": "premium",
-    "option": "3",
-    "image": "south-bay-premium-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 294964
-  },
-  {
-    "home": "south-bay",
-    "tier": "premium",
-    "option": "4",
-    "image": "south-bay-premium-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 332078
-  },
-  {
-    "home": "south-bay",
-    "tier": "signature",
-    "option": "1",
-    "image": "south-bay-signature-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 319468
-  },
-  {
-    "home": "south-bay",
-    "tier": "signature",
-    "option": "2",
-    "image": "south-bay-signature-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 310816
-  },
-  {
-    "home": "south-bay",
-    "tier": "signature",
-    "option": "3",
-    "image": "south-bay-signature-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 293210
-  },
-  {
-    "home": "south-bay",
-    "tier": "signature",
-    "option": "4",
-    "image": "south-bay-signature-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 337714
+    "windowModel": "DERCHI WY-100",
+    "doorModel": "DERCHI WT-135D",
+    "catalogSource": "DERCHI pp. 019–020, 037–038",
+    "bytes": 151678
   },
   {
     "home": "boreal",
     "tier": "premium",
     "option": "1",
     "image": "boreal-premium-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 305890
-  },
-  {
-    "home": "boreal",
-    "tier": "premium",
-    "option": "2",
-    "image": "boreal-premium-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 286226
-  },
-  {
-    "home": "boreal",
-    "tier": "premium",
-    "option": "3",
-    "image": "boreal-premium-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 294220
-  },
-  {
-    "home": "boreal",
-    "tier": "premium",
-    "option": "4",
-    "image": "boreal-premium-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 336360
-  },
-  {
-    "home": "boreal",
-    "tier": "signature",
-    "option": "1",
-    "image": "boreal-signature-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 318942
-  },
-  {
-    "home": "boreal",
-    "tier": "signature",
-    "option": "2",
-    "image": "boreal-signature-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 309954
-  },
-  {
-    "home": "boreal",
-    "tier": "signature",
-    "option": "3",
-    "image": "boreal-signature-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 292572
-  },
-  {
-    "home": "boreal",
-    "tier": "signature",
-    "option": "4",
-    "image": "boreal-signature-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 337054
+    "windowModel": "DERCHI WY-100",
+    "doorModel": "DERCHI WT-135D",
+    "catalogSource": "DERCHI pp. 019–020, 037–038",
+    "bytes": 153414
   },
   {
     "home": "keats",
     "tier": "premium",
     "option": "1",
     "image": "keats-premium-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 305190
-  },
-  {
-    "home": "keats",
-    "tier": "premium",
-    "option": "2",
-    "image": "keats-premium-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 285816
-  },
-  {
-    "home": "keats",
-    "tier": "premium",
-    "option": "3",
-    "image": "keats-premium-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 294634
-  },
-  {
-    "home": "keats",
-    "tier": "premium",
-    "option": "4",
-    "image": "keats-premium-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 331690
-  },
-  {
-    "home": "keats",
-    "tier": "signature",
-    "option": "1",
-    "image": "keats-signature-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 318794
-  },
-  {
-    "home": "keats",
-    "tier": "signature",
-    "option": "2",
-    "image": "keats-signature-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 309528
-  },
-  {
-    "home": "keats",
-    "tier": "signature",
-    "option": "3",
-    "image": "keats-signature-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 291886
-  },
-  {
-    "home": "keats",
-    "tier": "signature",
-    "option": "4",
-    "image": "keats-signature-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 336564
+    "windowModel": "DERCHI WY-100",
+    "doorModel": "DERCHI WT-135D",
+    "catalogSource": "DERCHI pp. 019–020, 037–038",
+    "bytes": 153000
   },
   {
     "home": "canmore",
     "tier": "premium",
     "option": "1",
     "image": "canmore-premium-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 306320
-  },
-  {
-    "home": "canmore",
-    "tier": "premium",
-    "option": "2",
-    "image": "canmore-premium-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 286714
-  },
-  {
-    "home": "canmore",
-    "tier": "premium",
-    "option": "3",
-    "image": "canmore-premium-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 294938
-  },
-  {
-    "home": "canmore",
-    "tier": "premium",
-    "option": "4",
-    "image": "canmore-premium-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 336686
-  },
-  {
-    "home": "canmore",
-    "tier": "signature",
-    "option": "1",
-    "image": "canmore-signature-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 319454
-  },
-  {
-    "home": "canmore",
-    "tier": "signature",
-    "option": "2",
-    "image": "canmore-signature-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 310708
-  },
-  {
-    "home": "canmore",
-    "tier": "signature",
-    "option": "3",
-    "image": "canmore-signature-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 293112
-  },
-  {
-    "home": "canmore",
-    "tier": "signature",
-    "option": "4",
-    "image": "canmore-signature-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 337770
+    "windowModel": "DERCHI WY-100",
+    "doorModel": "DERCHI WT-135D",
+    "catalogSource": "DERCHI pp. 019–020, 037–038",
+    "bytes": 154342
   },
   {
     "home": "saturna",
     "tier": "premium",
     "option": "1",
     "image": "saturna-premium-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 305972
-  },
-  {
-    "home": "saturna",
-    "tier": "premium",
-    "option": "2",
-    "image": "saturna-premium-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 286560
-  },
-  {
-    "home": "saturna",
-    "tier": "premium",
-    "option": "3",
-    "image": "saturna-premium-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 295120
-  },
-  {
-    "home": "saturna",
-    "tier": "premium",
-    "option": "4",
-    "image": "saturna-premium-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 332098
-  },
-  {
-    "home": "saturna",
-    "tier": "signature",
-    "option": "1",
-    "image": "saturna-signature-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 319030
-  },
-  {
-    "home": "saturna",
-    "tier": "signature",
-    "option": "2",
-    "image": "saturna-signature-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 310456
-  },
-  {
-    "home": "saturna",
-    "tier": "signature",
-    "option": "3",
-    "image": "saturna-signature-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 292700
-  },
-  {
-    "home": "saturna",
-    "tier": "signature",
-    "option": "4",
-    "image": "saturna-signature-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 337716
+    "windowModel": "DERCHI WY-100",
+    "doorModel": "DERCHI WT-135D",
+    "catalogSource": "DERCHI pp. 019–020, 037–038",
+    "bytes": 153814
   },
   {
     "home": "cascade",
     "tier": "premium",
     "option": "1",
     "image": "cascade-premium-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 306274
-  },
-  {
-    "home": "cascade",
-    "tier": "premium",
-    "option": "2",
-    "image": "cascade-premium-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 286658
-  },
-  {
-    "home": "cascade",
-    "tier": "premium",
-    "option": "3",
-    "image": "cascade-premium-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 294764
-  },
-  {
-    "home": "cascade",
-    "tier": "premium",
-    "option": "4",
-    "image": "cascade-premium-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 336772
-  },
-  {
-    "home": "cascade",
-    "tier": "signature",
-    "option": "1",
-    "image": "cascade-signature-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 319132
-  },
-  {
-    "home": "cascade",
-    "tier": "signature",
-    "option": "2",
-    "image": "cascade-signature-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 310496
-  },
-  {
-    "home": "cascade",
-    "tier": "signature",
-    "option": "3",
-    "image": "cascade-signature-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 292898
-  },
-  {
-    "home": "cascade",
-    "tier": "signature",
-    "option": "4",
-    "image": "cascade-signature-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 337494
+    "windowModel": "DERCHI WY-100",
+    "doorModel": "DERCHI WT-135D",
+    "catalogSource": "DERCHI pp. 019–020, 037–038",
+    "bytes": 154010
   },
   {
     "home": "maplewood",
     "tier": "premium",
     "option": "1",
     "image": "maplewood-premium-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 307152
-  },
-  {
-    "home": "maplewood",
-    "tier": "premium",
-    "option": "2",
-    "image": "maplewood-premium-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 287628
-  },
-  {
-    "home": "maplewood",
-    "tier": "premium",
-    "option": "3",
-    "image": "maplewood-premium-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 295636
-  },
-  {
-    "home": "maplewood",
-    "tier": "premium",
-    "option": "4",
-    "image": "maplewood-premium-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 337442
-  },
-  {
-    "home": "maplewood",
-    "tier": "signature",
-    "option": "1",
-    "image": "maplewood-signature-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 320246
-  },
-  {
-    "home": "maplewood",
-    "tier": "signature",
-    "option": "2",
-    "image": "maplewood-signature-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 311512
-  },
-  {
-    "home": "maplewood",
-    "tier": "signature",
-    "option": "3",
-    "image": "maplewood-signature-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 293934
-  },
-  {
-    "home": "maplewood",
-    "tier": "signature",
-    "option": "4",
-    "image": "maplewood-signature-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 338516
+    "windowModel": "DERCHI WY-100",
+    "doorModel": "DERCHI WT-135D",
+    "catalogSource": "DERCHI pp. 019–020, 037–038",
+    "bytes": 155126
   },
   {
     "home": "cedarview",
     "tier": "premium",
     "option": "1",
     "image": "cedarview-premium-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 306768
-  },
-  {
-    "home": "cedarview",
-    "tier": "premium",
-    "option": "2",
-    "image": "cedarview-premium-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 287458
-  },
-  {
-    "home": "cedarview",
-    "tier": "premium",
-    "option": "3",
-    "image": "cedarview-premium-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 295504
-  },
-  {
-    "home": "cedarview",
-    "tier": "premium",
-    "option": "4",
-    "image": "cedarview-premium-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 337580
-  },
-  {
-    "home": "cedarview",
-    "tier": "signature",
-    "option": "1",
-    "image": "cedarview-signature-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 320038
-  },
-  {
-    "home": "cedarview",
-    "tier": "signature",
-    "option": "2",
-    "image": "cedarview-signature-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 311346
-  },
-  {
-    "home": "cedarview",
-    "tier": "signature",
-    "option": "3",
-    "image": "cedarview-signature-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 293810
-  },
-  {
-    "home": "cedarview",
-    "tier": "signature",
-    "option": "4",
-    "image": "cedarview-signature-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 338158
+    "windowModel": "DERCHI WY-100",
+    "doorModel": "DERCHI WT-135D",
+    "catalogSource": "DERCHI pp. 019–020, 037–038",
+    "bytes": 154580
   },
   {
     "home": "mayne",
     "tier": "premium",
     "option": "1",
     "image": "mayne-premium-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 305450
-  },
-  {
-    "home": "mayne",
-    "tier": "premium",
-    "option": "2",
-    "image": "mayne-premium-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 286118
-  },
-  {
-    "home": "mayne",
-    "tier": "premium",
-    "option": "3",
-    "image": "mayne-premium-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 294644
-  },
-  {
-    "home": "mayne",
-    "tier": "premium",
-    "option": "4",
-    "image": "mayne-premium-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 335710
-  },
-  {
-    "home": "mayne",
-    "tier": "signature",
-    "option": "1",
-    "image": "mayne-signature-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 318548
-  },
-  {
-    "home": "mayne",
-    "tier": "signature",
-    "option": "2",
-    "image": "mayne-signature-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 309946
-  },
-  {
-    "home": "mayne",
-    "tier": "signature",
-    "option": "3",
-    "image": "mayne-signature-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 292222
-  },
-  {
-    "home": "mayne",
-    "tier": "signature",
-    "option": "4",
-    "image": "mayne-signature-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 336800
+    "windowModel": "DERCHI WY-100",
+    "doorModel": "DERCHI WT-135D",
+    "catalogSource": "DERCHI pp. 019–020, 037–038",
+    "bytes": 153148
   },
   {
     "home": "summit",
     "tier": "premium",
     "option": "1",
     "image": "summit-premium-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 305704
-  },
-  {
-    "home": "summit",
-    "tier": "premium",
-    "option": "2",
-    "image": "summit-premium-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 286194
-  },
-  {
-    "home": "summit",
-    "tier": "premium",
-    "option": "3",
-    "image": "summit-premium-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 294862
-  },
-  {
-    "home": "summit",
-    "tier": "premium",
-    "option": "4",
-    "image": "summit-premium-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 331664
-  },
-  {
-    "home": "summit",
-    "tier": "signature",
-    "option": "1",
-    "image": "summit-signature-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 318636
-  },
-  {
-    "home": "summit",
-    "tier": "signature",
-    "option": "2",
-    "image": "summit-signature-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 309692
-  },
-  {
-    "home": "summit",
-    "tier": "signature",
-    "option": "3",
-    "image": "summit-signature-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 292398
-  },
-  {
-    "home": "summit",
-    "tier": "signature",
-    "option": "4",
-    "image": "summit-signature-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 337174
+    "windowModel": "DERCHI WY-100",
+    "doorModel": "DERCHI WT-135D",
+    "catalogSource": "DERCHI pp. 019–020, 037–038",
+    "bytes": 150948
   },
   {
     "home": "aurora",
     "tier": "premium",
     "option": "1",
     "image": "aurora-premium-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 305270
+    "windowModel": "DERCHI WY-100",
+    "doorModel": "DERCHI WT-135D",
+    "catalogSource": "DERCHI pp. 019–020, 037–038",
+    "bytes": 153594
+  },
+  {
+    "home": "langley",
+    "tier": "premium",
+    "option": "2",
+    "image": "langley-premium-2.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 155T",
+    "catalogSource": "AMJ PDF pp. 8, 20",
+    "bytes": 142964
+  },
+  {
+    "home": "salt-spring",
+    "tier": "premium",
+    "option": "2",
+    "image": "salt-spring-premium-2.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 155T",
+    "catalogSource": "AMJ PDF pp. 8, 20",
+    "bytes": 144268
+  },
+  {
+    "home": "solace",
+    "tier": "premium",
+    "option": "2",
+    "image": "solace-premium-2.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 155T",
+    "catalogSource": "AMJ PDF pp. 8, 20",
+    "bytes": 142680
+  },
+  {
+    "home": "timberline",
+    "tier": "premium",
+    "option": "2",
+    "image": "timberline-premium-2.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 155T",
+    "catalogSource": "AMJ PDF pp. 8, 20",
+    "bytes": 143696
+  },
+  {
+    "home": "profile",
+    "tier": "premium",
+    "option": "2",
+    "image": "profile-premium-2.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 155T",
+    "catalogSource": "AMJ PDF pp. 8, 20",
+    "bytes": 142458
+  },
+  {
+    "home": "laurentian",
+    "tier": "premium",
+    "option": "2",
+    "image": "laurentian-premium-2.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 155T",
+    "catalogSource": "AMJ PDF pp. 8, 20",
+    "bytes": 144000
+  },
+  {
+    "home": "dalton",
+    "tier": "premium",
+    "option": "2",
+    "image": "dalton-premium-2.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 155T",
+    "catalogSource": "AMJ PDF pp. 8, 20",
+    "bytes": 142746
+  },
+  {
+    "home": "south-bay",
+    "tier": "premium",
+    "option": "2",
+    "image": "south-bay-premium-2.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 155T",
+    "catalogSource": "AMJ PDF pp. 8, 20",
+    "bytes": 143426
+  },
+  {
+    "home": "boreal",
+    "tier": "premium",
+    "option": "2",
+    "image": "boreal-premium-2.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 155T",
+    "catalogSource": "AMJ PDF pp. 8, 20",
+    "bytes": 142750
+  },
+  {
+    "home": "keats",
+    "tier": "premium",
+    "option": "2",
+    "image": "keats-premium-2.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 155T",
+    "catalogSource": "AMJ PDF pp. 8, 20",
+    "bytes": 142260
+  },
+  {
+    "home": "canmore",
+    "tier": "premium",
+    "option": "2",
+    "image": "canmore-premium-2.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 155T",
+    "catalogSource": "AMJ PDF pp. 8, 20",
+    "bytes": 143664
+  },
+  {
+    "home": "saturna",
+    "tier": "premium",
+    "option": "2",
+    "image": "saturna-premium-2.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 155T",
+    "catalogSource": "AMJ PDF pp. 8, 20",
+    "bytes": 143306
+  },
+  {
+    "home": "cascade",
+    "tier": "premium",
+    "option": "2",
+    "image": "cascade-premium-2.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 155T",
+    "catalogSource": "AMJ PDF pp. 8, 20",
+    "bytes": 143184
+  },
+  {
+    "home": "maplewood",
+    "tier": "premium",
+    "option": "2",
+    "image": "maplewood-premium-2.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 155T",
+    "catalogSource": "AMJ PDF pp. 8, 20",
+    "bytes": 144614
+  },
+  {
+    "home": "cedarview",
+    "tier": "premium",
+    "option": "2",
+    "image": "cedarview-premium-2.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 155T",
+    "catalogSource": "AMJ PDF pp. 8, 20",
+    "bytes": 143908
+  },
+  {
+    "home": "mayne",
+    "tier": "premium",
+    "option": "2",
+    "image": "mayne-premium-2.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 155T",
+    "catalogSource": "AMJ PDF pp. 8, 20",
+    "bytes": 142370
+  },
+  {
+    "home": "summit",
+    "tier": "premium",
+    "option": "2",
+    "image": "summit-premium-2.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 155T",
+    "catalogSource": "AMJ PDF pp. 8, 20",
+    "bytes": 142728
   },
   {
     "home": "aurora",
     "tier": "premium",
     "option": "2",
     "image": "aurora-premium-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 286168
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 155T",
+    "catalogSource": "AMJ PDF pp. 8, 20",
+    "bytes": 142750
+  },
+  {
+    "home": "langley",
+    "tier": "premium",
+    "option": "3",
+    "image": "langley-premium-3.webp",
+    "windowModel": "DERCHI WY-104",
+    "doorModel": "DERCHI WZ-80",
+    "catalogSource": "DERCHI pp. 019–020, 047–048",
+    "bytes": 173792
+  },
+  {
+    "home": "salt-spring",
+    "tier": "premium",
+    "option": "3",
+    "image": "salt-spring-premium-3.webp",
+    "windowModel": "DERCHI WY-104",
+    "doorModel": "DERCHI WZ-80",
+    "catalogSource": "DERCHI pp. 019–020, 047–048",
+    "bytes": 175392
+  },
+  {
+    "home": "solace",
+    "tier": "premium",
+    "option": "3",
+    "image": "solace-premium-3.webp",
+    "windowModel": "DERCHI WY-104",
+    "doorModel": "DERCHI WZ-80",
+    "catalogSource": "DERCHI pp. 019–020, 047–048",
+    "bytes": 173702
+  },
+  {
+    "home": "timberline",
+    "tier": "premium",
+    "option": "3",
+    "image": "timberline-premium-3.webp",
+    "windowModel": "DERCHI WY-104",
+    "doorModel": "DERCHI WZ-80",
+    "catalogSource": "DERCHI pp. 019–020, 047–048",
+    "bytes": 174904
+  },
+  {
+    "home": "profile",
+    "tier": "premium",
+    "option": "3",
+    "image": "profile-premium-3.webp",
+    "windowModel": "DERCHI WY-104",
+    "doorModel": "DERCHI WZ-80",
+    "catalogSource": "DERCHI pp. 019–020, 047–048",
+    "bytes": 173520
+  },
+  {
+    "home": "laurentian",
+    "tier": "premium",
+    "option": "3",
+    "image": "laurentian-premium-3.webp",
+    "windowModel": "DERCHI WY-104",
+    "doorModel": "DERCHI WZ-80",
+    "catalogSource": "DERCHI pp. 019–020, 047–048",
+    "bytes": 174646
+  },
+  {
+    "home": "dalton",
+    "tier": "premium",
+    "option": "3",
+    "image": "dalton-premium-3.webp",
+    "windowModel": "DERCHI WY-104",
+    "doorModel": "DERCHI WZ-80",
+    "catalogSource": "DERCHI pp. 019–020, 047–048",
+    "bytes": 173628
+  },
+  {
+    "home": "south-bay",
+    "tier": "premium",
+    "option": "3",
+    "image": "south-bay-premium-3.webp",
+    "windowModel": "DERCHI WY-104",
+    "doorModel": "DERCHI WZ-80",
+    "catalogSource": "DERCHI pp. 019–020, 047–048",
+    "bytes": 174268
+  },
+  {
+    "home": "boreal",
+    "tier": "premium",
+    "option": "3",
+    "image": "boreal-premium-3.webp",
+    "windowModel": "DERCHI WY-104",
+    "doorModel": "DERCHI WZ-80",
+    "catalogSource": "DERCHI pp. 019–020, 047–048",
+    "bytes": 173552
+  },
+  {
+    "home": "keats",
+    "tier": "premium",
+    "option": "3",
+    "image": "keats-premium-3.webp",
+    "windowModel": "DERCHI WY-104",
+    "doorModel": "DERCHI WZ-80",
+    "catalogSource": "DERCHI pp. 019–020, 047–048",
+    "bytes": 173014
+  },
+  {
+    "home": "canmore",
+    "tier": "premium",
+    "option": "3",
+    "image": "canmore-premium-3.webp",
+    "windowModel": "DERCHI WY-104",
+    "doorModel": "DERCHI WZ-80",
+    "catalogSource": "DERCHI pp. 019–020, 047–048",
+    "bytes": 174436
+  },
+  {
+    "home": "saturna",
+    "tier": "premium",
+    "option": "3",
+    "image": "saturna-premium-3.webp",
+    "windowModel": "DERCHI WY-104",
+    "doorModel": "DERCHI WZ-80",
+    "catalogSource": "DERCHI pp. 019–020, 047–048",
+    "bytes": 174080
+  },
+  {
+    "home": "cascade",
+    "tier": "premium",
+    "option": "3",
+    "image": "cascade-premium-3.webp",
+    "windowModel": "DERCHI WY-104",
+    "doorModel": "DERCHI WZ-80",
+    "catalogSource": "DERCHI pp. 019–020, 047–048",
+    "bytes": 174148
+  },
+  {
+    "home": "maplewood",
+    "tier": "premium",
+    "option": "3",
+    "image": "maplewood-premium-3.webp",
+    "windowModel": "DERCHI WY-104",
+    "doorModel": "DERCHI WZ-80",
+    "catalogSource": "DERCHI pp. 019–020, 047–048",
+    "bytes": 175438
+  },
+  {
+    "home": "cedarview",
+    "tier": "premium",
+    "option": "3",
+    "image": "cedarview-premium-3.webp",
+    "windowModel": "DERCHI WY-104",
+    "doorModel": "DERCHI WZ-80",
+    "catalogSource": "DERCHI pp. 019–020, 047–048",
+    "bytes": 174588
+  },
+  {
+    "home": "mayne",
+    "tier": "premium",
+    "option": "3",
+    "image": "mayne-premium-3.webp",
+    "windowModel": "DERCHI WY-104",
+    "doorModel": "DERCHI WZ-80",
+    "catalogSource": "DERCHI pp. 019–020, 047–048",
+    "bytes": 173196
+  },
+  {
+    "home": "summit",
+    "tier": "premium",
+    "option": "3",
+    "image": "summit-premium-3.webp",
+    "windowModel": "DERCHI WY-104",
+    "doorModel": "DERCHI WZ-80",
+    "catalogSource": "DERCHI pp. 019–020, 047–048",
+    "bytes": 173716
   },
   {
     "home": "aurora",
     "tier": "premium",
     "option": "3",
     "image": "aurora-premium-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 294486
+    "windowModel": "DERCHI WY-104",
+    "doorModel": "DERCHI WZ-80",
+    "catalogSource": "DERCHI pp. 019–020, 047–048",
+    "bytes": 173792
+  },
+  {
+    "home": "langley",
+    "tier": "premium",
+    "option": "4",
+    "image": "langley-premium-4.webp",
+    "windowModel": "LEDOW C75",
+    "doorModel": "LEDOW G152",
+    "catalogSource": "LEDOW pp. 14, 21–22",
+    "bytes": 83906
+  },
+  {
+    "home": "salt-spring",
+    "tier": "premium",
+    "option": "4",
+    "image": "salt-spring-premium-4.webp",
+    "windowModel": "LEDOW C75",
+    "doorModel": "LEDOW G152",
+    "catalogSource": "LEDOW pp. 14, 21–22",
+    "bytes": 85266
+  },
+  {
+    "home": "solace",
+    "tier": "premium",
+    "option": "4",
+    "image": "solace-premium-4.webp",
+    "windowModel": "LEDOW C75",
+    "doorModel": "LEDOW G152",
+    "catalogSource": "LEDOW pp. 14, 21–22",
+    "bytes": 83860
+  },
+  {
+    "home": "timberline",
+    "tier": "premium",
+    "option": "4",
+    "image": "timberline-premium-4.webp",
+    "windowModel": "LEDOW C75",
+    "doorModel": "LEDOW G152",
+    "catalogSource": "LEDOW pp. 14, 21–22",
+    "bytes": 84772
+  },
+  {
+    "home": "profile",
+    "tier": "premium",
+    "option": "4",
+    "image": "profile-premium-4.webp",
+    "windowModel": "LEDOW C75",
+    "doorModel": "LEDOW G152",
+    "catalogSource": "LEDOW pp. 14, 21–22",
+    "bytes": 83758
+  },
+  {
+    "home": "laurentian",
+    "tier": "premium",
+    "option": "4",
+    "image": "laurentian-premium-4.webp",
+    "windowModel": "LEDOW C75",
+    "doorModel": "LEDOW G152",
+    "catalogSource": "LEDOW pp. 14, 21–22",
+    "bytes": 84842
+  },
+  {
+    "home": "dalton",
+    "tier": "premium",
+    "option": "4",
+    "image": "dalton-premium-4.webp",
+    "windowModel": "LEDOW C75",
+    "doorModel": "LEDOW G152",
+    "catalogSource": "LEDOW pp. 14, 21–22",
+    "bytes": 83692
+  },
+  {
+    "home": "south-bay",
+    "tier": "premium",
+    "option": "4",
+    "image": "south-bay-premium-4.webp",
+    "windowModel": "LEDOW C75",
+    "doorModel": "LEDOW G152",
+    "catalogSource": "LEDOW pp. 14, 21–22",
+    "bytes": 84292
+  },
+  {
+    "home": "boreal",
+    "tier": "premium",
+    "option": "4",
+    "image": "boreal-premium-4.webp",
+    "windowModel": "LEDOW C75",
+    "doorModel": "LEDOW G152",
+    "catalogSource": "LEDOW pp. 14, 21–22",
+    "bytes": 83568
+  },
+  {
+    "home": "keats",
+    "tier": "premium",
+    "option": "4",
+    "image": "keats-premium-4.webp",
+    "windowModel": "LEDOW C75",
+    "doorModel": "LEDOW G152",
+    "catalogSource": "LEDOW pp. 14, 21–22",
+    "bytes": 83294
+  },
+  {
+    "home": "canmore",
+    "tier": "premium",
+    "option": "4",
+    "image": "canmore-premium-4.webp",
+    "windowModel": "LEDOW C75",
+    "doorModel": "LEDOW G152",
+    "catalogSource": "LEDOW pp. 14, 21–22",
+    "bytes": 84550
+  },
+  {
+    "home": "saturna",
+    "tier": "premium",
+    "option": "4",
+    "image": "saturna-premium-4.webp",
+    "windowModel": "LEDOW C75",
+    "doorModel": "LEDOW G152",
+    "catalogSource": "LEDOW pp. 14, 21–22",
+    "bytes": 84018
+  },
+  {
+    "home": "cascade",
+    "tier": "premium",
+    "option": "4",
+    "image": "cascade-premium-4.webp",
+    "windowModel": "LEDOW C75",
+    "doorModel": "LEDOW G152",
+    "catalogSource": "LEDOW pp. 14, 21–22",
+    "bytes": 84022
+  },
+  {
+    "home": "maplewood",
+    "tier": "premium",
+    "option": "4",
+    "image": "maplewood-premium-4.webp",
+    "windowModel": "LEDOW C75",
+    "doorModel": "LEDOW G152",
+    "catalogSource": "LEDOW pp. 14, 21–22",
+    "bytes": 85338
+  },
+  {
+    "home": "cedarview",
+    "tier": "premium",
+    "option": "4",
+    "image": "cedarview-premium-4.webp",
+    "windowModel": "LEDOW C75",
+    "doorModel": "LEDOW G152",
+    "catalogSource": "LEDOW pp. 14, 21–22",
+    "bytes": 84636
+  },
+  {
+    "home": "mayne",
+    "tier": "premium",
+    "option": "4",
+    "image": "mayne-premium-4.webp",
+    "windowModel": "LEDOW C75",
+    "doorModel": "LEDOW G152",
+    "catalogSource": "LEDOW pp. 14, 21–22",
+    "bytes": 83436
+  },
+  {
+    "home": "summit",
+    "tier": "premium",
+    "option": "4",
+    "image": "summit-premium-4.webp",
+    "windowModel": "LEDOW C75",
+    "doorModel": "LEDOW G152",
+    "catalogSource": "LEDOW pp. 14, 21–22",
+    "bytes": 83782
   },
   {
     "home": "aurora",
     "tier": "premium",
     "option": "4",
     "image": "aurora-premium-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 335812
+    "windowModel": "LEDOW C75",
+    "doorModel": "LEDOW G152",
+    "catalogSource": "LEDOW pp. 14, 21–22",
+    "bytes": 83628
+  },
+  {
+    "home": "langley",
+    "tier": "signature",
+    "option": "1",
+    "image": "langley-signature-1.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 154T",
+    "catalogSource": "AMJ PDF pp. 8, 19",
+    "bytes": 143392
+  },
+  {
+    "home": "salt-spring",
+    "tier": "signature",
+    "option": "1",
+    "image": "salt-spring-signature-1.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 154T",
+    "catalogSource": "AMJ PDF pp. 8, 19",
+    "bytes": 144982
+  },
+  {
+    "home": "solace",
+    "tier": "signature",
+    "option": "1",
+    "image": "solace-signature-1.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 154T",
+    "catalogSource": "AMJ PDF pp. 8, 19",
+    "bytes": 143668
+  },
+  {
+    "home": "timberline",
+    "tier": "signature",
+    "option": "1",
+    "image": "timberline-signature-1.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 154T",
+    "catalogSource": "AMJ PDF pp. 8, 19",
+    "bytes": 144654
+  },
+  {
+    "home": "profile",
+    "tier": "signature",
+    "option": "1",
+    "image": "profile-signature-1.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 154T",
+    "catalogSource": "AMJ PDF pp. 8, 19",
+    "bytes": 145626
+  },
+  {
+    "home": "laurentian",
+    "tier": "signature",
+    "option": "1",
+    "image": "laurentian-signature-1.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 154T",
+    "catalogSource": "AMJ PDF pp. 8, 19",
+    "bytes": 144752
+  },
+  {
+    "home": "dalton",
+    "tier": "signature",
+    "option": "1",
+    "image": "dalton-signature-1.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 154T",
+    "catalogSource": "AMJ PDF pp. 8, 19",
+    "bytes": 145770
+  },
+  {
+    "home": "south-bay",
+    "tier": "signature",
+    "option": "1",
+    "image": "south-bay-signature-1.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 154T",
+    "catalogSource": "AMJ PDF pp. 8, 19",
+    "bytes": 143902
+  },
+  {
+    "home": "boreal",
+    "tier": "signature",
+    "option": "1",
+    "image": "boreal-signature-1.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 154T",
+    "catalogSource": "AMJ PDF pp. 8, 19",
+    "bytes": 143332
+  },
+  {
+    "home": "keats",
+    "tier": "signature",
+    "option": "1",
+    "image": "keats-signature-1.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 154T",
+    "catalogSource": "AMJ PDF pp. 8, 19",
+    "bytes": 142996
+  },
+  {
+    "home": "canmore",
+    "tier": "signature",
+    "option": "1",
+    "image": "canmore-signature-1.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 154T",
+    "catalogSource": "AMJ PDF pp. 8, 19",
+    "bytes": 144270
+  },
+  {
+    "home": "saturna",
+    "tier": "signature",
+    "option": "1",
+    "image": "saturna-signature-1.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 154T",
+    "catalogSource": "AMJ PDF pp. 8, 19",
+    "bytes": 144058
+  },
+  {
+    "home": "cascade",
+    "tier": "signature",
+    "option": "1",
+    "image": "cascade-signature-1.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 154T",
+    "catalogSource": "AMJ PDF pp. 8, 19",
+    "bytes": 143918
+  },
+  {
+    "home": "maplewood",
+    "tier": "signature",
+    "option": "1",
+    "image": "maplewood-signature-1.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 154T",
+    "catalogSource": "AMJ PDF pp. 8, 19",
+    "bytes": 145246
+  },
+  {
+    "home": "cedarview",
+    "tier": "signature",
+    "option": "1",
+    "image": "cedarview-signature-1.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 154T",
+    "catalogSource": "AMJ PDF pp. 8, 19",
+    "bytes": 144738
+  },
+  {
+    "home": "mayne",
+    "tier": "signature",
+    "option": "1",
+    "image": "mayne-signature-1.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 154T",
+    "catalogSource": "AMJ PDF pp. 8, 19",
+    "bytes": 145424
+  },
+  {
+    "home": "summit",
+    "tier": "signature",
+    "option": "1",
+    "image": "summit-signature-1.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 154T",
+    "catalogSource": "AMJ PDF pp. 8, 19",
+    "bytes": 143264
   },
   {
     "home": "aurora",
     "tier": "signature",
     "option": "1",
     "image": "aurora-signature-1.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 318892
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 154T",
+    "catalogSource": "AMJ PDF pp. 8, 19",
+    "bytes": 145672
+  },
+  {
+    "home": "langley",
+    "tier": "signature",
+    "option": "2",
+    "image": "langley-signature-2.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G185",
+    "catalogSource": "LEDOW pp. 23–24, 33",
+    "bytes": 123374
+  },
+  {
+    "home": "salt-spring",
+    "tier": "signature",
+    "option": "2",
+    "image": "salt-spring-signature-2.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G185",
+    "catalogSource": "LEDOW pp. 23–24, 33",
+    "bytes": 124618
+  },
+  {
+    "home": "solace",
+    "tier": "signature",
+    "option": "2",
+    "image": "solace-signature-2.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G185",
+    "catalogSource": "LEDOW pp. 23–24, 33",
+    "bytes": 123528
+  },
+  {
+    "home": "timberline",
+    "tier": "signature",
+    "option": "2",
+    "image": "timberline-signature-2.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G185",
+    "catalogSource": "LEDOW pp. 23–24, 33",
+    "bytes": 124400
+  },
+  {
+    "home": "profile",
+    "tier": "signature",
+    "option": "2",
+    "image": "profile-signature-2.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G185",
+    "catalogSource": "LEDOW pp. 23–24, 33",
+    "bytes": 124190
+  },
+  {
+    "home": "laurentian",
+    "tier": "signature",
+    "option": "2",
+    "image": "laurentian-signature-2.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G185",
+    "catalogSource": "LEDOW pp. 23–24, 33",
+    "bytes": 125364
+  },
+  {
+    "home": "dalton",
+    "tier": "signature",
+    "option": "2",
+    "image": "dalton-signature-2.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G185",
+    "catalogSource": "LEDOW pp. 23–24, 33",
+    "bytes": 123160
+  },
+  {
+    "home": "south-bay",
+    "tier": "signature",
+    "option": "2",
+    "image": "south-bay-signature-2.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G185",
+    "catalogSource": "LEDOW pp. 23–24, 33",
+    "bytes": 124036
+  },
+  {
+    "home": "boreal",
+    "tier": "signature",
+    "option": "2",
+    "image": "boreal-signature-2.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G185",
+    "catalogSource": "LEDOW pp. 23–24, 33",
+    "bytes": 123074
+  },
+  {
+    "home": "keats",
+    "tier": "signature",
+    "option": "2",
+    "image": "keats-signature-2.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G185",
+    "catalogSource": "LEDOW pp. 23–24, 33",
+    "bytes": 122688
+  },
+  {
+    "home": "canmore",
+    "tier": "signature",
+    "option": "2",
+    "image": "canmore-signature-2.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G185",
+    "catalogSource": "LEDOW pp. 23–24, 33",
+    "bytes": 123994
+  },
+  {
+    "home": "saturna",
+    "tier": "signature",
+    "option": "2",
+    "image": "saturna-signature-2.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G185",
+    "catalogSource": "LEDOW pp. 23–24, 33",
+    "bytes": 123766
+  },
+  {
+    "home": "cascade",
+    "tier": "signature",
+    "option": "2",
+    "image": "cascade-signature-2.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G185",
+    "catalogSource": "LEDOW pp. 23–24, 33",
+    "bytes": 123508
+  },
+  {
+    "home": "maplewood",
+    "tier": "signature",
+    "option": "2",
+    "image": "maplewood-signature-2.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G185",
+    "catalogSource": "LEDOW pp. 23–24, 33",
+    "bytes": 124830
+  },
+  {
+    "home": "cedarview",
+    "tier": "signature",
+    "option": "2",
+    "image": "cedarview-signature-2.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G185",
+    "catalogSource": "LEDOW pp. 23–24, 33",
+    "bytes": 124390
+  },
+  {
+    "home": "mayne",
+    "tier": "signature",
+    "option": "2",
+    "image": "mayne-signature-2.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G185",
+    "catalogSource": "LEDOW pp. 23–24, 33",
+    "bytes": 122796
+  },
+  {
+    "home": "summit",
+    "tier": "signature",
+    "option": "2",
+    "image": "summit-signature-2.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G185",
+    "catalogSource": "LEDOW pp. 23–24, 33",
+    "bytes": 123230
   },
   {
     "home": "aurora",
     "tier": "signature",
     "option": "2",
     "image": "aurora-signature-2.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 310148
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G185",
+    "catalogSource": "LEDOW pp. 23–24, 33",
+    "bytes": 124410
+  },
+  {
+    "home": "langley",
+    "tier": "signature",
+    "option": "3",
+    "image": "langley-signature-3.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 80T",
+    "catalogSource": "AMJ PDF pp. 8, 22",
+    "bytes": 233066
+  },
+  {
+    "home": "salt-spring",
+    "tier": "signature",
+    "option": "3",
+    "image": "salt-spring-signature-3.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 80T",
+    "catalogSource": "AMJ PDF pp. 8, 22",
+    "bytes": 234164
+  },
+  {
+    "home": "solace",
+    "tier": "signature",
+    "option": "3",
+    "image": "solace-signature-3.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 80T",
+    "catalogSource": "AMJ PDF pp. 8, 22",
+    "bytes": 232832
+  },
+  {
+    "home": "timberline",
+    "tier": "signature",
+    "option": "3",
+    "image": "timberline-signature-3.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 80T",
+    "catalogSource": "AMJ PDF pp. 8, 22",
+    "bytes": 234272
+  },
+  {
+    "home": "profile",
+    "tier": "signature",
+    "option": "3",
+    "image": "profile-signature-3.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 80T",
+    "catalogSource": "AMJ PDF pp. 8, 22",
+    "bytes": 233108
+  },
+  {
+    "home": "laurentian",
+    "tier": "signature",
+    "option": "3",
+    "image": "laurentian-signature-3.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 80T",
+    "catalogSource": "AMJ PDF pp. 8, 22",
+    "bytes": 234260
+  },
+  {
+    "home": "dalton",
+    "tier": "signature",
+    "option": "3",
+    "image": "dalton-signature-3.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 80T",
+    "catalogSource": "AMJ PDF pp. 8, 22",
+    "bytes": 232888
+  },
+  {
+    "home": "south-bay",
+    "tier": "signature",
+    "option": "3",
+    "image": "south-bay-signature-3.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 80T",
+    "catalogSource": "AMJ PDF pp. 8, 22",
+    "bytes": 233624
+  },
+  {
+    "home": "boreal",
+    "tier": "signature",
+    "option": "3",
+    "image": "boreal-signature-3.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 80T",
+    "catalogSource": "AMJ PDF pp. 8, 22",
+    "bytes": 232752
+  },
+  {
+    "home": "keats",
+    "tier": "signature",
+    "option": "3",
+    "image": "keats-signature-3.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 80T",
+    "catalogSource": "AMJ PDF pp. 8, 22",
+    "bytes": 232338
+  },
+  {
+    "home": "canmore",
+    "tier": "signature",
+    "option": "3",
+    "image": "canmore-signature-3.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 80T",
+    "catalogSource": "AMJ PDF pp. 8, 22",
+    "bytes": 234050
+  },
+  {
+    "home": "saturna",
+    "tier": "signature",
+    "option": "3",
+    "image": "saturna-signature-3.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 80T",
+    "catalogSource": "AMJ PDF pp. 8, 22",
+    "bytes": 233458
+  },
+  {
+    "home": "cascade",
+    "tier": "signature",
+    "option": "3",
+    "image": "cascade-signature-3.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 80T",
+    "catalogSource": "AMJ PDF pp. 8, 22",
+    "bytes": 233308
+  },
+  {
+    "home": "maplewood",
+    "tier": "signature",
+    "option": "3",
+    "image": "maplewood-signature-3.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 80T",
+    "catalogSource": "AMJ PDF pp. 8, 22",
+    "bytes": 234402
+  },
+  {
+    "home": "cedarview",
+    "tier": "signature",
+    "option": "3",
+    "image": "cedarview-signature-3.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 80T",
+    "catalogSource": "AMJ PDF pp. 8, 22",
+    "bytes": 234422
+  },
+  {
+    "home": "mayne",
+    "tier": "signature",
+    "option": "3",
+    "image": "mayne-signature-3.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 80T",
+    "catalogSource": "AMJ PDF pp. 8, 22",
+    "bytes": 232646
+  },
+  {
+    "home": "summit",
+    "tier": "signature",
+    "option": "3",
+    "image": "summit-signature-3.webp",
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 80T",
+    "catalogSource": "AMJ PDF pp. 8, 22",
+    "bytes": 233134
   },
   {
     "home": "aurora",
     "tier": "signature",
     "option": "3",
     "image": "aurora-signature-3.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 292738
+    "windowModel": "AMJ 88T",
+    "doorModel": "AMJ 80T",
+    "catalogSource": "AMJ PDF pp. 8, 22",
+    "bytes": 233120
+  },
+  {
+    "home": "langley",
+    "tier": "signature",
+    "option": "4",
+    "image": "langley-signature-4.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G120",
+    "catalogSource": "LEDOW pp. 27–28, 33",
+    "bytes": 95786
+  },
+  {
+    "home": "salt-spring",
+    "tier": "signature",
+    "option": "4",
+    "image": "salt-spring-signature-4.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G120",
+    "catalogSource": "LEDOW pp. 27–28, 33",
+    "bytes": 96994
+  },
+  {
+    "home": "solace",
+    "tier": "signature",
+    "option": "4",
+    "image": "solace-signature-4.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G120",
+    "catalogSource": "LEDOW pp. 27–28, 33",
+    "bytes": 95746
+  },
+  {
+    "home": "timberline",
+    "tier": "signature",
+    "option": "4",
+    "image": "timberline-signature-4.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G120",
+    "catalogSource": "LEDOW pp. 27–28, 33",
+    "bytes": 96700
+  },
+  {
+    "home": "profile",
+    "tier": "signature",
+    "option": "4",
+    "image": "profile-signature-4.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G120",
+    "catalogSource": "LEDOW pp. 27–28, 33",
+    "bytes": 95622
+  },
+  {
+    "home": "laurentian",
+    "tier": "signature",
+    "option": "4",
+    "image": "laurentian-signature-4.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G120",
+    "catalogSource": "LEDOW pp. 27–28, 33",
+    "bytes": 96668
+  },
+  {
+    "home": "dalton",
+    "tier": "signature",
+    "option": "4",
+    "image": "dalton-signature-4.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G120",
+    "catalogSource": "LEDOW pp. 27–28, 33",
+    "bytes": 95482
+  },
+  {
+    "home": "south-bay",
+    "tier": "signature",
+    "option": "4",
+    "image": "south-bay-signature-4.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G120",
+    "catalogSource": "LEDOW pp. 27–28, 33",
+    "bytes": 96480
+  },
+  {
+    "home": "boreal",
+    "tier": "signature",
+    "option": "4",
+    "image": "boreal-signature-4.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G120",
+    "catalogSource": "LEDOW pp. 27–28, 33",
+    "bytes": 95608
+  },
+  {
+    "home": "keats",
+    "tier": "signature",
+    "option": "4",
+    "image": "keats-signature-4.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G120",
+    "catalogSource": "LEDOW pp. 27–28, 33",
+    "bytes": 95120
+  },
+  {
+    "home": "canmore",
+    "tier": "signature",
+    "option": "4",
+    "image": "canmore-signature-4.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G120",
+    "catalogSource": "LEDOW pp. 27–28, 33",
+    "bytes": 96528
+  },
+  {
+    "home": "saturna",
+    "tier": "signature",
+    "option": "4",
+    "image": "saturna-signature-4.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G120",
+    "catalogSource": "LEDOW pp. 27–28, 33",
+    "bytes": 95924
+  },
+  {
+    "home": "cascade",
+    "tier": "signature",
+    "option": "4",
+    "image": "cascade-signature-4.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G120",
+    "catalogSource": "LEDOW pp. 27–28, 33",
+    "bytes": 95946
+  },
+  {
+    "home": "maplewood",
+    "tier": "signature",
+    "option": "4",
+    "image": "maplewood-signature-4.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G120",
+    "catalogSource": "LEDOW pp. 27–28, 33",
+    "bytes": 97242
+  },
+  {
+    "home": "cedarview",
+    "tier": "signature",
+    "option": "4",
+    "image": "cedarview-signature-4.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G120",
+    "catalogSource": "LEDOW pp. 27–28, 33",
+    "bytes": 96746
+  },
+  {
+    "home": "mayne",
+    "tier": "signature",
+    "option": "4",
+    "image": "mayne-signature-4.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G120",
+    "catalogSource": "LEDOW pp. 27–28, 33",
+    "bytes": 95304
+  },
+  {
+    "home": "summit",
+    "tier": "signature",
+    "option": "4",
+    "image": "summit-signature-4.webp",
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G120",
+    "catalogSource": "LEDOW pp. 27–28, 33",
+    "bytes": 95574
   },
   {
     "home": "aurora",
     "tier": "signature",
     "option": "4",
     "image": "aurora-signature-4.webp",
-    "width": 1600,
-    "height": 1200,
-    "bytes": 337136
+    "windowModel": "LEDOW G91",
+    "doorModel": "LEDOW G120",
+    "catalogSource": "LEDOW pp. 27–28, 33",
+    "bytes": 95666
   }
 ]

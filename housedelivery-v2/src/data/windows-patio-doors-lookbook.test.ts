@@ -27,13 +27,14 @@ test("all custom homes carry a selectable Canadian windows and patio doors chapt
     assert.match(category.technicalNote ?? "", /NAFS\/CSA A440S1/);
     assert.match(category.options.map((option) => option.name).join(" "), /Slider|Sliding/);
     assert.match(category.options.map((option) => option.name).join(" "), /Folding/);
-    assert.match(category.options.map((option) => option.name).join(" "), /Pocketing/);
+    assert.doesNotMatch(category.options.map((option) => option.name).join(" "), /Pocketing/);
+    assert.match(category.technicalNote ?? "", /Exterior pocketing is omitted/);
     for (const option of category.options) {
       assert.ok(existsSync(join(process.cwd(), "public", option.image.src)), `${home.homeId}: ${option.image.src}`);
       assert.equal(option.image.role, "design-board");
       assert.equal(option.image.fit, "contain");
       assert.match(option.image.src, new RegExp(`/boards/${home.homeId}-${option.level}-${option.optionNumber}\\.webp$`));
-      assert.match(option.description ?? "", /triple-glazed/);
+      assert.match(option.description ?? "", /Supplier model imagery and catalog configurations/);
     }
 
     const sections = getLookBookSelectionSections(definition.lookBook.sections);
