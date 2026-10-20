@@ -12,7 +12,7 @@ const imageRoot = "/images/lookbook/windows-patio-doors/boards";
 // assembly has identical test results. The project schedule names the final
 // product, glazing and site-specific performance after technical review.
 export const windowsPatioDoorDirections = [
-  { level: "premium", number: "1", name: "Coastal Casement + Classic Slider", image: "premium-classic-slider.webp", window: "double-glazed casement and fixed-view windows", windowLabel: "Casement + Fixed", door: "a thermally broken two-panel sliding patio door", doorLabel: "Two-Panel Slider", operationLabel: "Sliding", mood: "a quiet, familiar opening rhythm" },
+  { level: "premium", number: "1", name: "Casement + Classic Slider", image: "premium-classic-slider.webp", window: "double-glazed casement and fixed-view windows", windowLabel: "Casement + Fixed", door: "a thermally broken two-panel sliding patio door", doorLabel: "Two-Panel Slider", operationLabel: "Sliding", mood: "a quiet, familiar opening rhythm" },
   { level: "premium", number: "2", name: "Tilt-Turn + View Slider", image: "premium-view-slider.webp", window: "double-glazed tilt-turn and fixed-view windows", windowLabel: "Tilt-Turn + Fixed", door: "a thermally broken wide-view sliding patio door", doorLabel: "Wide View Slider", operationLabel: "Sliding", mood: "clean sightlines and flexible ventilation" },
   { level: "premium", number: "3", name: "Picture Window + Folding Patio", image: "premium-folding.webp", window: "double-glazed picture windows with coordinated operable vents", windowLabel: "Picture + Operable", door: "a thermally broken folding glass patio wall", doorLabel: "Folding Patio Wall", operationLabel: "Folding", mood: "a generous opening to the terrace" },
   { level: "premium", number: "4", name: "Awning + Lift-and-Slide", image: "premium-lift-slide.webp", window: "double-glazed awning and fixed-view windows", windowLabel: "Awning + Fixed", door: "a thermally broken lift-and-slide patio door", doorLabel: "Lift-and-Slide", operationLabel: "Lift + Slide", mood: "a calm, wide indoor–outdoor connection" },
@@ -35,7 +35,7 @@ function makeOption(
     ...(shared ? { shared: true } : {}),
     description: `A coordinated ${definition.residenceLabel} direction with ${direction.window} and ${direction.door}, creating ${direction.mood}. Frame colour is coordinated with the selected exterior finish. Representative visualization; final system, glazing and dimensions are confirmed for the project.`,
     editorial: {
-      descriptors: ["West Coast", "Daylight", direction.level === "signature" ? "Expansive" : "Refined"],
+      descriptors: ["Architectural", "Daylight", direction.level === "signature" ? "Expansive" : "Refined"],
       storyFragments: [direction.window, direction.door, direction.mood],
       materialRole: "Windows and indoor–outdoor glazing",
     },
@@ -80,7 +80,7 @@ function makeSection(definition: HomeConfiguratorDefinition): LookBookSection {
     title: "Windows & Patio Doors",
     introduction: definition.homeId === "salt-spring"
       ? "A single coordinated glazing and patio-door expression for Residence A and B, with interior tiers selected independently."
-      : `A West Coast window and indoor–outdoor living direction selected for ${definition.residenceLabel}, with frame colour coordinated to its exterior design.`,
+      : `A window and indoor–outdoor living direction selected for ${definition.residenceLabel}, with frame colour coordinated to its exterior design.`,
     kind: "selection-story",
     layout: "cinematic-hero",
     items: [{ categoryId: chapterId, presentation: "hero" }],

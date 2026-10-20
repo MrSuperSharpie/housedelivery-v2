@@ -4,13 +4,16 @@ import path from "node:path";
 import { chromium } from "playwright-core";
 import sharp from "sharp";
 import { getHomeConfiguratorRegistrationsByFamily } from "../src/data/home-configurator-registry.ts";
+import { models } from "../src/data/models.ts";
 import { windowsPatioDoorDirections } from "../src/data/windows-patio-doors-lookbook.ts";
 
 const root = process.cwd();
 const sourceRoot = path.join(root, "public/images/lookbook/windows-patio-doors");
 const assetRoot = path.join(root, "scripts/assets/window-patio");
+const portfolioRoot = path.join(root, "public/images/inclusions/windows-patio-doors/products");
 const outputRoot = path.join(sourceRoot, "boards");
 const chromePath = process.env.CHROME_EXECUTABLE_PATH || "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+const lookBookAssets = JSON.parse(await readFile(path.join(root, "src/data/home-lookbook-assets.json"), "utf8"));
 
 // Supplier crops are component references, not a single tested assembly.
 const specs = {
@@ -20,14 +23,16 @@ const specs = {
     glazing: "Double-pane argon window unit", glass: "double-casement.png",
     profile: "Thermally broken slider frame", profileImage: "classic-slider.png",
     hardware: "Recessed pull + hook lock", hardwareImage: "slider-pull.png",
+    doorPhoto: "hd-win-001-03.webp",
     windowCrop: [0, 80, 750, 690], doorCrop: [1010, 50, 650, 770],
   },
   "premium-2": {
-    summary: "Flexible tilt-turn ventilation and broad framed views connect the dining room to its covered terrace.",
+    summary: "Flexible tilt-turn ventilation and broad framed views connect the living space to its terrace.",
     window: "Tilt-turn + fixed view", door: "Wide two-panel slider",
     glazing: "Double-pane window direction", glass: "double-tilt-turn.png",
     profile: "Thermally broken slider frame", profileImage: "classic-slider.png",
     hardware: "Recessed sliding pull", hardwareImage: "slider-pull.png",
+    doorPhoto: "hd-win-003-01.webp",
     windowCrop: [0, 40, 700, 780], doorCrop: [820, 50, 800, 780],
   },
   "premium-3": {
@@ -36,14 +41,16 @@ const specs = {
     glazing: "Double-pane window direction", glass: "double-casement.png",
     profile: "Thermally broken folding frame", profileImage: "folding-door.png",
     hardware: "Folding handle style", hardwareImage: "folding-pull.png",
+    doorPhoto: "hd-win-005-02.webp",
     windowCrop: [1120, 50, 530, 800], doorCrop: [320, 20, 1120, 820],
   },
   "premium-4": {
-    summary: "Operable awning windows and a lift-slide patio opening frame a calm coastal outlook.",
+    summary: "Operable awning windows and a lift-slide patio opening frame the home's landscape outlook.",
     window: "Awning + fixed view", door: "Lift-slide patio opening",
     glazing: "Double-pane window direction", glass: "double-casement.png",
     profile: "Thermally broken lift-slide frame", profileImage: "lift-slide.png",
     hardware: "Dark pull finish reference", hardwareImage: "architectural-pull.png",
+    doorPhoto: "hd-win-005-01.webp",
     windowCrop: [0, 50, 690, 780], doorCrop: [650, 30, 1000, 800],
   },
   "signature-1": {
@@ -52,6 +59,7 @@ const specs = {
     glazing: "Triple-pane insulated window", glass: "triple-window.png",
     profile: "Thermally broken lift-slide frame", profileImage: "lift-slide.png",
     hardware: "Dark architectural pull reference", hardwareImage: "architectural-pull.png",
+    doorPhoto: "hd-win-005-01.webp",
     windowCrop: [0, 60, 800, 700], doorCrop: [690, 80, 760, 740],
   },
   "signature-2": {
@@ -60,6 +68,7 @@ const specs = {
     glazing: "Triple-pane insulated window", glass: "triple-window.png",
     profile: "Thermally broken lift-slide frame", profileImage: "lift-slide.png",
     hardware: "Dark architectural pull reference", hardwareImage: "architectural-pull.png",
+    doorPhoto: "hd-win-003-01.webp",
     windowCrop: [0, 40, 700, 780], doorCrop: [650, 20, 1000, 820],
   },
   "signature-3": {
@@ -68,6 +77,7 @@ const specs = {
     glazing: "Triple-pane insulated window", glass: "triple-window.png",
     profile: "Thermally broken folding frame", profileImage: "folding-door.png",
     hardware: "Folding handle style", hardwareImage: "folding-pull.png",
+    doorPhoto: "hd-win-005-02.webp",
     windowCrop: [1200, 30, 450, 800], doorCrop: [100, 30, 1200, 820],
   },
   "signature-4": {
@@ -76,6 +86,7 @@ const specs = {
     glazing: "Triple-pane insulated window", glass: "triple-window.png",
     profile: "Exterior-rated system required", profileImage: null,
     hardware: "Pocket + track to be designed", hardwareImage: null,
+    doorPhoto: null,
     windowCrop: [0, 20, 680, 800], doorCrop: [720, 20, 920, 820],
   },
 };
@@ -85,16 +96,46 @@ const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (c) => ({
 })[c]);
 const dataUrl = (bytes, type) => `data:image/${type};base64,${bytes.toString("base64")}`;
 
-async function imagesFor(direction, spec) {
-  const heroBytes = await readFile(path.join(sourceRoot, direction.image));
+function homeSceneSource(home, direction) {
+  // These older window-covering sets introduced an unrelated city skyline.
+  // The alternate room views retain each model's actual architectural story.
+  const categoryId = ["mayne", "south-bay"].includes(home.homeId)
+    ? "whole-home-flooring-stairs" : "window-coverings";
+  const category = home.categories.find((item) => item.id === categoryId);
+  const references = category?.options?.length
+    ? category.options
+    : lookBookAssets.filter((item) => item.homeId === home.homeId && item.categoryId === categoryId);
+  const matching = references.filter((item) => item.level === direction.level)
+    .sort((a, b) => Number(a.optionNumber) - Number(b.optionNumber));
+  const reference = matching[Number(direction.number) - 1];
+  assert.ok(reference?.image?.src || reference?.src, `${home.homeId}: missing ${direction.level} ${direction.number} home scene`);
+  const source = reference.image?.src || reference.src;
+  assert.ok(source.startsWith(`/images/homes/${home.homeId}/`), `${home.homeId}: scene belongs to another home`);
+  return source;
+}
+
+async function imagesFor(home, direction, spec) {
+  // The room scene comes from this home's existing, published visual story.
+  // Crop away the original window-covering board's heading and material strip.
+  const sceneSource = homeSceneSource(home, direction);
+  const boardBytes = await readFile(path.join(root, "public", sceneSource.slice(1)));
+  const metadata = await sharp(boardBytes).metadata();
+  assert.equal(metadata.width, 1448, `${sceneSource}: unexpected source width`);
+  assert.equal(metadata.height, 1086, `${sceneSource}: unexpected source height`);
+  const heroBytes = await sharp(boardBytes)
+    .extract({ left: 24, top: 160, width: 1400, height: 550 })
+    .webp({ quality: 94, effort: 5 }).toBuffer();
   const hero = sharp(heroBytes);
-  const crop = async ([left, top, width, height]) =>
-    dataUrl(await hero.clone().extract({ left, top, width, height }).png().toBuffer(), "png");
+  const crop = async () =>
+    dataUrl(await hero.clone().extract({ left: 0, top: 0, width: 650, height: 550 }).png().toBuffer(), "png");
   const asset = async (name) => name
     ? dataUrl(await readFile(path.join(assetRoot, name)), "png") : null;
+  const portfolio = async (name) => name
+    ? dataUrl(await readFile(path.join(portfolioRoot, name)), "webp") : null;
   return {
+    sceneSource,
     hero: dataUrl(heroBytes, "webp"),
-    window: await crop(spec.windowCrop), door: await crop(spec.doorCrop),
+    window: await crop(), door: await portfolio(spec.doorPhoto),
     glazing: await asset(spec.glass),
     profile: await asset(spec.profileImage),
     hardware: await asset(spec.hardwareImage),
@@ -102,6 +143,8 @@ async function imagesFor(direction, spec) {
 }
 
 function boardHtml(home, direction, spec, images) {
+  const context = models.find((model) => model.slug === home.homeId)?.locationLabel;
+  assert.ok(context, `${home.homeId}: missing architectural context`);
   const tile = (label, value, src, fallback) =>
     `<section class="tile"><div class="tile-photo ${src ? "" : "concept"}">${src
       ? `<img src="${src}" alt="">`
@@ -126,19 +169,19 @@ function boardHtml(home, direction, spec, images) {
     .brand{font:17px Georgia,serif;letter-spacing:3px;white-space:nowrap}
     .note{max-width:940px;text-align:right;font:12px/1.25 Arial,sans-serif;color:#6c716b}
   </style></head><body><main>
-    <div class="eyebrow">HOUSE DELIVERY · WINDOW & PATIO DOOR COLLECTION</div>
+    <div class="eyebrow">HOUSE DELIVERY · ${escapeHtml(context.toUpperCase())} · WINDOW & PATIO DOOR COLLECTION</div>
     <h1>${escapeHtml(home.residenceLabel.toUpperCase())} | WINDOWS & PATIO DOORS</h1>
     <h2>${escapeHtml(`${direction.level.toUpperCase()} ${direction.number} — ${direction.name.toUpperCase()}`)}</h2>
     <p class="intro">${escapeHtml(spec.summary)}</p>
     <div class="hero"><img src="${images.hero}" alt="Representative architectural visualization"></div>
     <div class="tiles">
       ${tile("WINDOW STYLE", spec.window, images.window)}
-      ${tile("PATIO DOOR", spec.door, images.door)}
+      ${tile("PATIO DOOR", spec.door, images.door, "Exterior-rated system selected for the project")}
       ${tile("GLAZING", spec.glazing, images.glazing)}
       ${tile("DOOR PROFILE", spec.profile, images.profile, "Project-specific exterior assembly")}
       ${tile(direction.level === "signature" && direction.number === "4" ? "POCKET DETAIL" : "HARDWARE STYLE", spec.hardware, images.hardware, "Structure, drainage and access")}
     </div>
-    <footer><div class="brand">HOUSE DELIVERY</div><div class="note">Representative room visualization; component details are based on supplier references. Final tested assemblies, dimensions and Canadian ratings are confirmed for each project.</div></footer>
+    <footer><div class="brand">HOUSE DELIVERY</div><div class="note">Room scene illustrates this home's architectural setting. Component details show the selected direction using supplier references; final tested assemblies, dimensions and Canadian ratings are confirmed for each project.</div></footer>
   </main></body></html>`;
 }
 
@@ -159,7 +202,7 @@ try {
     for (const direction of windowsPatioDoorDirections) {
       const spec = specs[`${direction.level}-${direction.number}`];
       assert.ok(spec);
-      const images = await imagesFor(direction, spec);
+      const images = await imagesFor(home, direction, spec);
       await page.setContent(boardHtml(home, direction, spec, images), { waitUntil: "load" });
       const loaded = await page.locator("img").evaluateAll((items) =>
         items.every((item) => item.complete && item.naturalWidth > 0));
@@ -169,7 +212,8 @@ try {
       const metadata = await sharp(screenshot).webp({ quality: 90, effort: 5 })
         .toFile(path.join(outputRoot, filename));
       manifest.push({ home: home.homeId, tier: direction.level, option: direction.number,
-        image: filename, width: metadata.width, height: metadata.height, bytes: metadata.size });
+        image: filename, sceneSource: images.sceneSource,
+        width: metadata.width, height: metadata.height, bytes: metadata.size });
     }
     console.log(`${home.homeId}: 8 boards`);
   }

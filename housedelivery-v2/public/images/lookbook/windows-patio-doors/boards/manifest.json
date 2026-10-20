@@ -4,1295 +4,1439 @@
     "tier": "premium",
     "option": "1",
     "image": "langley-premium-1.webp",
+    "sceneSource": "/images/homes/langley/visual-guide/Langley_07_Window-Coverings_Premium-1_Hearthstone-Oak.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 303636
+    "bytes": 230506
   },
   {
     "home": "langley",
     "tier": "premium",
     "option": "2",
     "image": "langley-premium-2.webp",
+    "sceneSource": "/images/homes/langley/visual-guide/Langley_07_Window-Coverings_Premium-2_Gable-Linen.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 278472
+    "bytes": 227518
   },
   {
     "home": "langley",
     "tier": "premium",
     "option": "3",
     "image": "langley-premium-3.webp",
+    "sceneSource": "/images/homes/langley/design-boards/langley-window-coverings-premium-sandstone-oak.8c096e090cf6-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 284170
+    "bytes": 205980
   },
   {
     "home": "langley",
     "tier": "premium",
     "option": "4",
     "image": "langley-premium-4.webp",
+    "sceneSource": "/images/homes/langley/design-boards/langley-window-coverings-premium-graphite-oak.cf937d55ba9e-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 327648
+    "bytes": 241506
   },
   {
     "home": "langley",
     "tier": "signature",
     "option": "1",
     "image": "langley-signature-1.webp",
+    "sceneSource": "/images/homes/langley/visual-guide/Langley_07_Window-Coverings_Signature-1_Manor-Graphite.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 314922
+    "bytes": 252096
   },
   {
     "home": "langley",
     "tier": "signature",
     "option": "2",
     "image": "langley-signature-2.webp",
+    "sceneSource": "/images/homes/langley/visual-guide/Langley_07_Window-Coverings_Signature-2_Estate-Bronze.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 309966
+    "bytes": 273190
   },
   {
     "home": "langley",
     "tier": "signature",
     "option": "3",
     "image": "langley-signature-3.webp",
+    "sceneSource": "/images/homes/langley/design-boards/langley-window-coverings-signature-smoked-walnut-bronze.af0bad319479-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 277080
+    "bytes": 249588
   },
   {
     "home": "langley",
     "tier": "signature",
     "option": "4",
     "image": "langley-signature-4.webp",
+    "sceneSource": "/images/homes/langley/design-boards/langley-window-coverings-signature-limestone-noir.3db97ef8b4f1-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 313324
+    "bytes": 198836
   },
   {
     "home": "salt-spring",
     "tier": "premium",
     "option": "1",
     "image": "salt-spring-premium-1.webp",
+    "sceneSource": "/images/homes/salt-spring/design-boards/salt-spring-window-coverings-premium-warm-oak.8b780291f212-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 309070
+    "bytes": 230394
   },
   {
     "home": "salt-spring",
     "tier": "premium",
     "option": "2",
     "image": "salt-spring-premium-2.webp",
+    "sceneSource": "/images/homes/salt-spring/design-boards/salt-spring-window-coverings-premium-soft-white.8c2e6075bee1-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 280290
+    "bytes": 250994
   },
   {
     "home": "salt-spring",
     "tier": "premium",
     "option": "3",
     "image": "salt-spring-premium-3.webp",
+    "sceneSource": "/images/homes/salt-spring/design-boards/salt-spring-window-coverings-premium-sandstone-oak.aeda55497f5e-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 285678
+    "bytes": 245960
   },
   {
     "home": "salt-spring",
     "tier": "premium",
     "option": "4",
     "image": "salt-spring-premium-4.webp",
+    "sceneSource": "/images/homes/salt-spring/design-boards/salt-spring-window-coverings-premium-graphite-oak.0f5e78963912-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 328980
+    "bytes": 244964
   },
   {
     "home": "salt-spring",
     "tier": "signature",
     "option": "1",
     "image": "salt-spring-signature-1.webp",
+    "sceneSource": "/images/homes/salt-spring/design-boards/salt-spring-window-coverings-signature-smoked-walnut-stone.476be6067ac6-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 316752
+    "bytes": 234906
   },
   {
     "home": "salt-spring",
     "tier": "signature",
     "option": "2",
     "image": "salt-spring-signature-2.webp",
+    "sceneSource": "/images/homes/salt-spring/design-boards/salt-spring-window-coverings-signature-sculpted-white.450d02df8674-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 311048
+    "bytes": 251018
   },
   {
     "home": "salt-spring",
     "tier": "signature",
     "option": "3",
     "image": "salt-spring-signature-3.webp",
+    "sceneSource": "/images/homes/salt-spring/design-boards/salt-spring-window-coverings-signature-rift-oak-bronze.2cf4828e1fa1-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 278094
+    "bytes": 235748
   },
   {
     "home": "salt-spring",
     "tier": "signature",
     "option": "4",
     "image": "salt-spring-signature-4.webp",
+    "sceneSource": "/images/homes/salt-spring/design-boards/salt-spring-window-coverings-signature-limestone-noir.6eabc08b07dd-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 314756
+    "bytes": 237872
   },
   {
     "home": "solace",
     "tier": "premium",
     "option": "1",
     "image": "solace-premium-1.webp",
+    "sceneSource": "/images/homes/solace/visual-guide/Solace_07_Window-Coverings_Premium-1_Coastal-Light-Oak.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 303604
+    "bytes": 245470
   },
   {
     "home": "solace",
     "tier": "premium",
     "option": "2",
     "image": "solace-premium-2.webp",
+    "sceneSource": "/images/homes/solace/visual-guide/Solace_07_Window-Coverings_Premium-2_Soft-White.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 278386
+    "bytes": 205898
   },
   {
     "home": "solace",
     "tier": "premium",
     "option": "3",
     "image": "solace-premium-3.webp",
+    "sceneSource": "/images/homes/solace/design-boards/solace-window-coverings-premium-sandstone-oak.b5ee3d901bb2-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 284108
+    "bytes": 275094
   },
   {
     "home": "solace",
     "tier": "premium",
     "option": "4",
     "image": "solace-premium-4.webp",
+    "sceneSource": "/images/homes/solace/design-boards/solace-window-coverings-premium-graphite-oak.8ea841f6aa44-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 327672
+    "bytes": 276434
   },
   {
     "home": "solace",
     "tier": "signature",
     "option": "1",
     "image": "solace-signature-1.webp",
+    "sceneSource": "/images/homes/solace/visual-guide/Solace_07_Window-Coverings_Signature-1_Stone-Wrapped-Oak.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 314938
+    "bytes": 259122
   },
   {
     "home": "solace",
     "tier": "signature",
     "option": "2",
     "image": "solace-signature-2.webp",
+    "sceneSource": "/images/homes/solace/visual-guide/Solace_07_Window-Coverings_Signature-2_Sculpted-White.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 309762
+    "bytes": 239244
   },
   {
     "home": "solace",
     "tier": "signature",
     "option": "3",
     "image": "solace-signature-3.webp",
+    "sceneSource": "/images/homes/solace/design-boards/solace-window-coverings-signature-smoked-walnut-bronze.f9bf2b0bd0b9-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 276978
+    "bytes": 274238
   },
   {
     "home": "solace",
     "tier": "signature",
     "option": "4",
     "image": "solace-signature-4.webp",
+    "sceneSource": "/images/homes/solace/design-boards/solace-window-coverings-signature-limestone-noir.8538c44ce846-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 313512
+    "bytes": 256632
   },
   {
     "home": "timberline",
     "tier": "premium",
     "option": "1",
     "image": "timberline-premium-1.webp",
+    "sceneSource": "/images/homes/timberline/visual-guide/Timberline_07_Window-Coverings_Premium-1_Warm-Natural.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 308742
+    "bytes": 261906
   },
   {
     "home": "timberline",
     "tier": "premium",
     "option": "2",
     "image": "timberline-premium-2.webp",
+    "sceneSource": "/images/homes/timberline/visual-guide/Timberline_07_Window-Coverings_Premium-2_Tailored-Light.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 279216
+    "bytes": 209692
   },
   {
     "home": "timberline",
     "tier": "premium",
     "option": "3",
     "image": "timberline-premium-3.webp",
+    "sceneSource": "/images/homes/timberline/design-boards/timberline-window-coverings-premium-sandstone-oak.8d10782b3dea-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 284848
+    "bytes": 199996
   },
   {
     "home": "timberline",
     "tier": "premium",
     "option": "4",
     "image": "timberline-premium-4.webp",
+    "sceneSource": "/images/homes/timberline/design-boards/timberline-window-coverings-premium-graphite-oak.8c13ede68c87-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 328254
+    "bytes": 206084
   },
   {
     "home": "timberline",
     "tier": "signature",
     "option": "1",
     "image": "timberline-signature-1.webp",
+    "sceneSource": "/images/homes/timberline/visual-guide/Timberline_07_Window-Coverings_Signature-1_Charcoal-Smoked-Oak.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 315962
+    "bytes": 236718
   },
   {
     "home": "timberline",
     "tier": "signature",
     "option": "2",
     "image": "timberline-signature-2.webp",
+    "sceneSource": "/images/homes/timberline/visual-guide/Timberline_07_Window-Coverings_Signature-2_Limestone-Bronze.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 310626
+    "bytes": 223352
   },
   {
     "home": "timberline",
     "tier": "signature",
     "option": "3",
     "image": "timberline-signature-3.webp",
+    "sceneSource": "/images/homes/timberline/design-boards/timberline-window-coverings-signature-smoked-walnut-bronze.f5f8948cda5c-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 277590
+    "bytes": 213032
   },
   {
     "home": "timberline",
     "tier": "signature",
     "option": "4",
     "image": "timberline-signature-4.webp",
+    "sceneSource": "/images/homes/timberline/design-boards/timberline-window-coverings-signature-limestone-noir.c201cfe2b288-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 314194
+    "bytes": 195846
   },
   {
     "home": "profile",
     "tier": "premium",
     "option": "1",
     "image": "profile-premium-1.webp",
+    "sceneSource": "/images/homes/profile/visual-guide/profile-window-coverings-01.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 303612
+    "bytes": 236440
   },
   {
     "home": "profile",
     "tier": "premium",
     "option": "2",
     "image": "profile-premium-2.webp",
+    "sceneSource": "/images/homes/profile/visual-guide/profile-window-coverings-02.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 278010
+    "bytes": 208478
   },
   {
     "home": "profile",
     "tier": "premium",
     "option": "3",
     "image": "profile-premium-3.webp",
+    "sceneSource": "/images/homes/profile/design-boards/profile-window-coverings-premium-sandstone-oak.cdea054f95f7-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 284162
+    "bytes": 179034
   },
   {
     "home": "profile",
     "tier": "premium",
     "option": "4",
     "image": "profile-premium-4.webp",
+    "sceneSource": "/images/homes/profile/design-boards/profile-window-coverings-premium-graphite-oak.cae24c74ecee-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 327508
+    "bytes": 180822
   },
   {
     "home": "profile",
     "tier": "signature",
     "option": "1",
     "image": "profile-signature-1.webp",
+    "sceneSource": "/images/homes/profile/visual-guide/profile-window-coverings-03.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 314768
+    "bytes": 224088
   },
   {
     "home": "profile",
     "tier": "signature",
     "option": "2",
     "image": "profile-signature-2.webp",
+    "sceneSource": "/images/homes/profile/visual-guide/profile-window-coverings-04.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 309522
+    "bytes": 209504
   },
   {
     "home": "profile",
     "tier": "signature",
     "option": "3",
     "image": "profile-signature-3.webp",
+    "sceneSource": "/images/homes/profile/design-boards/profile-window-coverings-signature-smoked-walnut-bronze.2719b9fac25f-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 276730
+    "bytes": 181146
   },
   {
     "home": "profile",
     "tier": "signature",
     "option": "4",
     "image": "profile-signature-4.webp",
+    "sceneSource": "/images/homes/profile/design-boards/profile-window-coverings-signature-limestone-noir.e76567bc8e8c-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 313314
+    "bytes": 173642
   },
   {
     "home": "laurentian",
     "tier": "premium",
     "option": "1",
     "image": "laurentian-premium-1.webp",
+    "sceneSource": "/images/homes/laurentian/visual-guide/Laurentian_07_Window-Coverings_Premium-1_Natural-Light-Oak.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 308980
+    "bytes": 226772
   },
   {
     "home": "laurentian",
     "tier": "premium",
     "option": "2",
     "image": "laurentian-premium-2.webp",
+    "sceneSource": "/images/homes/laurentian/visual-guide/Laurentian_07_Window-Coverings_Premium-2_Soft-Ivory-Travertine.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 279508
+    "bytes": 223138
   },
   {
     "home": "laurentian",
     "tier": "premium",
     "option": "3",
     "image": "laurentian-premium-3.webp",
+    "sceneSource": "/images/homes/laurentian/design-boards/laurentian-window-coverings-premium-sandstone-oak.469aa4b98d5a-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 285046
+    "bytes": 218730
   },
   {
     "home": "laurentian",
     "tier": "premium",
     "option": "4",
     "image": "laurentian-premium-4.webp",
+    "sceneSource": "/images/homes/laurentian/design-boards/laurentian-window-coverings-premium-graphite-oak.b535cf9fb446-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 328708
+    "bytes": 270624
   },
   {
     "home": "laurentian",
     "tier": "signature",
     "option": "1",
     "image": "laurentian-signature-1.webp",
+    "sceneSource": "/images/homes/laurentian/visual-guide/Laurentian_07_Window-Coverings_Signature-1_Smoked-Walnut-Graphite.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 316012
+    "bytes": 219048
   },
   {
     "home": "laurentian",
     "tier": "signature",
     "option": "2",
     "image": "laurentian-signature-2.webp",
+    "sceneSource": "/images/homes/laurentian/visual-guide/Laurentian_07_Window-Coverings_Signature-2_Sandstone-Bronze-Linen.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 310678
+    "bytes": 258572
   },
   {
     "home": "laurentian",
     "tier": "signature",
     "option": "3",
     "image": "laurentian-signature-3.webp",
+    "sceneSource": "/images/homes/laurentian/design-boards/laurentian-window-coverings-signature-smoked-walnut-bronze.a5bc6a4eac78-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 277946
+    "bytes": 257150
   },
   {
     "home": "laurentian",
     "tier": "signature",
     "option": "4",
     "image": "laurentian-signature-4.webp",
+    "sceneSource": "/images/homes/laurentian/design-boards/laurentian-window-coverings-signature-limestone-noir.4fde9e40fcf3-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 314286
+    "bytes": 202226
   },
   {
     "home": "dalton",
     "tier": "premium",
     "option": "1",
     "image": "dalton-premium-1.webp",
+    "sceneSource": "/images/homes/dalton/visual-guide/Dalton_07_Window-Coverings_Premium-1.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 303474
+    "bytes": 225026
   },
   {
     "home": "dalton",
     "tier": "premium",
     "option": "2",
     "image": "dalton-premium-2.webp",
+    "sceneSource": "/images/homes/dalton/visual-guide/Dalton_07_Window-Coverings_Premium-2.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 278214
+    "bytes": 223340
   },
   {
     "home": "dalton",
     "tier": "premium",
     "option": "3",
     "image": "dalton-premium-3.webp",
+    "sceneSource": "/images/homes/dalton/design-boards/dalton-window-coverings-premium-sandstone-oak.5067d881aaaf-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 284090
+    "bytes": 225112
   },
   {
     "home": "dalton",
     "tier": "premium",
     "option": "4",
     "image": "dalton-premium-4.webp",
+    "sceneSource": "/images/homes/dalton/design-boards/dalton-window-coverings-premium-graphite-oak.b888d7648b20-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 327440
+    "bytes": 254676
   },
   {
     "home": "dalton",
     "tier": "signature",
     "option": "1",
     "image": "dalton-signature-1.webp",
+    "sceneSource": "/images/homes/dalton/visual-guide/Dalton_07_Window-Coverings_Signature-1.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 315044
+    "bytes": 196896
   },
   {
     "home": "dalton",
     "tier": "signature",
     "option": "2",
     "image": "dalton-signature-2.webp",
+    "sceneSource": "/images/homes/dalton/visual-guide/Dalton_07_Window-Coverings_Signature-2.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 309548
+    "bytes": 226614
   },
   {
     "home": "dalton",
     "tier": "signature",
     "option": "3",
     "image": "dalton-signature-3.webp",
+    "sceneSource": "/images/homes/dalton/design-boards/dalton-window-coverings-signature-smoked-walnut-bronze.f86c37f3da99-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 276880
+    "bytes": 247906
   },
   {
     "home": "dalton",
     "tier": "signature",
     "option": "4",
     "image": "dalton-signature-4.webp",
+    "sceneSource": "/images/homes/dalton/design-boards/dalton-window-coverings-signature-limestone-noir.47ffcef7adbd-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 313076
+    "bytes": 233264
   },
   {
     "home": "south-bay",
     "tier": "premium",
     "option": "1",
     "image": "south-bay-premium-1.webp",
+    "sceneSource": "/images/homes/south-bay/visual-guide/South-Bay_06_Whole-Home-Flooring-Stairs_Premium-1_Shoreline-Oak.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 304000
+    "bytes": 212548
   },
   {
     "home": "south-bay",
     "tier": "premium",
     "option": "2",
     "image": "south-bay-premium-2.webp",
+    "sceneSource": "/images/homes/south-bay/visual-guide/South-Bay_06_Whole-Home-Flooring-Stairs_Premium-2_Mist-Linen.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 279046
+    "bytes": 193752
   },
   {
     "home": "south-bay",
     "tier": "premium",
     "option": "3",
     "image": "south-bay-premium-3.webp",
+    "sceneSource": "/images/homes/south-bay/design-boards/south-bay-whole-home-flooring-stairs-premium-sandstone-oak.5811f9942c61-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 284438
+    "bytes": 199710
   },
   {
     "home": "south-bay",
     "tier": "premium",
     "option": "4",
     "image": "south-bay-premium-4.webp",
+    "sceneSource": "/images/homes/south-bay/design-boards/south-bay-whole-home-flooring-stairs-premium-graphite-oak.8ce6f6fe2598-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 328328
+    "bytes": 206042
   },
   {
     "home": "south-bay",
     "tier": "signature",
     "option": "1",
     "image": "south-bay-signature-1.webp",
+    "sceneSource": "/images/homes/south-bay/visual-guide/South-Bay_06_Whole-Home-Flooring-Stairs_Signature-1_Basalt-Frame.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 315578
+    "bytes": 221072
   },
   {
     "home": "south-bay",
     "tier": "signature",
     "option": "2",
     "image": "south-bay-signature-2.webp",
+    "sceneSource": "/images/homes/south-bay/visual-guide/South-Bay_06_Whole-Home-Flooring-Stairs_Signature-2_Cove-Bronze.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 310202
+    "bytes": 220668
   },
   {
     "home": "south-bay",
     "tier": "signature",
     "option": "3",
     "image": "south-bay-signature-3.webp",
+    "sceneSource": "/images/homes/south-bay/design-boards/south-bay-whole-home-flooring-stairs-signature-smoked-walnut-bronze.cfac7160767c-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 277252
+    "bytes": 210716
   },
   {
     "home": "south-bay",
     "tier": "signature",
     "option": "4",
     "image": "south-bay-signature-4.webp",
+    "sceneSource": "/images/homes/south-bay/design-boards/south-bay-whole-home-flooring-stairs-signature-limestone-noir.b43437947e58-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 313862
+    "bytes": 197676
   },
   {
     "home": "boreal",
     "tier": "premium",
     "option": "1",
     "image": "boreal-premium-1.webp",
+    "sceneSource": "/images/homes/boreal/visual-guide/Boreal_07_Window-Coverings_Premium-1_Hearthstone-Oak.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 303250
+    "bytes": 228986
   },
   {
     "home": "boreal",
     "tier": "premium",
     "option": "2",
     "image": "boreal-premium-2.webp",
+    "sceneSource": "/images/homes/boreal/visual-guide/Boreal_07_Window-Coverings_Premium-2_Silver-Birch.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 278378
+    "bytes": 205810
   },
   {
     "home": "boreal",
     "tier": "premium",
     "option": "3",
     "image": "boreal-premium-3.webp",
+    "sceneSource": "/images/homes/boreal/design-boards/boreal-window-coverings-premium-sandstone-oak.e19cbaa99298-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 284288
+    "bytes": 229450
   },
   {
     "home": "boreal",
     "tier": "premium",
     "option": "4",
     "image": "boreal-premium-4.webp",
+    "sceneSource": "/images/homes/boreal/design-boards/boreal-window-coverings-premium-graphite-oak.18a7dd6c768f-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 327832
+    "bytes": 223270
   },
   {
     "home": "boreal",
     "tier": "signature",
     "option": "1",
     "image": "boreal-signature-1.webp",
+    "sceneSource": "/images/homes/boreal/visual-guide/Boreal_07_Window-Coverings_Signature-1_Midnight-Schist.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 314866
+    "bytes": 189310
   },
   {
     "home": "boreal",
     "tier": "signature",
     "option": "2",
     "image": "boreal-signature-2.webp",
+    "sceneSource": "/images/homes/boreal/visual-guide/Boreal_07_Window-Coverings_Signature-2_Bronze-Ember.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 309728
+    "bytes": 251968
   },
   {
     "home": "boreal",
     "tier": "signature",
     "option": "3",
     "image": "boreal-signature-3.webp",
+    "sceneSource": "/images/homes/boreal/design-boards/boreal-window-coverings-signature-smoked-walnut-bronze.9209027d8365-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 276980
+    "bytes": 226886
   },
   {
     "home": "boreal",
     "tier": "signature",
     "option": "4",
     "image": "boreal-signature-4.webp",
+    "sceneSource": "/images/homes/boreal/design-boards/boreal-window-coverings-signature-limestone-noir.b3f25244dcdf-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 313412
+    "bytes": 215660
   },
   {
     "home": "keats",
     "tier": "premium",
     "option": "1",
     "image": "keats-premium-1.webp",
+    "sceneSource": "/images/homes/keats/visual-guide/Keats_07_Window-Coverings_Premium-1_Harbour-Oak-Sandstone.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 303238
+    "bytes": 250110
   },
   {
     "home": "keats",
     "tier": "premium",
     "option": "2",
     "image": "keats-premium-2.webp",
+    "sceneSource": "/images/homes/keats/visual-guide/Keats_07_Window-Coverings_Premium-2_Gallery-Ash-Pearlstone.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 278064
+    "bytes": 211810
   },
   {
     "home": "keats",
     "tier": "premium",
     "option": "3",
     "image": "keats-premium-3.webp",
+    "sceneSource": "/images/homes/keats/design-boards/keats-window-coverings-premium-sandstone-oak.dab309456a23-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 283528
+    "bytes": 207394
   },
   {
     "home": "keats",
     "tier": "premium",
     "option": "4",
     "image": "keats-premium-4.webp",
+    "sceneSource": "/images/homes/keats/design-boards/keats-window-coverings-premium-graphite-oak.f95cbd8ef337-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 326882
+    "bytes": 202894
   },
   {
     "home": "keats",
     "tier": "signature",
     "option": "1",
     "image": "keats-signature-1.webp",
+    "sceneSource": "/images/homes/keats/visual-guide/Keats_07_Window-Coverings_Signature-1_Night-Fir-Basalt.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 314492
+    "bytes": 240842
   },
   {
     "home": "keats",
     "tier": "signature",
     "option": "2",
     "image": "keats-signature-2.webp",
+    "sceneSource": "/images/homes/keats/visual-guide/Keats_07_Window-Coverings_Signature-2_Walnut-Bronze-Veined-Limestone.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 309240
+    "bytes": 258108
   },
   {
     "home": "keats",
     "tier": "signature",
     "option": "3",
     "image": "keats-signature-3.webp",
+    "sceneSource": "/images/homes/keats/design-boards/keats-window-coverings-signature-smoked-walnut-bronze.d08f5b0a63b5-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 276564
+    "bytes": 211656
   },
   {
     "home": "keats",
     "tier": "signature",
     "option": "4",
     "image": "keats-signature-4.webp",
+    "sceneSource": "/images/homes/keats/design-boards/keats-window-coverings-signature-limestone-noir.dbcd6db02b08-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 312696
+    "bytes": 187930
   },
   {
     "home": "canmore",
     "tier": "premium",
     "option": "1",
     "image": "canmore-premium-1.webp",
+    "sceneSource": "/images/homes/canmore/visual-guide/Canmore_07_Window-Coverings_Premium-1_Hearth-Oak.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 304226
+    "bytes": 261940
   },
   {
     "home": "canmore",
     "tier": "premium",
     "option": "2",
     "image": "canmore-premium-2.webp",
+    "sceneSource": "/images/homes/canmore/visual-guide/Canmore_07_Window-Coverings_Premium-2_Mineral-Linen.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 279092
+    "bytes": 210570
   },
   {
     "home": "canmore",
     "tier": "premium",
     "option": "3",
     "image": "canmore-premium-3.webp",
+    "sceneSource": "/images/homes/canmore/design-boards/canmore-window-coverings-premium-sandstone-oak.3ae3bfddac1f-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 284608
+    "bytes": 196578
   },
   {
     "home": "canmore",
     "tier": "premium",
     "option": "4",
     "image": "canmore-premium-4.webp",
+    "sceneSource": "/images/homes/canmore/design-boards/canmore-window-coverings-premium-graphite-oak.5bbfa994a43a-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 328494
+    "bytes": 210556
   },
   {
     "home": "canmore",
     "tier": "signature",
     "option": "1",
     "image": "canmore-signature-1.webp",
+    "sceneSource": "/images/homes/canmore/visual-guide/Canmore_07_Window-Coverings_Signature-1_Carbon-Ridge.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 315728
+    "bytes": 227366
   },
   {
     "home": "canmore",
     "tier": "signature",
     "option": "2",
     "image": "canmore-signature-2.webp",
+    "sceneSource": "/images/homes/canmore/visual-guide/Canmore_07_Window-Coverings_Signature-2_Bronze-Walnut.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 310436
+    "bytes": 259236
   },
   {
     "home": "canmore",
     "tier": "signature",
     "option": "3",
     "image": "canmore-signature-3.webp",
+    "sceneSource": "/images/homes/canmore/design-boards/canmore-window-coverings-signature-smoked-walnut-bronze.14072cda526e-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 277500
+    "bytes": 217604
   },
   {
     "home": "canmore",
     "tier": "signature",
     "option": "4",
     "image": "canmore-signature-4.webp",
+    "sceneSource": "/images/homes/canmore/design-boards/canmore-window-coverings-signature-limestone-noir.299d841732ec-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 313988
+    "bytes": 195116
   },
   {
     "home": "saturna",
     "tier": "premium",
     "option": "1",
     "image": "saturna-premium-1.webp",
+    "sceneSource": "/images/homes/saturna/configurator/Saturna_07_Window-Coverings_Premium-1_Warm-Modern.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 303822
+    "bytes": 213030
   },
   {
     "home": "saturna",
     "tier": "premium",
     "option": "2",
     "image": "saturna-premium-2.webp",
+    "sceneSource": "/images/homes/saturna/configurator/Saturna_07_Window-Coverings_Premium-2_Contemporary-Cool.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 278952
+    "bytes": 209634
   },
   {
     "home": "saturna",
     "tier": "premium",
     "option": "3",
     "image": "saturna-premium-3.webp",
+    "sceneSource": "/images/homes/saturna/design-boards/saturna-window-coverings-premium-sandstone-oak.13a002ab7c95-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 284698
+    "bytes": 209536
   },
   {
     "home": "saturna",
     "tier": "premium",
     "option": "4",
     "image": "saturna-premium-4.webp",
+    "sceneSource": "/images/homes/saturna/design-boards/saturna-window-coverings-premium-graphite-oak.80cbceca8163-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 328122
+    "bytes": 217610
   },
   {
     "home": "saturna",
     "tier": "signature",
     "option": "1",
     "image": "saturna-signature-1.webp",
+    "sceneSource": "/images/homes/saturna/configurator/Saturna_07_Window-Coverings_Signature-1_Scandi-Natural.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 315296
+    "bytes": 199612
   },
   {
     "home": "saturna",
     "tier": "signature",
     "option": "2",
     "image": "saturna-signature-2.webp",
+    "sceneSource": "/images/homes/saturna/configurator/Saturna_07_Window-Coverings_Signature-2_Modern-Earth.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 310252
+    "bytes": 240008
   },
   {
     "home": "saturna",
     "tier": "signature",
     "option": "3",
     "image": "saturna-signature-3.webp",
+    "sceneSource": "/images/homes/saturna/design-boards/saturna-window-coverings-signature-smoked-walnut-bronze.a4dcf7ace175-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 277136
+    "bytes": 221002
   },
   {
     "home": "saturna",
     "tier": "signature",
     "option": "4",
     "image": "saturna-signature-4.webp",
+    "sceneSource": "/images/homes/saturna/design-boards/saturna-window-coverings-signature-limestone-noir.e3b13a543642-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 313804
+    "bytes": 209488
   },
   {
     "home": "cascade",
     "tier": "premium",
     "option": "1",
     "image": "cascade-premium-1.webp",
+    "sceneSource": "/images/homes/cascade/visual-guide/Cascade_07_Window-Coverings_Premium-1_Meadow-Oak.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 303752
+    "bytes": 247800
   },
   {
     "home": "cascade",
     "tier": "premium",
     "option": "2",
     "image": "cascade-premium-2.webp",
+    "sceneSource": "/images/homes/cascade/visual-guide/Cascade_07_Window-Coverings_Premium-2_Gallery-Ash.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 278714
+    "bytes": 219634
   },
   {
     "home": "cascade",
     "tier": "premium",
     "option": "3",
     "image": "cascade-premium-3.webp",
+    "sceneSource": "/images/homes/cascade/design-boards/cascade-window-coverings-premium-sandstone-oak.b190e69f3d5e-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 284350
+    "bytes": 198452
   },
   {
     "home": "cascade",
     "tier": "premium",
     "option": "4",
     "image": "cascade-premium-4.webp",
+    "sceneSource": "/images/homes/cascade/design-boards/cascade-window-coverings-premium-graphite-oak.483dce200951-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 328002
+    "bytes": 225914
   },
   {
     "home": "cascade",
     "tier": "signature",
     "option": "1",
     "image": "cascade-signature-1.webp",
+    "sceneSource": "/images/homes/cascade/visual-guide/Cascade_07_Window-Coverings_Signature-1_Carbon-Elm.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 315200
+    "bytes": 235638
   },
   {
     "home": "cascade",
     "tier": "signature",
     "option": "2",
     "image": "cascade-signature-2.webp",
+    "sceneSource": "/images/homes/cascade/visual-guide/Cascade_07_Window-Coverings_Signature-2_Bronze-Strata.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 309616
+    "bytes": 252772
   },
   {
     "home": "cascade",
     "tier": "signature",
     "option": "3",
     "image": "cascade-signature-3.webp",
+    "sceneSource": "/images/homes/cascade/design-boards/cascade-window-coverings-signature-smoked-walnut-bronze.81b4a09fe09d-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 277376
+    "bytes": 218904
   },
   {
     "home": "cascade",
     "tier": "signature",
     "option": "4",
     "image": "cascade-signature-4.webp",
+    "sceneSource": "/images/homes/cascade/design-boards/cascade-window-coverings-signature-limestone-noir.2f8bc85b1276-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 313824
+    "bytes": 211018
   },
   {
     "home": "maplewood",
     "tier": "premium",
     "option": "1",
     "image": "maplewood-premium-1.webp",
+    "sceneSource": "/images/homes/maplewood/visual-guide/Maplewood_07_Window-Coverings_Premium-1_Coastal-Light-Oak.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 309222
+    "bytes": 228434
   },
   {
     "home": "maplewood",
     "tier": "premium",
     "option": "2",
     "image": "maplewood-premium-2.webp",
+    "sceneSource": "/images/homes/maplewood/visual-guide/Maplewood_07_Window-Coverings_Premium-2_Soft-White.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 280044
+    "bytes": 204114
   },
   {
     "home": "maplewood",
     "tier": "premium",
     "option": "3",
     "image": "maplewood-premium-3.webp",
+    "sceneSource": "/images/homes/maplewood/design-boards/maplewood-window-coverings-premium-sandstone-oak.b5bb633303f0-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 285780
+    "bytes": 264390
   },
   {
     "home": "maplewood",
     "tier": "premium",
     "option": "4",
     "image": "maplewood-premium-4.webp",
+    "sceneSource": "/images/homes/maplewood/design-boards/maplewood-window-coverings-premium-graphite-oak.55377edd5867-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 329128
+    "bytes": 259130
   },
   {
     "home": "maplewood",
     "tier": "signature",
     "option": "1",
     "image": "maplewood-signature-1.webp",
+    "sceneSource": "/images/homes/maplewood/visual-guide/Maplewood_07_Window-Coverings_Signature-1_Stone-Wrapped-Oak.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 316672
+    "bytes": 247560
   },
   {
     "home": "maplewood",
     "tier": "signature",
     "option": "2",
     "image": "maplewood-signature-2.webp",
+    "sceneSource": "/images/homes/maplewood/visual-guide/Maplewood_07_Window-Coverings_Signature-2_Sculpted-White.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 311298
+    "bytes": 224440
   },
   {
     "home": "maplewood",
     "tier": "signature",
     "option": "3",
     "image": "maplewood-signature-3.webp",
+    "sceneSource": "/images/homes/maplewood/design-boards/maplewood-window-coverings-signature-smoked-walnut-bronze.eb38acd4c4e9-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 278238
+    "bytes": 233700
   },
   {
     "home": "maplewood",
     "tier": "signature",
     "option": "4",
     "image": "maplewood-signature-4.webp",
+    "sceneSource": "/images/homes/maplewood/design-boards/maplewood-window-coverings-signature-limestone-noir.3b39b903df34-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 314840
+    "bytes": 209712
   },
   {
     "home": "cedarview",
     "tier": "premium",
     "option": "1",
     "image": "cedarview-premium-1.webp",
+    "sceneSource": "/images/homes/cedarview/visual-guide/Cedarview_07_Window-Coverings_Premium-1_Arbutus-Stone.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 309120
+    "bytes": 236682
   },
   {
     "home": "cedarview",
     "tier": "premium",
     "option": "2",
     "image": "cedarview-premium-2.webp",
+    "sceneSource": "/images/homes/cedarview/visual-guide/Cedarview_07_Window-Coverings_Premium-2_Cloudline-Ash.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 279502
+    "bytes": 192564
   },
   {
     "home": "cedarview",
     "tier": "premium",
     "option": "3",
     "image": "cedarview-premium-3.webp",
+    "sceneSource": "/images/homes/cedarview/design-boards/cedarview-window-coverings-premium-sandstone-oak.4ef5f57786f5-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 285562
+    "bytes": 217844
   },
   {
     "home": "cedarview",
     "tier": "premium",
     "option": "4",
     "image": "cedarview-premium-4.webp",
+    "sceneSource": "/images/homes/cedarview/design-boards/cedarview-window-coverings-premium-graphite-oak.0fda8d4a53df-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 328950
+    "bytes": 217412
   },
   {
     "home": "cedarview",
     "tier": "signature",
     "option": "1",
     "image": "cedarview-signature-1.webp",
+    "sceneSource": "/images/homes/cedarview/visual-guide/Cedarview_07_Window-Coverings_Signature-1_Raven-Basalt.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 316412
+    "bytes": 221908
   },
   {
     "home": "cedarview",
     "tier": "signature",
     "option": "2",
     "image": "cedarview-signature-2.webp",
+    "sceneSource": "/images/homes/cedarview/visual-guide/Cedarview_07_Window-Coverings_Signature-2_Bronze-Umber.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 310938
+    "bytes": 246452
   },
   {
     "home": "cedarview",
     "tier": "signature",
     "option": "3",
     "image": "cedarview-signature-3.webp",
+    "sceneSource": "/images/homes/cedarview/design-boards/cedarview-window-coverings-signature-smoked-walnut-bronze.e88a00e0e56f-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 278068
+    "bytes": 236874
   },
   {
     "home": "cedarview",
     "tier": "signature",
     "option": "4",
     "image": "cedarview-signature-4.webp",
+    "sceneSource": "/images/homes/cedarview/design-boards/cedarview-window-coverings-signature-limestone-noir.306f5b96a6b5-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 314626
+    "bytes": 185408
   },
   {
     "home": "mayne",
     "tier": "premium",
     "option": "1",
     "image": "mayne-premium-1.webp",
+    "sceneSource": "/images/homes/mayne/Mayne_06_Whole-Home-Flooring-Stairs_Premium-1_Orchard-Oak.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 303320
+    "bytes": 243378
   },
   {
     "home": "mayne",
     "tier": "premium",
     "option": "2",
     "image": "mayne-premium-2.webp",
+    "sceneSource": "/images/homes/mayne/Mayne_06_Whole-Home-Flooring-Stairs_Premium-2_Pearl-Pumice.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 278234
+    "bytes": 200978
   },
   {
     "home": "mayne",
     "tier": "premium",
     "option": "3",
     "image": "mayne-premium-3.webp",
+    "sceneSource": "/images/homes/mayne/design-boards/mayne-whole-home-flooring-stairs-premium-sandstone-oak.9c8e657d4618-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 284002
+    "bytes": 176576
   },
   {
     "home": "mayne",
     "tier": "premium",
     "option": "4",
     "image": "mayne-premium-4.webp",
+    "sceneSource": "/images/homes/mayne/design-boards/mayne-whole-home-flooring-stairs-premium-graphite-oak.c0667760d9c5-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 327404
+    "bytes": 158930
   },
   {
     "home": "mayne",
     "tier": "signature",
     "option": "1",
     "image": "mayne-signature-1.webp",
+    "sceneSource": "/images/homes/mayne/Mayne_06_Whole-Home-Flooring-Stairs_Signature-1_Onyx-Grid.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 314970
+    "bytes": 221564
   },
   {
     "home": "mayne",
     "tier": "signature",
     "option": "2",
     "image": "mayne-signature-2.webp",
+    "sceneSource": "/images/homes/mayne/Mayne_06_Whole-Home-Flooring-Stairs_Signature-2_Sienna-Walnut.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 309528
+    "bytes": 252748
   },
   {
     "home": "mayne",
     "tier": "signature",
     "option": "3",
     "image": "mayne-signature-3.webp",
+    "sceneSource": "/images/homes/mayne/design-boards/mayne-whole-home-flooring-stairs-signature-smoked-walnut-bronze.0da8daec2486-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 276434
+    "bytes": 172460
   },
   {
     "home": "mayne",
     "tier": "signature",
     "option": "4",
     "image": "mayne-signature-4.webp",
+    "sceneSource": "/images/homes/mayne/design-boards/mayne-whole-home-flooring-stairs-signature-limestone-noir.89c40778d6c9-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 313170
+    "bytes": 141988
   },
   {
     "home": "summit",
     "tier": "premium",
     "option": "1",
     "image": "summit-premium-1.webp",
+    "sceneSource": "/images/homes/summit/visual-guide/Summit_07_Window-Coverings_Premium-1_Terrace-Elm.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 303648
+    "bytes": 246582
   },
   {
     "home": "summit",
     "tier": "premium",
     "option": "2",
     "image": "summit-premium-2.webp",
+    "sceneSource": "/images/homes/summit/visual-guide/Summit_07_Window-Coverings_Premium-2_Silver-Quartz.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 278798
+    "bytes": 214920
   },
   {
     "home": "summit",
     "tier": "premium",
     "option": "3",
     "image": "summit-premium-3.webp",
+    "sceneSource": "/images/homes/summit/design-boards/summit-window-coverings-premium-sandstone-oak.a52583c4c70a-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 284022
+    "bytes": 253582
   },
   {
     "home": "summit",
     "tier": "premium",
     "option": "4",
     "image": "summit-premium-4.webp",
+    "sceneSource": "/images/homes/summit/design-boards/summit-window-coverings-premium-graphite-oak.1e0041faa617-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 327712
+    "bytes": 264422
   },
   {
     "home": "summit",
     "tier": "signature",
     "option": "1",
     "image": "summit-signature-1.webp",
+    "sceneSource": "/images/homes/summit/visual-guide/Summit_07_Window-Coverings_Signature-1_Nightfall-Charcoal.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 315042
+    "bytes": 235236
   },
   {
     "home": "summit",
     "tier": "signature",
     "option": "2",
     "image": "summit-signature-2.webp",
+    "sceneSource": "/images/homes/summit/visual-guide/Summit_07_Window-Coverings_Signature-2_Cognac-Bronze.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 309552
+    "bytes": 273192
   },
   {
     "home": "summit",
     "tier": "signature",
     "option": "3",
     "image": "summit-signature-3.webp",
+    "sceneSource": "/images/homes/summit/design-boards/summit-window-coverings-signature-smoked-walnut-bronze.f5e248b82452-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 276920
+    "bytes": 292022
   },
   {
     "home": "summit",
     "tier": "signature",
     "option": "4",
     "image": "summit-signature-4.webp",
+    "sceneSource": "/images/homes/summit/design-boards/summit-window-coverings-signature-limestone-noir.0588be6be14d-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 313534
+    "bytes": 261720
   },
   {
     "home": "aurora",
     "tier": "premium",
     "option": "1",
     "image": "aurora-premium-1.webp",
+    "sceneSource": "/images/homes/aurora/visual-guide/Aurora_07_Window-Coverings_Premium-1_Sunward-Oak.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 303414
+    "bytes": 238148
   },
   {
     "home": "aurora",
     "tier": "premium",
     "option": "2",
     "image": "aurora-premium-2.webp",
+    "sceneSource": "/images/homes/aurora/visual-guide/Aurora_07_Window-Coverings_Premium-2_Lumen-Elm.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 278694
+    "bytes": 194082
   },
   {
     "home": "aurora",
     "tier": "premium",
     "option": "3",
     "image": "aurora-premium-3.webp",
+    "sceneSource": "/images/homes/aurora/design-boards/aurora-window-coverings-premium-sandstone-oak.a615724fbd0f-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 284266
+    "bytes": 191946
   },
   {
     "home": "aurora",
     "tier": "premium",
     "option": "4",
     "image": "aurora-premium-4.webp",
+    "sceneSource": "/images/homes/aurora/design-boards/aurora-window-coverings-premium-graphite-oak.c766a768f9a9-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 327440
+    "bytes": 222870
   },
   {
     "home": "aurora",
     "tier": "signature",
     "option": "1",
     "image": "aurora-signature-1.webp",
+    "sceneSource": "/images/homes/aurora/visual-guide/Aurora_07_Window-Coverings_Signature-1_Eclipse-Slate.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 315240
+    "bytes": 219950
   },
   {
     "home": "aurora",
     "tier": "signature",
     "option": "2",
     "image": "aurora-signature-2.webp",
+    "sceneSource": "/images/homes/aurora/visual-guide/Aurora_07_Window-Coverings_Signature-2_Ember-Bronze.png",
     "width": 1600,
     "height": 1200,
-    "bytes": 309928
+    "bytes": 242098
   },
   {
     "home": "aurora",
     "tier": "signature",
     "option": "3",
     "image": "aurora-signature-3.webp",
+    "sceneSource": "/images/homes/aurora/design-boards/aurora-window-coverings-signature-smoked-walnut-bronze.f199fae6c155-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 276850
+    "bytes": 204848
   },
   {
     "home": "aurora",
     "tier": "signature",
     "option": "4",
     "image": "aurora-signature-4.webp",
+    "sceneSource": "/images/homes/aurora/design-boards/aurora-window-coverings-signature-limestone-noir.dce2560c6260-1448.webp",
     "width": 1600,
     "height": 1200,
-    "bytes": 313416
+    "bytes": 193340
   }
 ]
