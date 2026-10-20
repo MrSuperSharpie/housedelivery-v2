@@ -1,0 +1,40 @@
+{
+  "name": "housedelivery-v2",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "test": "tsx --test \"src/**/*.test.ts\" \"src/**/*.test.tsx\"",
+    "qa:lookbook": "node scripts/verify-lookbook.mjs",
+    "qa:lookbook:pdf": "node scripts/render-lookbook-pdf.mjs",
+    "qa:property-routing": "node --import tsx scripts/verify-lower-mainland-routing.ts",
+    "qa:property-browser": "node scripts/verify-property-review-browser.mjs",
+    "start": "next start",
+    "lint": "eslint",
+    "images:floorplans": "node scripts/process-floorplans.mjs"
+  },
+  "dependencies": {
+    "@sparticuz/chromium": "149.0.0",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.42.2",
+    "lucide-react": "^1.26.0",
+    "next": "16.2.11",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "tailwind-merge": "^3.6.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.11",
+    "playwright-core": "^1.62.1",
+    "sharp": "^0.34.5",
+    "tailwindcss": "^4",
+    "tsx": "^4.23.12",
+    "typescript": "^5"
+  }
+}

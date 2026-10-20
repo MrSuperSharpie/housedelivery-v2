@@ -1,0 +1,110 @@
+import { createLowerMainlandPropertyReviewProvider } from "@/lib/property-review/providers/lower-mainland";
+import type {
+  PropertyReviewProvider,
+  PropertyReviewResult,
+} from "@/lib/property-review/types";
+
+function needsReviewResult({
+  address,
+  municipality,
+  reason,
+  failureCode,
+}: {
+  address: string;
+  municipality: string;
+  reason: string;
+  failureCode: NonNullable<PropertyReviewResult["failureCode"]>;
+}): PropertyReviewResult {
+  const submittedAddress = address.trim().replace(/\s+/g, " ");
+  return {
+    submittedAddress,
+    normalizedAddress: submittedAddress,
+    municipality,
+    propertyType: "Property type requires review",
+    strataIndicator: "NOT CONFIDENTLY DETERMINED",
+    multifamilyIndicator: false,
+    commercialIndicator: false,
+    industrialIndicator: false,
+    appearsUnusuallyComplex: true,
+    complexityReasons: [reason],
+    leadState: "YELLOW",
+    leadStateLabel: "HUMAN REVIEW REQUIRED",
+    recommendedNextAction: "MANUAL PROPERTY REVIEW REQUIRED",
+    matchedRules: [
+      {
+        ruleId: `PROPERTY-YELLOW-${failureCode}`,
+        source: "Property review workflow",
+        explanation: reason,
+        result: "YELLOW",
+        confidence: "HIGH",
+      },
+    ],
+    screening: "NEEDS REVIEW",
+    reason,
+    dataSources: [],
+    failureCode,
+  };
+}
+
+export function createPropertyReviewWorkflow(
+  providers: PropertyReviewProvider[] = [
+    createLowerMainlandPropertyReviewProvider(),
+  ],
+) {
+  return {
+    async review(address: string): Promise<PropertyReviewResult> {
+      const submittedAddress = address.trim().replace(/\s+/g, " ");
+      if (!submittedAddress) {
+        return needsReviewResult({
+          address,
+          municipality: "Not confidently determined",
+          reason: "No property address was supplied for municipal review.",
+          failureCode: "ADDRESS_INVALID",
+        });
+      }
+
+      let provider: PropertyReviewProvider | undefined;
+      try {
+        provider = providers.find((candidate) =>
+          candidate.supports(submittedAddress),
+        );
+      } catch {
+        return needsReviewResult({
+          address: submittedAddress,
+          municipality: "Not confidently determined",
+          reason:
+            "The municipality could not be determined automatically and requires manual review.",
+          failureCode: "UNEXPECTED_ERROR",
+        });
+      }
+
+      if (!provider) {
+        return needsReviewResult({
+          address: submittedAddress,
+          municipality: "Lower Mainland jurisdiction requires review",
+          reason:
+            "The submitted address did not match a configured municipal provider and requires jurisdiction review.",
+          failureCode: "MUNICIPALITY_NOT_SUPPORTED",
+        });
+      }
+
+      try {
+        return await provider.review(submittedAddress);
+      } catch {
+        return needsReviewResult({
+          address: submittedAddress,
+          municipality: provider.municipality,
+          reason:
+            "An unexpected error prevented the municipal property review from completing. The lead still requires manual review.",
+          failureCode: "UNEXPECTED_ERROR",
+        });
+      }
+    },
+  };
+}
+
+const defaultPropertyReviewWorkflow = createPropertyReviewWorkflow();
+
+export async function reviewPropertyAddress(address: string) {
+  return defaultPropertyReviewWorkflow.review(address);
+}

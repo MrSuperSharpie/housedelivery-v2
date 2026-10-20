@@ -1,0 +1,546 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0b0c10;
+  --foreground: #f7f7f3;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-mono:
+    "Geist Mono", "Geist Mono Fallback", ui-monospace, SFMono-Regular,
+    monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  background: var(--background);
+}
+
+html:has([data-inclusions-library]) {
+  scroll-behavior: auto;
+}
+
+body {
+  min-width: 320px;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "Geist", "Geist Fallback", Arial, Helvetica, sans-serif;
+}
+
+::selection {
+  background: #f7f7f3;
+  color: #0b0c10;
+}
+
+a,
+button,
+input,
+select,
+textarea {
+  outline-offset: 4px;
+}
+
+button,
+select {
+  cursor: pointer;
+}
+
+.eyebrow {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.38);
+}
+
+.noise {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.75'/%3E%3C/svg%3E");
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  border-bottom: 1px solid rgb(11 12 16 / 0.2);
+  padding-bottom: 0.75rem;
+}
+
+.form-field > span {
+  font-size: 9px;
+  font-weight: 650;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgb(11 12 16 / 0.52);
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  width: 100%;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0.25rem 0;
+  color: #0b0c10;
+  font: inherit;
+  font-size: 15px;
+  resize: vertical;
+}
+
+.form-field input::placeholder,
+.form-field textarea::placeholder {
+  color: rgb(11 12 16 / 0.3);
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.look-book-page-inner {
+  width: 100%;
+  max-width: 1600px;
+  min-height: min(920px, 100svh);
+  margin-inline: auto;
+  padding: 6rem 1.25rem;
+}
+
+.look-book-section,
+[data-look-book-home-introduction],
+[data-look-book-next-stage] {
+  min-height: min(920px, 100svh);
+}
+
+.look-book-section:nth-child(even) {
+  background: #ded9cd;
+}
+
+#home-look-book :is(
+  .text-black\/34,
+  .text-black\/42,
+  .text-black\/48,
+  .text-black\/52,
+  .text-black\/54,
+  .text-black\/56
+) {
+  color: rgb(0 0 0 / 0.66);
+}
+
+#home-look-book :is(
+  .text-white\/38,
+  .text-white\/42,
+  .text-white\/48,
+  .text-white\/50,
+  .text-white\/52,
+  .text-white\/56,
+  .text-white\/58
+) {
+  color: rgb(255 255 255 / 0.7);
+}
+
+@media (min-width: 640px) {
+  .look-book-page-inner {
+    padding-inline: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .look-book-page-inner {
+    padding: 8rem 3rem;
+  }
+}
+
+@page {
+  size: A4 portrait;
+  margin: 0;
+}
+
+@media print {
+  html,
+  body {
+    width: 210mm;
+    min-width: 0;
+    background: #e7e3d8 !important;
+  }
+
+  body {
+    display: block;
+  }
+
+  body > header,
+  body > footer,
+  main > * {
+    display: none !important;
+  }
+
+  main,
+  main > #home-configurator,
+  main > #home-look-book,
+  main > .planner-shell,
+  main.internal-document-shell,
+  main.internal-document-shell > [data-internal-print-document],
+  #home-configurator > #home-look-book {
+    display: block !important;
+  }
+
+  .planner-screen-only {
+    display: none !important;
+  }
+
+  main > .planner-shell,
+  main > .planner-shell > div,
+  [data-planner-report],
+  [data-planner-report] * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  main > .planner-shell {
+    width: 210mm;
+    background: #fff !important;
+  }
+
+  main > .planner-shell > div:last-child {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  [data-planner-report] {
+    display: block !important;
+    width: 210mm;
+    margin: 0 !important;
+    padding: 14mm !important;
+    background: #fff !important;
+  }
+
+  main.internal-document-shell {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 !important;
+    background: #fff !important;
+  }
+
+  main.internal-document-shell > [data-internal-print-document] {
+    width: 210mm;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 14mm !important;
+    background: #fff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  #home-configurator > #home-inclusions,
+  .look-book-screen-control {
+    display: none !important;
+  }
+
+  #home-look-book,
+  #home-look-book * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  #home-look-book {
+    width: 210mm;
+    margin: 0;
+    background: #e7e3d8 !important;
+  }
+
+  #home-look-book [data-look-book-print-page] {
+    width: 210mm;
+    height: 297mm;
+    min-height: 297mm;
+    margin: 0;
+    overflow: hidden;
+    break-after: page;
+    page-break-after: always;
+  }
+
+  #home-look-book [data-look-book-next-stage] {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  #home-look-book .look-book-page-inner {
+    width: 210mm;
+    max-width: none;
+    height: 297mm;
+    min-height: 297mm;
+    margin: 0;
+    padding: 14mm !important;
+  }
+
+  #home-look-book .look-book-sections {
+    display: block;
+    max-width: none;
+    padding: 0 !important;
+  }
+
+  #home-look-book .look-book-section {
+    margin: 0;
+  }
+
+  #home-look-book .look-book-editorial-header > .grid,
+  #home-look-book [data-look-book-home-introduction] > .look-book-page-inner > .grid:first-child {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.72fr) !important;
+    gap: 8mm !important;
+  }
+
+  #home-look-book [data-look-book-home-introduction][data-long-residence-label="true"] > .look-book-page-inner > .grid:first-child {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.7fr) !important;
+  }
+
+  #home-look-book [data-look-book-home-introduction] dl,
+  #home-look-book [data-look-book-next-stage] .mt-14.grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  #home-look-book [data-look-book-home-introduction] .relative.mt-10 {
+    height: 110mm !important;
+    aspect-ratio: auto !important;
+  }
+
+  #home-look-book h3[data-long-residence-label="true"] {
+    font-size: 10mm !important;
+  }
+
+  #home-look-book [data-look-book-next-stage] .mt-14.grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 6mm !important;
+  }
+
+  #home-look-book [data-look-book-next-stage] .mt-14.grid article {
+    border-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  #home-look-book [data-look-book-next-stage] .mt-14.grid h4 {
+    font-size: 4.2mm !important;
+  }
+
+  #home-look-book .look-book-editorial-header h3 {
+    font-size: 11mm !important;
+    line-height: 0.88 !important;
+  }
+
+  #home-look-book .look-book-print-headline {
+    letter-spacing: -0.035em !important;
+    word-spacing: 0.1em !important;
+    text-wrap: balance;
+  }
+
+  #home-look-book [data-look-book-value-story="precision-quality"] header > .grid,
+  #home-look-book [data-look-book-value-story="why-house-delivery"] header > .grid {
+    grid-template-columns: minmax(0, 1.18fr) minmax(0, 0.82fr) !important;
+    gap: 10mm !important;
+  }
+
+  #home-look-book [data-look-book-value-story="precision-quality"] h3 {
+    font-size: 18mm !important;
+    line-height: 0.86 !important;
+  }
+
+  #home-look-book [data-look-book-value-story="why-house-delivery"] h3 {
+    font-size: 20mm !important;
+    line-height: 0.84 !important;
+  }
+
+  #home-look-book [data-look-book-value-story="delivery-value"] h3 {
+    max-width: 170mm !important;
+    font-size: 17mm !important;
+    line-height: 0.88 !important;
+  }
+
+  #home-look-book [data-look-book-next-stage] h3 {
+    max-width: 174mm !important;
+    font-size: 19mm !important;
+    line-height: 0.86 !important;
+  }
+
+  #home-look-book .look-book-design-story {
+    grid-template-columns: 0.84fr 1.16fr !important;
+  }
+
+  #home-look-book .look-book-design-story > div:last-child {
+    min-height: 0 !important;
+    height: 156mm;
+  }
+
+  #home-look-book .look-book-material-palette {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    column-gap: 4mm !important;
+    row-gap: 5mm !important;
+  }
+
+  #home-look-book .look-book-material-palette .look-book-image-button {
+    aspect-ratio: 1 / 1 !important;
+  }
+
+  #home-look-book .look-book-cinematic .look-book-image-button {
+    height: 112mm !important;
+    aspect-ratio: auto !important;
+  }
+
+  #home-look-book .look-book-cinematic[data-look-book-design-board="true"] > [data-look-book-selected-board="true"] {
+    width: 100% !important;
+    margin-inline: auto !important;
+  }
+
+  #home-look-book .look-book-cinematic[data-look-book-design-board="true"] .look-book-image-button {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 4 / 3 !important;
+  }
+
+  #home-look-book .look-book-cinematic[data-look-book-design-board="true"] {
+    margin-top: 8mm !important;
+  }
+
+  #home-look-book .look-book-cinematic[data-look-book-design-board="true"] > .grid {
+    gap: 8mm !important;
+  }
+
+  #home-look-book .look-book-cinematic > .grid {
+    grid-template-columns: 1.25fr 0.75fr !important;
+  }
+
+  #home-look-book [data-look-book-layout="asymmetric"] .look-book-page-inner > .grid:last-child,
+  #home-look-book [data-look-book-layout="editorial-split"] .look-book-page-inner > .grid:last-child {
+    grid-template-columns: 1.35fr 0.65fr !important;
+  }
+
+  #home-look-book [data-look-book-layout="asymmetric"] .look-book-page-inner > .grid:last-child > article:last-child {
+    padding-top: 20mm !important;
+  }
+
+  #home-look-book [data-look-book-layout="editorial-split"] .look-book-page-inner > .grid:last-child > article:last-child {
+    padding-bottom: 8mm !important;
+  }
+
+  #home-look-book [data-look-book-layout="asymmetric"] .look-book-page-inner > .grid:last-child > article:first-child .look-book-image-button,
+  #home-look-book [data-look-book-layout="editorial-split"] .look-book-page-inner > .grid:last-child > article:first-child .look-book-image-button {
+    height: 118mm !important;
+    aspect-ratio: auto !important;
+  }
+
+  #home-look-book [data-look-book-layout="asymmetric"] .look-book-page-inner > .grid:last-child > article:last-child .look-book-image-button,
+  #home-look-book [data-look-book-layout="editorial-split"] .look-book-page-inner > .grid:last-child > article:last-child .look-book-image-button {
+    height: 102mm !important;
+    aspect-ratio: auto !important;
+  }
+
+  #home-look-book .look-book-detail-story {
+    grid-template-columns: 1.15fr 0.85fr !important;
+  }
+
+  #home-look-book .look-book-detail-story > article:first-child .look-book-image-button {
+    height: 116mm !important;
+    aspect-ratio: auto !important;
+  }
+
+  #home-look-book .look-book-detail-story > div:last-child .look-book-image-button {
+    height: 38mm !important;
+    aspect-ratio: auto !important;
+  }
+
+  #home-look-book .look-book-arrival {
+    grid-template-columns: 1.18fr 0.82fr !important;
+  }
+
+  #home-look-book .look-book-arrival > div:first-child {
+    min-height: 0 !important;
+    height: 132mm;
+  }
+
+  #home-look-book .look-book-arrival > div:last-child {
+    grid-template-columns: 1fr !important;
+  }
+
+  #home-look-book .look-book-arrival > div:last-child article {
+    grid-template-columns: 0.65fr 1.35fr !important;
+  }
+
+  #home-look-book .look-book-carried-forward > .grid {
+    grid-template-columns: 0.42fr 1.58fr !important;
+  }
+
+  #home-look-book .look-book-carried-forward > .grid > div:last-child {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  #home-look-book article {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  #home-look-book .look-book-image-button {
+    cursor: default;
+  }
+
+  #home-look-book h2 {
+    font-size: 24mm !important;
+  }
+
+  #home-look-book h4 {
+    font-size: 5mm !important;
+  }
+
+  [data-opportunity-report-polished] {
+    width: 210mm !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
+
+  [data-opportunity-report-polished] > [data-opportunity-report-page] {
+    width: 210mm !important;
+    min-height: 297mm !important;
+    margin: 0 !important;
+    padding: 14mm !important;
+    break-after: page;
+    page-break-after: always;
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  [data-opportunity-report-polished] > [data-opportunity-report-page]:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  #home-look-book p {
+    orphans: 3;
+    widows: 3;
+  }
+}
