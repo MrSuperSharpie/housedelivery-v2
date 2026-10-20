@@ -172,7 +172,7 @@ test("only approved Custom Homes expose a shared configurator", () => {
     );
     assert.equal(
       getRequiredCategories(definition).length,
-      model.slug === "salt-spring" ? 13 : 7,
+      model.slug === "salt-spring" ? 14 : 8,
     );
 
     for (const category of definition.categories) {
@@ -218,7 +218,7 @@ test("all residential product families are registered without premature activati
       .every(
         (registration) =>
           registration.definition !== undefined &&
-          registration.activeChapterIds.length === (registration.homeId === "salt-spring" ? 13 : 7),
+          registration.activeChapterIds.length === (registration.homeId === "salt-spring" ? 14 : 8),
       ),
   );
   assert.ok(
@@ -382,7 +382,7 @@ test("the next eight Custom Homes retain all 224 original Visual Guide boards", 
     assert.strictEqual(registration?.definition, definition);
     assert.deepEqual(getCanonicalHomeConfiguratorIssues(definition), []);
 
-    const requiredCategories = getRequiredCategories(definition);
+    const requiredCategories = getRequiredCategories(definition).filter((category) => category.id !== "windows-patio-doors");
     assert.equal(requiredCategories.length, 7);
     assert.equal(hasDesignBoardImages(definition), true);
     assert.equal(
@@ -450,9 +450,9 @@ test("the next eight Custom Homes retain all 224 original Visual Guide boards", 
 });
 
 test("the family policy locks finish-only personalization and optional smaller-home chapters", () => {
-  assert.equal(canonicalHomeConfiguratorStages.length, 8);
+  assert.equal(canonicalHomeConfiguratorStages.length, 9);
   assert.equal(
-    canonicalHomeConfiguratorStages[7]?.title,
+    canonicalHomeConfiguratorStages[8]?.title,
     "My Home / Review / Save as PDF",
   );
   assert.deepEqual(
@@ -562,7 +562,7 @@ test("design packages can resolve shared or home-specific approved content", () 
 test("Solace uses exactly seven approved visual-guide chapters", () => {
   const definition = getHomeConfiguratorDefinition("solace");
   assert.ok(definition);
-  const requiredCategories = getRequiredCategories(definition);
+  const requiredCategories = getRequiredCategories(definition).filter((category) => category.id !== "windows-patio-doors");
 
   assert.strictEqual(definition, solaceHomeConfigurator);
   assert.deepEqual(getCanonicalHomeConfiguratorIssues(definition), []);
@@ -653,7 +653,7 @@ test("Solace uses exactly seven approved visual-guide chapters", () => {
         .filter((categoryId) => categoryId !== "appliances"),
     ),
   );
-  assert.equal(selectionSectionIds.size, 7);
+  assert.equal(selectionSectionIds.size, 8);
   assert.ok(
     requiredCategories.every((category) =>
       selectionSectionIds.has(category.id),
@@ -668,8 +668,8 @@ test("Solace uses exactly seven approved visual-guide chapters", () => {
 test("Langley uses all 28 approved Visual Guide boards in seven chapters", () => {
   const definition = getHomeConfiguratorDefinition("langley");
   assert.ok(definition);
-  const requiredCategories = getRequiredCategories(definition);
-  const journeyCategories = getHomeConfiguratorJourneyCategories(definition);
+  const requiredCategories = getRequiredCategories(definition).filter((category) => category.id !== "windows-patio-doors");
+  const journeyCategories = getHomeConfiguratorJourneyCategories(definition).filter((category) => category.id !== "windows-patio-doors");
 
   assert.strictEqual(definition, langleyHomeConfigurator);
   assert.deepEqual(getCanonicalHomeConfiguratorIssues(definition), []);
@@ -760,7 +760,7 @@ test("Langley uses all 28 approved Visual Guide boards in seven chapters", () =>
 
   const selectionSections = getLookBookSelectionSections(
     definition.lookBook.sections,
-  );
+  ).filter((section) => section.id !== "windows-patio-doors");
   assert.deepEqual(
     selectionSections.map((section) =>
       section.items.find((item) => item.categoryId !== "appliances")
@@ -777,8 +777,8 @@ test("Langley uses all 28 approved Visual Guide boards in seven chapters", () =>
 test("South Bay uses all 28 approved Visual Guide boards in seven chapters", () => {
   const definition = getHomeConfiguratorDefinition("south-bay");
   assert.ok(definition);
-  const requiredCategories = getRequiredCategories(definition);
-  const journeyCategories = getHomeConfiguratorJourneyCategories(definition);
+  const requiredCategories = getRequiredCategories(definition).filter((category) => category.id !== "windows-patio-doors");
+  const journeyCategories = getHomeConfiguratorJourneyCategories(definition).filter((category) => category.id !== "windows-patio-doors");
 
   assert.strictEqual(definition, southBayHomeConfigurator);
   assert.deepEqual(getCanonicalHomeConfiguratorIssues(definition), []);
@@ -869,7 +869,7 @@ test("South Bay uses all 28 approved Visual Guide boards in seven chapters", () 
 
   const selectionSections = getLookBookSelectionSections(
     definition.lookBook.sections,
-  );
+  ).filter((section) => section.id !== "windows-patio-doors");
   assert.deepEqual(
     selectionSections.map((section) =>
       section.items.find((item) => item.categoryId !== "appliances")
@@ -886,8 +886,8 @@ test("South Bay uses all 28 approved Visual Guide boards in seven chapters", () 
 test("Dalton uses all 28 approved Visual Guide boards in seven chapters", () => {
   const definition = getHomeConfiguratorDefinition("dalton");
   assert.ok(definition);
-  const requiredCategories = getRequiredCategories(definition);
-  const journeyCategories = getHomeConfiguratorJourneyCategories(definition);
+  const requiredCategories = getRequiredCategories(definition).filter((category) => category.id !== "windows-patio-doors");
+  const journeyCategories = getHomeConfiguratorJourneyCategories(definition).filter((category) => category.id !== "windows-patio-doors");
 
   assert.strictEqual(definition, daltonHomeConfigurator);
   assert.deepEqual(getCanonicalHomeConfiguratorIssues(definition), []);
@@ -971,7 +971,7 @@ test("Dalton uses all 28 approved Visual Guide boards in seven chapters", () => 
 
   const selectionSections = getLookBookSelectionSections(
     definition.lookBook.sections,
-  );
+  ).filter((section) => section.id !== "windows-patio-doors");
   assert.deepEqual(
     selectionSections.map((section) =>
       section.items.find((item) => item.categoryId !== "appliances")
@@ -985,8 +985,8 @@ test("Dalton uses all 28 approved Visual Guide boards in seven chapters", () => 
 test("Laurentian uses all 28 approved Visual Guide boards in seven chapters", () => {
   const definition = getHomeConfiguratorDefinition("laurentian");
   assert.ok(definition);
-  const requiredCategories = getRequiredCategories(definition);
-  const journeyCategories = getHomeConfiguratorJourneyCategories(definition);
+  const requiredCategories = getRequiredCategories(definition).filter((category) => category.id !== "windows-patio-doors");
+  const journeyCategories = getHomeConfiguratorJourneyCategories(definition).filter((category) => category.id !== "windows-patio-doors");
 
   assert.strictEqual(definition, laurentianHomeConfigurator);
   assert.deepEqual(getCanonicalHomeConfiguratorIssues(definition), []);
@@ -1077,7 +1077,7 @@ test("Laurentian uses all 28 approved Visual Guide boards in seven chapters", ()
 
   const selectionSections = getLookBookSelectionSections(
     definition.lookBook.sections,
-  );
+  ).filter((section) => section.id !== "windows-patio-doors");
   assert.deepEqual(
     selectionSections.map((section) =>
       section.items.find((item) => item.categoryId !== "appliances")
@@ -1094,7 +1094,7 @@ test("Laurentian uses all 28 approved Visual Guide boards in seven chapters", ()
 test("Maplewood uses exactly seven approved visual-guide chapters", () => {
   const definition = getHomeConfiguratorDefinition("maplewood");
   assert.ok(definition);
-  const requiredCategories = getRequiredCategories(definition);
+  const requiredCategories = getRequiredCategories(definition).filter((category) => category.id !== "windows-patio-doors");
 
   assert.strictEqual(definition, maplewoodHomeConfigurator);
   assert.deepEqual(getCanonicalHomeConfiguratorIssues(definition), []);
@@ -1185,7 +1185,7 @@ test("Maplewood uses exactly seven approved visual-guide chapters", () => {
         .filter((categoryId) => categoryId !== "appliances"),
     ),
   );
-  assert.equal(selectionSectionIds.size, 7);
+  assert.equal(selectionSectionIds.size, 8);
   assert.ok(
     requiredCategories.every((category) =>
       selectionSectionIds.has(category.id),
@@ -1200,8 +1200,8 @@ test("Maplewood uses exactly seven approved visual-guide chapters", () => {
 test("Profile House uses all 30 approved Visual Guide assets and its requested journey", () => {
   const definition = getHomeConfiguratorDefinition("profile");
   assert.ok(definition);
-  const requiredCategories = getRequiredCategories(definition);
-  const journeyCategories = getHomeConfiguratorJourneyCategories(definition);
+  const requiredCategories = getRequiredCategories(definition).filter((category) => category.id !== "windows-patio-doors");
+  const journeyCategories = getHomeConfiguratorJourneyCategories(definition).filter((category) => category.id !== "windows-patio-doors");
 
   assert.strictEqual(definition, profileHomeConfigurator);
   assert.deepEqual(getCanonicalHomeConfiguratorIssues(definition), []);
@@ -1242,7 +1242,7 @@ test("Profile House uses all 30 approved Visual Guide assets and its requested j
   );
   assert.deepEqual(
     journeyCategories.map((category) => category.number),
-    ["01", "02", "03", "04", "05", "06", "07"],
+    ["01", "02", "03", "04", "05", "06", "08"],
   );
 
   const referencedAssets: string[] = [];
@@ -1301,7 +1301,7 @@ test("Profile House uses all 30 approved Visual Guide assets and its requested j
 
   const selectionSections = getLookBookSelectionSections(
     definition.lookBook.sections,
-  );
+  ).filter((section) => section.id !== "windows-patio-doors");
   assert.deepEqual(
     selectionSections.map((section) =>
       section.items.map((item) => item.categoryId),
@@ -1321,7 +1321,7 @@ test("Profile House uses all 30 approved Visual Guide assets and its requested j
 test("Timberline uses exactly seven approved visual-guide chapters", () => {
   const definition = getHomeConfiguratorDefinition("timberline");
   assert.ok(definition);
-  const requiredCategories = getRequiredCategories(definition);
+  const requiredCategories = getRequiredCategories(definition).filter((category) => category.id !== "windows-patio-doors");
 
   assert.strictEqual(definition, timberlineHomeConfigurator);
   assert.deepEqual(getCanonicalHomeConfiguratorIssues(definition), []);
@@ -1432,7 +1432,7 @@ test("Timberline uses exactly seven approved visual-guide chapters", () => {
         .filter((categoryId) => categoryId !== "appliances"),
     ),
   );
-  assert.equal(selectionSectionIds.size, 7);
+  assert.equal(selectionSectionIds.size, 8);
   assert.ok(
     requiredCategories.every((category) =>
       selectionSectionIds.has(category.id),
@@ -1464,10 +1464,11 @@ test("Saturna remains on its dedicated seven-chapter Look Book", () => {
       "exterior-arrival-openings",
       "whole-home-flooring-stairs",
       "window-coverings",
+      "windows-patio-doors",
     ],
   );
 
-  for (const category of definition.categories) {
+  for (const category of definition.categories.filter((item) => item.id !== "windows-patio-doors")) {
     assert.equal(category.kind, "room-look");
     if (category.kind !== "room-look") continue;
 
@@ -1485,7 +1486,7 @@ test("Saturna remains on its dedicated seven-chapter Look Book", () => {
       section.items.map((item) => item.categoryId),
     ),
   );
-  assert.equal(selectionSectionIds.size, 7);
+  assert.equal(selectionSectionIds.size, 8);
   assert.ok(
     definition.categories.every((category) =>
       selectionSectionIds.has(category.id),
@@ -1580,7 +1581,7 @@ test("every Build My journey and Look Book ends with Exterior Arrival & Openings
     );
     assert.deepEqual(
       journeyCategories.map((category) => category.number),
-      ["01", "02", "03", "04", "05", "06", "07"],
+      ["01", "02", "03", "04", "05", "06", "07", "08"],
     );
 
     const lookBookSections = getLookBookSelectionSections(
@@ -1613,14 +1614,18 @@ test("approved Look Books use the primary exterior cover and selected Visual Gui
     const sections = getLookBookSelectionSections(
       definition.lookBook.sections,
     );
-    assert.equal(sections.length, 7);
+    assert.equal(sections.length, 8);
     assert.deepEqual(
       sections.map((section) => section.number),
-      ["01", "02", "03", "04", "05", "06", "07"],
+      ["01", "02", "03", "04", "05", "06", "07", "08"],
     );
 
     for (const section of sections) {
       assert.equal(section.kind, "selection-story");
+      if (section.id === "windows-patio-doors") {
+        assert.ok(section.items.every((item) => item.categoryId === "windows-patio-doors"));
+        continue;
+      }
       for (const item of section.items) {
         const category = definition.categories.find(
           (candidate) => candidate.id === item.categoryId,

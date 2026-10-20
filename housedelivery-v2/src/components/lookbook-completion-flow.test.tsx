@@ -131,7 +131,7 @@ test("every migrated home shares the Get My Look Book flow and House Delivery va
     );
     assert.equal(
       occurrenceCount(markup, "data-look-book-section="),
-      definition.homeId === "salt-spring" ? 13 : 7,
+      definition.homeId === "salt-spring" ? 14 : 8,
       `${definition.homeName}: all selected chapters remain`,
     );
     assert.match(markup, /Factory precision\./);
@@ -205,10 +205,10 @@ test("PDF source eagerly requests every board before hydration while online save
     const configuration = createCompleteConfiguration(definition);
     for (const printMode of [false, true]) {
       const markup = renderToStaticMarkup(<HomeLookBook definition={definition} configuration={configuration} onCreateLookBook={noop} onEditCategory={noop} onPreviewOption={noop} onSubmit={noop} directSourceImages readOnly savedView printMode={printMode} />);
-      const boardTags = [...markup.matchAll(/<img\b[^>]*>/g)].map((match) => match[0]).filter((tag) => /(?:visual-guide|design-boards|configurator)\//.test(tag));
-      assert.equal(boardTags.length, homeId === "salt-spring" ? 13 : 7);
+      const boardTags = [...markup.matchAll(/<img\b[^>]*>/g)].map((match) => match[0]).filter((tag) => /(?:visual-guide|design-boards|configurator|windows-patio-doors)\//.test(tag));
+      assert.equal(boardTags.length, homeId === "salt-spring" ? 14 : 8);
       assert.ok(boardTags.every((tag) => tag.includes(`loading="${printMode ? "eager" : "lazy"}"`)));
-      assert.match(markup, new RegExp(`data-look-book-expected-pages="${homeId === "salt-spring" ? 18 : 12}"`));
+      assert.match(markup, new RegExp(`data-look-book-expected-pages="${homeId === "salt-spring" ? 19 : 13}"`));
     }
   }
 });

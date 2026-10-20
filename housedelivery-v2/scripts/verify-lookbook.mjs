@@ -77,7 +77,7 @@ try {
       .evaluateAll((elements) =>
         elements.map((element) => element.getAttribute("data-home-category")),
       );
-    assert.equal(chapters.length, 7, `${home}: seven canonical chapters`);
+    assert.equal(chapters.length, 8, `${home}: eight canonical chapters`);
     assert.equal(
       chapters.at(-1),
       "exterior-arrival-openings",
@@ -113,7 +113,7 @@ try {
   await completion.waitFor({ state: "visible" });
   assert.match(
     await completion.innerText(),
-    /Your Langley is ready/i,
+    /My Langley House is ready/i,
   );
   assert.equal(
     await page.locator('[data-save-look-book="top"]').count(),
@@ -196,8 +196,8 @@ try {
   );
   assert.equal(
     await page.locator("[data-look-book-selection-confirmation]").count(),
-    7,
-    "all seven final chapters use selected-direction confirmation copy",
+    8,
+    "all eight final chapters use selected-direction confirmation copy",
   );
   assert.equal(
     await page.locator("[data-look-book-print-page]").evaluateAll((pages) =>
