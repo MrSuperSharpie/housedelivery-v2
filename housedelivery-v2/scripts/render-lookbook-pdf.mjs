@@ -6,6 +6,7 @@ import { chromium } from "playwright-core";
 
 const baseUrl = process.env.LOOKBOOK_QA_BASE_URL || "http://localhost:3000";
 const home = process.env.LOOKBOOK_QA_HOME || "langley";
+const query = process.env.LOOKBOOK_QA_QUERY || "";
 const outputDirectory =
   process.env.LOOKBOOK_PDF_OUTPUT_DIR || "/private/tmp/langley-lookbook-pdf";
 const chromePath =
@@ -24,7 +25,7 @@ try {
     viewport: { width: 1440, height: 1000 },
   });
 
-  await page.goto(`${baseUrl}/homes/${home}`, { waitUntil: "networkidle" });
+  await page.goto(`${baseUrl}/homes/${home}${query}`, { waitUntil: "networkidle" });
 
   for (let step = 0; step < 24; step += 1) {
     if (await page.locator("[data-lookbook-lead-capture]").count()) break;

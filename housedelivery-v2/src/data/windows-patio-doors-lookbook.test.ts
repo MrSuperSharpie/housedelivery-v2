@@ -33,7 +33,7 @@ test("all custom homes carry a selectable Canadian windows and patio doors chapt
       assert.equal(option.image.role, "design-board");
       assert.equal(option.image.fit, "contain");
       assert.match(option.image.src, new RegExp(`/boards/${home.homeId}-${option.level}-${option.optionNumber}\\.webp$`));
-      assert.match(option.description ?? "", /triple-glazed/);
+      assert.match(option.description ?? "", option.level === "signature" ? /triple-glazed/ : /double-glazed/);
     }
 
     const sections = getLookBookSelectionSections(definition.lookBook.sections);
