@@ -33,6 +33,7 @@ import {
   indigenousIllustrativeNotice,
 } from "@/data/first-nations-cultural-design";
 import { applyHomeTier, getHomeTierDefinition, homePricing } from "@/data/home-pricing";
+import { getDuplexTierDefinition, getSavedDuplexTiers, type DuplexTiers } from "@/data/duplex-home-pricing";
 import {
   createLookBookReference,
   type LookBookCustomer,
@@ -54,6 +55,7 @@ type HomeConfiguratorProps = {
   definition: HomeConfiguratorDefinition;
   directSourceImages?: boolean;
   inclusionTier?: HomeInclusionLevel;
+  residenceBTier?: HomeInclusionLevel;
 };
 
 type HomeImagePreviewTarget = {
@@ -264,24 +266,28 @@ export function TieredHomeConfigurator(props: Omit<HomeConfiguratorProps, "inclu
   const value = searchParams.get("inclusionTier") ??
     (props.definition.homeId === "solace" ? searchParams.get("solaceTier") : null);
   const tier = value === "premium" || value === "signature" ? value : undefined;
-  return <HomeConfigurator key={tier ?? "default"} {...props} inclusionTier={tier} />;
+  const residenceBTier = searchParams.get("residenceBTier") === "signature" ? "signature" : "premium";
+  return <HomeConfigurator key={tier ?? "default"} {...props} inclusionTier={tier} residenceBTier={residenceBTier} />;
 }
 
 export function HomeConfigurator({
   definition: originalDefinition,
   directSourceImages = false,
   inclusionTier,
+  residenceBTier = "premium",
 }: HomeConfiguratorProps) {
   const selectedTier = inclusionTier;
+  const isDuplex = originalDefinition.homeId === "salt-spring";
+  const [duplexTiers, setDuplexTiers] = useState<DuplexTiers>({ a: inclusionTier ?? "premium", b: residenceBTier });
   const definition = useMemo(
-    () => selectedTier ? getHomeTierDefinition(originalDefinition, selectedTier) : originalDefinition,
-    [originalDefinition, selectedTier],
+    () => isDuplex ? getDuplexTierDefinition(originalDefinition, duplexTiers) : selectedTier ? getHomeTierDefinition(originalDefinition, selectedTier) : originalDefinition,
+    [originalDefinition, selectedTier, isDuplex, duplexTiers],
   );
   const useDirectSourceImages =
     directSourceImages || hasDesignBoardImages(definition);
   const [configuration, setConfiguration] = useState<HomeConfiguration>(() => {
     const initial = createDefaultHomeConfiguration(originalDefinition);
-    return selectedTier ? applyHomeTier(definition, initial) : initial;
+    return selectedTier || isDuplex ? applyHomeTier(definition, initial) : initial;
   });
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(
     () => getHomeConfiguratorJourneyCategories(definition)[0]?.id ?? null,
@@ -318,13 +324,23 @@ export function HomeConfigurator({
     setImagePreviewTarget(null);
   }, []);
 
+  function changeResidenceTier(residence: "a" | "b", tier: HomeInclusionLevel) {
+    const nextTiers = { ...duplexTiers, [residence]: tier };
+    const nextDefinition = getDuplexTierDefinition(originalDefinition, nextTiers);
+    const next = applyHomeTier(nextDefinition, configuration);
+    setDuplexTiers(nextTiers);
+    setConfiguration(next);
+    setActiveCategoryId(getHomeConfiguratorJourneyCategories(nextDefinition).find((category) => !isCategoryComplete(category, next))?.id ?? null);
+    closeImagePreview();
+  }
+
   useEffect(() => {
     let active = true;
     window.queueMicrotask(() => {
       if (!active) return;
       try {
         const session = readPlannerDesignSession(window.location.search);
-        if (!session || session.modelId !== `custom:${definition.homeId}`) {
+        if (!session || session.modelId !== `custom:${originalDefinition.homeId}`) {
           setPlannerConfigurationHydrated(true);
           return;
         }
@@ -338,8 +354,8 @@ export function HomeConfigurator({
             culturalDesignDirection?: { choice?: string };
           };
           if (
-            restored.homeId === definition.homeId &&
-            restored.schemaVersion === definition.configurationVersion
+            restored.homeId === originalDefinition.homeId &&
+            restored.schemaVersion === originalDefinition.configurationVersion
           ) {
             const { culturalDesignDirection, ...currentConfiguration } = restored;
             const culturalExteriorInterest =
@@ -354,9 +370,15 @@ export function HomeConfigurator({
                 ? { culturalExteriorInterest }
                 : {}),
             };
-            setConfiguration(selectedTier
-              ? applyHomeTier(definition, restoredConfiguration)
-              : restoredConfiguration);
+            if (isDuplex) {
+              const restoredTiers = getSavedDuplexTiers(originalDefinition, restoredConfiguration, { a: selectedTier ?? "premium", b: residenceBTier });
+              setDuplexTiers(restoredTiers);
+              setConfiguration(applyHomeTier(getDuplexTierDefinition(originalDefinition, restoredTiers), restoredConfiguration));
+            } else {
+              setConfiguration(selectedTier
+                ? applyHomeTier(getHomeTierDefinition(originalDefinition, selectedTier), restoredConfiguration)
+                : restoredConfiguration);
+            }
           }
         } else if (session.culturalExteriorInterest !== undefined) {
           setConfiguration((current) => ({
@@ -373,7 +395,7 @@ export function HomeConfigurator({
     return () => {
       active = false;
     };
-  }, [definition, selectedTier]);
+  }, [originalDefinition, isDuplex, selectedTier, residenceBTier]);
 
   useEffect(() => {
     const captured = captureFirstTouchAttribution();
@@ -900,6 +922,24 @@ export function HomeConfigurator({
             />
           </div>
 
+          {isDuplex ? (
+            <div data-duplex-tiers className="mb-12 border-t border-white/15 pt-7">
+              <p className="max-w-3xl text-sm leading-7 text-white/60">Choose an interior tier independently for each residence, then confirm six interior chapters per residence and one shared exterior. Changing a residence’s tier clears only its incompatible choices.</p>
+              <div className="mt-6 grid gap-6 sm:grid-cols-2">
+                {(["a", "b"] as const).map((residence) => (
+                  <label key={residence} className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/70">
+                    Residence {residence.toUpperCase()} interior
+                    <select data-residence-tier={residence} value={duplexTiers[residence]} onChange={(event) => changeResidenceTier(residence, event.target.value as HomeInclusionLevel)} className="mt-3 block min-h-12 w-full border border-white/25 bg-[#111216] px-4 text-sm text-white">
+                      <option value="premium">Premium · $250 / sq. ft.</option>
+                      <option value="signature">Signature · $300 / sq. ft.</option>
+                    </select>
+                  </label>
+                ))}
+              </div>
+              <p className="mt-5 text-xs leading-6 text-white/50">One building exterior serves both residences and stays the same for every interior selection. Final mixed-tier pricing uses each residence’s confirmed area and project requirements.</p>
+            </div>
+          ) : null}
+
           <div className="grid gap-12 border-t border-white/15 pt-7 lg:grid-cols-[0.78fr_1.22fr] lg:items-end lg:gap-20">
             <div>
               <p
@@ -930,7 +970,7 @@ export function HomeConfigurator({
                 Create the visual brief for your home in{" "}
                 {requiredCategories.length} controlled choices. Start with the
                 kitchen, then move through the major spaces and finishes that
-                define your {definition.homeName}. {selectedTier
+                define your {definition.homeName}. {isDuplex ? "Each residence shows four options from its own interior tier." : selectedTier
                   ? `Your ${homePricing[selectedTier].label} selection shows only ${homePricing[selectedTier].label} options.`
                   : "Begin with the Premium baseline and selectively choose Signature upgrades."}
               </p>

@@ -7,6 +7,7 @@ import type {
   HomeStandardInclusionCategory,
 } from "@/data/home-configurator";
 import type { LookBookOptionEditorial } from "@/data/home-look-book";
+import { getAdditionalSolaceLookBookOptions } from "@/data/solace-lookbook-additions";
 import { models } from "@/data/models";
 
 const assetRoot = "/images/homes/solace/configurator";
@@ -836,28 +837,35 @@ function createSolaceVisualGuideChapter(
     description: source.description,
     represents: source.represents,
     technicalNote: source.technicalNote,
-    options: solaceVisualGuidePackages.map((designPackage, index) => {
-      const name = source.optionNames?.[index] ?? designPackage.name;
+    options: [
+      ...solaceVisualGuidePackages.map((designPackage, index) => {
+        const name = source.optionNames?.[index] ?? designPackage.name;
 
-      return {
-        id: `${source.id}-${designPackage.level}-${designPackage.optionNumber}`,
-        level: designPackage.level,
-        optionNumber: designPackage.optionNumber,
-        name,
-        editorial: {
-          descriptors: designPackage.descriptors,
-          storyFragments: designPackage.storyFragments,
-          materialRole: source.materialRole,
-        },
-        image: {
-          src: `${visualGuideAssetRoot}/${source.assetPrefix}_${designPackage.level === "premium" ? "Premium" : "Signature"}-${designPackage.optionNumber}_${designPackage.filenameLabel}.png`,
-          alt: `${designPackage.level === "premium" ? "Premium" : "Signature"} ${designPackage.optionNumber} — ${name}, ${source.title.toLowerCase()} design board for Solace House.`,
-          fit: "contain" as const,
-          role: "design-board" as const,
-          quality: 100 as const,
-        },
-      };
-    }),
+        return {
+          id: `${source.id}-${designPackage.level}-${designPackage.optionNumber}`,
+          level: designPackage.level,
+          optionNumber: designPackage.optionNumber,
+          name,
+          editorial: {
+            descriptors: designPackage.descriptors,
+            storyFragments: designPackage.storyFragments,
+            materialRole: source.materialRole,
+          },
+          image: {
+            src: `${visualGuideAssetRoot}/${source.assetPrefix}_${designPackage.level === "premium" ? "Premium" : "Signature"}-${designPackage.optionNumber}_${designPackage.filenameLabel}.png`,
+            alt: `${designPackage.level === "premium" ? "Premium" : "Signature"} ${designPackage.optionNumber} — ${name}, ${source.title.toLowerCase()} design board for Solace House.`,
+            fit: "contain" as const,
+            role: "design-board" as const,
+            quality: 100 as const,
+          },
+        };
+      }),
+      ...getAdditionalSolaceLookBookOptions(
+        source.id,
+        source.title,
+        source.materialRole,
+      ),
+    ],
   };
 }
 

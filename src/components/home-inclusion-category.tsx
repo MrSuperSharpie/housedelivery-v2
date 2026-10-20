@@ -78,7 +78,7 @@ export function HomeInclusionCategory({
               {selectedOption.name}
             </h3>
             <p className="mt-2 text-[9px] font-semibold uppercase tracking-[0.16em] text-white/55">
-              {getHomeInclusionLevelLabel(selectedOption.level)}
+              {(selectedOption.shared ? "Shared exterior · Both residences" : getHomeInclusionLevelLabel(selectedOption.level))}
             </p>
           </div>
           <button

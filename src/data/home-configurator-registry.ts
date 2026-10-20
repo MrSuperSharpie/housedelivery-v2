@@ -25,6 +25,7 @@ import { maplewoodHomeConfigurator } from "@/data/maplewood-home-configurator";
 import { models } from "@/data/models";
 import { profileHomeConfigurator } from "@/data/profile-home-configurator";
 import { saturnaHomeConfigurator } from "@/data/saturna-home-configurator";
+import { saltSpringHomeConfigurator } from "@/data/salt-spring-home-configurator";
 import { solaceHomeConfigurator } from "@/data/solace-home-configurator";
 import { southBayHomeConfigurator } from "@/data/south-bay-home-configurator";
 import { timberlineHomeConfigurator } from "@/data/timberline-home-configurator";
@@ -49,6 +50,7 @@ const customHomeDefinitions: Readonly<
   mayne: mayneHomeConfigurator,
   profile: profileHomeConfigurator,
   saturna: saturnaHomeConfigurator,
+  "salt-spring": saltSpringHomeConfigurator,
   solace: solaceHomeConfigurator,
   "south-bay": southBayHomeConfigurator,
   summit: summitHomeConfigurator,

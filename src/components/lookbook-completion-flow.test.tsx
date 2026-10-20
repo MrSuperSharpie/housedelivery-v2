@@ -131,8 +131,8 @@ test("every migrated home shares the Get My Look Book flow and House Delivery va
     );
     assert.equal(
       occurrenceCount(markup, "data-look-book-section="),
-      7,
-      `${definition.homeName}: all seven selected chapters remain`,
+      definition.homeId === "salt-spring" ? 13 : 7,
+      `${definition.homeName}: all selected chapters remain`,
     );
     assert.match(markup, /Factory precision\./);
     assert.match(markup, /Why House/);
@@ -195,5 +195,20 @@ test("Cedarview and Canmore covers use My before save and Edgar’s after", () =
     );
     assert.doesNotMatch(fallbackMarkup, /House House/);
     assert.doesNotMatch(namedMarkup, /House House/);
+  }
+});
+
+test("PDF source eagerly requests every board before hydration while online saved books remain lazy", () => {
+  for (const homeId of ["aurora", "solace", "profile", "salt-spring"]) {
+    const definition = homeConfiguratorRegistrations.find((registration) => registration.homeId === homeId)?.definition;
+    assert.ok(definition);
+    const configuration = createCompleteConfiguration(definition);
+    for (const printMode of [false, true]) {
+      const markup = renderToStaticMarkup(<HomeLookBook definition={definition} configuration={configuration} onCreateLookBook={noop} onEditCategory={noop} onPreviewOption={noop} onSubmit={noop} directSourceImages readOnly savedView printMode={printMode} />);
+      const boardTags = [...markup.matchAll(/<img\b[^>]*>/g)].map((match) => match[0]).filter((tag) => /(?:visual-guide|design-boards|configurator)\//.test(tag));
+      assert.equal(boardTags.length, homeId === "salt-spring" ? 13 : 7);
+      assert.ok(boardTags.every((tag) => tag.includes(`loading="${printMode ? "eager" : "lazy"}"`)));
+      assert.match(markup, new RegExp(`data-look-book-expected-pages="${homeId === "salt-spring" ? 18 : 12}"`));
+    }
   }
 });

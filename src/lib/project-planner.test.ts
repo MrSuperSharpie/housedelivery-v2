@@ -234,22 +234,22 @@ test("all current planner catalogue models have explicit planning-basis records"
   }
 });
 
-test("Salt Spring is the only view-only Planner model", () => {
+test("Salt Spring now offers its independent-residence Look Book in the Planner", () => {
   const saltSpring = firstNationsPlannerCatalog.find(
     (model) => model.id === "custom:salt-spring",
   );
 
   assert.ok(saltSpring);
-  assert.equal(saltSpring.selectionStatus, "preview-only");
+  assert.equal(saltSpring.selectionStatus, undefined);
   assert.equal(saltSpring.viewHref, "/homes/salt-spring");
   assert.equal(saltSpring.homesPerSelection, 1);
-  assert.equal(saltSpring.buildMyHref, undefined);
-  assert.equal(saltSpring.lookBookHref, undefined);
+  assert.equal(saltSpring.buildMyHref, "/homes/salt-spring#home-inclusions");
+  assert.equal(saltSpring.lookBookHref, "/homes/salt-spring#home-look-book");
   assert.deepEqual(
     firstNationsPlannerCatalog
       .filter((model) => model.selectionStatus === "preview-only")
       .map((model) => model.id),
-    ["custom:salt-spring"],
+    [],
   );
 });
 

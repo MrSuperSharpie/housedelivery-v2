@@ -13,12 +13,15 @@ export type HomeInclusionOption = {
   level: HomeInclusionLevel;
   optionNumber: string;
   name: string;
+  legacyOnly?: boolean;
+  shared?: boolean;
   description?: string;
   image: InclusionImage;
   editorial?: LookBookOptionEditorial;
 };
 
 type HomeSelectableCategoryBase = {
+  residence?: "a" | "b" | "shared";
   id: string;
   number: string;
   title: string;

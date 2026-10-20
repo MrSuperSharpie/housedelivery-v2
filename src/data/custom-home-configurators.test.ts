@@ -158,7 +158,7 @@ test("only approved Custom Homes expose a shared configurator", () => {
   for (const model of models) {
     const definition = getHomeConfiguratorDefinition(model.slug);
 
-    if (!canonicalCustomHomeIds.has(model.slug)) {
+    if (!canonicalCustomHomeIds.has(model.slug) && model.slug !== "salt-spring") {
       assert.equal(definition, undefined);
       continue;
     }
@@ -172,12 +172,12 @@ test("only approved Custom Homes expose a shared configurator", () => {
     );
     assert.equal(
       getRequiredCategories(definition).length,
-      7,
+      model.slug === "salt-spring" ? 13 : 7,
     );
 
     for (const category of definition.categories) {
       const options = getCategoryOptions(category);
-      if (options.length === 0) continue;
+      if (options.length === 0 || options.every((option) => option.shared)) continue;
 
       assert.ok(
         options.some((option) => option.level === "premium"),
@@ -210,7 +210,7 @@ test("all residential product families are registered without premature activati
     customHomes.filter(
       (registration) => registration.migrationStatus === "canonical",
     ).length,
-    17,
+    18,
   );
   assert.ok(
     customHomes
@@ -218,7 +218,7 @@ test("all residential product families are registered without premature activati
       .every(
         (registration) =>
           registration.definition !== undefined &&
-          registration.activeChapterIds.length === 7,
+          registration.activeChapterIds.length === (registration.homeId === "salt-spring" ? 13 : 7),
       ),
   );
   assert.ok(
@@ -284,7 +284,7 @@ test("Mayne House preserves its approved gallery alongside its Visual Guide", ()
   );
 });
 
-test("The Salt Spring Duplex uses its approved gallery and remains Lookbook coming soon", () => {
+test("The Salt Spring Duplex retains its approved gallery and enables independent residences", () => {
   const saltSpring = models.find((model) => model.slug === "salt-spring");
   const assetDirectory = join(
     process.cwd(),
@@ -302,7 +302,7 @@ test("The Salt Spring Duplex uses its approved gallery and remains Lookbook comi
 
   assert.ok(saltSpring);
   assert.equal(saltSpring.name, "The Salt Spring Duplex");
-  assert.equal(saltSpring.projectSelectionStatus, "preview-only");
+  assert.equal(saltSpring.projectSelectionStatus, undefined);
   assert.equal(saltSpring.squareFeet, 6073);
   assert.equal(saltSpring.squareMetres, 564.27);
   assert.equal(saltSpring.garageLabel, "2 garages");
@@ -314,12 +314,12 @@ test("The Salt Spring Duplex uses its approved gallery and remains Lookbook comi
     saltSpring.floorPlanImage,
     "/images/homes/salt-spring/salt-spring-floor-plan.jpg",
   );
-  assert.deepEqual(readdirSync(assetDirectory).sort(), expectedAssets);
-  assert.equal(getHomeConfiguratorDefinition("salt-spring"), undefined);
+  assert.deepEqual(readdirSync(assetDirectory).filter((name) => name.endsWith(".jpg")).sort(), expectedAssets);
+  assert.ok(getHomeConfiguratorDefinition("salt-spring"));
   assert.equal(
     getHomeConfiguratorRegistration("custom-home", "salt-spring")
       ?.migrationStatus,
-    "awaiting-approved-content",
+    "canonical",
   );
 });
 
@@ -367,7 +367,7 @@ test("Keats House preserves its approved gallery alongside its Visual Guide", ()
   );
 });
 
-test("the next eight Custom Homes wire all 224 approved Visual Guide boards", () => {
+test("the next eight Custom Homes retain all 224 original Visual Guide boards", () => {
   const allImageSources = new Set<string>();
 
   for (const home of newVisualGuideHomes) {
@@ -396,17 +396,17 @@ test("the next eight Custom Homes wire all 224 approved Visual Guide boards", ()
       if (category.kind !== "room-look") continue;
 
       assert.deepEqual(
-        category.options.map((option) => option.name),
+        category.options.filter((option) => !option.image.src.includes("/design-boards/")).map((option) => option.name),
         home.packageNames,
       );
       assert.deepEqual(
-        category.options.map(
+        category.options.filter((option) => !option.image.src.includes("/design-boards/")).map(
           (option) => `${option.level}:${option.optionNumber}`,
         ),
         ["premium:1", "premium:2", "signature:1", "signature:2"],
       );
 
-      for (const option of category.options) {
+      for (const option of category.options.filter((option) => !option.image.src.includes("/design-boards/"))) {
         assert.equal(option.image.fit, "contain");
         assert.equal(option.image.role, "design-board");
         assert.ok(
@@ -601,7 +601,7 @@ test("Solace uses exactly seven approved visual-guide chapters", () => {
     assert.equal(category.kind, "room-look");
     if (category.kind !== "room-look") continue;
 
-    assert.equal(category.options.length, 4);
+    assert.equal(category.options.length, 8);
     assert.deepEqual(
       category.options.map((option) => [option.level, option.optionNumber]),
       [
@@ -609,6 +609,10 @@ test("Solace uses exactly seven approved visual-guide chapters", () => {
         ["premium", "2"],
         ["signature", "1"],
         ["signature", "2"],
+        ["premium", "3"],
+        ["premium", "4"],
+        ["signature", "3"],
+        ["signature", "4"],
       ],
     );
     assert.ok(category.options.every((option) => option.image.fit === "contain"));
@@ -623,9 +627,12 @@ test("Solace uses exactly seven approved visual-guide chapters", () => {
       assert.ok(
         option.image.src.startsWith(
           "/images/homes/solace/visual-guide/Solace_",
-        ),
+        ) ||
+          option.image.src.startsWith("/images/homes/solace/design-boards/"),
       );
-      referencedAssets.push(basename(option.image.src));
+      if (option.image.src.endsWith(".png")) {
+        referencedAssets.push(basename(option.image.src));
+      }
     }
   }
 
@@ -703,9 +710,9 @@ test("Langley uses all 28 approved Visual Guide boards in seven chapters", () =>
     assert.equal(category.kind, "room-look");
     if (category.kind !== "room-look") continue;
 
-    assert.equal(category.options.length, 4);
+    assert.equal(category.options.filter((option) => !option.image.src.includes("/design-boards/")).length, 4);
     assert.deepEqual(
-      category.options.map((option) => [option.level, option.optionNumber]),
+      category.options.filter((option) => !option.image.src.includes("/design-boards/")).map((option) => [option.level, option.optionNumber]),
       [
         ["premium", "1"],
         ["premium", "2"],
@@ -714,11 +721,11 @@ test("Langley uses all 28 approved Visual Guide boards in seven chapters", () =>
       ],
     );
     assert.deepEqual(
-      category.options.map((option) => option.name),
+      category.options.filter((option) => !option.image.src.includes("/design-boards/")).map((option) => option.name),
       expectedOptionNames,
     );
     assert.ok(
-      category.options.every(
+      category.options.filter((option) => !option.image.src.includes("/design-boards/")).every(
         (option) =>
           option.image.fit === "contain" &&
           option.image.role === "design-board" &&
@@ -729,7 +736,7 @@ test("Langley uses all 28 approved Visual Guide boards in seven chapters", () =>
       ),
     );
     referencedAssets.push(
-      ...category.options.map((option) => basename(option.image.src)),
+      ...category.options.filter((option) => !option.image.src.includes("/design-boards/")).map((option) => basename(option.image.src)),
     );
   }
 
@@ -812,9 +819,9 @@ test("South Bay uses all 28 approved Visual Guide boards in seven chapters", () 
     assert.equal(category.kind, "room-look");
     if (category.kind !== "room-look") continue;
 
-    assert.equal(category.options.length, 4);
+    assert.equal(category.options.filter((option) => !option.image.src.includes("/design-boards/")).length, 4);
     assert.deepEqual(
-      category.options.map((option) => [option.level, option.optionNumber]),
+      category.options.filter((option) => !option.image.src.includes("/design-boards/")).map((option) => [option.level, option.optionNumber]),
       [
         ["premium", "1"],
         ["premium", "2"],
@@ -823,11 +830,11 @@ test("South Bay uses all 28 approved Visual Guide boards in seven chapters", () 
       ],
     );
     assert.deepEqual(
-      category.options.map((option) => option.name),
+      category.options.filter((option) => !option.image.src.includes("/design-boards/")).map((option) => option.name),
       expectedOptionNames,
     );
     assert.ok(
-      category.options.every(
+      category.options.filter((option) => !option.image.src.includes("/design-boards/")).every(
         (option) =>
           option.image.fit === "contain" &&
           option.image.role === "design-board" &&
@@ -838,7 +845,7 @@ test("South Bay uses all 28 approved Visual Guide boards in seven chapters", () 
       ),
     );
     referencedAssets.push(
-      ...category.options.map((option) => basename(option.image.src)),
+      ...category.options.filter((option) => !option.image.src.includes("/design-boards/")).map((option) => basename(option.image.src)),
     );
   }
 
@@ -914,9 +921,9 @@ test("Dalton uses all 28 approved Visual Guide boards in seven chapters", () => 
     assert.equal(category.kind, "room-look");
     if (category.kind !== "room-look") continue;
 
-    assert.equal(category.options.length, 4);
+    assert.equal(category.options.filter((option) => !option.image.src.includes("/design-boards/")).length, 4);
     assert.deepEqual(
-      category.options.map((option) => [option.level, option.optionNumber]),
+      category.options.filter((option) => !option.image.src.includes("/design-boards/")).map((option) => [option.level, option.optionNumber]),
       [
         ["premium", "1"],
         ["premium", "2"],
@@ -925,11 +932,11 @@ test("Dalton uses all 28 approved Visual Guide boards in seven chapters", () => 
       ],
     );
     assert.deepEqual(
-      category.options.map((option) => option.name),
+      category.options.filter((option) => !option.image.src.includes("/design-boards/")).map((option) => option.name),
       ["Premium 1", "Premium 2", "Signature 1", "Signature 2"],
     );
     assert.ok(
-      category.options.every(
+      category.options.filter((option) => !option.image.src.includes("/design-boards/")).every(
         (option) =>
           option.image.fit === "contain" &&
           option.image.role === "design-board" &&
@@ -940,7 +947,7 @@ test("Dalton uses all 28 approved Visual Guide boards in seven chapters", () => 
       ),
     );
     referencedAssets.push(
-      ...category.options.map((option) => basename(option.image.src)),
+      ...category.options.filter((option) => !option.image.src.includes("/design-boards/")).map((option) => basename(option.image.src)),
     );
   }
 
@@ -1020,9 +1027,9 @@ test("Laurentian uses all 28 approved Visual Guide boards in seven chapters", ()
     assert.equal(category.kind, "room-look");
     if (category.kind !== "room-look") continue;
 
-    assert.equal(category.options.length, 4);
+    assert.equal(category.options.filter((option) => !option.image.src.includes("/design-boards/")).length, 4);
     assert.deepEqual(
-      category.options.map((option) => [option.level, option.optionNumber]),
+      category.options.filter((option) => !option.image.src.includes("/design-boards/")).map((option) => [option.level, option.optionNumber]),
       [
         ["premium", "1"],
         ["premium", "2"],
@@ -1031,11 +1038,11 @@ test("Laurentian uses all 28 approved Visual Guide boards in seven chapters", ()
       ],
     );
     assert.deepEqual(
-      category.options.map((option) => option.name),
+      category.options.filter((option) => !option.image.src.includes("/design-boards/")).map((option) => option.name),
       expectedOptionNames,
     );
     assert.ok(
-      category.options.every(
+      category.options.filter((option) => !option.image.src.includes("/design-boards/")).every(
         (option) =>
           option.image.fit === "contain" &&
           option.image.role === "design-board" &&
@@ -1046,7 +1053,7 @@ test("Laurentian uses all 28 approved Visual Guide boards in seven chapters", ()
       ),
     );
     referencedAssets.push(
-      ...category.options.map((option) => basename(option.image.src)),
+      ...category.options.filter((option) => !option.image.src.includes("/design-boards/")).map((option) => basename(option.image.src)),
     );
   }
 
@@ -1114,9 +1121,9 @@ test("Maplewood uses exactly seven approved visual-guide chapters", () => {
     assert.equal(category.kind, "room-look");
     if (category.kind !== "room-look") continue;
 
-    assert.equal(category.options.length, 4);
+    assert.equal(category.options.filter((option) => !option.image.src.includes("/design-boards/")).length, 4);
     assert.deepEqual(
-      category.options.map((option) => [option.level, option.optionNumber]),
+      category.options.filter((option) => !option.image.src.includes("/design-boards/")).map((option) => [option.level, option.optionNumber]),
       [
         ["premium", "1"],
         ["premium", "2"],
@@ -1124,15 +1131,15 @@ test("Maplewood uses exactly seven approved visual-guide chapters", () => {
         ["signature", "2"],
       ],
     );
-    assert.ok(category.options.every((option) => option.image.fit === "contain"));
+    assert.ok(category.options.filter((option) => !option.image.src.includes("/design-boards/")).every((option) => option.image.fit === "contain"));
     assert.ok(
-      category.options.every(
+      category.options.filter((option) => !option.image.src.includes("/design-boards/")).every(
         (option) =>
           option.image.role === "design-board" &&
           option.image.quality === 100,
       ),
     );
-    for (const option of category.options) {
+    for (const option of category.options.filter((option) => !option.image.src.includes("/design-boards/"))) {
       assert.ok(
         option.image.src.startsWith(
           "/images/homes/maplewood/visual-guide/Maplewood_",
@@ -1148,7 +1155,7 @@ test("Maplewood uses exactly seven approved visual-guide chapters", () => {
   assert.equal(ensuite?.kind, "room-look");
   if (ensuite?.kind === "room-look") {
     assert.deepEqual(
-      ensuite.options.map((option) => option.name),
+      ensuite.options.filter((option) => !option.image.src.includes("/design-boards/")).map((option) => option.name),
       ["Natural Spa", "Warm Modern", "Timeless Elegance", "Sculpted White"],
     );
   }
@@ -1261,11 +1268,11 @@ test("Profile House uses all 30 approved Visual Guide assets and its requested j
           ];
 
     assert.deepEqual(
-      category.options.map((option) => [option.level, option.optionNumber]),
+      category.options.filter((option) => !option.image.src.includes("/design-boards/")).map((option) => [option.level, option.optionNumber]),
       expectedClassifications,
     );
     assert.ok(
-      category.options.every(
+      category.options.filter((option) => !option.image.src.includes("/design-boards/")).every(
         (option) =>
           option.level !== ("essential" as string) &&
           option.image.fit === "contain" &&
@@ -1277,7 +1284,7 @@ test("Profile House uses all 30 approved Visual Guide assets and its requested j
       ),
     );
     referencedAssets.push(
-      ...category.options.map((option) => basename(option.image.src)),
+      ...category.options.filter((option) => !option.image.src.includes("/design-boards/")).map((option) => basename(option.image.src)),
     );
   }
 
@@ -1372,9 +1379,9 @@ test("Timberline uses exactly seven approved visual-guide chapters", () => {
     assert.equal(category.kind, "room-look");
     if (category.kind !== "room-look") continue;
 
-    assert.equal(category.options.length, 4);
+    assert.equal(category.options.filter((option) => !option.image.src.includes("/design-boards/")).length, 4);
     assert.deepEqual(
-      category.options.map((option) => [option.level, option.optionNumber]),
+      category.options.filter((option) => !option.image.src.includes("/design-boards/")).map((option) => [option.level, option.optionNumber]),
       [
         ["premium", "1"],
         ["premium", "2"],
@@ -1383,18 +1390,18 @@ test("Timberline uses exactly seven approved visual-guide chapters", () => {
       ],
     );
     assert.deepEqual(
-      category.options.map((option) => option.name),
+      category.options.filter((option) => !option.image.src.includes("/design-boards/")).map((option) => option.name),
       expectedOptionNames.get(category.id),
     );
-    assert.ok(category.options.every((option) => option.image.fit === "contain"));
+    assert.ok(category.options.filter((option) => !option.image.src.includes("/design-boards/")).every((option) => option.image.fit === "contain"));
     assert.ok(
-      category.options.every(
+      category.options.filter((option) => !option.image.src.includes("/design-boards/")).every(
         (option) =>
           option.image.role === "design-board" &&
           option.image.quality === 100,
       ),
     );
-    for (const option of category.options) {
+    for (const option of category.options.filter((option) => !option.image.src.includes("/design-boards/"))) {
       assert.ok(
         option.image.src.startsWith(
           "/images/homes/timberline/visual-guide/Timberline_",
@@ -1464,10 +1471,10 @@ test("Saturna remains on its dedicated seven-chapter Look Book", () => {
     assert.equal(category.kind, "room-look");
     if (category.kind !== "room-look") continue;
 
-    assert.equal(category.options.length, 4);
-    assert.ok(category.options.every((option) => option.image.fit === "contain"));
+    assert.equal(category.options.filter((option) => !option.image.src.includes("/design-boards/")).length, 4);
+    assert.ok(category.options.filter((option) => !option.image.src.includes("/design-boards/")).every((option) => option.image.fit === "contain"));
     assert.ok(
-      category.options.every((option) =>
+      category.options.filter((option) => !option.image.src.includes("/design-boards/")).every((option) =>
         option.image.src.startsWith("/images/homes/saturna/configurator/Saturna_"),
       ),
     );
@@ -1523,7 +1530,7 @@ test("Project Coordinated remains non-core and does not block completion", () =>
 
 test("unfinished Custom Homes cannot resolve a fallback configurator", () => {
   for (const model of models.filter(
-    (candidate) => !canonicalCustomHomeIds.has(candidate.slug),
+    (candidate) => !canonicalCustomHomeIds.has(candidate.slug) && candidate.slug !== "salt-spring",
   )) {
     const definition = getHomeConfiguratorDefinition(model.slug);
     const registration = getHomeConfiguratorRegistration(

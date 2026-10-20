@@ -22,13 +22,13 @@ export function getHomeTierDefinition(
           ...category,
           zones: category.zones.map((zone) => ({
             ...zone,
-            options: zone.options.filter((option) => option.level === tier),
+            options: zone.options.filter((option) => (option.shared || option.level === tier) && !option.legacyOnly),
           })),
         };
       }
       return {
         ...category,
-        options: category.options.filter((option) => option.level === tier),
+        options: category.options.filter((option) => (option.shared || option.level === tier) && !option.legacyOnly),
       };
     }),
   };

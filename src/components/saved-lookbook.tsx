@@ -10,10 +10,12 @@ export function SavedLookBook({
   definition,
   configuration,
   configurationId,
+  printMode = false,
 }: {
   definition: HomeConfiguratorDefinition;
   configuration: HomeConfiguration;
   configurationId: string;
+  printMode?: boolean;
 }) {
   return (
     <HomeLookBook
@@ -28,6 +30,7 @@ export function SavedLookBook({
       savedHasContact
       savedView
       directSourceImages
+      printMode={printMode}
     />
   );
 }

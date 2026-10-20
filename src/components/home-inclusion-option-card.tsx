@@ -104,7 +104,7 @@ export function HomeInclusionOptionCard({
               option.level === "premium" ? "text-white/58" : "text-[#d8c4a5]",
             )}
           >
-            {getHomeInclusionLevelLabel(option.level)} · {option.optionNumber}
+            {(option.shared ? "Shared exterior · Both residences" : getHomeInclusionLevelLabel(option.level))} · {option.optionNumber}
           </span>
           <span className="mt-5 text-[clamp(1.8rem,3vw,3.25rem)] font-medium leading-[0.94] tracking-[-0.055em] text-white/92">
             {option.name}

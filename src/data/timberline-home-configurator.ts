@@ -1,3 +1,4 @@
+import { expandHomeLookBookOptions } from "@/data/home-lookbook-expansion";
 import type {
   HomeConfiguratorDefinition,
   HomeInclusionLevel,
@@ -152,7 +153,7 @@ function createChapter(source: ChapterSource): HomeRoomLookCategory {
     description: source.description,
     represents: source.represents,
     technicalNote: source.technicalNote,
-    options: source.options.map((option) => createOption(source, option)),
+    options: expandHomeLookBookOptions("timberline", source.id, source.title, source.materialRole, source.options.map((option) => createOption(source, option))),
   };
 }
 

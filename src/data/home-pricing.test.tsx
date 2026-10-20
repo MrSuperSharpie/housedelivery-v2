@@ -50,14 +50,14 @@ test("both tiers remain selectable and create valid Look Books for every active 
         const groups = category.kind === "flooring" ? category.zones : [category];
         for (const group of groups) {
           assert.ok(group.options.length > 0, `${model.slug}: ${tier}: ${group.id}`);
-          assert.ok(group.options.every((option) => option.level === tier));
+          assert.ok(group.options.every((option) => option.shared || option.level === tier));
           const selections = category.kind === "flooring" ? configuration.flooringSelections : configuration.inclusionSelections;
           selections[group.id] = { optionId: group.options[0].id, status: "confirmed" };
         }
       }
       const lookBook = parseCompletedLookBook(model.slug, configuration);
       assert.ok(lookBook.selections.length > 0);
-      assert.ok(lookBook.selections.every((selection) => selection.tier === tier));
+      assert.ok(lookBook.selections.every((selection) => selection.tier === tier || selection.tier === "shared"));
     }
     assert.equal(JSON.stringify(definition), original, `${model.slug}: canonical options unchanged`);
   }
@@ -102,7 +102,7 @@ test("both tiers filter every room and flooring zone without modifying the catal
       const groups = category.kind === "flooring" ? category.zones.map((zone) => zone.options) : [category.options];
       for (const options of groups) {
         assert.ok(options.length > 0, `${tier}: ${category.id} has options`);
-        assert.ok(options.every((option) => option.level === tier));
+        assert.ok(options.every((option) => option.shared || option.level === tier));
       }
     }
     const markup = renderToStaticMarkup(<HomeConfigurator definition={solace} inclusionTier={tier} />);
