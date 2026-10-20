@@ -908,7 +908,7 @@ function CinematicSelectionPage({
                 Project specification guide
               </p>
               <dl className="mt-4 grid gap-3 text-xs leading-5 text-black/60">
-                <div><dt className="font-semibold text-black/75">Glazing</dt><dd>Catalog glass build-up shown on the board; triple glazing only where documented for the selected model and configuration.</dd></div>
+                <div><dt className="font-semibold text-black/75">Glazing</dt><dd>Triple-glazed window direction; patio-door glass build-up verified for the selected system.</dd></div>
                 <div><dt className="font-semibold text-black/75">Performance</dt><dd>Whole-unit thermal data and NAFS/CSA A440S1 reports for the exact model and size.</dd></div>
                 <div><dt className="font-semibold text-black/75">Site fit</dt><dd>Opening dimensions, wind and rain exposure, threshold, flashing and drainage confirmed for the project.</dd></div>
               </dl>
