@@ -490,10 +490,10 @@ export const models = [
       },
     ],
     sourceUrl: "https://housedelivery.ca/the-south-bay-house",
-    heroImage: `/SouthBay-1-high-resolution.jpg`,
+    heroImage: `/SouthBay-1.jpeg`,
     floorPlanImage: "/southbay-floorplan.jpg",
     images: [
-      `/SouthBay-1-high-resolution.jpg`,
+      `/SouthBay-1.jpeg`,
       `/SouthBay-2.jpeg`,
       `/SouthBay-3.jpeg`,
       `/SouthBay-4.jpeg`,
