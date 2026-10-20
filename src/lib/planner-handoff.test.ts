@@ -310,7 +310,7 @@ test("12 homes persist as three unique factory design outputs with real Look Boo
   );
   assert.equal(new Set(handoff.packages.map((item) => item.configurationId)).size, 3);
   assert.equal(handoff.packages[1]?.exteriorExpression, "Indigenous Inspiration");
-  assert.ok(handoff.packages.every((item) => item.selections.length === 7));
+  assert.ok(handoff.packages.every((item) => item.selections.length === 8));
   assert.ok(handoff.packages.every((item) => item.record.followUpRequested === false));
   assert.ok(handoff.packages.every((item) => item.record.leadState === "known_engaged"));
   assert.ok(handoff.packages.every((item) => item.lookBookUrl.includes("/lookbook/")));

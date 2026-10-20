@@ -41,10 +41,10 @@ test("all 17 standard homes show exactly two original plus two new choices per t
   for (const original of baseline) {
     const current = getHomeConfiguratorDefinition(original.homeId)!;
     assert.deepEqual(getCanonicalHomeConfiguratorIssues(current), []);
-    assert.equal(getRequiredCategories(current).length, 7);
+    assert.equal(getRequiredCategories(current).length, 8);
     assert.equal(getHomeConfiguratorJourneyCategories(current).at(-1)?.id, "exterior-arrival-openings");
     for (const tier of ["premium", "signature"] as const) {
-      for (const category of getRequiredCategories(getHomeTierDefinition(current, tier))) {
+      for (const category of getRequiredCategories(getHomeTierDefinition(current, tier)).filter((item) => item.id !== "windows-patio-doors")) {
         assert.ok(category.kind === "room-look");
         assert.equal(category.options.length, 4, `${original.homeId}/${category.id}/${tier}`);
         assert.ok(category.options.every((option) => option.level === tier && !option.legacyOnly));
@@ -70,9 +70,12 @@ test("all original saved combinations still validate, including Profile's third 
         expected.push(option.id);
         configuration.inclusionSelections[category.id] = { optionId: option.id, status: "confirmed" };
       }
+      const glazing = current.categories.find((category) => category.id === "windows-patio-doors");
+      assert.ok(glazing?.kind === "room-look");
+      configuration.inclusionSelections[glazing.id] = { optionId: glazing.options[slot % glazing.options.length].id, status: "confirmed" };
       const parsed = parseCompletedLookBook(original.homeId, configuration);
-      assert.equal(parsed.selections.length, 7);
-      assert.deepEqual(new Set(parsed.selections.map((selection) => selection.optionId)), new Set(expected));
+      assert.equal(parsed.selections.length, 8);
+      assert.ok(expected.every((id) => parsed.selections.some((selection) => selection.optionId === id)));
     }
   }
 });
@@ -105,20 +108,20 @@ test("all 497 imported boards match the optimized image manifest and keep the fu
 test("Salt Spring supports every independent tier pairing and one immutable shared exterior", () => {
   const duplex = getHomeConfiguratorDefinition("salt-spring")!;
   assert.deepEqual(getCanonicalHomeConfiguratorIssues(duplex), []);
-  assert.equal(getRequiredCategories(duplex).length, 13);
+  assert.equal(getRequiredCategories(duplex).length, 14);
   for (const a of ["premium", "signature"] as const) for (const b of ["premium", "signature"] as const) {
     const filtered = getDuplexTierDefinition(duplex, { a, b });
     const configuration = applyHomeTier(filtered, createDefaultHomeConfiguration(duplex));
     for (const category of getRequiredCategories(filtered)) {
       assert.ok(category.kind === "room-look");
-      assert.equal(category.options.length, category.residence === "shared" ? 1 : 4);
+      assert.equal(category.options.length, category.id === "exterior-arrival-openings" ? 1 : category.residence === "shared" ? 8 : 4);
       assert.ok(category.options.every((option) => option.shared || option.level === (category.residence === "a" ? a : b)));
       configuration.inclusionSelections[category.id] = { optionId: category.options.at(-1)!.id, status: "confirmed" };
     }
     assert.deepEqual(getSavedDuplexTiers(duplex, configuration, {a: "premium", b: "premium"}), {a,b});
     const parsed = parseCompletedLookBook("salt-spring", configuration);
-    assert.equal(parsed.selections.length, 13);
-    assert.equal(parsed.selections.filter((selection) => selection.tier === "shared").length, 1);
+    assert.equal(parsed.selections.length, 14);
+    assert.equal(parsed.selections.filter((selection) => selection.tier === "shared").length, 2);
     const next = applyHomeTier(getDuplexTierDefinition(duplex, {a,b:b === "premium" ? "signature" : "premium"}), configuration);
     for (const [key, value] of Object.entries(configuration.inclusionSelections)) {
       if (!key.startsWith("residence-b-")) assert.deepEqual(next.inclusionSelections[key], value);

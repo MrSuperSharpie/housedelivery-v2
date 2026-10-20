@@ -32,6 +32,7 @@ export const canonicalHomeConfiguratorChapters = [
     title: "Whole-Home Flooring & Stairs",
   },
   { id: "window-coverings", number: "07", title: "Window Coverings" },
+  { id: "windows-patio-doors", number: "08", title: "Windows & Patio Doors" },
 ] as const;
 
 export type CanonicalHomeConfiguratorChapterId =
@@ -47,7 +48,7 @@ export const canonicalHomeConfiguratorStages = [
   })),
   {
     id: "my-home-review",
-    number: "08",
+    number: "09",
     title: "My Home / Review / Save as PDF",
     kind: "review" as const,
   },
@@ -153,18 +154,21 @@ export function getCanonicalHomeConfiguratorIssues(
   const issues: string[] = [];
   const categories = getRequiredCategories(definition);
   if (definition.homeId === "salt-spring") {
-    const interiors = canonicalHomeConfiguratorChapterIds.filter((id) => id !== "exterior-arrival-openings");
+    const interiors = canonicalHomeConfiguratorChapterIds.filter((id) => id !== "exterior-arrival-openings" && id !== "windows-patio-doors");
     const expected = [
       ...["a", "b"].flatMap((residence) => interiors.map((id) => `residence-${residence}-${id}`)),
       "exterior-arrival-openings",
+      "windows-patio-doors",
     ];
     if (categories.length !== expected.length || categories.some((category, index) => category.id !== expected[index])) {
-      issues.push("Salt Spring must retain six independent interiors per residence and one shared exterior.");
+      issues.push("Salt Spring must retain six independent interiors per residence and two building-wide chapters.");
     }
     for (const category of categories) {
       if (category.kind !== "room-look") { issues.push(`${category.id} must be a room-look chapter.`); continue; }
       if (category.id === "exterior-arrival-openings") {
         if (category.options.length !== 1 || !category.options[0].shared) issues.push("Salt Spring must have exactly one shared exterior.");
+      } else if (category.id === "windows-patio-doors") {
+        if (category.residence !== "shared" || category.options.length !== 8 || !category.options.every((option) => option.shared)) issues.push("Salt Spring must offer one building-wide glazing choice from eight directions.");
       } else if (category.options.map((option) => `${option.level}:${option.optionNumber}`).sort().join() !== expandedPackageClassifications.join()) {
         issues.push(`${category.id} must provide four choices per interior tier.`);
       }
@@ -180,7 +184,7 @@ export function getCanonicalHomeConfiguratorIssues(
         categoryId !== canonicalHomeConfiguratorChapterIds[index],
     )
   ) {
-    issues.push("The seven canonical design chapters are not present in order.");
+    issues.push("The eight canonical design chapters are not present in order.");
   }
 
   for (const category of categories) {
@@ -215,7 +219,7 @@ export function getCanonicalHomeConfiguratorIssues(
             expandedWardrobePackageClassifications,
           ]
         : [canonicalPackageClassifications];
-    allowedClassifications.push(definition.homeId === "profile"
+    allowedClassifications.push(definition.homeId === "profile" && category.id !== "windows-patio-doors"
       ? expandedProfilePackageClassifications
       : expandedPackageClassifications);
     const hasAllowedClassifications = allowedClassifications.some(

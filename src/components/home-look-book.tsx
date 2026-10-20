@@ -62,6 +62,7 @@ type ResolvedSelection = LookBookSelection & {
   zoneId?: string;
   categoryDescription: string;
   representedItems?: readonly string[];
+  technicalNote?: string;
 };
 
 type EditorialContext = Pick<
@@ -623,6 +624,7 @@ function resolveSelection(
     image: option.image,
     editorial: option.editorial,
     categoryDescription: category.description,
+    technicalNote: category.technicalNote,
     ...(category.kind === "room-look"
       ? { representedItems: category.represents }
       : {}),
@@ -644,7 +646,7 @@ function resolveSection(
 }
 
 function levelLabel(selection: LookBookSelection) {
-  if (selection.shared) return "Shared exterior · Both residences";
+  if (selection.shared) return "Shared building choice · Both residences";
   return getHomeInclusionLevelLabel(selection.level).replace(" — ", " · ");
 }
 
@@ -653,6 +655,9 @@ function lowerInitial(value: string) {
 }
 
 function getSelectionConfirmation(selection: ResolvedSelection) {
+  if (selection.categoryId === "windows-patio-doors") {
+    return selection.description ?? selection.categoryDescription;
+  }
   if (!selection.representedItems?.length) {
     return selection.description ?? selection.categoryDescription;
   }
@@ -897,6 +902,16 @@ function CinematicSelectionPage({
               {getSelectionConfirmation(hero)}
             </p>
           </div>
+          {hero.categoryId === "windows-patio-doors" && hero.technicalNote ? (
+            <div className="mt-5 border-t border-black/16 pt-5 lg:self-start">
+              <p className="text-[8px] font-semibold uppercase tracking-[0.17em] text-black/52">
+                Canadian project specification
+              </p>
+              <p className="mt-4 text-xs leading-6 text-black/52">
+                {hero.technicalNote}
+              </p>
+            </div>
+          ) : null}
           {coordinated?.kind === "coordinated" ? (
             <div
               data-look-book-category={coordinated.id}

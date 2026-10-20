@@ -93,7 +93,7 @@ function HomeConfigurationEntries({
               {category.kind === "standard" || category.kind === "room-look" ? (
                 <p className="mt-1 text-[10px] leading-4 text-black/58">
                   {previewOption
-                    ? `${previewOption.name} · ${(previewOption.shared ? "Shared exterior · Both residences" : getHomeInclusionLevelLabel(previewOption.level))}`
+                    ? `${previewOption.name} · ${(previewOption.shared ? "Shared building choice · Both residences" : getHomeInclusionLevelLabel(previewOption.level))}`
                     : "Not yet selected"}
                 </p>
               ) : category.kind === "flooring" ? (
@@ -110,7 +110,7 @@ function HomeConfigurationEntries({
                       >
                         {zone.shortTitle}: {option?.name ?? "Not yet selected"}
                         {option
-                          ? ` · ${(option.shared ? "Shared exterior · Both residences" : getHomeInclusionLevelLabel(option.level))}`
+                          ? ` · ${(option.shared ? "Shared building choice · Both residences" : getHomeInclusionLevelLabel(option.level))}`
                           : ""}
                       </li>
                     );

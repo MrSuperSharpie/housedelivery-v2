@@ -5,6 +5,7 @@ import path from "node:path";
 import { chromium } from "playwright-core";
 
 const baseUrl = process.env.LOOKBOOK_QA_BASE_URL || "http://localhost:3000";
+const home = process.env.LOOKBOOK_QA_HOME || "langley";
 const outputDirectory =
   process.env.LOOKBOOK_PDF_OUTPUT_DIR || "/private/tmp/langley-lookbook-pdf";
 const chromePath =
@@ -23,9 +24,9 @@ try {
     viewport: { width: 1440, height: 1000 },
   });
 
-  await page.goto(`${baseUrl}/homes/langley`, { waitUntil: "networkidle" });
+  await page.goto(`${baseUrl}/homes/${home}`, { waitUntil: "networkidle" });
 
-  for (let step = 0; step < 12; step += 1) {
+  for (let step = 0; step < 24; step += 1) {
     if (await page.locator("[data-lookbook-lead-capture]").count()) break;
     const confirm = page.locator(
       '[data-category-state="active"] [data-confirm-category]',
@@ -55,7 +56,7 @@ try {
 
   const pages = page.locator("[data-look-book-print-page]");
   const pageCount = await pages.count();
-  assert.equal(pageCount, 12, "Langley Look Book should render exactly 12 pages");
+  assert.equal(pageCount, home === "salt-spring" ? 19 : 13, `${home} Look Book page count`);
 
   const pageSummaries = [];
   for (let index = 0; index < pageCount; index += 1) {
@@ -105,7 +106,7 @@ try {
     "Factory precision. Premium design.",
     "Why House Delivery.",
     "Could this home cost materially less to deliver?",
-    "Your Langley. Ready to become real.",
+    "Ready to become real.",
   ]) {
     assert.ok(
       completeText.toLowerCase().includes(expectedHeadline.toLowerCase()),
@@ -114,7 +115,7 @@ try {
   }
 
   await page.pdf({
-    path: path.join(outputDirectory, "langley-lookbook.pdf"),
+    path: path.join(outputDirectory, `${home}-lookbook.pdf`),
     format: "A4",
     printBackground: true,
     preferCSSPageSize: true,
@@ -126,7 +127,7 @@ try {
   );
 
   process.stdout.write(
-    `Rendered ${pageCount} Langley Look Book pages to ${outputDirectory}.\n`,
+    `Rendered ${pageCount} ${home} Look Book pages to ${outputDirectory}.\n`,
   );
 } finally {
   await browser.close();

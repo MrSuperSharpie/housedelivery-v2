@@ -1,0 +1,1298 @@
+[
+  {
+    "home": "langley",
+    "tier": "premium",
+    "option": "1",
+    "image": "langley-premium-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 306110
+  },
+  {
+    "home": "langley",
+    "tier": "premium",
+    "option": "2",
+    "image": "langley-premium-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 286370
+  },
+  {
+    "home": "langley",
+    "tier": "premium",
+    "option": "3",
+    "image": "langley-premium-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 294636
+  },
+  {
+    "home": "langley",
+    "tier": "premium",
+    "option": "4",
+    "image": "langley-premium-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 336476
+  },
+  {
+    "home": "langley",
+    "tier": "signature",
+    "option": "1",
+    "image": "langley-signature-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 318916
+  },
+  {
+    "home": "langley",
+    "tier": "signature",
+    "option": "2",
+    "image": "langley-signature-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 310292
+  },
+  {
+    "home": "langley",
+    "tier": "signature",
+    "option": "3",
+    "image": "langley-signature-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 292678
+  },
+  {
+    "home": "langley",
+    "tier": "signature",
+    "option": "4",
+    "image": "langley-signature-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 337314
+  },
+  {
+    "home": "salt-spring",
+    "tier": "premium",
+    "option": "1",
+    "image": "salt-spring-premium-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 307036
+  },
+  {
+    "home": "salt-spring",
+    "tier": "premium",
+    "option": "2",
+    "image": "salt-spring-premium-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 287524
+  },
+  {
+    "home": "salt-spring",
+    "tier": "premium",
+    "option": "3",
+    "image": "salt-spring-premium-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 295494
+  },
+  {
+    "home": "salt-spring",
+    "tier": "premium",
+    "option": "4",
+    "image": "salt-spring-premium-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 332926
+  },
+  {
+    "home": "salt-spring",
+    "tier": "signature",
+    "option": "1",
+    "image": "salt-spring-signature-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 320252
+  },
+  {
+    "home": "salt-spring",
+    "tier": "signature",
+    "option": "2",
+    "image": "salt-spring-signature-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 311636
+  },
+  {
+    "home": "salt-spring",
+    "tier": "signature",
+    "option": "3",
+    "image": "salt-spring-signature-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 293610
+  },
+  {
+    "home": "salt-spring",
+    "tier": "signature",
+    "option": "4",
+    "image": "salt-spring-signature-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 338404
+  },
+  {
+    "home": "solace",
+    "tier": "premium",
+    "option": "1",
+    "image": "solace-premium-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 305564
+  },
+  {
+    "home": "solace",
+    "tier": "premium",
+    "option": "2",
+    "image": "solace-premium-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 286212
+  },
+  {
+    "home": "solace",
+    "tier": "premium",
+    "option": "3",
+    "image": "solace-premium-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 294308
+  },
+  {
+    "home": "solace",
+    "tier": "premium",
+    "option": "4",
+    "image": "solace-premium-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 335870
+  },
+  {
+    "home": "solace",
+    "tier": "signature",
+    "option": "1",
+    "image": "solace-signature-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 318804
+  },
+  {
+    "home": "solace",
+    "tier": "signature",
+    "option": "2",
+    "image": "solace-signature-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 309940
+  },
+  {
+    "home": "solace",
+    "tier": "signature",
+    "option": "3",
+    "image": "solace-signature-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 292552
+  },
+  {
+    "home": "solace",
+    "tier": "signature",
+    "option": "4",
+    "image": "solace-signature-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 337228
+  },
+  {
+    "home": "timberline",
+    "tier": "premium",
+    "option": "1",
+    "image": "timberline-premium-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 306692
+  },
+  {
+    "home": "timberline",
+    "tier": "premium",
+    "option": "2",
+    "image": "timberline-premium-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 287108
+  },
+  {
+    "home": "timberline",
+    "tier": "premium",
+    "option": "3",
+    "image": "timberline-premium-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 296088
+  },
+  {
+    "home": "timberline",
+    "tier": "premium",
+    "option": "4",
+    "image": "timberline-premium-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 337106
+  },
+  {
+    "home": "timberline",
+    "tier": "signature",
+    "option": "1",
+    "image": "timberline-signature-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 320304
+  },
+  {
+    "home": "timberline",
+    "tier": "signature",
+    "option": "2",
+    "image": "timberline-signature-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 311256
+  },
+  {
+    "home": "timberline",
+    "tier": "signature",
+    "option": "3",
+    "image": "timberline-signature-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 293432
+  },
+  {
+    "home": "timberline",
+    "tier": "signature",
+    "option": "4",
+    "image": "timberline-signature-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 338046
+  },
+  {
+    "home": "profile",
+    "tier": "premium",
+    "option": "1",
+    "image": "profile-premium-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 305592
+  },
+  {
+    "home": "profile",
+    "tier": "premium",
+    "option": "2",
+    "image": "profile-premium-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 285772
+  },
+  {
+    "home": "profile",
+    "tier": "premium",
+    "option": "3",
+    "image": "profile-premium-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 294212
+  },
+  {
+    "home": "profile",
+    "tier": "premium",
+    "option": "4",
+    "image": "profile-premium-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 331436
+  },
+  {
+    "home": "profile",
+    "tier": "signature",
+    "option": "1",
+    "image": "profile-signature-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 318450
+  },
+  {
+    "home": "profile",
+    "tier": "signature",
+    "option": "2",
+    "image": "profile-signature-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 309820
+  },
+  {
+    "home": "profile",
+    "tier": "signature",
+    "option": "3",
+    "image": "profile-signature-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 291998
+  },
+  {
+    "home": "profile",
+    "tier": "signature",
+    "option": "4",
+    "image": "profile-signature-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 336882
+  },
+  {
+    "home": "laurentian",
+    "tier": "premium",
+    "option": "1",
+    "image": "laurentian-premium-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 306600
+  },
+  {
+    "home": "laurentian",
+    "tier": "premium",
+    "option": "2",
+    "image": "laurentian-premium-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 287212
+  },
+  {
+    "home": "laurentian",
+    "tier": "premium",
+    "option": "3",
+    "image": "laurentian-premium-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 295260
+  },
+  {
+    "home": "laurentian",
+    "tier": "premium",
+    "option": "4",
+    "image": "laurentian-premium-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 336934
+  },
+  {
+    "home": "laurentian",
+    "tier": "signature",
+    "option": "1",
+    "image": "laurentian-signature-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 319698
+  },
+  {
+    "home": "laurentian",
+    "tier": "signature",
+    "option": "2",
+    "image": "laurentian-signature-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 311080
+  },
+  {
+    "home": "laurentian",
+    "tier": "signature",
+    "option": "3",
+    "image": "laurentian-signature-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 293620
+  },
+  {
+    "home": "laurentian",
+    "tier": "signature",
+    "option": "4",
+    "image": "laurentian-signature-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 338178
+  },
+  {
+    "home": "dalton",
+    "tier": "premium",
+    "option": "1",
+    "image": "dalton-premium-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 305600
+  },
+  {
+    "home": "dalton",
+    "tier": "premium",
+    "option": "2",
+    "image": "dalton-premium-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 286206
+  },
+  {
+    "home": "dalton",
+    "tier": "premium",
+    "option": "3",
+    "image": "dalton-premium-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 294860
+  },
+  {
+    "home": "dalton",
+    "tier": "premium",
+    "option": "4",
+    "image": "dalton-premium-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 331528
+  },
+  {
+    "home": "dalton",
+    "tier": "signature",
+    "option": "1",
+    "image": "dalton-signature-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 318588
+  },
+  {
+    "home": "dalton",
+    "tier": "signature",
+    "option": "2",
+    "image": "dalton-signature-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 310052
+  },
+  {
+    "home": "dalton",
+    "tier": "signature",
+    "option": "3",
+    "image": "dalton-signature-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 292316
+  },
+  {
+    "home": "dalton",
+    "tier": "signature",
+    "option": "4",
+    "image": "dalton-signature-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 336880
+  },
+  {
+    "home": "south-bay",
+    "tier": "premium",
+    "option": "1",
+    "image": "south-bay-premium-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 306746
+  },
+  {
+    "home": "south-bay",
+    "tier": "premium",
+    "option": "2",
+    "image": "south-bay-premium-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 286786
+  },
+  {
+    "home": "south-bay",
+    "tier": "premium",
+    "option": "3",
+    "image": "south-bay-premium-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 294964
+  },
+  {
+    "home": "south-bay",
+    "tier": "premium",
+    "option": "4",
+    "image": "south-bay-premium-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 332078
+  },
+  {
+    "home": "south-bay",
+    "tier": "signature",
+    "option": "1",
+    "image": "south-bay-signature-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 319468
+  },
+  {
+    "home": "south-bay",
+    "tier": "signature",
+    "option": "2",
+    "image": "south-bay-signature-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 310816
+  },
+  {
+    "home": "south-bay",
+    "tier": "signature",
+    "option": "3",
+    "image": "south-bay-signature-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 293210
+  },
+  {
+    "home": "south-bay",
+    "tier": "signature",
+    "option": "4",
+    "image": "south-bay-signature-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 337714
+  },
+  {
+    "home": "boreal",
+    "tier": "premium",
+    "option": "1",
+    "image": "boreal-premium-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 305890
+  },
+  {
+    "home": "boreal",
+    "tier": "premium",
+    "option": "2",
+    "image": "boreal-premium-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 286226
+  },
+  {
+    "home": "boreal",
+    "tier": "premium",
+    "option": "3",
+    "image": "boreal-premium-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 294220
+  },
+  {
+    "home": "boreal",
+    "tier": "premium",
+    "option": "4",
+    "image": "boreal-premium-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 336360
+  },
+  {
+    "home": "boreal",
+    "tier": "signature",
+    "option": "1",
+    "image": "boreal-signature-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 318942
+  },
+  {
+    "home": "boreal",
+    "tier": "signature",
+    "option": "2",
+    "image": "boreal-signature-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 309954
+  },
+  {
+    "home": "boreal",
+    "tier": "signature",
+    "option": "3",
+    "image": "boreal-signature-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 292572
+  },
+  {
+    "home": "boreal",
+    "tier": "signature",
+    "option": "4",
+    "image": "boreal-signature-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 337054
+  },
+  {
+    "home": "keats",
+    "tier": "premium",
+    "option": "1",
+    "image": "keats-premium-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 305190
+  },
+  {
+    "home": "keats",
+    "tier": "premium",
+    "option": "2",
+    "image": "keats-premium-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 285816
+  },
+  {
+    "home": "keats",
+    "tier": "premium",
+    "option": "3",
+    "image": "keats-premium-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 294634
+  },
+  {
+    "home": "keats",
+    "tier": "premium",
+    "option": "4",
+    "image": "keats-premium-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 331690
+  },
+  {
+    "home": "keats",
+    "tier": "signature",
+    "option": "1",
+    "image": "keats-signature-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 318794
+  },
+  {
+    "home": "keats",
+    "tier": "signature",
+    "option": "2",
+    "image": "keats-signature-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 309528
+  },
+  {
+    "home": "keats",
+    "tier": "signature",
+    "option": "3",
+    "image": "keats-signature-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 291886
+  },
+  {
+    "home": "keats",
+    "tier": "signature",
+    "option": "4",
+    "image": "keats-signature-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 336564
+  },
+  {
+    "home": "canmore",
+    "tier": "premium",
+    "option": "1",
+    "image": "canmore-premium-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 306320
+  },
+  {
+    "home": "canmore",
+    "tier": "premium",
+    "option": "2",
+    "image": "canmore-premium-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 286714
+  },
+  {
+    "home": "canmore",
+    "tier": "premium",
+    "option": "3",
+    "image": "canmore-premium-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 294938
+  },
+  {
+    "home": "canmore",
+    "tier": "premium",
+    "option": "4",
+    "image": "canmore-premium-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 336686
+  },
+  {
+    "home": "canmore",
+    "tier": "signature",
+    "option": "1",
+    "image": "canmore-signature-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 319454
+  },
+  {
+    "home": "canmore",
+    "tier": "signature",
+    "option": "2",
+    "image": "canmore-signature-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 310708
+  },
+  {
+    "home": "canmore",
+    "tier": "signature",
+    "option": "3",
+    "image": "canmore-signature-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 293112
+  },
+  {
+    "home": "canmore",
+    "tier": "signature",
+    "option": "4",
+    "image": "canmore-signature-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 337770
+  },
+  {
+    "home": "saturna",
+    "tier": "premium",
+    "option": "1",
+    "image": "saturna-premium-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 305972
+  },
+  {
+    "home": "saturna",
+    "tier": "premium",
+    "option": "2",
+    "image": "saturna-premium-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 286560
+  },
+  {
+    "home": "saturna",
+    "tier": "premium",
+    "option": "3",
+    "image": "saturna-premium-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 295120
+  },
+  {
+    "home": "saturna",
+    "tier": "premium",
+    "option": "4",
+    "image": "saturna-premium-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 332098
+  },
+  {
+    "home": "saturna",
+    "tier": "signature",
+    "option": "1",
+    "image": "saturna-signature-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 319030
+  },
+  {
+    "home": "saturna",
+    "tier": "signature",
+    "option": "2",
+    "image": "saturna-signature-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 310456
+  },
+  {
+    "home": "saturna",
+    "tier": "signature",
+    "option": "3",
+    "image": "saturna-signature-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 292700
+  },
+  {
+    "home": "saturna",
+    "tier": "signature",
+    "option": "4",
+    "image": "saturna-signature-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 337716
+  },
+  {
+    "home": "cascade",
+    "tier": "premium",
+    "option": "1",
+    "image": "cascade-premium-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 306274
+  },
+  {
+    "home": "cascade",
+    "tier": "premium",
+    "option": "2",
+    "image": "cascade-premium-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 286658
+  },
+  {
+    "home": "cascade",
+    "tier": "premium",
+    "option": "3",
+    "image": "cascade-premium-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 294764
+  },
+  {
+    "home": "cascade",
+    "tier": "premium",
+    "option": "4",
+    "image": "cascade-premium-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 336772
+  },
+  {
+    "home": "cascade",
+    "tier": "signature",
+    "option": "1",
+    "image": "cascade-signature-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 319132
+  },
+  {
+    "home": "cascade",
+    "tier": "signature",
+    "option": "2",
+    "image": "cascade-signature-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 310496
+  },
+  {
+    "home": "cascade",
+    "tier": "signature",
+    "option": "3",
+    "image": "cascade-signature-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 292898
+  },
+  {
+    "home": "cascade",
+    "tier": "signature",
+    "option": "4",
+    "image": "cascade-signature-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 337494
+  },
+  {
+    "home": "maplewood",
+    "tier": "premium",
+    "option": "1",
+    "image": "maplewood-premium-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 307152
+  },
+  {
+    "home": "maplewood",
+    "tier": "premium",
+    "option": "2",
+    "image": "maplewood-premium-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 287628
+  },
+  {
+    "home": "maplewood",
+    "tier": "premium",
+    "option": "3",
+    "image": "maplewood-premium-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 295636
+  },
+  {
+    "home": "maplewood",
+    "tier": "premium",
+    "option": "4",
+    "image": "maplewood-premium-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 337442
+  },
+  {
+    "home": "maplewood",
+    "tier": "signature",
+    "option": "1",
+    "image": "maplewood-signature-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 320246
+  },
+  {
+    "home": "maplewood",
+    "tier": "signature",
+    "option": "2",
+    "image": "maplewood-signature-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 311512
+  },
+  {
+    "home": "maplewood",
+    "tier": "signature",
+    "option": "3",
+    "image": "maplewood-signature-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 293934
+  },
+  {
+    "home": "maplewood",
+    "tier": "signature",
+    "option": "4",
+    "image": "maplewood-signature-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 338516
+  },
+  {
+    "home": "cedarview",
+    "tier": "premium",
+    "option": "1",
+    "image": "cedarview-premium-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 306768
+  },
+  {
+    "home": "cedarview",
+    "tier": "premium",
+    "option": "2",
+    "image": "cedarview-premium-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 287458
+  },
+  {
+    "home": "cedarview",
+    "tier": "premium",
+    "option": "3",
+    "image": "cedarview-premium-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 295504
+  },
+  {
+    "home": "cedarview",
+    "tier": "premium",
+    "option": "4",
+    "image": "cedarview-premium-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 337580
+  },
+  {
+    "home": "cedarview",
+    "tier": "signature",
+    "option": "1",
+    "image": "cedarview-signature-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 320038
+  },
+  {
+    "home": "cedarview",
+    "tier": "signature",
+    "option": "2",
+    "image": "cedarview-signature-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 311346
+  },
+  {
+    "home": "cedarview",
+    "tier": "signature",
+    "option": "3",
+    "image": "cedarview-signature-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 293810
+  },
+  {
+    "home": "cedarview",
+    "tier": "signature",
+    "option": "4",
+    "image": "cedarview-signature-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 338158
+  },
+  {
+    "home": "mayne",
+    "tier": "premium",
+    "option": "1",
+    "image": "mayne-premium-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 305450
+  },
+  {
+    "home": "mayne",
+    "tier": "premium",
+    "option": "2",
+    "image": "mayne-premium-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 286118
+  },
+  {
+    "home": "mayne",
+    "tier": "premium",
+    "option": "3",
+    "image": "mayne-premium-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 294644
+  },
+  {
+    "home": "mayne",
+    "tier": "premium",
+    "option": "4",
+    "image": "mayne-premium-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 335710
+  },
+  {
+    "home": "mayne",
+    "tier": "signature",
+    "option": "1",
+    "image": "mayne-signature-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 318548
+  },
+  {
+    "home": "mayne",
+    "tier": "signature",
+    "option": "2",
+    "image": "mayne-signature-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 309946
+  },
+  {
+    "home": "mayne",
+    "tier": "signature",
+    "option": "3",
+    "image": "mayne-signature-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 292222
+  },
+  {
+    "home": "mayne",
+    "tier": "signature",
+    "option": "4",
+    "image": "mayne-signature-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 336800
+  },
+  {
+    "home": "summit",
+    "tier": "premium",
+    "option": "1",
+    "image": "summit-premium-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 305704
+  },
+  {
+    "home": "summit",
+    "tier": "premium",
+    "option": "2",
+    "image": "summit-premium-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 286194
+  },
+  {
+    "home": "summit",
+    "tier": "premium",
+    "option": "3",
+    "image": "summit-premium-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 294862
+  },
+  {
+    "home": "summit",
+    "tier": "premium",
+    "option": "4",
+    "image": "summit-premium-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 331664
+  },
+  {
+    "home": "summit",
+    "tier": "signature",
+    "option": "1",
+    "image": "summit-signature-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 318636
+  },
+  {
+    "home": "summit",
+    "tier": "signature",
+    "option": "2",
+    "image": "summit-signature-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 309692
+  },
+  {
+    "home": "summit",
+    "tier": "signature",
+    "option": "3",
+    "image": "summit-signature-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 292398
+  },
+  {
+    "home": "summit",
+    "tier": "signature",
+    "option": "4",
+    "image": "summit-signature-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 337174
+  },
+  {
+    "home": "aurora",
+    "tier": "premium",
+    "option": "1",
+    "image": "aurora-premium-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 305270
+  },
+  {
+    "home": "aurora",
+    "tier": "premium",
+    "option": "2",
+    "image": "aurora-premium-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 286168
+  },
+  {
+    "home": "aurora",
+    "tier": "premium",
+    "option": "3",
+    "image": "aurora-premium-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 294486
+  },
+  {
+    "home": "aurora",
+    "tier": "premium",
+    "option": "4",
+    "image": "aurora-premium-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 335812
+  },
+  {
+    "home": "aurora",
+    "tier": "signature",
+    "option": "1",
+    "image": "aurora-signature-1.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 318892
+  },
+  {
+    "home": "aurora",
+    "tier": "signature",
+    "option": "2",
+    "image": "aurora-signature-2.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 310148
+  },
+  {
+    "home": "aurora",
+    "tier": "signature",
+    "option": "3",
+    "image": "aurora-signature-3.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 292738
+  },
+  {
+    "home": "aurora",
+    "tier": "signature",
+    "option": "4",
+    "image": "aurora-signature-4.webp",
+    "width": 1600,
+    "height": 1200,
+    "bytes": 337136
+  }
+]

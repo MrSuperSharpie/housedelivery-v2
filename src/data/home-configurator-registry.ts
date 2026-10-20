@@ -29,6 +29,7 @@ import { saltSpringHomeConfigurator } from "@/data/salt-spring-home-configurator
 import { solaceHomeConfigurator } from "@/data/solace-home-configurator";
 import { southBayHomeConfigurator } from "@/data/south-bay-home-configurator";
 import { timberlineHomeConfigurator } from "@/data/timberline-home-configurator";
+import { addWindowsAndPatioDoorsLookBook } from "@/data/windows-patio-doors-lookbook";
 
 function registrationKey(productFamily: HomeProductFamily, homeId: string) {
   return `${productFamily}:${homeId}`;
@@ -56,6 +57,10 @@ const customHomeDefinitions: Readonly<
   summit: summitHomeConfigurator,
   timberline: timberlineHomeConfigurator,
 };
+
+for (const definition of Object.values(customHomeDefinitions)) {
+  addWindowsAndPatioDoorsLookBook(definition);
+}
 
 const customHomeRegistrations: readonly HomeConfiguratorRegistration[] =
   models.map((model) => {

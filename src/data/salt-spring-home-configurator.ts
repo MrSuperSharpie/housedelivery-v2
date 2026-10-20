@@ -5,7 +5,7 @@ import { models } from "@/data/models";
 
 const model = models.find((home) => home.slug === "salt-spring");
 if (!model) throw new Error("Salt Spring model is unavailable.");
-const interiorChapters = canonicalHomeConfiguratorChapters.filter((chapter) => chapter.id !== "exterior-arrival-openings");
+const interiorChapters = canonicalHomeConfiguratorChapters.filter((chapter) => chapter.id !== "exterior-arrival-openings" && chapter.id !== "windows-patio-doors");
 const interiors = (["a", "b"] as const).flatMap((residence) => interiorChapters.map((chapter): HomeRoomLookCategory => ({
   kind: "room-look",
   id: `residence-${residence}-${chapter.id}`,
