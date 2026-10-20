@@ -67,6 +67,7 @@ export type LookBookSelection = {
   zoneId?: string;
   label: string;
   optionName: string;
+  shared?: boolean;
   level: "premium" | "signature";
   description?: string;
   image: InclusionImage;

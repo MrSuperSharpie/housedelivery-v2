@@ -208,7 +208,7 @@ function resolveConfiguration(
         optionId: option.id,
         optionNumber: option.optionNumber,
         optionName: option.name,
-        tier: option.level,
+        tier: option.shared ? "shared" : option.level,
       });
       continue;
     }

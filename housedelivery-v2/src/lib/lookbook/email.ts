@@ -20,7 +20,8 @@ function escapeHtml(value: string) {
   );
 }
 
-function tierLabel(tier: "premium" | "signature") {
+function tierLabel(tier: "premium" | "signature" | "shared") {
+  if (tier === "shared") return "Shared exterior · Both residences";
   return tier === "premium" ? "Premium" : "Signature";
 }
 

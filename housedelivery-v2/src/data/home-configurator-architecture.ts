@@ -122,6 +122,22 @@ const canonicalPackageClassifications = [
   "signature:2",
 ] as const;
 
+const expandedPackageClassifications = [
+  "premium:1",
+  "premium:2",
+  "premium:3",
+  "premium:4",
+  "signature:1",
+  "signature:2",
+  "signature:3",
+  "signature:4",
+] as const;
+
+const expandedProfilePackageClassifications = [
+  "premium:1", "premium:2", "premium:4", "premium:5",
+  "signature:1", "signature:2", "signature:4", "signature:5",
+] as const;
+
 const expandedWardrobePackageClassifications = [
   "premium:1",
   "premium:2",
@@ -136,6 +152,25 @@ export function getCanonicalHomeConfiguratorIssues(
 ) {
   const issues: string[] = [];
   const categories = getRequiredCategories(definition);
+  if (definition.homeId === "salt-spring") {
+    const interiors = canonicalHomeConfiguratorChapterIds.filter((id) => id !== "exterior-arrival-openings");
+    const expected = [
+      ...["a", "b"].flatMap((residence) => interiors.map((id) => `residence-${residence}-${id}`)),
+      "exterior-arrival-openings",
+    ];
+    if (categories.length !== expected.length || categories.some((category, index) => category.id !== expected[index])) {
+      issues.push("Salt Spring must retain six independent interiors per residence and one shared exterior.");
+    }
+    for (const category of categories) {
+      if (category.kind !== "room-look") { issues.push(`${category.id} must be a room-look chapter.`); continue; }
+      if (category.id === "exterior-arrival-openings") {
+        if (category.options.length !== 1 || !category.options[0].shared) issues.push("Salt Spring must have exactly one shared exterior.");
+      } else if (category.options.map((option) => `${option.level}:${option.optionNumber}`).sort().join() !== expandedPackageClassifications.join()) {
+        issues.push(`${category.id} must provide four choices per interior tier.`);
+      }
+    }
+    return issues;
+  }
   const categoryIds = categories.map((category) => category.id);
 
   if (
@@ -169,16 +204,20 @@ export function getCanonicalHomeConfiguratorIssues(
     }
 
     const classifications = category.options
+      .filter((option) => !option.legacyOnly)
       .map((option) => `${option.level}:${option.optionNumber}`)
       .sort();
 
-    const allowedClassifications =
+    const allowedClassifications: (readonly string[])[] =
       category.id === "primary-wardrobe"
         ? [
             canonicalPackageClassifications,
             expandedWardrobePackageClassifications,
           ]
         : [canonicalPackageClassifications];
+    allowedClassifications.push(definition.homeId === "profile"
+      ? expandedProfilePackageClassifications
+      : expandedPackageClassifications);
     const hasAllowedClassifications = allowedClassifications.some(
       (allowed) =>
         classifications.length === allowed.length &&

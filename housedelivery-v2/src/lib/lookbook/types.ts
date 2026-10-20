@@ -84,7 +84,7 @@ export type StoredLookBookSelection = {
   optionId: string;
   optionNumber?: string;
   optionName: string;
-  tier: "premium" | "signature";
+  tier: "premium" | "signature" | "shared";
 };
 
 export type StoredLookBook = {

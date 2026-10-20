@@ -14,6 +14,9 @@ import {
   resolveHomeExteriorPresentation,
 } from "@/data/first-nations-cultural-design";
 import { models } from "@/data/models";
+import { ImageConfigContext } from "next/dist/shared/lib/image-config-context.shared-runtime";
+import { imageConfigDefault } from "next/dist/shared/lib/image-config";
+import nextConfig from "../../next.config";
 
 const indigenousInspiredCatalogueHomes = [
   "aurora",
@@ -292,7 +295,9 @@ test("preview-only models are placed after configurable homes in the collection"
   assert.ok(solace);
 
   const markup = renderToStaticMarkup(
-    <ModelShowcase models={[saltSpring, langley, solace]} />,
+    <ImageConfigContext.Provider value={{ ...imageConfigDefault, ...nextConfig.images }}>
+      <ModelShowcase models={[{ ...saltSpring, projectSelectionStatus: "preview-only" }, langley, solace]} />
+    </ImageConfigContext.Provider>,
   );
 
   assert.ok(markup.indexOf('data-model-card="langley"') < markup.indexOf('data-model-card="salt-spring"'));

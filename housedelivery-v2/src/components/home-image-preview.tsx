@@ -164,7 +164,7 @@ export function HomeImagePreview({
                   : "text-[9px] font-semibold uppercase tracking-[0.18em] text-[#d8c4a5]"
               }
             >
-              {getHomeInclusionLevelLabel(option.level)}
+              {(option.shared ? "Shared exterior · Both residences" : getHomeInclusionLevelLabel(option.level))}
             </p>
             <h2
               id={headingId}

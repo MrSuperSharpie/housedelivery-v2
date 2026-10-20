@@ -4,6 +4,8 @@ import {
   getLookBookPdfRevision,
 } from "@/lib/lookbook/pdf-artifact";
 import { getLookBookRepository } from "@/lib/lookbook/repository";
+import { createLookBookPdfResponseStream } from "@/lib/lookbook/pdf-response";
+import { LOOK_BOOK_PRINT_IMAGE_WIDTH, waitForPrintImages } from "@/lib/pdf/print-images";
 import {
   carryPreviewShareToken,
   createRequestAuthenticatedPage,
@@ -76,7 +78,7 @@ async function renderLookBookPdf(request: Request, sourceUrl: URL) {
     // serverless shared-memory area, so the PDF browser requests bounded
     // Next.js derivatives sized above the A4 page's CSS width.
     const authenticatedPage = await createRequestAuthenticatedPage(request, {
-      imageMaxWidth: 960,
+      imageMaxWidth: LOOK_BOOK_PRINT_IMAGE_WIDTH,
     });
     close = authenticatedPage.close;
     const { page } = authenticatedPage;
@@ -92,24 +94,11 @@ async function renderLookBookPdf(request: Request, sourceUrl: URL) {
     const printPages = page.locator("[data-look-book-print-page]");
     await printPages.first().waitFor({ state: "attached", timeout: 20_000 });
     await page.emulateMedia({ media: "print" });
-    await page.evaluate(async () => {
-      await document.fonts.ready;
-      const images = Array.from(
-        document.querySelectorAll<HTMLImageElement>(
-          "[data-look-book-print-page] img",
-        ),
-      );
-      images.forEach((image) => {
-        image.loading = "eager";
-      });
-      await Promise.race([
-        Promise.all(images.map((image) => image.decode().catch(() => undefined))),
-        new Promise((resolve) => window.setTimeout(resolve, 15_000)),
-      ]);
-    });
+    await page.evaluate(waitForPrintImages);
 
     const pageCount = await printPages.count();
-    if (pageCount !== 12) {
+    const expectedPageCount = Number(await page.locator("#home-look-book").getAttribute("data-look-book-expected-pages"));
+    if (!Number.isInteger(expectedPageCount) || expectedPageCount < 6 || pageCount !== expectedPageCount) {
       throw new Error(`lookbook_page_count_${pageCount}`);
     }
 
@@ -148,6 +137,7 @@ export async function GET(
   }
 
   const sourceUrl = new URL(`/lookbook/${configurationId}`, requestUrl.origin);
+  sourceUrl.searchParams.set("print", "1");
   carryPreviewShareToken(requestUrl, sourceUrl);
   const disposition =
     requestUrl.searchParams.get("disposition") === "attachment"
@@ -168,7 +158,7 @@ export async function GET(
       }),
     );
 
-    return new Response(artifact.bytes, {
+    return new Response(createLookBookPdfResponseStream(artifact.bytes), {
       headers: {
         "Cache-Control": "public, max-age=0, must-revalidate",
         "Content-Disposition": `${disposition}; filename="${fileName}"`,

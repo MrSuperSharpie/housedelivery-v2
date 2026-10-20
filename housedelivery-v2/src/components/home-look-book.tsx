@@ -54,6 +54,7 @@ type HomeLookBookProps = {
   savedConfigurationId?: string;
   savedHasContact?: boolean;
   savedView?: boolean;
+  printMode?: boolean;
 };
 
 type ResolvedSelection = LookBookSelection & {
@@ -70,6 +71,7 @@ type EditorialContext = Pick<
   | "onEditCategory"
   | "onPreviewOption"
   | "directSourceImages"
+  | "printMode"
 > & { readOnly?: boolean };
 
 function CoastalLookBookSummary({
@@ -615,6 +617,7 @@ function resolveSelection(
     label: item.label ?? category.title,
     id: option.id,
     optionName: option.name,
+    shared: option.shared,
     level: option.level,
     description: option.description,
     image: option.image,
@@ -641,6 +644,7 @@ function resolveSection(
 }
 
 function levelLabel(selection: LookBookSelection) {
+  if (selection.shared) return "Shared exterior · Both residences";
   return getHomeInclusionLevelLabel(selection.level).replace(" — ", " · ");
 }
 
@@ -696,7 +700,7 @@ function EditorialImage({
         src={selection.image.src}
         alt={selection.image.alt}
         fill
-        loading={context.directSourceImages ? "lazy" : "eager"}
+        loading={context.printMode ? "eager" : context.directSourceImages ? "lazy" : "eager"}
         quality={
           selection.image.quality ??
           (selection.image.role === "design-board" ? 100 : 95)
@@ -1159,6 +1163,7 @@ export function HomeLookBook({
   savedConfigurationId,
   savedHasContact = false,
   savedView = false,
+  printMode = false,
 }: HomeLookBookProps) {
   const requiredCategories = getHomeConfiguratorJourneyCategories(definition);
   const isReady = requiredCategories.every((category) =>
@@ -1206,6 +1211,7 @@ export function HomeLookBook({
     onPreviewOption,
     directSourceImages,
     readOnly,
+    printMode,
   };
   const saveLookBook = () => {
     window.print();
@@ -1217,9 +1223,10 @@ export function HomeLookBook({
       tabIndex={-1}
       aria-labelledby="home-look-book-heading"
       data-look-book-ready="true"
+      data-look-book-expected-pages={selectionSections.length + 5 + (projectCulturalImage ? 1 : 0)}
       data-look-book-personalized="true"
       data-review-status={configuration.reviewStatus}
-      className="scroll-mt-20 bg-[#e7e3d8] text-[#111216] outline-none"
+      className="scroll-mt-20 overflow-x-clip bg-[#e7e3d8] text-[#111216] outline-none"
     >
       <LookBookCompletionActions
         definition={definition}
@@ -1274,7 +1281,7 @@ export function HomeLookBook({
           src={coverImage.src}
           alt={coverImage.alt}
           fill
-          loading={directSourceImages ? "lazy" : "eager"}
+          loading={printMode ? "eager" : directSourceImages ? "lazy" : "eager"}
           quality={100}
           unoptimized={directSourceImages}
           sizes="100vw"

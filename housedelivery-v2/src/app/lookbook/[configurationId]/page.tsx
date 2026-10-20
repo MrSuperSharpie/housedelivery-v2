@@ -35,8 +35,10 @@ function localPlannerFallback(
 
 export default async function SavedLookBookPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ configurationId: string }>;
+  searchParams: Promise<{ print?: string }>;
 }) {
   const { configurationId: rawConfigurationId } = await params;
   const configurationId = parseConfigurationId(rawConfigurationId);
@@ -71,6 +73,7 @@ export default async function SavedLookBookPage({
           definition={definition}
           configuration={record.configuration}
           configurationId={record.id}
+          printMode={(await searchParams).print === "1"}
         />
       </main>
     </>

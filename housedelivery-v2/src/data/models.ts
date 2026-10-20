@@ -113,8 +113,8 @@ export const models = [
   },
   {
     slug: "salt-spring",
+    projectSelectionStatus: undefined,
     name: "The Salt Spring Duplex",
-    projectSelectionStatus: "preview-only",
     locationLabel: "Contemporary semi-detached duplex",
     squareFeet: 6073,
     squareMetres: 564.27,
