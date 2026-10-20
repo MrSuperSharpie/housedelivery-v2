@@ -27,6 +27,12 @@ type HomeSource = {
   packages: readonly PackageSource[];
 };
 
+const photorealLookBookCovers: Record<string, string> = {
+  canmore: "/images/homes/canmore/canmore-photoreal-cover.png",
+  mayne: "/images/homes/mayne/mayne-photoreal-cover.png",
+  aurora: "/images/homes/aurora/aurora-photoreal-cover.png",
+};
+
 type ChapterSource = {
   id: string;
   number: string;
@@ -368,7 +374,7 @@ function createHomeConfigurator(source: HomeSource): HomeConfiguratorDefinition 
         areaLabel: `${model.squareFeet.toLocaleString()} sq. ft.`,
         description: model.description,
         heroImage: {
-          src: model.heroImage,
+          src: photorealLookBookCovers[model.slug] ?? model.heroImage,
           alt: `${source.residenceLabel} exterior architecture.`,
         },
         introductionImage: {

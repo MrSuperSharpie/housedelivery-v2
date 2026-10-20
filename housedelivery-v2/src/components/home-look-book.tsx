@@ -1277,17 +1277,18 @@ export function HomeLookBook({
         ) : null}
 
       <article id="home-look-book-content" data-look-book-cover data-look-book-layout="cover" data-look-book-print-page className="look-book-cover scroll-mt-20 relative min-h-[min(920px,100svh)] overflow-hidden bg-[#111216] text-white">
-        <Image
-          src={coverImage.src}
-          alt={coverImage.alt}
-          fill
-          loading={printMode ? "eager" : directSourceImages ? "lazy" : "eager"}
-          quality={100}
-          unoptimized={directSourceImages}
-          sizes="100vw"
-          className="object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/24 to-black/18" />
+        <div className="absolute left-1/2 top-[13%] h-[42%] w-[88%] max-w-[1100px] -translate-x-1/2 overflow-hidden bg-[#1b1d20]">
+          <Image
+            src={coverImage.src}
+            alt={coverImage.alt}
+            fill
+            loading={printMode ? "eager" : directSourceImages ? "lazy" : "eager"}
+            quality={100}
+            unoptimized={directSourceImages}
+            sizes="(max-width: 1250px) 88vw, 1100px"
+            className="object-contain"
+          />
+        </div>
         <div className="look-book-page-inner relative z-10 flex min-h-[min(920px,100svh)] flex-col justify-between">
           <div className="flex items-start justify-between gap-8 border-t border-white/50 pt-5">
             <Image src="/images/brand/house-delivery-logo-tan.png" alt="House Delivery Inc." width={1370} height={537} loading="eager" unoptimized className="h-11 w-auto object-contain" />

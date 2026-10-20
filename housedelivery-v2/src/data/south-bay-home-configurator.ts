@@ -355,7 +355,7 @@ export const southBayHomeConfigurator: HomeConfiguratorDefinition = {
       areaLabel: `${southBayModel.squareFeet.toLocaleString()} sq. ft.`,
       description: southBayModel.description,
       heroImage: {
-        src: southBayModel.heroImage,
+        src: "/images/homes/south-bay/south-bay-photoreal-cover.png",
         alt: "South Bay House exterior architecture.",
       },
       introductionImage: {

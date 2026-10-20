@@ -59,6 +59,13 @@ const canonicalCustomHomeIds = new Set([
   "timberline",
 ]);
 
+const updatedLookBookCovers: Record<string, string> = {
+  aurora: "/images/homes/aurora/aurora-photoreal-cover.png",
+  canmore: "/images/homes/canmore/canmore-photoreal-cover.png",
+  mayne: "/images/homes/mayne/mayne-photoreal-cover.png",
+  "south-bay": "/images/homes/south-bay/south-bay-photoreal-cover.png",
+};
+
 const newVisualGuideHomes = [
   {
     id: "keats",
@@ -432,7 +439,10 @@ test("the next eight Custom Homes retain all 224 original Visual Guide boards", 
     const approvedAssets = readdirSync(
       join(process.cwd(), "public", home.assetRoot.replace(/^\//, "")),
     )
-      .filter((filename) => filename.endsWith(".png"))
+      .filter(
+        (filename) =>
+          filename.endsWith(".png") && !filename.endsWith("-photoreal-cover.png"),
+      )
       .sort();
     assert.equal(approvedAssets.length, 28);
     assert.deepEqual(
@@ -1552,7 +1562,10 @@ test("approved homes use model-specific architecture and labels", () => {
 
     assert.ok(definition);
     assert.equal(definition.architecturalImages[0]?.src, model.heroImage);
-    assert.equal(definition.lookBook.home.heroImage.src, model.heroImage);
+    assert.equal(
+      definition.lookBook.home.heroImage.src,
+      updatedLookBookCovers[model.slug] ?? model.heroImage,
+    );
     assert.doesNotMatch(definition.homeName, /^The\s/);
     assert.equal(
       definition.lookBook.sections[0]?.title,
@@ -1601,14 +1614,22 @@ test("every Build My journey and Look Book ends with Exterior Arrival & Openings
   }
 });
 
-test("approved Look Books use the primary exterior cover and selected Visual Guide boards only", () => {
+test("approved Look Books use the selected exterior cover and Visual Guide boards only", () => {
   for (const model of models.filter((candidate) =>
     canonicalCustomHomeIds.has(candidate.slug),
   )) {
     const definition = getHomeConfiguratorDefinition(model.slug);
 
     assert.ok(definition);
-    assert.equal(definition.lookBook.home.heroImage.src, model.heroImage);
+    assert.equal(
+      definition.lookBook.home.heroImage.src,
+      updatedLookBookCovers[model.slug] ?? model.heroImage,
+    );
+    assert.ok(
+      existsSync(
+        join(process.cwd(), "public", definition.lookBook.home.heroImage.src.replace(/^\//, "")),
+      ) || definition.lookBook.home.heroImage.src === model.heroImage,
+    );
 
     const sections = getLookBookSelectionSections(
       definition.lookBook.sections,
