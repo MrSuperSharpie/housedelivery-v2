@@ -924,7 +924,7 @@ export function HomeConfigurator({
 
           {isDuplex ? (
             <div data-duplex-tiers className="mb-12 border-t border-white/15 pt-7">
-              <p className="max-w-3xl text-sm leading-7 text-white/60">Choose an interior tier independently for each residence, then confirm six interior chapters per residence and one shared exterior. Changing a residence’s tier clears only its incompatible choices.</p>
+              <p className="max-w-3xl text-sm leading-7 text-white/60">Choose an interior tier independently for each residence, then confirm six interior chapters per residence, one shared exterior and one shared windows and patio doors package. Changing a residence’s tier clears only its incompatible choices.</p>
               <div className="mt-6 grid gap-6 sm:grid-cols-2">
                 {(["a", "b"] as const).map((residence) => (
                   <label key={residence} className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/70">

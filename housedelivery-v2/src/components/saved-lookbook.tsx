@@ -1,6 +1,7 @@
 "use client";
 
 import { HomeLookBook } from "@/components/home-look-book";
+import { getSavedLookBookDefinition } from "@/data/saved-lookbook-definition";
 import type {
   HomeConfiguration,
   HomeConfiguratorDefinition,
@@ -19,7 +20,7 @@ export function SavedLookBook({
 }) {
   return (
     <HomeLookBook
-      definition={definition}
+      definition={getSavedLookBookDefinition(definition, configuration)}
       configuration={configuration}
       onCreateLookBook={() => undefined}
       onEditCategory={() => undefined}

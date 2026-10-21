@@ -32,6 +32,19 @@ function emailConfigurationLines(record: StoredLookBook) {
   );
 }
 
+function deliveryVersion(record: StoredLookBook) {
+  return createHash("sha256")
+    .update(JSON.stringify({
+      contact: record.contact,
+      selections: record.selections,
+      followUpRequested: record.followUpRequested,
+      followUpSource: record.followUpSource,
+      property: record.propertyFeasibility,
+    }))
+    .digest("hex")
+    .slice(0, 20);
+}
+
 async function sendResend(
   message: Record<string, unknown>,
   idempotencyKey: string,
@@ -116,7 +129,7 @@ export async function sendCustomerLookBookEmail(
       text,
       html,
     },
-    `lookbook-customer-${record.id}`,
+    `lookbook-customer-${record.id}-${deliveryVersion(record)}`,
   );
 }
 
@@ -126,16 +139,18 @@ export async function sendInternalLookBookNotification(
 ) {
   const property = record.propertyFeasibility;
   const selectionLines = emailConfigurationLines(record);
+  const qualified = record.followUpRequested;
+  const savedUrl = `${origin}/lookbook/${record.id}`;
   const text = [
-    "NEW HOUSE DELIVERY INQUIRY",
+    qualified ? "NEW HOUSE DELIVERY INQUIRY" : "HOUSE DELIVERY — SAVED LOOK BOOK COPY",
     "",
     `Name: ${record.contact.firstName}`,
     `Email: ${record.contact.email}`,
     `Phone: ${record.contact.phone || "Not supplied"}`,
     `Home: ${record.homeDisplayName}`,
     `Configuration ID: ${record.id}`,
-    "Lead Status: Qualified Inquiry",
-    "Follow-up Requested: Yes",
+    `Lead Status: ${qualified ? "Qualified Inquiry" : "Known Engaged"}`,
+    `Follow-up Requested: ${qualified ? "Yes" : "No"}`,
     `Follow-up Source: ${record.followUpSource ?? "Not supplied"}`,
     "",
     "DESIGN SELECTIONS",
@@ -162,24 +177,23 @@ export async function sendInternalLookBookNotification(
     `UTM Term: ${record.attribution.utmTerm ?? "Not available"}`,
     `Completed: ${record.completedAt}`,
     "",
-    `VIEW LOOK BOOK: ${origin}/lookbook/${record.id}`,
+    `VIEW LOOK BOOK: ${savedUrl}`,
+    `DOWNLOAD LOOK BOOK: ${savedUrl}/pdf?disposition=attachment`,
   ].join("\n");
   const notificationAddress =
     process.env.LOOKBOOK_NOTIFICATION_EMAIL?.trim() ||
     "hello@housedelivery.ca";
-  const versionHash = createHash("sha256")
-    .update(`${record.followUpSource}:${record.followUpRequestedAt}`)
-    .digest("hex")
-    .slice(0, 20);
 
   return sendResend(
     {
       from: fromAddress(),
       to: [notificationAddress],
       reply_to: record.contact.email,
-      subject: `New ${record.homeDisplayName} qualified inquiry — ${record.contact.firstName}`,
+      subject: qualified
+        ? `New ${record.homeDisplayName} qualified inquiry — ${record.contact.firstName}`
+        : `${record.homeDisplayName} Look Book copy — ${record.contact.firstName}`,
       text,
     },
-    `lookbook-internal-${record.id}-${versionHash}`,
+    `lookbook-internal-${record.id}-${deliveryVersion(record)}`,
   );
 }

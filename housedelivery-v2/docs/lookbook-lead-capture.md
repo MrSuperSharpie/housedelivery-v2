@@ -3,8 +3,8 @@
 ## Customer flow
 
 - A completed configurator immediately becomes a printable/downloadable Look Book. No personal information is required.
-- **Email My Look Book** stores the structured configuration and sends a secure return link. Without the optional assistance checkbox, the record is `known_engaged` and does not trigger an internal sales notification.
-- The assistance checkbox or **Check My Property** changes the same record to `qualified_inquiry`, sets `follow_up_requested = true`, and triggers the internal notification.
+- **Email My Look Book** stores the structured configuration and sends a secure return link. House Delivery also receives a saved Look Book copy with the design selections and view/download links. Without the optional assistance checkbox, the record stays `known_engaged`; this copy is not a request for sales follow-up.
+- The assistance checkbox or **Check My Property** changes the same record to `qualified_inquiry`, sets `follow_up_requested = true`, and triggers the qualified-inquiry notification.
 - Property Check reuses contact information already collected for that configuration. It never asks for an exact street address as a prerequisite.
 - Updating and emailing a configuration again upserts the same UUID record during the current configurator session. Saved views are read-only.
 

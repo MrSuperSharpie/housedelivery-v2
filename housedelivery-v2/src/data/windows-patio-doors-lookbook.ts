@@ -4,9 +4,13 @@ import type {
   HomeRoomLookCategory,
 } from "@/data/home-configurator";
 import type { LookBookSection } from "@/data/home-look-book";
+import boardManifest from "../../public/images/lookbook/windows-patio-doors/boards/manifest.json";
 
 const chapterId = "windows-patio-doors";
 const imageRoot = "/images/lookbook/windows-patio-doors/boards";
+const boards = new Map(boardManifest.map((board) => [
+  `${board.home}:${board.tier}:${board.option}`, board,
+]));
 
 // These are architectural directions, not claims that every illustrated
 // assembly has identical test results. The project schedule names the final
@@ -27,6 +31,8 @@ function makeOption(
   direction: (typeof windowsPatioDoorDirections)[number],
 ): HomeInclusionOption {
   const shared = definition.homeId === "salt-spring";
+  const board = boards.get(`${definition.homeId}:${direction.level}:${direction.number}`);
+  if (!board) throw new Error(`Missing windows and patio doors board for ${definition.homeId}.`);
   return {
     id: `${chapterId}-${direction.level}-${direction.number}`,
     level: direction.level,
@@ -40,7 +46,7 @@ function makeOption(
       materialRole: "Windows and indoor–outdoor glazing",
     },
     image: {
-      src: `${imageRoot}/${definition.homeId}-${direction.level}-${direction.number}.webp`,
+      src: `${imageRoot}/${board.image}`,
       alt: `${definition.residenceLabel}: ${direction.level} ${direction.number} ${direction.name.toLowerCase()} windows and patio doors design board.`,
       fit: "contain",
       role: "design-board",

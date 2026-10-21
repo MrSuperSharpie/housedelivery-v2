@@ -148,7 +148,9 @@ export async function POST(request: Request) {
         completedAt,
         existing?.configuration.lookBookPersonalization,
       );
-      shouldNotify = followUpRequested && !existing?.followUpRequested;
+      // House Delivery receives the saved design copy independently of the
+      // customer's optional request for sales assistance.
+      shouldNotify = true;
       record = {
         id,
         homeSlug: definition.homeId,

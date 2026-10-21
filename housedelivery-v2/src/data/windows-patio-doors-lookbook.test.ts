@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { join } from "node:path";
+import boardManifest from "../../public/images/lookbook/windows-patio-doors/boards/manifest.json";
 import {
   createDefaultHomeConfiguration,
   getHomeConfiguratorJourneyCategories,
@@ -32,8 +34,13 @@ test("all custom homes carry a selectable Canadian windows and patio doors chapt
       assert.ok(existsSync(join(process.cwd(), "public", option.image.src)), `${home.homeId}: ${option.image.src}`);
       assert.equal(option.image.role, "design-board");
       assert.equal(option.image.fit, "contain");
-      assert.match(option.image.src, new RegExp(`/boards/${home.homeId}-${option.level}-${option.optionNumber}\\.webp$`));
-      assert.match(option.description ?? "", option.level === "signature" ? /triple-glazed/ : /double-glazed/);
+      const board = boardManifest.find((item) => item.home === home.homeId && item.tier === option.level && item.option === option.optionNumber);
+      assert.ok(board);
+      assert.equal(option.image.src, `/images/lookbook/windows-patio-doors/boards/${board.image}`);
+      const bytes = readFileSync(join(process.cwd(), "public", option.image.src));
+      assert.equal(createHash("sha256").update(bytes).digest("hex"), board.sha256);
+      assert.equal(bytes.length, board.bytes);
+      assert.match(option.description ?? "", option.level === "premium" ? /double-glazed/ : /triple-glazed/);
     }
 
     const sections = getLookBookSelectionSections(definition.lookBook.sections);
