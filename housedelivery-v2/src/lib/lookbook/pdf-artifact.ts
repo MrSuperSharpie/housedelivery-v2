@@ -2,7 +2,8 @@ import { createHash } from "node:crypto";
 
 import type { StoredLookBook } from "@/lib/lookbook/types";
 
-const PDF_RENDERER_VERSION = 9;
+// Refresh cached PDFs after the Windows & Patio Doors artwork upgrade.
+const PDF_RENDERER_VERSION = 10;
 const DEFAULT_MAX_COMPLETED_ARTIFACTS = 4;
 const DEFAULT_MAX_COMPLETED_BYTES = 48 * 1024 * 1024;
 

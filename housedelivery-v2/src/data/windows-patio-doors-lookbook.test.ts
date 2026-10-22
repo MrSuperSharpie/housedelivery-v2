@@ -3,6 +3,7 @@ import test from "node:test";
 import { existsSync, readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { join } from "node:path";
+import sharp from "sharp";
 import boardManifest from "../../public/images/lookbook/windows-patio-doors/boards/manifest.json";
 import {
   createDefaultHomeConfiguration,
@@ -11,6 +12,34 @@ import {
 import { getLookBookSelectionSections } from "@/data/home-look-book";
 import { getHomeConfiguratorRegistrationsByFamily } from "@/data/home-configurator-registry";
 import { parseCompletedLookBook } from "@/lib/lookbook/domain";
+
+test("upgraded windows boards retain their full source canvas and exact decoded pixels", async () => {
+  assert.equal(boardManifest.length, 144);
+  assert.equal(new Set(boardManifest.map((board) => `${board.home}:${board.tier}:${board.option}`)).size, 144);
+  assert.deepEqual(
+    boardManifest.filter((board) => !("encoding" in board))
+      .map((board) => `${board.home}:${board.tier}:${board.option}`).sort(),
+    [
+      ...["premium", "signature"].flatMap((tier) =>
+        [1, 2, 3, 4].map((option) => `salt-spring:${tier}:${option}`),
+      ),
+      "solace:signature:2",
+    ].sort(),
+    "Only the explicitly retained Salt Spring and damaged Solace slots use prior artwork",
+  );
+
+  for (const board of boardManifest) {
+    if (!("encoding" in board)) continue;
+    assert.equal(board.encoding, "lossless-webp");
+    assert.match(board.sourceSha256, /^[a-f0-9]{64}$/);
+    assert.ok(board.sourceZip.startsWith("*"));
+    const file = join(process.cwd(), "public/images/lookbook/windows-patio-doors/boards", board.image);
+    const { data, info } = await sharp(file).raw().toBuffer({ resolveWithObject: true });
+    assert.equal(info.width, board.width);
+    assert.equal(info.height, board.height);
+    assert.equal(createHash("sha256").update(data).digest("hex"), board.decodedPixelSha256, board.image);
+  }
+});
 
 test("all custom homes carry a selectable Canadian windows and patio doors chapter into the saved Look Book", () => {
   const homes = getHomeConfiguratorRegistrationsByFamily("custom-home");
