@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { CmhcCatalogueNotice } from "@/components/cmhc-catalogue-notice";
 import {
   catalogModels,
   type CatalogModel,
@@ -94,6 +95,10 @@ function CatalogueModelGrid({ models }: CatalogueModelGridProps) {
                 : "Download PDF"}
             </a>
           </div>
+          <CmhcCatalogueNotice
+            designName={model.cmhcDesignName}
+            className="relative z-20 mt-5 border-t border-white/10 pt-3"
+          />
           <Link href="/pricing" className="relative z-20 mt-5 inline-flex min-h-11 w-fit items-center text-[9px] font-semibold uppercase tracking-[0.16em] text-white/60 underline underline-offset-4 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
                   View pricing guide
                 </Link>
@@ -107,6 +112,8 @@ type PreApprovedShowcaseProps = {
   catalogueFollowOn?: ReactNode;
 };
 
+// Keep existing anchor IDs stable for saved links; customer-facing copy uses
+// CMHC's pre-reviewed terminology.
 export function PreApprovedShowcase({
   catalogueFollowOn,
 }: PreApprovedShowcaseProps) {
@@ -119,7 +126,7 @@ export function PreApprovedShowcase({
       <div className="mx-auto max-w-[1504px]">
         <div className="mb-12 grid gap-8 border-t border-white/10 pt-7 lg:grid-cols-[0.72fr_1.28fr] lg:items-end lg:gap-20">
           <div>
-            <p className="eyebrow">Pre-approved homes</p>
+            <p className="eyebrow">Pre-reviewed homes</p>
             <p className="mt-5 text-[10px] uppercase tracking-[0.2em] text-white/28">
               07 proven starting points
             </p>
@@ -191,14 +198,18 @@ export function PreApprovedShowcase({
               Provided for planning and reference. Site-specific adaptation,
               professional review and local approvals are still required.
             </p>
+            <CmhcCatalogueNotice className="mt-5 border-t border-white/10 pt-3" />
           </div>
         </div>
 
         <div className="mt-8 flex flex-col gap-6 text-sm leading-6 text-white/38 lg:flex-row lg:items-end lg:justify-between">
           <p className="max-w-3xl">
-            Catalogue designs are presented for planning and reference. Local
-            zoning, site conditions, engineering, permitting, inspections, and
-            lender approval still apply.
+            Catalogue designs are starting points for construction planning and
+            require site-specific professional review, adaptation and applicable
+            municipal approvals. Pre-review does not grant automatic development
+            or building permit approval; its scope depends on the participating
+            municipality and design. Local zoning, site conditions, engineering,
+            inspections and lender approval still apply.
           </p>
         </div>
 

@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { cmhcCatalogueTermsHref } from "@/data/cmhc-catalogue";
+
 export function SiteFooter() {
   return (
     <footer className="bg-[#0b0c10] px-5 pb-10 pt-20 text-white sm:px-8 lg:px-12 lg:pt-28">
@@ -27,6 +29,9 @@ export function SiteFooter() {
               </Link>
               <Link className="block hover:text-white" href="/inclusions">
                 Inclusions Library
+              </Link>
+              <Link className="block hover:text-white" href={cmhcCatalogueTermsHref}>
+                CMHC Terms and Conditions
               </Link>
               <Link className="block hover:text-white" href="/how-it-works">
                 Delivery process

@@ -375,7 +375,7 @@ export function FinishesSection() {
               </div>
 
               <p className="mt-6 text-sm leading-6 text-white/50">
-                Pre-approved residences arrive specified in Premium—durable by
+                Pre-reviewed residences arrive specified in Premium—durable by
                 default.
               </p>
             </div>

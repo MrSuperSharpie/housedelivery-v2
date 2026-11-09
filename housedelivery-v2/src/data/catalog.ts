@@ -9,6 +9,7 @@ export type CatalogModel = {
   code: string;
   name: string;
   catalogLabel: string;
+  cmhcDesignName: string;
   squareFootage: string;
   purpose: string;
   description: string;
@@ -29,6 +30,7 @@ export const catalogModels: readonly CatalogModel[] = [
     code: "ADU-01",
     name: "The Micro",
     catalogLabel: "The Micro (ADU-01)",
+    cmhcDesignName: "Accessory Dwelling Unit 01",
     squareFootage: "540",
     purpose: "Smart, Sustainable Living",
     description:
@@ -55,13 +57,14 @@ export const catalogModels: readonly CatalogModel[] = [
     code: "ADU-02",
     name: "The Mini",
     catalogLabel: "The Mini (ADU-02)",
+    cmhcDesignName: "Accessory Dwelling Unit 02",
     squareFootage: "1,010",
     purpose: "Two-Bedroom Solution for Flexible Living",
     description:
       "A flexible two-bedroom home for families, elders, shared living, staff housing, or a standalone dwelling.",
     editorial: [
       "The Mini extends the accessory-dwelling idea into a full two-bedroom home. A considered plan separates private and shared space, giving families, elders, and shared households a place that feels complete rather than compact.",
-      "Its flexibility is the point. The same certified design works as staff housing, an intergenerational suite, or a standalone dwelling—delivered as coordinated steel components ready for a site-specific foundation.",
+      "Its flexibility is the point. The catalogue reference design can inform staff housing, an intergenerational suite, or a standalone dwelling. Any House Delivery steel component package requires separate project-specific professional review, adaptation and applicable municipal approvals.",
     ],
     specs: [
       { label: "Total area", value: "1,010 sq ft" },
@@ -81,13 +84,14 @@ export const catalogModels: readonly CatalogModel[] = [
     code: "BC-DUPLEX",
     name: "BC Duplex",
     catalogLabel: "BC Duplex",
+    cmhcDesignName: "Duplex",
     squareFootage: "2,927",
     purpose: "Two Homes, One Smart Footprint",
     description:
       "Two private, two-storey homes within one efficient footprint for families, staff, or intergenerational living.",
     editorial: [
       "The BC Duplex places two private two-storey homes within a single efficient footprint. Each residence keeps its own entry, privacy, and full-height living—while the shared structure makes better use of land and services.",
-      "It is a measured answer to gentle density: two households, one considered building, and a repeatable steel system that shortens the path from approved design to a buildable, site-adapted project.",
+      "It is a measured answer to gentle density: two households and one considered building. The catalogue reference design is a starting point for site-specific professional review, adaptation and applicable municipal approvals before a House Delivery steel component package can be developed for construction.",
     ],
     specs: [
       { label: "Total area", value: "2,927 sq ft" },
@@ -107,6 +111,7 @@ export const catalogModels: readonly CatalogModel[] = [
     code: "BC-FOURPLEX-01",
     name: "BC Fourplex 1",
     catalogLabel: "BC Fourplex 1",
+    cmhcDesignName: "Fourplex 01",
     squareFootage: "4,027",
     purpose: "Four Homes. One Considered Footprint.",
     description:
@@ -133,6 +138,7 @@ export const catalogModels: readonly CatalogModel[] = [
     code: "BC-FOURPLEX-02",
     name: "BC Fourplex 2",
     catalogLabel: "BC Fourplex 2",
+    cmhcDesignName: "Fourplex 02",
     squareFootage: "5,985",
     purpose: "Density, Refined",
     description:
@@ -159,6 +165,7 @@ export const catalogModels: readonly CatalogModel[] = [
     code: "BC-ROWHOUSE",
     name: "BC Rowhouse",
     catalogLabel: "BC Rowhouse",
+    cmhcDesignName: "Rowhouse",
     squareFootage: "2,718",
     purpose: "Connected Living for Modern Communities",
     description:
@@ -185,6 +192,7 @@ export const catalogModels: readonly CatalogModel[] = [
     code: "BC-SIXPLEX",
     name: "Sixplex Courtyard",
     catalogLabel: "Sixplex Courtyard",
+    cmhcDesignName: "Sixplex Courtyard",
     squareFootage: "6,216",
     purpose: "Courtyard Living, Built for Connection",
     description:

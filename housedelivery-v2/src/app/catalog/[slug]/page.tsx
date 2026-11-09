@@ -4,6 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import {
+  CmhcCatalogueAttribution,
+  CmhcCatalogueNotice,
+} from "@/components/cmhc-catalogue-notice";
 import { HomeBudgetSection } from "@/components/home-budget-section";
 import { HeadlineReveal } from "@/components/headline-reveal";
 import { HomeDesignJourneyLink } from "@/components/inclusions-journey-links";
@@ -35,11 +39,11 @@ export async function generateMetadata({
   }
 
   return {
-    title: `${model.name} — CMHC Pre-Approved Design`,
-    description: `${model.description} Review specifications and download the ${model.code} drawing package.`,
+    title: `${model.name} — CMHC Pre-Reviewed Design`,
+    description: `${model.description} CMHC reference drawings require site-specific professional review, adaptation and applicable municipal approvals.`,
     openGraph: {
-      title: `${model.name} — CMHC Pre-Approved Design`,
-      description: model.description,
+      title: `${model.name} — CMHC Pre-Reviewed Design`,
+      description: `${model.description} CMHC reference drawings require site-specific professional review, adaptation and applicable municipal approvals.`,
       type: "website",
       images: [{ url: model.image, alt: model.imageAlt }],
     },
@@ -94,11 +98,11 @@ export default async function CatalogDetailPage({
           <div className="relative z-10 mx-auto flex min-h-[640px] max-w-[1600px] flex-col justify-between px-5 pb-8 pt-28 sm:min-h-[760px] sm:px-8 lg:min-h-[88vh] lg:px-12 lg:pb-10">
             <div className="flex items-center justify-between">
               <Link
-                href="/#cmhc"
+                href="/#pre-approved-homes"
                 className="inline-flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/65 transition-colors hover:text-white"
               >
                 <ArrowLeft size={14} />
-                Pre-approved catalogue
+                Pre-reviewed catalogue
               </Link>
               <p className="text-[9px] uppercase tracking-[0.2em] text-white/55">
                 Design {model.number} /{" "}
@@ -112,7 +116,7 @@ export default async function CatalogDetailPage({
                   {model.code}
                 </span>
                 <span className="border border-white/30 bg-black/15 px-3 py-2 text-[9px] font-semibold uppercase tracking-[0.18em] backdrop-blur-md">
-                  CMHC pre-approved
+                  CMHC pre-reviewed
                 </span>
               </div>
 
@@ -157,9 +161,11 @@ export default async function CatalogDetailPage({
               </div>
               <div className="lg:pt-20">
                 <p className="max-w-prose text-lg leading-relaxed text-white/55">
-                  A proven catalogue baseline, adapted to your site. Every figure
-                  below is a starting point for local engineering, foundations,
-                  and permitting.
+                  A catalogue reference design for construction planning. Every
+                  figure below is a starting point for site-specific professional
+                  review, adaptation, local engineering and applicable municipal
+                  approvals. Pre-review does not grant a development or building
+                  permit; its scope depends on the municipality and design.
                 </p>
               </div>
             </div>
@@ -244,10 +250,12 @@ export default async function CatalogDetailPage({
                     </h2>
                   </HeadlineReveal>
                   <p className="mt-7 max-w-lg text-sm leading-6 text-white/52">
-                    Certified architectural and structural drawings for the{" "}
-                    {model.name} ({model.code}), presented for planning and
-                    reference. Local engineering, permitting, and inspections
-                    still apply.
+                    CMHC Housing Design Catalogue reference drawings for{" "}
+                    {model.cmhcDesignName} ({model.code}). These are starting
+                    points for construction planning and require site-specific
+                    professional review, adaptation and applicable municipal
+                    approvals. They are not automatically approved construction
+                    documents or certified House Delivery manufacturing drawings.
                   </p>
                 </div>
                 <div className="lg:justify-self-end">
@@ -262,6 +270,10 @@ export default async function CatalogDetailPage({
                   </a>
                 </div>
               </div>
+              <CmhcCatalogueNotice
+                designName={model.cmhcDesignName}
+                className="relative mt-8 border-t border-white/12 pt-5"
+              />
             </div>
           </div>
         </section>
@@ -343,6 +355,10 @@ export default async function CatalogDetailPage({
                 />
               </div>
             </div>
+            <CmhcCatalogueAttribution
+              designName={nextModel.cmhcDesignName}
+              className="mt-5 max-w-5xl text-xs leading-6 text-white/60"
+            />
           </Link>
         </section>
       </main>

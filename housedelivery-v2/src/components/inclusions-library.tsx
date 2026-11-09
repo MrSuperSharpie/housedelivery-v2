@@ -44,7 +44,7 @@ const homeCollections = [
   },
   {
     number: "02",
-    name: "Laneway / Carriage + Pre-Approved Homes",
+    name: "Laneway / Carriage + Pre-Reviewed Homes",
     description:
       "Clear, durable selection pathways designed to support compact homes, repeatability and efficient project coordination.",
     levels: ["Essential", "Premium"],
