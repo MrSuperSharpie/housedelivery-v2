@@ -17,7 +17,7 @@ import {
 } from "@/lib/budget-inquiry";
 
 test("finish levels publish the approved home-package reference prices", () => {
-  assert.deepEqual(pricingGuide.levels.map((level) => level.priceLabel), ["Included in base", "$225 / sq. ft.", "$275 / sq. ft."]);
+  assert.deepEqual(pricingGuide.levels.map((level) => level.priceLabel), ["Included in base", "$250 / sq. ft.", "$300 / sq. ft."]);
   assert.match(pricingGuide.disclosure, /exclude on-site assembly and erection/);
   assert.match(pricingGuide.disclosure, /Assembly, site work, foundations, services, local trades and land are separate/);
   assert.match(pricingGuide.disclosure, /Appliances are selected and priced separately/);
@@ -35,8 +35,8 @@ test("pricing retains three cards and distinguishes home-package pricing from si
     assert.match(card, /Request package pricing/);
     assert.match(card, /<summary[^>]*>Local builder quote required/);
   }
-  assert.match(markup, /\$225 \/ sq\. ft\./);
-  assert.match(markup, /\$275 \/ sq\. ft\./);
+  assert.match(markup, /\$250 \/ sq\. ft\./);
+  assert.match(markup, /\$300 \/ sq\. ft\./);
   assert.match(markup, /applicable sales taxes are confirmed separately/);
   assert.match(markup, /Assembly, site work, foundations, services, local trades and land are separate/);
   assert.match(markup, /Appliances are selected and priced separately/);

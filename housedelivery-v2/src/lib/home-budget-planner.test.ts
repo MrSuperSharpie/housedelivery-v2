@@ -72,5 +72,5 @@ test("handoff rejects invalid or stacked selections, quantities and models; igno
   assert.match(message, /Final package scope and price require confirmation/);
   assert.match(message, /Accessibility needs/);
   assert.match(message, /Step-free entry request/);
-  assert.match(message, /Premium \$225\/sq\. ft\.; Signature \$275\/sq\. ft\./);
+  assert.match(message, /Premium \$250\/sq\. ft\.; Signature \$300\/sq\. ft\./);
 });

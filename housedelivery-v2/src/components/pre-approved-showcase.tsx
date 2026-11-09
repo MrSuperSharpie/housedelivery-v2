@@ -5,11 +5,15 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { CmhcCatalogueNotice } from "@/components/cmhc-catalogue-notice";
+import {
+  CmhcCatalogueAttribution,
+  CmhcCatalogueNotice,
+} from "@/components/cmhc-catalogue-notice";
 import {
   catalogModels,
   type CatalogModel,
 } from "@/data/catalog";
+import { cmhcCatalogueTermsHref } from "@/data/cmhc-catalogue";
 
 type CatalogueModelGridProps = {
   models: readonly CatalogModel[];
@@ -90,18 +94,23 @@ function CatalogueModelGrid({ models }: CatalogueModelGridProps) {
               aria-label={`Download PDF drawings and specifications for ${model.name}`}
               className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/52 transition-colors hover:text-white"
             >
-              {model.slug === "sixplex-courtyard"
-                ? "Download CMHC Drawings · PDF"
-                : "Download PDF"}
+              Download PDF
             </a>
           </div>
-          <CmhcCatalogueNotice
-            designName={model.cmhcDesignName}
-            className="relative z-20 mt-5 border-t border-white/10 pt-3"
-          />
-          <Link href="/pricing" className="relative z-20 mt-5 inline-flex min-h-11 w-fit items-center text-[9px] font-semibold uppercase tracking-[0.16em] text-white/60 underline underline-offset-4 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
-                  View pricing guide
-                </Link>
+          <div className="relative z-20 mt-3 flex flex-wrap items-center gap-x-6">
+            <Link
+              href={cmhcCatalogueTermsHref}
+              className="inline-flex min-h-11 items-center text-[9px] font-semibold uppercase tracking-[0.16em] text-white/60 underline underline-offset-4 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+            >
+              CMHC Terms &amp; Conditions
+            </Link>
+            <Link
+              href="/pricing"
+              className="inline-flex min-h-11 items-center text-[9px] font-semibold uppercase tracking-[0.16em] text-white/60 underline underline-offset-4 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+            >
+              View Pricing Guide
+            </Link>
+          </div>
         </article>
       ))}
     </div>
@@ -144,6 +153,19 @@ export function PreApprovedShowcase({
         <div id="pre-approved-homes-grid">
           <CatalogueModelGrid models={catalogModels} />
         </div>
+
+        <aside
+          aria-label="CMHC catalogue source attribution"
+          className="mt-8 border-t border-white/10 py-6"
+        >
+          <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/45">
+            Catalogue source
+          </p>
+          <CmhcCatalogueAttribution
+            designName={catalogModels.map((model) => model.cmhcDesignName).join("; ")}
+            className="mt-3 max-w-5xl text-xs leading-6 text-white/50"
+          />
+        </aside>
 
         <div
           id="pre-approved-catalogue-resources"

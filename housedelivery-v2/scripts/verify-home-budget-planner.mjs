@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdir } from "node:fs/promises";
+import { mkdir, readFile } from "node:fs/promises";
 import { chromium } from "playwright-core";
 
 const base = process.env.PRICING_QA_BASE_URL || "http://localhost:3100";
@@ -72,7 +72,10 @@ try {
   assert.match(await summary.innerText(), /Solace × 2/);
   assert.match(await summary.innerText(), /The Willow Nook × 1/);
   assert.match(await summary.innerText(), /The Micro × 1/);
-  assert.doesNotMatch(await summary.innerText(), /\$|\b0 CAD/);
+  const summaryText = await summary.innerText();
+  assert.match(summaryText, /\$250 Premium and \$300 Signature are home-package prices per sq\. ft\./);
+  assert.deepEqual(new Set([...summaryText.matchAll(/\$([\d,]+(?:\.\d+)?)/g)].map((match) => match[1])), new Set(["250", "300"]), "Only approved reference rates appear; no assumed model or completed-home totals");
+  assert.doesNotMatch(summaryText, /\$0\b|\b0 CAD/);
   assert.match(await summary.innerText(), /Request package pricing/);
   assert.match(await summary.innerText(), /Local builder quote required/);
   for (const width of [320, 390, 768, 1440]) {
@@ -85,7 +88,12 @@ try {
   }
   const download = page.waitForEvent("download");
   await planner.getByRole("button", { name: "Save summary (optional)" }).click();
-  assert.equal((await download).suggestedFilename(), "House-Delivery-budget-summary.txt");
+  const savedSummary = await download;
+  assert.equal(savedSummary.suggestedFilename(), "House-Delivery-budget-summary.txt");
+  const savedText = await readFile(await savedSummary.path(), "utf8");
+  assert.match(savedText, /Premium \$250\/sq\. ft\.; Signature \$300\/sq\. ft\./);
+  assert.doesNotMatch(savedText, /\$(?:225|275)\b/);
+  assert.match(savedText, /No completed-home total/);
   await summary.getByRole("button", { name: "Get a site-specific budget" }).click();
   const form = page.locator("#reserve");
   await form.getByLabel("First name", { exact: true }).fill("Budget Planner");

@@ -1,5 +1,6 @@
 import { inquiryModels } from "@/data/inquiry-models";
 import { approvedPackagePrices, type ApprovedPackagePrice } from "@/data/package-pricing";
+import { pricingGuide } from "@/data/pricing";
 
 export const finishPreferences = {
   essential: "Essential — included",
@@ -93,7 +94,7 @@ export function formatHomeBudgetProject(project: HomeBudgetProject) {
     ...project.homes.flatMap((line, index) => [
       `${index + 1}. ${inquiryModels.find((model) => model.slug === line.modelId)!.name} × ${line.quantity} (${line.modelId})`,
       `Inclusions / finishes: ${finishPreferences[line.finish]}`,
-      "Reference home-package prices: Premium $225/sq. ft.; Signature $275/sq. ft. These are not cumulative charges.",
+      pricingGuide.referencePackagePrices,
       line.finish === "premium" || line.finish === "signature" ? "Final package scope and price require confirmation." : "",
       line.selections ? `Design selections / requests: ${line.selections}` : "",
     ]),

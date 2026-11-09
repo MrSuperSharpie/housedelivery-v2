@@ -66,19 +66,28 @@ try {
     const cards = catalogue.locator("article");
     assert.equal(await cards.count(), 7);
     assert.match(await catalogue.innerText(), /Pre-reviewed homes/i);
-    for (const [slug, , designName, filename] of models) {
+    for (const [slug, , , filename] of models) {
       const card = cards.filter({ has: page.locator(`a[href="/catalog/${slug}"]`) });
       assert.equal(await card.count(), 1);
       const download = card.locator("a[download]");
       assert.equal(await download.getAttribute("href"), `/pdfs/${filename}`);
-      assert.equal(await card.getByRole("link", { name: "CMHC Terms and Conditions", exact: true }).getAttribute("href"), termsPath);
-      assert.equal(await card.getByRole("link", { name: statement, exact: true }).getAttribute("href"), termsPath);
-      assert.equal(await card.locator(`a[href="${officialPdf}"]`).count(), 1);
-      assert.ok((await card.innerText()).includes(designName));
+      assert.equal(await card.getByRole("link", { name: "CMHC Terms & Conditions", exact: true }).getAttribute("href"), termsPath);
+      assert.equal(await card.getByRole("link", { name: statement, exact: true }).count(), 0);
+      assert.equal(await card.locator(`a[href="${officialPdf}"]`).count(), 0);
+      assert.equal((await download.textContent()).trim(), "Download PDF");
+      assert.equal(await card.getByRole("link", { name: "View Pricing Guide", exact: true }).getAttribute("href"), "/pricing");
+      assert.doesNotMatch(await card.innerText(), /Drawings and renderings|Source:|subject to the CMHC/);
       const rendering = card.locator("img");
       await rendering.scrollIntoViewIfNeeded();
       await page.waitForFunction((image) => image.complete && image.naturalWidth > 0, await rendering.elementHandle());
     }
+    const source = catalogue.getByRole("complementary", { name: "CMHC catalogue source attribution" });
+    assert.equal(await source.count(), 1);
+    for (const [, , designName] of models) assert.ok((await source.innerText()).includes(designName));
+    assert.match(await source.innerText(), /February 14, 2025/);
+    assert.doesNotMatch(await source.innerText(), /November 9, 2026/);
+    assert.match(await source.innerText(), /This information is reproduced and distributed on an “as is” basis with the permission of CMHC/);
+    assert.ok((await source.boundingBox()).y >= (await page.locator("#pre-approved-homes-grid").boundingBox()).y + (await page.locator("#pre-approved-homes-grid").boundingBox()).height);
     await catalogue.screenshot({ path: join(output, `catalogue-${viewport.name}.png`) });
     const resources = catalogue.locator("#pre-approved-catalogue-resources");
     assert.equal(await resources.locator("a[download]").count(), 7);
@@ -110,6 +119,8 @@ try {
       assert.equal(await box.getByRole("link", { name: statement, exact: true }).getAttribute("href"), termsPath);
       assert.equal(await box.locator(`a[href="${officialPdf}"]`).count(), 1);
       assert.ok((await box.innerText()).includes(designName));
+      assert.match(await box.innerText(), /February 14, 2025/);
+      assert.doesNotMatch(await box.innerText(), /November 9, 2026/);
       assert.match(await box.innerText(), /not automatically approved construction documents or certified House Delivery manufacturing drawings/);
       await box.scrollIntoViewIfNeeded();
       await box.screenshot({ path: join(output, `${slug}-${viewport.name}-download.png`) });
@@ -130,6 +141,12 @@ try {
     }
 
     for (const path of ["/inclusions", "/pricing"]) await open(path);
+    assert.ok((await page.locator('[data-pricing-level="premium"]').innerText()).includes("$250 / sq. ft."));
+    assert.ok((await page.locator('[data-pricing-level="signature"]').innerText()).includes("$300 / sq. ft."));
+    assert.match(await page.locator('meta[name="description"]').getAttribute("content"), /Premium is \$250 per sq\. ft\. and Signature is \$300 per sq\. ft\./);
+    assert.doesNotMatch(await page.locator("main").innerText(), /\$(?:225|275)\b/);
+    assert.match(await page.locator("main").innerText(), /Assembly, site work, foundations, services, local trades and land are separate/);
+    await page.screenshot({ path: join(output, `pricing-${viewport.name}.png`), fullPage: true });
     assert.deepEqual(errors, [], `${viewport.name}: browser errors`);
     await context.close();
   }

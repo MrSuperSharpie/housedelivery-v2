@@ -1,16 +1,25 @@
 // Shared public pricing policy. Approved model selling prices belong in package-pricing.ts.
+export const homePackageRates = {
+  premium: 250,
+  signature: 300,
+} as const;
+
 export const pricingGuide = {
   currency: "CAD",
-  reviewedOn: "2026-09-11",
-  reviewLabel: "September 11, 2026",
+  reviewedOn: "2026-11-09",
+  reviewLabel: "November 9, 2026",
   introduction:
-    "Start with your home design, then choose the package specification that fits your project. Premium is $225 per sq. ft. and Signature is $275 per sq. ft.",
+    `Start with your home design, then choose the package specification that fits your project. Premium is $${homePackageRates.premium} per sq. ft. and Signature is $${homePackageRates.signature} per sq. ft.`,
+  homepageIntroduction:
+    `Choose your home and explore Premium at $${homePackageRates.premium} per sq. ft. or Signature at $${homePackageRates.signature} per sq. ft. These are home-package prices. On-site assembly and erection, site work, foundations, services, local trades and land are separate. Appliances are selected and priced separately.`,
+  referencePackagePrices:
+    `Reference home-package prices: Premium $${homePackageRates.premium}/sq. ft.; Signature $${homePackageRates.signature}/sq. ft. These are not cumulative charges.`,
   applicability:
     "The base price depends on the design, size and structural complexity. Essential, Premium and Signature describe inclusions and finishes; the light-gauge steel structure and core engineered house do not change tier.",
   tierScopeNote:
-    "Premium at $225 per sq. ft. and Signature at $275 per sq. ft. are home-package prices. They exclude on-site assembly and erection. Signature is the upgraded specification; its price is not added on top of Premium.",
+    `Premium at $${homePackageRates.premium} per sq. ft. and Signature at $${homePackageRates.signature} per sq. ft. are home-package prices. They exclude on-site assembly and erection. Signature is the upgraded specification; its price is not added on top of Premium.`,
   disclosure:
-    "$225 Premium and $275 Signature are home-package prices per sq. ft. and exclude on-site assembly and erection. Assembly, site work, foundations, services, local trades and land are separate. Appliances are selected and priced separately. Freight, import charges, tariffs, delivery/unloading, permits, local completion and applicable sales taxes are confirmed separately for the project. Prices require confirmed specifications, delivery destination and site access; entering a location alone does not calculate freight.",
+    `$${homePackageRates.premium} Premium and $${homePackageRates.signature} Signature are home-package prices per sq. ft. and exclude on-site assembly and erection. Assembly, site work, foundations, services, local trades and land are separate. Appliances are selected and priced separately. Freight, import charges, tariffs, delivery/unloading, permits, local completion and applicable sales taxes are confirmed separately for the project. Prices require confirmed specifications, delivery destination and site access; entering a location alone does not calculate freight.`,
   scopes: {
     manufactured: {
       label: "Base Home Package",
@@ -41,13 +50,13 @@ export const pricingGuide = {
       id: "premium",
       name: "Premium",
       description: "A coordinated Premium home-package specification. Appliances are selected and priced separately.",
-      priceLabel: "$225 / sq. ft.",
+      priceLabel: `$${homePackageRates.premium} / sq. ft.`,
     },
     {
       id: "signature",
       name: "Signature",
       description: "An elevated Signature home-package specification. Appliances are selected and priced separately.",
-      priceLabel: "$275 / sq. ft.",
+      priceLabel: `$${homePackageRates.signature} / sq. ft.`,
     },
   ],
 } as const;
