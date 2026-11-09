@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 
 import { inquiryModels } from "@/data/inquiry-models";
+import { sendInquiryEmail } from "@/lib/inquiry-email";
 import { formatHomeBudgetProject, parseHomeBudgetProject, type HomeBudgetProject } from "@/lib/home-budget-planner";
 import { getLookBookPublicOrigin } from "@/lib/lookbook/email";
 import {
@@ -24,8 +25,15 @@ import {
   hashPlannerReviewToken,
   PlannerReviewAccessConfigurationError,
 } from "@/lib/planner-review-access";
+import {
+  appendPropertyReviewToLeadEmail,
+  buildPropertyCustomerEmail,
+  buildPropertyEmailMessages,
+} from "@/lib/property-review/email";
+import { reviewPropertyAddress } from "@/lib/property-review/workflow";
 
 const inquiryRecipient = "hello@housedelivery.ca";
+const lanewayPropertyReviewCopyRecipient = "bfong@housedelivery.ca";
 const inquiryRoute = "/api/inquiries";
 const maximumRequestBytes = 200_000;
 const plannerHandoffEmailVersion = 2;
@@ -37,6 +45,9 @@ type InquiryPayload = {
   lastName?: unknown;
   email?: unknown;
   phone?: unknown;
+  source?: unknown;
+  considering?: unknown;
+  ownership?: unknown;
   model?: unknown;
   location?: unknown;
   timeline?: unknown;
@@ -198,6 +209,9 @@ export async function POST(request: Request) {
   const lastName = singleLine(payload.lastName, 80);
   const email = singleLine(payload.email, 254).toLowerCase();
   const phone = singleLine(payload.phone, 50);
+  const source = singleLine(payload.source, 100);
+  const considering = singleLine(payload.considering, 120);
+  const ownership = singleLine(payload.ownership, 120);
   const modelSlug = singleLine(payload.model, 100);
   const location = singleLine(payload.location, 160);
   const timeline = singleLine(payload.timeline, 80);
@@ -417,7 +431,11 @@ export async function POST(request: Request) {
   }
 
   const isPlannerProjectReview = Boolean(plannerContext || plannerHandoff);
-  const message = plannerHandoff && storedPlannerProject && plannerReviewLinks
+  const isLanewayPropertyReview = source === "laneway_carriage_property_review";
+  const propertyReview = isLanewayPropertyReview
+    ? await reviewPropertyAddress(location)
+    : undefined;
+  const baseMessage = plannerHandoff && storedPlannerProject && plannerReviewLinks
     ? formatPlannerHandoffEmail({
         state: storedPlannerProject.projectState,
         submissionId: storedPlannerProject.submissionId,
@@ -460,19 +478,46 @@ export async function POST(request: Request) {
         ...(budgetProject ? ["", formatHomeBudgetProject(budgetProject)] : []),
       ].join("\n");
 
+  const message = propertyReview
+    ? appendPropertyReviewToLeadEmail(baseMessage, propertyReview, {
+        firstName, lastName, email, phone, considering, ownership,
+        desiredStart: timeline,
+      })
+    : baseMessage;
+  const propertyCustomerEmail = propertyReview
+    ? buildPropertyCustomerEmail({
+        firstName,
+        review: propertyReview,
+        origin: new URL(request.url).origin,
+      })
+    : undefined;
+  const propertyEmailMessages = propertyCustomerEmail
+    ? buildPropertyEmailMessages({
+        from: fromEmail,
+        customerEmail: email,
+        internalRecipient: inquiryRecipient,
+        internalCopyRecipient: lanewayPropertyReviewCopyRecipient,
+        internalSubject: `Laneway / carriage property review — ${firstName} ${lastName}`,
+        internalText: message,
+        customer: propertyCustomerEmail,
+      })
+    : undefined;
+
   const idempotencyKey = plannerHandoff
     ? `planner-handoff-v${plannerHandoffEmailVersion}-${plannerHandoff.submissionId}`
-    : `project-inquiry-${createHash("sha256")
+    : `${isLanewayPropertyReview ? "property-review-v2" : "project-inquiry"}-${createHash("sha256")
     .update(
       JSON.stringify({
         firstName,
         lastName,
         email,
         phone,
+        ...(isLanewayPropertyReview ? { source } : {}),
         modelSlug,
         location,
         timeline,
         notes,
+        ...(isLanewayPropertyReview ? { considering, ownership } : {}),
         plannerProject,
         plannerReference,
         plannerContext,
@@ -501,7 +546,7 @@ export async function POST(request: Request) {
           "Content-Type": "application/json",
           "Idempotency-Key": idempotencyKey,
         },
-        body: JSON.stringify({
+        body: JSON.stringify(propertyEmailMessages?.internal ?? {
           from: fromEmail,
           to: [inquiryRecipient],
           reply_to: email,
@@ -569,8 +614,37 @@ export async function POST(request: Request) {
     }
   }
 
+  if (shouldDeliverEmail && propertyEmailMessages) {
+    try {
+      const customerResponse = await sendInquiryEmail({
+        apiKey: resendApiKey!,
+        idempotencyKey: `${idempotencyKey}-customer`,
+        message: propertyEmailMessages.customer,
+      });
+      const customerProviderResponse: unknown = await customerResponse.json().catch(() => null);
+      if (!customerResponse.ok || !providerMessageId(customerProviderResponse)) {
+        logInquiryFailure("property_customer_delivery_failed", {
+          requestId,
+          status: 502,
+          durationMs: Date.now() - startedAt,
+          providerStatus: customerResponse.status,
+          providerError: providerErrorName(customerProviderResponse),
+          reason: customerResponse.ok ? "missing_provider_message_id" : "customer_email_provider_failed",
+        });
+      }
+    } catch (error) {
+      logInquiryFailure("property_customer_delivery_failed", {
+        requestId,
+        status: 502,
+        durationMs: Date.now() - startedAt,
+        errorType: error instanceof Error ? error.name : "UnknownError",
+      });
+    }
+  }
+
   return jsonResponse({
     accepted: true,
+    ...(propertyCustomerEmail ? { propertySnapshot: propertyCustomerEmail.snapshot } : {}),
     ...(storedPlannerProject
       ? {
           projectStatus: storedPlannerProject.lifecycleStatus,
