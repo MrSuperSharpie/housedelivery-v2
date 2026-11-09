@@ -39,7 +39,7 @@ const homeCollections = [
   },
   {
     number: "02",
-    name: "Laneway / Carriage + Pre-Approved Homes",
+    name: "Laneway / Carriage + Pre-Reviewed Homes",
     levels: ["Essential", "Premium"],
     image: {
       src: "/images/inclusions/bathroom-systems/hero.webp",

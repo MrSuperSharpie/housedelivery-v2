@@ -61,7 +61,7 @@ export const catalogModels: readonly CatalogModel[] = [
       "A flexible two-bedroom home for families, elders, shared living, staff housing, or a standalone dwelling.",
     editorial: [
       "The Mini extends the accessory-dwelling idea into a full two-bedroom home. A considered plan separates private and shared space, giving families, elders, and shared households a place that feels complete rather than compact.",
-      "Its flexibility is the point. The same certified design works as staff housing, an intergenerational suite, or a standalone dwelling—delivered as coordinated steel components ready for a site-specific foundation.",
+      "Its flexibility is the point. The same catalogue reference design works as staff housing, an intergenerational suite, or a standalone dwelling—delivered as coordinated steel components ready for a site-specific foundation.",
     ],
     specs: [
       { label: "Total area", value: "1,010 sq ft" },
@@ -87,7 +87,7 @@ export const catalogModels: readonly CatalogModel[] = [
       "Two private, two-storey homes within one efficient footprint for families, staff, or intergenerational living.",
     editorial: [
       "The BC Duplex places two private two-storey homes within a single efficient footprint. Each residence keeps its own entry, privacy, and full-height living—while the shared structure makes better use of land and services.",
-      "It is a measured answer to gentle density: two households, one considered building, and a repeatable steel system that shortens the path from approved design to a buildable, site-adapted project.",
+      "It is a measured answer to gentle density: two households, one considered building, and a repeatable steel system that shortens the path from pre-reviewed catalogue design to a buildable, site-adapted project.",
     ],
     specs: [
       { label: "Total area", value: "2,927 sq ft" },

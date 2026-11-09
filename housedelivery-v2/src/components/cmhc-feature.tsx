@@ -52,7 +52,7 @@ export function CmhcFeature({
       <div className="mx-auto max-w-[1504px]">
         <div className="grid gap-10 border-b border-white/10 pb-14 lg:grid-cols-[0.72fr_1.28fr] lg:items-end lg:gap-20 lg:pb-20">
           <div>
-            <p className="eyebrow">CMHC pre-approved designs</p>
+            <p className="eyebrow">CMHC pre-reviewed designs</p>
             <div
               className="mt-10 flex size-16 items-center justify-center border border-white/25"
               aria-hidden="true"

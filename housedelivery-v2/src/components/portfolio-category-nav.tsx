@@ -22,7 +22,7 @@ const collections = [
   {
     id: "pre-approved" as const,
     number: "03",
-    label: "Pre-Approved Homes",
+    label: "Pre-Reviewed Homes",
     href: "#pre-approved-homes",
   },
 ];

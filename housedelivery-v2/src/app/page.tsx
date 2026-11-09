@@ -24,7 +24,7 @@ export default function Home() {
       <main>
         <LuxuryHero
           image={models[0].heroImage}
-          productStatement="Pre-approved and custom homes, delivered as coordinated building systems for communities, developers, and families."
+          productStatement="Pre-reviewed and custom homes, delivered as coordinated building systems for communities, developers, and families."
           supportingCopy="Exceptional design. A smarter path to ownership. A coordinated home system built to reduce delay, waste, and uncertainty—so more of your investment can remain in the home itself."
         />
         <section

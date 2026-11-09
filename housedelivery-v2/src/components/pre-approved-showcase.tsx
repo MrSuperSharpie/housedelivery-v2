@@ -9,6 +9,10 @@ import {
   catalogModels,
   type CatalogModel,
 } from "@/data/catalog";
+import {
+  cmhcCatalogueSourceNotice,
+  cmhcCatalogueTermsHref,
+} from "@/data/cmhc-catalogue";
 
 type CatalogueModelGridProps = {
   models: readonly CatalogModel[];
@@ -93,6 +97,12 @@ function CatalogueModelGrid({ models }: CatalogueModelGridProps) {
                 ? "Download CMHC Drawings · PDF"
                 : "Download PDF"}
             </a>
+            <Link
+              href={cmhcCatalogueTermsHref}
+              className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/52 transition-colors hover:text-white"
+            >
+              CMHC Terms &amp; Conditions
+            </Link>
           </div>
         </article>
       ))}
@@ -116,7 +126,7 @@ export function PreApprovedShowcase({
       <div className="mx-auto max-w-[1504px]">
         <div className="mb-12 grid gap-8 border-t border-white/10 pt-7 lg:grid-cols-[0.72fr_1.28fr] lg:items-end lg:gap-20">
           <div>
-            <p className="eyebrow">Pre-approved homes</p>
+            <p className="eyebrow">Pre-reviewed homes</p>
             <p className="mt-5 text-[10px] uppercase tracking-[0.2em] text-white/28">
               07 proven starting points
             </p>
@@ -187,6 +197,9 @@ export function PreApprovedShowcase({
               Official CMHC Housing Design Catalogue architectural drawings.
               Provided for planning and reference. Site-specific adaptation,
               professional review and local approvals are still required.
+            </p>
+            <p className="mt-3 max-w-4xl text-xs leading-5 text-white/34">
+              {cmhcCatalogueSourceNotice()}
             </p>
           </div>
         </div>

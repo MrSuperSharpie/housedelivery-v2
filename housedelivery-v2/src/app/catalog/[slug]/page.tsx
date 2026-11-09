@@ -9,6 +9,11 @@ import { HomeDesignJourneyLink } from "@/components/inclusions-journey-links";
 import { RevealText } from "@/components/reveal-text";
 import { SiteHeader } from "@/components/site-header";
 import { catalogModels, type CatalogModel } from "@/data/catalog";
+import {
+  cmhcCatalogueDesignNames,
+  cmhcCatalogueSourceNotice,
+  cmhcCatalogueTermsHref,
+} from "@/data/cmhc-catalogue";
 import { getHomeConfiguratorRegistration } from "@/data/home-configurators";
 
 type CatalogDetailPageProps = {
@@ -34,10 +39,10 @@ export async function generateMetadata({
   }
 
   return {
-    title: `${model.name} — CMHC Pre-Approved Design`,
+    title: `${model.name} — CMHC Pre-Reviewed Design`,
     description: `${model.description} Review specifications and download the ${model.code} drawing package.`,
     openGraph: {
-      title: `${model.name} — CMHC Pre-Approved Design`,
+      title: `${model.name} — CMHC Pre-Reviewed Design`,
       description: model.description,
       type: "website",
       images: [{ url: model.image, alt: model.imageAlt }],
@@ -97,7 +102,7 @@ export default async function CatalogDetailPage({
                 className="inline-flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/65 transition-colors hover:text-white"
               >
                 <ArrowLeft size={14} />
-                Pre-approved catalogue
+                Pre-reviewed catalogue
               </Link>
               <p className="text-[9px] uppercase tracking-[0.2em] text-white/55">
                 Design {model.number} /{" "}
@@ -111,7 +116,7 @@ export default async function CatalogDetailPage({
                   {model.code}
                 </span>
                 <span className="border border-white/30 bg-black/15 px-3 py-2 text-[9px] font-semibold uppercase tracking-[0.18em] backdrop-blur-md">
-                  CMHC pre-approved
+                  CMHC pre-reviewed
                 </span>
               </div>
 
@@ -237,7 +242,7 @@ export default async function CatalogDetailPage({
                     </h2>
                   </HeadlineReveal>
                   <p className="mt-7 max-w-lg text-sm leading-6 text-white/52">
-                    Certified architectural and structural drawings for the{" "}
+                    CMHC catalogue reference drawings for the{" "}
                     {model.name} ({model.code}), presented for planning and
                     reference. Local engineering, permitting, and inspections
                     still apply.
@@ -253,8 +258,20 @@ export default async function CatalogDetailPage({
                     Download PDF drawings
                     <Download size={16} aria-hidden="true" />
                   </a>
+                  <Link
+                    href={cmhcCatalogueTermsHref}
+                    className="mt-5 block text-xs leading-5 text-white/52 underline underline-offset-4 transition-colors hover:text-white"
+                  >
+                    CMHC Terms &amp; Conditions
+                  </Link>
                 </div>
               </div>
+              <p className="relative mt-8 max-w-4xl text-xs leading-5 text-white/34">
+                {cmhcCatalogueSourceNotice([
+                  cmhcCatalogueDesignNames[model.slug],
+                  cmhcCatalogueDesignNames[nextModel.slug],
+                ])}
+              </p>
             </div>
           </div>
         </section>
