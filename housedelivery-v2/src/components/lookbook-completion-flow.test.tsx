@@ -1,0 +1,239 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+
+import { renderToStaticMarkup } from "react-dom/server";
+
+import { designStudioImageNote } from "@/components/design-studio-image-note";
+import { HomeConfigurator } from "@/components/home-configurator";
+import { HomeLookBook } from "@/components/home-look-book";
+import {
+  createDefaultHomeConfiguration,
+  getHomeConfiguratorJourneyCategories,
+  type HomeConfiguration,
+  type HomeConfiguratorDefinition,
+} from "@/data/home-configurator";
+import { homeConfiguratorRegistrations } from "@/data/home-configurators";
+
+const noop = () => {};
+
+function createCompleteConfiguration(
+  definition: HomeConfiguratorDefinition,
+  customerFirstName = "Sarah",
+): HomeConfiguration {
+  const configuration = createDefaultHomeConfiguration(definition);
+  const inclusionSelections: HomeConfiguration["inclusionSelections"] = {};
+  const flooringSelections: HomeConfiguration["flooringSelections"] = {};
+
+  for (const category of getHomeConfiguratorJourneyCategories(definition)) {
+    if (category.kind === "standard" || category.kind === "room-look") {
+      inclusionSelections[category.id] = {
+        optionId: category.options[0]!.id,
+        status: "confirmed",
+      };
+      continue;
+    }
+
+    for (const zone of category.zones) {
+      flooringSelections[zone.id] = {
+        optionId: zone.options[0]!.id,
+        status: "confirmed",
+      };
+    }
+  }
+
+  return {
+    ...configuration,
+    inclusionSelections,
+    flooringSelections,
+    reviewStatus: "ready-for-review",
+    lookBookPersonalization: {
+      ...(customerFirstName
+        ? { customer: { firstName: customerFirstName } }
+        : {}),
+      preparedAt: "2026-08-29T12:00:00.000Z",
+      reference: `${definition.homeId.toUpperCase()}-FLOW-001`,
+    },
+  };
+}
+
+function occurrenceCount(value: string, pattern: string) {
+  return value.split(pattern).length - 1;
+}
+
+test("every active Design Studio introduces the shared image note before any selections", () => {
+  for (const registration of homeConfiguratorRegistrations) {
+    if (!registration.definition) continue;
+    const markup = renderToStaticMarkup(
+      <HomeConfigurator definition={registration.definition} />,
+    );
+    assert.equal(occurrenceCount(markup, designStudioImageNote), 1, registration.homeId);
+    assert.ok(markup.indexOf(designStudioImageNote) < markup.indexOf("data-home-category="));
+    assert.doesNotMatch(markup, /Representative visualization; final system/);
+    assert.doesNotMatch(markup, /Images illustrate design intent;/);
+  }
+});
+
+test("every migrated home shares the Get My Look Book flow and House Delivery value story", () => {
+  const definitions = homeConfiguratorRegistrations.flatMap((registration) =>
+    registration.productFamily === "custom-home" && registration.definition
+      ? [registration.definition]
+      : [],
+  );
+
+  assert.ok(definitions.length >= 4, "shared flow covers migrated homes");
+
+  for (const definition of definitions) {
+    const markup = renderToStaticMarkup(
+      <HomeLookBook
+        definition={definition}
+        configuration={createCompleteConfiguration(definition)}
+        onCreateLookBook={noop}
+        onEditCategory={noop}
+        onPreviewOption={noop}
+        onSubmit={noop}
+        directSourceImages
+      />,
+    );
+
+    const completionIndex = markup.indexOf("data-lookbook-lead-capture");
+    const coverIndex = markup.indexOf("id=\"home-look-book-content\"");
+    const openingValueIndex = markup.indexOf(
+      "data-look-book-value-story=\"precision-quality\"",
+    );
+    const whyHouseDeliveryIndex = markup.indexOf(
+      "data-look-book-value-story=\"why-house-delivery\"",
+    );
+    const deliveryValueIndex = markup.indexOf(
+      "data-look-book-value-story=\"delivery-value\"",
+    );
+    const finaleIndex = markup.indexOf("data-look-book-next-stage");
+    const closingActionsIndex = markup.indexOf("data-lookbook-closing-actions");
+
+    assert.equal(occurrenceCount(markup, "data-design-studio-review-note="), 1);
+    assert.equal(occurrenceCount(markup, "data-design-studio-pdf-note="), 1);
+    assert.equal(occurrenceCount(markup, designStudioImageNote), 2, `${definition.homeName}: one screen note and one print-only note`);
+    assert.ok(markup.indexOf("data-design-studio-review-note=") < coverIndex);
+    assert.ok(markup.indexOf("data-design-studio-pdf-note=") > openingValueIndex);
+    assert.ok(markup.lastIndexOf(designStudioImageNote) < markup.indexOf("data-look-book-section="));
+    assert.doesNotMatch(markup, /Representative visualization; final system/);
+    assert.doesNotMatch(markup, /Images illustrate design intent;/);
+
+    assert.ok(completionIndex >= 0, `${definition.homeName}: completion exists`);
+    assert.ok(
+      completionIndex < coverIndex && coverIndex < openingValueIndex,
+      `${definition.homeName}: completion precedes anonymous viewing and the opening value story`,
+    );
+    assert.ok(
+      openingValueIndex < whyHouseDeliveryIndex &&
+        whyHouseDeliveryIndex < deliveryValueIndex &&
+        deliveryValueIndex < finaleIndex &&
+        finaleIndex < closingActionsIndex,
+      `${definition.homeName}: value story is paced through the Look Book before the compact close`,
+    );
+    assert.match(
+      markup,
+      new RegExp(`Sarah’s ${definition.residenceLabel} is ready\\.`),
+    );
+    assert.match(markup, new RegExp(`Sarah’s ${definition.residenceLabel}`));
+    assert.doesNotMatch(markup, /House House/);
+    assert.match(markup, /View online without saving/);
+    assert.equal(
+      occurrenceCount(markup, "Get My Look Book"),
+      2,
+      `${definition.homeName}: one primary capture action is repeated at the close`,
+    );
+    assert.equal(
+      occurrenceCount(markup, "Download My Look Book"),
+      1,
+      `${definition.homeName}: anonymous download appears only at the close`,
+    );
+    assert.doesNotMatch(markup, /Email My Look Book/);
+    assert.equal(
+      occurrenceCount(markup, "Check My Property"),
+      2,
+      `${definition.homeName}: property check is primary and repeated once`,
+    );
+    assert.equal(
+      occurrenceCount(markup, "data-look-book-section="),
+      definition.homeId === "salt-spring" ? 14 : 8,
+      `${definition.homeName}: all selected chapters remain`,
+    );
+    assert.match(markup, /Factory precision\./);
+    assert.match(markup, /Why House/);
+    assert.match(markup, /Precision/);
+    assert.match(markup, /Quality/);
+    assert.match(markup, /Speed/);
+    assert.match(markup, /Value/);
+    assert.match(markup, /Could this home cost materially less to deliver\?/);
+    assert.match(
+      markup,
+      /Final savings depend on site conditions, specification and local construction costs\./,
+    );
+    assert.doesNotMatch(markup, /data-look-book-validated-savings/);
+    assert.doesNotMatch(markup, /(?:20|30)%/);
+    assert.doesNotMatch(
+      markup,
+      /data-save-look-book=\"top\"/,
+      `${definition.homeName}: disconnected standalone save bar is removed`,
+    );
+  }
+});
+
+test("Cedarview and Canmore covers use My before save and Edgar’s after", () => {
+  for (const homeId of ["cedarview", "canmore"]) {
+    const definition = homeConfiguratorRegistrations.find(
+      (registration) => registration.homeId === homeId,
+    )?.definition;
+    assert.ok(definition);
+
+    const fallbackMarkup = renderToStaticMarkup(
+      <HomeLookBook
+        definition={definition}
+        configuration={createCompleteConfiguration(definition, "")}
+        onCreateLookBook={noop}
+        onEditCategory={noop}
+        onPreviewOption={noop}
+        onSubmit={noop}
+        directSourceImages
+      />,
+    );
+    const namedMarkup = renderToStaticMarkup(
+      <HomeLookBook
+        definition={definition}
+        configuration={createCompleteConfiguration(definition, "Edgar")}
+        onCreateLookBook={noop}
+        onEditCategory={noop}
+        onPreviewOption={noop}
+        onSubmit={noop}
+        directSourceImages
+      />,
+    );
+
+    assert.match(
+      fallbackMarkup,
+      new RegExp(`My ${definition.residenceLabel}`),
+    );
+    assert.match(
+      namedMarkup,
+      new RegExp(`Edgar’s ${definition.residenceLabel}`),
+    );
+    assert.doesNotMatch(fallbackMarkup, /House House/);
+    assert.doesNotMatch(namedMarkup, /House House/);
+  }
+});
+
+test("PDF source eagerly requests every board before hydration while online saved books remain lazy", () => {
+  for (const homeId of ["aurora", "solace", "profile", "salt-spring"]) {
+    const definition = homeConfiguratorRegistrations.find((registration) => registration.homeId === homeId)?.definition;
+    assert.ok(definition);
+    const configuration = createCompleteConfiguration(definition);
+    for (const printMode of [false, true]) {
+      const markup = renderToStaticMarkup(<HomeLookBook definition={definition} configuration={configuration} onCreateLookBook={noop} onEditCategory={noop} onPreviewOption={noop} onSubmit={noop} directSourceImages readOnly savedView printMode={printMode} />);
+      const boardTags = [...markup.matchAll(/<img\b[^>]*>/g)].map((match) => match[0]).filter((tag) => /(?:visual-guide|design-boards|configurator|windows-patio-doors)\//.test(tag));
+      assert.equal(boardTags.length, homeId === "salt-spring" ? 14 : 8);
+      assert.equal(occurrenceCount(markup, designStudioImageNote), 2, `${homeId}: saved and printable books carry the shared note`);
+      assert.ok(boardTags.every((tag) => tag.includes(`loading="${printMode ? "eager" : "lazy"}"`)));
+      assert.match(markup, new RegExp(`data-look-book-expected-pages="${homeId === "salt-spring" ? 19 : 13}"`));
+    }
+  }
+});

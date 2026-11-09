@@ -1,0 +1,226 @@
+[
+  {
+    "categoryId": "kitchen-look-feel",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "id": "kitchen-look-feel-premium-sandstone-oak",
+    "src": "/images/homes/solace/design-boards/solace-kitchen-look-feel-premium-sandstone-oak.e257ee184e6b-1448.webp"
+  },
+  {
+    "categoryId": "kitchen-look-feel",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "id": "kitchen-look-feel-premium-graphite-oak",
+    "src": "/images/homes/solace/design-boards/solace-kitchen-look-feel-premium-graphite-oak.adff89587688-1448.webp"
+  },
+  {
+    "categoryId": "kitchen-look-feel",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "id": "kitchen-look-feel-signature-smoked-walnut-bronze",
+    "src": "/images/homes/solace/design-boards/solace-kitchen-look-feel-signature-smoked-walnut-bronze.84a3459b34dc-1448.webp"
+  },
+  {
+    "categoryId": "kitchen-look-feel",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "id": "kitchen-look-feel-signature-limestone-noir",
+    "src": "/images/homes/solace/design-boards/solace-kitchen-look-feel-signature-limestone-noir.65ba1712f134-1448.webp"
+  },
+  {
+    "categoryId": "primary-ensuite-look-feel",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "id": "primary-ensuite-look-feel-premium-sandstone-oak",
+    "src": "/images/homes/solace/design-boards/solace-primary-ensuite-look-feel-premium-sandstone-oak.47aefc6e5502-1448.webp"
+  },
+  {
+    "categoryId": "primary-ensuite-look-feel",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "id": "primary-ensuite-look-feel-premium-graphite-oak",
+    "src": "/images/homes/solace/design-boards/solace-primary-ensuite-look-feel-premium-graphite-oak.89f9243c0295-1448.webp"
+  },
+  {
+    "categoryId": "primary-ensuite-look-feel",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "id": "primary-ensuite-look-feel-signature-smoked-walnut-bronze",
+    "src": "/images/homes/solace/design-boards/solace-primary-ensuite-look-feel-signature-smoked-walnut-bronze.a6de8efcf15b-1448.webp"
+  },
+  {
+    "categoryId": "primary-ensuite-look-feel",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "id": "primary-ensuite-look-feel-signature-limestone-noir",
+    "src": "/images/homes/solace/design-boards/solace-primary-ensuite-look-feel-signature-limestone-noir.1a7ba7d22053-1448.webp"
+  },
+  {
+    "categoryId": "primary-wardrobe",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "id": "primary-wardrobe-premium-sandstone-oak",
+    "src": "/images/homes/solace/design-boards/solace-primary-wardrobe-premium-sandstone-oak.1444ad10fa50-1448.webp"
+  },
+  {
+    "categoryId": "primary-wardrobe",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "id": "primary-wardrobe-premium-graphite-oak",
+    "src": "/images/homes/solace/design-boards/solace-primary-wardrobe-premium-graphite-oak.cf8085c5642e-1448.webp"
+  },
+  {
+    "categoryId": "primary-wardrobe",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "id": "primary-wardrobe-signature-smoked-walnut-bronze",
+    "src": "/images/homes/solace/design-boards/solace-primary-wardrobe-signature-smoked-walnut-bronze.283100e6ad07-1448.webp"
+  },
+  {
+    "categoryId": "primary-wardrobe",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "id": "primary-wardrobe-signature-limestone-noir",
+    "src": "/images/homes/solace/design-boards/solace-primary-wardrobe-signature-limestone-noir.e92b3221b010-1448.webp"
+  },
+  {
+    "categoryId": "interior-doors-details",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "id": "interior-doors-details-premium-sandstone-oak",
+    "src": "/images/homes/solace/design-boards/solace-interior-doors-details-premium-sandstone-oak.426f4d939820-1448.webp"
+  },
+  {
+    "categoryId": "interior-doors-details",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "id": "interior-doors-details-premium-graphite-oak",
+    "src": "/images/homes/solace/design-boards/solace-interior-doors-details-premium-graphite-oak.13d1763fc726-1448.webp"
+  },
+  {
+    "categoryId": "interior-doors-details",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "id": "interior-doors-details-signature-smoked-walnut-bronze",
+    "src": "/images/homes/solace/design-boards/solace-interior-doors-details-signature-smoked-walnut-bronze.e6dba3bb8e95-1448.webp"
+  },
+  {
+    "categoryId": "interior-doors-details",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "id": "interior-doors-details-signature-limestone-noir",
+    "src": "/images/homes/solace/design-boards/solace-interior-doors-details-signature-limestone-noir.bde41ab038f3-1448.webp"
+  },
+  {
+    "categoryId": "exterior-arrival-openings",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "id": "exterior-arrival-openings-premium-sandstone-oak",
+    "src": "/images/homes/solace/design-boards/solace-exterior-arrival-openings-premium-sandstone-oak.6a980033d1c7-1448.webp"
+  },
+  {
+    "categoryId": "exterior-arrival-openings",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "id": "exterior-arrival-openings-premium-graphite-oak",
+    "src": "/images/homes/solace/design-boards/solace-exterior-arrival-openings-premium-graphite-oak.dcab17789f29-1448.webp"
+  },
+  {
+    "categoryId": "exterior-arrival-openings",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "id": "exterior-arrival-openings-signature-smoked-walnut-bronze",
+    "src": "/images/homes/solace/design-boards/solace-exterior-arrival-openings-signature-smoked-walnut-bronze.8d54ffbe5a54-1448.webp"
+  },
+  {
+    "categoryId": "exterior-arrival-openings",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "id": "exterior-arrival-openings-signature-limestone-noir",
+    "src": "/images/homes/solace/design-boards/solace-exterior-arrival-openings-signature-limestone-noir.b00e0ce12eb1-1448.webp"
+  },
+  {
+    "categoryId": "whole-home-flooring-stairs",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "id": "whole-home-flooring-stairs-premium-sandstone-oak",
+    "src": "/images/homes/solace/design-boards/solace-whole-home-flooring-stairs-premium-sandstone-oak.434b02b1b216-1448.webp"
+  },
+  {
+    "categoryId": "whole-home-flooring-stairs",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "id": "whole-home-flooring-stairs-premium-graphite-oak",
+    "src": "/images/homes/solace/design-boards/solace-whole-home-flooring-stairs-premium-graphite-oak.a8cd3a40783d-1448.webp"
+  },
+  {
+    "categoryId": "whole-home-flooring-stairs",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "id": "whole-home-flooring-stairs-signature-smoked-walnut-bronze",
+    "src": "/images/homes/solace/design-boards/solace-whole-home-flooring-stairs-signature-smoked-walnut-bronze.7b9afc87483c-1448.webp"
+  },
+  {
+    "categoryId": "whole-home-flooring-stairs",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "id": "whole-home-flooring-stairs-signature-limestone-noir",
+    "src": "/images/homes/solace/design-boards/solace-whole-home-flooring-stairs-signature-limestone-noir.8cbe7ef51459-1448.webp"
+  },
+  {
+    "categoryId": "window-coverings",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "id": "window-coverings-premium-sandstone-oak",
+    "src": "/images/homes/solace/design-boards/solace-window-coverings-premium-sandstone-oak.b5ee3d901bb2-1448.webp"
+  },
+  {
+    "categoryId": "window-coverings",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "id": "window-coverings-premium-graphite-oak",
+    "src": "/images/homes/solace/design-boards/solace-window-coverings-premium-graphite-oak.8ea841f6aa44-1448.webp"
+  },
+  {
+    "categoryId": "window-coverings",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "id": "window-coverings-signature-smoked-walnut-bronze",
+    "src": "/images/homes/solace/design-boards/solace-window-coverings-signature-smoked-walnut-bronze.f9bf2b0bd0b9-1448.webp"
+  },
+  {
+    "categoryId": "window-coverings",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "id": "window-coverings-signature-limestone-noir",
+    "src": "/images/homes/solace/design-boards/solace-window-coverings-signature-limestone-noir.8538c44ce846-1448.webp"
+  }
+]

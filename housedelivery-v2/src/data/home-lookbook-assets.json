@@ -1,0 +1,4475 @@
+[
+  {
+    "homeId": "aurora",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/aurora/design-boards/aurora-kitchen-look-feel-premium-sandstone-oak.79e04e7d3e91-1448.webp"
+  },
+  {
+    "homeId": "aurora",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/aurora/design-boards/aurora-kitchen-look-feel-premium-graphite-oak.0d84d9e7be9d-1448.webp"
+  },
+  {
+    "homeId": "aurora",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/aurora/design-boards/aurora-kitchen-look-feel-signature-smoked-walnut-bronze.e87efc9f90e8-1448.webp"
+  },
+  {
+    "homeId": "aurora",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/aurora/design-boards/aurora-kitchen-look-feel-signature-limestone-noir.2cb349aac877-1448.webp"
+  },
+  {
+    "homeId": "aurora",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/aurora/design-boards/aurora-primary-ensuite-look-feel-premium-sandstone-oak.c4528e50bc99-1448.webp"
+  },
+  {
+    "homeId": "aurora",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/aurora/design-boards/aurora-primary-ensuite-look-feel-premium-graphite-oak.46aec737a13e-1448.webp"
+  },
+  {
+    "homeId": "aurora",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/aurora/design-boards/aurora-primary-ensuite-look-feel-signature-smoked-walnut-bronze.0a3be13cc4b2-1448.webp"
+  },
+  {
+    "homeId": "aurora",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/aurora/design-boards/aurora-primary-ensuite-look-feel-signature-limestone-noir.ebddea3a970c-1448.webp"
+  },
+  {
+    "homeId": "aurora",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/aurora/design-boards/aurora-primary-wardrobe-premium-sandstone-oak.35f3a9719df4-1448.webp"
+  },
+  {
+    "homeId": "aurora",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/aurora/design-boards/aurora-primary-wardrobe-premium-graphite-oak.9718f208e63a-1448.webp"
+  },
+  {
+    "homeId": "aurora",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/aurora/design-boards/aurora-primary-wardrobe-signature-smoked-walnut-bronze.675212633daf-1448.webp"
+  },
+  {
+    "homeId": "aurora",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/aurora/design-boards/aurora-primary-wardrobe-signature-limestone-noir.5efc0b5512dc-1448.webp"
+  },
+  {
+    "homeId": "aurora",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/aurora/design-boards/aurora-interior-doors-details-premium-sandstone-oak.4d8414273c34-1448.webp"
+  },
+  {
+    "homeId": "aurora",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/aurora/design-boards/aurora-interior-doors-details-premium-graphite-oak.b1c95cd3bb99-1448.webp"
+  },
+  {
+    "homeId": "aurora",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/aurora/design-boards/aurora-interior-doors-details-signature-smoked-walnut-bronze.59df91cfcd32-1448.webp"
+  },
+  {
+    "homeId": "aurora",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/aurora/design-boards/aurora-interior-doors-details-signature-limestone-noir.bbd259ac0478-1448.webp"
+  },
+  {
+    "homeId": "aurora",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/aurora/design-boards/aurora-exterior-arrival-openings-premium-sandstone-oak.4e3737ffcb14-1448.webp"
+  },
+  {
+    "homeId": "aurora",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/aurora/design-boards/aurora-exterior-arrival-openings-premium-graphite-oak.e2624b4feea1-1448.webp"
+  },
+  {
+    "homeId": "aurora",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/aurora/design-boards/aurora-exterior-arrival-openings-signature-smoked-walnut-bronze.c8abcfb18e95-1448.webp"
+  },
+  {
+    "homeId": "aurora",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/aurora/design-boards/aurora-exterior-arrival-openings-signature-limestone-noir.33b11b7f7589-1448.webp"
+  },
+  {
+    "homeId": "aurora",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/aurora/design-boards/aurora-whole-home-flooring-stairs-premium-sandstone-oak.78714114d5d9-1448.webp"
+  },
+  {
+    "homeId": "aurora",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/aurora/design-boards/aurora-whole-home-flooring-stairs-premium-graphite-oak.60e40b3c5150-1448.webp"
+  },
+  {
+    "homeId": "aurora",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/aurora/design-boards/aurora-whole-home-flooring-stairs-signature-smoked-walnut-bronze.612af87f32ca-1448.webp"
+  },
+  {
+    "homeId": "aurora",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/aurora/design-boards/aurora-whole-home-flooring-stairs-signature-limestone-noir.86d3127519d4-1448.webp"
+  },
+  {
+    "homeId": "aurora",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/aurora/design-boards/aurora-window-coverings-premium-sandstone-oak.a615724fbd0f-1448.webp"
+  },
+  {
+    "homeId": "aurora",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/aurora/design-boards/aurora-window-coverings-premium-graphite-oak.c766a768f9a9-1448.webp"
+  },
+  {
+    "homeId": "aurora",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/aurora/design-boards/aurora-window-coverings-signature-smoked-walnut-bronze.f199fae6c155-1448.webp"
+  },
+  {
+    "homeId": "aurora",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/aurora/design-boards/aurora-window-coverings-signature-limestone-noir.dce2560c6260-1448.webp"
+  },
+  {
+    "homeId": "boreal",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/boreal/design-boards/boreal-kitchen-look-feel-premium-sandstone-oak.5484f3485603-1448.webp"
+  },
+  {
+    "homeId": "boreal",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/boreal/design-boards/boreal-kitchen-look-feel-premium-graphite-oak.2e5d30fea26f-1448.webp"
+  },
+  {
+    "homeId": "boreal",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/boreal/design-boards/boreal-kitchen-look-feel-signature-smoked-walnut-bronze.8bcd695ce570-1448.webp"
+  },
+  {
+    "homeId": "boreal",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/boreal/design-boards/boreal-kitchen-look-feel-signature-limestone-noir.fdfec651dd98-1448.webp"
+  },
+  {
+    "homeId": "boreal",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/boreal/design-boards/boreal-primary-ensuite-look-feel-premium-sandstone-oak.4e800b07bd0b-1448.webp"
+  },
+  {
+    "homeId": "boreal",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/boreal/design-boards/boreal-primary-ensuite-look-feel-premium-graphite-oak.226b6d2ff154-1448.webp"
+  },
+  {
+    "homeId": "boreal",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/boreal/design-boards/boreal-primary-ensuite-look-feel-signature-smoked-walnut-bronze.0399e8bf6546-1448.webp"
+  },
+  {
+    "homeId": "boreal",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/boreal/design-boards/boreal-primary-ensuite-look-feel-signature-limestone-noir.9208c3fd311f-1448.webp"
+  },
+  {
+    "homeId": "boreal",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/boreal/design-boards/boreal-primary-wardrobe-premium-sandstone-oak.4bec35da8bf0-1448.webp"
+  },
+  {
+    "homeId": "boreal",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/boreal/design-boards/boreal-primary-wardrobe-premium-graphite-oak.d9d6d0700ee4-1448.webp"
+  },
+  {
+    "homeId": "boreal",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/boreal/design-boards/boreal-primary-wardrobe-signature-smoked-walnut-bronze.5edb3ee71c2f-1448.webp"
+  },
+  {
+    "homeId": "boreal",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/boreal/design-boards/boreal-primary-wardrobe-signature-limestone-noir.29dea926a732-1448.webp"
+  },
+  {
+    "homeId": "boreal",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/boreal/design-boards/boreal-interior-doors-details-premium-sandstone-oak.bc723a14ba2c-1448.webp"
+  },
+  {
+    "homeId": "boreal",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/boreal/design-boards/boreal-interior-doors-details-premium-graphite-oak.aad8336b5cf7-1448.webp"
+  },
+  {
+    "homeId": "boreal",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/boreal/design-boards/boreal-interior-doors-details-signature-smoked-walnut-bronze.7236d76d4465-1448.webp"
+  },
+  {
+    "homeId": "boreal",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/boreal/design-boards/boreal-interior-doors-details-signature-limestone-noir.ac48967383d3-1448.webp"
+  },
+  {
+    "homeId": "boreal",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/boreal/design-boards/boreal-exterior-arrival-openings-premium-sandstone-oak.0285fe6f3567-1448.webp"
+  },
+  {
+    "homeId": "boreal",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/boreal/design-boards/boreal-exterior-arrival-openings-premium-graphite-oak.fbd4fc6107ec-1448.webp"
+  },
+  {
+    "homeId": "boreal",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/boreal/design-boards/boreal-exterior-arrival-openings-signature-smoked-walnut-bronze.7740c7835be6-1448.webp"
+  },
+  {
+    "homeId": "boreal",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/boreal/design-boards/boreal-exterior-arrival-openings-signature-limestone-noir.34adb4856cc2-1448.webp"
+  },
+  {
+    "homeId": "boreal",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/boreal/design-boards/boreal-whole-home-flooring-stairs-premium-sandstone-oak.5b0cbb919c0a-1448.webp"
+  },
+  {
+    "homeId": "boreal",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/boreal/design-boards/boreal-whole-home-flooring-stairs-premium-graphite-oak.6da0d63ee97e-1448.webp"
+  },
+  {
+    "homeId": "boreal",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/boreal/design-boards/boreal-whole-home-flooring-stairs-signature-smoked-walnut-bronze.ac374bb1e508-1448.webp"
+  },
+  {
+    "homeId": "boreal",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/boreal/design-boards/boreal-whole-home-flooring-stairs-signature-limestone-noir.7f11f848814a-1448.webp"
+  },
+  {
+    "homeId": "boreal",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/boreal/design-boards/boreal-window-coverings-premium-sandstone-oak.e19cbaa99298-1448.webp"
+  },
+  {
+    "homeId": "boreal",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/boreal/design-boards/boreal-window-coverings-premium-graphite-oak.18a7dd6c768f-1448.webp"
+  },
+  {
+    "homeId": "boreal",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/boreal/design-boards/boreal-window-coverings-signature-smoked-walnut-bronze.9209027d8365-1448.webp"
+  },
+  {
+    "homeId": "boreal",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/boreal/design-boards/boreal-window-coverings-signature-limestone-noir.b3f25244dcdf-1448.webp"
+  },
+  {
+    "homeId": "canmore",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/canmore/design-boards/canmore-kitchen-look-feel-premium-sandstone-oak.cb5b2fca0936-1448.webp"
+  },
+  {
+    "homeId": "canmore",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/canmore/design-boards/canmore-kitchen-look-feel-premium-graphite-oak.6f62500d8079-1448.webp"
+  },
+  {
+    "homeId": "canmore",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/canmore/design-boards/canmore-kitchen-look-feel-signature-smoked-walnut-bronze.956150fa0d86-1448.webp"
+  },
+  {
+    "homeId": "canmore",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/canmore/design-boards/canmore-kitchen-look-feel-signature-limestone-noir.f980af027a96-1448.webp"
+  },
+  {
+    "homeId": "canmore",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/canmore/design-boards/canmore-primary-ensuite-look-feel-premium-sandstone-oak.5278a6293d3c-1448.webp"
+  },
+  {
+    "homeId": "canmore",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/canmore/design-boards/canmore-primary-ensuite-look-feel-premium-graphite-oak.e7ccfe587a30-1448.webp"
+  },
+  {
+    "homeId": "canmore",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/canmore/design-boards/canmore-primary-ensuite-look-feel-signature-smoked-walnut-bronze.76fef9036b18-1448.webp"
+  },
+  {
+    "homeId": "canmore",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/canmore/design-boards/canmore-primary-ensuite-look-feel-signature-limestone-noir.a5a487334351-1448.webp"
+  },
+  {
+    "homeId": "canmore",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/canmore/design-boards/canmore-primary-wardrobe-premium-sandstone-oak.cd04cc86adf4-1448.webp"
+  },
+  {
+    "homeId": "canmore",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/canmore/design-boards/canmore-primary-wardrobe-premium-graphite-oak.d5ac4b1ce566-1448.webp"
+  },
+  {
+    "homeId": "canmore",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/canmore/design-boards/canmore-primary-wardrobe-signature-smoked-walnut-bronze.86e8258037a3-1448.webp"
+  },
+  {
+    "homeId": "canmore",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/canmore/design-boards/canmore-primary-wardrobe-signature-limestone-noir.a981cb80b891-1448.webp"
+  },
+  {
+    "homeId": "canmore",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/canmore/design-boards/canmore-interior-doors-details-premium-sandstone-oak.84dcbf8406cc-1448.webp"
+  },
+  {
+    "homeId": "canmore",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/canmore/design-boards/canmore-interior-doors-details-premium-graphite-oak.9a52367544b5-1448.webp"
+  },
+  {
+    "homeId": "canmore",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/canmore/design-boards/canmore-interior-doors-details-signature-smoked-walnut-bronze.b9b88af13c8d-1448.webp"
+  },
+  {
+    "homeId": "canmore",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/canmore/design-boards/canmore-interior-doors-details-signature-limestone-noir.780cf795b263-1448.webp"
+  },
+  {
+    "homeId": "canmore",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/canmore/design-boards/canmore-exterior-arrival-openings-premium-sandstone-oak.92acaac8ad1c-1448.webp"
+  },
+  {
+    "homeId": "canmore",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/canmore/design-boards/canmore-exterior-arrival-openings-premium-graphite-oak.7aae602d8b12-1448.webp"
+  },
+  {
+    "homeId": "canmore",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/canmore/design-boards/canmore-exterior-arrival-openings-signature-smoked-walnut-bronze.003a58c7d963-1448.webp"
+  },
+  {
+    "homeId": "canmore",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/canmore/design-boards/canmore-exterior-arrival-openings-signature-limestone-noir.9f9f98ef919b-1448.webp"
+  },
+  {
+    "homeId": "canmore",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/canmore/design-boards/canmore-whole-home-flooring-stairs-premium-sandstone-oak.8d649a63dfd7-1448.webp"
+  },
+  {
+    "homeId": "canmore",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/canmore/design-boards/canmore-whole-home-flooring-stairs-premium-graphite-oak.8a92909229f2-1448.webp"
+  },
+  {
+    "homeId": "canmore",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/canmore/design-boards/canmore-whole-home-flooring-stairs-signature-smoked-walnut-bronze.dbb2b3f6ffc6-1448.webp"
+  },
+  {
+    "homeId": "canmore",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/canmore/design-boards/canmore-whole-home-flooring-stairs-signature-limestone-noir.d64ba5a0c84f-1448.webp"
+  },
+  {
+    "homeId": "canmore",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/canmore/design-boards/canmore-window-coverings-premium-sandstone-oak.3ae3bfddac1f-1448.webp"
+  },
+  {
+    "homeId": "canmore",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/canmore/design-boards/canmore-window-coverings-premium-graphite-oak.5bbfa994a43a-1448.webp"
+  },
+  {
+    "homeId": "canmore",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/canmore/design-boards/canmore-window-coverings-signature-smoked-walnut-bronze.14072cda526e-1448.webp"
+  },
+  {
+    "homeId": "canmore",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/canmore/design-boards/canmore-window-coverings-signature-limestone-noir.299d841732ec-1448.webp"
+  },
+  {
+    "homeId": "cascade",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/cascade/design-boards/cascade-kitchen-look-feel-premium-sandstone-oak.32babc1f5244-1448.webp"
+  },
+  {
+    "homeId": "cascade",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/cascade/design-boards/cascade-kitchen-look-feel-premium-graphite-oak.a1f12b0685de-1448.webp"
+  },
+  {
+    "homeId": "cascade",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/cascade/design-boards/cascade-kitchen-look-feel-signature-smoked-walnut-bronze.d729f6782474-1448.webp"
+  },
+  {
+    "homeId": "cascade",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/cascade/design-boards/cascade-kitchen-look-feel-signature-limestone-noir.825c4a1960f0-1448.webp"
+  },
+  {
+    "homeId": "cascade",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/cascade/design-boards/cascade-primary-ensuite-look-feel-premium-sandstone-oak.7ff914039b7f-1448.webp"
+  },
+  {
+    "homeId": "cascade",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/cascade/design-boards/cascade-primary-ensuite-look-feel-premium-graphite-oak.d1899ddf57d3-1448.webp"
+  },
+  {
+    "homeId": "cascade",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/cascade/design-boards/cascade-primary-ensuite-look-feel-signature-smoked-walnut-bronze.b8f72535cd7e-1448.webp"
+  },
+  {
+    "homeId": "cascade",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/cascade/design-boards/cascade-primary-ensuite-look-feel-signature-limestone-noir.5e0cd28a13ec-1448.webp"
+  },
+  {
+    "homeId": "cascade",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/cascade/design-boards/cascade-primary-wardrobe-premium-sandstone-oak.a8d716c5ce94-1448.webp"
+  },
+  {
+    "homeId": "cascade",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/cascade/design-boards/cascade-primary-wardrobe-premium-graphite-oak.5a0432cde34f-1448.webp"
+  },
+  {
+    "homeId": "cascade",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/cascade/design-boards/cascade-primary-wardrobe-signature-smoked-walnut-bronze.53ad827ac1f1-1448.webp"
+  },
+  {
+    "homeId": "cascade",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/cascade/design-boards/cascade-primary-wardrobe-signature-limestone-noir.d078b5bce1f6-1448.webp"
+  },
+  {
+    "homeId": "cascade",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/cascade/design-boards/cascade-interior-doors-details-premium-sandstone-oak.b87a5a5126e7-1448.webp"
+  },
+  {
+    "homeId": "cascade",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/cascade/design-boards/cascade-interior-doors-details-premium-graphite-oak.29cf57b6c96e-1448.webp"
+  },
+  {
+    "homeId": "cascade",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/cascade/design-boards/cascade-interior-doors-details-signature-smoked-walnut-bronze.dd8b9777507a-1448.webp"
+  },
+  {
+    "homeId": "cascade",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/cascade/design-boards/cascade-interior-doors-details-signature-limestone-noir.bd66ac6ae2cc-1448.webp"
+  },
+  {
+    "homeId": "cascade",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/cascade/design-boards/cascade-exterior-arrival-openings-premium-sandstone-oak.17337a801a8e-1448.webp"
+  },
+  {
+    "homeId": "cascade",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/cascade/design-boards/cascade-exterior-arrival-openings-premium-graphite-oak.fb9b17f7bab6-1448.webp"
+  },
+  {
+    "homeId": "cascade",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/cascade/design-boards/cascade-exterior-arrival-openings-signature-smoked-walnut-bronze.ebfe390df4fe-1448.webp"
+  },
+  {
+    "homeId": "cascade",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/cascade/design-boards/cascade-exterior-arrival-openings-signature-limestone-noir.9c87429b2ecf-1448.webp"
+  },
+  {
+    "homeId": "cascade",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/cascade/design-boards/cascade-whole-home-flooring-stairs-premium-sandstone-oak.4576c5e6bc42-1448.webp"
+  },
+  {
+    "homeId": "cascade",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/cascade/design-boards/cascade-whole-home-flooring-stairs-premium-graphite-oak.a6f67a80d556-1448.webp"
+  },
+  {
+    "homeId": "cascade",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/cascade/design-boards/cascade-whole-home-flooring-stairs-signature-smoked-walnut-bronze.543c288e7c68-1448.webp"
+  },
+  {
+    "homeId": "cascade",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/cascade/design-boards/cascade-whole-home-flooring-stairs-signature-limestone-noir.dbb6b78e9a5b-1448.webp"
+  },
+  {
+    "homeId": "cascade",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/cascade/design-boards/cascade-window-coverings-premium-sandstone-oak.b190e69f3d5e-1448.webp"
+  },
+  {
+    "homeId": "cascade",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/cascade/design-boards/cascade-window-coverings-premium-graphite-oak.483dce200951-1448.webp"
+  },
+  {
+    "homeId": "cascade",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/cascade/design-boards/cascade-window-coverings-signature-smoked-walnut-bronze.81b4a09fe09d-1448.webp"
+  },
+  {
+    "homeId": "cascade",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/cascade/design-boards/cascade-window-coverings-signature-limestone-noir.2f8bc85b1276-1448.webp"
+  },
+  {
+    "homeId": "cedarview",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/cedarview/design-boards/cedarview-kitchen-look-feel-premium-sandstone-oak.f2c16202c3af-1448.webp"
+  },
+  {
+    "homeId": "cedarview",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/cedarview/design-boards/cedarview-kitchen-look-feel-premium-graphite-oak.d4840a5adbcf-1448.webp"
+  },
+  {
+    "homeId": "cedarview",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/cedarview/design-boards/cedarview-kitchen-look-feel-signature-smoked-walnut-bronze.96423c8faa38-1448.webp"
+  },
+  {
+    "homeId": "cedarview",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/cedarview/design-boards/cedarview-kitchen-look-feel-signature-limestone-noir.d7aa04c9e1db-1448.webp"
+  },
+  {
+    "homeId": "cedarview",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/cedarview/design-boards/cedarview-primary-ensuite-look-feel-premium-sandstone-oak.7da2435f898a-1448.webp"
+  },
+  {
+    "homeId": "cedarview",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/cedarview/design-boards/cedarview-primary-ensuite-look-feel-premium-graphite-oak.6c5b8f035168-1448.webp"
+  },
+  {
+    "homeId": "cedarview",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/cedarview/design-boards/cedarview-primary-ensuite-look-feel-signature-smoked-walnut-bronze.45a2e8063740-1448.webp"
+  },
+  {
+    "homeId": "cedarview",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/cedarview/design-boards/cedarview-primary-ensuite-look-feel-signature-limestone-noir.9b1e5d0639eb-1448.webp"
+  },
+  {
+    "homeId": "cedarview",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/cedarview/design-boards/cedarview-primary-wardrobe-premium-sandstone-oak.e5b9acbcebb7-1448.webp"
+  },
+  {
+    "homeId": "cedarview",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/cedarview/design-boards/cedarview-primary-wardrobe-premium-graphite-oak.54d221e33cd9-1448.webp"
+  },
+  {
+    "homeId": "cedarview",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/cedarview/design-boards/cedarview-primary-wardrobe-signature-smoked-walnut-bronze.d3fccaff0e7c-1448.webp"
+  },
+  {
+    "homeId": "cedarview",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/cedarview/design-boards/cedarview-primary-wardrobe-signature-limestone-noir.62dfb2841c5f-1448.webp"
+  },
+  {
+    "homeId": "cedarview",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/cedarview/design-boards/cedarview-interior-doors-details-premium-sandstone-oak.abc6d9589a27-1448.webp"
+  },
+  {
+    "homeId": "cedarview",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/cedarview/design-boards/cedarview-interior-doors-details-premium-graphite-oak.3d265eb6d54c-1448.webp"
+  },
+  {
+    "homeId": "cedarview",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/cedarview/design-boards/cedarview-interior-doors-details-signature-smoked-walnut-bronze.9cb257da14a5-1448.webp"
+  },
+  {
+    "homeId": "cedarview",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/cedarview/design-boards/cedarview-interior-doors-details-signature-limestone-noir.64cc65f9924f-1448.webp"
+  },
+  {
+    "homeId": "cedarview",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/cedarview/design-boards/cedarview-exterior-arrival-openings-premium-sandstone-oak.882a3b62c309-1448.webp"
+  },
+  {
+    "homeId": "cedarview",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/cedarview/design-boards/cedarview-exterior-arrival-openings-premium-graphite-oak.a72ad6668a9f-1448.webp"
+  },
+  {
+    "homeId": "cedarview",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/cedarview/design-boards/cedarview-exterior-arrival-openings-signature-smoked-walnut-bronze.25f4262e0cd4-1448.webp"
+  },
+  {
+    "homeId": "cedarview",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/cedarview/design-boards/cedarview-exterior-arrival-openings-signature-limestone-noir.9377c21a4bfb-1448.webp"
+  },
+  {
+    "homeId": "cedarview",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/cedarview/design-boards/cedarview-whole-home-flooring-stairs-premium-sandstone-oak.1a142742fbf9-1448.webp"
+  },
+  {
+    "homeId": "cedarview",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/cedarview/design-boards/cedarview-whole-home-flooring-stairs-premium-graphite-oak.1a64b1e62f85-1448.webp"
+  },
+  {
+    "homeId": "cedarview",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/cedarview/design-boards/cedarview-whole-home-flooring-stairs-signature-smoked-walnut-bronze.136b43d40f7f-1448.webp"
+  },
+  {
+    "homeId": "cedarview",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/cedarview/design-boards/cedarview-whole-home-flooring-stairs-signature-limestone-noir.120b810cdd64-1448.webp"
+  },
+  {
+    "homeId": "cedarview",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/cedarview/design-boards/cedarview-window-coverings-premium-sandstone-oak.4ef5f57786f5-1448.webp"
+  },
+  {
+    "homeId": "cedarview",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/cedarview/design-boards/cedarview-window-coverings-premium-graphite-oak.0fda8d4a53df-1448.webp"
+  },
+  {
+    "homeId": "cedarview",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/cedarview/design-boards/cedarview-window-coverings-signature-smoked-walnut-bronze.e88a00e0e56f-1448.webp"
+  },
+  {
+    "homeId": "cedarview",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/cedarview/design-boards/cedarview-window-coverings-signature-limestone-noir.306f5b96a6b5-1448.webp"
+  },
+  {
+    "homeId": "dalton",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/dalton/design-boards/dalton-kitchen-look-feel-premium-sandstone-oak.df9ac21b56b0-1448.webp"
+  },
+  {
+    "homeId": "dalton",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/dalton/design-boards/dalton-kitchen-look-feel-premium-graphite-oak.e660074b5bd3-1448.webp"
+  },
+  {
+    "homeId": "dalton",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/dalton/design-boards/dalton-kitchen-look-feel-signature-smoked-walnut-bronze.c54db4dc0512-1448.webp"
+  },
+  {
+    "homeId": "dalton",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/dalton/design-boards/dalton-kitchen-look-feel-signature-limestone-noir.9357292af19c-1448.webp"
+  },
+  {
+    "homeId": "dalton",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/dalton/design-boards/dalton-primary-ensuite-look-feel-premium-sandstone-oak.5a5e9af34045-1448.webp"
+  },
+  {
+    "homeId": "dalton",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/dalton/design-boards/dalton-primary-ensuite-look-feel-premium-graphite-oak.d9c1aac2dd2d-1448.webp"
+  },
+  {
+    "homeId": "dalton",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/dalton/design-boards/dalton-primary-ensuite-look-feel-signature-smoked-walnut-bronze.978fb184f1d3-1448.webp"
+  },
+  {
+    "homeId": "dalton",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/dalton/design-boards/dalton-primary-ensuite-look-feel-signature-limestone-noir.6ac5fd0394da-1448.webp"
+  },
+  {
+    "homeId": "dalton",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/dalton/design-boards/dalton-primary-wardrobe-premium-sandstone-oak.668a6e437218-1448.webp"
+  },
+  {
+    "homeId": "dalton",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/dalton/design-boards/dalton-primary-wardrobe-premium-graphite-oak.ae9869eba3e7-1448.webp"
+  },
+  {
+    "homeId": "dalton",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/dalton/design-boards/dalton-primary-wardrobe-signature-smoked-walnut-bronze.451ff22fc2a3-1448.webp"
+  },
+  {
+    "homeId": "dalton",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/dalton/design-boards/dalton-primary-wardrobe-signature-limestone-noir.bc5e855ed81b-1448.webp"
+  },
+  {
+    "homeId": "dalton",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/dalton/design-boards/dalton-interior-doors-details-premium-sandstone-oak.cfea96bb2886-1448.webp"
+  },
+  {
+    "homeId": "dalton",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/dalton/design-boards/dalton-interior-doors-details-premium-graphite-oak.332534b9f212-1448.webp"
+  },
+  {
+    "homeId": "dalton",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/dalton/design-boards/dalton-interior-doors-details-signature-smoked-walnut-bronze.6e46b1ca9339-1448.webp"
+  },
+  {
+    "homeId": "dalton",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/dalton/design-boards/dalton-interior-doors-details-signature-limestone-noir.f62ca787fea5-1448.webp"
+  },
+  {
+    "homeId": "dalton",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/dalton/design-boards/dalton-exterior-arrival-openings-premium-sandstone-oak.2451b360fa03-1448.webp"
+  },
+  {
+    "homeId": "dalton",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/dalton/design-boards/dalton-exterior-arrival-openings-premium-graphite-oak.2cdddf45dccc-1448.webp"
+  },
+  {
+    "homeId": "dalton",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/dalton/design-boards/dalton-exterior-arrival-openings-signature-smoked-walnut-bronze.65e9de649dd7-1448.webp"
+  },
+  {
+    "homeId": "dalton",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/dalton/design-boards/dalton-exterior-arrival-openings-signature-limestone-noir.fcb1815307e2-1448.webp"
+  },
+  {
+    "homeId": "dalton",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/dalton/design-boards/dalton-whole-home-flooring-stairs-premium-sandstone-oak.0c0bc13ce769-1448.webp"
+  },
+  {
+    "homeId": "dalton",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/dalton/design-boards/dalton-whole-home-flooring-stairs-premium-graphite-oak.8c6e2361014f-1448.webp"
+  },
+  {
+    "homeId": "dalton",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/dalton/design-boards/dalton-whole-home-flooring-stairs-signature-smoked-walnut-bronze.360378edebdd-1448.webp"
+  },
+  {
+    "homeId": "dalton",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/dalton/design-boards/dalton-whole-home-flooring-stairs-signature-limestone-noir.b893904c4f24-1448.webp"
+  },
+  {
+    "homeId": "dalton",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/dalton/design-boards/dalton-window-coverings-premium-sandstone-oak.5067d881aaaf-1448.webp"
+  },
+  {
+    "homeId": "dalton",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/dalton/design-boards/dalton-window-coverings-premium-graphite-oak.b888d7648b20-1448.webp"
+  },
+  {
+    "homeId": "dalton",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/dalton/design-boards/dalton-window-coverings-signature-smoked-walnut-bronze.f86c37f3da99-1448.webp"
+  },
+  {
+    "homeId": "dalton",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/dalton/design-boards/dalton-window-coverings-signature-limestone-noir.47ffcef7adbd-1448.webp"
+  },
+  {
+    "homeId": "keats",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/keats/design-boards/keats-kitchen-look-feel-premium-sandstone-oak.7ddc5431b69c-1448.webp"
+  },
+  {
+    "homeId": "keats",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/keats/design-boards/keats-kitchen-look-feel-premium-graphite-oak.37965bd658ef-1448.webp"
+  },
+  {
+    "homeId": "keats",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/keats/design-boards/keats-kitchen-look-feel-signature-smoked-walnut-bronze.eeb86929e3d8-1448.webp"
+  },
+  {
+    "homeId": "keats",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/keats/design-boards/keats-kitchen-look-feel-signature-limestone-noir.56ac14b0d681-1448.webp"
+  },
+  {
+    "homeId": "keats",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/keats/design-boards/keats-primary-ensuite-look-feel-premium-sandstone-oak.dd2b6075c46d-1448.webp"
+  },
+  {
+    "homeId": "keats",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/keats/design-boards/keats-primary-ensuite-look-feel-premium-graphite-oak.2d79797258c4-1448.webp"
+  },
+  {
+    "homeId": "keats",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/keats/design-boards/keats-primary-ensuite-look-feel-signature-smoked-walnut-bronze.5dcb1d2f026a-1448.webp"
+  },
+  {
+    "homeId": "keats",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/keats/design-boards/keats-primary-ensuite-look-feel-signature-limestone-noir.109a20a5c6d6-1448.webp"
+  },
+  {
+    "homeId": "keats",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/keats/design-boards/keats-primary-wardrobe-premium-sandstone-oak.81bf987c4c28-1448.webp"
+  },
+  {
+    "homeId": "keats",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/keats/design-boards/keats-primary-wardrobe-premium-graphite-oak.24caf6b40fcb-1448.webp"
+  },
+  {
+    "homeId": "keats",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/keats/design-boards/keats-primary-wardrobe-signature-smoked-walnut-bronze.c6cfb76ff6c4-1448.webp"
+  },
+  {
+    "homeId": "keats",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/keats/design-boards/keats-primary-wardrobe-signature-limestone-noir.3957a6fd9dbc-1448.webp"
+  },
+  {
+    "homeId": "keats",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/keats/design-boards/keats-interior-doors-details-premium-sandstone-oak.59a56a783269-1448.webp"
+  },
+  {
+    "homeId": "keats",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/keats/design-boards/keats-interior-doors-details-premium-graphite-oak.2b0aa7de15f2-1448.webp"
+  },
+  {
+    "homeId": "keats",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/keats/design-boards/keats-interior-doors-details-signature-smoked-walnut-bronze.a93446b526c0-1448.webp"
+  },
+  {
+    "homeId": "keats",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/keats/design-boards/keats-interior-doors-details-signature-limestone-noir.3e2dd4764303-1448.webp"
+  },
+  {
+    "homeId": "keats",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/keats/design-boards/keats-exterior-arrival-openings-premium-sandstone-oak.a3f88c827174-1448.webp"
+  },
+  {
+    "homeId": "keats",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/keats/design-boards/keats-exterior-arrival-openings-premium-graphite-oak.6d7688f61840-1448.webp"
+  },
+  {
+    "homeId": "keats",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/keats/design-boards/keats-exterior-arrival-openings-signature-smoked-walnut-bronze.e60f1c0e0e52-1448.webp"
+  },
+  {
+    "homeId": "keats",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/keats/design-boards/keats-exterior-arrival-openings-signature-limestone-noir.9f624c7dbea8-1448.webp"
+  },
+  {
+    "homeId": "keats",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/keats/design-boards/keats-whole-home-flooring-stairs-premium-sandstone-oak.bfa4a113d618-1448.webp"
+  },
+  {
+    "homeId": "keats",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/keats/design-boards/keats-whole-home-flooring-stairs-premium-graphite-oak.55f342052146-1448.webp"
+  },
+  {
+    "homeId": "keats",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/keats/design-boards/keats-whole-home-flooring-stairs-signature-smoked-walnut-bronze.52bf2d0e2bcb-1448.webp"
+  },
+  {
+    "homeId": "keats",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/keats/design-boards/keats-whole-home-flooring-stairs-signature-limestone-noir.48778f7607e7-1448.webp"
+  },
+  {
+    "homeId": "keats",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/keats/design-boards/keats-window-coverings-premium-sandstone-oak.dab309456a23-1448.webp"
+  },
+  {
+    "homeId": "keats",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/keats/design-boards/keats-window-coverings-premium-graphite-oak.f95cbd8ef337-1448.webp"
+  },
+  {
+    "homeId": "keats",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/keats/design-boards/keats-window-coverings-signature-smoked-walnut-bronze.d08f5b0a63b5-1448.webp"
+  },
+  {
+    "homeId": "keats",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/keats/design-boards/keats-window-coverings-signature-limestone-noir.dbcd6db02b08-1448.webp"
+  },
+  {
+    "homeId": "langley",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/langley/design-boards/langley-kitchen-look-feel-premium-sandstone-oak.5a42184d9dfa-1448.webp"
+  },
+  {
+    "homeId": "langley",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/langley/design-boards/langley-kitchen-look-feel-premium-graphite-oak.f52886516ee5-1448.webp"
+  },
+  {
+    "homeId": "langley",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/langley/design-boards/langley-kitchen-look-feel-signature-smoked-walnut-bronze.05885047df96-1448.webp"
+  },
+  {
+    "homeId": "langley",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/langley/design-boards/langley-kitchen-look-feel-signature-limestone-noir.c7684bc4e09b-1448.webp"
+  },
+  {
+    "homeId": "langley",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/langley/design-boards/langley-primary-ensuite-look-feel-premium-sandstone-oak.8c436f60085e-1448.webp"
+  },
+  {
+    "homeId": "langley",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/langley/design-boards/langley-primary-ensuite-look-feel-premium-graphite-oak.69a907acb246-1448.webp"
+  },
+  {
+    "homeId": "langley",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/langley/design-boards/langley-primary-ensuite-look-feel-signature-smoked-walnut-bronze.77081fbdeee7-1448.webp"
+  },
+  {
+    "homeId": "langley",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/langley/design-boards/langley-primary-ensuite-look-feel-signature-limestone-noir.3bcf3a649a7d-1448.webp"
+  },
+  {
+    "homeId": "langley",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/langley/design-boards/langley-primary-wardrobe-premium-sandstone-oak.f627a4fedb43-1448.webp"
+  },
+  {
+    "homeId": "langley",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/langley/design-boards/langley-primary-wardrobe-premium-graphite-oak.6f8dfe445ce4-1448.webp"
+  },
+  {
+    "homeId": "langley",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/langley/design-boards/langley-primary-wardrobe-signature-smoked-walnut-bronze.fc2036ee3a0d-1448.webp"
+  },
+  {
+    "homeId": "langley",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/langley/design-boards/langley-primary-wardrobe-signature-limestone-noir.4925c4ae6750-1448.webp"
+  },
+  {
+    "homeId": "langley",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/langley/design-boards/langley-interior-doors-details-premium-sandstone-oak.ea559e6c8413-1448.webp"
+  },
+  {
+    "homeId": "langley",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/langley/design-boards/langley-interior-doors-details-premium-graphite-oak.32c2f1e3c78f-1448.webp"
+  },
+  {
+    "homeId": "langley",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/langley/design-boards/langley-interior-doors-details-signature-smoked-walnut-bronze.d9703339e465-1448.webp"
+  },
+  {
+    "homeId": "langley",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/langley/design-boards/langley-interior-doors-details-signature-limestone-noir.202a72cbbeac-1448.webp"
+  },
+  {
+    "homeId": "langley",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/langley/design-boards/langley-exterior-arrival-openings-premium-sandstone-oak.7964ab082498-1448.webp"
+  },
+  {
+    "homeId": "langley",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/langley/design-boards/langley-exterior-arrival-openings-premium-graphite-oak.1ed2aff9405e-1448.webp"
+  },
+  {
+    "homeId": "langley",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/langley/design-boards/langley-exterior-arrival-openings-signature-smoked-walnut-bronze.14bc1d09f3dd-1448.webp"
+  },
+  {
+    "homeId": "langley",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/langley/design-boards/langley-exterior-arrival-openings-signature-limestone-noir.443f3c6a5311-1448.webp"
+  },
+  {
+    "homeId": "langley",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/langley/design-boards/langley-whole-home-flooring-stairs-premium-sandstone-oak.aedba01124d7-1448.webp"
+  },
+  {
+    "homeId": "langley",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/langley/design-boards/langley-whole-home-flooring-stairs-premium-graphite-oak.de51d988be06-1448.webp"
+  },
+  {
+    "homeId": "langley",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/langley/design-boards/langley-whole-home-flooring-stairs-signature-smoked-walnut-bronze.4e410406596d-1448.webp"
+  },
+  {
+    "homeId": "langley",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/langley/design-boards/langley-whole-home-flooring-stairs-signature-limestone-noir.4f7c3158774c-1448.webp"
+  },
+  {
+    "homeId": "langley",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/langley/design-boards/langley-window-coverings-premium-sandstone-oak.8c096e090cf6-1448.webp"
+  },
+  {
+    "homeId": "langley",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/langley/design-boards/langley-window-coverings-premium-graphite-oak.cf937d55ba9e-1448.webp"
+  },
+  {
+    "homeId": "langley",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/langley/design-boards/langley-window-coverings-signature-smoked-walnut-bronze.af0bad319479-1448.webp"
+  },
+  {
+    "homeId": "langley",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/langley/design-boards/langley-window-coverings-signature-limestone-noir.3db97ef8b4f1-1448.webp"
+  },
+  {
+    "homeId": "laurentian",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/laurentian/design-boards/laurentian-kitchen-look-feel-premium-sandstone-oak.3d421eb7941f-1448.webp"
+  },
+  {
+    "homeId": "laurentian",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/laurentian/design-boards/laurentian-kitchen-look-feel-premium-graphite-oak.344ce3dfc856-1448.webp"
+  },
+  {
+    "homeId": "laurentian",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/laurentian/design-boards/laurentian-kitchen-look-feel-signature-smoked-walnut-bronze.f8ed84bf8042-1448.webp"
+  },
+  {
+    "homeId": "laurentian",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/laurentian/design-boards/laurentian-kitchen-look-feel-signature-limestone-noir.9c08c880fddc-1448.webp"
+  },
+  {
+    "homeId": "laurentian",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/laurentian/design-boards/laurentian-primary-ensuite-look-feel-premium-sandstone-oak.65e8dc27aa62-1448.webp"
+  },
+  {
+    "homeId": "laurentian",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/laurentian/design-boards/laurentian-primary-ensuite-look-feel-premium-graphite-oak.39f8e15e7587-1448.webp"
+  },
+  {
+    "homeId": "laurentian",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/laurentian/design-boards/laurentian-primary-ensuite-look-feel-signature-smoked-walnut-bronze.7f8a6ce033f0-1448.webp"
+  },
+  {
+    "homeId": "laurentian",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/laurentian/design-boards/laurentian-primary-ensuite-look-feel-signature-limestone-noir.7daae82b2277-1448.webp"
+  },
+  {
+    "homeId": "laurentian",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/laurentian/design-boards/laurentian-primary-wardrobe-premium-sandstone-oak.cdc84e029ad8-1448.webp"
+  },
+  {
+    "homeId": "laurentian",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/laurentian/design-boards/laurentian-primary-wardrobe-premium-graphite-oak.c17d4e421d70-1448.webp"
+  },
+  {
+    "homeId": "laurentian",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/laurentian/design-boards/laurentian-primary-wardrobe-signature-smoked-walnut-bronze.bc36067b8c95-1448.webp"
+  },
+  {
+    "homeId": "laurentian",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/laurentian/design-boards/laurentian-primary-wardrobe-signature-limestone-noir.6ac74e9e2ae9-1448.webp"
+  },
+  {
+    "homeId": "laurentian",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/laurentian/design-boards/laurentian-interior-doors-details-premium-sandstone-oak.022c9ad8b816-1448.webp"
+  },
+  {
+    "homeId": "laurentian",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/laurentian/design-boards/laurentian-interior-doors-details-premium-graphite-oak.a73c586b8bbf-1448.webp"
+  },
+  {
+    "homeId": "laurentian",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/laurentian/design-boards/laurentian-interior-doors-details-signature-smoked-walnut-bronze.beed29d5e365-1448.webp"
+  },
+  {
+    "homeId": "laurentian",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/laurentian/design-boards/laurentian-interior-doors-details-signature-limestone-noir.1ccde12d5c4d-1448.webp"
+  },
+  {
+    "homeId": "laurentian",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/laurentian/design-boards/laurentian-exterior-arrival-openings-premium-sandstone-oak.f067d1186c21-1448.webp"
+  },
+  {
+    "homeId": "laurentian",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/laurentian/design-boards/laurentian-exterior-arrival-openings-premium-graphite-oak.0e0ec6794178-1448.webp"
+  },
+  {
+    "homeId": "laurentian",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/laurentian/design-boards/laurentian-exterior-arrival-openings-signature-smoked-walnut-bronze.6905191d745c-1448.webp"
+  },
+  {
+    "homeId": "laurentian",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/laurentian/design-boards/laurentian-exterior-arrival-openings-signature-limestone-noir.3e1fd3ce4708-1448.webp"
+  },
+  {
+    "homeId": "laurentian",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/laurentian/design-boards/laurentian-whole-home-flooring-stairs-premium-sandstone-oak.c527431c446f-1448.webp"
+  },
+  {
+    "homeId": "laurentian",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/laurentian/design-boards/laurentian-whole-home-flooring-stairs-premium-graphite-oak.8d805cd9e437-1448.webp"
+  },
+  {
+    "homeId": "laurentian",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/laurentian/design-boards/laurentian-whole-home-flooring-stairs-signature-smoked-walnut-bronze.88d95b976f24-1448.webp"
+  },
+  {
+    "homeId": "laurentian",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/laurentian/design-boards/laurentian-whole-home-flooring-stairs-signature-limestone-noir.a6959d89728e-1448.webp"
+  },
+  {
+    "homeId": "laurentian",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/laurentian/design-boards/laurentian-window-coverings-premium-sandstone-oak.469aa4b98d5a-1448.webp"
+  },
+  {
+    "homeId": "laurentian",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/laurentian/design-boards/laurentian-window-coverings-premium-graphite-oak.b535cf9fb446-1448.webp"
+  },
+  {
+    "homeId": "laurentian",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/laurentian/design-boards/laurentian-window-coverings-signature-smoked-walnut-bronze.a5bc6a4eac78-1448.webp"
+  },
+  {
+    "homeId": "laurentian",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/laurentian/design-boards/laurentian-window-coverings-signature-limestone-noir.4fde9e40fcf3-1448.webp"
+  },
+  {
+    "homeId": "maplewood",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/maplewood/design-boards/maplewood-kitchen-look-feel-premium-sandstone-oak.ada395ab4652-1448.webp"
+  },
+  {
+    "homeId": "maplewood",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/maplewood/design-boards/maplewood-kitchen-look-feel-premium-graphite-oak.f8f360c2de3f-1448.webp"
+  },
+  {
+    "homeId": "maplewood",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/maplewood/design-boards/maplewood-kitchen-look-feel-signature-smoked-walnut-bronze.95603a54eeda-1448.webp"
+  },
+  {
+    "homeId": "maplewood",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/maplewood/design-boards/maplewood-kitchen-look-feel-signature-limestone-noir.8281d7e91c0d-1448.webp"
+  },
+  {
+    "homeId": "maplewood",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/maplewood/design-boards/maplewood-primary-ensuite-look-feel-premium-sandstone-oak.911fb69928f3-1448.webp"
+  },
+  {
+    "homeId": "maplewood",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/maplewood/design-boards/maplewood-primary-ensuite-look-feel-premium-graphite-oak.d46e1d665cb4-1448.webp"
+  },
+  {
+    "homeId": "maplewood",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/maplewood/design-boards/maplewood-primary-ensuite-look-feel-signature-smoked-walnut-bronze.54ade2a4d169-1448.webp"
+  },
+  {
+    "homeId": "maplewood",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/maplewood/design-boards/maplewood-primary-ensuite-look-feel-signature-limestone-noir.c93869328978-1448.webp"
+  },
+  {
+    "homeId": "maplewood",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/maplewood/design-boards/maplewood-primary-wardrobe-premium-sandstone-oak.292f5ad51a5f-1448.webp"
+  },
+  {
+    "homeId": "maplewood",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/maplewood/design-boards/maplewood-primary-wardrobe-premium-graphite-oak.5b5c02fbf303-1448.webp"
+  },
+  {
+    "homeId": "maplewood",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/maplewood/design-boards/maplewood-primary-wardrobe-signature-smoked-walnut-bronze.1d776f2204fe-1448.webp"
+  },
+  {
+    "homeId": "maplewood",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/maplewood/design-boards/maplewood-primary-wardrobe-signature-limestone-noir.4bfc3068e40d-1448.webp"
+  },
+  {
+    "homeId": "maplewood",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/maplewood/design-boards/maplewood-interior-doors-details-premium-sandstone-oak.a3e5635e2d34-1448.webp"
+  },
+  {
+    "homeId": "maplewood",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/maplewood/design-boards/maplewood-interior-doors-details-premium-graphite-oak.d56c54eab016-1448.webp"
+  },
+  {
+    "homeId": "maplewood",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/maplewood/design-boards/maplewood-interior-doors-details-signature-smoked-walnut-bronze.f9c6fa1d2004-1448.webp"
+  },
+  {
+    "homeId": "maplewood",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/maplewood/design-boards/maplewood-interior-doors-details-signature-limestone-noir.b6b35b3c84bd-1448.webp"
+  },
+  {
+    "homeId": "maplewood",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/maplewood/design-boards/maplewood-exterior-arrival-openings-premium-sandstone-oak.0a4d6f339d66-1448.webp"
+  },
+  {
+    "homeId": "maplewood",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/maplewood/design-boards/maplewood-exterior-arrival-openings-premium-graphite-oak.bc1c3fdf5480-1448.webp"
+  },
+  {
+    "homeId": "maplewood",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/maplewood/design-boards/maplewood-exterior-arrival-openings-signature-smoked-walnut-bronze.8233eff832fd-1448.webp"
+  },
+  {
+    "homeId": "maplewood",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/maplewood/design-boards/maplewood-exterior-arrival-openings-signature-limestone-noir.58c0a37097e4-1448.webp"
+  },
+  {
+    "homeId": "maplewood",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/maplewood/design-boards/maplewood-whole-home-flooring-stairs-premium-sandstone-oak.a86138af4e46-1448.webp"
+  },
+  {
+    "homeId": "maplewood",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/maplewood/design-boards/maplewood-whole-home-flooring-stairs-premium-graphite-oak.2db3c200e675-1448.webp"
+  },
+  {
+    "homeId": "maplewood",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/maplewood/design-boards/maplewood-whole-home-flooring-stairs-signature-smoked-walnut-bronze.3d344bd6138d-1448.webp"
+  },
+  {
+    "homeId": "maplewood",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/maplewood/design-boards/maplewood-whole-home-flooring-stairs-signature-limestone-noir.298d9f27eb6f-1448.webp"
+  },
+  {
+    "homeId": "maplewood",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/maplewood/design-boards/maplewood-window-coverings-premium-sandstone-oak.b5bb633303f0-1448.webp"
+  },
+  {
+    "homeId": "maplewood",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/maplewood/design-boards/maplewood-window-coverings-premium-graphite-oak.55377edd5867-1448.webp"
+  },
+  {
+    "homeId": "maplewood",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/maplewood/design-boards/maplewood-window-coverings-signature-smoked-walnut-bronze.eb38acd4c4e9-1448.webp"
+  },
+  {
+    "homeId": "maplewood",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/maplewood/design-boards/maplewood-window-coverings-signature-limestone-noir.3b39b903df34-1448.webp"
+  },
+  {
+    "homeId": "mayne",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/mayne/design-boards/mayne-kitchen-look-feel-premium-sandstone-oak.a1d9eb884f0e-1448.webp"
+  },
+  {
+    "homeId": "mayne",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/mayne/design-boards/mayne-kitchen-look-feel-premium-graphite-oak.0a4b6ea0ad31-1448.webp"
+  },
+  {
+    "homeId": "mayne",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/mayne/design-boards/mayne-kitchen-look-feel-signature-smoked-walnut-bronze.7f6a6c3c997b-1448.webp"
+  },
+  {
+    "homeId": "mayne",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/mayne/design-boards/mayne-kitchen-look-feel-signature-limestone-noir.f501a3840452-1448.webp"
+  },
+  {
+    "homeId": "mayne",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/mayne/design-boards/mayne-primary-ensuite-look-feel-premium-sandstone-oak.0b20cac364c0-1448.webp"
+  },
+  {
+    "homeId": "mayne",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/mayne/design-boards/mayne-primary-ensuite-look-feel-premium-graphite-oak.5ee2069b35a5-1448.webp"
+  },
+  {
+    "homeId": "mayne",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/mayne/design-boards/mayne-primary-ensuite-look-feel-signature-smoked-walnut-bronze.bfdfe0a674a0-1448.webp"
+  },
+  {
+    "homeId": "mayne",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/mayne/design-boards/mayne-primary-ensuite-look-feel-signature-limestone-noir.7d54e7dc0749-1448.webp"
+  },
+  {
+    "homeId": "mayne",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/mayne/design-boards/mayne-primary-wardrobe-premium-sandstone-oak.1889dd8c97ed-1448.webp"
+  },
+  {
+    "homeId": "mayne",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/mayne/design-boards/mayne-primary-wardrobe-premium-graphite-oak.0923ee9a3aa1-1448.webp"
+  },
+  {
+    "homeId": "mayne",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/mayne/design-boards/mayne-primary-wardrobe-signature-smoked-walnut-bronze.2d1f1f54c2b5-1448.webp"
+  },
+  {
+    "homeId": "mayne",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/mayne/design-boards/mayne-primary-wardrobe-signature-limestone-noir.07abd629736f-1448.webp"
+  },
+  {
+    "homeId": "mayne",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/mayne/design-boards/mayne-interior-doors-details-premium-sandstone-oak.7a13eb51e5ac-1448.webp"
+  },
+  {
+    "homeId": "mayne",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/mayne/design-boards/mayne-interior-doors-details-premium-graphite-oak.9e39b3360040-1448.webp"
+  },
+  {
+    "homeId": "mayne",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/mayne/design-boards/mayne-interior-doors-details-signature-smoked-walnut-bronze.cc15a964991a-1448.webp"
+  },
+  {
+    "homeId": "mayne",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/mayne/design-boards/mayne-interior-doors-details-signature-limestone-noir.5723913f644b-1448.webp"
+  },
+  {
+    "homeId": "mayne",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/mayne/design-boards/mayne-exterior-arrival-openings-premium-sandstone-oak.7aac0fa69040-1448.webp"
+  },
+  {
+    "homeId": "mayne",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/mayne/design-boards/mayne-exterior-arrival-openings-premium-graphite-oak.084d54c902c7-1448.webp"
+  },
+  {
+    "homeId": "mayne",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/mayne/design-boards/mayne-exterior-arrival-openings-signature-smoked-walnut-bronze.a28c312202aa-1448.webp"
+  },
+  {
+    "homeId": "mayne",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/mayne/design-boards/mayne-exterior-arrival-openings-signature-limestone-noir.4c948a14f489-1448.webp"
+  },
+  {
+    "homeId": "mayne",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/mayne/design-boards/mayne-whole-home-flooring-stairs-premium-sandstone-oak.9c8e657d4618-1448.webp"
+  },
+  {
+    "homeId": "mayne",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/mayne/design-boards/mayne-whole-home-flooring-stairs-premium-graphite-oak.c0667760d9c5-1448.webp"
+  },
+  {
+    "homeId": "mayne",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/mayne/design-boards/mayne-whole-home-flooring-stairs-signature-smoked-walnut-bronze.0da8daec2486-1448.webp"
+  },
+  {
+    "homeId": "mayne",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/mayne/design-boards/mayne-whole-home-flooring-stairs-signature-limestone-noir.89c40778d6c9-1448.webp"
+  },
+  {
+    "homeId": "mayne",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/mayne/design-boards/mayne-window-coverings-premium-sandstone-oak.2d1a28a4cb95-1448.webp"
+  },
+  {
+    "homeId": "mayne",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/mayne/design-boards/mayne-window-coverings-premium-graphite-oak.7567c4311c69-1448.webp"
+  },
+  {
+    "homeId": "mayne",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/mayne/design-boards/mayne-window-coverings-signature-smoked-walnut-bronze.d28e0e1c9560-1448.webp"
+  },
+  {
+    "homeId": "mayne",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/mayne/design-boards/mayne-window-coverings-signature-limestone-noir.c42d3293522d-1448.webp"
+  },
+  {
+    "homeId": "profile",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-new-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/profile/design-boards/profile-kitchen-look-feel-premium-sandstone-oak.fc02de85b150-1448.webp"
+  },
+  {
+    "homeId": "profile",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-new-5",
+    "level": "premium",
+    "optionNumber": "5",
+    "name": "Graphite Oak",
+    "src": "/images/homes/profile/design-boards/profile-kitchen-look-feel-premium-graphite-oak.9ca0b5bf396e-1448.webp"
+  },
+  {
+    "homeId": "profile",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-new-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/profile/design-boards/profile-kitchen-look-feel-signature-smoked-walnut-bronze.660e44c33d13-1448.webp"
+  },
+  {
+    "homeId": "profile",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-new-5",
+    "level": "signature",
+    "optionNumber": "5",
+    "name": "Limestone Noir",
+    "src": "/images/homes/profile/design-boards/profile-kitchen-look-feel-signature-limestone-noir.455da7c5b456-1448.webp"
+  },
+  {
+    "homeId": "profile",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-new-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/profile/design-boards/profile-primary-ensuite-look-feel-premium-sandstone-oak.dbb992b47be3-1448.webp"
+  },
+  {
+    "homeId": "profile",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-new-5",
+    "level": "premium",
+    "optionNumber": "5",
+    "name": "Graphite Oak",
+    "src": "/images/homes/profile/design-boards/profile-primary-ensuite-look-feel-premium-graphite-oak.ccefe1cad5cc-1448.webp"
+  },
+  {
+    "homeId": "profile",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-new-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/profile/design-boards/profile-primary-ensuite-look-feel-signature-smoked-walnut-bronze.248148edb31a-1448.webp"
+  },
+  {
+    "homeId": "profile",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-new-5",
+    "level": "signature",
+    "optionNumber": "5",
+    "name": "Limestone Noir",
+    "src": "/images/homes/profile/design-boards/profile-primary-ensuite-look-feel-signature-limestone-noir.b9e4ee4d7f06-1448.webp"
+  },
+  {
+    "homeId": "profile",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-new-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/profile/design-boards/profile-primary-wardrobe-premium-sandstone-oak.784fd3c59224-1448.webp"
+  },
+  {
+    "homeId": "profile",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-new-5",
+    "level": "premium",
+    "optionNumber": "5",
+    "name": "Graphite Oak",
+    "src": "/images/homes/profile/design-boards/profile-primary-wardrobe-premium-graphite-oak.7035906fb1bb-1448.webp"
+  },
+  {
+    "homeId": "profile",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-new-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/profile/design-boards/profile-primary-wardrobe-signature-smoked-walnut-bronze.f0d307eea524-1448.webp"
+  },
+  {
+    "homeId": "profile",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-new-5",
+    "level": "signature",
+    "optionNumber": "5",
+    "name": "Limestone Noir",
+    "src": "/images/homes/profile/design-boards/profile-primary-wardrobe-signature-limestone-noir.1f0763c2f6ce-1448.webp"
+  },
+  {
+    "homeId": "profile",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-new-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/profile/design-boards/profile-interior-doors-details-premium-sandstone-oak.0653e7e07560-1448.webp"
+  },
+  {
+    "homeId": "profile",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-new-5",
+    "level": "premium",
+    "optionNumber": "5",
+    "name": "Graphite Oak",
+    "src": "/images/homes/profile/design-boards/profile-interior-doors-details-premium-graphite-oak.50ab038ffd1b-1448.webp"
+  },
+  {
+    "homeId": "profile",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-new-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/profile/design-boards/profile-interior-doors-details-signature-smoked-walnut-bronze.1b3469174e96-1448.webp"
+  },
+  {
+    "homeId": "profile",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-new-5",
+    "level": "signature",
+    "optionNumber": "5",
+    "name": "Limestone Noir",
+    "src": "/images/homes/profile/design-boards/profile-interior-doors-details-signature-limestone-noir.9e4e0593897f-1448.webp"
+  },
+  {
+    "homeId": "profile",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-premium-new-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/profile/design-boards/profile-exterior-arrival-openings-premium-sandstone-oak.408a37d8a254-1448.webp"
+  },
+  {
+    "homeId": "profile",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-premium-new-5",
+    "level": "premium",
+    "optionNumber": "5",
+    "name": "Graphite Oak",
+    "src": "/images/homes/profile/design-boards/profile-exterior-arrival-openings-premium-graphite-oak.e83c501b1f4d-1448.webp"
+  },
+  {
+    "homeId": "profile",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-signature-new-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/profile/design-boards/profile-exterior-arrival-openings-signature-smoked-walnut-bronze.f7276314e2ab-1448.webp"
+  },
+  {
+    "homeId": "profile",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-signature-new-5",
+    "level": "signature",
+    "optionNumber": "5",
+    "name": "Limestone Noir",
+    "src": "/images/homes/profile/design-boards/profile-exterior-arrival-openings-signature-limestone-noir.f907213aef64-1448.webp"
+  },
+  {
+    "homeId": "profile",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-new-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/profile/design-boards/profile-whole-home-flooring-stairs-premium-sandstone-oak.5100a23632ff-1448.webp"
+  },
+  {
+    "homeId": "profile",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-new-5",
+    "level": "premium",
+    "optionNumber": "5",
+    "name": "Graphite Oak",
+    "src": "/images/homes/profile/design-boards/profile-whole-home-flooring-stairs-premium-graphite-oak.0f29443d4365-1448.webp"
+  },
+  {
+    "homeId": "profile",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-new-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/profile/design-boards/profile-whole-home-flooring-stairs-signature-smoked-walnut-bronze.6d2c58fbc9e8-1448.webp"
+  },
+  {
+    "homeId": "profile",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-new-5",
+    "level": "signature",
+    "optionNumber": "5",
+    "name": "Limestone Noir",
+    "src": "/images/homes/profile/design-boards/profile-whole-home-flooring-stairs-signature-limestone-noir.c57bc341865b-1448.webp"
+  },
+  {
+    "homeId": "profile",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-new-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/profile/design-boards/profile-window-coverings-premium-sandstone-oak.cdea054f95f7-1448.webp"
+  },
+  {
+    "homeId": "profile",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-new-5",
+    "level": "premium",
+    "optionNumber": "5",
+    "name": "Graphite Oak",
+    "src": "/images/homes/profile/design-boards/profile-window-coverings-premium-graphite-oak.cae24c74ecee-1448.webp"
+  },
+  {
+    "homeId": "profile",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-new-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/profile/design-boards/profile-window-coverings-signature-smoked-walnut-bronze.2719b9fac25f-1448.webp"
+  },
+  {
+    "homeId": "profile",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-new-5",
+    "level": "signature",
+    "optionNumber": "5",
+    "name": "Limestone Noir",
+    "src": "/images/homes/profile/design-boards/profile-window-coverings-signature-limestone-noir.e76567bc8e8c-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-1",
+    "level": "premium",
+    "optionNumber": "1",
+    "name": "Warm Oak",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-kitchen-look-feel-premium-warm-oak.dd4f2d735acb-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-2",
+    "level": "premium",
+    "optionNumber": "2",
+    "name": "Soft White",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-kitchen-look-feel-premium-soft-white.d171300d3823-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-kitchen-look-feel-premium-sandstone-oak.617080fb8915-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-kitchen-look-feel-premium-graphite-oak.fa9b8d93957d-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-1",
+    "level": "signature",
+    "optionNumber": "1",
+    "name": "Smoked Walnut Stone",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-kitchen-look-feel-signature-smoked-walnut-stone.9f6e8e585da3-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-2",
+    "level": "signature",
+    "optionNumber": "2",
+    "name": "Sculpted White",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-kitchen-look-feel-signature-sculpted-white.c175a4d883ab-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Rift Oak Bronze",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-kitchen-look-feel-signature-rift-oak-bronze.fc6d8d4cf689-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-kitchen-look-feel-signature-limestone-noir.e44794edcf33-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-1",
+    "level": "premium",
+    "optionNumber": "1",
+    "name": "Warm Oak",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-primary-ensuite-look-feel-premium-warm-oak.f69d4c42ce4b-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-2",
+    "level": "premium",
+    "optionNumber": "2",
+    "name": "Soft White",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-primary-ensuite-look-feel-premium-soft-white.f815e4536403-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-primary-ensuite-look-feel-premium-sandstone-oak.aba073c7dd1f-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-primary-ensuite-look-feel-premium-graphite-oak.6f114f41320e-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-1",
+    "level": "signature",
+    "optionNumber": "1",
+    "name": "Smoked Walnut Stone",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-primary-ensuite-look-feel-signature-smoked-walnut-stone.32dc90c2f304-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-2",
+    "level": "signature",
+    "optionNumber": "2",
+    "name": "Sculpted White",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-primary-ensuite-look-feel-signature-sculpted-white.d6520772e3e9-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Rift Oak Bronze",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-primary-ensuite-look-feel-signature-rift-oak-bronze.b123ec14a9d7-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-primary-ensuite-look-feel-signature-limestone-noir.d1a80aa0ea05-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-1",
+    "level": "premium",
+    "optionNumber": "1",
+    "name": "Warm Oak",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-primary-wardrobe-premium-warm-oak.65a626ca6346-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-2",
+    "level": "premium",
+    "optionNumber": "2",
+    "name": "Soft White",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-primary-wardrobe-premium-soft-white.d8261d6d3938-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-primary-wardrobe-premium-sandstone-oak.5f53c3c65c53-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-primary-wardrobe-premium-graphite-oak.6bffdfcbccf1-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-1",
+    "level": "signature",
+    "optionNumber": "1",
+    "name": "Smoked Walnut Stone",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-primary-wardrobe-signature-smoked-walnut-stone.e4981045a46c-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-2",
+    "level": "signature",
+    "optionNumber": "2",
+    "name": "Sculpted White",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-primary-wardrobe-signature-sculpted-white.64c59180b164-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Rift Oak Bronze",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-primary-wardrobe-signature-rift-oak-bronze.d3d6553d1fda-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-primary-wardrobe-signature-limestone-noir.ff5bc5f7f5e6-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-1",
+    "level": "premium",
+    "optionNumber": "1",
+    "name": "Warm Oak",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-interior-doors-details-premium-warm-oak.776f07b8a91e-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-2",
+    "level": "premium",
+    "optionNumber": "2",
+    "name": "Soft White",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-interior-doors-details-premium-soft-white.8259befdef8b-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-interior-doors-details-premium-sandstone-oak.5b52e7256bf8-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-interior-doors-details-premium-graphite-oak.8e1f03bc6995-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-1",
+    "level": "signature",
+    "optionNumber": "1",
+    "name": "Smoked Walnut Stone",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-interior-doors-details-signature-smoked-walnut-stone.22fea1844f54-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-2",
+    "level": "signature",
+    "optionNumber": "2",
+    "name": "Sculpted White",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-interior-doors-details-signature-sculpted-white.f855d0d55c4c-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Rift Oak Bronze",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-interior-doors-details-signature-rift-oak-bronze.8e3bdca38020-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-interior-doors-details-signature-limestone-noir.c6215ab5f741-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-shared-1",
+    "level": "shared",
+    "optionNumber": "1",
+    "name": "Shared Exterior",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-exterior-arrival-openings-shared-shared-exterior.3da7689a1403-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-1",
+    "level": "premium",
+    "optionNumber": "1",
+    "name": "Warm Oak",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-whole-home-flooring-stairs-premium-warm-oak.57f89bd43637-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-2",
+    "level": "premium",
+    "optionNumber": "2",
+    "name": "Soft White",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-whole-home-flooring-stairs-premium-soft-white.f5a50839a6fd-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-whole-home-flooring-stairs-premium-sandstone-oak.fb6eba4b9133-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-whole-home-flooring-stairs-premium-graphite-oak.d174c580bcdb-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-1",
+    "level": "signature",
+    "optionNumber": "1",
+    "name": "Smoked Walnut Stone",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-whole-home-flooring-stairs-signature-smoked-walnut-stone.b26b10f13c78-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-2",
+    "level": "signature",
+    "optionNumber": "2",
+    "name": "Sculpted White",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-whole-home-flooring-stairs-signature-sculpted-white.ab250696f6d6-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Rift Oak Bronze",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-whole-home-flooring-stairs-signature-rift-oak-bronze.789df23b300f-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-whole-home-flooring-stairs-signature-limestone-noir.23076578f4fe-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-1",
+    "level": "premium",
+    "optionNumber": "1",
+    "name": "Warm Oak",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-window-coverings-premium-warm-oak.8b780291f212-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-2",
+    "level": "premium",
+    "optionNumber": "2",
+    "name": "Soft White",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-window-coverings-premium-soft-white.8c2e6075bee1-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-window-coverings-premium-sandstone-oak.aeda55497f5e-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-window-coverings-premium-graphite-oak.0f5e78963912-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-1",
+    "level": "signature",
+    "optionNumber": "1",
+    "name": "Smoked Walnut Stone",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-window-coverings-signature-smoked-walnut-stone.476be6067ac6-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-2",
+    "level": "signature",
+    "optionNumber": "2",
+    "name": "Sculpted White",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-window-coverings-signature-sculpted-white.450d02df8674-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Rift Oak Bronze",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-window-coverings-signature-rift-oak-bronze.2cf4828e1fa1-1448.webp"
+  },
+  {
+    "homeId": "salt-spring",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/salt-spring/design-boards/salt-spring-window-coverings-signature-limestone-noir.6eabc08b07dd-1448.webp"
+  },
+  {
+    "homeId": "saturna",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/saturna/design-boards/saturna-kitchen-look-feel-premium-sandstone-oak.d1b9c04361d5-1448.webp"
+  },
+  {
+    "homeId": "saturna",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/saturna/design-boards/saturna-kitchen-look-feel-premium-graphite-oak.b659be6bca0b-1448.webp"
+  },
+  {
+    "homeId": "saturna",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/saturna/design-boards/saturna-kitchen-look-feel-signature-smoked-walnut-bronze.c286a7562862-1448.webp"
+  },
+  {
+    "homeId": "saturna",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/saturna/design-boards/saturna-kitchen-look-feel-signature-limestone-noir.06bdb44ccf77-1448.webp"
+  },
+  {
+    "homeId": "saturna",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/saturna/design-boards/saturna-primary-ensuite-look-feel-premium-sandstone-oak.fe6496a07128-1448.webp"
+  },
+  {
+    "homeId": "saturna",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/saturna/design-boards/saturna-primary-ensuite-look-feel-premium-graphite-oak.4f9a976ac231-1448.webp"
+  },
+  {
+    "homeId": "saturna",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/saturna/design-boards/saturna-primary-ensuite-look-feel-signature-smoked-walnut-bronze.13b4931a71c6-1448.webp"
+  },
+  {
+    "homeId": "saturna",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/saturna/design-boards/saturna-primary-ensuite-look-feel-signature-limestone-noir.559db2077c6e-1448.webp"
+  },
+  {
+    "homeId": "saturna",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/saturna/design-boards/saturna-primary-wardrobe-premium-sandstone-oak.29aa6a5b4523-1448.webp"
+  },
+  {
+    "homeId": "saturna",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/saturna/design-boards/saturna-primary-wardrobe-premium-graphite-oak.65a5ea00a9fc-1448.webp"
+  },
+  {
+    "homeId": "saturna",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/saturna/design-boards/saturna-primary-wardrobe-signature-smoked-walnut-bronze.7e980a31022a-1448.webp"
+  },
+  {
+    "homeId": "saturna",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/saturna/design-boards/saturna-primary-wardrobe-signature-limestone-noir.f23212561589-1448.webp"
+  },
+  {
+    "homeId": "saturna",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/saturna/design-boards/saturna-interior-doors-details-premium-sandstone-oak.549c983284b2-1448.webp"
+  },
+  {
+    "homeId": "saturna",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/saturna/design-boards/saturna-interior-doors-details-premium-graphite-oak.635752292638-1448.webp"
+  },
+  {
+    "homeId": "saturna",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/saturna/design-boards/saturna-interior-doors-details-signature-smoked-walnut-bronze.cca3fc12b090-1448.webp"
+  },
+  {
+    "homeId": "saturna",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/saturna/design-boards/saturna-interior-doors-details-signature-limestone-noir.519e60b3e995-1448.webp"
+  },
+  {
+    "homeId": "saturna",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/saturna/design-boards/saturna-exterior-arrival-openings-premium-sandstone-oak.b6ca06cb13e1-1448.webp"
+  },
+  {
+    "homeId": "saturna",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/saturna/design-boards/saturna-exterior-arrival-openings-premium-graphite-oak.f731cf927d94-1448.webp"
+  },
+  {
+    "homeId": "saturna",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/saturna/design-boards/saturna-exterior-arrival-openings-signature-smoked-walnut-bronze.0de7bbf4fd1e-1448.webp"
+  },
+  {
+    "homeId": "saturna",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/saturna/design-boards/saturna-exterior-arrival-openings-signature-limestone-noir.591f70f8baa1-1448.webp"
+  },
+  {
+    "homeId": "saturna",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/saturna/design-boards/saturna-whole-home-flooring-stairs-premium-sandstone-oak.35012b162421-1448.webp"
+  },
+  {
+    "homeId": "saturna",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/saturna/design-boards/saturna-whole-home-flooring-stairs-premium-graphite-oak.d6207c351172-1448.webp"
+  },
+  {
+    "homeId": "saturna",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/saturna/design-boards/saturna-whole-home-flooring-stairs-signature-smoked-walnut-bronze.853e2800129e-1448.webp"
+  },
+  {
+    "homeId": "saturna",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/saturna/design-boards/saturna-whole-home-flooring-stairs-signature-limestone-noir.5057003a41cb-1448.webp"
+  },
+  {
+    "homeId": "saturna",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/saturna/design-boards/saturna-window-coverings-premium-sandstone-oak.13a002ab7c95-1448.webp"
+  },
+  {
+    "homeId": "saturna",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/saturna/design-boards/saturna-window-coverings-premium-graphite-oak.80cbceca8163-1448.webp"
+  },
+  {
+    "homeId": "saturna",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/saturna/design-boards/saturna-window-coverings-signature-smoked-walnut-bronze.a4dcf7ace175-1448.webp"
+  },
+  {
+    "homeId": "saturna",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/saturna/design-boards/saturna-window-coverings-signature-limestone-noir.e3b13a543642-1448.webp"
+  },
+  {
+    "homeId": "south-bay",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/south-bay/design-boards/south-bay-kitchen-look-feel-premium-sandstone-oak.2e5e1da5564d-1448.webp"
+  },
+  {
+    "homeId": "south-bay",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/south-bay/design-boards/south-bay-kitchen-look-feel-premium-graphite-oak.1edc6c3eaf20-1448.webp"
+  },
+  {
+    "homeId": "south-bay",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/south-bay/design-boards/south-bay-kitchen-look-feel-signature-smoked-walnut-bronze.3d534ba95ae8-1448.webp"
+  },
+  {
+    "homeId": "south-bay",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/south-bay/design-boards/south-bay-kitchen-look-feel-signature-limestone-noir.c8ef514b0f45-1448.webp"
+  },
+  {
+    "homeId": "south-bay",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/south-bay/design-boards/south-bay-primary-ensuite-look-feel-premium-sandstone-oak.fec4806645e4-1448.webp"
+  },
+  {
+    "homeId": "south-bay",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/south-bay/design-boards/south-bay-primary-ensuite-look-feel-premium-graphite-oak.18b118aa19d6-1448.webp"
+  },
+  {
+    "homeId": "south-bay",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/south-bay/design-boards/south-bay-primary-ensuite-look-feel-signature-smoked-walnut-bronze.911b08d22d32-1448.webp"
+  },
+  {
+    "homeId": "south-bay",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/south-bay/design-boards/south-bay-primary-ensuite-look-feel-signature-limestone-noir.bd905a225b80-1448.webp"
+  },
+  {
+    "homeId": "south-bay",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/south-bay/design-boards/south-bay-primary-wardrobe-premium-sandstone-oak.7d8a7ce58a90-1448.webp"
+  },
+  {
+    "homeId": "south-bay",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/south-bay/design-boards/south-bay-primary-wardrobe-premium-graphite-oak.7488ef260ce3-1448.webp"
+  },
+  {
+    "homeId": "south-bay",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/south-bay/design-boards/south-bay-primary-wardrobe-signature-smoked-walnut-bronze.1ecfb686d223-1448.webp"
+  },
+  {
+    "homeId": "south-bay",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/south-bay/design-boards/south-bay-primary-wardrobe-signature-limestone-noir.3c1e407e3435-1448.webp"
+  },
+  {
+    "homeId": "south-bay",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/south-bay/design-boards/south-bay-interior-doors-details-premium-sandstone-oak.1a89b15424fe-1448.webp"
+  },
+  {
+    "homeId": "south-bay",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/south-bay/design-boards/south-bay-interior-doors-details-premium-graphite-oak.24dc99130b23-1448.webp"
+  },
+  {
+    "homeId": "south-bay",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/south-bay/design-boards/south-bay-interior-doors-details-signature-smoked-walnut-bronze.f32fc1f99d82-1448.webp"
+  },
+  {
+    "homeId": "south-bay",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/south-bay/design-boards/south-bay-interior-doors-details-signature-limestone-noir.e0a853bd4df0-1448.webp"
+  },
+  {
+    "homeId": "south-bay",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/south-bay/design-boards/south-bay-exterior-arrival-openings-premium-sandstone-oak.e5e7b817cd6e-1448.webp"
+  },
+  {
+    "homeId": "south-bay",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/south-bay/design-boards/south-bay-exterior-arrival-openings-premium-graphite-oak.77403280a644-1448.webp"
+  },
+  {
+    "homeId": "south-bay",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/south-bay/design-boards/south-bay-exterior-arrival-openings-signature-smoked-walnut-bronze.4e27a5a284ec-1448.webp"
+  },
+  {
+    "homeId": "south-bay",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/south-bay/design-boards/south-bay-exterior-arrival-openings-signature-limestone-noir.996f2aabf0d5-1448.webp"
+  },
+  {
+    "homeId": "south-bay",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/south-bay/design-boards/south-bay-whole-home-flooring-stairs-premium-sandstone-oak.5811f9942c61-1448.webp"
+  },
+  {
+    "homeId": "south-bay",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/south-bay/design-boards/south-bay-whole-home-flooring-stairs-premium-graphite-oak.8ce6f6fe2598-1448.webp"
+  },
+  {
+    "homeId": "south-bay",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/south-bay/design-boards/south-bay-whole-home-flooring-stairs-signature-smoked-walnut-bronze.cfac7160767c-1448.webp"
+  },
+  {
+    "homeId": "south-bay",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/south-bay/design-boards/south-bay-whole-home-flooring-stairs-signature-limestone-noir.b43437947e58-1448.webp"
+  },
+  {
+    "homeId": "south-bay",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/south-bay/design-boards/south-bay-window-coverings-premium-sandstone-oak.3b0528e805c3-1448.webp"
+  },
+  {
+    "homeId": "south-bay",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/south-bay/design-boards/south-bay-window-coverings-premium-graphite-oak.41d30d76475d-1448.webp"
+  },
+  {
+    "homeId": "south-bay",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/south-bay/design-boards/south-bay-window-coverings-signature-smoked-walnut-bronze.81b8c45b1a3f-1448.webp"
+  },
+  {
+    "homeId": "south-bay",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/south-bay/design-boards/south-bay-window-coverings-signature-limestone-noir.182920f0338e-1448.webp"
+  },
+  {
+    "homeId": "summit",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/summit/design-boards/summit-kitchen-look-feel-premium-sandstone-oak.eae43a904893-1448.webp"
+  },
+  {
+    "homeId": "summit",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/summit/design-boards/summit-kitchen-look-feel-premium-graphite-oak.78f13c06bebf-1448.webp"
+  },
+  {
+    "homeId": "summit",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/summit/design-boards/summit-kitchen-look-feel-signature-smoked-walnut-bronze.6e0f611f4076-1448.webp"
+  },
+  {
+    "homeId": "summit",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/summit/design-boards/summit-kitchen-look-feel-signature-limestone-noir.ec6deb1f66f7-1448.webp"
+  },
+  {
+    "homeId": "summit",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/summit/design-boards/summit-primary-ensuite-look-feel-premium-sandstone-oak.1de6182bd1d8-1448.webp"
+  },
+  {
+    "homeId": "summit",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/summit/design-boards/summit-primary-ensuite-look-feel-premium-graphite-oak.7257e51126bf-1448.webp"
+  },
+  {
+    "homeId": "summit",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/summit/design-boards/summit-primary-ensuite-look-feel-signature-smoked-walnut-bronze.9456d617c305-1448.webp"
+  },
+  {
+    "homeId": "summit",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/summit/design-boards/summit-primary-ensuite-look-feel-signature-limestone-noir.cba888837146-1448.webp"
+  },
+  {
+    "homeId": "summit",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/summit/design-boards/summit-primary-wardrobe-premium-sandstone-oak.1de0597c9fa2-1448.webp"
+  },
+  {
+    "homeId": "summit",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/summit/design-boards/summit-primary-wardrobe-premium-graphite-oak.67a05ed555e6-1448.webp"
+  },
+  {
+    "homeId": "summit",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/summit/design-boards/summit-primary-wardrobe-signature-smoked-walnut-bronze.c06651a6e382-1448.webp"
+  },
+  {
+    "homeId": "summit",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/summit/design-boards/summit-primary-wardrobe-signature-limestone-noir.2dae4bedd3cf-1448.webp"
+  },
+  {
+    "homeId": "summit",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/summit/design-boards/summit-interior-doors-details-premium-sandstone-oak.c043714717fa-1448.webp"
+  },
+  {
+    "homeId": "summit",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/summit/design-boards/summit-interior-doors-details-premium-graphite-oak.d8ce0b18a654-1448.webp"
+  },
+  {
+    "homeId": "summit",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/summit/design-boards/summit-interior-doors-details-signature-smoked-walnut-bronze.05985eeca775-1448.webp"
+  },
+  {
+    "homeId": "summit",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/summit/design-boards/summit-interior-doors-details-signature-limestone-noir.78e5f54c8a4c-1448.webp"
+  },
+  {
+    "homeId": "summit",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/summit/design-boards/summit-exterior-arrival-openings-premium-sandstone-oak.8c053d481799-1448.webp"
+  },
+  {
+    "homeId": "summit",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/summit/design-boards/summit-exterior-arrival-openings-premium-graphite-oak.4a5251ee2c46-1448.webp"
+  },
+  {
+    "homeId": "summit",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/summit/design-boards/summit-exterior-arrival-openings-signature-smoked-walnut-bronze.d52e1471a9ed-1448.webp"
+  },
+  {
+    "homeId": "summit",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/summit/design-boards/summit-exterior-arrival-openings-signature-limestone-noir.a15403287141-1448.webp"
+  },
+  {
+    "homeId": "summit",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/summit/design-boards/summit-whole-home-flooring-stairs-premium-sandstone-oak.2f649bbf12aa-1448.webp"
+  },
+  {
+    "homeId": "summit",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/summit/design-boards/summit-whole-home-flooring-stairs-premium-graphite-oak.2dc59523b278-1448.webp"
+  },
+  {
+    "homeId": "summit",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/summit/design-boards/summit-whole-home-flooring-stairs-signature-smoked-walnut-bronze.653588d5bcdc-1448.webp"
+  },
+  {
+    "homeId": "summit",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/summit/design-boards/summit-whole-home-flooring-stairs-signature-limestone-noir.5c351aaffb17-1448.webp"
+  },
+  {
+    "homeId": "summit",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/summit/design-boards/summit-window-coverings-premium-sandstone-oak.a52583c4c70a-1448.webp"
+  },
+  {
+    "homeId": "summit",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/summit/design-boards/summit-window-coverings-premium-graphite-oak.1e0041faa617-1448.webp"
+  },
+  {
+    "homeId": "summit",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/summit/design-boards/summit-window-coverings-signature-smoked-walnut-bronze.f5e248b82452-1448.webp"
+  },
+  {
+    "homeId": "summit",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/summit/design-boards/summit-window-coverings-signature-limestone-noir.0588be6be14d-1448.webp"
+  },
+  {
+    "homeId": "timberline",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/timberline/design-boards/timberline-kitchen-look-feel-premium-sandstone-oak.a298ab0144c4-1448.webp"
+  },
+  {
+    "homeId": "timberline",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/timberline/design-boards/timberline-kitchen-look-feel-premium-graphite-oak.1919df7e4b02-1448.webp"
+  },
+  {
+    "homeId": "timberline",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/timberline/design-boards/timberline-kitchen-look-feel-signature-smoked-walnut-bronze.0a761618af1b-1448.webp"
+  },
+  {
+    "homeId": "timberline",
+    "categoryId": "kitchen-look-feel",
+    "id": "kitchen-look-feel-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/timberline/design-boards/timberline-kitchen-look-feel-signature-limestone-noir.38f593f12158-1448.webp"
+  },
+  {
+    "homeId": "timberline",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/timberline/design-boards/timberline-primary-ensuite-look-feel-premium-sandstone-oak.b4b4acc36b2e-1448.webp"
+  },
+  {
+    "homeId": "timberline",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/timberline/design-boards/timberline-primary-ensuite-look-feel-premium-graphite-oak.b52e37887ad0-1448.webp"
+  },
+  {
+    "homeId": "timberline",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/timberline/design-boards/timberline-primary-ensuite-look-feel-signature-smoked-walnut-bronze.469ffc79bf51-1448.webp"
+  },
+  {
+    "homeId": "timberline",
+    "categoryId": "primary-ensuite-look-feel",
+    "id": "primary-ensuite-look-feel-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/timberline/design-boards/timberline-primary-ensuite-look-feel-signature-limestone-noir.62bd1948985f-1448.webp"
+  },
+  {
+    "homeId": "timberline",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/timberline/design-boards/timberline-primary-wardrobe-premium-sandstone-oak.94296c33add8-1448.webp"
+  },
+  {
+    "homeId": "timberline",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/timberline/design-boards/timberline-primary-wardrobe-premium-graphite-oak.d08815115afa-1448.webp"
+  },
+  {
+    "homeId": "timberline",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/timberline/design-boards/timberline-primary-wardrobe-signature-smoked-walnut-bronze.c7375df04c88-1448.webp"
+  },
+  {
+    "homeId": "timberline",
+    "categoryId": "primary-wardrobe",
+    "id": "primary-wardrobe-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/timberline/design-boards/timberline-primary-wardrobe-signature-limestone-noir.c6535481220b-1448.webp"
+  },
+  {
+    "homeId": "timberline",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/timberline/design-boards/timberline-interior-doors-details-premium-sandstone-oak.125440c089d5-1448.webp"
+  },
+  {
+    "homeId": "timberline",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/timberline/design-boards/timberline-interior-doors-details-premium-graphite-oak.91e4c9ac176b-1448.webp"
+  },
+  {
+    "homeId": "timberline",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/timberline/design-boards/timberline-interior-doors-details-signature-smoked-walnut-bronze.5c7cf13ed63d-1448.webp"
+  },
+  {
+    "homeId": "timberline",
+    "categoryId": "interior-doors-details",
+    "id": "interior-doors-details-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/timberline/design-boards/timberline-interior-doors-details-signature-limestone-noir.b45291a3372e-1448.webp"
+  },
+  {
+    "homeId": "timberline",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/timberline/design-boards/timberline-exterior-arrival-openings-premium-sandstone-oak.7fbaac29474d-1448.webp"
+  },
+  {
+    "homeId": "timberline",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/timberline/design-boards/timberline-exterior-arrival-openings-premium-graphite-oak.c8b56d6c9ed0-1448.webp"
+  },
+  {
+    "homeId": "timberline",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/timberline/design-boards/timberline-exterior-arrival-openings-signature-smoked-walnut-bronze.fca84c1cb3f9-1448.webp"
+  },
+  {
+    "homeId": "timberline",
+    "categoryId": "exterior-arrival-openings",
+    "id": "exterior-arrival-openings-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/timberline/design-boards/timberline-exterior-arrival-openings-signature-limestone-noir.0720aada5e28-1448.webp"
+  },
+  {
+    "homeId": "timberline",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/timberline/design-boards/timberline-whole-home-flooring-stairs-premium-sandstone-oak.c7f3a78bc1f9-1448.webp"
+  },
+  {
+    "homeId": "timberline",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/timberline/design-boards/timberline-whole-home-flooring-stairs-premium-graphite-oak.807aaab08562-1448.webp"
+  },
+  {
+    "homeId": "timberline",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/timberline/design-boards/timberline-whole-home-flooring-stairs-signature-smoked-walnut-bronze.cbd59de6455c-1448.webp"
+  },
+  {
+    "homeId": "timberline",
+    "categoryId": "whole-home-flooring-stairs",
+    "id": "whole-home-flooring-stairs-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/timberline/design-boards/timberline-whole-home-flooring-stairs-signature-limestone-noir.60c9e64ab3e2-1448.webp"
+  },
+  {
+    "homeId": "timberline",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-3",
+    "level": "premium",
+    "optionNumber": "3",
+    "name": "Sandstone Oak",
+    "src": "/images/homes/timberline/design-boards/timberline-window-coverings-premium-sandstone-oak.8d10782b3dea-1448.webp"
+  },
+  {
+    "homeId": "timberline",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-premium-4",
+    "level": "premium",
+    "optionNumber": "4",
+    "name": "Graphite Oak",
+    "src": "/images/homes/timberline/design-boards/timberline-window-coverings-premium-graphite-oak.8c13ede68c87-1448.webp"
+  },
+  {
+    "homeId": "timberline",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-3",
+    "level": "signature",
+    "optionNumber": "3",
+    "name": "Smoked Walnut Bronze",
+    "src": "/images/homes/timberline/design-boards/timberline-window-coverings-signature-smoked-walnut-bronze.f5f8948cda5c-1448.webp"
+  },
+  {
+    "homeId": "timberline",
+    "categoryId": "window-coverings",
+    "id": "window-coverings-signature-4",
+    "level": "signature",
+    "optionNumber": "4",
+    "name": "Limestone Noir",
+    "src": "/images/homes/timberline/design-boards/timberline-window-coverings-signature-limestone-noir.c201cfe2b288-1448.webp"
+  }
+]

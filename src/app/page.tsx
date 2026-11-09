@@ -1,0 +1,409 @@
+import React from 'react'
+import Link from 'next/link'
+import {
+  ArrowRight, Zap, Clock, Shield, FileText,
+  Radio, Lock, CheckCircle2, ChevronRight,
+  HardHat, Building2, Eye
+} from 'lucide-react'
+import { BrandWordmark } from '@/components/shared/Navbar'
+import { DISPATCH_PRICING } from '@/lib/pricing/config'
+
+/* ─── Micro-components ───────────────────────────────────────────────────── */
+
+function Chip({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-widest uppercase text-[#C6A15B] border border-[#C6A15B]/30 bg-[#C6A15B]/10 px-3 py-1.5 rounded-full">
+      {children}
+    </span>
+  )
+}
+
+function StatPill({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="flex flex-col items-center px-6 py-4 border-r border-white/5 last:border-0">
+      <span className="text-2xl font-black text-ink">{value}</span>
+      <span className="text-xs text-muted mt-0.5 text-center">{label}</span>
+    </div>
+  )
+}
+
+function AudienceCard({
+  icon: Icon, eyebrow, title, body, href, cta, accent
+}: {
+  icon: React.ElementType
+  eyebrow: string
+  title: string
+  body: string
+  href: string
+  cta: string
+  accent: string
+}) {
+  return (
+    <div className="group relative flex flex-col rounded-2xl overflow-hidden card-dark border-gold-gradient hover:border-[#C6A15B]/20 transition-all duration-300 hover:translate-y-[-2px]">
+      {/* Top accent bar */}
+      <div className={`h-px w-full ${accent}`} />
+      <div className="p-7 flex flex-col flex-1">
+        {/* Icon */}
+        <div className="w-11 h-11 rounded-xl bg-[#C6A15B]/10 border border-[#C6A15B]/25 flex items-center justify-center mb-5">
+          <Icon className="w-5 h-5 text-[#C6A15B]" />
+        </div>
+        <div className="label-mono mb-2">{eyebrow}</div>
+        <h3 className="text-lg font-black text-ink mb-3 leading-snug">{title}</h3>
+        <p className="text-sm text-muted leading-relaxed flex-1">{body}</p>
+        <Link href={href}
+          className="inline-flex items-center gap-2 text-sm font-bold text-[#C6A15B] mt-6 group-hover:gap-3 transition-all">
+          {cta} <ArrowRight className="w-4 h-4" />
+        </Link>
+      </div>
+    </div>
+  )
+}
+
+function StepRow({ n, title, body }: { n: string; title: string; body: string }) {
+  return (
+    <div className="flex gap-5 items-start">
+      <div className="w-8 h-8 rounded-lg bg-[#C6A15B]/10 border border-[#C6A15B]/25 flex items-center justify-center shrink-0 mt-0.5">
+        <span className="text-xs font-black text-[#C6A15B] font-mono">{n}</span>
+      </div>
+      <div>
+        <div className="font-bold text-ink text-sm">{title}</div>
+        <div className="text-sm text-muted mt-0.5 leading-relaxed">{body}</div>
+      </div>
+    </div>
+  )
+}
+
+function FeatureTile({ icon: Icon, title, body }: { icon: React.ElementType; title: string; body: string }) {
+  return (
+    <div className="card-dark rounded-2xl p-5 hover:bg-raised transition-colors duration-200">
+      <div className="w-9 h-9 rounded-xl bg-[#C6A15B]/10 border border-[#C6A15B]/25 flex items-center justify-center mb-4">
+        <Icon className="w-4 h-4 text-[#C6A15B]" />
+      </div>
+      <div className="font-bold text-ink text-sm mb-1.5">{title}</div>
+      <div className="text-xs text-muted leading-relaxed">{body}</div>
+    </div>
+  )
+}
+
+/* ─── Page ───────────────────────────────────────────────────────────────── */
+
+export default function LandingPage() {
+  return (
+    <div className="dark">
+      <div className="home-hero-grid min-h-screen overflow-x-hidden bg-[#0B0B0E] text-white [--color-surface:#0B0B0E] [--color-panel:#141317] [--color-raised:#1C1A1F] [--color-hover:#242128] [--color-rim:#3A3742] [--color-ink:#FFFFFF] [--color-muted:#D6D3CC] [--color-subtle:#9C978C]">
+
+        {/* ══════════════════════════════════════════════════════════════════ */}
+        {/* NAVBAR                                                            */}
+        {/* ══════════════════════════════════════════════════════════════════ */}
+        <header className="fixed top-0 inset-x-0 z-50 border-b border-white/5 bg-surface/80 backdrop-blur-xl">
+        <div className="max-w-7xl mx-auto px-5 h-16 flex items-center justify-between">
+          {/* Logo */}
+          <BrandWordmark className="max-w-[150px]" height={34} priority theme="dark" />
+
+          {/* Nav links */}
+          <nav className="hidden md:flex items-center gap-1">
+            {[
+              { href: '/sign-in?role=builder', label: 'For Builders' },
+              { href: '/sign-in?role=inspector', label: 'For Inspectors' },
+              { href: '/sign-in?role=auditor', label: 'City Auditors' },
+            ].map(l => (
+              <Link key={l.href} href={l.href}
+                className="px-3.5 py-2 rounded-xl text-sm font-medium text-muted hover:text-ink hover:bg-raised transition-all">
+                {l.label}
+              </Link>
+            ))}
+          </nav>
+
+          {/* CTAs */}
+          <div className="flex items-center gap-2">
+            <Link href="/sign-in?role=inspector"
+              className="hidden md:inline-flex text-sm font-semibold text-muted hover:text-ink px-3 py-2 rounded-xl hover:bg-raised transition-all">
+              Join as Inspector
+            </Link>
+            <Link href="/get-started"
+              className="btn-gold inline-flex items-center gap-1.5 text-sm font-bold px-4 py-2.5 rounded-xl">
+              Get Started <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </div>
+        </header>
+
+      {/* ══════════════════════════════════════════════════════════════════ */}
+      {/* HERO                                                              */}
+      {/* ══════════════════════════════════════════════════════════════════ */}
+        <section className="relative min-h-[760px] flex flex-col justify-start pt-16 bg-dot bg-dot-sm overflow-hidden">
+        {/* Radial glow */}
+        <div className="hero-glow-gold" />
+        {/* Bottom fade */}
+        <div className="absolute bottom-0 inset-x-0 h-48 bg-gradient-to-t from-surface to-transparent" />
+
+        <div className="relative max-w-7xl mx-auto px-5 pt-12 pb-20 md:pt-16 md:pb-28">
+          <div className="max-w-4xl">
+            {/* Eyebrow */}
+            <div className="flex flex-col items-start gap-2 mb-8">
+              <Chip><Zap className="w-3 h-3" /> On-demand permit inspections for Canadian builders</Chip>
+              <div className="hidden md:flex items-center gap-2 text-xs text-muted">
+                <div className="w-1.5 h-1.5 bg-success-green rounded-full animate-pulse" />
+                Launching in Metro Vancouver · Canada-wide expansion in 2026
+              </div>
+            </div>
+
+            {/* Headline */}
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black leading-[1.02] tracking-tight mb-6">
+              <span className="text-ink">Stop paying your</span>
+              <br />
+              <span className="text-ink">crew to </span>
+              <span className="text-metallic-gold">stand still.</span>
+            </h1>
+
+            <p className="text-lg sm:text-xl text-muted max-w-2xl leading-relaxed mb-10">
+              Vero helps builders keep projects moving and gives qualified professionals the freedom to claim nearby inspection work on their own terms. From field review to Schedule C-B documentation, every job stays organized, accountable, and audit-ready.
+            </p>
+
+            {/* CTA row */}
+            <div className="flex flex-wrap gap-3 mb-12">
+              <Link href="/get-started?role=builder"
+                className="btn-gold inline-flex items-center gap-2.5 font-bold text-base px-8 py-4 rounded-2xl glow-gold">
+                I&apos;m a Builder <ArrowRight className="w-5 h-5" />
+              </Link>
+              <Link href="/sign-in?role=inspector"
+                className="inline-flex items-center gap-2.5 border border-white/10 bg-raised text-ink font-bold text-base px-8 py-4 rounded-2xl hover:bg-hover transition-all">
+                Login as Certified Inspector
+              </Link>
+            </div>
+
+            {/* Trust row */}
+            <div className="flex items-center gap-4 text-xs text-subtle">
+              {['No subscription fees', 'Stripe-secured escrow', 'Schedule C-B generated automatically'].map((t, i) => (
+                <span key={t} className="flex items-center gap-1.5">
+                  {i > 0 && <span className="w-px h-3 bg-white/10" />}
+                  <CheckCircle2 className="w-3.5 h-3.5 text-success-green shrink-0" />
+                  {t}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Stats bar */}
+        <div className="relative border-t border-b border-white/5 bg-panel/60 backdrop-blur-sm">
+          <div className="max-w-3xl mx-auto grid grid-cols-2 md:grid-cols-4">
+            <StatPill value="24 hrs"  label="Emergency dispatch" />
+            <StatPill value="Vetted"  label="Credential-verified inspectors" />
+            <StatPill value="24 hr"   label="Guaranteed payout" />
+            <StatPill value="Audit-ready" label="Schedule C-B workflow" />
+          </div>
+        </div>
+        </section>
+
+      {/* ══════════════════════════════════════════════════════════════════ */}
+      {/* THREE AUDIENCES                                                   */}
+      {/* ══════════════════════════════════════════════════════════════════ */}
+        <section className="max-w-7xl mx-auto px-5 py-24">
+        <div className="text-center mb-12">
+          <div className="label-mono mb-3">Who it&apos;s for</div>
+          <h2 className="text-3xl sm:text-4xl font-black text-ink">Built for everyone in the permit chain</h2>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-4">
+          <AudienceCard
+            icon={Building2}
+            eyebrow="Home Builders"
+            title="Keep your project moving."
+            body="Post the inspection, fund the job, and get matched with a qualified professional. No more lost days waiting while crews and trades sit idle."
+            href="/builder"
+            cta="Open command center"
+            accent="bg-gradient-to-r from-[#C6A15B] to-transparent"
+          />
+          <AudienceCard
+            icon={HardHat}
+            eyebrow="Certified Professionals"
+            title="Work when you want. Earn when you're ready."
+            body="Open Vero, see nearby opportunities, and claim the jobs that fit your day. Payouts are shown upfront, records are handled in-platform, and completed work builds your professional history."
+            href="/inspector"
+            cta="View live board"
+            accent="bg-gradient-to-r from-electric to-transparent"
+          />
+          <AudienceCard
+            icon={Eye}
+            eyebrow="City Auditors"
+            title="Cleaner records. Less chasing."
+            body="Vero organizes inspection records, photo evidence, and Schedule C-B documentation so project files are easier to review, retrieve, and audit."
+            href="/auditor"
+            cta="Open vault"
+            accent="bg-gradient-to-r from-plasma to-transparent"
+          />
+        </div>
+        </section>
+
+      {/* ══════════════════════════════════════════════════════════════════ */}
+      {/* HOW IT WORKS (Builder POV)                                        */}
+      {/* ══════════════════════════════════════════════════════════════════ */}
+        <section className="border-t border-white/5 py-24">
+        <div className="max-w-7xl mx-auto px-5">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            {/* Left: steps */}
+            <div>
+              <div className="label-mono mb-3">How it works</div>
+              <h2 className="text-3xl font-black text-ink mb-10">From tap to signed-off in hours.</h2>
+              <div className="space-y-7">
+                <StepRow n="01" title="Post & pre-fund your inspection"
+                  body="Enter your site address, select the permit stage and discipline, set safety requirements, and pre-fund the full estimated cost to escrow. Your listing goes live on the board." />
+                <StepRow n="02" title="Governed dispatch assigns a CP"
+                  body="Vero automatically filters by credentials, discipline, region, and availability. The first eligible inspector to claim the slot is assigned — no manual selection needed." />
+                <StepRow n="03" title="Progressive checklist, photo evidence"
+                  body="The inspector works through the exact BC code requirements on-site. Failed items auto-expand, requiring a photo and note. GPS and timestamps recorded." />
+                <StepRow n="04" title="Pass, Fail, or Hold / Modification Required"
+                  body="If it's a pass, you're done. If a minor correction is needed, the inspector can hold on-site while your crew fixes it — premium hourly rates apply." />
+                <StepRow n="05" title="Digital seal → Schedule C-B → payment"
+                  body="The inspector signs off in-app. Vero generates the Schedule C-B, the defensible professional record is archived in the Vault, and escrow is released." />
+              </div>
+            </div>
+
+            {/* Right: feature tiles */}
+            <div className="grid grid-cols-2 gap-3">
+              <FeatureTile icon={Radio}     title="Governed Dispatch"          body="Eligibility-based assignment, not open bidding. Credentials, discipline, and region verified automatically." />
+              <FeatureTile icon={Lock}      title="Escrow-Backed Execution"  body="Full cost pre-funded before the job goes live. Payment released only after results are approved." />
+              <FeatureTile icon={FileText}  title="Defensible Professional Record" body="Timestamped, geolocated evidence bundle with digital seal. Authority-ready packaging." />
+              <FeatureTile icon={Shield}    title="Hold / Modification Required" body="Minor correction on site? Keep the inspector while your crew fixes it. Premium hourly rates apply." />
+              <FeatureTile icon={Zap}       title="Auto Schedule C-B"        body="Inspection data maps directly to official BC PDF templates. Delivered same-day." />
+              <FeatureTile icon={Clock}     title="Vault Archive"            body="Completed records stored for 2–10+ years. Searchable, retrievable, compliance-ready." />
+            </div>
+          </div>
+        </div>
+        </section>
+
+      {/* ══════════════════════════════════════════════════════════════════ */}
+      {/* DISPATCH TIERS                                                    */}
+      {/* ══════════════════════════════════════════════════════════════════ */}
+        <section className="border-t border-white/5 py-24 bg-dot bg-dot-md">
+        <div className="max-w-4xl mx-auto px-5">
+          <div className="text-center mb-12">
+            <div className="label-mono mb-3">PRICING</div>
+            <h2 className="text-3xl font-black text-ink">Choose your dispatch speed. Vero keeps pricing clear.</h2>
+            <p className="text-muted text-sm mt-3 max-w-2xl mx-auto">
+              Standard, Priority, and Emergency control how quickly an inspector is dispatched.
+              For routine inspections, pricing is fixed-fee.
+              If the permit stage, inspection type, or credential requirement calls for a registered professional, Vero switches to hourly specialist pricing automatically.
+            </p>
+          </div>
+
+          <div className="text-center mb-8">
+            <div className="label-mono mb-2">STEP 1 — SELECT DISPATCH SPEED</div>
+            <h3 className="text-2xl font-black text-ink">Fixed-fee dispatch for routine inspection bookings</h3>
+            <p className="text-muted text-sm mt-2 max-w-xl mx-auto">
+              Use these options when the inspection does not require a specialist or professional sign-off.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-4">
+            {DISPATCH_PRICING.map(pricing => (
+              <div key={pricing.tier}
+                className={`relative rounded-2xl p-6 flex flex-col ${
+                  pricing.tier === 'priority'
+                    ? 'bg-[#C6A15B]/10 border-2 border-[#C6A15B]/40 glow-gold-sm'
+                    : 'card-dark'
+                }`}>
+                {pricing.tier === 'priority' && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <span className="bg-[#C6A15B] text-[#1B1508] text-xs font-bold px-3 py-1 rounded-full">Most Popular</span>
+                  </div>
+                )}
+                <div className="label-mono mb-2">{pricing.label} Dispatch</div>
+                <div className="text-3xl font-black text-ink mb-0.5">${pricing.price}</div>
+                <div className="text-xs text-muted mb-1">per routine booking · platform fee included</div>
+                <div className="flex items-center gap-1.5 text-xs text-[#C6A15B] mb-5">
+                  <Clock className="w-3 h-3" /> {pricing.timeframe}
+                </div>
+                <div className="space-y-2.5 flex-1">
+                  {[
+                    pricing.tier === 'standard' ? 'Next available CP' : pricing.tier === 'priority' ? 'Preferred dispatch routing' : 'Highest urgency routing',
+                    pricing.tier === 'standard' ? 'Standard scheduling' : pricing.tier === 'priority' ? 'Faster scheduling window' : 'Dedicated dispatch handling',
+                    pricing.tier === 'standard' ? 'Routine dispatch lane' : pricing.tier === 'priority' ? 'Live ETA tracking' : 'Direct coordination access',
+                  ].map(item => (
+                    <div key={item} className="flex items-start gap-2 text-sm text-muted">
+                      <CheckCircle2 className="w-4 h-4 text-success-green shrink-0 mt-0.5" />
+                      {item}
+                    </div>
+                  ))}
+                </div>
+                <Link href="/get-started"
+                  className={`mt-6 flex items-center justify-center gap-2 font-bold text-sm px-4 py-3 rounded-xl transition-all ${
+                    pricing.tier === 'priority'
+                      ? 'btn-gold glow-gold-sm'
+                      : 'border border-white/10 text-ink hover:bg-raised'
+                  }`}>
+                  Get Started <ChevronRight className="w-4 h-4" />
+                </Link>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-5 rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-sm text-muted">
+            Covers one routine inspection visit, up to 3 professional hours, and in-platform photos, video, notes, and inspection records. Extra time, on-site holds, specialist review, sealed sign-off, or a second visit are approved before any additional charge.
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-6">
+            <div className="label-mono mb-2">STEP 2 — SPECIALIST REVIEW, WHEN REQUIRED</div>
+            <h3 className="text-2xl font-black text-ink">Specialist review, when required</h3>
+            <p className="text-sm text-muted max-w-2xl mt-2">
+              Most routine bookings use fixed dispatch pricing. If a request requires registered-professional review, sealed sign-off, Schedule C-B support, or additional technical review, Vero confirms the scope and price before added work proceeds.
+            </p>
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-6">
+            <div className="label-mono mb-2">STEP 3 — OPTIONAL ON-SITE HOLD</div>
+            <div className="text-sm font-bold text-ink">
+              If minor corrections can reasonably be completed on-site, the inspector may remain and re-review without forcing a new booking.
+            </div>
+            <div className="mt-2 text-sm text-muted">Hold time is billed at 1.5× the applicable hourly rate.</div>
+            <div className="mt-3 text-xs text-muted">
+              Dispatch speed determines arrival time. Pricing is then based on either fixed routine dispatch or specialist hourly rates, depending on the inspection requirements.
+            </div>
+          </div>
+        </div>
+        </section>
+
+      {/* ══════════════════════════════════════════════════════════════════ */}
+      {/* FINAL CTA                                                         */}
+      {/* ══════════════════════════════════════════════════════════════════ */}
+        <section className="border-t border-white/5 py-28">
+        <div className="max-w-2xl mx-auto px-5 text-center">
+          <h2 className="text-4xl sm:text-5xl font-black text-ink mb-4 leading-tight">
+            The permit backlog<br />ends here.
+          </h2>
+          <p className="text-muted text-lg mb-10">
+            Builders get velocity. Inspectors get autonomy. Cities get compliance. Everyone wins.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link href="/get-started"
+              className="btn-gold inline-flex items-center justify-center gap-2.5 font-bold text-base px-8 py-4 rounded-2xl glow-gold">
+              Get Started <ArrowRight className="w-5 h-5" />
+            </Link>
+            <Link href="/inspector/signup"
+              className="inline-flex items-center justify-center gap-2.5 border border-white/10 text-ink font-bold text-base px-8 py-4 rounded-2xl hover:bg-raised transition-all">
+              Apply as a Professional
+            </Link>
+          </div>
+        </div>
+        </section>
+
+      {/* ══════════════════════════════════════════════════════════════════ */}
+      {/* FOOTER                                                            */}
+      {/* ══════════════════════════════════════════════════════════════════ */}
+        <footer className="border-t border-white/5 py-10">
+        <div className="max-w-7xl mx-auto px-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <BrandWordmark className="max-w-[130px]" height={30} theme="dark" />
+          <div className="flex items-center gap-5 text-xs text-subtle">
+            <span>© 2026 Vero Permit</span>
+            <span>Vancouver, BC</span>
+            <Link href="/privacy" className="hover:text-muted transition-colors">Privacy</Link>
+            <Link href="/terms" className="hover:text-muted transition-colors">Terms</Link>
+            <Link href="/sign-in?role=admin" className="hover:text-muted transition-colors">Admin</Link>
+          </div>
+        </div>
+        </footer>
+      </div>
+    </div>
+  )
+}

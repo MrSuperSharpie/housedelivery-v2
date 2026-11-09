@@ -1,0 +1,1049 @@
+{
+  "configurationVersion": 4,
+  "homeId": "solace",
+  "homeName": "Solace",
+  "residenceLabel": "Solace House",
+  "architecturalImages": [
+    {
+      "src": "/solace-1a.png",
+      "alt": "Solace House exterior architecture."
+    },
+    {
+      "src": "https://img1.wsimg.com/isteam/ip/f41876f7-372e-4d3e-b5b8-dde5308c52b2/Tallinn-House7.jpeg",
+      "alt": "Solace House architectural living space."
+    }
+  ],
+  "disclaimer": "Representative coordinated design boards. Final products, finishes, availability, pricing and technical suitability are confirmed during project review and are subject to project-specific requirements.",
+  "categories": [
+    {
+      "kind": "room-look",
+      "id": "kitchen-look-feel",
+      "number": "01",
+      "title": "Kitchen Look & Feel",
+      "shortTitle": "Kitchen",
+      "description": "Choose one coordinated kitchen package. Its complete design board carries the finish direction into My Solace.",
+      "represents": [
+        "Cabinetry",
+        "Countertop and backsplash",
+        "Flooring",
+        "Hardware",
+        "Plumbing finish",
+        "Decorative lighting"
+      ],
+      "options": [
+        {
+          "id": "kitchen-look-feel-premium-1",
+          "level": "premium",
+          "optionNumber": "1",
+          "name": "Coastal Light Oak",
+          "editorial": {
+            "descriptors": [
+              "Coastal",
+              "Luminous",
+              "Natural"
+            ],
+            "storyFragments": [
+              "pale natural oak",
+              "a light, quietly layered palette"
+            ],
+            "materialRole": "Kitchen palette"
+          },
+          "image": {
+            "src": "/images/homes/solace/visual-guide/Solace_01_Kitchen_Premium-1_Coastal-Light-Oak.png",
+            "alt": "Premium 1 — Coastal Light Oak, kitchen look & feel design board for Solace House.",
+            "fit": "contain",
+            "role": "design-board",
+            "quality": 100
+          }
+        },
+        {
+          "id": "kitchen-look-feel-premium-2",
+          "level": "premium",
+          "optionNumber": "2",
+          "name": "Soft White",
+          "editorial": {
+            "descriptors": [
+              "Soft",
+              "Calm",
+              "Refined"
+            ],
+            "storyFragments": [
+              "soft white surfaces",
+              "restrained architectural detail"
+            ],
+            "materialRole": "Kitchen palette"
+          },
+          "image": {
+            "src": "/images/homes/solace/visual-guide/Solace_01_Kitchen_Premium-2_Soft-White.png",
+            "alt": "Premium 2 — Soft White, kitchen look & feel design board for Solace House.",
+            "fit": "contain",
+            "role": "design-board",
+            "quality": 100
+          }
+        },
+        {
+          "id": "kitchen-look-feel-signature-1",
+          "level": "signature",
+          "optionNumber": "1",
+          "name": "Stone Wrapped Oak",
+          "editorial": {
+            "descriptors": [
+              "Layered",
+              "Grounded",
+              "Architectural"
+            ],
+            "storyFragments": [
+              "expressive stone",
+              "warm, enveloping oak"
+            ],
+            "materialRole": "Kitchen palette"
+          },
+          "image": {
+            "src": "/images/homes/solace/visual-guide/Solace_01_Kitchen_Signature-1_Stone-Wrapped-Oak.png",
+            "alt": "Signature 1 — Stone Wrapped Oak, kitchen look & feel design board for Solace House.",
+            "fit": "contain",
+            "role": "design-board",
+            "quality": 100
+          }
+        },
+        {
+          "id": "kitchen-look-feel-signature-2",
+          "level": "signature",
+          "optionNumber": "2",
+          "name": "Sculpted White",
+          "editorial": {
+            "descriptors": [
+              "Sculptural",
+              "Luminous",
+              "Polished"
+            ],
+            "storyFragments": [
+              "sculpted pale surfaces",
+              "precise tonal detailing"
+            ],
+            "materialRole": "Kitchen palette"
+          },
+          "image": {
+            "src": "/images/homes/solace/visual-guide/Solace_01_Kitchen_Signature-2_Sculpted-White.png",
+            "alt": "Signature 2 — Sculpted White, kitchen look & feel design board for Solace House.",
+            "fit": "contain",
+            "role": "design-board",
+            "quality": 100
+          }
+        }
+      ]
+    },
+    {
+      "kind": "room-look",
+      "id": "primary-ensuite-look-feel",
+      "number": "02",
+      "title": "Primary Ensuite Look & Feel",
+      "shortTitle": "Primary Ensuite",
+      "description": "Choose one coordinated primary ensuite package, including surfaces, vanity, fixtures and lighting.",
+      "represents": [
+        "Floor and wall tile",
+        "Shower floor",
+        "Vanity",
+        "Countertop",
+        "Plumbing finish",
+        "Lighting"
+      ],
+      "options": [
+        {
+          "id": "primary-ensuite-look-feel-premium-1",
+          "level": "premium",
+          "optionNumber": "1",
+          "name": "Coastal Light Oak",
+          "editorial": {
+            "descriptors": [
+              "Coastal",
+              "Luminous",
+              "Natural"
+            ],
+            "storyFragments": [
+              "pale natural oak",
+              "a light, quietly layered palette"
+            ],
+            "materialRole": "Ensuite palette"
+          },
+          "image": {
+            "src": "/images/homes/solace/visual-guide/Solace_02_Primary-Ensuite_Premium-1_Coastal-Light-Oak.png",
+            "alt": "Premium 1 — Coastal Light Oak, primary ensuite look & feel design board for Solace House.",
+            "fit": "contain",
+            "role": "design-board",
+            "quality": 100
+          }
+        },
+        {
+          "id": "primary-ensuite-look-feel-premium-2",
+          "level": "premium",
+          "optionNumber": "2",
+          "name": "Soft White",
+          "editorial": {
+            "descriptors": [
+              "Soft",
+              "Calm",
+              "Refined"
+            ],
+            "storyFragments": [
+              "soft white surfaces",
+              "restrained architectural detail"
+            ],
+            "materialRole": "Ensuite palette"
+          },
+          "image": {
+            "src": "/images/homes/solace/visual-guide/Solace_02_Primary-Ensuite_Premium-2_Soft-White.png",
+            "alt": "Premium 2 — Soft White, primary ensuite look & feel design board for Solace House.",
+            "fit": "contain",
+            "role": "design-board",
+            "quality": 100
+          }
+        },
+        {
+          "id": "primary-ensuite-look-feel-signature-1",
+          "level": "signature",
+          "optionNumber": "1",
+          "name": "Stone Wrapped Oak",
+          "editorial": {
+            "descriptors": [
+              "Layered",
+              "Grounded",
+              "Architectural"
+            ],
+            "storyFragments": [
+              "expressive stone",
+              "warm, enveloping oak"
+            ],
+            "materialRole": "Ensuite palette"
+          },
+          "image": {
+            "src": "/images/homes/solace/visual-guide/Solace_02_Primary-Ensuite_Signature-1_Stone-Wrapped-Oak.png",
+            "alt": "Signature 1 — Stone Wrapped Oak, primary ensuite look & feel design board for Solace House.",
+            "fit": "contain",
+            "role": "design-board",
+            "quality": 100
+          }
+        },
+        {
+          "id": "primary-ensuite-look-feel-signature-2",
+          "level": "signature",
+          "optionNumber": "2",
+          "name": "Sculpted White",
+          "editorial": {
+            "descriptors": [
+              "Sculptural",
+              "Luminous",
+              "Polished"
+            ],
+            "storyFragments": [
+              "sculpted pale surfaces",
+              "precise tonal detailing"
+            ],
+            "materialRole": "Ensuite palette"
+          },
+          "image": {
+            "src": "/images/homes/solace/visual-guide/Solace_02_Primary-Ensuite_Signature-2_Sculpted-White.png",
+            "alt": "Signature 2 — Sculpted White, primary ensuite look & feel design board for Solace House.",
+            "fit": "contain",
+            "role": "design-board",
+            "quality": 100
+          }
+        }
+      ]
+    },
+    {
+      "kind": "room-look",
+      "id": "primary-wardrobe",
+      "number": "03",
+      "title": "Primary Wardrobe",
+      "shortTitle": "Primary Wardrobe",
+      "description": "Choose the coordinated wardrobe package for the Solace primary suite.",
+      "represents": [
+        "Cabinet finish",
+        "Door treatment",
+        "Interior finish",
+        "Hardware",
+        "Storage configuration",
+        "Lighting"
+      ],
+      "options": [
+        {
+          "id": "primary-wardrobe-premium-1",
+          "level": "premium",
+          "optionNumber": "1",
+          "name": "Coastal Light Oak",
+          "editorial": {
+            "descriptors": [
+              "Coastal",
+              "Luminous",
+              "Natural"
+            ],
+            "storyFragments": [
+              "pale natural oak",
+              "a light, quietly layered palette"
+            ],
+            "materialRole": "Wardrobe millwork"
+          },
+          "image": {
+            "src": "/images/homes/solace/visual-guide/Solace_03_Primary-Wardrobe_Premium-1_Coastal-Light-Oak.png",
+            "alt": "Premium 1 — Coastal Light Oak, primary wardrobe design board for Solace House.",
+            "fit": "contain",
+            "role": "design-board",
+            "quality": 100
+          }
+        },
+        {
+          "id": "primary-wardrobe-premium-2",
+          "level": "premium",
+          "optionNumber": "2",
+          "name": "Soft White",
+          "editorial": {
+            "descriptors": [
+              "Soft",
+              "Calm",
+              "Refined"
+            ],
+            "storyFragments": [
+              "soft white surfaces",
+              "restrained architectural detail"
+            ],
+            "materialRole": "Wardrobe millwork"
+          },
+          "image": {
+            "src": "/images/homes/solace/visual-guide/Solace_03_Primary-Wardrobe_Premium-2_Soft-White.png",
+            "alt": "Premium 2 — Soft White, primary wardrobe design board for Solace House.",
+            "fit": "contain",
+            "role": "design-board",
+            "quality": 100
+          }
+        },
+        {
+          "id": "primary-wardrobe-signature-1",
+          "level": "signature",
+          "optionNumber": "1",
+          "name": "Stone Wrapped Oak",
+          "editorial": {
+            "descriptors": [
+              "Layered",
+              "Grounded",
+              "Architectural"
+            ],
+            "storyFragments": [
+              "expressive stone",
+              "warm, enveloping oak"
+            ],
+            "materialRole": "Wardrobe millwork"
+          },
+          "image": {
+            "src": "/images/homes/solace/visual-guide/Solace_03_Primary-Wardrobe_Signature-1_Stone-Wrapped-Oak.png",
+            "alt": "Signature 1 — Stone Wrapped Oak, primary wardrobe design board for Solace House.",
+            "fit": "contain",
+            "role": "design-board",
+            "quality": 100
+          }
+        },
+        {
+          "id": "primary-wardrobe-signature-2",
+          "level": "signature",
+          "optionNumber": "2",
+          "name": "Sculpted White",
+          "editorial": {
+            "descriptors": [
+              "Sculptural",
+              "Luminous",
+              "Polished"
+            ],
+            "storyFragments": [
+              "sculpted pale surfaces",
+              "precise tonal detailing"
+            ],
+            "materialRole": "Wardrobe millwork"
+          },
+          "image": {
+            "src": "/images/homes/solace/visual-guide/Solace_03_Primary-Wardrobe_Signature-2_Sculpted-White.png",
+            "alt": "Signature 2 — Sculpted White, primary wardrobe design board for Solace House.",
+            "fit": "contain",
+            "role": "design-board",
+            "quality": 100
+          }
+        }
+      ]
+    },
+    {
+      "kind": "room-look",
+      "id": "interior-doors-details",
+      "number": "04",
+      "title": "Interior Doors & Details",
+      "shortTitle": "Interior Details",
+      "description": "Choose one coordinated package for interior doors, trim and architectural detail.",
+      "represents": [
+        "Interior door style",
+        "Door finish",
+        "Hardware",
+        "Architectural wall detail",
+        "Trim and casing",
+        "Accent material"
+      ],
+      "options": [
+        {
+          "id": "interior-doors-details-premium-1",
+          "level": "premium",
+          "optionNumber": "1",
+          "name": "Coastal Light Oak",
+          "editorial": {
+            "descriptors": [
+              "Coastal",
+              "Luminous",
+              "Natural"
+            ],
+            "storyFragments": [
+              "pale natural oak",
+              "a light, quietly layered palette"
+            ],
+            "materialRole": "Interior architecture"
+          },
+          "image": {
+            "src": "/images/homes/solace/visual-guide/Solace_04_Interior-Doors-Details_Premium-1_Coastal-Light-Oak.png",
+            "alt": "Premium 1 — Coastal Light Oak, interior doors & details design board for Solace House.",
+            "fit": "contain",
+            "role": "design-board",
+            "quality": 100
+          }
+        },
+        {
+          "id": "interior-doors-details-premium-2",
+          "level": "premium",
+          "optionNumber": "2",
+          "name": "Soft White",
+          "editorial": {
+            "descriptors": [
+              "Soft",
+              "Calm",
+              "Refined"
+            ],
+            "storyFragments": [
+              "soft white surfaces",
+              "restrained architectural detail"
+            ],
+            "materialRole": "Interior architecture"
+          },
+          "image": {
+            "src": "/images/homes/solace/visual-guide/Solace_04_Interior-Doors-Details_Premium-2_Soft-White.png",
+            "alt": "Premium 2 — Soft White, interior doors & details design board for Solace House.",
+            "fit": "contain",
+            "role": "design-board",
+            "quality": 100
+          }
+        },
+        {
+          "id": "interior-doors-details-signature-1",
+          "level": "signature",
+          "optionNumber": "1",
+          "name": "Stone Wrapped Oak",
+          "editorial": {
+            "descriptors": [
+              "Layered",
+              "Grounded",
+              "Architectural"
+            ],
+            "storyFragments": [
+              "expressive stone",
+              "warm, enveloping oak"
+            ],
+            "materialRole": "Interior architecture"
+          },
+          "image": {
+            "src": "/images/homes/solace/visual-guide/Solace_04_Interior-Doors-Details_Signature-1_Stone-Wrapped-Oak.png",
+            "alt": "Signature 1 — Stone Wrapped Oak, interior doors & details design board for Solace House.",
+            "fit": "contain",
+            "role": "design-board",
+            "quality": 100
+          }
+        },
+        {
+          "id": "interior-doors-details-signature-2",
+          "level": "signature",
+          "optionNumber": "2",
+          "name": "Sculpted White",
+          "editorial": {
+            "descriptors": [
+              "Sculptural",
+              "Luminous",
+              "Polished"
+            ],
+            "storyFragments": [
+              "sculpted pale surfaces",
+              "precise tonal detailing"
+            ],
+            "materialRole": "Interior architecture"
+          },
+          "image": {
+            "src": "/images/homes/solace/visual-guide/Solace_04_Interior-Doors-Details_Signature-2_Sculpted-White.png",
+            "alt": "Signature 2 — Sculpted White, interior doors & details design board for Solace House.",
+            "fit": "contain",
+            "role": "design-board",
+            "quality": 100
+          }
+        }
+      ]
+    },
+    {
+      "kind": "room-look",
+      "id": "exterior-arrival-openings",
+      "number": "05",
+      "title": "Exterior Arrival & Openings",
+      "shortTitle": "Exterior Arrival",
+      "description": "Choose a coordinated exterior finish direction for Solace's arrival and openings.",
+      "represents": [
+        "Entry door",
+        "Window and patio-door frames",
+        "Garage-door appearance",
+        "Cladding accent",
+        "Exterior hardware",
+        "Exterior lighting"
+      ],
+      "technicalNote": "This selection changes finishes and appearance only. The Solace footprint, roof geometry, window placement and architectural massing remain unchanged.",
+      "options": [
+        {
+          "id": "exterior-arrival-openings-premium-1",
+          "level": "premium",
+          "optionNumber": "1",
+          "name": "Warm White",
+          "editorial": {
+            "descriptors": [
+              "Coastal",
+              "Luminous",
+              "Natural"
+            ],
+            "storyFragments": [
+              "pale natural oak",
+              "a light, quietly layered palette"
+            ],
+            "materialRole": "Exterior expression"
+          },
+          "image": {
+            "src": "/images/homes/solace/visual-guide/Solace_05_Exterior-Arrival_Premium-1_Coastal-Light-Oak.png",
+            "alt": "Premium 1 — Warm White, exterior arrival & openings design board for Solace House.",
+            "fit": "contain",
+            "role": "design-board",
+            "quality": 100
+          }
+        },
+        {
+          "id": "exterior-arrival-openings-premium-2",
+          "level": "premium",
+          "optionNumber": "2",
+          "name": "Soft White",
+          "editorial": {
+            "descriptors": [
+              "Soft",
+              "Calm",
+              "Refined"
+            ],
+            "storyFragments": [
+              "soft white surfaces",
+              "restrained architectural detail"
+            ],
+            "materialRole": "Exterior expression"
+          },
+          "image": {
+            "src": "/images/homes/solace/visual-guide/Solace_05_Exterior-Arrival_Premium-2_Soft-White.png",
+            "alt": "Premium 2 — Soft White, exterior arrival & openings design board for Solace House.",
+            "fit": "contain",
+            "role": "design-board",
+            "quality": 100
+          }
+        },
+        {
+          "id": "exterior-arrival-openings-signature-1",
+          "level": "signature",
+          "optionNumber": "1",
+          "name": "Stone Wrapped Oak",
+          "editorial": {
+            "descriptors": [
+              "Layered",
+              "Grounded",
+              "Architectural"
+            ],
+            "storyFragments": [
+              "expressive stone",
+              "warm, enveloping oak"
+            ],
+            "materialRole": "Exterior expression"
+          },
+          "image": {
+            "src": "/images/homes/solace/visual-guide/Solace_05_Exterior-Arrival_Signature-1_Stone-Wrapped-Oak.png",
+            "alt": "Signature 1 — Stone Wrapped Oak, exterior arrival & openings design board for Solace House.",
+            "fit": "contain",
+            "role": "design-board",
+            "quality": 100
+          }
+        },
+        {
+          "id": "exterior-arrival-openings-signature-2",
+          "level": "signature",
+          "optionNumber": "2",
+          "name": "Sculpted White",
+          "editorial": {
+            "descriptors": [
+              "Sculptural",
+              "Luminous",
+              "Polished"
+            ],
+            "storyFragments": [
+              "sculpted pale surfaces",
+              "precise tonal detailing"
+            ],
+            "materialRole": "Exterior expression"
+          },
+          "image": {
+            "src": "/images/homes/solace/visual-guide/Solace_05_Exterior-Arrival_Signature-2_Sculpted-White.png",
+            "alt": "Signature 2 — Sculpted White, exterior arrival & openings design board for Solace House.",
+            "fit": "contain",
+            "role": "design-board",
+            "quality": 100
+          }
+        }
+      ]
+    },
+    {
+      "kind": "room-look",
+      "id": "whole-home-flooring-stairs",
+      "number": "06",
+      "title": "Whole-Home Flooring & Stairs",
+      "shortTitle": "Flooring & Stairs",
+      "description": "Choose one coordinated flooring and stair package for Solace's dry interior areas.",
+      "represents": [
+        "Main living areas",
+        "Bedrooms",
+        "Stair treads",
+        "Risers and trim",
+        "Transitions",
+        "Runner or accent texture"
+      ],
+      "technicalNote": "Wet-area flooring is included in the Primary Ensuite package and is not selected again here.",
+      "options": [
+        {
+          "id": "whole-home-flooring-stairs-premium-1",
+          "level": "premium",
+          "optionNumber": "1",
+          "name": "Coastal Light Oak",
+          "editorial": {
+            "descriptors": [
+              "Coastal",
+              "Luminous",
+              "Natural"
+            ],
+            "storyFragments": [
+              "pale natural oak",
+              "a light, quietly layered palette"
+            ],
+            "materialRole": "Whole-home flooring"
+          },
+          "image": {
+            "src": "/images/homes/solace/visual-guide/Solace_06_Flooring-Stairs_Premium-1_Coastal-Light-Oak.png",
+            "alt": "Premium 1 — Coastal Light Oak, whole-home flooring & stairs design board for Solace House.",
+            "fit": "contain",
+            "role": "design-board",
+            "quality": 100
+          }
+        },
+        {
+          "id": "whole-home-flooring-stairs-premium-2",
+          "level": "premium",
+          "optionNumber": "2",
+          "name": "Soft White",
+          "editorial": {
+            "descriptors": [
+              "Soft",
+              "Calm",
+              "Refined"
+            ],
+            "storyFragments": [
+              "soft white surfaces",
+              "restrained architectural detail"
+            ],
+            "materialRole": "Whole-home flooring"
+          },
+          "image": {
+            "src": "/images/homes/solace/visual-guide/Solace_06_Flooring-Stairs_Premium-2_Soft-White.png",
+            "alt": "Premium 2 — Soft White, whole-home flooring & stairs design board for Solace House.",
+            "fit": "contain",
+            "role": "design-board",
+            "quality": 100
+          }
+        },
+        {
+          "id": "whole-home-flooring-stairs-signature-1",
+          "level": "signature",
+          "optionNumber": "1",
+          "name": "Stone Wrapped Oak",
+          "editorial": {
+            "descriptors": [
+              "Layered",
+              "Grounded",
+              "Architectural"
+            ],
+            "storyFragments": [
+              "expressive stone",
+              "warm, enveloping oak"
+            ],
+            "materialRole": "Whole-home flooring"
+          },
+          "image": {
+            "src": "/images/homes/solace/visual-guide/Solace_06_Flooring-Stairs_Signature-1_Stone-Wrapped-Oak.png",
+            "alt": "Signature 1 — Stone Wrapped Oak, whole-home flooring & stairs design board for Solace House.",
+            "fit": "contain",
+            "role": "design-board",
+            "quality": 100
+          }
+        },
+        {
+          "id": "whole-home-flooring-stairs-signature-2",
+          "level": "signature",
+          "optionNumber": "2",
+          "name": "Sculpted White",
+          "editorial": {
+            "descriptors": [
+              "Sculptural",
+              "Luminous",
+              "Polished"
+            ],
+            "storyFragments": [
+              "sculpted pale surfaces",
+              "precise tonal detailing"
+            ],
+            "materialRole": "Whole-home flooring"
+          },
+          "image": {
+            "src": "/images/homes/solace/visual-guide/Solace_06_Flooring-Stairs_Signature-2_Sculpted-White.png",
+            "alt": "Signature 2 — Sculpted White, whole-home flooring & stairs design board for Solace House.",
+            "fit": "contain",
+            "role": "design-board",
+            "quality": 100
+          }
+        }
+      ]
+    },
+    {
+      "kind": "room-look",
+      "id": "window-coverings",
+      "number": "07",
+      "title": "Window Coverings",
+      "shortTitle": "Window Coverings",
+      "description": "Choose one coordinated window-covering package for privacy, light control and textile character.",
+      "represents": [
+        "Main-living roller treatment",
+        "Bedroom privacy and blackout",
+        "Privacy and light-filter level",
+        "Fabric and texture",
+        "Control and cassette style",
+        "Accent and trim"
+      ],
+      "options": [
+        {
+          "id": "window-coverings-premium-1",
+          "level": "premium",
+          "optionNumber": "1",
+          "name": "Coastal Light Oak",
+          "editorial": {
+            "descriptors": [
+              "Coastal",
+              "Luminous",
+              "Natural"
+            ],
+            "storyFragments": [
+              "pale natural oak",
+              "a light, quietly layered palette"
+            ],
+            "materialRole": "Textile + privacy"
+          },
+          "image": {
+            "src": "/images/homes/solace/visual-guide/Solace_07_Window-Coverings_Premium-1_Coastal-Light-Oak.png",
+            "alt": "Premium 1 — Coastal Light Oak, window coverings design board for Solace House.",
+            "fit": "contain",
+            "role": "design-board",
+            "quality": 100
+          }
+        },
+        {
+          "id": "window-coverings-premium-2",
+          "level": "premium",
+          "optionNumber": "2",
+          "name": "Soft White",
+          "editorial": {
+            "descriptors": [
+              "Soft",
+              "Calm",
+              "Refined"
+            ],
+            "storyFragments": [
+              "soft white surfaces",
+              "restrained architectural detail"
+            ],
+            "materialRole": "Textile + privacy"
+          },
+          "image": {
+            "src": "/images/homes/solace/visual-guide/Solace_07_Window-Coverings_Premium-2_Soft-White.png",
+            "alt": "Premium 2 — Soft White, window coverings design board for Solace House.",
+            "fit": "contain",
+            "role": "design-board",
+            "quality": 100
+          }
+        },
+        {
+          "id": "window-coverings-signature-1",
+          "level": "signature",
+          "optionNumber": "1",
+          "name": "Stone Wrapped Oak",
+          "editorial": {
+            "descriptors": [
+              "Layered",
+              "Grounded",
+              "Architectural"
+            ],
+            "storyFragments": [
+              "expressive stone",
+              "warm, enveloping oak"
+            ],
+            "materialRole": "Textile + privacy"
+          },
+          "image": {
+            "src": "/images/homes/solace/visual-guide/Solace_07_Window-Coverings_Signature-1_Stone-Wrapped-Oak.png",
+            "alt": "Signature 1 — Stone Wrapped Oak, window coverings design board for Solace House.",
+            "fit": "contain",
+            "role": "design-board",
+            "quality": 100
+          }
+        },
+        {
+          "id": "window-coverings-signature-2",
+          "level": "signature",
+          "optionNumber": "2",
+          "name": "Sculpted White",
+          "editorial": {
+            "descriptors": [
+              "Sculptural",
+              "Luminous",
+              "Polished"
+            ],
+            "storyFragments": [
+              "sculpted pale surfaces",
+              "precise tonal detailing"
+            ],
+            "materialRole": "Textile + privacy"
+          },
+          "image": {
+            "src": "/images/homes/solace/visual-guide/Solace_07_Window-Coverings_Signature-2_Sculpted-White.png",
+            "alt": "Signature 2 — Sculpted White, window coverings design board for Solace House.",
+            "fit": "contain",
+            "role": "design-board",
+            "quality": 100
+          }
+        }
+      ]
+    },
+    {
+      "kind": "coordinated",
+      "id": "appliances",
+      "number": "PC",
+      "title": "Appliances",
+      "shortTitle": "Appliances",
+      "description": "The final appliance package, manufacturers and models are confirmed during project review.",
+      "coordinatedMessage": "Project Coordinated"
+    }
+  ],
+  "lookBook": {
+    "home": {
+      "id": "solace",
+      "name": "Solace",
+      "residenceLabel": "Solace House",
+      "areaLabel": "5,405 sq. ft.",
+      "description": "Solace is an expansive contemporary residence where precision engineering recedes behind an atmosphere of ease. Across 5,405 sq. ft., open volumes, enduring finishes, and a light steel structure create a home that feels elegant, efficient, and entirely composed for modern family life.",
+      "heroImage": {
+        "src": "/solace-1a.png",
+        "alt": "Solace House exterior architecture."
+      },
+      "introductionImage": {
+        "src": "https://img1.wsimg.com/isteam/ip/f41876f7-372e-4d3e-b5b8-dde5308c52b2/Tallinn-House7.jpeg",
+        "alt": "Solace House architectural living space."
+      },
+      "metadata": [
+        {
+          "label": "Area",
+          "value": "5,405 sq. ft."
+        },
+        {
+          "label": "Storeys",
+          "value": "2"
+        },
+        {
+          "label": "Bedrooms",
+          "value": "5"
+        },
+        {
+          "label": "Bathrooms",
+          "value": "6"
+        }
+      ]
+    },
+    "sections": [
+      {
+        "kind": "design-story",
+        "layout": "cinematic-hero",
+        "id": "design-story",
+        "number": "01",
+        "title": "The Solace You Created",
+        "introduction": "Seven coordinated packages form one considered architectural finish story for Solace House.",
+        "heroImage": "home-introduction",
+        "items": [
+          {
+            "categoryId": "kitchen-look-feel"
+          },
+          {
+            "categoryId": "primary-ensuite-look-feel"
+          },
+          {
+            "categoryId": "primary-wardrobe"
+          },
+          {
+            "categoryId": "interior-doors-details"
+          },
+          {
+            "categoryId": "exterior-arrival-openings"
+          },
+          {
+            "categoryId": "whole-home-flooring-stairs"
+          },
+          {
+            "categoryId": "window-coverings"
+          }
+        ]
+      },
+      {
+        "kind": "selection-story",
+        "layout": "cinematic-hero",
+        "id": "kitchen",
+        "number": "02",
+        "title": "Kitchen Look & Feel",
+        "introduction": "Cabinetry, surfaces, hardware, flooring and decorative lighting resolved as one kitchen composition.",
+        "items": [
+          {
+            "categoryId": "kitchen-look-feel",
+            "presentation": "hero"
+          },
+          {
+            "categoryId": "appliances",
+            "presentation": "detail"
+          }
+        ]
+      },
+      {
+        "kind": "selection-story",
+        "layout": "cinematic-hero",
+        "id": "primary-ensuite",
+        "number": "03",
+        "title": "Primary Ensuite Look & Feel",
+        "introduction": "A complete ensuite atmosphere carried through tile, vanity, plumbing finish, accent material and light.",
+        "items": [
+          {
+            "categoryId": "primary-ensuite-look-feel",
+            "presentation": "hero"
+          }
+        ]
+      },
+      {
+        "kind": "selection-story",
+        "layout": "cinematic-hero",
+        "id": "primary-wardrobe",
+        "number": "04",
+        "title": "Primary Wardrobe",
+        "introduction": "Millwork, storage, hardware and integrated light composed for the primary suite.",
+        "items": [
+          {
+            "categoryId": "primary-wardrobe",
+            "presentation": "hero"
+          }
+        ]
+      },
+      {
+        "kind": "selection-story",
+        "layout": "cinematic-hero",
+        "id": "interior-details",
+        "number": "05",
+        "title": "Interior Doors & Details",
+        "introduction": "Door, trim, hardware and architectural accents establish a consistent interior language.",
+        "items": [
+          {
+            "categoryId": "interior-doors-details",
+            "presentation": "hero"
+          }
+        ]
+      },
+      {
+        "kind": "selection-story",
+        "layout": "cinematic-hero",
+        "id": "exterior-arrival",
+        "number": "06",
+        "title": "Exterior Arrival & Openings",
+        "introduction": "A coordinated finish expression applied to Solace's fixed architectural form, openings and arrival sequence.",
+        "items": [
+          {
+            "categoryId": "exterior-arrival-openings",
+            "presentation": "hero"
+          }
+        ]
+      },
+      {
+        "kind": "selection-story",
+        "layout": "cinematic-hero",
+        "id": "flooring-stairs",
+        "number": "07",
+        "title": "Whole-Home Flooring & Stairs",
+        "introduction": "One continuous dry-area flooring and stair direction, with wet-area finishes held within the ensuite package.",
+        "items": [
+          {
+            "categoryId": "whole-home-flooring-stairs",
+            "presentation": "hero"
+          }
+        ]
+      },
+      {
+        "kind": "selection-story",
+        "layout": "cinematic-hero",
+        "id": "window-coverings",
+        "number": "08",
+        "title": "Window Coverings",
+        "introduction": "Privacy, filtered daylight, blackout performance and textile character resolved as one package.",
+        "items": [
+          {
+            "categoryId": "window-coverings",
+            "presentation": "hero"
+          }
+        ]
+      }
+    ],
+    "projectCoordinatedItems": [
+      {
+        "id": "appliances",
+        "title": "Appliances",
+        "description": "The final appliance package, manufacturers and models are confirmed during project review."
+      }
+    ],
+    "nextStageSteps": [
+      {
+        "title": "House Delivery Review",
+        "description": "We review the seven selected packages alongside the Solace home and project requirements."
+      },
+      {
+        "title": "Product + Project Confirmation",
+        "description": "Applicable products, availability, pricing and site-specific requirements are confirmed."
+      },
+      {
+        "title": "Project-Specific Visualization",
+        "description": "The approved package brief can be developed into detailed home visualization and virtual walkthrough work."
+      }
+    ],
+    "preliminaryNotice": "This Look Book is a preliminary architectural finish brief and is not a final construction specification, quotation, engineering package or permit document."
+  }
+}
