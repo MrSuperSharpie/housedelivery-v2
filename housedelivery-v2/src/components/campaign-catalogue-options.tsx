@@ -67,7 +67,7 @@ export function CampaignCatalogueOptions() {
                 <figcaption>CMHC Housing Design Catalogue / British Columbia</figcaption>
               </figure>
               <p className={styles.kicker}>Pre-reviewed catalogue design / BC</p>
-              <h3>{model.name} | {model.code}</h3>
+              <h3>{model.name} | <span className="whitespace-nowrap">{model.code}</span></h3>
               <p className="mb-5">
                 {model.squareFootage} sq. ft.<br />
                 {configuration.value.replace(" · ", " | ")}<br />
