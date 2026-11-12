@@ -160,7 +160,7 @@ export function PreApprovedShowcase({
             </div>
             <div className="border-t border-[#1f2833] p-7 sm:border-r sm:border-t-0 sm:p-9">
               <p className="text-4xl font-medium tracking-[-0.055em]">
-                750 <span className="text-lg text-white/34">sq ft</span>
+                1,010 <span className="text-lg text-white/34">sq ft</span>
               </p>
               <p className="mt-2 text-[9px] uppercase tracking-[0.18em] text-white/35">
                 BC ADU-02

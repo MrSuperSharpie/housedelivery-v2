@@ -35,12 +35,12 @@ export const catalogModels: readonly CatalogModel[] = [
       "A compact, high-performance elder suite, rental, or starter home with an adaptable one-bedroom plan.",
     editorial: [
       "The Micro proves that small can feel generous. A single, efficient one-bedroom plan is organised around light, storage, and clear sightlines—so 540 square feet lives well beyond its footprint.",
-      "Delivered as a pre-engineered light steel system, it arrives numbered and ready to assemble. That makes it an ideal elder suite, rental, or starter home—an accessory dwelling that adds real housing without adding complexity.",
+      "This single-storey catalogue design offers a starting point for an elder suite, rental, or starter home. Property suitability, the construction system, site-specific Canadian engineering and municipal approvals require professional review before construction.",
     ],
     specs: [
       { label: "Total area", value: "540 sq ft" },
       { label: "Typology", value: "Accessory dwelling unit" },
-      { label: "Configuration", value: "1 bedroom · 1 bath" },
+      { label: "Configuration", value: "1 bedroom · 1 bathroom" },
       { label: "Component delivery", value: "Factory-built steel frame" },
       { label: "Structure", value: "Light steel frame system" },
       { label: "Site works", value: "Locally engineered" },
@@ -61,12 +61,12 @@ export const catalogModels: readonly CatalogModel[] = [
       "A flexible two-bedroom home for families, elders, shared living, staff housing, or a standalone dwelling.",
     editorial: [
       "The Mini extends the accessory-dwelling idea into a full two-bedroom home. A considered plan separates private and shared space, giving families, elders, and shared households a place that feels complete rather than compact.",
-      "Its flexibility is the point. The same catalogue reference design works as staff housing, an intergenerational suite, or a standalone dwelling—delivered as coordinated steel components ready for a site-specific foundation.",
+      "Its flexibility is the point. This two-storey catalogue reference design can support staff housing, an intergenerational suite, or a standalone dwelling. The construction system, site-specific Canadian engineering, foundations and municipal approvals must be confirmed for your property before construction.",
     ],
     specs: [
       { label: "Total area", value: "1,010 sq ft" },
       { label: "Typology", value: "Accessory dwelling unit" },
-      { label: "Configuration", value: "2 bedroom · 1 bath" },
+      { label: "Configuration", value: "2 bedrooms · 1.5 bathrooms" },
       { label: "Component delivery", value: "Factory-built steel frame" },
       { label: "Structure", value: "Light steel frame system" },
       { label: "Site works", value: "Locally engineered" },
