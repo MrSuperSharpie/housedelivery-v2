@@ -4,6 +4,7 @@ import {
   motion,
   useReducedMotion,
   useScroll,
+  useSpring,
   useTransform,
 } from "framer-motion";
 import { ArrowDown, ArrowLeft, ArrowUpRight } from "lucide-react";
@@ -20,6 +21,7 @@ import {
 } from "@/data/first-nations-cultural-design";
 import { cn } from "@/lib/cn";
 import { readPlannerHomeViewReturnHref } from "@/lib/planner-design-session";
+import { HomeCinematicHeadline } from "@/components/home-cinematic-headline";
 
 type HomeDetailHeroProps = {
   model: {
@@ -111,6 +113,8 @@ export function HomeDetailHero({
   });
   const imageY = useTransform(scrollYProgress, [0, 1], ["0%", "13%"]);
   const contentOpacity = useTransform(scrollYProgress, [0, 0.75], [1, 0]);
+  const editorialScale = useSpring(useTransform(scrollYProgress, [0, 0.7], [1, 1.035]), { stiffness: 110, damping: 30 });
+  const editorialTitleY = useTransform(scrollYProgress, [0, 0.7], [0, -14]);
 
   function changeExteriorPresentation(
     presentation: HomeExteriorPresentation,
@@ -147,7 +151,7 @@ export function HomeDetailHero({
               <p className="mb-5 flex items-center gap-3 text-[9px] font-semibold uppercase tracking-[0.2em] text-[#756449]">
                 <span className="h-px w-7 bg-[#8a7a62]" /> {model.locationLabel}
               </p>
-              <h1>{model.name}{titleSuffix ? <>{" "}<span>{titleSuffix}</span></> : null}</h1>
+              <motion.h1 style={shouldReduceMotion ? undefined : { y: editorialTitleY }}><HomeCinematicHeadline text={model.name} />{titleSuffix ? <>{" "}<span>{titleSuffix}</span></> : null}</motion.h1>
             </div>
             <div className="home-pilot-hero-summary max-w-md">
               <p className="text-sm leading-7 text-black/65">{model.summary}</p>
@@ -156,10 +160,12 @@ export function HomeDetailHero({
               </p>
             </div>
           <div className="home-pilot-hero-image" data-home-exterior-image={exterior.image.src}>
+            <motion.div className="absolute inset-0" style={shouldReduceMotion ? undefined : { scale: editorialScale }}>
             <Image src={exterior.image.src} alt={activeImageAlt} fill quality={imageQuality} unoptimized={unoptimized} loading="eager" fetchPriority="high" sizes="(max-width: 639px) calc(100vw - 40px), (max-width: 1023px) calc(100vw - 64px), (max-width: 1599px) calc(100vw - 96px), 1504px" className="object-cover object-center" />
-            <a href="#gallery" className="absolute bottom-5 right-5 inline-flex min-h-11 items-center gap-6 border border-white/40 bg-[#0b0c10]/75 px-5 text-[9px] font-semibold uppercase tracking-[0.16em] text-white backdrop-blur-sm transition-colors hover:bg-[#0b0c10] focus-visible:outline-2 focus-visible:outline-white sm:bottom-7 sm:right-7">
+            </motion.div>
+            <motion.a href="#gallery" whileHover={shouldReduceMotion ? undefined : { y: -2 }} whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }} transition={{ type: "spring", stiffness: 280, damping: 28 }} className="absolute bottom-5 right-5 inline-flex min-h-11 items-center gap-6 border border-white/40 bg-[#0b0c10]/75 px-5 text-[9px] font-semibold uppercase tracking-[0.16em] text-white backdrop-blur-sm transition-colors hover:bg-[#0b0c10] focus-visible:outline-2 focus-visible:outline-white sm:bottom-7 sm:right-7">
               Architectural gallery <ArrowUpRight size={15} aria-hidden="true" />
-            </a>
+            </motion.a>
           </div>
           <div className="home-pilot-hero-actions flex flex-col gap-6 py-6 sm:flex-row sm:items-end sm:justify-between lg:py-8">
             {supportsIndigenousInspired ? (
@@ -172,9 +178,9 @@ export function HomeDetailHero({
                 </div>
               </fieldset>
             ) : null}
-            <a href="#home-inclusions" className="inline-flex min-h-11 items-center justify-between gap-8 border-b border-black/40 text-[10px] font-semibold uppercase tracking-[0.16em] text-black/80 transition-colors hover:text-black focus-visible:outline-2 focus-visible:outline-black">
+            <motion.a href="#home-inclusions" whileHover={shouldReduceMotion ? undefined : { y: -2 }} whileTap={shouldReduceMotion ? undefined : { y: 0 }} transition={{ type: "spring", stiffness: 280, damping: 28 }} className="inline-flex min-h-11 items-center justify-between gap-8 border-b border-black/40 text-[10px] font-semibold uppercase tracking-[0.16em] text-black/80 transition-colors hover:text-black focus-visible:outline-2 focus-visible:outline-black">
               Create your Look Book <ArrowUpRight size={15} aria-hidden="true" />
-            </a>
+            </motion.a>
           </div>
           </div>
         </div>

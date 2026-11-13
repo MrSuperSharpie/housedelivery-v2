@@ -53,6 +53,7 @@ type HomeEditorialGalleryProps = {
     showGalleryCallout?: boolean;
   };
   appearance?: "editorial";
+  cinematicSummary?: string;
 };
 
 const FLOOR_PLAN_PATTERNS = [
@@ -146,6 +147,7 @@ export function HomeEditorialGallery({
   contextualInclusionsDestination,
   designToolDiscovery,
   appearance,
+  cinematicSummary,
 }: HomeEditorialGalleryProps) {
   const shouldReduceMotion = useReducedMotion();
   const lifestyleImages = images.filter(
@@ -154,7 +156,7 @@ export function HomeEditorialGallery({
   const rows = buildGalleryRows(lifestyleImages, modelName);
 
   if (appearance === "editorial") {
-    return <HomeEditorialGalleryView modelName={modelName} rows={rows} images={rows.flatMap((row) => row.images)} narrative={narrative} imageQuality={imageQuality} unoptimized={unoptimized} />;
+    return <HomeEditorialGalleryView modelName={modelName} rows={rows} images={rows.flatMap((row) => row.images)} narrative={narrative} imageQuality={imageQuality} unoptimized={unoptimized} cinematicSummary={cinematicSummary} />;
   }
 
   return (

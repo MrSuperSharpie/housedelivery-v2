@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { ArrowUpRight } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/cn";
 
 export function HomeDetailNavigation({ homeName, hasVideo }: { homeName: string; hasVideo: boolean }) {
   const [active, setActive] = useState("overview");
+  const reducedMotion = useReducedMotion();
   const links = [
     ["overview", "Overview"],
     ["gallery", "Gallery"],
@@ -28,7 +30,7 @@ export function HomeDetailNavigation({ homeName, hasVideo }: { homeName: string;
         <span className="hidden shrink-0 text-sm font-medium tracking-[-0.02em] text-[#d5c29f] lg:block">{homeName}</span>
         <div className="flex min-w-0 flex-1 gap-7 overflow-x-auto overscroll-x-contain sm:gap-10">
           {links.map(([id, label]) => (
-            <a key={id} href={"#" + id} onClick={() => setActive(id)} aria-current={active === id ? "location" : undefined} className={cn("flex min-h-16 shrink-0 items-center border-b-2 text-[9px] font-semibold uppercase tracking-[0.14em] transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-5px] focus-visible:outline-white sm:text-[10px]", active === id ? "border-[#d5c29f] text-[#d5c29f]" : "border-transparent text-white/65 hover:text-white")}>{label}</a>
+            <motion.a key={id} href={"#" + id} onClick={() => setActive(id)} aria-current={active === id ? "location" : undefined} whileHover={reducedMotion ? undefined : { color: "#fff" }} className={cn("relative flex min-h-16 shrink-0 items-center border-b-2 border-transparent text-[9px] font-semibold uppercase tracking-[0.14em] transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-5px] focus-visible:outline-white sm:text-[10px]", active === id ? "text-[#d5c29f]" : "text-white/65 hover:text-white")}>{label}{active === id ? <motion.span aria-hidden="true" layoutId="langley-model-navigation" transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 300, damping: 32 }} className="absolute -bottom-0.5 inset-x-0 h-0.5 bg-[#d5c29f]" /> : null}</motion.a>
           ))}
         </div>
         <a href="#reserve" className="hidden min-h-11 shrink-0 items-center gap-5 border border-white/25 px-5 text-[9px] font-semibold uppercase tracking-[0.14em] text-white sm:inline-flex">Project inquiry <ArrowUpRight size={14} aria-hidden="true" /></a>

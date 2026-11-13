@@ -272,6 +272,7 @@ export default async function HomeDetailPage({
         </section>
 
         <HomeEditorialGallery
+          cinematicSummary={isEditorialPilot ? model.summary : undefined}
           appearance={isEditorialPilot ? "editorial" : undefined}
           modelName={model.name}
           images={model.images}
