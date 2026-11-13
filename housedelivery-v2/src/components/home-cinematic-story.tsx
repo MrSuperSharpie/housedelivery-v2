@@ -36,6 +36,10 @@ function StoryChapter({ chapter, index, progress, sticky, onOpenImage }: {
   const end = index === 0 ? 0.34 : index === 1 ? 0.70 : 1;
   const scale = useTransform(progress, [start, end], [1.045, 1]);
   const copyY = useTransform(progress, [start, start + 0.12, end], [index === 0 ? 0 : 24, 0, -16]);
+  // Let the photographs dissolve continuously, but clear one chapter's words
+  // before the next enters so copy stays legible even when scrolling stops.
+  const copyRange = index === 0 ? [0, 0.19, 0.26, 1] : index === 1 ? [0, 0.32, 0.42, 0.56, 0.63, 1] : [0, 0.69, 0.79, 1];
+  const copyOpacity = useTransform(progress, copyRange, index === 1 ? [0, 0, 1, 1, 0, 0] : index === 0 ? [1, 1, 0, 0] : [0, 0, 1, 1]);
   const titleMask = useTransform(progress, [start, start + 0.12], [index === 0 ? "inset(0 0 0% 0)" : "inset(0 0 100% 0)", "inset(0 0 0% 0)"]);
   return (
     <motion.article className="langley-cinematic-chapter" data-cinematic-chapter={index + 1} style={sticky ? { opacity } : undefined}>
@@ -45,7 +49,7 @@ function StoryChapter({ chapter, index, progress, sticky, onOpenImage }: {
         </motion.div>
         <button type="button" className="langley-sequence-enlarge" aria-haspopup="dialog" aria-label={"Enlarge " + labels[index].toLowerCase() + " image"} onClick={(event) => onOpenImage(chapter.galleryIndex, event.currentTarget)}><Maximize2 size={15} aria-hidden="true" /><span>View larger</span></button>
       </div>
-      <motion.div className="langley-cinematic-copy" style={sticky ? { y: copyY } : undefined}>
+      <motion.div className="langley-cinematic-copy" style={sticky ? { y: copyY, opacity: copyOpacity } : undefined}>
         <p className="langley-cinematic-eyebrow">{String(index + 1).padStart(2, "0")} <span /> {labels[index]}</p>
         <h3><motion.span style={sticky ? { clipPath: titleMask } : undefined}>{chapter.title}</motion.span></h3>
         <p className="langley-cinematic-description">{chapter.body}</p>
