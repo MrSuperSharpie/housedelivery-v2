@@ -19,6 +19,7 @@ type HomeFloorPlanViewerProps = {
   constrainImage?: boolean;
   fittedImageSizes?: string;
   imageLoading?: "eager" | "lazy";
+  appearance?: "editorial";
 };
 
 export function HomeFloorPlanViewer({
@@ -29,6 +30,7 @@ export function HomeFloorPlanViewer({
   constrainImage = false,
   fittedImageSizes,
   imageLoading,
+  appearance,
 }: HomeFloorPlanViewerProps) {
   const [isZoomed, setIsZoomed] = useState(false);
   const planCallouts = model.planCallouts ?? [];
@@ -36,6 +38,7 @@ export function HomeFloorPlanViewer({
   return (
     <section
       id="plans"
+      data-home-floor-plan-presentation={appearance}
       className="scroll-mt-20 border-y border-white/10 bg-[#0e1014] px-5 py-28 sm:px-8 lg:px-12 lg:py-40"
     >
       <div className="mx-auto max-w-[1504px]">
@@ -60,12 +63,13 @@ export function HomeFloorPlanViewer({
         </div>
 
         <div
+          data-home-plan-frame={appearance === "editorial" ? "" : undefined}
           className={cn(
             "mt-16 overflow-hidden border border-white/14 bg-[#090a0d]",
             constrainImage && "mx-auto max-w-[980px]",
           )}
         >
-          <div className="flex items-center justify-between border-b border-white/12 px-4 py-4 sm:px-6">
+          <div data-home-plan-toolbar={appearance === "editorial" ? "" : undefined} className="flex items-center justify-between border-b border-white/12 px-4 py-4 sm:px-6">
             <div className="flex items-center gap-3">
               <Maximize2 size={14} className="text-white/42" />
               <span className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/48">
@@ -83,8 +87,10 @@ export function HomeFloorPlanViewer({
             </button>
           </div>
 
-          <div className="overflow-auto p-3 sm:p-6 lg:p-10">
+          <div tabIndex={appearance === "editorial" ? 0 : undefined} role={appearance === "editorial" ? "region" : undefined} aria-label={appearance === "editorial" ? "Floor plan drawing. Scroll to explore the enlarged plan." : undefined} className="overflow-auto p-3 sm:p-6 lg:p-10">
             <div
+              data-home-plan-canvas={appearance === "editorial" ? "" : undefined}
+              data-home-plan-zoomed={appearance === "editorial" ? isZoomed : undefined}
               className={cn(
                 "relative mx-auto aspect-[1.42/1] min-w-[680px] bg-[#e9e7e1] transition-[width] duration-500",
                 constrainImage
@@ -119,7 +125,7 @@ export function HomeFloorPlanViewer({
         </div>
 
         {planCallouts.length > 0 ? (
-          <div className="mt-10 grid border-t border-white/14 sm:grid-cols-2 lg:grid-cols-4">
+          <div data-home-plan-callouts={appearance === "editorial" ? "" : undefined} className="mt-10 grid border-t border-white/14 sm:grid-cols-2 lg:grid-cols-4">
             {planCallouts.map((callout, index) => (
               <div
                 key={callout}

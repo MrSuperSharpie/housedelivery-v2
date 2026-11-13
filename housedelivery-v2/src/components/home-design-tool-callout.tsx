@@ -2,6 +2,7 @@
 
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 
 import type { HomeInclusionLevel } from "@/data/home-configurator";
@@ -19,6 +20,8 @@ type HomeDesignToolCalloutProps = {
   variant: "primary" | "quiet";
   availability?: "available" | "coming-soon" | "preview-only";
   pricingSquareFeet?: number;
+  appearance?: "editorial";
+  editorialImage?: { src: string; alt: string };
 };
 
 export function HomeDesignToolCallout({
@@ -27,6 +30,8 @@ export function HomeDesignToolCallout({
   variant,
   availability = "available",
   pricingSquareFeet,
+  appearance,
+  editorialImage,
 }: HomeDesignToolCalloutProps) {
   const isPrimary = variant === "primary";
   const isPreviewOnly = availability === "preview-only";
@@ -90,6 +95,7 @@ export function HomeDesignToolCallout({
           ? "mt-24 grid gap-12 lg:mt-32 lg:grid-cols-[0.9fr_1.1fr] lg:items-end lg:gap-24"
           : "grid max-w-5xl gap-8 md:grid-cols-[0.72fr_1.28fr] md:gap-14",
       )}
+      data-home-design-presentation={appearance}
     >
       <div>
         <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/55">
@@ -134,7 +140,7 @@ export function HomeDesignToolCallout({
             </>
           ) : isPrimary ? (
             <>
-              Make {homeName}
+              Make {appearance === "editorial" ? homeName.replace(/\s+House$/, "") : homeName}
               <br />
               <span className="text-white/45">yours.</span>
             </>
@@ -146,6 +152,11 @@ export function HomeDesignToolCallout({
             </>
           )}
         </h3>
+        {appearance === "editorial" && editorialImage ? (
+          <div className="home-pilot-design-image relative mt-8 aspect-[4/3] overflow-hidden">
+            <Image src={editorialImage.src} alt={editorialImage.alt} fill quality={95} unoptimized sizes="(max-width: 1023px) 100vw, 35vw" className="object-cover" />
+          </div>
+        ) : null}
       </div>
 
       <div className={cn("max-w-2xl", isPrimary && "lg:justify-self-end")}>
@@ -160,11 +171,11 @@ export function HomeDesignToolCallout({
             <p className="mt-4 text-sm leading-7 text-white/70">
               These are starting prices for the House Delivery housing package, not the completed cost of a finished home.
             </p>
-            <div className="mt-7 grid gap-7 sm:grid-cols-2">
+            <div data-home-package-options={appearance === "editorial" ? "" : undefined} className="mt-7 grid gap-7 sm:grid-cols-2">
               {(["premium", "signature"] as const).map((tier) => {
                 const option = homePricing[tier];
                 return (
-                  <div key={tier} className="border-t border-white/20 pt-5">
+                  <div key={tier} data-home-package={appearance === "editorial" ? tier : undefined} className="border-t border-white/20 pt-5">
                     <h4 className="text-lg font-medium text-white/88">{option.label}</h4>
                     <p className="mt-3 text-sm text-white/60">
                       Housing package from <span className="whitespace-nowrap">${option.rate} / sq. ft.</span>
@@ -189,7 +200,7 @@ export function HomeDesignToolCallout({
                 );
               })}
             </div>
-            <div className="mt-6 space-y-2 text-xs leading-6 text-white/55">
+            <div data-home-package-qualifications={appearance === "editorial" ? "" : undefined} className="mt-6 space-y-2 text-xs leading-6 text-white/55">
               <p>Final housing-package pricing varies with design selections, architectural complexity, glazing, structural requirements, project location and logistics. Highly customized homes and alternate structural systems, including timber, are priced project-specifically following review of the plans and specifications.</p>
               <p><strong>Package pricing includes the coordinated building package, standard project logistics and applicable import tariffs based on the confirmed project scope.</strong></p>
               <p>Appliances are selected separately.</p>

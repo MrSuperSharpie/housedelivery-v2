@@ -189,6 +189,239 @@ select {
   to { opacity: 1; transform: scale(1); }
 }
 
+.home-pilot-hero {
+  padding-top: 110px;
+  background: #e7e3d8;
+  color: #0b0c10;
+}
+
+.home-pilot-hero-layout {
+  display: grid;
+  grid-template-areas: "title" "image" "summary" "actions";
+  gap: 24px;
+  margin-top: 32px;
+}
+.home-pilot-hero-title { grid-area: title; }
+.home-pilot-hero-summary { grid-area: summary; }
+.home-pilot-hero-actions { grid-area: actions; }
+
+.home-pilot-hero-title h1 {
+  font-size: clamp(3.5rem, 15vw, 6rem);
+  font-weight: 500;
+  line-height: 0.9;
+  letter-spacing: -0.065em;
+}
+
+.home-pilot-hero-title h1 > span {
+  display: block;
+  margin-top: 16px;
+  font-size: 15px;
+  line-height: 1.3;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #756449;
+}
+
+.home-pilot-hero-image {
+  grid-area: image;
+  position: relative;
+  aspect-ratio: 1.45 / 1;
+  overflow: hidden;
+  background: #c9c3b7;
+}
+
+.home-pilot-navigation {
+  position: sticky;
+  z-index: 40;
+  top: 76px;
+  padding-inline: 20px;
+  border-block: 1px solid rgb(255 255 255 / 0.2);
+  background: rgb(11 12 16 / 0.96);
+  backdrop-filter: blur(16px);
+}
+
+main[data-home-detail-presentation="editorial"] :is(#overview, #gallery, #finishes-pricing, #home-inclusions, #plans, #film, #reserve) {
+  scroll-margin-top: 155px;
+}
+
+.home-pilot-overview {
+  background: #e7e3d8;
+  color: #0b0c10;
+}
+
+.home-pilot-overview .eyebrow {
+  color: rgb(0 0 0 / 0.6);
+}
+
+.home-pilot-overview h2 {
+  font-size: clamp(3rem, 5.5vw, 6rem);
+}
+
+.home-pilot-overview h2 > span {
+  color: #8a7a62;
+}
+
+.home-pilot-overview [data-content-block="model-description"] p {
+  color: rgb(0 0 0 / 0.65);
+}
+
+.home-pilot-finishes {
+  border-block: 1px solid rgb(255 255 255 / 0.15);
+  background: #111318;
+}
+
+main[data-home-detail-presentation="editorial"] [data-home-design-presentation="editorial"] {
+  margin-top: 0;
+  border-top: 0;
+  padding-top: 0;
+  align-items: start;
+}
+
+main[data-home-detail-presentation="editorial"] [data-home-design-presentation="editorial"] > div:first-child > p {
+  color: #c9b48f;
+}
+
+main[data-home-detail-presentation="editorial"] [data-home-design-presentation="editorial"] h3 {
+  font-size: clamp(3.5rem, 5.2vw, 5.8rem);
+  text-transform: none;
+}
+
+main[data-home-detail-presentation="editorial"] [data-home-design-presentation="editorial"] h3 > span {
+  color: #c9b48f;
+}
+
+main[data-home-detail-presentation="editorial"] [data-home-package-options] {
+  gap: 20px;
+}
+
+main[data-home-detail-presentation="editorial"] [data-home-package] {
+  border: 1px solid rgb(255 255 255 / 0.25);
+  padding: 24px;
+  background: #1a1c20;
+}
+
+main[data-home-detail-presentation="editorial"] [data-home-package] h4 {
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #d5c29f;
+}
+
+main[data-home-detail-presentation="editorial"] [data-home-package] > p:nth-of-type(2) {
+  margin-top: 24px;
+  font-size: clamp(1.9rem, 2.8vw, 3.2rem);
+  line-height: 1.1;
+}
+
+main[data-home-detail-presentation="editorial"] [data-home-package] button {
+  margin-top: 28px;
+  min-height: 64px;
+  border-color: #e7e3d8;
+  background: #e7e3d8;
+  letter-spacing: 0.04em;
+}
+
+main[data-home-detail-presentation="editorial"] [data-home-package-qualifications] {
+  margin-top: 28px;
+  border-top: 1px solid rgb(255 255 255 / 0.2);
+  padding-top: 24px;
+  color: rgb(255 255 255 / 0.65);
+}
+
+main[data-home-detail-presentation="editorial"] [data-home-floor-plan-presentation="editorial"] {
+  padding-block: 80px;
+  background: #e7e3d8;
+  color: #0b0c10;
+}
+
+main[data-home-detail-presentation="editorial"] [data-home-floor-plan-presentation="editorial"] .eyebrow,
+main[data-home-detail-presentation="editorial"] [data-home-floor-plan-presentation="editorial"] > div > div:first-child > p {
+  color: rgb(0 0 0 / 0.65);
+}
+
+main[data-home-detail-presentation="editorial"] [data-home-floor-plan-presentation="editorial"] h2 > span {
+  color: #8a7a62;
+}
+
+main[data-home-detail-presentation="editorial"] [data-home-plan-frame] {
+  border-color: rgb(0 0 0 / 0.25);
+  color: white;
+}
+
+main[data-home-detail-presentation="editorial"] [data-home-plan-toolbar] {
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+main[data-home-detail-presentation="editorial"] [data-home-plan-toolbar] button {
+  min-height: 44px;
+  white-space: nowrap;
+}
+
+main[data-home-detail-presentation="editorial"] [data-home-plan-canvas][data-home-plan-zoomed="false"] {
+  min-width: 0;
+}
+
+main[data-home-detail-presentation="editorial"] [data-home-plan-callouts] {
+  border-color: rgb(0 0 0 / 0.2);
+}
+
+main[data-home-detail-presentation="editorial"] [data-home-plan-callouts] > div {
+  border-color: rgb(0 0 0 / 0.2);
+}
+
+main[data-home-detail-presentation="editorial"] [data-home-plan-callouts] span:first-child {
+  color: #756449;
+}
+
+main[data-home-detail-presentation="editorial"] [data-home-plan-callouts] span:last-child {
+  color: rgb(0 0 0 / 0.7);
+}
+
+.home-pilot-inquiry h2 > span {
+  color: #d5c29f;
+}
+
+.home-pilot-inquiry a {
+  min-height: 56px;
+  background: #e7e3d8;
+}
+
+@keyframes home-pilot-photo-enter {
+  from { opacity: 0.6; }
+  to { opacity: 1; }
+}
+
+.home-pilot-photo-enter {
+  animation: home-pilot-photo-enter 300ms ease-out;
+}
+
+@media (min-width: 640px) {
+  .home-pilot-navigation { padding-inline: 32px; }
+}
+
+@media (min-width: 1024px) {
+  .home-pilot-hero { padding-top: 112px; }
+  .home-pilot-hero-layout {
+    grid-template-columns: 1.5fr 1fr;
+    grid-template-areas: "title summary" "image image" "actions actions";
+    align-items: end;
+    gap: 32px 64px;
+  }
+  .home-pilot-hero-title h1 { font-size: clamp(6rem, 9vw, 9.8rem); }
+  .home-pilot-hero-title h1 > span {
+    display: inline-block;
+    margin: 0 0 0 20px;
+    font-size: 20px;
+  }
+  .home-pilot-hero-image { aspect-ratio: 2.35 / 1; }
+  .home-pilot-navigation { padding-inline: 48px; }
+  .home-pilot-overview > div > div:first-child { grid-template-columns: 0.9fr 1.1fr; align-items: end; gap: 80px; }
+  .home-pilot-overview > div > div:first-child > div:last-child { padding-top: 0; }
+  main[data-home-detail-presentation="editorial"] [data-home-design-presentation="editorial"] { grid-template-columns: 0.75fr 1.25fr; gap: 64px; }
+  main[data-home-detail-presentation="editorial"] [data-home-floor-plan-presentation="editorial"] { padding-block: 112px; }
+}
+
 .delivery-image-enter {
   animation: delivery-image-enter 550ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }

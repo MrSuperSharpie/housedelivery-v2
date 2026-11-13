@@ -6,7 +6,7 @@ import {
   useScroll,
   useTransform,
 } from "framer-motion";
-import { ArrowDown, ArrowLeft } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowUpRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -42,6 +42,7 @@ type HomeDetailHeroProps = {
   unoptimized?: boolean;
   imagePresentation?: "full-bleed" | "contained";
   initialExteriorPresentation?: HomeExteriorPresentation;
+  appearance?: "editorial";
 };
 
 export function HomeDetailHeroFromQuery(
@@ -83,6 +84,7 @@ export function HomeDetailHero({
   unoptimized = true,
   imagePresentation = "full-bleed",
   initialExteriorPresentation = "contemporary",
+  appearance,
 }: HomeDetailHeroProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const supportsIndigenousInspired = Boolean(
@@ -127,6 +129,56 @@ export function HomeDetailHero({
       window.history.state,
       "",
       `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`,
+    );
+  }
+
+  if (appearance === "editorial") {
+    return (
+      <section ref={sectionRef} id="top" data-home-exterior-presentation={exteriorPresentation} className="home-pilot-hero">
+        <div className="mx-auto max-w-[1600px] px-5 sm:px-8 lg:px-12">
+          <div className="flex items-center justify-between border-b border-black/20 pb-5 text-[9px] font-semibold uppercase tracking-[0.18em] text-black/60">
+            <Link href={collectionHref} className="inline-flex min-h-11 items-center gap-3 focus-visible:outline-2 focus-visible:outline-black">
+              <ArrowLeft size={14} aria-hidden="true" /> {collectionLabel}
+            </Link>
+            <p>{modelLabel} {String(modelNumber).padStart(2, "0")} / {String(modelCount).padStart(2, "0")}</p>
+          </div>
+          <div className="home-pilot-hero-layout">
+            <div className="home-pilot-hero-title">
+              <p className="mb-5 flex items-center gap-3 text-[9px] font-semibold uppercase tracking-[0.2em] text-[#756449]">
+                <span className="h-px w-7 bg-[#8a7a62]" /> {model.locationLabel}
+              </p>
+              <h1>{model.name}{titleSuffix ? <>{" "}<span>{titleSuffix}</span></> : null}</h1>
+            </div>
+            <div className="home-pilot-hero-summary max-w-md">
+              <p className="text-sm leading-7 text-black/65">{model.summary}</p>
+              <p className="mt-5 text-[9px] font-semibold uppercase tracking-[0.16em] text-black/55">
+                {model.squareFeet?.toLocaleString()} sq. ft. <span className="px-3 text-black/25">/</span> {secondaryBadge}
+              </p>
+            </div>
+          <div className="home-pilot-hero-image" data-home-exterior-image={exterior.image.src}>
+            <Image src={exterior.image.src} alt={activeImageAlt} fill quality={imageQuality} unoptimized={unoptimized} loading="eager" fetchPriority="high" sizes="(max-width: 639px) calc(100vw - 40px), (max-width: 1023px) calc(100vw - 64px), (max-width: 1599px) calc(100vw - 96px), 1504px" className="object-cover object-center" />
+            <a href="#gallery" className="absolute bottom-5 right-5 inline-flex min-h-11 items-center gap-6 border border-white/40 bg-[#0b0c10]/75 px-5 text-[9px] font-semibold uppercase tracking-[0.16em] text-white backdrop-blur-sm transition-colors hover:bg-[#0b0c10] focus-visible:outline-2 focus-visible:outline-white sm:bottom-7 sm:right-7">
+              Architectural gallery <ArrowUpRight size={15} aria-hidden="true" />
+            </a>
+          </div>
+          <div className="home-pilot-hero-actions flex flex-col gap-6 py-6 sm:flex-row sm:items-end sm:justify-between lg:py-8">
+            {supportsIndigenousInspired ? (
+              <fieldset data-home-exterior-presentation-toggle className="min-w-0">
+                <legend className="mb-2 text-[8px] font-semibold uppercase tracking-[0.18em] text-black/60">Exterior expression</legend>
+                <div className="inline-flex max-w-full border border-black/25 p-1">
+                  {([["contemporary", "Contemporary"], ["indigenous-inspired", "Indigenous Inspired"]] as const).map(([presentation, label]) => (
+                    <button key={presentation} type="button" onClick={() => changeExteriorPresentation(presentation)} aria-pressed={exteriorPresentation === presentation} className={cn("min-h-11 px-4 py-2 text-[9px] font-semibold uppercase leading-4 tracking-[0.12em] transition-colors focus-visible:outline-2 focus-visible:outline-black sm:px-5", exteriorPresentation === presentation ? "bg-[#0b0c10] text-white" : "text-black/60 hover:text-black")}>{label}</button>
+                  ))}
+                </div>
+              </fieldset>
+            ) : null}
+            <a href="#home-inclusions" className="inline-flex min-h-11 items-center justify-between gap-8 border-b border-black/40 text-[10px] font-semibold uppercase tracking-[0.16em] text-black/80 transition-colors hover:text-black focus-visible:outline-2 focus-visible:outline-black">
+              Create your Look Book <ArrowUpRight size={15} aria-hidden="true" />
+            </a>
+          </div>
+          </div>
+        </div>
+      </section>
     );
   }
 

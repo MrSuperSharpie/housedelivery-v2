@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Fragment } from "react";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
+import { HomeEditorialGalleryView } from "@/components/home-editorial-gallery-view";
 import {
   ContextualInclusionsLink,
   type ContextualInclusionDestination,
@@ -20,7 +21,7 @@ type GallerySource =
       fit?: "cover" | "contain";
     };
 
-type GalleryImage = {
+export type GalleryImage = {
   src: string;
   alt: string;
   label: string;
@@ -28,7 +29,7 @@ type GalleryImage = {
   fit: "cover" | "contain";
 };
 
-type GalleryRow =
+export type GalleryRow =
   | { kind: "full"; images: [GalleryImage] }
   | { kind: "pair"; images: [GalleryImage] | [GalleryImage, GalleryImage] };
 
@@ -51,6 +52,7 @@ type HomeEditorialGalleryProps = {
     availability?: "available" | "coming-soon" | "preview-only";
     showGalleryCallout?: boolean;
   };
+  appearance?: "editorial";
 };
 
 const FLOOR_PLAN_PATTERNS = [
@@ -143,12 +145,17 @@ export function HomeEditorialGallery({
   imageLoading,
   contextualInclusionsDestination,
   designToolDiscovery,
+  appearance,
 }: HomeEditorialGalleryProps) {
   const shouldReduceMotion = useReducedMotion();
   const lifestyleImages = images.filter(
     (image) => !isFloorPlanImage(getImageSrc(image), floorPlanImage),
   );
   const rows = buildGalleryRows(lifestyleImages, modelName);
+
+  if (appearance === "editorial") {
+    return <HomeEditorialGalleryView modelName={modelName} rows={rows} images={rows.flatMap((row) => row.images)} narrative={narrative} imageQuality={imageQuality} unoptimized={unoptimized} />;
+  }
 
   return (
     <section className="px-5 py-28 sm:px-8 lg:px-12 lg:py-40">

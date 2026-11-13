@@ -7,6 +7,8 @@ import { Suspense } from "react";
 
 import { HeadlineReveal } from "@/components/headline-reveal";
 import { TieredHomeConfigurator } from "@/components/home-configurator";
+import { HomeArchitecturalSpecifications } from "@/components/home-architectural-specifications";
+import { HomeDetailNavigation } from "@/components/home-detail-navigation";
 import { HomeDesignToolCallout } from "@/components/home-design-tool-callout";
 import {
   HomeDetailHero,
@@ -101,6 +103,7 @@ export default async function HomeDetailPage({
     notFound();
   }
 
+  const isEditorialPilot = model.slug === "langley";
   const nextModel: HomeModel = models[(modelIndex + 1) % models.length];
   const configuratorRegistration = getHomeConfiguratorRegistration(
     "custom-home",
@@ -162,13 +165,14 @@ export default async function HomeDetailPage({
   return (
     <>
       <SiteHeader />
-      <main className="bg-[#0b0c10] text-white">
+      <main className="bg-[#0b0c10] text-white" data-home-detail-presentation={isEditorialPilot ? "editorial" : undefined}>
         <Suspense
           fallback={
             <HomeDetailHero
               model={model}
               modelNumber={modelIndex + 1}
               modelCount={models.length}
+              appearance={isEditorialPilot ? "editorial" : undefined}
               titleSuffix={
                 getResidenceName(model) === model.name ? null : "House"
               }
@@ -181,6 +185,7 @@ export default async function HomeDetailPage({
             model={model}
             modelNumber={modelIndex + 1}
             modelCount={models.length}
+            appearance={isEditorialPilot ? "editorial" : undefined}
             titleSuffix={
               getResidenceName(model) === model.name ? null : "House"
             }
@@ -189,9 +194,11 @@ export default async function HomeDetailPage({
           />
         </Suspense>
 
+        {isEditorialPilot ? <HomeDetailNavigation homeName={model.name} hasVideo={Boolean(model.video)} /> : null}
+
         <section
           id="overview"
-          className="scroll-mt-20 px-5 py-28 sm:px-8 lg:px-12 lg:py-40"
+          className={isEditorialPilot ? "home-pilot-overview scroll-mt-20 px-5 py-20 sm:px-8 lg:px-12 lg:py-28" : "scroll-mt-20 px-5 py-28 sm:px-8 lg:px-12 lg:py-40"}
         >
           <div className="mx-auto max-w-[1504px]">
             <div className="grid gap-16 lg:grid-cols-[1.1fr_0.9fr] lg:gap-24">
@@ -216,6 +223,7 @@ export default async function HomeDetailPage({
               </div>
             </div>
 
+            {isEditorialPilot ? <HomeArchitecturalSpecifications model={model} specifications={specifications} /> : (<>
             <div className="mt-24 grid border-l border-t border-white/14 sm:grid-cols-2 lg:grid-cols-3">
               {specifications.map((specification, index) => (
                 <dl
@@ -251,18 +259,20 @@ export default async function HomeDetailPage({
               </p>
               <p>Site engineering required</p>
             </div>
+            </>)}
 
-            <HomeDesignToolCallout
+            {!isEditorialPilot ? <HomeDesignToolCallout
               homeName={designToolDiscovery.homeName}
               href={designToolDiscovery.href}
               variant="primary"
               availability={designToolDiscovery.availability}
               pricingSquareFeet={model.squareFeet}
-            />
+            /> : null}
           </div>
         </section>
 
         <HomeEditorialGallery
+          appearance={isEditorialPilot ? "editorial" : undefined}
           modelName={model.name}
           images={model.images}
           floorPlanImage={model.floorPlanImage}
@@ -280,6 +290,23 @@ export default async function HomeDetailPage({
           imageLoading={useSourceFidelityImages ? "lazy" : undefined}
         />
 
+
+        {isEditorialPilot ? (
+          <section id="finishes-pricing" className="home-pilot-finishes scroll-mt-40 px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
+            <div className="mx-auto max-w-[1504px]">
+              <HomeDesignToolCallout
+                homeName={designToolDiscovery.homeName}
+                href={designToolDiscovery.href}
+                variant="primary"
+                availability={designToolDiscovery.availability}
+                pricingSquareFeet={model.squareFeet}
+                appearance="editorial"
+                editorialImage={{ src: model.images[1], alt: model.name + " architectural gallery" }}
+              />
+            </div>
+          </section>
+        ) : null}
+
         {configuratorDefinition ? (
           <Suspense fallback={<section id="home-inclusions" className="px-5 py-24 text-white/55">Loading Look Book options…</section>}>
             <TieredHomeConfigurator
@@ -290,6 +317,7 @@ export default async function HomeDetailPage({
         ) : null}
 
         <HomeFloorPlanViewer
+          appearance={isEditorialPilot ? "editorial" : undefined}
           model={model}
           {...sourceFidelityImageProps}
           fittedImageSizes={
@@ -322,6 +350,7 @@ export default async function HomeDetailPage({
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   referrerPolicy="strict-origin-when-cross-origin"
                   allowFullScreen
+                  loading={isEditorialPilot ? "lazy" : undefined}
                 />
               </div>
             </div>
@@ -330,8 +359,9 @@ export default async function HomeDetailPage({
 
         <section
           id="reserve"
-          className="scroll-mt-20 border-y border-white/12 px-5 py-24 sm:px-8 lg:px-12 lg:py-36"
+          className={isEditorialPilot ? "home-pilot-inquiry relative isolate scroll-mt-40 overflow-hidden border-y border-white/12 px-5 py-24 sm:px-8 lg:px-12 lg:py-32" : "scroll-mt-20 border-y border-white/12 px-5 py-24 sm:px-8 lg:px-12 lg:py-36"}
         >
+          {isEditorialPilot ? <><Image src={model.images[model.images.length - 2]} alt="" fill quality={95} unoptimized sizes="100vw" className="-z-20 object-cover object-center" /><div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#0b0c10]/95 via-[#0b0c10]/85 to-[#0b0c10]/40" /></> : null}
           <div className="mx-auto max-w-[1504px]">
             <p className="eyebrow">Ready to move forward?</p>
             <div className="mt-8 grid gap-12 lg:grid-cols-[1fr_auto] lg:items-end">
