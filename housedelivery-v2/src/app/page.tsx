@@ -33,7 +33,7 @@ export default function Home() {
         <LuxuryHero
           image={models[0].heroImage}
           customHomeCount={models.length}
-          productStatement="House Delivery brings precision manufacturing, coordinated purchasing and Canadian construction together to deliver exceptional quality, greater cost efficiency and a faster path to occupancy. One integrated housing delivery system, from architectural design through construction, for individual homes and larger developments."
+          productStatement="Precision manufacturing. Coordinated purchasing. Canadian construction. One integrated system for exceptional quality, better value and a faster path to occupancy."
           supportingCopy="Exceptional design. A smarter path to ownership. A coordinated home system built to reduce delay, waste, and uncertainty—so more of your investment can remain in the home itself."
         />
         <section
