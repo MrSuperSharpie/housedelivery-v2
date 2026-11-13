@@ -26,6 +26,11 @@ type Props = {
   imageLoading?: "eager" | "lazy";
 };
 
+const langleyNarrativeImages: Readonly<Record<string, string>> = {
+  "The landscape, invited in": "Ardenvale-House4.jpeg",
+  "Space for considered work": "Ardenvale-House8.jpeg",
+};
+
 export function HomeEditorialGalleryView({ modelName, rows, images, narrative = [], imageQuality, unoptimized, story, modelSlug = "custom-home", fullGalleryId = `${modelSlug}-full-gallery`, imageSizes, imageLoading }: Props) {
   const reducedMotion = useReducedMotion();
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -34,6 +39,19 @@ export function HomeEditorialGalleryView({ modelName, rows, images, narrative = 
   const triggerRef = useRef<HTMLButtonElement>(null);
   const isOpen = selectedIndex !== null;
   const selectedImage = selectedIndex === null ? undefined : images[selectedIndex];
+  // Bind the two Langley paragraphs to their approved images, while preserving
+  // the existing row layout and every other model's narrative placement.
+  const galleryNarratives = narrative.map((item, index) => {
+    const imageId = modelSlug === "langley" ? langleyNarrativeImages[item.title] : undefined;
+    const image = imageId ? images.find(image => image.src.split("/").at(-1) === imageId) : undefined;
+    const matchingRow = image ? rows.findIndex(row => row.images.some(candidate => candidate.src === image.src)) : -1;
+    return {
+      item,
+      rowIndex: matchingRow >= 0 ? matchingRow : index,
+      imageSrc: matchingRow >= 0 ? image?.src : undefined,
+      id: matchingRow >= 0 ? `${modelSlug}-gallery-narrative-${index}` : undefined,
+    };
+  });
 
   useEffect(() => {
     if (!isOpen) return;
@@ -76,7 +94,7 @@ export function HomeEditorialGalleryView({ modelName, rows, images, narrative = 
             <Fragment key={row.images[0].src}>
               <div className={row.kind === "full" ? "grid" : "grid gap-8 md:grid-cols-[1.15fr_0.85fr] md:items-start lg:gap-12"}>
                 {row.images.map((image, imageIndex) => (
-                  <figure key={image.src} className={row.kind === "pair" && imageIndex === 1 ? "md:mt-20" : undefined}>
+                  <figure key={image.src} aria-describedby={galleryNarratives.find(entry => entry.imageSrc === image.src)?.id} className={row.kind === "pair" && imageIndex === 1 ? "md:mt-20" : undefined}>
                     <motion.button
                       tabIndex={0}
                       type="button"
@@ -99,15 +117,15 @@ export function HomeEditorialGalleryView({ modelName, rows, images, narrative = 
                   </figure>
                 ))}
               </div>
-              {narrative[rowIndex] ? (
-                <div className="grid gap-6 border-l border-[#b9a17a]/45 pl-6 md:ml-auto md:max-w-5xl md:grid-cols-[0.75fr_1.25fr] md:gap-14 lg:pl-9">
-                  <h3 className="max-w-sm text-[clamp(1.7rem,2.7vw,2.8rem)] font-medium leading-tight tracking-[-0.045em] text-white/90">{narrative[rowIndex].title}</h3>
-                  <p className="max-w-2xl text-base leading-8 text-white/65">{narrative[rowIndex].body}</p>
+              {galleryNarratives.filter(entry => entry.rowIndex === rowIndex).map(({ item, id }) => (
+                <div key={item.title} id={id} className="grid gap-6 border-l border-[#b9a17a]/45 pl-6 md:ml-auto md:max-w-5xl md:grid-cols-[0.75fr_1.25fr] md:gap-14 lg:pl-9">
+                  <h3 className="max-w-sm text-[clamp(1.7rem,2.7vw,2.8rem)] font-medium leading-tight tracking-[-0.045em] text-white/90">{item.title}</h3>
+                  <p className="max-w-2xl text-base leading-8 text-white/65">{item.body}</p>
                 </div>
-              ) : null}
+              ))}
             </Fragment>
           ))}
-          {narrative.slice(rows.length).map(item => <div key={item.title} className="grid gap-6 border-l border-[#b9a17a]/45 pl-6 md:ml-auto md:max-w-5xl md:grid-cols-[0.75fr_1.25fr] md:gap-14"><h3 className="text-3xl font-medium tracking-[-0.045em]">{item.title}</h3><p className="text-base leading-8 text-white/65">{item.body}</p></div>)}
+          {galleryNarratives.filter(entry => entry.rowIndex >= rows.length).map(({ item }) => <div key={item.title} className="grid gap-6 border-l border-[#b9a17a]/45 pl-6 md:ml-auto md:max-w-5xl md:grid-cols-[0.75fr_1.25fr] md:gap-14"><h3 className="text-3xl font-medium tracking-[-0.045em]">{item.title}</h3><p className="text-base leading-8 text-white/65">{item.body}</p></div>)}
         </div>
       </div>
       {selectedImage && selectedIndex !== null ? (
