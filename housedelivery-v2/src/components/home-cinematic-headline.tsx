@@ -13,13 +13,14 @@ function canAnimate() { return window.matchMedia(motionQuery).matches; }
 function serverMotion() { return false; }
 
 /** Server-rendered words stay readable without JavaScript or animation. */
-export function HomeCinematicHeadline({ text }: { text: string }) {
-  const animate = useSyncExternalStore(subscribeMotion, canAnimate, serverMotion);
+export function HomeCinematicHeadline({ text, priority = false }: { text: string; priority?: boolean }) {
+  const motionAllowed = useSyncExternalStore(subscribeMotion, canAnimate, serverMotion);
+  const animate = motionAllowed && !priority;
   return (
-    <span className="langley-headline-mask">
+    <span className="home-editorial-headline-mask">
       <motion.span
         key={animate ? "reveal" : "still"}
-        className="langley-headline-words"
+        className="home-editorial-headline-words"
         initial={animate ? { y: "0.24em", clipPath: "inset(0 0 100% 0)" } : false}
         whileInView={{ y: "0em", clipPath: "inset(0 0 0% 0)" }}
         viewport={{ once: true, amount: 0.2 }}

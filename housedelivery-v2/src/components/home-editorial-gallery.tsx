@@ -11,14 +11,17 @@ import {
   type ContextualInclusionDestination,
 } from "@/components/inclusions-journey-links";
 import type { HomeModel } from "@/data/models";
+import type { ResolvedHomeStory } from "@/lib/custom-home-presentation";
 
-type GallerySource =
+export type GallerySource =
   | string
   | {
       src: string;
       alt: string;
       label: string;
       fit?: "cover" | "contain";
+      objectPosition?: string;
+      role?: "architecture" | "floor-plan";
     };
 
 export type GalleryImage = {
@@ -27,6 +30,7 @@ export type GalleryImage = {
   label: string;
   number: number;
   fit: "cover" | "contain";
+  objectPosition?: string;
 };
 
 export type GalleryRow =
@@ -53,34 +57,10 @@ type HomeEditorialGalleryProps = {
     showGalleryCallout?: boolean;
   };
   appearance?: "editorial";
-  cinematicSummary?: string;
+  story?: ResolvedHomeStory;
+  modelSlug?: string;
+  fullGalleryId?: string;
 };
-
-const FLOOR_PLAN_PATTERNS = [
-  "floorplan",
-  "floor-plan",
-  "floor_plan",
-  "plan",
-  "footprint",
-] as const;
-
-function isFloorPlanImage(src: string, floorPlanImage: string): boolean {
-  if (src === floorPlanImage) {
-    return true;
-  }
-  const haystack = decodeURIComponent(src).toLowerCase();
-  return FLOOR_PLAN_PATTERNS.some((pattern) => haystack.includes(pattern));
-}
-
-const galleryLabels = [
-  "Material and atmosphere",
-  "Living volume",
-  "Kitchen and dining",
-  "Private retreat",
-  "Bath and finish study",
-  "Exterior rhythm",
-  "Interior perspective",
-] as const;
 
 function getImageSrc(image: GallerySource): string {
   return typeof image === "string" ? image : image.src;
@@ -91,10 +71,11 @@ function buildGalleryRows(
   modelName: string,
 ): GalleryRow[] {
   const items = images.map((image, index) => {
-    const fallbackLabel = galleryLabels[index % galleryLabels.length];
+    const fallbackLabel = "Architectural view";
 
     return {
       src: getImageSrc(image),
+      ...(typeof image !== "string" && image.objectPosition ? { objectPosition: image.objectPosition } : {}),
       alt:
         typeof image === "string"
           ? `${modelName} — ${fallbackLabel}`
@@ -147,16 +128,18 @@ export function HomeEditorialGallery({
   contextualInclusionsDestination,
   designToolDiscovery,
   appearance,
-  cinematicSummary,
+  story,
+  modelSlug,
+  fullGalleryId,
 }: HomeEditorialGalleryProps) {
   const shouldReduceMotion = useReducedMotion();
   const lifestyleImages = images.filter(
-    (image) => !isFloorPlanImage(getImageSrc(image), floorPlanImage),
+    (image) => getImageSrc(image) !== floorPlanImage && (typeof image === "string" || image.role !== "floor-plan"),
   );
   const rows = buildGalleryRows(lifestyleImages, modelName);
 
   if (appearance === "editorial") {
-    return <HomeEditorialGalleryView modelName={modelName} rows={rows} images={rows.flatMap((row) => row.images)} narrative={narrative} imageQuality={imageQuality} unoptimized={unoptimized} cinematicSummary={cinematicSummary} />;
+    return <HomeEditorialGalleryView modelName={modelName} rows={rows} images={rows.flatMap((row) => row.images)} narrative={narrative} imageQuality={imageQuality} unoptimized={unoptimized} story={story} modelSlug={modelSlug} fullGalleryId={fullGalleryId} imageSizes={imageSizes} imageLoading={imageLoading} />;
   }
 
   return (

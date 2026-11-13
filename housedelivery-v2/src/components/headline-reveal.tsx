@@ -7,6 +7,7 @@ import { cn } from "@/lib/cn";
 
 type HeadlineRevealProps = {
   children: ReactNode;
+  disabled?: boolean;
   className?: string;
   delay?: number;
   trigger?: "viewport" | "mount";
@@ -18,6 +19,7 @@ const luxuryEase: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 export function HeadlineReveal({
   children,
+  disabled = false,
   className,
   delay = 0,
   trigger = "viewport",
@@ -55,13 +57,13 @@ export function HeadlineReveal({
       )}
     >
       <motion.div
-        initial={shouldReduceMotion ? false : initial}
+        initial={disabled || shouldReduceMotion ? false : initial}
         animate={trigger === "mount" ? visible : undefined}
         whileInView={trigger === "viewport" ? visible : undefined}
         viewport={revealViewport}
         transition={{
-          duration: shouldReduceMotion ? 0 : 1,
-          delay: shouldReduceMotion ? 0 : delay,
+          duration: disabled || shouldReduceMotion ? 0 : 1,
+          delay: disabled || shouldReduceMotion ? 0 : delay,
           ease: luxuryEase,
         }}
         className="mb-[clamp(-1.25rem,-1vw,-0.4rem)] transform-gpu pb-[clamp(0.4rem,1vw,1.25rem)] will-change-[transform,opacity,clip-path]"

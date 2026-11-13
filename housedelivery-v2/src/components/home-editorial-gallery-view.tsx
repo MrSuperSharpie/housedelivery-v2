@@ -10,6 +10,7 @@ import { HomeCinematicStory } from "@/components/home-cinematic-story";
 import { HomeCinematicHeadline } from "@/components/home-cinematic-headline";
 import type { HomeModel } from "@/data/models";
 import { cn } from "@/lib/cn";
+import type { ResolvedHomeStory } from "@/lib/custom-home-presentation";
 
 type Props = {
   modelName: string;
@@ -18,10 +19,14 @@ type Props = {
   narrative: HomeModel["narrative"];
   imageQuality: number;
   unoptimized: boolean;
-  cinematicSummary?: string;
+  story?: ResolvedHomeStory;
+  modelSlug?: string;
+  fullGalleryId?: string;
+  imageSizes: { full: string; pair: string };
+  imageLoading?: "eager" | "lazy";
 };
 
-export function HomeEditorialGalleryView({ modelName, rows, images, narrative = [], imageQuality, unoptimized, cinematicSummary }: Props) {
+export function HomeEditorialGalleryView({ modelName, rows, images, narrative = [], imageQuality, unoptimized, story, modelSlug = "custom-home", fullGalleryId = `${modelSlug}-full-gallery`, imageSizes, imageLoading }: Props) {
   const reducedMotion = useReducedMotion();
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -65,14 +70,15 @@ export function HomeEditorialGalleryView({ modelName, rows, images, narrative = 
           </div>
           <p className="max-w-sm text-sm leading-7 text-white/65">Explore the residence through {images.length} architectural views. Select an image to see the full composition.</p>
         </div>
-        {cinematicSummary ? <HomeCinematicStory images={images} narrative={narrative} summary={cinematicSummary} onOpenImage={openImage} /> : null}
-        <div id="langley-full-gallery" className="space-y-16 lg:space-y-24">
+        {story ? <HomeCinematicStory modelName={modelName} modelSlug={modelSlug} story={story} fullGalleryId={fullGalleryId} onOpenImage={openImage} imageQuality={imageQuality} unoptimized={unoptimized} imageSizes={imageSizes} imageLoading={imageLoading} /> : null}
+        <div id={fullGalleryId} data-home-full-gallery className="space-y-16 lg:space-y-24">
           {rows.map((row, rowIndex) => (
             <Fragment key={row.images[0].src}>
               <div className={row.kind === "full" ? "grid" : "grid gap-8 md:grid-cols-[1.15fr_0.85fr] md:items-start lg:gap-12"}>
                 {row.images.map((image, imageIndex) => (
                   <figure key={image.src} className={row.kind === "pair" && imageIndex === 1 ? "md:mt-20" : undefined}>
                     <motion.button
+                      tabIndex={0}
                       type="button"
                       aria-haspopup="dialog"
                       aria-label={"Enlarge architectural image " + image.number + " for " + modelName}
@@ -83,7 +89,7 @@ export function HomeEditorialGalleryView({ modelName, rows, images, narrative = 
                       transition={{ type: "spring", stiffness: 280, damping: 28 }}
                       className={cn("group relative block w-full cursor-zoom-in overflow-hidden bg-[#17191e] text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#d5c29f]", row.kind === "full" ? "aspect-[4/3] sm:aspect-[1.9/1]" : "aspect-[4/3]")}
                     >
-                      <Image src={image.src} alt={image.alt} fill quality={imageQuality} unoptimized={unoptimized} loading="lazy" sizes={row.kind === "full" ? "(max-width: 1599px) 95vw, 1504px" : "(max-width: 767px) 100vw, 58vw"} className={cn("transition-transform duration-700 ease-out group-hover:scale-[1.02] motion-reduce:transform-none", image.fit === "contain" ? "bg-[#e7e3d8] object-contain p-4" : "object-cover")} />
+                      <Image src={image.src} alt={image.alt} fill quality={imageQuality} unoptimized={unoptimized} loading={imageLoading ?? "lazy"} sizes={row.kind === "full" ? imageSizes.full : imageSizes.pair} style={image.objectPosition ? { objectPosition: image.objectPosition } : undefined} className={cn("transition-transform duration-700 ease-out group-hover:scale-[1.02] motion-reduce:transform-none", image.fit === "contain" ? "bg-[#e7e3d8] object-contain p-4" : "object-cover")} />
                       <span className="absolute bottom-5 right-5 inline-flex min-h-11 items-center gap-4 border border-white/40 bg-[#0b0c10]/75 px-4 text-[9px] font-semibold uppercase tracking-[0.16em] text-white backdrop-blur-sm"><Maximize2 size={14} aria-hidden="true" /> View larger</span>
                     </motion.button>
                     <figcaption className="mt-4 flex items-baseline justify-between gap-5 border-b border-white/20 pb-4">
@@ -101,6 +107,7 @@ export function HomeEditorialGalleryView({ modelName, rows, images, narrative = 
               ) : null}
             </Fragment>
           ))}
+          {narrative.slice(rows.length).map(item => <div key={item.title} className="grid gap-6 border-l border-[#b9a17a]/45 pl-6 md:ml-auto md:max-w-5xl md:grid-cols-[0.75fr_1.25fr] md:gap-14"><h3 className="text-3xl font-medium tracking-[-0.045em]">{item.title}</h3><p className="text-base leading-8 text-white/65">{item.body}</p></div>)}
         </div>
       </div>
       {selectedImage && selectedIndex !== null ? (
@@ -128,7 +135,7 @@ export function HomeEditorialGalleryView({ modelName, rows, images, narrative = 
           <div className="flex gap-3 overflow-x-auto border-t border-white/15 p-4 sm:px-7" aria-label="Choose an architectural image">
             {images.map((image, index) => (
               <button key={image.src} type="button" onClick={() => setSelectedIndex(index)} aria-label={"View gallery image " + image.number} aria-pressed={selectedIndex === index} className={cn("relative h-14 w-20 shrink-0 border-2 focus-visible:outline-2 focus-visible:outline-white", selectedIndex === index ? "border-[#d5c29f]" : "border-transparent")}>
-                <Image src={image.src} alt="" fill quality={95} sizes="80px" className="object-cover" />
+                <Image src={image.src} alt="" fill quality={imageQuality} unoptimized={unoptimized} loading="lazy" sizes="80px" className="object-cover" style={image.objectPosition ? { objectPosition: image.objectPosition } : undefined} />
               </button>
             ))}
           </div>

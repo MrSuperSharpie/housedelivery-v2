@@ -1,19 +1,18 @@
 "use client";
 
-import {
-  motion, useMotionValueEvent, useScroll, useSpring, useTransform,
-  type MotionValue,
-} from "framer-motion";
+import { motion, useMotionValueEvent, useScroll, useSpring, useTransform, type MotionValue } from "framer-motion";
 import { ArrowDown, Maximize2 } from "lucide-react";
 import Image from "next/image";
-import { useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useId, useRef, useState, useSyncExternalStore, type RefObject } from "react";
 
-import type { GalleryImage } from "@/components/home-editorial-gallery";
-import type { HomeModel } from "@/data/models";
+import type { ResolvedHomeScene, ResolvedHomeStory } from "@/lib/custom-home-presentation";
 
-// Short screens, touch-sized layouts and reduced motion use the same content
-// in normal document flow. No wheel/touch interception or scroll snapping.
-const stageQuery = "(min-width: 1024px) and (min-height: 700px) and (prefers-reduced-motion: no-preference)";
+type Enlarge = (index: number, trigger: HTMLButtonElement) => void;
+type StoryProps = {
+  modelName: string; modelSlug: string; story: ResolvedHomeStory; fullGalleryId: string; onOpenImage: Enlarge;
+  imageQuality: number; unoptimized: boolean; imageSizes: { full: string; pair: string }; imageLoading?: "eager" | "lazy";
+};
+const stageQuery = "(min-width: 1024px) and (min-height: 700px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)";
 function subscribeStage(callback: () => void) {
   const query = window.matchMedia(stageQuery);
   query.addEventListener("change", callback);
@@ -22,80 +21,97 @@ function subscribeStage(callback: () => void) {
 function hasStage() { return window.matchMedia(stageQuery).matches; }
 function serverStage() { return false; }
 const spring = { type: "spring", stiffness: 280, damping: 28 } as const;
-const labels = ["The arrival", "The experience", "The lifestyle"];
 
-type Chapter = { image: GalleryImage; title: string; body: string; galleryIndex: number };
-type Enlarge = (index: number, trigger: HTMLButtonElement) => void;
-
-function StoryChapter({ chapter, index, progress, sticky, onOpenImage }: {
-  chapter: Chapter; index: number; progress: MotionValue<number>; sticky: boolean; onOpenImage: Enlarge;
-}) {
-  const range = index === 0 ? [0, 0.23, 0.36, 1] : index === 1 ? [0, 0.23, 0.36, 0.60, 0.73, 1] : [0, 0.60, 0.73, 1];
-  const opacity = useTransform(progress, range, index === 1 ? [0, 0, 1, 1, 0, 0] : index === 0 ? [1, 1, 0, 0] : [0, 0, 1, 1]);
-  const start = index === 0 ? 0 : index === 1 ? 0.27 : 0.64;
-  const end = index === 0 ? 0.34 : index === 1 ? 0.70 : 1;
-  const scale = useTransform(progress, [start, end], [1.045, 1]);
-  const copyY = useTransform(progress, [start, start + 0.12, end], [index === 0 ? 0 : 24, 0, -16]);
-  // Let the photographs dissolve continuously, but clear one chapter's words
-  // before the next enters so copy stays legible even when scrolling stops.
-  const copyRange = index === 0 ? [0, 0.19, 0.26, 1] : index === 1 ? [0, 0.32, 0.42, 0.56, 0.63, 1] : [0, 0.69, 0.79, 1];
-  const copyOpacity = useTransform(progress, copyRange, index === 1 ? [0, 0, 1, 1, 0, 0] : index === 0 ? [1, 1, 0, 0] : [0, 0, 1, 1]);
-  const titleMask = useTransform(progress, [start, start + 0.12], [index === 0 ? "inset(0 0 0% 0)" : "inset(0 0 100% 0)", "inset(0 0 0% 0)"]);
-  return (
-    <motion.article className="langley-cinematic-chapter" data-cinematic-chapter={index + 1} style={sticky ? { opacity } : undefined}>
-      <div className="langley-cinematic-image">
-        <motion.div className="absolute inset-0" style={sticky ? { scale } : undefined}>
-          <Image src={chapter.image.src} alt={chapter.image.alt} fill quality={95} sizes="(max-width: 1023px) 134vw, (max-width: 1599px) calc(100vw - 96px), 1504px" loading="lazy" className="object-cover" />
-        </motion.div>
-        <button type="button" className="langley-sequence-enlarge" aria-haspopup="dialog" aria-label={"Enlarge " + labels[index].toLowerCase() + " image"} onClick={(event) => onOpenImage(chapter.galleryIndex, event.currentTarget)}><Maximize2 size={15} aria-hidden="true" /><span>View larger</span></button>
-      </div>
-      <motion.div className="langley-cinematic-copy" style={sticky ? { y: copyY, opacity: copyOpacity } : undefined}>
-        <p className="langley-cinematic-eyebrow">{String(index + 1).padStart(2, "0")} <span /> {labels[index]}</p>
-        <h3><motion.span style={sticky ? { clipPath: titleMask } : undefined}>{chapter.title}</motion.span></h3>
-        <p className="langley-cinematic-description">{chapter.body}</p>
-      </motion.div>
-    </motion.article>
-  );
+function ChapterCopy({ scene, index }: { scene: ResolvedHomeScene; index: number }) {
+  return <><p className="home-story-eyebrow">{String(index + 1).padStart(2, "0")} <span /> {scene.phaseLabel}</p><h3><span>{scene.title}</span></h3><p className="home-story-description">{scene.body}</p></>;
 }
 
-export function HomeCinematicStory({ images, narrative = [], summary, onOpenImage }: {
-  images: readonly GalleryImage[]; narrative: HomeModel["narrative"]; summary: string; onOpenImage: Enlarge;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const sticky = useSyncExternalStore(subscribeStage, hasStage, serverStage);
+function StoryImage({ scene, props, pinned = false }: { scene: ResolvedHomeScene; props: StoryProps; pinned?: boolean }) {
+  return <Image src={scene.src} alt={pinned ? "" : scene.alt} fill quality={props.imageQuality} unoptimized={props.unoptimized} sizes={pinned ? props.imageSizes.full : props.imageSizes.pair} loading={props.imageLoading ?? "lazy"} className={scene.fit === "contain" ? "object-contain" : "object-cover"} style={scene.objectPosition ? { objectPosition: scene.objectPosition } : undefined} />;
+}
+
+function FlowStory({ props }: { props: StoryProps }) {
+  return <div className="home-story-flow" data-story-flow={props.story.mode}>
+    {props.story.scenes.map((scene, index) => <article key={scene.sceneId} className="home-story-chapter" data-cinematic-chapter={scene.sceneId}>
+      <div className="home-story-image">
+        <StoryImage scene={scene} props={props} />
+        <button type="button" className="home-sequence-enlarge" aria-haspopup="dialog" aria-label={`Enlarge ${props.modelName}: ${scene.phaseLabel}`} data-home-story-image={scene.sceneId} onClick={event => props.onOpenImage(scene.galleryIndex, event.currentTarget)}><Maximize2 size={15} aria-hidden="true" /><span>View larger</span></button>
+      </div>
+      <div className="home-story-copy"><ChapterCopy scene={scene} index={index} /></div>
+    </article>)}
+  </div>;
+}
+
+function PinnedChapter({ props, scene, index, progress }: { props: StoryProps; scene: ResolvedHomeScene; index: number; progress: MotionValue<number> }) {
+  const previous = props.story.transitions[index - 1];
+  const next = props.story.transitions[index];
+  const range = previous && next ? [0, previous.from, previous.to, next.from, next.to, 1] : next ? [0, next.from, next.to, 1] : previous ? [0, previous.from, previous.to, 1] : [0, 1];
+  const values = previous && next ? [0, 0, 1, 1, 0, 0] : next ? [1, 1, 0, 0] : previous ? [0, 0, 1, 1] : [1, 1];
+  const opacity = useTransform(progress, range, values);
+  const start = previous ? previous.from + 0.04 : 0;
+  const end = next ? next.to - 0.03 : 1;
+  const scale = useTransform(progress, [start, end], [1.045, 1]);
+  const copyY = useTransform(progress, [start, start + 0.12, end], [previous ? 24 : 0, 0, -16]);
+  const titleMask = useTransform(progress, [start, start + 0.12], [previous ? "inset(0 0 100% 0)" : "inset(0 0 0% 0)", "inset(0 0 0% 0)"]);
+  // Independent copy timing preserves the approved Langley pause between chapters.
+  const copyRange = previous && next ? [0, previous.to - 0.04, previous.to + 0.06, next.from - 0.04, next.from + 0.03, 1] : next ? [0, next.from - 0.04, next.from + 0.03, 1] : previous ? [0, previous.to - 0.04, previous.to + 0.06, 1] : [0, 1];
+  const copyOpacity = useTransform(progress, copyRange, values);
+  return <motion.article className="home-story-chapter" data-cinematic-chapter={scene.sceneId} aria-hidden="true" style={{ opacity }}>
+    <div className="home-story-image"><motion.div className="absolute inset-0" style={{ scale }}><StoryImage scene={scene} props={props} pinned /></motion.div></div>
+    <motion.div className="home-story-copy" style={{ y: copyY, opacity: copyOpacity }}><p className="home-story-eyebrow">{String(index + 1).padStart(2, "0")} <span /> {scene.phaseLabel}</p><h3><motion.span style={{ clipPath: titleMask }}>{scene.title}</motion.span></h3><p className="home-story-description">{scene.body}</p></motion.div>
+  </motion.article>;
+}
+
+function PinnedStory({ props, target }: { props: StoryProps; target: RefObject<HTMLDivElement | null> }) {
+  const instance = useId();
   const [active, setActive] = useState(0);
   const activeRef = useRef(0);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start 146px", "end end"] });
+  const { scrollYProgress } = useScroll({ target, offset: ["start 146px", "end end"] });
   const progress = useSpring(scrollYProgress, { stiffness: 150, damping: 35, mass: 0.6, restDelta: 0.0001 });
-  useMotionValueEvent(progress, "change", (value) => {
-    const next = value < 0.30 ? 0 : value < 0.665 ? 1 : 2;
-    if (activeRef.current !== next) {
-      activeRef.current = next;
-      setActive(next);
-    }
+  useMotionValueEvent(progress, "change", value => {
+    const next = props.story.transitions.filter(window => value >= (window.from + window.to) / 2).length;
+    if (activeRef.current !== next) { activeRef.current = next; setActive(next); }
   });
-
-  if (images.length < 6 || !narrative[0] || !narrative[3]) return null;
-  const chapters: Chapter[] = [
-    { image: images[0], title: narrative[0].title, body: summary, galleryIndex: 0 },
-    { image: images[2], title: "Space, light, and seamless indoor-outdoor flow", body: narrative[0].body, galleryIndex: 2 },
-    { image: images[5], title: narrative[3].title, body: narrative[3].body, galleryIndex: 5 },
-  ];
-  return (
-    <div ref={ref} data-home-cinematic-story data-cinematic-mode={sticky ? "sticky" : "sequence"} data-cinematic-active={active + 1} className="langley-cinematic-story" aria-label="The Langley architectural story">
-      <div className="langley-cinematic-stage">
-        <div className="langley-cinematic-stage-top" aria-hidden="true">
-          <span>The Langley <span className="text-white/35">/ Three perspectives</span></span>
-          <ol>{labels.map((label, index) => <li key={label} data-active={active === index}><span>0{index + 1}</span> {label.replace("The ", "")}{active === index ? <motion.i layoutId="langley-story-marker" transition={spring} /> : null}</li>)}</ol>
-        </div>
-        {chapters.map((chapter, index) => <StoryChapter key={chapter.image.src} chapter={chapter} index={index} progress={progress} sticky={sticky} onOpenImage={onOpenImage} />)}
-        <div className="langley-cinematic-grid" aria-hidden="true" />
-        <div className="langley-cinematic-controls">
-          <motion.a href="#langley-full-gallery" whileHover={{ y: -2 }} whileTap={{ y: 0 }} transition={spring}>All architectural views <ArrowDown size={14} aria-hidden="true" /></motion.a>
-          <motion.button type="button" data-cinematic-enlarge aria-haspopup="dialog" aria-label={"Enlarge " + labels[active].toLowerCase() + " image"} onClick={(event) => onOpenImage(chapters[active].galleryIndex, event.currentTarget)} whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }} transition={spring}><Maximize2 size={15} aria-hidden="true" /> View larger</motion.button>
-        </div>
-        <motion.div className="langley-cinematic-progress" aria-hidden="true" style={sticky ? { scaleX: progress } : undefined} />
-      </div>
+  const scene = props.story.scenes[active];
+  return <>
+    {/* Complete linear reading equivalent; the overlapping visual layers are decorative. */}
+    <ol className="sr-only" aria-label={`${props.modelName} architectural chapters`}>{props.story.scenes.map(item => <li key={item.sceneId}><h3>{item.title}</h3><p>{item.body}</p></li>)}</ol>
+    <div className="home-story-stage" data-cinematic-active={scene.sceneId}>
+      <div className="home-story-stage-top" aria-hidden="true"><span>{props.modelName} <span className="text-white/65">/ {props.story.scenes.length} perspectives</span></span><ol>{props.story.scenes.map((item, index) => <li key={item.sceneId} data-active={active === index}><span>{String(index + 1).padStart(2, "0")}</span> {item.phaseLabel.replace(/^The /, "")}{active === index ? <motion.i layoutId={`${props.modelSlug}-${instance}-story-marker`} transition={spring} /> : null}</li>)}</ol></div>
+      {props.story.scenes.map((item, index) => <PinnedChapter key={item.sceneId} props={props} scene={item} index={index} progress={progress} />)}
+      <div className="home-story-grid" aria-hidden="true" />
+      <div className="home-story-controls"><motion.a href={`#${props.fullGalleryId}`} whileHover={{ y: -2 }} whileTap={{ y: 0 }} transition={spring}>All architectural views <ArrowDown size={14} aria-hidden="true" /></motion.a><motion.button type="button" data-cinematic-enlarge aria-haspopup="dialog" aria-label={`Enlarge ${props.modelName}: ${scene.phaseLabel}`} onClick={event => props.onOpenImage(scene.galleryIndex, event.currentTarget)} whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }} transition={spring}><Maximize2 size={15} aria-hidden="true" /> View larger</motion.button></div>
+      <motion.div className="home-story-progress" aria-hidden="true" style={{ scaleX: progress }} />
     </div>
-  );
+  </>;
+}
+
+export function HomeCinematicStory(props: StoryProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const probe = useRef<HTMLDivElement>(null);
+  const eligible = useSyncExternalStore(subscribeStage, hasStage, serverStage) && props.story.mode === "cinematic";
+  const [fits, setFits] = useState(false);
+  useEffect(() => {
+    const element = probe.current;
+    if (!eligible || !element || typeof ResizeObserver === "undefined") return;
+    let live = true;
+    const measure = () => {
+      if (!live) return;
+      const available = window.innerHeight - 162 - 190;
+      const tallest = Math.max(...Array.from(element.children, child => child.getBoundingClientRect().height));
+      setFits(tallest <= available);
+    };
+    const observer = new ResizeObserver(measure);
+    Array.from(element.children).forEach(child => observer.observe(child));
+    const frame = requestAnimationFrame(measure);
+    window.addEventListener("resize", measure, { passive: true });
+    void document.fonts.ready.then(measure);
+    return () => { live = false; observer.disconnect(); cancelAnimationFrame(frame); window.removeEventListener("resize", measure); };
+  }, [eligible, props.story.scenes]);
+  if (!props.story.scenes.length) return null;
+  const pinned = eligible && fits;
+  return <div ref={ref} data-home-cinematic-story data-home-story-mode={props.story.mode} data-cinematic-mode={pinned ? "sticky" : "sequence"} className="home-story-story" aria-label={`${props.modelName} architectural story`}>
+    {eligible ? <div ref={probe} className="home-story-probe" aria-hidden="true" inert>{props.story.scenes.map((scene, index) => <div key={scene.sceneId} className="home-story-copy home-story-probe-copy"><ChapterCopy scene={scene} index={index} /></div>)}</div> : null}
+    {pinned ? <PinnedStory props={props} target={ref} /> : <FlowStory props={props} />}
+  </div>;
 }

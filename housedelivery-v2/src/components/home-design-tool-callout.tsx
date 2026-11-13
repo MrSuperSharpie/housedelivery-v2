@@ -12,6 +12,7 @@ import {
   addPlannerHomeViewContextToProject,
   buildPlannerDesignHref,
 } from "@/lib/planner-design-session";
+import { matchesModelPlannerContext } from "@/lib/model-inquiry";
 import { usePlannerHomeViewContext } from "@/lib/use-planner-home-view-context";
 
 type HomeDesignToolCalloutProps = {
@@ -22,6 +23,9 @@ type HomeDesignToolCalloutProps = {
   pricingSquareFeet?: number;
   appearance?: "editorial";
   editorialImage?: { src: string; alt: string };
+  requiredChapterCount?: number;
+  areaScope?: "model" | "combined-residences";
+  plannerModelId?: string;
 };
 
 export function HomeDesignToolCallout({
@@ -32,6 +36,9 @@ export function HomeDesignToolCallout({
   pricingSquareFeet,
   appearance,
   editorialImage,
+  requiredChapterCount,
+  areaScope,
+  plannerModelId,
 }: HomeDesignToolCalloutProps) {
   const isPrimary = variant === "primary";
   const isPreviewOnly = availability === "preview-only";
@@ -42,7 +49,7 @@ export function HomeDesignToolCallout({
   const plannerHomeContext = usePlannerHomeViewContext();
   const [plannerActionError, setPlannerActionError] = useState("");
   const activePlannerContext =
-    plannerHomeContext?.homeName === homeName ? plannerHomeContext : undefined;
+    matchesModelPlannerContext(plannerHomeContext, { id: plannerModelId, name: homeName }) ? plannerHomeContext : undefined;
 
   function addHomeToProject() {
     if (!activePlannerContext || isPreviewOnly) return;
@@ -160,6 +167,8 @@ export function HomeDesignToolCallout({
       </div>
 
       <div className={cn("max-w-2xl", isPrimary && "lg:justify-self-end")}>
+        {appearance === "editorial" && requiredChapterCount ? <p className="mb-6 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#d5c29f]">{requiredChapterCount} required design chapters</p> : null}
+        {appearance === "editorial" && areaScope === "combined-residences" && pricingSquareFeet ? <p className="mb-6 text-sm leading-7 text-white/80">Combined model area: {pricingSquareFeet.toLocaleString("en-CA")} sq. ft. Select each residence’s interior tier independently in the existing Look Book.</p> : null}
         {pricingSquareFeet && isPrimary ? (
           <div data-home-pricing>
             <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55">

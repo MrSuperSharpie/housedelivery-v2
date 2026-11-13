@@ -20,8 +20,10 @@ import {
   type HomeExteriorPresentation,
 } from "@/data/first-nations-cultural-design";
 import { cn } from "@/lib/cn";
-import { readPlannerHomeViewReturnHref } from "@/lib/planner-design-session";
+import { readPlannerHomeViewContext, readPlannerHomeViewReturnHref } from "@/lib/planner-design-session";
 import { HomeCinematicHeadline } from "@/components/home-cinematic-headline";
+import { matchesModelPlannerContext, readModelProjectReturn } from "@/lib/model-inquiry";
+import { trackAnalyticsEvent } from "@/lib/analytics";
 
 type HomeDetailHeroProps = {
   model: {
@@ -45,14 +47,23 @@ type HomeDetailHeroProps = {
   imagePresentation?: "full-bleed" | "contained";
   initialExteriorPresentation?: HomeExteriorPresentation;
   appearance?: "editorial";
+  valueLine?: string;
+  primaryAction?: { label: string; href: string; kind: "plan" | "design" };
+  editorialImageFit?: "cover" | "contain";
+  editorialImagePosition?: string;
+  plannerHomeName?: string;
+  plannerModelId?: string;
+  hasDesignTool?: boolean;
 };
 
 export function HomeDetailHeroFromQuery(
   props: Omit<HomeDetailHeroProps, "initialExteriorPresentation">,
 ) {
   const searchParams = useSearchParams();
-  const plannerReturnHref =
-    props.model.slug === "salt-spring"
+  const context = readPlannerHomeViewContext(searchParams.toString());
+  const plannerReturnHref = props.plannerModelId ? readModelProjectReturn(searchParams.toString(), props.plannerModelId) : matchesModelPlannerContext(context, { name: props.plannerHomeName })
+    ? context.returnHref
+    : props.model.slug === "salt-spring"
       ? readPlannerHomeViewReturnHref(searchParams.toString())
       : undefined;
 
@@ -87,6 +98,7 @@ export function HomeDetailHero({
   imagePresentation = "full-bleed",
   initialExteriorPresentation = "contemporary",
   appearance,
+  valueLine, primaryAction, editorialImageFit = "cover", editorialImagePosition, hasDesignTool = true,
 }: HomeDetailHeroProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const supportsIndigenousInspired = Boolean(
@@ -138,7 +150,7 @@ export function HomeDetailHero({
 
   if (appearance === "editorial") {
     return (
-      <section ref={sectionRef} id="top" data-home-exterior-presentation={exteriorPresentation} className="home-pilot-hero">
+      <section ref={sectionRef} id="top" data-home-exterior-presentation={exteriorPresentation} data-home-name-length={model.name.length > 18 ? "long" : undefined} className="home-pilot-hero">
         <div className="mx-auto max-w-[1600px] px-5 sm:px-8 lg:px-12">
           <div className="flex items-center justify-between border-b border-black/20 pb-5 text-[9px] font-semibold uppercase tracking-[0.18em] text-black/60">
             <Link href={collectionHref} className="inline-flex min-h-11 items-center gap-3 focus-visible:outline-2 focus-visible:outline-black">
@@ -148,22 +160,23 @@ export function HomeDetailHero({
           </div>
           <div className="home-pilot-hero-layout">
             <div className="home-pilot-hero-title">
-              <p className="mb-5 flex items-center gap-3 text-[9px] font-semibold uppercase tracking-[0.2em] text-[#756449]">
+              <p className="mb-5 flex items-center gap-3 text-[9px] font-semibold uppercase tracking-[0.2em] text-[#736247]">
                 <span className="h-px w-7 bg-[#8a7a62]" /> {model.locationLabel}
               </p>
-              <motion.h1 style={shouldReduceMotion ? undefined : { y: editorialTitleY }}><HomeCinematicHeadline text={model.name} />{titleSuffix ? <>{" "}<span>{titleSuffix}</span></> : null}</motion.h1>
+              <motion.h1 style={{ y: shouldReduceMotion ? 0 : editorialTitleY }}><HomeCinematicHeadline text={model.name} priority />{titleSuffix ? <>{" "}<span>{titleSuffix}</span></> : null}</motion.h1>
             </div>
             <div className="home-pilot-hero-summary max-w-md">
-              <p className="text-sm leading-7 text-black/65">{model.summary}</p>
+              <p className="text-sm leading-7 text-black/65">{valueLine ?? model.summary}</p>
+              {primaryAction ? <a data-home-primary-action href={primaryAction.href} onClick={() => trackAnalyticsEvent("model_cta_click", { model_slug: model.slug, action: primaryAction.kind })} className="mt-5 inline-flex min-h-12 items-center justify-between gap-7 bg-[#0b0c10] px-5 py-3 text-[10px] font-semibold uppercase leading-5 tracking-[0.1em] text-[#e7e3d8] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black">{primaryAction.label}<ArrowUpRight size={15} aria-hidden="true" /></a> : null}
               <p className="mt-5 text-[9px] font-semibold uppercase tracking-[0.16em] text-black/55">
                 {model.squareFeet?.toLocaleString()} sq. ft. <span className="px-3 text-black/25">/</span> {secondaryBadge}
               </p>
             </div>
           <div className="home-pilot-hero-image" data-home-exterior-image={exterior.image.src}>
-            <motion.div className="absolute inset-0" style={shouldReduceMotion ? undefined : { scale: editorialScale }}>
-            <Image src={exterior.image.src} alt={activeImageAlt} fill quality={imageQuality} unoptimized={unoptimized} loading="eager" fetchPriority="high" sizes="(max-width: 639px) calc(100vw - 40px), (max-width: 1023px) calc(100vw - 64px), (max-width: 1599px) calc(100vw - 96px), 1504px" className="object-cover object-center" />
+            <motion.div className="absolute inset-0" style={{ scale: shouldReduceMotion ? 1 : editorialScale }}>
+            <Image src={exterior.image.src} alt={activeImageAlt} fill quality={imageQuality} unoptimized={unoptimized} loading="eager" fetchPriority="high" sizes="(max-width: 639px) calc(100vw - 40px), (max-width: 1023px) calc(100vw - 64px), (max-width: 1599px) calc(100vw - 96px), 1504px" className={editorialImageFit === "contain" ? "object-contain" : "object-cover"} style={editorialImagePosition ? { objectPosition: editorialImagePosition } : undefined} />
             </motion.div>
-            <motion.a href="#gallery" whileHover={shouldReduceMotion ? undefined : { y: -2 }} whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }} transition={{ type: "spring", stiffness: 280, damping: 28 }} className="absolute bottom-5 right-5 inline-flex min-h-11 items-center gap-6 border border-white/40 bg-[#0b0c10]/75 px-5 text-[9px] font-semibold uppercase tracking-[0.16em] text-white backdrop-blur-sm transition-colors hover:bg-[#0b0c10] focus-visible:outline-2 focus-visible:outline-white sm:bottom-7 sm:right-7">
+            <motion.a tabIndex={0} href="#gallery" whileHover={shouldReduceMotion ? undefined : { y: -2 }} whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }} transition={{ type: "spring", stiffness: 280, damping: 28 }} className="absolute bottom-5 right-5 inline-flex min-h-11 items-center gap-6 border border-white/40 bg-[#0b0c10]/75 px-5 text-[9px] font-semibold uppercase tracking-[0.16em] text-white backdrop-blur-sm transition-colors hover:bg-[#0b0c10] focus-visible:outline-2 focus-visible:outline-white sm:bottom-7 sm:right-7">
               Architectural gallery <ArrowUpRight size={15} aria-hidden="true" />
             </motion.a>
           </div>
@@ -178,9 +191,9 @@ export function HomeDetailHero({
                 </div>
               </fieldset>
             ) : null}
-            <motion.a href="#home-inclusions" whileHover={shouldReduceMotion ? undefined : { y: -2 }} whileTap={shouldReduceMotion ? undefined : { y: 0 }} transition={{ type: "spring", stiffness: 280, damping: 28 }} className="inline-flex min-h-11 items-center justify-between gap-8 border-b border-black/40 text-[10px] font-semibold uppercase tracking-[0.16em] text-black/80 transition-colors hover:text-black focus-visible:outline-2 focus-visible:outline-black">
+            {hasDesignTool ? <motion.a tabIndex={0} href="#home-inclusions" whileHover={shouldReduceMotion ? undefined : { y: -2 }} whileTap={shouldReduceMotion ? undefined : { y: 0 }} transition={{ type: "spring", stiffness: 280, damping: 28 }} className="inline-flex min-h-11 items-center justify-between gap-8 border-b border-black/40 text-[10px] font-semibold uppercase tracking-[0.16em] text-black/80 transition-colors hover:text-black focus-visible:outline-2 focus-visible:outline-black">
               Create your Look Book <ArrowUpRight size={15} aria-hidden="true" />
-            </motion.a>
+            </motion.a> : null}
           </div>
           </div>
         </div>

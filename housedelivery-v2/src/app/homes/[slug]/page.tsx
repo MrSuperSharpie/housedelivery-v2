@@ -8,6 +8,9 @@ import { Suspense } from "react";
 import { HeadlineReveal } from "@/components/headline-reveal";
 import { TieredHomeConfigurator } from "@/components/home-configurator";
 import { HomeArchitecturalSpecifications } from "@/components/home-architectural-specifications";
+import { HomeProjectInquiry } from "@/components/home-project-inquiry";
+import { resolveCustomHomePresentation } from "@/lib/custom-home-presentation";
+import { buildModelInquiryHref } from "@/lib/model-inquiry";
 import { HomeDetailNavigation } from "@/components/home-detail-navigation";
 import { HomeDesignToolCallout } from "@/components/home-design-tool-callout";
 import {
@@ -103,7 +106,6 @@ export default async function HomeDetailPage({
     notFound();
   }
 
-  const isEditorialPilot = model.slug === "langley";
   const nextModel: HomeModel = models[(modelIndex + 1) % models.length];
   const configuratorRegistration = getHomeConfiguratorRegistration(
     "custom-home",
@@ -118,12 +120,14 @@ export default async function HomeDetailPage({
     configuratorRegistration?.migrationStatus === "canonical" &&
     configuratorDefinition !== undefined;
   const isPreviewModel = model.projectSelectionStatus === "preview-only";
+  const presentation = resolveCustomHomePresentation(model, { hasDesignTool: hasApprovedLookBook && !isPreviewModel });
+  const isEditorialPresentation = Boolean(presentation);
   const designToolDiscovery = {
     homeName:
       configuratorDefinition?.residenceLabel ??
       configuratorRegistration?.homeName ??
       model.name.replace(/^The\s+/, ""),
-    href: hasApprovedLookBook ? "#home-inclusions" : undefined,
+    href: hasApprovedLookBook && !isPreviewModel ? "#home-inclusions" : undefined,
     availability: isPreviewModel
       ? ("preview-only" as const)
       : hasApprovedLookBook
@@ -165,16 +169,23 @@ export default async function HomeDetailPage({
   return (
     <>
       <SiteHeader />
-      <main className="bg-[#0b0c10] text-white" data-home-detail-presentation={isEditorialPilot ? "editorial" : undefined}>
+      <main className="bg-[#0b0c10] text-white" data-home-detail-presentation={isEditorialPresentation ? "editorial" : undefined}>
         <Suspense
           fallback={
             <HomeDetailHero
               model={model}
               modelNumber={modelIndex + 1}
               modelCount={models.length}
-              appearance={isEditorialPilot ? "editorial" : undefined}
+              appearance={isEditorialPresentation ? "editorial" : undefined}
+              valueLine={presentation?.hero.valueLine}
+              primaryAction={presentation?.hero.primaryAction}
+              editorialImageFit={presentation?.hero.fit}
+              editorialImagePosition={presentation?.hero.objectPosition}
+              plannerHomeName={configuratorDefinition?.homeName}
+              plannerModelId={`custom:${model.slug}`}
+              hasDesignTool={hasApprovedLookBook && !isPreviewModel}
               titleSuffix={
-                getResidenceName(model) === model.name ? null : "House"
+                isEditorialPresentation || getResidenceName(model) === model.name ? null : "House"
               }
               imageAlt={`${getResidenceName(model)} exterior`}
               {...sourceFidelityImageProps}
@@ -185,20 +196,27 @@ export default async function HomeDetailPage({
             model={model}
             modelNumber={modelIndex + 1}
             modelCount={models.length}
-            appearance={isEditorialPilot ? "editorial" : undefined}
-            titleSuffix={
-              getResidenceName(model) === model.name ? null : "House"
+            appearance={isEditorialPresentation ? "editorial" : undefined}
+            valueLine={presentation?.hero.valueLine}
+              primaryAction={presentation?.hero.primaryAction}
+              editorialImageFit={presentation?.hero.fit}
+              editorialImagePosition={presentation?.hero.objectPosition}
+              plannerHomeName={configuratorDefinition?.homeName}
+              plannerModelId={`custom:${model.slug}`}
+              hasDesignTool={hasApprovedLookBook && !isPreviewModel}
+              titleSuffix={
+              isEditorialPresentation || getResidenceName(model) === model.name ? null : "House"
             }
             imageAlt={`${getResidenceName(model)} exterior`}
             {...sourceFidelityImageProps}
           />
         </Suspense>
 
-        {isEditorialPilot ? <HomeDetailNavigation homeName={model.name} hasVideo={Boolean(model.video)} /> : null}
+        {isEditorialPresentation ? <HomeDetailNavigation homeName={model.name} modelSlug={model.slug} sections={presentation?.sections} hasVideo={Boolean(model.video)} /> : null}
 
         <section
           id="overview"
-          className={isEditorialPilot ? "home-pilot-overview scroll-mt-20 px-5 py-20 sm:px-8 lg:px-12 lg:py-28" : "scroll-mt-20 px-5 py-28 sm:px-8 lg:px-12 lg:py-40"}
+          className={isEditorialPresentation ? "home-pilot-overview scroll-mt-20 px-5 py-20 sm:px-8 lg:px-12 lg:py-28" : "scroll-mt-20 px-5 py-28 sm:px-8 lg:px-12 lg:py-40"}
         >
           <div className="mx-auto max-w-[1504px]">
             <div className="grid gap-16 lg:grid-cols-[1.1fr_0.9fr] lg:gap-24">
@@ -216,6 +234,7 @@ export default async function HomeDetailPage({
                   data-content-block="model-description"
                   className="max-w-prose"
                 >
+                  {presentation ? <p data-model-original-summary className="mb-5 text-lg leading-relaxed text-neutral-400">{model.summary}</p> : null}
                   <p className="text-lg leading-relaxed text-neutral-400">
                     {model.description}
                   </p>
@@ -223,7 +242,7 @@ export default async function HomeDetailPage({
               </div>
             </div>
 
-            {isEditorialPilot ? <HomeArchitecturalSpecifications model={model} specifications={specifications} /> : (<>
+            {isEditorialPresentation ? <HomeArchitecturalSpecifications areaScope={presentation?.areaScope} model={model} specifications={specifications} /> : (<>
             <div className="mt-24 grid border-l border-t border-white/14 sm:grid-cols-2 lg:grid-cols-3">
               {specifications.map((specification, index) => (
                 <dl
@@ -261,7 +280,7 @@ export default async function HomeDetailPage({
             </div>
             </>)}
 
-            {!isEditorialPilot ? <HomeDesignToolCallout
+            {!isEditorialPresentation ? <HomeDesignToolCallout
               homeName={designToolDiscovery.homeName}
               href={designToolDiscovery.href}
               variant="primary"
@@ -272,10 +291,12 @@ export default async function HomeDetailPage({
         </section>
 
         <HomeEditorialGallery
-          cinematicSummary={isEditorialPilot ? model.summary : undefined}
-          appearance={isEditorialPilot ? "editorial" : undefined}
+          story={presentation?.story}
+          modelSlug={model.slug}
+          fullGalleryId={presentation?.fullGalleryId}
+          appearance={isEditorialPresentation ? "editorial" : undefined}
           modelName={model.name}
-          images={model.images}
+          images={presentation?.gallery ?? model.images}
           floorPlanImage={model.floorPlanImage}
           narrative={model.narrative}
           designToolDiscovery={designToolDiscovery}
@@ -292,7 +313,7 @@ export default async function HomeDetailPage({
         />
 
 
-        {isEditorialPilot ? (
+        {isEditorialPresentation ? (
           <section id="finishes-pricing" className="home-pilot-finishes scroll-mt-40 px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
             <div className="mx-auto max-w-[1504px]">
               <HomeDesignToolCallout
@@ -302,13 +323,16 @@ export default async function HomeDetailPage({
                 availability={designToolDiscovery.availability}
                 pricingSquareFeet={model.squareFeet}
                 appearance="editorial"
-                editorialImage={{ src: model.images[1], alt: model.name + " architectural gallery" }}
+                editorialImage={presentation?.designImage}
+                requiredChapterCount={configuratorRegistration?.activeChapterIds.length}
+                areaScope={presentation?.areaScope}
+                plannerModelId={`custom:${model.slug}`}
               />
             </div>
           </section>
         ) : null}
 
-        {configuratorDefinition ? (
+        {hasApprovedLookBook && !isPreviewModel && configuratorDefinition ? (
           <Suspense fallback={<section id="home-inclusions" className="px-5 py-24 text-white/55">Loading Look Book options…</section>}>
             <TieredHomeConfigurator
               definition={configuratorDefinition}
@@ -318,7 +342,7 @@ export default async function HomeDetailPage({
         ) : null}
 
         <HomeFloorPlanViewer
-          appearance={isEditorialPilot ? "editorial" : undefined}
+          appearance={isEditorialPresentation ? "editorial" : undefined}
           model={model}
           {...sourceFidelityImageProps}
           fittedImageSizes={
@@ -333,7 +357,7 @@ export default async function HomeDetailPage({
               <div className="mb-12 grid gap-8 border-t border-white/15 pt-7 sm:grid-cols-2">
                 <div>
                   <p className="eyebrow">Film / Walk through the residence</p>
-                  <HeadlineReveal variant="sweep" className="mt-6">
+                  <HeadlineReveal disabled={isEditorialPresentation} variant="sweep" className="mt-6">
                     <h2 className="text-4xl font-medium tracking-[-0.055em] sm:text-6xl">
                       Experience the scale.
                     </h2>
@@ -351,18 +375,19 @@ export default async function HomeDetailPage({
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   referrerPolicy="strict-origin-when-cross-origin"
                   allowFullScreen
-                  loading={isEditorialPilot ? "lazy" : undefined}
+                  loading={isEditorialPresentation ? "lazy" : undefined}
                 />
               </div>
             </div>
           </section>
         ) : null}
 
+        {presentation ? <HomeProjectInquiry modelSlug={model.slug} modelName={model.name} inquiryHref={buildModelInquiryHref(model.slug, models)} image={presentation.inquiryImage} /> : (<>
         <section
           id="reserve"
-          className={isEditorialPilot ? "home-pilot-inquiry relative isolate scroll-mt-40 overflow-hidden border-y border-white/12 px-5 py-24 sm:px-8 lg:px-12 lg:py-32" : "scroll-mt-20 border-y border-white/12 px-5 py-24 sm:px-8 lg:px-12 lg:py-36"}
+          className={isEditorialPresentation ? "home-pilot-inquiry relative isolate scroll-mt-40 overflow-hidden border-y border-white/12 px-5 py-24 sm:px-8 lg:px-12 lg:py-32" : "scroll-mt-20 border-y border-white/12 px-5 py-24 sm:px-8 lg:px-12 lg:py-36"}
         >
-          {isEditorialPilot ? <><Image src={model.images[model.images.length - 2]} alt="" fill quality={95} unoptimized sizes="100vw" className="-z-20 object-cover object-center" /><div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#0b0c10]/95 via-[#0b0c10]/85 to-[#0b0c10]/40" /></> : null}
+          {isEditorialPresentation ? <><Image src={model.images[model.images.length - 2]} alt="" fill quality={95} unoptimized sizes="100vw" className="-z-20 object-cover object-center" /><div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#0b0c10]/95 via-[#0b0c10]/85 to-[#0b0c10]/40" /></> : null}
           <div className="mx-auto max-w-[1504px]">
             <p className="eyebrow">Ready to move forward?</p>
             <div className="mt-8 grid gap-12 lg:grid-cols-[1fr_auto] lg:items-end">
@@ -392,6 +417,8 @@ export default async function HomeDetailPage({
           </div>
         </section>
 
+        </>)}
+
         <section className="px-5 py-24 sm:px-8 lg:px-12 lg:py-32">
           <Link
             href={`/homes/${nextModel.slug}`}
@@ -419,7 +446,7 @@ export default async function HomeDetailPage({
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/5 to-transparent" />
               <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-8 p-6 sm:p-10">
                 <h2 className="text-[clamp(2.7rem,6vw,6.5rem)] font-medium leading-none tracking-[-0.065em]">
-                  <RevealText text={nextModel.name} />
+                  {isEditorialPresentation ? nextModel.name : <RevealText text={nextModel.name} />}
                 </h2>
                 <ArrowRight
                   size={24}

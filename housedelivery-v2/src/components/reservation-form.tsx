@@ -7,9 +7,11 @@ import { FormEvent, useRef, useState } from "react";
 import { HeadlineReveal } from "@/components/headline-reveal";
 import type { HomeModel } from "@/data/models";
 import { trackAnalyticsEvent } from "@/lib/analytics";
+import { resolveInitialModelSlug } from "@/lib/model-inquiry";
 
 type ReservationFormProps = {
   models: readonly HomeModel[];
+  initialModel?: string;
 };
 
 type InquiryFormValues = {
@@ -38,7 +40,7 @@ function isAcceptedInquiryResponse(value: unknown): value is { accepted: true } 
   );
 }
 
-export function ReservationForm({ models }: ReservationFormProps) {
+export function ReservationForm({ models, initialModel }: ReservationFormProps) {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState("");
@@ -184,7 +186,7 @@ export function ReservationForm({ models }: ReservationFormProps) {
                 </label>
                 <label className="form-field sm:col-span-2">
                   <span>Preferred model</span>
-                  <select name="model" defaultValue="">
+                  <select name="model" defaultValue={resolveInitialModelSlug(initialModel, models)}>
                     <option value="">Still exploring</option>
                     {models.map((model) => (
                       <option key={model.slug} value={model.slug}>

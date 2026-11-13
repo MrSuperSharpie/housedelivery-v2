@@ -45,7 +45,7 @@ export function HomeFloorPlanViewer({
         <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
           <div>
             <p className="eyebrow">Plan and technical study</p>
-            <HeadlineReveal variant="sweep" className="mt-6">
+            <HeadlineReveal disabled={appearance === "editorial"} variant="sweep" className="mt-6">
               <h2 className="text-[clamp(3rem,5.8vw,6.5rem)] font-medium leading-[0.9] tracking-[-0.065em]">
                 Designed to flow.
                 <br />

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { CarriageHomeShowcase } from "@/components/carriage-home-showcase";
 import { DeliveryTimeline } from "@/components/delivery-timeline";
@@ -13,6 +14,7 @@ import { ModelShowcase } from "@/components/model-showcase";
 import { PortfolioCategoryNav } from "@/components/portfolio-category-nav";
 import { PreApprovedShowcase } from "@/components/pre-approved-showcase";
 import { ReservationForm } from "@/components/reservation-form";
+import { ReservationFormFromQuery } from "@/components/reservation-form-from-query";
 import { SiteHeader } from "@/components/site-header";
 import { FundingValueSection } from "@/components/why-house-delivery-section";
 import { models } from "@/data/models";
@@ -66,7 +68,7 @@ export default function Home() {
           journeyHref="/how-it-works"
         />
         <FinancialCorridors />
-        <ReservationForm models={models} />
+        <Suspense fallback={<ReservationForm models={models} />}><ReservationFormFromQuery models={models} /></Suspense>
       </main>
     </>
   );
