@@ -3,7 +3,7 @@
 import { ArrowLeft, Menu, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { cn } from "@/lib/cn";
 import { readPlannerHomeViewReturnHref } from "@/lib/planner-design-session";
@@ -24,8 +24,20 @@ export function SiteHeader({
   showProjectReviewAction?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const menuButton = useRef<HTMLButtonElement>(null);
   const [plannerReturnHref, setPlannerReturnHref] = useState<string>();
   const plannerHomeContext = usePlannerHomeViewContext();
+
+  useEffect(() => {
+    if (!isOpen) return;
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+      setIsOpen(false);
+      menuButton.current?.focus();
+    }
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [isOpen]);
 
   useEffect(() => {
     let active = true;
@@ -90,6 +102,7 @@ export function SiteHeader({
         </div>
 
         <button
+          ref={menuButton}
           type="button"
           className="grid size-11 place-items-center lg:hidden"
           onClick={() => setIsOpen((open) => !open)}
@@ -104,9 +117,9 @@ export function SiteHeader({
       <nav
         id="mobile-navigation"
         className={cn(
-          "overflow-hidden border-t border-white/10 bg-[#0b0c10] transition-[max-height,opacity] duration-300 lg:hidden",
+          "overflow-y-auto overscroll-contain border-t border-white/10 bg-[#0b0c10] transition-[max-height,opacity] duration-300 lg:hidden",
           isOpen
-            ? "visible max-h-[32rem] opacity-100"
+            ? "visible max-h-[calc(100dvh-76px)] opacity-100"
             : "invisible max-h-0 opacity-0",
         )}
         aria-label="Mobile"

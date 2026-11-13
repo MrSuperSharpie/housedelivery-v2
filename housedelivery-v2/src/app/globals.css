@@ -107,6 +107,13 @@ select {
   outline: none;
 }
 
+.form-field input:focus-visible,
+.form-field select:focus-visible,
+.form-field textarea:focus-visible {
+  outline: 2px solid #0b0c10;
+  outline-offset: 4px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

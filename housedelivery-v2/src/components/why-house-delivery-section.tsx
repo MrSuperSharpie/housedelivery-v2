@@ -120,8 +120,9 @@ export function FundingValueCase({
 export function FundingValueSection() {
   return (
     <section
+      id="certainty"
       aria-labelledby="why-house-delivery-heading"
-      className="bg-[#0b0c10] px-5 py-24 sm:px-8 lg:px-12 lg:py-32"
+      className="scroll-mt-20 bg-[#0b0c10] px-5 py-24 sm:px-8 lg:px-12 lg:py-32"
     >
       <div className="mx-auto max-w-[1504px]">
         <FundingValueCase image="/Maplewood-14.avif" />

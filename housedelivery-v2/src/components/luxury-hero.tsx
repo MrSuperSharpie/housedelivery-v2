@@ -106,7 +106,7 @@ export function LuxuryHero({
         style={{ opacity: contentOpacity }}
         className="relative z-10 mx-auto flex min-h-[900px] max-w-[1600px] flex-col justify-end px-5 pb-8 pt-36 sm:px-8 lg:min-h-screen lg:px-12 lg:pb-10"
       >
-        <div className="mb-auto flex items-center justify-between pt-4 text-[10px] uppercase tracking-[0.2em] text-white/60">
+        <div className="mb-6 flex shrink-0 items-center justify-between pt-4 text-[10px] uppercase tracking-[0.2em] text-white/60 lg:mb-auto">
           <span>Architectural homes · Made attainable</span>
           <span className="hidden sm:block">49.2827° N / 123.1207° W</span>
         </div>

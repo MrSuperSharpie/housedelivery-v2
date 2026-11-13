@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+const footerLinkClassName = "flex min-h-11 items-center transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white sm:block sm:min-h-0";
+
 export function SiteFooter() {
   return (
     <footer className="bg-[#0b0c10] px-5 pb-10 pt-20 text-white sm:px-8 lg:px-12 lg:pt-28">
@@ -19,22 +21,22 @@ export function SiteFooter() {
               Explore
             </p>
             <div className="mt-5 space-y-3 text-sm text-white/62">
-              <Link className="block hover:text-white" href="/#models">
+              <Link className={footerLinkClassName} href="/#models">
                 Home models
               </Link>
-              <Link className="block hover:text-white" href="/inclusions">
+              <Link className={footerLinkClassName} href="/inclusions">
                 Inclusions Library
               </Link>
-              <Link className="block hover:text-white" href="/how-it-works">
+              <Link className={footerLinkClassName} href="/how-it-works">
                 Delivery process
               </Link>
               <Link
-                className="block hover:text-white"
+                className={footerLinkClassName}
                 href="/first-nations-inspired"
               >
                 First Nations designs
               </Link>
-              <Link className="block hover:text-white" href="/#certainty">
+              <Link className={footerLinkClassName} href="/#certainty">
                 Project certainty
               </Link>
             </div>
@@ -44,17 +46,17 @@ export function SiteFooter() {
               Connect
             </p>
             <div className="mt-5 space-y-3 text-sm text-white/62">
-              <Link className="block hover:text-white" href="/warranty">
+              <Link className={footerLinkClassName} href="/warranty">
                 Warranty &amp; Support
               </Link>
               <a
-                className="block hover:text-white"
+                className={footerLinkClassName}
                 href="mailto:hello@housedelivery.ca"
               >
                 Email
               </a>
-              <Link className="block hover:text-white" href="/#reserve">
-                Begin your project review
+              <Link className={footerLinkClassName} href="/plan-a-housing-project">
+                Plan a housing project
               </Link>
             </div>
           </div>

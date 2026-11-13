@@ -4,7 +4,8 @@ import { InclusionsLibrary } from "@/components/inclusions-library";
 import { SiteHeader } from "@/components/site-header";
 
 export const metadata: Metadata = {
-  title: "Finishes & Inclusions | House Delivery",
+  title: "Finishes & Inclusions",
+  alternates: { canonical: "https://www.housedelivery.ca/inclusions" },
   description:
     "Explore the coordinated kitchens, bathrooms, flooring, wardrobes, doors, openings and finish directions available through House Delivery.",
   openGraph: {

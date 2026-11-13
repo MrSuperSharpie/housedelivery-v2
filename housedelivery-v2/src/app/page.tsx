@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+
 import { CarriageHomeShowcase } from "@/components/carriage-home-showcase";
 import { DeliveryTimeline } from "@/components/delivery-timeline";
 import { FinancialCorridors } from "@/components/financial-corridors";
@@ -14,6 +16,10 @@ import { ReservationForm } from "@/components/reservation-form";
 import { SiteHeader } from "@/components/site-header";
 import { FundingValueSection } from "@/components/why-house-delivery-section";
 import { models } from "@/data/models";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "https://www.housedelivery.ca/" },
+};
 
 export default function Home() {
   const langley = models.find((model) => model.slug === "langley");

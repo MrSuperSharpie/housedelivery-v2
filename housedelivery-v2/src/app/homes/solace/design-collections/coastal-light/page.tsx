@@ -147,7 +147,7 @@ export default function CoastalLightPage() {
 
           <div className="relative mx-auto flex min-h-[calc(88svh-76px)] max-w-[1600px] flex-col justify-between px-5 pb-10 pt-7 sm:px-8 sm:pb-14 lg:px-12 lg:pb-16">
             <Link
-              href="/homes/solace#design-collections"
+              href="/homes/solace#home-inclusions"
               className="inline-flex w-fit items-center gap-3 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/70 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-white"
             >
               <ArrowLeft aria-hidden="true" className="size-3.5" strokeWidth={1.5} />
@@ -309,7 +309,7 @@ export default function CoastalLightPage() {
                 My Solace grows.
               </p>
               <Link
-                href="/homes/solace#solace-configurator"
+                href="/homes/solace#home-inclusions"
                 className="group mt-8 inline-flex min-h-12 items-center gap-8 bg-white px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.17em] text-[#0b0c10] transition-colors hover:bg-white/84 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
               >
                 Configure My Solace

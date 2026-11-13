@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 import { SiteHeader } from "@/components/site-header";
 
 export const metadata: Metadata = {
-  title: "Privacy & Cookies | House Delivery",
+  title: "Privacy & Cookies",
+  alternates: { canonical: "https://www.housedelivery.ca/privacy" },
   description:
     "How House Delivery uses analytics, cookies and campaign attribution on HouseDelivery.ca.",
 };

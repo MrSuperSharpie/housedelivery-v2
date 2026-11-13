@@ -9,7 +9,8 @@ import { ScrollReveal } from "@/components/scroll-reveal";
 import { SiteHeader } from "@/components/site-header";
 
 export const metadata: Metadata = {
-  title: "First Nations Housing | House Delivery",
+  title: "First Nations Housing",
+  alternates: { canonical: "https://www.housedelivery.ca/first-nations-inspired" },
   description:
     "Explore a coordinated housing pathway for First Nations communities, from home selection and design through project planning, local participation and delivery.",
 };

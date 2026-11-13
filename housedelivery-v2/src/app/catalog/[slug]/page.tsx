@@ -98,7 +98,7 @@ export default async function CatalogDetailPage({
           <div className="relative z-10 mx-auto flex min-h-[640px] max-w-[1600px] flex-col justify-between px-5 pb-8 pt-28 sm:min-h-[760px] sm:px-8 lg:min-h-[88vh] lg:px-12 lg:pb-10">
             <div className="flex items-center justify-between">
               <Link
-                href="/#cmhc"
+                href="/#pre-approved-homes"
                 className="inline-flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/65 transition-colors hover:text-white"
               >
                 <ArrowLeft size={14} />
