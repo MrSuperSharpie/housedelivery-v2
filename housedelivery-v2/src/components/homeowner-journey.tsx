@@ -2,6 +2,7 @@ import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
+import { DeliveryProcessGallery } from "@/components/delivery-process-gallery";
 import { HeadlineReveal } from "@/components/headline-reveal";
 import { ScrollReveal } from "@/components/scroll-reveal";
 
@@ -189,24 +190,7 @@ export function HomeownerJourney() {
             </div>
           </div>
 
-          <figure className="mt-16 lg:mt-24">
-            <div className="overflow-x-auto overscroll-x-contain bg-black [scrollbar-color:rgba(255,255,255,0.24)_transparent] [scrollbar-width:thin]">
-              <div className="relative h-[320px] w-[960px] lg:h-auto lg:w-full lg:aspect-[3/1]">
-                <Image
-                  src="/images/how-it-works/house-delivery-process.png"
-                  alt="House Delivery sequence from design and site preparation through manufacturing, assembly and a completed home"
-                  fill
-                  priority
-                  quality={95}
-                  sizes="(max-width: 1023px) 960px, (max-width: 1599px) calc(100vw - 96px), 1504px"
-                  className="object-cover"
-                />
-              </div>
-            </div>
-            <figcaption className="mt-4 border-t border-white/10 pt-4 text-right text-[9px] uppercase tracking-[0.18em] text-white/30">
-              Illustrative sequence / Project requirements vary
-            </figcaption>
-          </figure>
+          <DeliveryProcessGallery />
 
           <div className="mt-16 grid border-l border-t border-white/10 sm:grid-cols-2 lg:mt-20 lg:grid-cols-4">
             {steps.map((step) => (

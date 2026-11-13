@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 
+import { DeliveryProcessGallery } from "@/components/delivery-process-gallery";
 import { RevealText } from "@/components/reveal-text";
 
 const milestones = [
@@ -59,11 +59,11 @@ export function DeliveryTimeline({
       className={
         embedded
           ? "mt-20 scroll-mt-20 border-t border-white/10 pt-20 lg:mt-28 lg:pt-24"
-          : "scroll-mt-20 border-y border-white/10 bg-[#0e1014] px-5 py-28 sm:px-8 lg:px-12 lg:py-40"
+          : "scroll-mt-20 border-y border-white/10 bg-[#0e1014] px-5 py-24 sm:px-8 lg:px-12 lg:py-32"
       }
     >
       <div className={embedded ? undefined : "mx-auto max-w-[1504px]"}>
-        <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr]">
+        <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
           <div>
             <p className="eyebrow">{eyebrow}</p>
             <h2 className="mt-6 text-[clamp(3rem,5.4vw,6rem)] font-medium leading-[0.92] tracking-[-0.065em]">
@@ -79,36 +79,7 @@ export function DeliveryTimeline({
           </div>
         </div>
 
-        <figure className="relative left-1/2 mt-16 w-[calc(100vw-2.5rem)] -translate-x-1/2 sm:w-[calc(100vw-4rem)] lg:mt-24 lg:w-[min(calc(100vw-6rem),1776px)]">
-          <div
-            className="overflow-x-auto overscroll-x-contain bg-black [scrollbar-color:rgba(255,255,255,0.24)_transparent] [scrollbar-width:thin]"
-            tabIndex={0}
-            role="region"
-            aria-label="Panoramic House Delivery process. Scroll horizontally to view all five stages."
-          >
-            <div className="w-[960px] lg:w-full">
-              <Image
-                src="/images/how-it-works/house-delivery-process.png"
-                alt="House Delivery process from site preparation and digital home coordination through factory production, structural assembly and completed home."
-                width={2172}
-                height={724}
-                quality={100}
-                unoptimized
-                sizes="(max-width: 1023px) 960px, (max-width: 1888px) calc(100vw - 96px), 1776px"
-                className="block h-auto w-full max-w-none"
-              />
-            </div>
-          </div>
-          <div className="mt-4 flex flex-col gap-3 border-t border-white/10 pt-4 sm:flex-row sm:items-start sm:justify-between sm:gap-8">
-            <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/30 lg:hidden">
-              Swipe to explore all five stages
-            </p>
-            <figcaption className="max-w-2xl text-xs leading-5 text-white/30 sm:ml-auto sm:text-right">
-              Illustrative project sequence. Timing varies by design,
-              approvals, site conditions, production and logistics.
-            </figcaption>
-          </div>
-        </figure>
+        <DeliveryProcessGallery />
 
         <section
           aria-labelledby="typical-project-milestones-heading"
@@ -153,7 +124,7 @@ export function DeliveryTimeline({
                 href={journeyHref}
                 className="inline-flex min-h-11 shrink-0 items-center border-b border-white/25 py-2 text-[10px] font-semibold uppercase tracking-[0.17em] text-white/62 transition-colors hover:border-white hover:text-white"
               >
-                Explore the homeowner journey
+                Explore the project journey
               </Link>
             ) : null}
           </div>

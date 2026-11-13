@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowUpRight,
   Bath,
@@ -59,6 +59,7 @@ export function ModelShowcase({
   introCopy = "Every model begins as a pre-engineered component system and is adapted to your land, local code, climate loads, and chosen level of finish.",
   valueCopy,
 }: ModelShowcaseProps) {
+  const shouldReduceMotion = useReducedMotion();
   const [activeFilter, setActiveFilter] = useState(0);
   const [viewMode, setViewMode] = useState<ViewMode>("exterior");
   const [exteriorPresentation, setExteriorPresentation] =
@@ -117,35 +118,35 @@ export function ModelShowcase({
     <section
       id="custom-homes"
       data-exterior-presentation={exteriorPresentation}
-      className="scroll-mt-20 bg-[#0B0C10] px-5 pb-24 pt-28 sm:px-8 lg:px-12 lg:pb-32 lg:pt-40"
+      className="architecture-collection scroll-mt-20 bg-[#e7e3d8] px-5 py-24 text-[#0b0c10] sm:px-8 lg:px-12 lg:py-36"
     >
       <span id="models" className="block scroll-mt-20" aria-hidden="true" />
       <span id="homes" className="block scroll-mt-20" aria-hidden="true" />
       <div className="mx-auto max-w-[1504px]">
-        <div className="grid gap-12 border-b border-white/10 pb-12 lg:grid-cols-[1fr_1fr] lg:items-end">
+        <div className="grid gap-10 border-b border-black/20 pb-12 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
           <div>
-            <p className="eyebrow">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-black/55">
               Featured custom homes / {models.length} residences
             </p>
-            <h2 className="mt-6 max-w-3xl text-[clamp(3rem,6.2vw,6.8rem)] font-medium leading-[0.92] tracking-[-0.065em]">
+            <h2 className="mt-7 max-w-3xl text-[clamp(3.6rem,7.4vw,8rem)] font-medium leading-[0.9] tracking-[-0.065em]">
               <RevealText text="Find your" />
               <br />
-              <span className="text-white/42">
+              <span className="text-[#8a7a62]">
                 <RevealText text="starting point." delay={0.12} />
               </span>
             </h2>
           </div>
-          <p className="max-w-xl justify-self-end text-base leading-7 text-white/55 lg:text-lg lg:leading-8">
+          <p className="max-w-lg text-base leading-7 text-black/65 lg:justify-self-end lg:text-lg lg:leading-8">
             {introCopy}
             {valueCopy ? (
-              <span className="mt-4 block text-sm leading-6 text-white/38 lg:text-base lg:leading-7">
+              <span className="mt-4 block text-sm leading-6 text-black/50 lg:text-base lg:leading-7">
                 {valueCopy}
               </span>
             ) : null}
           </p>
         </div>
 
-        <div className="flex flex-col gap-8 py-8 xl:flex-row xl:items-end xl:justify-between">
+        <div className="flex flex-col gap-7 py-8 lg:py-10 xl:flex-row xl:items-end xl:justify-between">
           <div className="flex flex-wrap gap-x-7 gap-y-3" aria-label="Filter models">
             {filters.map((filter, index) => (
               <button
@@ -153,10 +154,10 @@ export function ModelShowcase({
                 type="button"
                 onClick={() => setActiveFilter(index)}
                 className={cn(
-                  "border-b py-2 text-xs transition-colors",
+                  "min-h-11 border-b py-2 text-xs transition-colors focus-visible:outline-2 focus-visible:outline-black",
                   activeFilter === index
-                    ? "border-white text-white"
-                    : "border-transparent text-white/42 hover:text-white/75",
+                    ? "border-black text-black"
+                    : "border-transparent text-black/55 hover:text-black",
                 )}
                 aria-pressed={activeFilter === index}
               >
@@ -167,10 +168,10 @@ export function ModelShowcase({
 
           <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:gap-4">
             <fieldset className="min-w-0" data-exterior-presentation-toggle>
-              <legend className="mb-2 text-[8px] font-semibold uppercase tracking-[0.18em] text-white/38">
+              <legend className="mb-2 text-[8px] font-semibold uppercase tracking-[0.18em] text-black/55">
                 Exterior expression
               </legend>
-              <div className="inline-flex max-w-full border border-white/15 p-1">
+              <div className="inline-flex max-w-full border border-black/20 p-1">
                 {([
                   ["contemporary", "Contemporary"],
                   ["indigenous-inspired", "Indigenous Inspired"],
@@ -182,8 +183,8 @@ export function ModelShowcase({
                     className={cn(
                       "min-h-11 px-4 py-2.5 text-[9px] font-semibold uppercase leading-4 tracking-[0.14em] transition-colors sm:px-5",
                       exteriorPresentation === presentation
-                        ? "bg-white text-black"
-                        : "text-white/45 hover:text-white",
+                        ? "bg-[#0b0c10] text-white"
+                        : "text-black/60 hover:text-black",
                     )}
                     aria-pressed={exteriorPresentation === presentation}
                   >
@@ -194,10 +195,10 @@ export function ModelShowcase({
             </fieldset>
 
             <fieldset className="min-w-0">
-              <legend className="mb-2 text-[8px] font-semibold uppercase tracking-[0.18em] text-white/38">
+              <legend className="mb-2 text-[8px] font-semibold uppercase tracking-[0.18em] text-black/55">
                 Card view
               </legend>
-              <div className="inline-flex border border-white/15 p-1" aria-label="Image view">
+              <div className="inline-flex border border-black/20 p-1" aria-label="Image view">
                 {(["exterior", "plan"] as const).map((mode) => (
                   <button
                     key={mode}
@@ -206,8 +207,8 @@ export function ModelShowcase({
                     className={cn(
                       "min-h-11 px-4 py-2.5 text-[9px] font-semibold uppercase tracking-[0.16em] transition-colors sm:px-5 sm:text-[10px]",
                       viewMode === mode
-                        ? "bg-white text-black"
-                        : "text-white/45 hover:text-white",
+                        ? "bg-[#0b0c10] text-white"
+                        : "text-black/60 hover:text-black",
                     )}
                     aria-pressed={viewMode === mode}
                   >
@@ -221,8 +222,8 @@ export function ModelShowcase({
 
         <motion.div
           id="custom-homes-grid"
-          layout
-          className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-12 lg:grid-cols-3"
+          layout={!shouldReduceMotion}
+          className="grid grid-cols-1 gap-x-8 gap-y-14 md:grid-cols-2 lg:grid-cols-12 lg:gap-x-12 lg:gap-y-20"
         >
           <AnimatePresence mode="popLayout">
             {filteredModels.map((model, index) => {
@@ -254,10 +255,10 @@ export function ModelShowcase({
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={`${model.slug}-${viewMode}-${exteriorPresentation}`}
-                      initial={{ opacity: 0, scale: 1.015 }}
+                      initial={false}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0 }}
-                      transition={{ duration: 0.35 }}
+                      transition={{ duration: shouldReduceMotion ? 0 : 0.35 }}
                       className="absolute inset-0"
                     >
                       <Image
@@ -265,10 +266,10 @@ export function ModelShowcase({
                         alt={image.alt}
                         fill
                         quality={95}
-                        sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, (max-width: 1599px) 33vw, 488px"
+                        sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, (max-width: 1599px) 58vw, 880px"
                         style={{ imageRendering: "auto" }}
                         className={cn(
-                          "brightness-90 transition-all duration-700 ease-in-out group-hover/card:scale-[1.04] group-hover/card:brightness-100 group-hover/media:scale-[1.04] group-hover/media:brightness-100",
+                          "transition-transform duration-700 ease-out group-hover/card:scale-[1.025] motion-reduce:transform-none",
                           viewMode === "exterior"
                             ? "object-cover object-center"
                             : "bg-[#e9e7e1] object-contain p-4 sm:p-8",
@@ -282,31 +283,35 @@ export function ModelShowcase({
 
               return (
                 <motion.article
-                  layout
+                  layout={!shouldReduceMotion}
                   key={model.slug}
                   data-model-card={model.slug}
-                  initial={{ opacity: 0, y: 18 }}
+                  initial={false}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.98 }}
                   transition={{
-                    duration: 0.45,
+                    duration: shouldReduceMotion ? 0 : 0.45,
                     delay: Math.min(index * 0.035, 0.2),
                   }}
-                  className="group/card relative flex min-h-[620px] flex-col overflow-hidden border border-white/10 bg-[#0B0C10] p-7 transition-colors duration-500 hover:border-white/25 sm:p-8"
+                  className={cn(
+                    "group/card relative flex flex-col border-b border-black/25 pb-6",
+                    index % 4 === 0 || index % 4 === 3 ? "lg:col-span-7" : "lg:col-span-5",
+                    filteredModels.length === 1 && "lg:col-span-12",
+                  )}
                 >
                   <Link
                     href={homeHref}
                     aria-label={`Explore ${model.name}`}
                     data-model-card-surface-navigation={model.slug}
                     data-model-card-image-navigation={model.slug}
-                    className="absolute inset-0 z-10 focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-white"
+                    className="absolute inset-0 z-10 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
                   >
                     <span className="sr-only">Explore {model.name}</span>
                   </Link>
 
-                  <div className="pointer-events-none relative -mx-7 -mt-7 aspect-[16/10] overflow-hidden border-b border-white/10 bg-[#13151a] sm:-mx-8 sm:-mt-8">
+                  <div className="pointer-events-none relative aspect-[16/10] overflow-hidden bg-[#c9c3b7]">
                     {cardImage}
-                    <span className="pointer-events-none absolute left-5 top-5 z-10 border border-white/30 bg-black/25 px-3 py-2 text-[9px] uppercase tracking-[0.18em] backdrop-blur-md">
+                    <span className="pointer-events-none absolute left-5 top-5 z-10 max-w-[65%] border border-white/30 bg-black/40 px-3 py-2 text-[9px] uppercase leading-4 tracking-[0.18em] text-white backdrop-blur-md">
                     {model.locationLabel}
                     </span>
                     <Link
@@ -341,7 +346,7 @@ export function ModelShowcase({
                             event.currentTarget,
                           );
                         }}
-                        className="pointer-events-auto absolute bottom-5 right-5 z-20 inline-flex items-center gap-2 border border-white/25 bg-black/45 px-3 py-2 text-[8px] font-semibold uppercase tracking-[0.15em] text-white/78 backdrop-blur-md transition-colors hover:border-white/55 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                        className="pointer-events-auto absolute bottom-5 right-5 z-20 inline-flex min-h-11 items-center gap-2 border border-white/25 bg-black/45 px-3 py-2 text-[8px] font-semibold uppercase tracking-[0.15em] text-white/78 backdrop-blur-md transition-colors hover:border-white/55 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                       >
                         <Maximize2 aria-hidden="true" size={12} />
                         View larger
@@ -349,36 +354,36 @@ export function ModelShowcase({
                     ) : null}
                   </div>
 
-                <div className="grid gap-6 pb-8 pt-7 xl:grid-cols-[1fr_auto] xl:items-start">
+                <div className="grid gap-6 pb-7 pt-6 xl:grid-cols-[1fr_auto] xl:items-start">
                   <div>
                     <div className="flex items-baseline justify-between gap-4">
-                      <h3 className="text-[clamp(2rem,3vw,3.25rem)] font-medium leading-[0.94] tracking-[-0.055em] text-white/90">
+                      <h3 className="text-[clamp(2.3rem,3.5vw,3.6rem)] font-medium leading-[0.94] tracking-[-0.055em] text-[#0b0c10]">
                         <Link
                           href={homeHref}
-                          className="relative z-20 transition-colors hover:text-white/65 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                          className="relative z-20 transition-colors hover:text-[#8a7a62] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
                         >
                           {model.name}
                         </Link>
                       </h3>
-                      <p className="text-xl font-light tracking-[-0.04em] text-white/65 xl:hidden">
+                      <p className="text-xl font-light tracking-[-0.04em] text-black/65 xl:hidden">
                         {model.squareFeet.toLocaleString()}{" "}
                         <span className="text-[10px] uppercase tracking-[0.14em]">
                           sq. ft.
                         </span>
                       </p>
                     </div>
-                    <p className="mt-3 max-w-2xl text-sm leading-6 text-white/46">
+                    <p className="mt-4 max-w-xl text-sm leading-7 text-black/65">
                       {model.summary}
                     </p>
                     {isProjectSpecific ? (
                       <div
                         data-model-project-specific={model.slug}
-                        className="mt-5 border-t border-white/10 pt-4"
+                        className="mt-5 border-t border-black/15 pt-4"
                       >
-                        <p className="text-[9px] font-semibold uppercase tracking-[0.17em] text-white/58">
+                        <p className="text-[9px] font-semibold uppercase tracking-[0.17em] text-black/65">
                           Duplex / Two residences
                         </p>
-                        <p className="mt-2 text-xs leading-5 text-white/42">
+                        <p className="mt-2 text-xs leading-5 text-black/60">
                           Project-specific design · My Look Book is not currently
                           available for this duplex model.
                         </p>
@@ -387,16 +392,16 @@ export function ModelShowcase({
                   </div>
 
                   <div className="hidden text-right xl:block">
-                    <p className="text-3xl font-light tracking-[-0.055em]">
+                    <p className="text-3xl font-light tracking-[-0.055em] text-black/80">
                       {model.squareFeet.toLocaleString()}
                     </p>
-                    <p className="mt-1 text-[9px] uppercase tracking-[0.2em] text-white/40">
+                    <p className="mt-1 text-[9px] uppercase tracking-[0.2em] text-black/55">
                       Square feet
                     </p>
                   </div>
                 </div>
 
-                <dl className="mt-auto grid grid-cols-2 gap-y-3 border-t border-white/10 pt-5 text-[10px] uppercase tracking-[0.13em] text-white/44 sm:flex sm:flex-wrap sm:gap-7">
+                <dl className="mt-auto grid grid-cols-2 gap-y-3 border-t border-black/15 pt-5 text-[10px] uppercase tracking-[0.13em] text-black/60 sm:flex sm:flex-wrap sm:gap-6">
                   <div className="flex items-center gap-2">
                     <BedDouble size={14} />
                     <dt className="sr-only">Bedrooms</dt>
@@ -429,6 +434,13 @@ export function ModelShowcase({
                     </dd>
                   </div>
                 </dl>
+                <Link
+                  href={homeHref}
+                  className="relative z-20 mt-5 inline-flex min-h-11 items-center justify-between gap-5 text-[10px] font-semibold uppercase tracking-[0.17em] text-black/75 transition-colors hover:text-black focus-visible:outline-2 focus-visible:outline-black"
+                >
+                  Explore residence
+                  <ArrowUpRight size={16} aria-hidden="true" />
+                </Link>
                 </motion.article>
               );
             })}

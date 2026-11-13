@@ -1,12 +1,12 @@
 "use client";
 
 import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowDown, ArrowUpRight } from "lucide-react";
+import { ArrowDown, ArrowUpRight, Pause, Play } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
-import { HeadlineReveal } from "@/components/headline-reveal";
+import { cn } from "@/lib/cn";
 
 type LuxuryHeroProps = {
   image: string;
@@ -21,181 +21,147 @@ export function LuxuryHero({
 }: LuxuryHeroProps) {
   const heroRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [videoEnabled, setVideoEnabled] = useState(false);
   const [hasPlayed, setHasPlayed] = useState(false);
   const [videoFailed, setVideoFailed] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const { scrollYProgress } = useScroll({
     target: heroRef,
     offset: ["start start", "end start"],
   });
-  const imageY = useTransform(scrollYProgress, [0, 1], ["0%", "16%"]);
-  const contentOpacity = useTransform(scrollYProgress, [0, 0.72], [1, 0]);
+  const imageY = useTransform(scrollYProgress, [0, 1], ["0%", "8%"]);
 
   useEffect(() => {
-    const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const video = videoRef.current;
+    const preference = window.matchMedia(
+      "(min-width: 768px) and (prefers-reduced-motion: no-preference)",
+    );
     let active = true;
-    function syncMotionPreference() {
-      if (preference.matches) video?.pause();
+    function syncVideoEligibility() {
+      if (!active) return;
+      const connection = (navigator as Navigator & {
+        connection?: { saveData?: boolean };
+      }).connection;
+      setVideoEnabled(preference.matches && !connection?.saveData);
     }
-    function syncVideoState() {
-      if (!active || !video) return;
-      if (video.error || video.networkState === HTMLMediaElement.NETWORK_NO_SOURCE) {
-        setVideoFailed(true);
-      } else if (!video.paused && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
-        setHasPlayed(true);
-      }
-    }
-    syncMotionPreference();
-    // Playback or a source error can happen before React hydrates the page.
-    // Reconcile the native state so neither event leaves a stale video overlay.
-    queueMicrotask(syncVideoState);
-    video?.addEventListener("error", syncVideoState, true);
-    preference.addEventListener("change", syncMotionPreference);
+    queueMicrotask(syncVideoEligibility);
+    preference.addEventListener("change", syncVideoEligibility);
     return () => {
       active = false;
-      video?.removeEventListener("error", syncVideoState, true);
-      preference.removeEventListener("change", syncMotionPreference);
+      preference.removeEventListener("change", syncVideoEligibility);
     };
   }, []);
 
+  function toggleVideo() {
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.paused) {
+      void video.play().catch(() => setVideoFailed(true));
+    } else {
+      video.pause();
+    }
+  }
+
   return (
-    <section
-      id="top"
-      ref={heroRef}
-      className="relative min-h-[900px] overflow-hidden border-b border-white/10 lg:min-h-screen"
-    >
-      <motion.div
-        className="absolute inset-0 -top-[12%] bg-[#0b0c10]"
-        style={{ y: imageY }}
-      >
-        <Image
-          src={image}
-          alt=""
-          fill
-          quality={100}
-          unoptimized={true}
-          loading="eager"
-          fetchPriority="high"
-          sizes="100vw"
-          className="object-cover object-center"
-        />
-        <video
-          ref={videoRef}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="metadata"
-          tabIndex={-1}
-          aria-hidden="true"
-          onPlaying={() => setHasPlayed(true)}
-          onError={() => setVideoFailed(true)}
-          className={`pointer-events-none absolute inset-0 h-full w-full object-cover object-center motion-reduce:hidden ${hasPlayed && !videoFailed ? "opacity-100" : "opacity-0"}`}
-        >
-          <source
-            src="/videos/house-delivery-hero.mp4"
-            type="video/mp4"
-            onError={() => setVideoFailed(true)}
+    <section id="top" ref={heroRef} className="visual-hero relative overflow-hidden bg-[#0b0c10]">
+      <div className="visual-hero-frame">
+        <motion.div className="absolute -inset-y-[5%] inset-x-0" style={{ y: imageY }}>
+          <Image
+            src={image}
+            alt=""
+            fill
+            quality={100}
+            unoptimized
+            loading="eager"
+            fetchPriority="high"
+            sizes="100vw"
+            className="object-cover object-[58%_center] lg:object-center"
           />
-        </video>
-      </motion.div>
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(11,12,16,.70)_0%,rgba(11,12,16,.60)_48%,rgba(11,12,16,.50)_100%)]" />
-      <div className="noise absolute inset-0 opacity-[0.08]" />
-
-      <motion.div
-        style={{ opacity: contentOpacity }}
-        className="relative z-10 mx-auto flex min-h-[900px] max-w-[1600px] flex-col justify-end px-5 pb-8 pt-36 sm:px-8 lg:min-h-screen lg:px-12 lg:pb-10"
-      >
-        <div className="mb-6 flex shrink-0 items-center justify-between pt-4 text-[10px] uppercase tracking-[0.2em] text-white/60 lg:mb-auto">
-          <span>Architectural homes · Made attainable</span>
-          <span className="hidden sm:block">49.2827° N / 123.1207° W</span>
-        </div>
-
-        <div className="grid grid-cols-12 items-end gap-y-12 pb-16 lg:gap-x-8 lg:pb-20">
-          <div className="col-span-12 lg:col-span-9">
-            <motion.p
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.15 }}
-              className="mb-7 text-xs font-medium uppercase tracking-[0.24em] text-white/65"
+          {videoEnabled ? (
+            <video
+              ref={videoRef}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              tabIndex={-1}
+              aria-hidden="true"
+              onPlaying={() => { setHasPlayed(true); setIsPaused(false); }}
+              onPause={() => setIsPaused(true)}
+              onEmptied={() => setHasPlayed(false)}
+              onError={() => setVideoFailed(true)}
+              className={cn(
+                "pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-700",
+                hasPlayed && !videoFailed ? "opacity-100" : "opacity-0",
+              )}
             >
-              Factory precision / A faster path home
-            </motion.p>
-            <HeadlineReveal>
-              <h1 className="max-w-[1100px] text-[clamp(4rem,10.7vw,10.5rem)] font-medium leading-[0.79] tracking-[-0.075em]">
-                More home.
-                <br />
-                <span className="text-white/62">Less waiting.</span>
-              </h1>
-            </HeadlineReveal>
-            {productStatement ? (
-              <motion.p
-                initial={{ opacity: 0, y: 18 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.75, delay: 0.5 }}
-                className="mt-8 max-w-3xl text-base leading-7 text-white/78 sm:text-lg sm:leading-8"
-              >
-                {productStatement}
-              </motion.p>
-            ) : null}
-          </div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.75, delay: 0.6 }}
-            className="col-span-12 border-l border-white/25 pl-6 sm:col-span-8 sm:col-start-5 lg:col-span-3 lg:col-start-10"
+              <source src="/videos/house-delivery-hero.mp4" type="video/mp4" onError={() => setVideoFailed(true)} />
+            </video>
+          ) : null}
+        </motion.div>
+        <div className="visual-hero-shade absolute inset-0" />
+        {videoEnabled && !videoFailed && hasPlayed ? (
+          <button
+            type="button"
+            onClick={toggleVideo}
+            aria-label={isPaused ? "Play architectural film" : "Pause architectural film"}
+            className="absolute right-6 top-6 z-20 grid size-11 place-items-center rounded-full border border-white/45 bg-black/35 text-white backdrop-blur-sm transition-colors hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-white lg:right-8 lg:top-8"
           >
-            <p className="max-w-sm text-base leading-7 text-white/72">
-              {supportingCopy}
-            </p>
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row lg:flex-col xl:flex-row">
-              <a
-                href="#models"
-                className="inline-flex min-h-12 items-center justify-between gap-5 border border-white bg-white px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#0b0c10] transition-colors hover:bg-transparent hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-              >
-                Explore the Homes
-                <ArrowDown size={14} />
-              </a>
-              <Link
-                href="/plan-a-housing-project"
-                className="inline-flex min-h-12 items-center justify-between gap-5 border border-white/40 px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:border-white hover:bg-white hover:text-[#0b0c10] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-              >
-                Plan a Housing Project
-                <ArrowUpRight size={14} />
-              </Link>
-            </div>
-          </motion.div>
+            {isPaused ? <Play size={15} aria-hidden="true" /> : <Pause size={15} aria-hidden="true" />}
+          </button>
+        ) : null}
+      </div>
+
+      <div className="visual-hero-content relative z-10 mx-auto max-w-[1600px] px-5 sm:px-8 lg:px-12">
+        <div className="visual-hero-eyebrow flex items-center justify-between gap-6">
+          <p className="flex w-fit items-center gap-3 bg-[#0b0c10]/70 px-3 py-2 text-[9px] font-medium uppercase tracking-[0.2em] text-[#e7e3d8] backdrop-blur-sm sm:text-[10px] lg:bg-transparent lg:px-0 lg:py-0 lg:text-[#c9b48f] lg:backdrop-blur-none">
+            <span className="h-px w-7 shrink-0 bg-[#b9a17a]" />
+            Architectural homes · Made attainable
+          </p>
+          <p className="sr-only">49.2827° N / 123.1207° W</p>
         </div>
 
-        <div className="grid grid-cols-12 border-t border-white/25">
-          {[
-            ["~120", "Days to delivery"],
-            ["13", "Architectural homes"],
-            ["Built", "For belonging"],
-          ].map(([value, label]) => (
-            <div
-              key={label}
-              className="col-span-12 flex items-end gap-4 border-b border-white/15 py-5 last:border-b-0 sm:col-span-4 sm:border-b-0 sm:border-r sm:px-7 sm:first:pl-0 sm:last:border-r-0"
-            >
-              <span className="text-4xl font-light tracking-[-0.06em]">
-                {value}
-              </span>
-              <span className="pb-1 text-[10px] uppercase tracking-[0.18em] text-white/55">
-                {label}
-              </span>
+        <div className="visual-hero-heading">
+          <p className="mb-5 text-[10px] uppercase tracking-[0.22em] text-white/75 sm:mb-7">More home. Less waiting.</p>
+          <h1 className="visual-hero-title font-medium">
+            Architecture.
+            <br />
+            <span className="text-[#d5c29f]">Delivered.</span>
+          </h1>
+        </div>
+
+        <div className="visual-hero-lower grid gap-7 lg:grid-cols-[1fr_auto] lg:items-end lg:gap-12">
+          <div className="max-w-[540px]">
+            <p className="mb-3 text-[10px] font-medium uppercase leading-5 tracking-[0.16em] text-[#d5c29f] sm:text-[11px]">
+              Exceptional architecture. Intelligent delivery. Lasting value.
+            </p>
+            {productStatement ? <p className="max-w-lg text-sm leading-6 text-white/80 sm:text-base sm:leading-7">{productStatement}</p> : null}
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row lg:pb-1">
+            <a href="#models" className="group inline-flex min-h-14 items-center justify-between gap-8 bg-[#e7e3d8] px-6 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#0b0c10] transition-colors hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
+              Explore the Homes
+              <ArrowDown size={15} aria-hidden="true" className="transition-transform group-hover:translate-y-1 motion-reduce:transform-none" />
+            </a>
+            <Link href="/plan-a-housing-project" className="group inline-flex min-h-14 items-center justify-between gap-8 border border-white/45 bg-[#0b0c10]/25 px-6 text-[10px] font-semibold uppercase tracking-[0.16em] text-white backdrop-blur-sm transition-colors hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
+              Plan a Housing Project
+              <ArrowUpRight size={15} aria-hidden="true" className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 motion-reduce:transform-none" />
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      <div className="relative mx-auto grid max-w-[1600px] gap-8 px-5 pb-10 pt-8 sm:px-8 lg:grid-cols-[1.15fr_1fr] lg:gap-20 lg:px-12 lg:pb-12 lg:pt-9">
+        <p className="max-w-xl text-sm leading-7 text-white/60">{supportingCopy}</p>
+        <div className="grid grid-cols-3 border-t border-white/20 pt-5 lg:border-t-0 lg:pt-0">
+          {[["~120", "Days to delivery"], ["13", "Architectural homes"], ["Built", "For belonging"]].map(([value,label]) => (
+            <div key={label} className="border-r border-white/15 px-4 first:pl-0 last:border-r-0 sm:px-7">
+              <p className="text-3xl font-light tracking-[-0.06em] sm:text-4xl">{value}</p>
+              <p className="mt-2 text-[8px] uppercase leading-4 tracking-[0.15em] text-white/50 sm:text-[9px]">{label}</p>
             </div>
           ))}
         </div>
-      </motion.div>
-
-      <a
-        href="#models"
-        aria-label="Explore homes"
-        className="absolute bottom-10 right-6 z-20 hidden size-14 place-items-center rounded-full border border-white/35 text-white transition-colors hover:bg-white hover:text-black md:grid lg:right-12"
-      >
-        <ArrowDown size={17} />
-      </a>
+        <p className="sr-only">Factory precision / A faster path home</p>
+      </div>
     </section>
   );
 }
