@@ -27,7 +27,7 @@ function ChapterCopy({ scene, index }: { scene: ResolvedHomeScene; index: number
 }
 
 function StoryImage({ scene, props, pinned = false }: { scene: ResolvedHomeScene; props: StoryProps; pinned?: boolean }) {
-  return <Image src={scene.src} alt={pinned ? "" : scene.alt} fill quality={props.imageQuality} unoptimized={props.unoptimized} sizes={pinned ? props.imageSizes.full : props.imageSizes.pair} loading={props.imageLoading ?? "lazy"} className={scene.fit === "contain" ? "object-contain" : "object-cover"} style={scene.objectPosition ? { objectPosition: scene.objectPosition } : undefined} />;
+  return <Image src={scene.src} alt={pinned ? "" : scene.alt} fill quality={props.imageQuality} unoptimized={props.unoptimized} sizes={pinned || props.story.mode === "cinematic" ? props.imageSizes.full : props.imageSizes.pair} loading={props.imageLoading ?? "lazy"} className={scene.fit === "contain" ? "object-contain" : "object-cover"} style={scene.objectPosition ? { objectPosition: scene.objectPosition } : undefined} />;
 }
 
 function FlowStory({ props }: { props: StoryProps }) {
