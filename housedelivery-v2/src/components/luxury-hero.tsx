@@ -99,11 +99,10 @@ export function LuxuryHero({
             src={image}
             alt=""
             fill
-            quality={100}
-            unoptimized
+            quality={90}
             loading="eager"
             fetchPriority="high"
-            sizes="100vw"
+            sizes="(min-width: 1024px) max(calc(73vw - 28px), calc(max(640px, 100vh - 132px) * 1.96)), max(100vw, calc(max(660px, 100vh - 76px) * 1.96))"
             className="object-cover object-[58%_center] lg:object-center"
           />
           {videoEnabled ? (

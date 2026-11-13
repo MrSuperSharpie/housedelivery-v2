@@ -35,11 +35,12 @@ const sourceFidelityHomeSlugs = new Set([
   "saturna",
 ]);
 
+// Reuse the August breakpoints with room for the approved cover crops and overscan.
 const fullWidthHomeImageSizes =
-  "(max-width: 639px) calc(100vw - 40px), (max-width: 1023px) calc(100vw - 64px), (max-width: 1599px) calc(100vw - 96px), 1504px";
+  "(max-width: 639px) calc(150vw - 60px), (max-width: 1023px) calc(150vw - 96px), (max-width: 1599px) calc(134vw - 128.64px), 2016px";
 
 const pairedHomeImageSizes =
-  "(max-width: 639px) calc(100vw - 40px), (max-width: 767px) calc(100vw - 64px), (max-width: 1023px) calc(50vw - 42px), (max-width: 1599px) calc(50vw - 58px), 742px";
+  "(max-width: 639px) calc(150vw - 60px), (max-width: 767px) calc(150vw - 96px), (max-width: 1023px) calc(80vw - 67.2px), (max-width: 1599px) calc(80vw - 92.8px), 1188px";
 
 const fittedFloorPlanImageSizes =
   "(max-width: 767px) 680px, (max-width: 1023px) calc(100vw - 112px), (max-width: 1599px) calc(100vw - 176px), 1424px";
@@ -113,6 +114,7 @@ export default async function HomeDetailPage({
   );
   const configuratorDefinition = configuratorRegistration?.definition;
   const useSourceFidelityImages = sourceFidelityHomeSlugs.has(model.slug);
+  const architecturalImageProps = { imageQuality: 90, unoptimized: false };
   const sourceFidelityImageProps = useSourceFidelityImages
     ? { imageQuality: 100, unoptimized: true }
     : {};
@@ -188,7 +190,7 @@ export default async function HomeDetailPage({
                 isEditorialPresentation || getResidenceName(model) === model.name ? null : "House"
               }
               imageAlt={`${getResidenceName(model)} exterior`}
-              {...sourceFidelityImageProps}
+              {...architecturalImageProps}
             />
           }
         >
@@ -208,7 +210,7 @@ export default async function HomeDetailPage({
               isEditorialPresentation || getResidenceName(model) === model.name ? null : "House"
             }
             imageAlt={`${getResidenceName(model)} exterior`}
-            {...sourceFidelityImageProps}
+            {...architecturalImageProps}
           />
         </Suspense>
 
@@ -300,16 +302,12 @@ export default async function HomeDetailPage({
           floorPlanImage={model.floorPlanImage}
           narrative={model.narrative}
           designToolDiscovery={designToolDiscovery}
-          {...sourceFidelityImageProps}
-          imageSizes={
-            useSourceFidelityImages
-              ? {
-                  full: fullWidthHomeImageSizes,
-                  pair: pairedHomeImageSizes,
-                }
-              : undefined
-          }
-          imageLoading={useSourceFidelityImages ? "lazy" : undefined}
+          {...architecturalImageProps}
+          imageSizes={{
+            full: fullWidthHomeImageSizes,
+            pair: pairedHomeImageSizes,
+          }}
+          imageLoading="lazy"
         />
 
 

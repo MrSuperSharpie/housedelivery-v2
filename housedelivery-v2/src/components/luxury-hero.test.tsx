@@ -10,7 +10,8 @@ test("homepage hero serves its architectural image and core navigation before vi
     <LuxuryHero image="/hero-fallback.jpg" customHomeCount={18} />,
   );
 
-  assert.match(markup, /src="\/hero-fallback\.jpg"/);
+  assert.match(markup, /src="\/_next\/image\?url=%2Fhero-fallback\.jpg&amp;w=\d+&amp;q=\d+"/);
+  assert.match(markup, /srcSet="/);
   assert.match(markup, /loading="eager"/);
   assert.match(markup, /fetchPriority="high"/);
   assert.match(markup, /Architecture\./);

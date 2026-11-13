@@ -46,7 +46,9 @@ const nextConfig: NextConfig = {
     // Keep every generated derivative in the high-fidelity range. Images that
     // require exact source pixels (logos and Visual Guide boards) opt out of
     // recompression at the component level.
-    qualities: [95, 100],
+    qualities: [90, 95, 100],
+    // Prefer AVIF for high-fidelity photos; retain WebP for compatible delivery.
+    formats: ["image/avif", "image/webp"],
     remotePatterns: [
       {
         protocol: "https",
