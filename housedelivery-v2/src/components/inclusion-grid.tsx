@@ -257,10 +257,8 @@ export function ModernMethodsSection() {
               level.
             </h3>
             <p className="col-span-12 max-w-[860px] text-[clamp(1.25rem,2.1vw,2rem)] font-medium italic leading-[1.08] tracking-[-0.035em] text-white/62 lg:col-span-7 lg:col-start-6">
-              “Prefab used to mean compromise. What we&apos;re building is the
-              opposite — architectural quality, precision manufacturing, and
-              real customization, with less waste, less time, and more
-              savings.”
+              Modern automobiles and consumer electronics benefit from precision-engineered components, repeatable quality control and coordinated supply chains. House Delivery brings those same manufacturing principles to Canadian housing, combining factory-produced building systems with Canadian construction expertise.
+              <span className="mt-5 block">Better quality. Greater cost efficiency. Less avoidable delay. Lasting value.</span>
             </p>
           </div>
 

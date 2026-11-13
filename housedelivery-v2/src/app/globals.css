@@ -130,7 +130,7 @@ select {
 
 .visual-hero-content {
   display: flex;
-  min-height: max(800px, 100svh);
+  min-height: calc(max(800px, 100svh) + var(--hero-copy-growth, 0px));
   flex-direction: column;
   padding-top: 116px;
   padding-bottom: 28px;
@@ -151,6 +151,12 @@ select {
   margin-top: 28px;
 }
 
+/* Reserve the approved supporting-copy expansion before hydration; the hero
+   measures its exact footprint to keep the existing headline anchor intact. */
+.visual-hero-expanded-copy { --hero-copy-growth: 96px; }
+@media (max-width: 359px) { .visual-hero-expanded-copy { --hero-copy-growth: 120px; } }
+@media (min-width: 640px) { .visual-hero-expanded-copy { --hero-copy-growth: 84px; } }
+
 @media (min-width: 1024px) {
   .visual-hero-frame {
     inset: 104px 28px auto 27%;
@@ -165,7 +171,7 @@ select {
   }
 
   .visual-hero-content {
-    min-height: max(850px, 100svh);
+    min-height: calc(max(850px, 100svh) + var(--hero-copy-growth, 0px));
     padding-top: 148px;
     padding-bottom: 64px;
   }

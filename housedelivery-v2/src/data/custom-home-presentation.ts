@@ -132,7 +132,7 @@ export const customHomePresentations = {
     "designImageId": "salt-spring-living-room.jpg",
     "inquiryImageId": "salt-spring-living-room.jpg",
     "story": {
-      "mode": "editorial",
+      "mode": "cinematic",
       "scenes": [
         {
           "id": "paired-form",
@@ -155,6 +155,27 @@ export const customHomePresentations = {
             "text": "Each residence has six independent interior chapters, with shared exterior and glazing selections.",
             "basis": "Existing model summary, plan callouts and visually reviewed approved imagery."
           }
+        },
+        {
+          "id": "private-spaces",
+          "imageId": "salt-spring-bedroom.jpg",
+          "label": "The private spaces",
+          "title": "Privacy and function above",
+          "copy": {
+            "kind": "approved-excerpt",
+            "narrativeTitle": "Privacy and function above",
+            "text": "The upper level provides the more private areas of each residence, with generous bedrooms, bathrooms and comfortable family spaces arranged to support privacy and functionality."
+          }
+        }
+      ],
+      "transitions": [
+        {
+          "from": 0.23,
+          "to": 0.36
+        },
+        {
+          "from": 0.6,
+          "to": 0.73
         }
       ]
     }
@@ -265,7 +286,7 @@ export const customHomePresentations = {
     "designImageId": "CedarStone2-91cde53.jpeg",
     "inquiryImageId": "CedarStone5-327dfa4.jpeg",
     "story": {
-      "mode": "editorial",
+      "mode": "cinematic",
       "scenes": [
         {
           "id": "arrival",
@@ -288,6 +309,27 @@ export const customHomePresentations = {
             "text": "A central kitchen brings the daily living spaces together.",
             "basis": "Existing model summary, plan callouts and visually reviewed approved imagery."
           }
+        },
+        {
+          "id": "private-rooms",
+          "imageId": "CedarStone4-0cfb7d5.jpeg",
+          "label": "The private rooms",
+          "title": "Private rooms, quietly resolved",
+          "copy": {
+            "kind": "approved-excerpt",
+            "narrativeTitle": "Private rooms, quietly resolved",
+            "text": "Four light-filled bedrooms become personal sanctuaries through restrained lines, soft material transitions, and just enough indulgence."
+          }
+        }
+      ],
+      "transitions": [
+        {
+          "from": 0.23,
+          "to": 0.36
+        },
+        {
+          "from": 0.6,
+          "to": 0.73
         }
       ]
     }
@@ -564,7 +606,7 @@ export const customHomePresentations = {
     "designImageId": "SouthBay-2.jpeg",
     "inquiryImageId": "SouthBay-2.jpeg",
     "story": {
-      "mode": "editorial",
+      "mode": "cinematic",
       "scenes": [
         {
           "id": "arrival",
@@ -587,6 +629,27 @@ export const customHomePresentations = {
             "text": "An open living room connects directly to the central kitchen.",
             "basis": "Existing model summary, plan callouts and visually reviewed approved imagery."
           }
+        },
+        {
+          "id": "dining",
+          "imageId": "SouthBay-6.jpeg",
+          "label": "The daily details",
+          "title": "A dining nook in daylight",
+          "copy": {
+            "kind": "proposed",
+            "text": "Glazing brings daylight to the dining nook beside the kitchen.",
+            "basis": "New expansion copy: visually reviewed existing approved architectural image; no new technical or commercial claim."
+          }
+        }
+      ],
+      "transitions": [
+        {
+          "from": 0.23,
+          "to": 0.36
+        },
+        {
+          "from": 0.6,
+          "to": 0.73
         }
       ]
     }
@@ -614,8 +677,19 @@ export const customHomePresentations = {
     "designImageId": "Bern-House6.jpeg",
     "inquiryImageId": "Bern-House7.jpeg",
     "story": {
-      "mode": "compact",
+      "mode": "cinematic",
       "scenes": [
+        {
+          "id": "arrival",
+          "imageId": "Bern-House1.jpeg",
+          "label": "The architecture",
+          "title": "Strength, made invisible",
+          "copy": {
+            "kind": "approved-excerpt",
+            "narrativeTitle": "Strength, made invisible",
+            "text": "Precision light steel framing gives the Boreal its calm structural confidence."
+          }
+        },
         {
           "id": "living",
           "imageId": "Bern-House4.jpeg",
@@ -637,6 +711,16 @@ export const customHomePresentations = {
             "text": "The sheltered terrace continues the relationship between the shared rooms and outdoor space.",
             "basis": "Existing model summary, plan callouts and visually reviewed approved imagery."
           }
+        }
+      ],
+      "transitions": [
+        {
+          "from": 0.23,
+          "to": 0.36
+        },
+        {
+          "from": 0.6,
+          "to": 0.73
         }
       ]
     }
@@ -673,7 +757,7 @@ export const customHomePresentations = {
     "designImageId": "keats-kitchen-dining.jpeg",
     "inquiryImageId": "keats-outdoor-living.jpeg",
     "story": {
-      "mode": "editorial",
+      "mode": "cinematic",
       "scenes": [
         {
           "id": "arrival",
@@ -708,6 +792,16 @@ export const customHomePresentations = {
             "basis": "Existing model summary, plan callouts and visually reviewed approved imagery."
           }
         }
+      ],
+      "transitions": [
+        {
+          "from": 0.23,
+          "to": 0.36
+        },
+        {
+          "from": 0.6,
+          "to": 0.73
+        }
       ]
     }
   },
@@ -737,7 +831,7 @@ export const customHomePresentations = {
     "designImageId": "Czech-House5.jpeg",
     "inquiryImageId": "Czech-House5.jpeg",
     "story": {
-      "mode": "editorial",
+      "mode": "cinematic",
       "scenes": [
         {
           "id": "arrival",
@@ -751,6 +845,17 @@ export const customHomePresentations = {
           }
         },
         {
+          "id": "entry-detail",
+          "imageId": "Czech-House3-f4de673.jpeg",
+          "label": "The arrival details",
+          "title": "Sheltered arrivals",
+          "copy": {
+            "kind": "approved-excerpt",
+            "narrativeTitle": "A confident first impression",
+            "text": "Horizontal rooflines, paired columns, and sheltered entries give the frontage a sense of permanence without heaviness."
+          }
+        },
+        {
           "id": "kitchen",
           "imageId": "Czech-House5.jpeg",
           "label": "The interior",
@@ -760,6 +865,16 @@ export const customHomePresentations = {
             "text": "The working island sits within clear views between kitchen, dining and living.",
             "basis": "Existing model summary, plan callouts and visually reviewed approved imagery."
           }
+        }
+      ],
+      "transitions": [
+        {
+          "from": 0.23,
+          "to": 0.36
+        },
+        {
+          "from": 0.6,
+          "to": 0.73
         }
       ]
     }
@@ -885,7 +1000,7 @@ export const customHomePresentations = {
     "designImageId": "tilburgvilla-prefab-house-prefab-home-11e6668.jpeg",
     "inquiryImageId": "tilburgvilla-prefab-house-prefab-home-70e78ca.jpeg",
     "story": {
-      "mode": "editorial",
+      "mode": "cinematic",
       "scenes": [
         {
           "id": "arrival",
@@ -899,6 +1014,17 @@ export const customHomePresentations = {
           }
         },
         {
+          "id": "living",
+          "imageId": "tilburgvilla-prefab-house-prefab-home-11e6668.jpeg",
+          "label": "The interior",
+          "title": "An open heart",
+          "copy": {
+            "kind": "approved-excerpt",
+            "narrativeTitle": "An open heart",
+            "text": "The principal living rooms are composed as an airy social landscape, generous enough for celebration yet calm enough for an unhurried morning."
+          }
+        },
+        {
           "id": "deck",
           "imageId": "tilburgvilla-prefab-house-prefab-home-70e78ca.jpeg",
           "label": "The outdoor connection",
@@ -908,6 +1034,16 @@ export const customHomePresentations = {
             "text": "The 311 sq. ft. deck extends the family plan outdoors.",
             "basis": "Existing model summary, plan callouts and visually reviewed approved imagery."
           }
+        }
+      ],
+      "transitions": [
+        {
+          "from": 0.23,
+          "to": 0.36
+        },
+        {
+          "from": 0.6,
+          "to": 0.73
         }
       ]
     }
@@ -941,7 +1077,7 @@ export const customHomePresentations = {
     "designImageId": "Geneva3.jpeg",
     "inquiryImageId": "Geneva3.jpeg",
     "story": {
-      "mode": "editorial",
+      "mode": "cinematic",
       "scenes": [
         {
           "id": "arrival",
@@ -976,6 +1112,16 @@ export const customHomePresentations = {
             "basis": "Existing model summary, plan callouts and visually reviewed approved imagery."
           }
         }
+      ],
+      "transitions": [
+        {
+          "from": 0.23,
+          "to": 0.36
+        },
+        {
+          "from": 0.6,
+          "to": 0.73
+        }
       ]
     }
   },
@@ -1005,7 +1151,7 @@ export const customHomePresentations = {
     "designImageId": "Harmony-house6 (1).jpeg",
     "inquiryImageId": "Harmony-house3.jpeg",
     "story": {
-      "mode": "editorial",
+      "mode": "cinematic",
       "scenes": [
         {
           "id": "arrival",
@@ -1040,6 +1186,16 @@ export const customHomePresentations = {
             "basis": "Existing model summary, plan callouts and visually reviewed approved imagery."
           }
         }
+      ],
+      "transitions": [
+        {
+          "from": 0.23,
+          "to": 0.36
+        },
+        {
+          "from": 0.6,
+          "to": 0.73
+        }
       ]
     }
   },
@@ -1072,7 +1228,7 @@ export const customHomePresentations = {
     "designImageId": "mayne-kitchen.jpg",
     "inquiryImageId": "mayne-living-room.jpg",
     "story": {
-      "mode": "editorial",
+      "mode": "cinematic",
       "scenes": [
         {
           "id": "arrival",
@@ -1107,6 +1263,16 @@ export const customHomePresentations = {
             "basis": "Existing model summary, plan callouts and visually reviewed approved imagery."
           }
         }
+      ],
+      "transitions": [
+        {
+          "from": 0.23,
+          "to": 0.36
+        },
+        {
+          "from": 0.6,
+          "to": 0.73
+        }
       ]
     }
   },
@@ -1139,7 +1305,7 @@ export const customHomePresentations = {
     "designImageId": "Killrar-Villa6.jpeg",
     "inquiryImageId": "Killrar-Villa3.jpeg",
     "story": {
-      "mode": "editorial",
+      "mode": "cinematic",
       "scenes": [
         {
           "id": "arrival",
@@ -1174,6 +1340,16 @@ export const customHomePresentations = {
             "basis": "Existing model summary, plan callouts and visually reviewed approved imagery."
           }
         }
+      ],
+      "transitions": [
+        {
+          "from": 0.23,
+          "to": 0.36
+        },
+        {
+          "from": 0.6,
+          "to": 0.73
+        }
       ]
     }
   },
@@ -1206,7 +1382,7 @@ export const customHomePresentations = {
     "designImageId": "Capri3.jpg",
     "inquiryImageId": "Capri3.jpg",
     "story": {
-      "mode": "editorial",
+      "mode": "cinematic",
       "scenes": [
         {
           "id": "arrival",
@@ -1229,6 +1405,27 @@ export const customHomePresentations = {
             "text": "Broad glazing brings daylight into the connected social rooms.",
             "basis": "Existing model summary, plan callouts and visually reviewed approved imagery."
           }
+        },
+        {
+          "id": "bedroom",
+          "imageId": "Capri2.jpg",
+          "label": "The private spaces",
+          "title": "Room to retreat",
+          "copy": {
+            "kind": "proposed",
+            "text": "Layered wall finishes and soft lighting frame the bedroom.",
+            "basis": "New expansion copy: visually reviewed existing approved architectural image; no new technical or commercial claim."
+          }
+        }
+      ],
+      "transitions": [
+        {
+          "from": 0.23,
+          "to": 0.36
+        },
+        {
+          "from": 0.6,
+          "to": 0.73
         }
       ]
     }
