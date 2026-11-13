@@ -119,12 +119,13 @@ export function LuxuryHero({
               onPlaying={() => { setHasPlayed(true); setIsPaused(false); }}
               onPause={() => setIsPaused(true)}
               onEmptied={() => setHasPlayed(false)}
-              onError={() => setVideoFailed(true)}
+              onError={(event) => { if (event.target === event.currentTarget) setVideoFailed(true); }}
               className={cn(
                 "pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-700",
                 hasPlayed && !videoFailed ? "opacity-100" : "opacity-0",
               )}
             >
+              <source src="/videos/house-delivery-hero.av1.mp4" type={'video/mp4; codecs="av01.0.08M.08"'} />
               <source src="/videos/house-delivery-hero.mp4" type="video/mp4" onError={() => setVideoFailed(true)} />
             </video>
           ) : null}
