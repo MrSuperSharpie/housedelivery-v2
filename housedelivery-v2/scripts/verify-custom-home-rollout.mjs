@@ -40,7 +40,7 @@ try {
       assert.equal(response.status(), 200);
       const hero = page.locator("#top");
       assert.equal(await page.locator("h1").count(), 1, `${model.slug}: one H1`);
-      assert.equal((await page.locator("h1").innerText()).trim(), model.name);
+      assert.equal((await page.locator("h1").innerText()).trim(), model.slug === "langley" ? "The Langley House" : model.name);
       assert.ok((await hero.innerText()).includes(customHomePresentations[model.slug].hero.valueLine));
       assert.equal(await hero.locator("img").getAttribute("loading"), "eager");
       assert.equal(await hero.locator("img").getAttribute("fetchpriority"), "high");

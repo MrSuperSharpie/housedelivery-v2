@@ -163,7 +163,7 @@ export function HomeDetailHero({
               <p className="mb-5 flex items-center gap-3 text-[9px] font-semibold uppercase tracking-[0.2em] text-[#736247]">
                 <span className="h-px w-7 bg-[#8a7a62]" /> {model.locationLabel}
               </p>
-              <motion.h1 style={{ y: shouldReduceMotion ? 0 : editorialTitleY }}><HomeCinematicHeadline text={model.name} priority />{titleSuffix ? <>{" "}<span>{titleSuffix}</span></> : null}</motion.h1>
+              <motion.h1 style={{ y: shouldReduceMotion ? 0 : editorialTitleY }}><HomeCinematicHeadline text={model.slug === "langley" ? "The Langley House" : model.name} priority />{titleSuffix ? <>{" "}<span>{titleSuffix}</span></> : null}</motion.h1>
             </div>
             <div className="home-pilot-hero-summary max-w-md">
               <p className="text-sm leading-7 text-black/65">{valueLine ?? model.summary}</p>
