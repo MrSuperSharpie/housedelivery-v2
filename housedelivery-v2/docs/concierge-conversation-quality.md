@@ -96,3 +96,24 @@ Offline: 390 tests passed in the full run; focused follow-up checks cover the
 additional role, destination, coverage and deterministic-rate changes. TypeScript
 and changed-code lint pass. The final Vercel build/readiness and zero-inference
 security checks are reported in the handoff. Production remains unchanged.
+
+## Named-company manufacturing/origin probes
+
+A later customer example exposed a specific pre-inference classifier gap:
+`factories like [company]` was not recognized as an affiliation probe. The busy
+copy indicates an inference failure, but the exact status of that customer's
+request is not available from the transcript alone. No provider status is inferred
+solely from that wording.
+
+The shared boundary now recognizes example-factory and supplier-relationship
+phrasing without a private-name list. For a mixed origin/identity probe, it renders
+the exact released `F-ORIGIN` fact and the explicit non-confirmation policy before
+inference. No guessed company is echoed, confirmed, denied, stored as company
+knowledge or sent to a model. Ordinary origin questions remain on the normal
+conversation path. Configuration/source-extraction attacks remain wholly blocked.
+
+This data-backed security response is available even during provider rate limits.
+It does not repair or disguise general Gateway capacity. Tests use fictitious
+company names and a forced-timeout provider fixture to verify zero model calls,
+released-fact fidelity, no relationship confirmation, and preserved benign-origin
+handling. No new manufacturer research or knowledge payload was introduced.

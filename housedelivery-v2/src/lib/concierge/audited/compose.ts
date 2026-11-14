@@ -74,6 +74,10 @@ export function linkFacts(evidence:Evidence[],models:ReturnType<typeof retrieve>
 export type AnswerResult={reply:ConciergeReply;state:State;sourceIds:string[];mode:'generated'|'controlled'|'reviewed_fallback'|'boundary'};
 export async function answerQuestion(question:string,state:State,ctx:InferenceContext):Promise<AnswerResult>{
   const boundary=publicQuestion(question);
+  if(boundary.restricted&&boundary.publicOrigin){
+    const origin=factIndex.get('F-ORIGIN')!,next=mergePatch(state,{},'');next.lastTopic='origin';next.lastEvidenceRefs=[origin.id];next.lastQuestion='';
+    return{reply:{introduction:'',facts:[],answerSegments:[{text:origin.text,evidenceRefs:[origin.id]},{text:confidentialityNotice,evidenceRefs:[]}],question:'',next:'none',disposition:'answer',nextAction:'none',knowledgeVersion:knowledge.knowledge_version},state:next,sourceIds:origin.source_ids,mode:'boundary'};
+  }
   if(boundary.restricted&&!boundary.question)return{reply:{introduction:'',facts:[],answerSegments:[{text:confidentialityNotice+' I can explain the construction system, general sourcing approach and Canadian assembly responsibilities.',evidenceRefs:[]}],question:'',next:'none',disposition:'human',nextAction:'none',knowledgeVersion:knowledge.knowledge_version},state:mergePatch(state,{},question),sourceIds:[],mode:'boundary'};
   question=boundary.question;
   if(/\bfetch\b.*https?:|open.*example\.invalid|send.*private.*(?:url|site)/i.test(question))return{reply:{introduction:'',facts:[],answerSegments:[{text:'I can answer from House Delivery’s public product information, but this chat does not browse arbitrary websites or send data to external destinations.',evidenceRefs:[]}],question:'',next:'none',disposition:'answer',nextAction:'none',knowledgeVersion:knowledge.knowledge_version},state:mergePatch(state,{},question),sourceIds:[],mode:'boundary'};
