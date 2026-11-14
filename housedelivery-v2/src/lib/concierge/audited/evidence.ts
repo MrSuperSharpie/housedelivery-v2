@@ -16,7 +16,7 @@ export function retrieve(intent:Intent,state:State,question:string){
   if(/main.level|main.floor|ground.floor/i.test(question)&&models.length>1){const suited=models.filter(m=>m.features.some(f=>/main.level.*(suite|bedroom)|main.floor.*suite|ground.floor.*(bedroom|suite)/i.test(f)));if(suited.length)models=suited;}
   const requestedFacts=[...new Set([...topicFacts[intent.topic],...intent.factIds])];
   if(intent.topic==='community'&&/Nation|Indigenous/i.test(question+' '+(stateValue(state,'audience')??'')+' '+(stateValue(state,'role')??'')))requestedFacts.push('F-NATIONS','F-PARTICIPATION','F-FUNDING');
-  if(/funding|grant/i.test(question))requestedFacts.push('F-FUNDING');
+  if(/funding|grant/i.test(question))requestedFacts.push('F-FUNDING','F-START');
   if(/local jobs|training|local participation|employment|skills/i.test(question))requestedFacts.push('F-PARTICIPATION');
   if(/show.?home|rendering|gallery|completed.*project/i.test(question))requestedFacts.push('F-IMAGES','F-CONTACT');
   if(/good value|savings|better value/i.test(question))requestedFacts.push('F-COMPANY','F-PARALLEL','F-SYSTEMS');
