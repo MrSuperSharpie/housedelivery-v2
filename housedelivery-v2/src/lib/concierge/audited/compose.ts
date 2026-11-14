@@ -25,6 +25,7 @@ export function validateNatural(answer:NaturalAnswer,evidence:Evidence[],allowed
     if(/\bnot (?:standard|offered)\b|not available (?:as|for|in|with)/i.test(seg.text))return false;
     if(/\b(?:island|wardrobe)\b/i.test(seg.text)&&/\bstructural (?:element|modification|change)/i.test(seg.text))return false;
     if(/\b\d[\d,.]*\s*(?:per\s+(?:sq|square)|\/\s*(?:sq|sf))|\bblended (?:amount|price|cost|total)\b/i.test(seg.text)||evidence.some(e=>e.id==='F-PRICE')&&/\b(?:250|300)\b/.test(seg.text))return false;
+    if(/\b(?:includes?|included|covers?|covered)\b[^.!?]{0,80}\b(?:freight|import costs?)\b|\b(?:freight|import costs?)\b[^.!?]{0,30}\b(?:is|are) (?:included|excluded|covered)\b/i.test(seg.text))return false;
     // Commercial numbers and authorizations use server-controlled rendering.
     if(/\$|\bCAD\b|\b(?:firm quote|reserved for you|has been sent|submitted your|funding is approved|guaranteed permit)\b/i.test(seg.text))return false;
   }
