@@ -48,7 +48,7 @@ export function selectHandbook(intent:Intent,state:State,question:string):Eviden
   if(/Nation|Indigenous/i.test(stateValue(state,'audience')??''))retained.push('community');
   else if(stateValue(state,'homes')||/municip|institution|developer/i.test(stateValue(state,'audience')??''))retained.push('developments');
   if(stateValue(state,'householdNeeds')||stateValue(state,'finish'))retained.push('selection','finishes');
-  const chosen=[...new Set(['company',...(intent.sectionIds??[]),...current,...topics[intent.topic],...retained,...(followUp?previous:[])])].filter(id=>handbookIndex.has(id)).slice(0,7);
+  const chosen=[...new Set(['company',...(intent.requests?.flatMap(p=>topics[p.topic])??[]),...(intent.sectionIds??[]),...current,...topics[intent.topic],...retained,...(followUp?previous:[])])].filter(id=>handbookIndex.has(id)).slice(0,7);
   // Complete sections retain qualifications. Related topics add context only when
   // space remains; limits are never trimmed into stand-alone marketing claims.
   for(const id of [...chosen]){if(chosen.length>=7)break;const related=handbookIndex.get(id)!.related.find(r=>!chosen.includes(r)&&[...current,...retained,...previous].includes(r));if(related)chosen.push(related);}

@@ -21,6 +21,8 @@ export function namedModels(q:string){const ids=[...modelIndex.values()].filter(
 export function deterministicPatch(q:string,s:State):Patch{
   const p:Patch={},lower=q.toLowerCase(),num=(x:string)=>(x.toLowerCase()==='one hundred'?100:wordNumbers[x.toLowerCase()]??Number(x.replaceAll(',','')));
   if(/\bour Nation\b|\b(?:we|I).{0,25}(?:First Nation|Indigenous community)/i.test(q))p.audience='First Nation / Indigenous community';
+  const selfRole=q.match(/\b(?:I am|I'm|I’m|we are|we're|we’re)\s+(?:a |an |the )?(general contractor|builder)\b/i);
+  if(selfRole){p.role=selfRole[1].toLowerCase();p.audience='Builder / general contractor';}
   const bed=[...q.matchAll(/\b(one|two|three|four|five|six|seven|eight|\d+)[ -]?(?:bedrooms?|beds?|br)\b/gi)].at(-1);if(bed){p.bedrooms=num(bed[1]);p.bedroomMode=/at least|minimum|or more/i.test(q)?'minimum':'exact'}
   const bath=q.match(/\b(one|two|three|four|five|\d+(?:\.\d+)?)[ -]?(?:bathrooms?|baths?)\b/i);if(bath)p.bathroomsMin=num(bath[1]);
   if(/no stairs|single.storey|one.storey/i.test(q))p.storeys=1;
@@ -30,7 +32,7 @@ export function deterministicPatch(q:string,s:State):Patch{
   if(/fourplex|sixplex|rowhouse|BC Duplex/i.test(q))p.family='cmhc_catalogue';
   if(/fourplex|four (family )?rentals/i.test(q)){p.family='cmhc_catalogue';p.unitsPerBuilding=4;p.bedroomBasis='per_unit'}
   if(/sixplex/i.test(q)){p.family='cmhc_catalogue';p.unitsPerBuilding=6;p.bedroomBasis='per_unit'}
-  const count=q.match(/\b(\d+|twenty|fifty|one hundred)[ +]*(?:rental\s+)?(?:homes|rentals|dwellings|units)\b/i);if(count){const n=num(count[1]);if(stateValue(s,'homes')&&n<stateValue(s,'homes')!&&stateValue(s,'phasing')&&/reserve|phase|first/i.test(q)&&!/total|actually|instead|only/i.test(q))p.phaseHomes=n;else p.homes=n;}
+  const count=q.match(/\b(\d+|one|two|three|four|five|six|seven|eight|ten|twenty|fifty|one hundred)[ +]*(?:(?:rental|infill|affordable)\s+){0,2}(?:homes|rentals|dwellings|units)\b/i);if(count){const n=num(count[1]);if(stateValue(s,'homes')&&n<stateValue(s,'homes')!&&stateValue(s,'phasing')&&/reserve|phase|first/i.test(q)&&!/total|actually|instead|only/i.test(q))p.phaseHomes=n;else p.homes=n;}
   const phase=q.match(/\b(?:starting with|first phase(?: of| is| has| with)?|phase one(?: of| is| has| with)?)\s+(\d+|twenty|fifty|one hundred)\b/i)??q.match(/\b(\d+)\s+(?:homes|units|rentals)?\s*(?:in|for) (?:the )?first phase/i);
   if(phase)p.phaseHomes=num(phase[1]);
   if(/\bstudy\b|\boffice\b/i.test(q))p.study=!/more than a study|instead of.*study|no study|not.*study/i.test(q);
@@ -57,6 +59,7 @@ export function deterministicPatch(q:string,s:State):Patch{
   if(statedPlace&&!/^(?:City|Town|District|Municipality|Village|The)$/i.test(statedPlace[1]))p.location=statedPlace[1].replace(/[.]+$/,'');
   if(/correction|actually|not Vancouver/i.test(q)&&/Calgary/i.test(q)){p.location='Calgary';p.province='Alberta'}
   if(/please tell.*approved funding/i.test(lower)&&/not approved|pending/.test(stateValue(s,'funding')??''))delete p.funding;
+  if(/warehouse|industrial shed/i.test(q)&&!namedModels(q).length){delete p.storeys;delete p.bedrooms;delete p.family;}
   return p;
 }
 export function mergePatch(s:State,patch:Patch,q:string){
@@ -65,11 +68,14 @@ export function mergePatch(s:State,patch:Patch,q:string){
   // model-extraction guess cannot silently replace a visitor's constraints.
   for(const key of ['selectedModel','comparedModels','family','unitsPerBuilding','homes','phaseHomes','bedrooms','bedroomMode','bathroomsMin','storeys','study','areaTarget','areaMax','areaMin'] as const)if(!Object.hasOwn(explicit,key))delete combined[key];
   if(!/per[ -](?:unit|dwelling|home|residence)|each (?:unit|dwelling|home|residence)/i.test(q)&&!Object.hasOwn(explicit,'bedroomBasis'))delete combined.bedroomBasis;
-  const cues:Partial<Record<keyof Preferences,RegExp>>={audience:/municip|institution|Nation|Indigenous|developer|homeowner|contractor|builder|non.?profit|operator|landowner|facilitator/i,role:/municip|institution|Nation|Indigenous|developer|contractor|builder|operator|landowner|facilitator/i,operator:/operat|non.?profit/i,land:/land|site|property|lot|own|control/i,builder:/builder|contractor/i,funding:/fund|grant/i,declinedContact:/email|phone|contact|consultation|personal review/i,phasing:/phase|stage/i,targetDate:/date|timing|timeline|finish|ready|occupancy|january|february|march|april|may|june|july|august|september|october|november|december|20\d{2}/i,budgetAmount:/budget|\$|money|financ/i,budgetCurrency:/budget|\$|CAD|USD|currency/i,budgetScope:/budget|package|complete|turnkey|total/i,householdNeeds:/mother|Elder|famil|household|guest|privacy|gather|mobility|move around|maintenan|durab|access|room|live|multigener/i,constructionScope:/(?:we|I|our team).*(?:do|handle|supply|provide).*(?:foundation|assembl|appliance|site work|trade)/i,accessibility:/access|wheelchair|mobility|move around|stairs|steps/i,avoidLarger:/larger|bigger|size|firm|limit/i,finish:/finish|kitchen|signature|premium|essential|wardrobe|floor|door|window|countertop/i};
+  if(explicit.role&&!Object.hasOwn(explicit,'builder'))delete combined.builder;
+  const cues:Partial<Record<keyof Preferences,RegExp>>={audience:/municip|institution|Nation|Indigenous|developer|homeowner|contractor|builder|non.?profit|operator|landowner|facilitator/i,role:/municip|institution|Nation|Indigenous|developer|contractor|builder|operator|landowner|facilitator/i,operator:/operat|non.?profit/i,land:/land|site|property|lot|own|control/i,builder:/builder|contractor/i,funding:/fund|grant/i,declinedContact:/email|phone|contact|consultation|personal review/i,phasing:/phase|stage/i,targetDate:/date|timing|timeline|finish|ready|occupancy|next year|this year|january|february|march|april|may|june|july|august|september|october|november|december|20\d{2}/i,budgetAmount:/budget|\$|money|financ/i,budgetCurrency:/budget|\$|CAD|USD|currency/i,budgetScope:/budget|package|complete|turnkey|total/i,householdNeeds:/mother|Elder|famil|household|guest|privacy|gather|mobility|move around|maintenan|durab|access|room|live|multigener/i,constructionScope:/(?:we|I|our team).*(?:do|handle|supply|provide).*(?:foundation|assembl|appliance|site work|trade)/i,accessibility:/access|wheelchair|mobility|move around|stairs|steps/i,avoidLarger:/larger|bigger|size|firm|limit/i,finish:/finish|kitchen|signature|premium|essential|wardrobe|floor|door|window|countertop/i};
   for(const [key,cue]of Object.entries(cues))if(!cue.test(q)&&!Object.hasOwn(explicit,key))delete combined[key as keyof Preferences];
   if(combined.budgetCurrency){const stated=/\bCAD\b|Canadian dollars/i.test(q)?'CAD':/\bUSD\b|US dollars|U\.S\. dollars/i.test(q)?'USD':null;if(stated)combined.budgetCurrency=stated;else delete combined.budgetCurrency;}
   if(combined.finish&&!Object.hasOwn(explicit,'finish')&&!/\b(?:like|prefer|want|choose|select|consider)\b/i.test(q))delete combined.finish;
   const normalize=(v:string)=>v.normalize('NFKC').toLowerCase().replace(/\s+/g,' ').trim(),spoken=normalize(q);
+  const tentativeDestination=/\b(?:deliver|delivery|ship|shipping|freight)\b/i.test(q)&&(/\bor\b/i.test(q)||!/\b(?:my|our|owned|own|located|based)\b.*\b(?:site|property|land|project|in)\b/i.test(q));
+  if(tentativeDestination){delete combined.location;delete combined.province;}
   if(combined.location){const city=combined.location.split(',')[0].trim(),place=normalize(city);if(!place||!spoken.includes(place)||spoken.includes('not '+place)||spoken.includes('rather than '+place))delete combined.location;else combined.location=city;}
   if(combined.province&&!spoken.includes(normalize(combined.province))&&!combined.location&&!Object.hasOwn(explicit,'province'))delete combined.province;
   for(const [key,value]of Object.entries(combined))if(value!==null&&value!==undefined&&JSON.stringify(values[key as keyof Preferences]?.value)!==JSON.stringify(value))(values as Record<string,unknown>)[key]={value,sourceTurn:turn,status:'visitor_reported'};
