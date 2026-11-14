@@ -1,5 +1,6 @@
 import {audiences,homeCounts,housingTypes,provinces,siteStatuses,timings} from './contracts';
 import {anonymousKey,checkOrigin,ConciergeRequestError,createLimiter,json,readBody,verifyToken} from './security';
+import {createHash,createHmac} from 'node:crypto';
 export type ConciergeLead={fullName:string;email:string;phone:string;organization:string;audience:string;municipality:string;province:string;housingType:string;homeCount:string;siteStatus:string;timeline:string;objective:string;sourcePath:string;consent:true};
 export function parseLead(p:Record<string,unknown>):ConciergeLead{
   const allowed=['token','website','fullName','email','phone','organization','audience','municipality','province','housingType','homeCount','siteStatus','timeline','objective','sourcePath','consent'];
@@ -11,12 +12,19 @@ export function parseLead(p:Record<string,unknown>):ConciergeLead{
   return{fullName:text('fullName',120),email,phone:text('phone',50,false),organization:text('organization',160,false),audience:choice('audience',audiences),municipality:text('municipality',120),province:choice('province',provinces),housingType:choice('housingType',housingTypes),homeCount:choice('homeCount',homeCounts),siteStatus:choice('siteStatus',siteStatuses),timeline:choice('timeline',timings),objective:text('objective',1200),sourcePath:path||'/',consent:true};
 }
 const attempts=createLimiter(5);
-export async function handleLead(request:Request,options:{secret:string;deliver:(id:string,lead:ConciergeLead)=>Promise<Response>}){
-  try{checkOrigin(request);if(!attempts(anonymousKey(request,options.secret)))return json({error:'Please wait before trying again, or use our project-review form.'},429);
+const deliveries=new Map<string,{hash:string;expires:number;pending:Promise<Response>}>();
+export async function handleLead(request:Request,options:{secret:string;deliver:(id:string,lead:ConciergeLead)=>Promise<Response>;limiterKey?:string}){
+  try{checkOrigin(request);if(!attempts(options.limiterKey??anonymousKey(request,options.secret)))return json({error:'Please wait before trying again, or use our project-review form.'},429);
     const body=await readBody(request,10_000);if(body.website)throw new ConciergeRequestError('We couldn’t verify this request.');const id=verifyToken(body.token,options.secret,'lead');if(!id)throw new ConciergeRequestError('Please reopen the project form to refresh its verification.');const lead=parseLead(body);
-    const response=await options.deliver(id,lead),result:unknown=await response.json().catch(()=>null);
-    if(!response.ok||!result||typeof result!=='object'||!('id'in result)||typeof result.id!=='string'||!result.id.trim())return json({error:'We couldn’t confirm delivery. Your details are still here; please try again or use our project-review form.'},502);
-    return json({accepted:true,reference:id});
+    for(const [k,v]of deliveries)if(v.expires<Date.now())deliveries.delete(k);
+    const key=createHmac('sha256',options.secret).update('lead:'+id).digest('hex'),hash=createHash('sha256').update(JSON.stringify(lead)).digest('hex'),existing=deliveries.get(key);
+    if(existing){if(existing.hash!==hash)return json({error:'This inquiry was already submitted. Please open a new form for different details.'},409);return (await existing.pending).clone()}
+    if(deliveries.size>=2000)return json({error:'Please try again shortly or use the project-review form.'},429);
+    const pending=(async()=>{const response=await options.deliver(id,lead),result:unknown=await response.json().catch(()=>null);
+      if(!response.ok||!result||typeof result!=='object'||!('id'in result)||typeof result.id!=='string'||!result.id.trim()){deliveries.delete(key);return json({error:'We couldn’t confirm delivery. Your details are still here; please try again or use our project-review form.'},502)}
+      return json({accepted:true,reference:id});})();
+    deliveries.set(key,{hash,expires:Date.now()+3600_000,pending});
+    try{return(await pending).clone()}catch(e){deliveries.delete(key);throw e}
   }catch(e){if(e instanceof ConciergeRequestError)return json({error:e.message},e.status);console.error(JSON.stringify({event:'concierge_lead_delivery_failed'}));return json({error:'We couldn’t confirm delivery. Please try again or use our project-review form.'},502)}
 }
 export function formatLead(id:string,l:ConciergeLead){return['HOUSE DELIVERY — AI CONCIERGE PROJECT REVIEW',`Reference: ${id}`,'Source: ai-concierge',`Page: ${l.sourcePath}`,'Status: New inquiry; personal qualification required.','',`Name: ${l.fullName}`,`Email: ${l.email}`,`Telephone: ${l.phone||'Not supplied'}`,`Organization: ${l.organization||'Not supplied'}`,`Visitor: ${l.audience}`,`Location: ${l.municipality}, ${l.province}`,`Housing: ${l.housingType}`,`Approximate number of homes: ${l.homeCount}`,`Site: ${l.siteStatus}`,`Timing: ${l.timeline}`,`Key objective: ${l.objective}`,'','Express permission: Visitor asked House Delivery to contact them about this project and share these reviewed details with the team. This is not a marketing subscription.','Only the visitor-reviewed form is included. No conversation transcript, private project records or AI-generated commitments are attached.'].join('\n')}

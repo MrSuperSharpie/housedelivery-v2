@@ -1,3 +1,5 @@
+> Historical V1 boundary report. The audited child branch supersedes its runtime and privacy details; see [the audited integration](ai-housing-concierge-audited.md). The original snapshot is retained for rollback only.
+
 # AI Housing Concierge V1 — implementation and review
 
 ## Verified foundation and preview boundary

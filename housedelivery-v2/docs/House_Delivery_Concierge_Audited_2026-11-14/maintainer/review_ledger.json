@@ -1,0 +1,2130 @@
+{
+  "knowledge_version": "2026-11-14.qa1",
+  "scope": "All 150 original questions and answers read; replacements traced below. This is an editorial/evidence audit, not an executed response score.",
+  "questions": [
+    {
+      "original_id": "Q001",
+      "category": "1. Individual homebuyers and custom homes",
+      "question": "Can I work with House Delivery on just one home?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-HOME"
+      ],
+      "priority_replacement_ids": [
+        "P01"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q002",
+      "category": "1. Individual homebuyers and custom homes",
+      "question": "I do not own land yet. Can we still talk?",
+      "source_ids": [
+        "S-CUSTOM"
+      ],
+      "priority_replacement_ids": [
+        "P02"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q003",
+      "category": "1. Individual homebuyers and custom homes",
+      "question": "Do I need finished plans before contacting you?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-PROCESS"
+      ],
+      "priority_replacement_ids": [
+        "P02"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q004",
+      "category": "1. Individual homebuyers and custom homes",
+      "question": "Can you work with my architect?",
+      "source_ids": [
+        "S-PROCESS",
+        "S-CUSTOM"
+      ],
+      "priority_replacement_ids": [
+        "P04"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q005",
+      "category": "1. Individual homebuyers and custom homes",
+      "question": "Can I keep my own builder?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-PROCESS"
+      ],
+      "priority_replacement_ids": [
+        "P03"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q006",
+      "category": "1. Individual homebuyers and custom homes",
+      "question": "Do you build only steel homes?",
+      "source_ids": [
+        "S-CUSTOM"
+      ],
+      "priority_replacement_ids": [
+        "P38"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q007",
+      "category": "1. Individual homebuyers and custom homes",
+      "question": "Could I bring a design that is not on your website?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-PROCESS"
+      ],
+      "priority_replacement_ids": [
+        "P04"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q008",
+      "category": "1. Individual homebuyers and custom homes",
+      "question": "Are you a Canadian company?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-BUILD"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Lead with the Canadian/Indigenous-owned answer; discuss component origin only if relevant.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q009",
+      "category": "1. Individual homebuyers and custom homes",
+      "question": "How experienced is House Delivery?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-BUILD"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "State founder experience without an unprompted defensive contrast about company age.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q010",
+      "category": "1. Individual homebuyers and custom homes",
+      "question": "What makes your homes good value?",
+      "source_ids": [
+        "S-BUILD",
+        "S-CUSTOM"
+      ],
+      "priority_replacement_ids": [
+        "P05"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q011",
+      "category": "1. Individual homebuyers and custom homes",
+      "question": "Can I see a completed Canadian show home?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-LANEWAY"
+      ],
+      "priority_replacement_ids": [
+        "P06"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q012",
+      "category": "1. Individual homebuyers and custom homes",
+      "question": "Are the photographs proof of homes you have completed in Canada?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-LANEWAY"
+      ],
+      "priority_replacement_ids": [
+        "P06"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q013",
+      "category": "1. Individual homebuyers and custom homes",
+      "question": "I am just exploring. Will I be pressured to buy?",
+      "source_ids": [
+        "S-CUSTOM"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q014",
+      "category": "1. Individual homebuyers and custom homes",
+      "question": "Can you help if I am outside British Columbia?",
+      "source_ids": [
+        "S-HOME",
+        "S-CUSTOM"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q015",
+      "category": "1. Individual homebuyers and custom homes",
+      "question": "What happens after I submit a home inquiry?",
+      "source_ids": [
+        "S-CUSTOM"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q016",
+      "category": "2. ADUs, laneway and carriage homes",
+      "question": "Do you offer laneway or carriage homes?",
+      "source_ids": [
+        "S-LANEWAY",
+        "S-HOME"
+      ],
+      "priority_replacement_ids": [
+        "P07"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q017",
+      "category": "2. ADUs, laneway and carriage homes",
+      "question": "What is a small one-bedroom option?",
+      "source_ids": [
+        "S-M-WILLOW-NOOK",
+        "S-M-THE-MICRO",
+        "S-TERMS"
+      ],
+      "priority_replacement_ids": [
+        "P08"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q018",
+      "category": "2. ADUs, laneway and carriage homes",
+      "question": "I need a two-bedroom backyard home around 600 sq. ft. What fits?",
+      "source_ids": [
+        "S-M-MOONLIGHT-HOUSE",
+        "S-M-LIMETREE-HOUSE"
+      ],
+      "priority_replacement_ids": [
+        "P09"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q019",
+      "category": "2. ADUs, laneway and carriage homes",
+      "question": "Which compact home has a study?",
+      "source_ids": [
+        "S-M-LIMETREE-HOUSE"
+      ],
+      "priority_replacement_ids": [
+        "P10"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q020",
+      "category": "2. ADUs, laneway and carriage homes",
+      "question": "Is there a compact design with two separate bathrooms?",
+      "source_ids": [
+        "S-M-MOONLIGHT-HOUSE",
+        "S-LANEWAY"
+      ],
+      "priority_replacement_ids": [
+        "P09"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q021",
+      "category": "2. ADUs, laneway and carriage homes",
+      "question": "Tell me about the Micro.",
+      "source_ids": [
+        "S-M-THE-MICRO",
+        "S-TERMS"
+      ],
+      "priority_replacement_ids": [
+        "P11"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q022",
+      "category": "2. ADUs, laneway and carriage homes",
+      "question": "How big is the Mini?",
+      "source_ids": [
+        "S-M-THE-MINI",
+        "S-TERMS"
+      ],
+      "priority_replacement_ids": [
+        "P12"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q023",
+      "category": "2. ADUs, laneway and carriage homes",
+      "question": "Could an ADU work for my parents?",
+      "source_ids": [
+        "S-M-THE-MICRO",
+        "S-LANEWAY",
+        "S-TERMS"
+      ],
+      "priority_replacement_ids": [
+        "P11"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q024",
+      "category": "2. ADUs, laneway and carriage homes",
+      "question": "Can I use one as a rental?",
+      "source_ids": [
+        "S-LANEWAY",
+        "S-M-THE-MICRO"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q025",
+      "category": "2. ADUs, laneway and carriage homes",
+      "question": "Can a carriage home sit over my garage?",
+      "source_ids": [
+        "S-LANEWAY",
+        "S-M-HERITAGE-MEWS"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q026",
+      "category": "2. ADUs, laneway and carriage homes",
+      "question": "How large is Heritage Mews?",
+      "source_ids": [
+        "S-M-HERITAGE-MEWS"
+      ],
+      "priority_replacement_ids": [
+        "P13"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q027",
+      "category": "2. ADUs, laneway and carriage homes",
+      "question": "How big is Lantern House?",
+      "source_ids": [
+        "S-M-LANTERN-HOUSE",
+        "S-M-MOONLIGHT-HOUSE",
+        "S-M-LIMETREE-HOUSE"
+      ],
+      "priority_replacement_ids": [
+        "P13"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q028",
+      "category": "2. ADUs, laneway and carriage homes",
+      "question": "Does Courtyard Cottage have two bedrooms?",
+      "source_ids": [
+        "S-M-COURTYARD-COTTAGE"
+      ],
+      "priority_replacement_ids": [
+        "P13"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q029",
+      "category": "2. ADUs, laneway and carriage homes",
+      "question": "What does the free property check tell me?",
+      "source_ids": [
+        "S-LANEWAY"
+      ],
+      "priority_replacement_ids": [
+        "P42"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q030",
+      "category": "2. ADUs, laneway and carriage homes",
+      "question": "Are the laneway Look Books ready?",
+      "source_ids": [
+        "S-M-WILLOW-NOOK",
+        "S-M-HERITAGE-MEWS",
+        "S-M-LANTERN-HOUSE"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q031",
+      "category": "3. Home models, sizes and floor plans",
+      "question": "What is your smallest architectural home?",
+      "source_ids": [
+        "S-M-AURORA",
+        "S-HOME"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q032",
+      "category": "3. Home models, sizes and floor plans",
+      "question": "I want four bedrooms at around 2,500 sq. ft.",
+      "source_ids": [
+        "S-M-AURORA",
+        "S-M-SUMMIT"
+      ],
+      "priority_replacement_ids": [
+        "P14"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q033",
+      "category": "3. Home models, sizes and floor plans",
+      "question": "I need four bedrooms around 3,500 sq. ft.",
+      "source_ids": [
+        "S-M-CANMORE",
+        "S-M-CASCADE"
+      ],
+      "priority_replacement_ids": [
+        "P15"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q034",
+      "category": "3. Home models, sizes and floor plans",
+      "question": "I need five bedrooms around 3,500 sq. ft.",
+      "source_ids": [
+        "S-M-SATURNA",
+        "S-M-MAPLEWOOD"
+      ],
+      "priority_replacement_ids": [
+        "P16"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q035",
+      "category": "3. Home models, sizes and floor plans",
+      "question": "Which four-bedroom home is about 3,300 sq. ft.?",
+      "source_ids": [
+        "S-M-CEDARVIEW"
+      ],
+      "priority_replacement_ids": [
+        "P17"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q036",
+      "category": "3. Home models, sizes and floor plans",
+      "question": "Which home is near 4,000 sq. ft. with five bedrooms?",
+      "source_ids": [
+        "S-M-DALTON",
+        "S-M-SOUTH-BAY",
+        "S-M-PROFILE"
+      ],
+      "priority_replacement_ids": [
+        "P18"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q037",
+      "category": "3. Home models, sizes and floor plans",
+      "question": "What if I want four bedrooms around 4,000 sq. ft.?",
+      "source_ids": [
+        "S-M-LAURENTIAN",
+        "S-M-BOREAL"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q038",
+      "category": "3. Home models, sizes and floor plans",
+      "question": "Which large home has five bedrooms and six bathrooms?",
+      "source_ids": [
+        "S-M-SOLACE"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q039",
+      "category": "3. Home models, sizes and floor plans",
+      "question": "What is your largest model?",
+      "source_ids": [
+        "S-M-LANGLEY"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q040",
+      "category": "3. Home models, sizes and floor plans",
+      "question": "Is Salt Spring 6,073 sq. ft. per side?",
+      "source_ids": [
+        "S-M-SALT-SPRING"
+      ],
+      "priority_replacement_ids": [
+        "P19"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q041",
+      "category": "3. Home models, sizes and floor plans",
+      "question": "What is the difference between Salt Spring and BC Duplex?",
+      "source_ids": [
+        "S-M-SALT-SPRING",
+        "S-M-BC-DUPLEX",
+        "S-D-BC-DUPLEX",
+        "S-TERMS"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q042",
+      "category": "3. Home models, sizes and floor plans",
+      "question": "Which fourplex has three-bedroom homes?",
+      "source_ids": [
+        "S-M-BC-FOURPLEX-2",
+        "S-TERMS"
+      ],
+      "priority_replacement_ids": [
+        "P46"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q043",
+      "category": "3. Home models, sizes and floor plans",
+      "question": "Is the sixplex 6,216 sq. ft. for every home?",
+      "source_ids": [
+        "S-M-SIXPLEX-COURTYARD",
+        "S-D-SIXPLEX-COURTYARD",
+        "S-TERMS"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q044",
+      "category": "3. Home models, sizes and floor plans",
+      "question": "Can I download the floor plans?",
+      "source_ids": [
+        "S-M-THE-MICRO",
+        "S-M-AURORA",
+        "S-TERMS"
+      ],
+      "priority_replacement_ids": [
+        "P20"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q045",
+      "category": "3. Home models, sizes and floor plans",
+      "question": "I want a three-bedroom detached home around 1,800 sq. ft.",
+      "source_ids": [
+        "S-HOME",
+        "S-M-AURORA",
+        "S-CUSTOM"
+      ],
+      "priority_replacement_ids": [
+        "P21"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q046",
+      "category": "4. Pricing, inclusions and total project costs",
+      "question": "What are your advertised prices per square foot?",
+      "source_ids": [
+        "S-M-SALT-SPRING",
+        "S-CUSTOM"
+      ],
+      "priority_replacement_ids": [
+        "P22"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Scope the current numeric display and add the approved public statement as the CAD provenance.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q047",
+      "category": "4. Pricing, inclusions and total project costs",
+      "question": "Does $250 per sq. ft. mean a finished home on my land?",
+      "source_ids": [
+        "S-M-SALT-SPRING",
+        "S-CUSTOM"
+      ],
+      "priority_replacement_ids": [
+        "P23"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Retain supply-versus-build scope; adapt opening to the actual question instead of always saying No.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q048",
+      "category": "4. Pricing, inclusions and total project costs",
+      "question": "Can you give me a firm price right now?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-M-SALT-SPRING"
+      ],
+      "priority_replacement_ids": [
+        "P24"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q049",
+      "category": "4. Pricing, inclusions and total project costs",
+      "question": "What would Aurora cost at the Premium reference rate?",
+      "source_ids": [
+        "S-M-AURORA",
+        "S-M-SALT-SPRING",
+        "S-CUSTOM"
+      ],
+      "priority_replacement_ids": [
+        "P25"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "A visitor-requested calculation is valid; do not represent $250 as a confirmed Aurora rate.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q050",
+      "category": "4. Pricing, inclusions and total project costs",
+      "question": "What is the Signature arithmetic for Aurora?",
+      "source_ids": [
+        "S-M-AURORA",
+        "S-M-SALT-SPRING",
+        "S-CUSTOM"
+      ],
+      "priority_replacement_ids": [
+        "P25"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "A visitor-requested calculation is valid; do not represent $300 as a confirmed Aurora rate.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q051",
+      "category": "4. Pricing, inclusions and total project costs",
+      "question": "What does Essential cost?",
+      "source_ids": [
+        "S-INCLUSIONS"
+      ],
+      "priority_replacement_ids": [
+        "P26"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q052",
+      "category": "4. Pricing, inclusions and total project costs",
+      "question": "Can I use $250 per sq. ft. for the Micro?",
+      "source_ids": [
+        "S-M-THE-MICRO",
+        "S-CUSTOM",
+        "S-TERMS"
+      ],
+      "priority_replacement_ids": [
+        "P26"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q053",
+      "category": "4. Pricing, inclusions and total project costs",
+      "question": "Is shipping included?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-LANEWAY"
+      ],
+      "priority_replacement_ids": [
+        "P27"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q054",
+      "category": "4. Pricing, inclusions and total project costs",
+      "question": "Are foundations included?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-LANEWAY"
+      ],
+      "priority_replacement_ids": [
+        "P23"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q055",
+      "category": "4. Pricing, inclusions and total project costs",
+      "question": "Are appliances included in the kitchen pictures?",
+      "source_ids": [
+        "S-M-SOLACE",
+        "S-CUSTOM"
+      ],
+      "priority_replacement_ids": [
+        "P23"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q056",
+      "category": "4. Pricing, inclusions and total project costs",
+      "question": "Do the published prices include tax?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-M-SALT-SPRING"
+      ],
+      "priority_replacement_ids": [
+        "P23"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q057",
+      "category": "4. Pricing, inclusions and total project costs",
+      "question": "What will my whole project cost?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-LANEWAY"
+      ],
+      "priority_replacement_ids": [
+        "P28"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q058",
+      "category": "4. Pricing, inclusions and total project costs",
+      "question": "Can you guarantee savings over a local builder?",
+      "source_ids": [
+        "S-BUILD",
+        "S-CUSTOM"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q059",
+      "category": "4. Pricing, inclusions and total project costs",
+      "question": "Would ordering 50 homes guarantee a discount?",
+      "source_ids": [
+        "S-PROCESS",
+        "S-M-LANGLEY",
+        "S-CUSTOM"
+      ],
+      "priority_replacement_ids": [
+        "P29"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q060",
+      "category": "4. Pricing, inclusions and total project costs",
+      "question": "What deposit do I have to pay?",
+      "source_ids": [
+        "S-PROCESS"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q061",
+      "category": "5. Essential, Premium and Signature finishes",
+      "question": "What does Essential mean?",
+      "source_ids": [
+        "S-HOME",
+        "S-INCLUSIONS"
+      ],
+      "priority_replacement_ids": [
+        "P30"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q062",
+      "category": "5. Essential, Premium and Signature finishes",
+      "question": "What does Premium add?",
+      "source_ids": [
+        "S-HOME",
+        "S-INCLUSIONS"
+      ],
+      "priority_replacement_ids": [
+        "P30"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q063",
+      "category": "5. Essential, Premium and Signature finishes",
+      "question": "What makes Signature different?",
+      "source_ids": [
+        "S-HOME",
+        "S-INCLUSIONS"
+      ],
+      "priority_replacement_ids": [
+        "P30"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q064",
+      "category": "5. Essential, Premium and Signature finishes",
+      "question": "Can I choose Essential for any custom model?",
+      "source_ids": [
+        "S-INCLUSIONS"
+      ],
+      "priority_replacement_ids": [
+        "P31"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q065",
+      "category": "5. Essential, Premium and Signature finishes",
+      "question": "Are catalogue homes always Premium?",
+      "source_ids": [
+        "S-HOME",
+        "S-INCLUSIONS"
+      ],
+      "priority_replacement_ids": [
+        "P32"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Available Essential/Premium tiers and a Premium starting point may coexist. Flag the unresolved default without declaring a proven contradiction.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q066",
+      "category": "5. Essential, Premium and Signature finishes",
+      "question": "Does Signature guarantee real marble everywhere?",
+      "source_ids": [
+        "S-INCLUSIONS",
+        "S-M-SOLACE"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q067",
+      "category": "5. Essential, Premium and Signature finishes",
+      "question": "Can I put Signature in one room and Premium elsewhere?",
+      "source_ids": [
+        "S-M-SOLACE"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q068",
+      "category": "5. Essential, Premium and Signature finishes",
+      "question": "Can each Salt Spring residence use a different tier?",
+      "source_ids": [
+        "S-M-SALT-SPRING"
+      ],
+      "priority_replacement_ids": [
+        "P33"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q069",
+      "category": "5. Essential, Premium and Signature finishes",
+      "question": "Does changing tiers keep all my previous selections?",
+      "source_ids": [
+        "S-M-SALT-SPRING"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q070",
+      "category": "5. Essential, Premium and Signature finishes",
+      "question": "Does Premium include a final appliance model?",
+      "source_ids": [
+        "S-M-SOLACE",
+        "S-CUSTOM"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q071",
+      "category": "5. Essential, Premium and Signature finishes",
+      "question": "Are the wardrobe pictures exact specifications?",
+      "source_ids": [
+        "S-M-SOLACE",
+        "S-INCLUSIONS"
+      ],
+      "priority_replacement_ids": [
+        "P36"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q072",
+      "category": "5. Essential, Premium and Signature finishes",
+      "question": "Will all Signature homes have pocketing glass walls?",
+      "source_ids": [
+        "S-M-AURORA",
+        "S-INCLUSIONS"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q073",
+      "category": "5. Essential, Premium and Signature finishes",
+      "question": "Can I get samples before finalizing finishes?",
+      "source_ids": [
+        "S-M-SOLACE",
+        "S-CUSTOM"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Offer approved product data and available samples, without offering private partner identities in chat.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q074",
+      "category": "5. Essential, Premium and Signature finishes",
+      "question": "Does a finish name guarantee durability or compliance?",
+      "source_ids": [
+        "S-INCLUSIONS",
+        "S-BUILD"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q075",
+      "category": "5. Essential, Premium and Signature finishes",
+      "question": "Will my quoted inclusions be written down?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-INCLUSIONS"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q076",
+      "category": "6. Customization and Design Studio options",
+      "question": "What does the Design Studio do?",
+      "source_ids": [
+        "S-INCLUSIONS",
+        "S-M-SOLACE"
+      ],
+      "priority_replacement_ids": [
+        "P34"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q077",
+      "category": "6. Customization and Design Studio options",
+      "question": "What rooms and finishes can I explore?",
+      "source_ids": [
+        "S-M-SOLACE",
+        "S-INCLUSIONS"
+      ],
+      "priority_replacement_ids": [
+        "P34"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q078",
+      "category": "6. Customization and Design Studio options",
+      "question": "Is a Look Book a construction specification?",
+      "source_ids": [
+        "S-INCLUSIONS",
+        "S-M-SOLACE"
+      ],
+      "priority_replacement_ids": [
+        "P37"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q079",
+      "category": "6. Customization and Design Studio options",
+      "question": "Can you open the Look Book I saved last week?",
+      "source_ids": [
+        "S-INCLUSIONS"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Replace implementation jargon with a clear statement of actual saved-design access; do not claim past-session recall.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q080",
+      "category": "6. Customization and Design Studio options",
+      "question": "Can you save a new finish selection for me in this chat?",
+      "source_ids": [
+        "S-INCLUSIONS"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Say that chat cannot save a Studio selection; do not mention this knowledge package in customer copy.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q081",
+      "category": "6. Customization and Design Studio options",
+      "question": "Can I change the floor plan?",
+      "source_ids": [
+        "S-PROCESS",
+        "S-CUSTOM"
+      ],
+      "priority_replacement_ids": [
+        "P35"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q082",
+      "category": "6. Customization and Design Studio options",
+      "question": "Can I add another bedroom?",
+      "source_ids": [
+        "S-HOME",
+        "S-PROCESS"
+      ],
+      "priority_replacement_ids": [
+        "P35"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q083",
+      "category": "6. Customization and Design Studio options",
+      "question": "Can the roof or exterior be changed?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-PROCESS"
+      ],
+      "priority_replacement_ids": [
+        "P35"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q084",
+      "category": "6. Customization and Design Studio options",
+      "question": "Can the home reflect our Nation's design and culture?",
+      "source_ids": [
+        "S-NATIONS"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q085",
+      "category": "6. Customization and Design Studio options",
+      "question": "Can I choose different kitchens for Salt Spring A and B?",
+      "source_ids": [
+        "S-M-SALT-SPRING"
+      ],
+      "priority_replacement_ids": [
+        "P33"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q086",
+      "category": "6. Customization and Design Studio options",
+      "question": "Why does Salt Spring have 14 choices?",
+      "source_ids": [
+        "S-M-SALT-SPRING"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q087",
+      "category": "6. Customization and Design Studio options",
+      "question": "Can I choose my own appliances?",
+      "source_ids": [
+        "S-M-SOLACE",
+        "S-CUSTOM"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q088",
+      "category": "6. Customization and Design Studio options",
+      "question": "Can I have a central island in the wardrobe?",
+      "source_ids": [
+        "S-INCLUSIONS",
+        "S-M-SOLACE"
+      ],
+      "priority_replacement_ids": [
+        "P36"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q089",
+      "category": "6. Customization and Design Studio options",
+      "question": "Will the finished home look exactly like the rendering?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-INCLUSIONS"
+      ],
+      "priority_replacement_ids": [
+        "P37"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q090",
+      "category": "6. Customization and Design Studio options",
+      "question": "Can we standardize finishes across a development?",
+      "source_ids": [
+        "S-PROCESS",
+        "S-INCLUSIONS"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q091",
+      "category": "7. Manufacturing, delivery and Canadian construction",
+      "question": "Where are the homes manufactured?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-LANEWAY"
+      ],
+      "priority_replacement_ids": [
+        "P38"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q092",
+      "category": "7. Manufacturing, delivery and Canadian construction",
+      "question": "Are the homes entirely made in Canada?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-LANEWAY"
+      ],
+      "priority_replacement_ids": [
+        "P38"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q093",
+      "category": "7. Manufacturing, delivery and Canadian construction",
+      "question": "Does a complete house arrive on a truck?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-PROCESS"
+      ],
+      "priority_replacement_ids": [
+        "P39"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q094",
+      "category": "7. Manufacturing, delivery and Canadian construction",
+      "question": "Who assembles the housing package?",
+      "source_ids": [
+        "S-PROCESS"
+      ],
+      "priority_replacement_ids": [
+        "P40"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q095",
+      "category": "7. Manufacturing, delivery and Canadian construction",
+      "question": "Who handles foundations and utility connections?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-PROCESS"
+      ],
+      "priority_replacement_ids": [
+        "P40"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q096",
+      "category": "7. Manufacturing, delivery and Canadian construction",
+      "question": "Can production run while the site is prepared?",
+      "source_ids": [
+        "S-PROCESS"
+      ],
+      "priority_replacement_ids": [
+        "P44"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q097",
+      "category": "7. Manufacturing, delivery and Canadian construction",
+      "question": "Do I have to organize all the freight myself?",
+      "source_ids": [
+        "S-PROCESS",
+        "S-CUSTOM"
+      ],
+      "priority_replacement_ids": [
+        "P27"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q098",
+      "category": "7. Manufacturing, delivery and Canadian construction",
+      "question": "Will you deliver to a remote community?",
+      "source_ids": [
+        "S-HOME",
+        "S-NATIONS",
+        "S-CUSTOM"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q099",
+      "category": "7. Manufacturing, delivery and Canadian construction",
+      "question": "How do you manage quality?",
+      "source_ids": [
+        "S-HOME",
+        "S-BUILD"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Describe the verified quality approach positively; avoid an unsolicited list of things not promised.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q100",
+      "category": "7. Manufacturing, delivery and Canadian construction",
+      "question": "Are all homes CSA A277 certified?",
+      "source_ids": [
+        "S-HOME",
+        "S-TERMS"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q101",
+      "category": "7. Manufacturing, delivery and Canadian construction",
+      "question": "Are your steel designs automatically approved in Canada?",
+      "source_ids": [
+        "S-PROCESS"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q102",
+      "category": "7. Manufacturing, delivery and Canadian construction",
+      "question": "Are windows always triple glazed?",
+      "source_ids": [
+        "S-INCLUSIONS",
+        "S-HOME"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q103",
+      "category": "7. Manufacturing, delivery and Canadian construction",
+      "question": "Do you guarantee net-zero performance?",
+      "source_ids": [
+        "S-HOME",
+        "S-PROCESS"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q104",
+      "category": "7. Manufacturing, delivery and Canadian construction",
+      "question": "What happens before occupancy?",
+      "source_ids": [
+        "S-PROCESS",
+        "S-HOME"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q105",
+      "category": "7. Manufacturing, delivery and Canadian construction",
+      "question": "Who helps if a supplied component has a problem?",
+      "source_ids": [
+        "S-WARRANTY"
+      ],
+      "priority_replacement_ids": [
+        "P41"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q106",
+      "category": "8. Property suitability, approvals and timelines",
+      "question": "Will this home fit my lot?",
+      "source_ids": [
+        "S-LANEWAY",
+        "S-CUSTOM"
+      ],
+      "priority_replacement_ids": [
+        "P42"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q107",
+      "category": "8. Property suitability, approvals and timelines",
+      "question": "Can you tell me my exact zoning entitlement?",
+      "source_ids": [
+        "S-LANEWAY"
+      ],
+      "priority_replacement_ids": [
+        "P42"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q108",
+      "category": "8. Property suitability, approvals and timelines",
+      "question": "Do CMHC pre-reviewed plans mean I can skip permits?",
+      "source_ids": [
+        "S-TERMS"
+      ],
+      "priority_replacement_ids": [
+        "P43"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q109",
+      "category": "8. Property suitability, approvals and timelines",
+      "question": "Can I submit the catalogue drawings as-is for construction?",
+      "source_ids": [
+        "S-TERMS"
+      ],
+      "priority_replacement_ids": [
+        "P43"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q110",
+      "category": "8. Property suitability, approvals and timelines",
+      "question": "Does CMHC endorse House Delivery?",
+      "source_ids": [
+        "S-TERMS"
+      ],
+      "priority_replacement_ids": [
+        "P43"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q111",
+      "category": "8. Property suitability, approvals and timelines",
+      "question": "Can you guarantee my permit will be approved?",
+      "source_ids": [
+        "S-LANEWAY",
+        "S-TERMS"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q112",
+      "category": "8. Property suitability, approvals and timelines",
+      "question": "How quickly can I move in?",
+      "source_ids": [
+        "S-HOME",
+        "S-PROCESS"
+      ],
+      "priority_replacement_ids": [
+        "P44"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q113",
+      "category": "8. Property suitability, approvals and timelines",
+      "question": "Can you commit to completion in four months?",
+      "source_ids": [
+        "S-PROCESS",
+        "S-CUSTOM"
+      ],
+      "priority_replacement_ids": [
+        "P44"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q114",
+      "category": "8. Property suitability, approvals and timelines",
+      "question": "Do I need new technical studies just to have a conversation?",
+      "source_ids": [
+        "S-PROCESS"
+      ],
+      "priority_replacement_ids": [
+        "P02"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q115",
+      "category": "8. Property suitability, approvals and timelines",
+      "question": "When does engineering start?",
+      "source_ids": [
+        "S-PROCESS"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q116",
+      "category": "8. Property suitability, approvals and timelines",
+      "question": "My lot slopes. Is that a problem?",
+      "source_ids": [
+        "S-LANEWAY",
+        "S-PROCESS"
+      ],
+      "priority_replacement_ids": [
+        "P42"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q117",
+      "category": "8. Property suitability, approvals and timelines",
+      "question": "Can you build on a narrow site?",
+      "source_ids": [
+        "S-M-BC-FOURPLEX-1",
+        "S-TERMS"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q118",
+      "category": "8. Property suitability, approvals and timelines",
+      "question": "Will a single-storey design be wheelchair accessible?",
+      "source_ids": [
+        "S-M-THE-MICRO",
+        "S-TERMS"
+      ],
+      "priority_replacement_ids": [
+        "P11"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q119",
+      "category": "8. Property suitability, approvals and timelines",
+      "question": "Do I need a crane or a special delivery road?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-LANEWAY"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q120",
+      "category": "8. Property suitability, approvals and timelines",
+      "question": "Can you check my property right inside this conversation?",
+      "source_ids": [
+        "S-LANEWAY"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Link the actual property-check route and state current capability plainly; do not expose knowledge-package terminology.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q121",
+      "category": "9. Developers and multi-home developments",
+      "question": "Can you work on a 20-home development?",
+      "source_ids": [
+        "S-M-LANGLEY",
+        "S-PROCESS"
+      ],
+      "priority_replacement_ids": [
+        "P45"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Respect the project scale before any capacity qualification.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q122",
+      "category": "9. Developers and multi-home developments",
+      "question": "What about a 500-home program?",
+      "source_ids": [
+        "S-PROCESS",
+        "S-HOME"
+      ],
+      "priority_replacement_ids": [
+        "P45"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Discuss the proposed program positively; require a scoped allocation before committing dates.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q123",
+      "category": "9. Developers and multi-home developments",
+      "question": "Can we use several different models in one project?",
+      "source_ids": [
+        "S-PROCESS"
+      ],
+      "priority_replacement_ids": [
+        "P45"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q124",
+      "category": "9. Developers and multi-home developments",
+      "question": "Can you work with a municipality rather than an individual buyer?",
+      "source_ids": [
+        "S-PLANNER",
+        "S-HOME"
+      ],
+      "priority_replacement_ids": [
+        "P47"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q125",
+      "category": "9. Developers and multi-home developments",
+      "question": "Do you work with non-profits and institutions?",
+      "source_ids": [
+        "S-PLANNER",
+        "S-M-LANGLEY"
+      ],
+      "priority_replacement_ids": [
+        "P47"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q126",
+      "category": "9. Developers and multi-home developments",
+      "question": "Can House Delivery replace our general contractor?",
+      "source_ids": [
+        "S-PROCESS"
+      ],
+      "priority_replacement_ids": [
+        "P40"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q127",
+      "category": "9. Developers and multi-home developments",
+      "question": "Can our project include duplexes and fourplexes?",
+      "source_ids": [
+        "S-M-BC-DUPLEX",
+        "S-M-BC-FOURPLEX-1",
+        "S-M-BC-FOURPLEX-2",
+        "S-TERMS"
+      ],
+      "priority_replacement_ids": [
+        "P46"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q128",
+      "category": "9. Developers and multi-home developments",
+      "question": "Can you support family-sized fourplex housing?",
+      "source_ids": [
+        "S-M-BC-FOURPLEX-2",
+        "S-TERMS"
+      ],
+      "priority_replacement_ids": [
+        "P46"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q129",
+      "category": "9. Developers and multi-home developments",
+      "question": "Can we phase the delivery instead of ordering everything at once?",
+      "source_ids": [
+        "S-PROCESS"
+      ],
+      "priority_replacement_ids": [
+        "P29",
+        "P45"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q130",
+      "category": "9. Developers and multi-home developments",
+      "question": "What should we bring to the first developer discussion?",
+      "source_ids": [
+        "S-PROCESS",
+        "S-CUSTOM"
+      ],
+      "priority_replacement_ids": [
+        "P47"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q131",
+      "category": "9. Developers and multi-home developments",
+      "question": "Can you guarantee our pro forma will work?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-FNPLANNER"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q132",
+      "category": "9. Developers and multi-home developments",
+      "question": "Will you secure government funding for our development?",
+      "source_ids": [
+        "S-HOME",
+        "S-FNPLANNER"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q133",
+      "category": "9. Developers and multi-home developments",
+      "question": "Do you have awarded municipal contracts you can show me?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-HOME"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "No public award record was verified in the reviewed evidence; that is not proof that no award exists.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q134",
+      "category": "9. Developers and multi-home developments",
+      "question": "Can we set a repeatable specification for future phases?",
+      "source_ids": [
+        "S-PROCESS",
+        "S-INCLUSIONS"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q135",
+      "category": "9. Developers and multi-home developments",
+      "question": "What is the next step for a multi-home opportunity?",
+      "source_ids": [
+        "S-PLANNER",
+        "S-PROCESS"
+      ],
+      "priority_replacement_ids": [
+        "P47"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q136",
+      "category": "10. First Nations, Indigenous and community housing",
+      "question": "Is House Delivery Indigenous-owned?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-NATIONS"
+      ],
+      "priority_replacement_ids": [
+        "P48"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q137",
+      "category": "10. First Nations, Indigenous and community housing",
+      "question": "Do you work directly with First Nations?",
+      "source_ids": [
+        "S-NATIONS",
+        "S-FNPLANNER"
+      ],
+      "priority_replacement_ids": [
+        "P48"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q138",
+      "category": "10. First Nations, Indigenous and community housing",
+      "question": "Can our Nation choose the designs rather than take a fixed package?",
+      "source_ids": [
+        "S-NATIONS",
+        "S-PROCESS"
+      ],
+      "priority_replacement_ids": [
+        "P48"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q139",
+      "category": "10. First Nations, Indigenous and community housing",
+      "question": "Can local people participate in assembly?",
+      "source_ids": [
+        "S-NATIONS"
+      ],
+      "priority_replacement_ids": [
+        "P49"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q140",
+      "category": "10. First Nations, Indigenous and community housing",
+      "question": "Can you guarantee ten jobs per two homes?",
+      "source_ids": [
+        "S-NATIONS"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Keep any numerical employment premise out of approved facts; no training ratio has public support.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q141",
+      "category": "10. First Nations, Indigenous and community housing",
+      "question": "Can we keep skills and employment in the community?",
+      "source_ids": [
+        "S-NATIONS"
+      ],
+      "priority_replacement_ids": [
+        "P49"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q142",
+      "category": "10. First Nations, Indigenous and community housing",
+      "question": "Can the design support multigenerational households?",
+      "source_ids": [
+        "S-NATIONS"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q143",
+      "category": "10. First Nations, Indigenous and community housing",
+      "question": "Can we plan elders' housing?",
+      "source_ids": [
+        "S-NATIONS",
+        "S-M-THE-MICRO",
+        "S-TERMS"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q144",
+      "category": "10. First Nations, Indigenous and community housing",
+      "question": "Do your designs assume every Nation wants the same cultural appearance?",
+      "source_ids": [
+        "S-NATIONS"
+      ],
+      "priority_replacement_ids": [
+        "P48"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Do not reuse its opening No in response to a positive request for cultural design.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q145",
+      "category": "10. First Nations, Indigenous and community housing",
+      "question": "Can we build on more than one community site?",
+      "source_ids": [
+        "S-FNPLANNER",
+        "S-PROCESS"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q146",
+      "category": "10. First Nations, Indigenous and community housing",
+      "question": "Our funding is not approved. Can we start planning?",
+      "source_ids": [
+        "S-FNPLANNER"
+      ],
+      "priority_replacement_ids": [
+        "P50"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q147",
+      "category": "10. First Nations, Indigenous and community housing",
+      "question": "Will Indigenous ownership automatically make our project eligible for grants?",
+      "source_ids": [
+        "S-FNPLANNER"
+      ],
+      "priority_replacement_ids": [
+        "P50"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q148",
+      "category": "10. First Nations, Indigenous and community housing",
+      "question": "Can you promise housing delivery before winter to our remote Nation?",
+      "source_ids": [
+        "S-PROCESS",
+        "S-CUSTOM",
+        "S-NATIONS"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q149",
+      "category": "10. First Nations, Indigenous and community housing",
+      "question": "Are on-reserve homes automatically exempt from the approval process?",
+      "source_ids": [
+        "S-NATIONS",
+        "S-PROCESS",
+        "S-TERMS"
+      ],
+      "priority_replacement_ids": [],
+      "disposition": "retain_supported_content_with_contextual_rewrite",
+      "audit_note": "Do not apply a generic municipal approval framework to every Nation; avoid legal conclusions.",
+      "runtime_ingestion_allowed": false
+    },
+    {
+      "original_id": "Q150",
+      "category": "10. First Nations, Indigenous and community housing",
+      "question": "How do we begin a community housing conversation?",
+      "source_ids": [
+        "S-NATIONS",
+        "S-FNPLANNER"
+      ],
+      "priority_replacement_ids": [
+        "P49",
+        "P50"
+      ],
+      "disposition": "superseded_by_priority_reference",
+      "audit_note": "Source-supported reference content; adapt to the actual turn, remove repeated qualifications and ask only one useful unresolved follow-up.",
+      "runtime_ingestion_allowed": false
+    }
+  ]
+}

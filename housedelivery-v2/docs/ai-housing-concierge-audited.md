@@ -1,0 +1,23 @@
+# Audited Concierge integration
+
+The child branch begins at preserved Concierge `ed89b0e18d98d857419d9b34b89f4c3cef07594d`; verified production remains `f690d81580969e5e2a64bd945a42dcd9f6f2706f`, deployment `dpl_5yoHEvVMwNydhQtMr3AngNZzEs3r`. No production activation is authorized.
+
+The supplied package is retained intact under `docs/House_Delivery_Concierge_Audited_2026-11-14`. Only its `public/knowledge.json` is copied into factual runtime input. Edition `2026-11-14.qa1`, exact SHA-256 `32f813d3a51e8ba4fddd178fd1ea5c175f3139a9231dc9843e44c5af299778b0`. JSON Schema 2020-12, provenance/references, allowed links, numeric/null rules and content checks run on build and server import. The original snapshot remains unchanged for rollback; runtime does not retrieve it. Evaluation and maintainer files are not imported into inference or website assets.
+
+The model extracts typed visitor-reported preferences, deterministic code matches real designs and computes permitted arithmetic, and a constrained structured generation composes a short answer. Numeric and action checks run before a separate grounded-support review. Source IDs alone do not establish semantic support, and neither an LLM review nor a schema is a factuality certification; live responses require human review. Unsupported output becomes a relevant reviewed response. Pricing, unresolved fields, critical approvals and requested arithmetic have deterministic rendering. No unrestricted tools, private data source, browser, filesystem retrieval, customer database or supplier registry is supplied to the model.
+
+Essential session preferences are signed with the server secret and bound to the anonymous chat nonce and an HttpOnly SameSite cookie. Values identify their source turn and visitor-report status. The signature does not make visitor assertions into independently verified facts or consent. State expires after one hour. Minimize/internal design navigation retains tab memory; reset/reload/tab closure clears it. Contact details remain in the separate explicit-consent form; a proposed summary can be corrected before submission. The model cannot send an inquiry or confirm delivery. The existing transport and provider idempotency key remain; a bounded hash/promise cache additionally coalesces duplicate requests without retaining contact fields.
+
+Only this child branch has Preview enablement, model and signing configuration. Deployed authentication uses the existing trusted Vercel OIDC path. Both UI and endpoints still refuse production. No Gateway API key or billing change is needed.
+
+## Evaluation-only controls
+
+The package requires actual timeout/invalid-output injection, HTTP side-effect evidence and mocked delivery. `CONCIERGE_EVALUATION_ENABLED=true` and a separate secret enable HMAC-authenticated staff evaluation only when `VERCEL_ENV=preview` and Concierge enablement are also true. Claims expire, are bounded to a run/case and a finite request quota, and do not change ordinary users' rate/body/token/origin protections. Staff cases have isolated rate buckets so the finite audit can run without impersonating visitor IPs. The normal concurrency cap remains. A signed fault is applied inside an actual AI SDK provider implementation; restored requests use the genuine Gateway again. All staff lead requests use the mock transport and cannot send real email. Safe evidence contains counters, applied-condition flags and context hashes; no credential or raw prompt/provider body is returned in ordinary responses or logs. Arbitrary chat text cannot activate a test mode.
+
+Use `scripts/concierge-evaluation/preview-adapter.mjs` with the supplied offline harness. Keep local session transport files and evaluation credentials outside the repository in an owner-only temporary directory. Captured artifacts contain opaque local session references, not tokens or cookies. Expected answers must never be passed to the model. A capture is not a semantic pass.
+
+## Activation and rollback
+
+Production stays explicitly disabled in `conciergeEnabled()`. A future release needs Edgar's approval, deliberate production enablement code/configuration, removal/disablement of evaluation configuration, confirmed model/privacy/lead credentials and a public abuse/spend review. Existing in-memory limits and duplicate coalescing are per warm instance; downstream provider idempotency supplies cross-instance delivery protection. They are not a distributed global quota.
+
+Rollback is the parent branch/commit and its existing Preview. Disabling this child branch's `CONCIERGE_ENABLED` flag and rebuilding also removes the widget. Nothing depends on production aliases being changed.

@@ -1,0 +1,11 @@
+{
+  "version": "2026-11-14.qa1",
+  "sha256": "32f813d3a51e8ba4fddd178fd1ea5c175f3139a9231dc9843e44c5af299778b0",
+  "source": "docs/House_Delivery_Concierge_Audited_2026-11-14/public/knowledge.json",
+  "archiveSha256": "ceeae28baeae5bffaf7c0c290f421d641b4bf29a1833f8d5edab4f0fe4da06ed",
+  "parentConciergeCommit": "ed89b0e18d98d857419d9b34b89f4c3cef07594d",
+  "approvedFoundation": "f690d81580969e5e2a64bd945a42dcd9f6f2706f",
+  "runtimeInput": "audited-knowledge.json only, through a closed-schema server adapter",
+  "excluded": ["evaluation", "maintainer", "raw documents", "legacy snapshot", "private records", "supplier registries", "arbitrary URL/file/database tools"],
+  "rollback": "Previous snapshot and manifest retained unchanged; never retrieved alongside audited records"
+}

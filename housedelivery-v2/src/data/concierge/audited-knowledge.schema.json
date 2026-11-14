@@ -1,0 +1,826 @@
+{
+  "type": "object",
+  "properties": {
+    "classification": {
+      "const": "customer_safe"
+    },
+    "design_studios": {
+      "type": "array",
+      "maxItems": 200,
+      "items": {
+        "type": "object",
+        "properties": {
+          "availability_note": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 2400
+          },
+          "chapters": {
+            "type": "array",
+            "maxItems": 200,
+            "items": {
+              "type": "string",
+              "maxLength": 2400
+            }
+          },
+          "model_id": {
+            "type": "string",
+            "maxLength": 2400
+          },
+          "qualification": {
+            "type": "string",
+            "maxLength": 2400
+          },
+          "selection_count": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "source_ids": {
+            "type": "array",
+            "maxItems": 200,
+            "items": {
+              "type": "string",
+              "maxLength": 2400
+            }
+          },
+          "structure": {
+            "type": "string",
+            "maxLength": 2400
+          },
+          "verification": {
+            "type": "string",
+            "maxLength": 2400
+          },
+          "verified_visible_kitchen_directions": {
+            "type": "array",
+            "maxItems": 200,
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "maxLength": 2400
+                },
+                "tier": {
+                  "type": "string",
+                  "maxLength": 2400
+                }
+              },
+              "required": [
+                "name",
+                "tier"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "availability_note",
+          "chapters",
+          "model_id",
+          "qualification",
+          "selection_count",
+          "source_ids",
+          "verification",
+          "verified_visible_kitchen_directions"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "facts": {
+      "type": "array",
+      "maxItems": 200,
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 2400,
+            "pattern": "^[A-Za-z0-9-]+$"
+          },
+          "qualifiers": {
+            "type": "array",
+            "maxItems": 200,
+            "items": {
+              "type": "string",
+              "maxLength": 2400
+            }
+          },
+          "source_ids": {
+            "type": "array",
+            "maxItems": 200,
+            "items": {
+              "type": "string",
+              "maxLength": 2400
+            }
+          },
+          "status": {
+            "type": "string",
+            "maxLength": 2400
+          },
+          "tags": {
+            "type": "array",
+            "maxItems": 200,
+            "items": {
+              "type": "string",
+              "maxLength": 2400
+            }
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 2400
+          }
+        },
+        "required": [
+          "id",
+          "qualifiers",
+          "source_ids",
+          "status",
+          "tags",
+          "text"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "knowledge_version": {
+      "type": "string",
+      "maxLength": 2400
+    },
+    "models": {
+      "type": "array",
+      "maxItems": 200,
+      "items": {
+        "type": "object",
+        "properties": {
+          "adaptability_note": {
+            "type": "string",
+            "maxLength": 2400
+          },
+          "area_basis": {
+            "type": "string",
+            "maxLength": 2400
+          },
+          "area_conversion": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 2400
+          },
+          "area_sqft": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "area_sqm_published": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "bathrooms": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "bathrooms_basis": {
+            "type": "string",
+            "maxLength": 2400
+          },
+          "bedrooms": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "bedrooms_basis": {
+            "type": "string",
+            "maxLength": 2400
+          },
+          "conflicts": {
+            "type": "array",
+            "maxItems": 200,
+            "items": {
+              "type": "string",
+              "maxLength": 2400
+            }
+          },
+          "drawing_gross_area_sqft_approx": {
+            "type": "number",
+            "minimum": 0
+          },
+          "drawing_gross_area_sqm": {
+            "type": "number",
+            "minimum": 0
+          },
+          "drawing_source_ids": {
+            "type": "array",
+            "maxItems": 200,
+            "items": {
+              "type": "string",
+              "maxLength": 2400
+            }
+          },
+          "family": {
+            "enum": [
+              "architectural",
+              "laneway_carriage",
+              "cmhc_catalogue"
+            ]
+          },
+          "features": {
+            "type": "array",
+            "maxItems": 200,
+            "items": {
+              "type": "string",
+              "maxLength": 2400
+            }
+          },
+          "field_sources": {
+            "type": "object",
+            "properties": {
+              "area_sqft": {
+                "type": "array",
+                "maxItems": 200,
+                "items": {
+                  "type": "string",
+                  "maxLength": 2400
+                }
+              },
+              "bathrooms": {
+                "type": "array",
+                "maxItems": 200,
+                "items": {
+                  "type": "string",
+                  "maxLength": 2400
+                }
+              },
+              "bedrooms": {
+                "type": "array",
+                "maxItems": 200,
+                "items": {
+                  "type": "string",
+                  "maxLength": 2400
+                }
+              },
+              "drawing_gross_area_sqm": {
+                "type": "array",
+                "maxItems": 200,
+                "items": {
+                  "type": "string",
+                  "maxLength": 2400
+                }
+              },
+              "features": {
+                "type": "array",
+                "maxItems": 200,
+                "items": {
+                  "type": "string",
+                  "maxLength": 2400
+                }
+              },
+              "footprint": {
+                "type": "array",
+                "maxItems": 200,
+                "items": {
+                  "type": "string",
+                  "maxLength": 2400
+                }
+              },
+              "name": {
+                "type": "array",
+                "maxItems": 200,
+                "items": {
+                  "type": "string",
+                  "maxLength": 2400
+                }
+              },
+              "published_system": {
+                "type": "array",
+                "maxItems": 200,
+                "items": {
+                  "type": "string",
+                  "maxLength": 2400
+                }
+              },
+              "storeys": {
+                "type": "array",
+                "maxItems": 200,
+                "items": {
+                  "type": "string",
+                  "maxLength": 2400
+                }
+              },
+              "storeys_description": {
+                "type": "array",
+                "maxItems": 200,
+                "items": {
+                  "type": "string",
+                  "maxLength": 2400
+                }
+              },
+              "unit_schedule": {
+                "type": "array",
+                "maxItems": 200,
+                "items": {
+                  "type": "string",
+                  "maxLength": 2400
+                }
+              },
+              "units": {
+                "type": "array",
+                "maxItems": 200,
+                "items": {
+                  "type": "string",
+                  "maxLength": 2400
+                }
+              }
+            },
+            "required": [
+              "area_sqft",
+              "bathrooms",
+              "bedrooms",
+              "features",
+              "footprint",
+              "published_system",
+              "storeys",
+              "units"
+            ],
+            "additionalProperties": false
+          },
+          "field_status": {
+            "type": "object",
+            "properties": {
+              "area_sqft": {
+                "type": "string",
+                "maxLength": 2400
+              },
+              "bathrooms": {
+                "type": "string",
+                "maxLength": 2400
+              },
+              "bedrooms": {
+                "type": "string",
+                "maxLength": 2400
+              },
+              "footprint": {
+                "type": "string",
+                "maxLength": 2400
+              },
+              "published_system": {
+                "type": "string",
+                "maxLength": 2400
+              },
+              "storeys": {
+                "type": "string",
+                "maxLength": 2400
+              }
+            },
+            "required": [
+              "area_sqft",
+              "bathrooms",
+              "bedrooms",
+              "footprint",
+              "published_system",
+              "storeys"
+            ],
+            "additionalProperties": false
+          },
+          "floor_plan_status": {
+            "type": "string",
+            "maxLength": 2400
+          },
+          "floor_plan_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 2400
+          },
+          "footprint": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 2400
+          },
+          "id": {
+            "type": "string",
+            "maxLength": 2400,
+            "pattern": "^[A-Za-z0-9-]+$"
+          },
+          "internal_area_sqft_approx": {
+            "type": "number",
+            "minimum": 0
+          },
+          "internal_area_sqm_published": {
+            "type": "number",
+            "minimum": 0
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 2400
+          },
+          "numeric_area_matching_allowed": {
+            "type": "boolean"
+          },
+          "price_rule": {
+            "type": "string",
+            "maxLength": 2400
+          },
+          "published_system": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 2400
+          },
+          "rowhouse_variants": {
+            "type": "string",
+            "maxLength": 2400
+          },
+          "slug": {
+            "type": "string",
+            "maxLength": 2400
+          },
+          "source_ids": {
+            "type": "array",
+            "maxItems": 200,
+            "items": {
+              "type": "string",
+              "maxLength": 2400
+            }
+          },
+          "storeys": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "storeys_description": {
+            "type": "string",
+            "maxLength": 2400
+          },
+          "storeys_drawings": {
+            "type": "number",
+            "minimum": 0
+          },
+          "storeys_website": {
+            "type": "number",
+            "minimum": 0
+          },
+          "system_qualification": {
+            "type": "string",
+            "maxLength": 2400
+          },
+          "uncertainties": {
+            "type": "array",
+            "maxItems": 200,
+            "items": {
+              "type": "string",
+              "maxLength": 2400
+            }
+          },
+          "unit_schedule": {
+            "type": "array",
+            "maxItems": 200,
+            "items": {
+              "type": "object",
+              "properties": {
+                "adaptable_reference": {
+                  "type": "boolean"
+                },
+                "bathrooms": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "bedrooms": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "source_ids": {
+                  "type": "array",
+                  "maxItems": 200,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 2400
+                  }
+                },
+                "unit": {
+                  "type": "string",
+                  "maxLength": 2400
+                }
+              },
+              "required": [
+                "adaptable_reference",
+                "bathrooms",
+                "bedrooms",
+                "source_ids",
+                "unit"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "units": {
+            "type": "number",
+            "minimum": 0
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 2400
+          }
+        },
+        "required": [
+          "area_basis",
+          "area_conversion",
+          "area_sqft",
+          "area_sqm_published",
+          "bathrooms",
+          "bathrooms_basis",
+          "bedrooms",
+          "bedrooms_basis",
+          "family",
+          "features",
+          "field_sources",
+          "field_status",
+          "floor_plan_status",
+          "floor_plan_url",
+          "footprint",
+          "id",
+          "name",
+          "numeric_area_matching_allowed",
+          "price_rule",
+          "published_system",
+          "slug",
+          "source_ids",
+          "storeys",
+          "system_qualification",
+          "uncertainties",
+          "units",
+          "url"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "price_rules": {
+      "type": "array",
+      "maxItems": 200,
+      "items": {
+        "type": "object",
+        "properties": {
+          "allows_mixed_tier_total": {
+            "type": "boolean"
+          },
+          "allows_model_quote": {
+            "type": "boolean"
+          },
+          "calculation_policy": {
+            "type": "string",
+            "maxLength": 2400
+          },
+          "currency": {
+            "type": "string",
+            "maxLength": 2400
+          },
+          "id": {
+            "type": "string",
+            "maxLength": 2400
+          },
+          "observed_model_ids": {
+            "type": "array",
+            "maxItems": 200,
+            "items": {
+              "type": "string",
+              "maxLength": 2400
+            }
+          },
+          "premium_rate_per_sqft": {
+            "type": "number",
+            "minimum": 0
+          },
+          "rate": {
+            "type": "null"
+          },
+          "requires_fact_ids": {
+            "type": "array",
+            "maxItems": 200,
+            "items": {
+              "type": "string",
+              "maxLength": 2400
+            }
+          },
+          "scope": {
+            "type": "string",
+            "maxLength": 2400
+          },
+          "signature_rate_per_sqft": {
+            "type": "number",
+            "minimum": 0
+          },
+          "source_ids": {
+            "type": "array",
+            "maxItems": 200,
+            "items": {
+              "type": "string",
+              "maxLength": 2400
+            }
+          },
+          "status": {
+            "type": "string",
+            "maxLength": 2400
+          }
+        },
+        "required": [
+          "allows_model_quote",
+          "calculation_policy",
+          "currency",
+          "id",
+          "source_ids",
+          "status"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "reviewed_on": {
+      "type": "string",
+      "maxLength": 2400
+    },
+    "routing": {
+      "type": "object",
+      "properties": {
+        "adu_laneway": {
+          "type": "string",
+          "maxLength": 2400
+        },
+        "first_nations": {
+          "type": "string",
+          "maxLength": 2400
+        },
+        "general": {
+          "type": "string",
+          "maxLength": 2400
+        },
+        "individual": {
+          "type": "string",
+          "maxLength": 2400
+        },
+        "multi_home": {
+          "type": "string",
+          "maxLength": 2400
+        }
+      },
+      "required": [
+        "adu_laneway",
+        "first_nations",
+        "general",
+        "individual",
+        "multi_home"
+      ],
+      "additionalProperties": false
+    },
+    "schema_version": {
+      "const": "2.0"
+    },
+    "sources": {
+      "type": "array",
+      "maxItems": 200,
+      "items": {
+        "type": "object",
+        "properties": {
+          "audit_method": {
+            "type": "string",
+            "maxLength": 2400
+          },
+          "checked_on": {
+            "type": "string",
+            "maxLength": 2400
+          },
+          "evidence_sha256": {
+            "type": "string",
+            "maxLength": 2400
+          },
+          "http_status": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "id": {
+            "type": "string",
+            "maxLength": 2400,
+            "pattern": "^[A-Za-z0-9-]+$"
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 2400
+          },
+          "status": {
+            "type": "string",
+            "maxLength": 2400
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 2400
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 2400
+          }
+        },
+        "required": [
+          "audit_method",
+          "checked_on",
+          "evidence_sha256",
+          "http_status",
+          "id",
+          "notes",
+          "status",
+          "title",
+          "url"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "status": {
+      "type": "string",
+      "maxLength": 2400
+    },
+    "use_rules": {
+      "type": "object",
+      "properties": {
+        "area": {
+          "type": "string",
+          "maxLength": 2400
+        },
+        "conflicts": {
+          "type": "string",
+          "maxLength": 2400
+        },
+        "matching": {
+          "type": "string",
+          "maxLength": 2400
+        },
+        "permissions": {
+          "type": "string",
+          "maxLength": 2400
+        },
+        "pricing": {
+          "type": "string",
+          "maxLength": 2400
+        },
+        "source_use": {
+          "type": "string",
+          "maxLength": 2400
+        },
+        "unknowns": {
+          "type": "string",
+          "maxLength": 2400
+        }
+      },
+      "required": [
+        "area",
+        "conflicts",
+        "matching",
+        "permissions",
+        "pricing",
+        "source_use",
+        "unknowns"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "classification",
+    "design_studios",
+    "facts",
+    "knowledge_version",
+    "models",
+    "price_rules",
+    "reviewed_on",
+    "routing",
+    "schema_version",
+    "sources",
+    "status",
+    "use_rules"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:housedelivery:concierge:knowledge:2",
+  "title": "Audited customer-safe knowledge candidate"
+}

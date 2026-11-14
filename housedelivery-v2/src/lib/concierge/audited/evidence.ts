@@ -1,0 +1,32 @@
+import {knowledge,modelIndex,factIndex,publicModel,safeLink,type Model} from './registry';
+import {shortlist} from './matching';
+import {constraints,stateValue,namedModels,type State} from './state';
+import type {Intent} from './intent';
+export type Evidence={id:string;data:unknown;sourceIds:string[]};
+export function retrieve(intent:Intent,state:State,question:string){
+  const match=shortlist(constraints(state),/known (size|area)|published (size|area)|known floor area/i.test(question)?knowledge.models.filter(m=>m.numeric_area_matching_allowed&&m.area_sqft!==null):knowledge.models),ids=namedModels(question);
+  let models:Model[]=[];
+  if(ids.length)models=ids.map(id=>modelIndex.get(id)!);
+  else if(intent.topic==='matching')models=match.matches;
+  else if(stateValue(state,'selectedModel'))models=[modelIndex.get(stateValue(state,'selectedModel')!)!];
+  else if(state.recommended.length&&['specifications','comparison','customization','arithmetic'].includes(intent.topic))models=state.recommended.map(id=>modelIndex.get(id)!).filter(Boolean);
+  else models=intent.modelIds.map(id=>modelIndex.get(id)!).filter(Boolean);
+  if(/main.level|main.floor|ground.floor/i.test(question)&&models.length>1){const suited=models.filter(m=>m.features.some(f=>/main.level.*(suite|bedroom)|main.floor.*suite|ground.floor.*(bedroom|suite)/i.test(f)));if(suited.length)models=suited;}
+  const requestedFacts=[...new Set(intent.factIds)];
+  if(models.some(m=>m.family==='cmhc_catalogue'))requestedFacts.push('F-CMHC');
+  if(intent.topic==='pricing'||intent.topic==='arithmetic')requestedFacts.push('F-PRICE','F-SCOPE','F-EXCLUSIONS');
+  if(intent.topic==='origin')requestedFacts.push('F-ORIGIN');
+  if(intent.topic==='warranty')requestedFacts.push('F-WARRANTY');
+  const facts=[...new Set(requestedFacts)].map(id=>factIndex.get(id)).filter((x):x is NonNullable<typeof x>=>Boolean(x));
+  const studios=intent.topic==='customization'?knowledge.design_studios.filter(s=>models.some(m=>m.id===s.model_id)):[];
+  const evidence:Evidence[]=[...facts.map(f=>({id:f.id,data:{text:f.text,qualifiers:f.qualifiers},sourceIds:f.source_ids})),...models.map(m=>({id:m.id,data:publicModel(m),sourceIds:m.source_ids})),...studios.map(s=>({id:'STUDIO:'+s.model_id,data:{chapters:s.chapters,directions:s.verified_visible_kitchen_directions,qualification:s.qualification,availability:s.availability_note,observedSelections:s.selection_count},sourceIds:s.source_ids}))];
+  return {match,models,facts,studios,evidence};
+}
+export function modelLine(m:Model){
+  const area=m.numeric_area_matching_allowed&&m.area_sqft!==null?`${m.area_conversion?'approximately ':''}${m.area_sqft.toLocaleString('en-CA')} sq. ft. ${m.units>1?'combined building':'published model'} area`:'area requires confirmation';
+  const beds=m.bedrooms===null?'bedroom count requires confirmation':`${m.bedrooms} bedrooms${m.bedrooms_basis==='combined_building'?' combined across both residences':m.units>1?' per dwelling':''}`;
+  const bath=m.bathrooms===null?'':`; ${m.bathrooms} bathrooms${m.bathrooms_basis==='combined_building'?' combined':m.units>1?' per dwelling':''}`;
+  const schedule=m.units>1&&m.unit_schedule?`; ${m.units} dwellings — ${m.unit_schedule.map(u=>`${u.bedrooms}-bed/${u.bathrooms}-bath`).join(', ')}`:'';
+  return `${m.name}: ${area}; ${beds}${bath}${schedule}.`;
+}
+export function modelLink(m:Model,kind:'model'|'studio'|'lookbook'|'floorplan'='model'){const href=kind==='floorplan'&&m.floor_plan_url?m.floor_plan_url:m.url;return safeLink(href)+(kind==='studio'||kind==='lookbook'?'#home-inclusions':'')}

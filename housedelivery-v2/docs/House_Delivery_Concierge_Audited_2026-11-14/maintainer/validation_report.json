@@ -1,0 +1,57 @@
+{
+  "knowledge_version": "2026-11-14.qa1",
+  "executed_at_utc": "2026-11-14T03:23:47.536207+00:00",
+  "validation_kind": "artifact_and_deterministic_reference_checks",
+  "result": "pass",
+  "groups": [
+    {
+      "group": "Closed JSON schema and unique registry IDs",
+      "result": "pass"
+    },
+    {
+      "group": "All fact, model, Studio and evaluation source references resolve",
+      "result": "pass"
+    },
+    {
+      "group": "31 models, 50 priority answers, 150 audited references, 25 conversations and security coverage",
+      "result": "pass"
+    },
+    {
+      "group": "No raw page bodies or asset URLs in model features; source/link host allowlist",
+      "result": "pass"
+    },
+    {
+      "group": "Bedroom corrections, hard/approximate limits and no false detached match",
+      "result": "pass"
+    },
+    {
+      "group": "Compact/ADU cross-family search, bathrooms, unknown fields and internal area basis",
+      "result": "pass"
+    },
+    {
+      "group": "Development unit schedules and field-specific conflict containment",
+      "result": "pass"
+    },
+    {
+      "group": "Exact arithmetic and restricted pricing applicability",
+      "result": "pass"
+    },
+    {
+      "group": "Reject invalid measurements and unknown schema fields",
+      "result": "pass"
+    },
+    {
+      "group": "Known context defects corrected and unexecuted tests labelled honestly",
+      "result": "pass"
+    }
+  ],
+  "live_concierge_execution": "not_performed",
+  "security_transport_execution": "not_performed",
+  "human_editorial_review": "150 original answers, 75 reference turns and 15 security cases reviewed; this is not a live-model score",
+  "limitations": "Schema, reference-function and content checks do not certify live grounding, provider availability, privacy configuration or submission behavior.",
+  "targeted_confidentiality_scan": {
+    "result": "no_matches",
+    "scope": "All final text/JSON/code artifacts checked for known restricted identity/value patterns; no private records or raw source bodies included.",
+    "limitation": "Pattern checks supplement manual selection and do not certify live-model behavior."
+  }
+}

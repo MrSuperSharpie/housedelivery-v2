@@ -1,0 +1,142 @@
+{
+  "package_version": "2026-11-14.qa1",
+  "purpose": "Independent audit and implementation package superseding the earlier factual runtime candidate",
+  "status": "audited_candidate_preview_testing_required",
+  "launch_date": "2026-11-16",
+  "factual_runtime_allowlist": [
+    "public/knowledge.json"
+  ],
+  "build_validation_schema": "public/knowledge.schema.json",
+  "confidentiality": "No private source documents, partner identities, purchasing costs, margins or customer records distributed. Evaluation and maintainer content are not runtime inputs.",
+  "read_first": "maintainer/executive_assessment.md",
+  "implementation_prompt": "maintainer/codex_implementation_prompt.md",
+  "counts": {
+    "models": 31,
+    "facts": 31,
+    "studio_records": 18,
+    "sources": 52,
+    "original_answers_audited": 150,
+    "priority_answers": 50,
+    "conversation_scenarios": 25,
+    "conversation_turns": 75,
+    "security_cases": 15,
+    "transport_fixtures": 8
+  },
+  "live_tests_executed": false,
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "277f231e5985a0e92378e05b04d6fc069665fc9011908d1ae8dd862ad5975142",
+      "bytes": 4135,
+      "runtime_factual_input": false
+    },
+    {
+      "path": "evaluation/conversation_tests.json",
+      "sha256": "1bf8d639a3c9b07e47fef2ce7bc0624d2be1d56702073547b4b52b08e7162a1c",
+      "bytes": 85091,
+      "runtime_factual_input": false
+    },
+    {
+      "path": "evaluation/conversation_tests.md",
+      "sha256": "7269ea2be55be7144c05c8245b34d01e1089a5a0deb4c40ec860e60008caeafd",
+      "bytes": 39255,
+      "runtime_factual_input": false
+    },
+    {
+      "path": "evaluation/priority_50.json",
+      "sha256": "1e90409fdd8f2f301f67396b52679ac553e48bb792caeeee1fc60044d592f6d2",
+      "bytes": 57915,
+      "runtime_factual_input": false
+    },
+    {
+      "path": "evaluation/priority_50.md",
+      "sha256": "2323ce6c14b153f3db969c5159c9a9e5464fc3073cb605a98d3a0a08e0f8dab3",
+      "bytes": 38302,
+      "runtime_factual_input": false
+    },
+    {
+      "path": "evaluation/reference_matching.py",
+      "sha256": "fe2785ce4d195a247eb10033ed2cc534b403b93b0cfe4d64ed7808bd6b0d5bde",
+      "bytes": 3898,
+      "runtime_factual_input": false
+    },
+    {
+      "path": "evaluation/run_conversations.py",
+      "sha256": "1ae13f2acde3ac26b0f34b37b6fb8318aebb919d3eef0bb02099ef2261ba8ac9",
+      "bytes": 3650,
+      "runtime_factual_input": false
+    },
+    {
+      "path": "evaluation/transport_security_tests.json",
+      "sha256": "e48f674536967480c76446af15895e896492dbe3112b9c33c4d09ba8158d88c9",
+      "bytes": 3974,
+      "runtime_factual_input": false
+    },
+    {
+      "path": "evaluation/validate_audit.py",
+      "sha256": "05640292f3b4c0733ef5bdc4417f447eb1465806d618e3ea534602f1d91ddc2c",
+      "bytes": 9319,
+      "runtime_factual_input": false
+    },
+    {
+      "path": "maintainer/codex_implementation_prompt.md",
+      "sha256": "7387ca5c06477a4cd11b15104a5fbec25b5af1c163e25a2308bc51fbd4c4be96",
+      "bytes": 19982,
+      "runtime_factual_input": false
+    },
+    {
+      "path": "maintainer/essential_improvements.md",
+      "sha256": "e92b4a2ade304fffbad34d03f8320875cbbb9fb296332a7372eb8a0091912c33",
+      "bytes": 4137,
+      "runtime_factual_input": false
+    },
+    {
+      "path": "maintainer/evidence_audit.md",
+      "sha256": "941e54a9c87698ae9d0956246f02f31ad522df97a7851e620413ba2b86e1d6d0",
+      "bytes": 3818,
+      "runtime_factual_input": false
+    },
+    {
+      "path": "maintainer/executive_assessment.md",
+      "sha256": "d8b9f3c85f85ac79dfe1585d4843b273e278e646637a30ff59edfb2a9e756bca",
+      "bytes": 5859,
+      "runtime_factual_input": false
+    },
+    {
+      "path": "maintainer/review_ledger.json",
+      "sha256": "5e4b8af0bc621f64378cf7a7cd3dedf00baf7e15469866cff0647983dda686ff",
+      "bytes": 83570,
+      "runtime_factual_input": false
+    },
+    {
+      "path": "maintainer/validation_report.json",
+      "sha256": "9341c78acb9d631ce58db791a522e77e8e0d30327bf84d4c41822ece8eb10f93",
+      "bytes": 2158,
+      "runtime_factual_input": false
+    },
+    {
+      "path": "public/knowledge.json",
+      "sha256": "32f813d3a51e8ba4fddd178fd1ea5c175f3139a9231dc9843e44c5af299778b0",
+      "bytes": 136640,
+      "runtime_factual_input": true
+    },
+    {
+      "path": "public/knowledge.md",
+      "sha256": "c95ac519a711c1bd3124ed89eae78885cc1f1c87937861dc7beced578b4b8f62",
+      "bytes": 12325,
+      "runtime_factual_input": false
+    },
+    {
+      "path": "public/knowledge.schema.json",
+      "sha256": "662eb3fdf5b6601ed787e935c5e4b5e03a7c9454c950fc82de3d6c68933be354",
+      "bytes": 20154,
+      "runtime_factual_input": false
+    },
+    {
+      "path": "public/sources.md",
+      "sha256": "7166bf140f06abdb74056421582774d4d398351424dcff30c1878d3b45faffb4",
+      "bytes": 13414,
+      "runtime_factual_input": false
+    }
+  ]
+}

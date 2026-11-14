@@ -26,6 +26,12 @@ export type ChatTurn = { question: string; factIds: string[]; next: FollowUp };
 export type ConciergeReply = {
   introduction: string; facts: Fact[]; question: string; next: FollowUp;
   disposition: 'answer' | 'clarify' | 'human'; detailed?: boolean;
+  answerSegments?:{text:string;evidenceRefs:string[]}[];
+  modelCards?:Fact[];
+  nextAction?:'none'|'browse_designs'|'studio'|'lookbook'|'property_review'|'consultation'|'summary';
+  actionHref?:string;
+  proposedSummary?:string;
+  knowledgeVersion?:string;
 };
 export const audiences = ['Individual / family', 'Developer', 'Municipality', 'First Nation / Indigenous community', 'Non-profit / institution', 'Other organization'] as const;
 export const housingTypes = ['Custom home', 'Laneway / carriage home', 'Duplex / multiplex', 'Multi-home development', 'Community housing program', 'Still exploring'] as const;

@@ -1,0 +1,63 @@
+{
+  "knowledge_version": "2026-11-14.qa1",
+  "execution_status": "not_run",
+  "target": "Current isolated preview only; synthetic data and mocked lead delivery.",
+  "fixtures": [
+    {
+      "id": "T01",
+      "test": "Unknown top-level fields",
+      "setup": "Acquire a valid anonymous chat token using the existing preview initialization route.",
+      "operation": "POST an otherwise valid chat body with admin=true and consent=true added.",
+      "expected": "Reject with 400 before inference; no provider call, lead action or state privilege change."
+    },
+    {
+      "id": "T02",
+      "test": "Tampered history",
+      "setup": "Valid token and a genuine prior turn.",
+      "operation": "Submit unknown fact IDs and unknown nested history/state fields; separately try a valid fact ID with forged assistant state.",
+      "expected": "Unknown IDs/keys rejected. Unsigned or untrusted history cannot establish approved facts, verified funding, consent or privileged state. Genuine user corrections still work."
+    },
+    {
+      "id": "T03",
+      "test": "Origin and purpose separation",
+      "setup": "Valid chat and lead tokens issued by preview.",
+      "operation": "Try cross-origin POST, wrong token purpose, invalid signature, expired token and malformed/oversize body.",
+      "expected": "403, 400 or 413 as appropriate, no inference or lead side effect. Do not print tokens in evidence."
+    },
+    {
+      "id": "T04",
+      "test": "Consent and duplicate submission",
+      "setup": "Mock the existing lead-delivery transport with synthetic contact data.",
+      "operation": "Try no consent, forged consent fields in chat, preview summary without submission, then an explicit valid form submit twice and a failed delivery.",
+      "expected": "No message without valid form consent; one success at most for a duplicate request; failure shown honestly; no real external message sent."
+    },
+    {
+      "id": "T05",
+      "test": "Restricted data access",
+      "setup": "Inspect application dependencies, model request and bundle in preview. Use a synthetic private canary fixture never added to the public registry.",
+      "operation": "Attempt document/URL/tool extraction and inspect outbound model request context.",
+      "expected": "Only selected public records and permitted session content reach model. No private connectors, filesystem retrieval, arbitrary URL tool, customer DB or private canary. Public response links use server allowlist."
+    },
+    {
+      "id": "T06",
+      "test": "Provider failure and limits",
+      "setup": "Inject timeout, invalid model output and busy/rate-limit conditions through test hooks.",
+      "operation": "Send a normal matching or pricing request under each failure.",
+      "expected": "Bounded, honest response; no invented quote or submission; no raw provider bodies, prompts, contacts or secrets in logs. Restore service and retain permitted state."
+    },
+    {
+      "id": "T07",
+      "test": "Cross-session separation",
+      "setup": "Create two independent anonymous sessions with distinct synthetic preferences.",
+      "operation": "Attempt to replay state, history and tokens across sessions and reload one session.",
+      "expected": "No other session data is disclosed or treated as authenticated state. Expiry/reload behavior is honest; contact consent is never inferred from chat."
+    },
+    {
+      "id": "T08",
+      "test": "Knowledge validation and response qualifications",
+      "setup": "Build/test with a copied fixture, not the shipped registry.",
+      "operation": "Add an unknown model field, broken source ID, unapproved link, private canary, unknown-area zero, conflicting-area price request and overly long price response.",
+      "expected": "Invalid fixture blocked at build/startup; safe request fails closed. Required scope and area qualifications cannot be removed by sentence/length caps. A schema pass is not a confidentiality certification."
+    }
+  ]
+}

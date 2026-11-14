@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node --import tsx scripts/validate-concierge-knowledge.ts && next build",
     "test": "tsx --test \"src/**/*.test.ts\" \"src/**/*.test.tsx\"",
     "qa:lookbook": "node scripts/verify-lookbook.mjs",
     "qa:lookbook:pdf": "node scripts/render-lookbook-pdf.mjs",
@@ -24,7 +24,8 @@
     "next": "16.2.11",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "tailwind-merge": "^3.6.0"
+    "tailwind-merge": "^3.6.0",
+    "ajv": "8.20.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

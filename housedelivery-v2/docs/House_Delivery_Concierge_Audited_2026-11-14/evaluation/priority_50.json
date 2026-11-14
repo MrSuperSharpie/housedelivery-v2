@@ -1,0 +1,1306 @@
+{
+  "knowledge_version": "2026-11-14.qa1",
+  "purpose": "Monday launch priorities and evaluation standards, never a runtime FAQ index. These references supersede corresponding older answers.",
+  "review_status": "Source-grounded editorial audit completed; live model execution not performed.",
+  "questions": [
+    {
+      "id": "P01",
+      "original_qa_ids": [
+        "Q001"
+      ],
+      "category": "Individual homes",
+      "question": "Can you help me with just one home?",
+      "expected_answer": "Yes. We work with individual homeowners as well as developers, municipalities and community housing programs. We can start with your property, a design you like or the requirements for your home.",
+      "optional_follow_up": "Where are you hoping to build?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-PLANNER"
+      ],
+      "evidence_status": "published",
+      "model_ids": [],
+      "variations": [
+        "Is one house too small a project for you?",
+        "We are a family, not a developer. Can we work with you?"
+      ],
+      "must_satisfy": [
+        "Answer yes directly; do not diminish the national development business."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P02",
+      "original_qa_ids": [
+        "Q002",
+        "Q003",
+        "Q114"
+      ],
+      "category": "Individual homes",
+      "question": "Do I need land and finished plans before we talk?",
+      "expected_answer": "No. You can start while looking for land, and you do not need completed plans for an initial conversation. Bring the location, ideas or existing site information you already have.",
+      "optional_follow_up": "Which area are you considering?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-PROCESS"
+      ],
+      "evidence_status": "published",
+      "model_ids": [],
+      "variations": [
+        "We have a rough idea but no drawings. What now?",
+        "Can we talk before buying the lot?"
+      ],
+      "must_satisfy": [
+        "No requirement for new studies before an initial discussion."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P03",
+      "original_qa_ids": [
+        "Q005"
+      ],
+      "category": "Individual homes",
+      "question": "Can I use my own builder?",
+      "expected_answer": "Yes, we welcome a conversation with your builder. Together we can agree the housing package and who handles foundations, assembly, trades and finishing.",
+      "optional_follow_up": "Is your builder already involved in the design?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-PROCESS"
+      ],
+      "evidence_status": "published",
+      "model_ids": [],
+      "variations": [
+        "Our contractor wants to do the build. Is that okay?",
+        "Can our existing construction team assemble it?"
+      ],
+      "must_satisfy": [
+        "Recognize existing builder; do not imply a turnkey contract."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P04",
+      "original_qa_ids": [
+        "Q007",
+        "Q004"
+      ],
+      "category": "Individual homes",
+      "question": "Can you work with a design from my architect?",
+      "expected_answer": "We can review your design with you and your architect to see how it fits the housing system and delivery approach. The layout, technical requirements and scope would be agreed for your project.",
+      "optional_follow_up": "Are the drawings conceptual or ready for technical review?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-PROCESS"
+      ],
+      "evidence_status": "project_specific",
+      "model_ids": [],
+      "variations": [
+        "I already have plans. Must I choose your catalogue?",
+        "Can you review our architect’s house design?"
+      ],
+      "must_satisfy": [
+        "Offer design review without guaranteeing acceptance or a price."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P05",
+      "original_qa_ids": [
+        "Q010"
+      ],
+      "category": "Individual homes",
+      "question": "What makes House Delivery good value?",
+      "expected_answer": "We consider design, durability, serviceability and manufacturing efficiency together, then coordinate the housing package and Canadian construction responsibilities. The useful comparison is the complete scope and quality of the home, including its long-term maintenance.",
+      "optional_follow_up": "What matters most in your decision?",
+      "source_ids": [
+        "S-BUILD",
+        "S-CUSTOM"
+      ],
+      "evidence_status": "published",
+      "model_ids": [],
+      "variations": [
+        "Why would I choose this approach?",
+        "How do you think about quality and lifetime value?"
+      ],
+      "must_satisfy": [
+        "No invented percentage savings or performance guarantee."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P06",
+      "original_qa_ids": [
+        "Q011",
+        "Q012"
+      ],
+      "category": "Individual homes",
+      "question": "Can I visit a completed show home?",
+      "expected_answer": "I do not have a confirmed show-home address to share. The website renderings are design references, and the team can advise on current viewing or design-review options.",
+      "optional_follow_up": "Which model would you most like to see in more detail?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-LANEWAY"
+      ],
+      "evidence_status": "missing",
+      "model_ids": [],
+      "variations": [
+        "Where is your display home?",
+        "Are the homes pictured completed Canadian projects?"
+      ],
+      "must_satisfy": [
+        "No invented viewing address or completed-project claim."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P07",
+      "original_qa_ids": [
+        "Q016"
+      ],
+      "category": "ADUs and compact homes",
+      "question": "What laneway and carriage homes do you offer?",
+      "expected_answer": "There are six designs in the compact collection, plus the Micro and Mini CMHC ADU reference designs. We can narrow them down by bedrooms, size and your property requirements.",
+      "optional_follow_up": "How many bedrooms do you need?",
+      "source_ids": [
+        "S-HOME",
+        "S-LANEWAY",
+        "S-M-THE-MICRO",
+        "S-M-THE-MINI"
+      ],
+      "evidence_status": "published",
+      "model_ids": [],
+      "variations": [
+        "What can I build in the backyard?",
+        "Show me your small secondary-home options."
+      ],
+      "must_satisfy": [
+        "Do not infer property approval from catalogue availability."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P08",
+      "original_qa_ids": [
+        "Q017"
+      ],
+      "category": "ADUs and compact homes",
+      "question": "What is a small one-bedroom option?",
+      "expected_answer": "Willow Nook is about 433 sq. ft. from its published 40.2 m² area. The Micro is 540 sq. ft. with one bedroom and one bathroom, and is explicitly a single-storey reference design.",
+      "optional_follow_up": "Is a single-storey layout important?",
+      "source_ids": [
+        "S-M-WILLOW-NOOK",
+        "S-M-THE-MICRO"
+      ],
+      "evidence_status": "published_and_derived",
+      "model_ids": [
+        "carriage-willow-nook",
+        "catalog-the-micro"
+      ],
+      "variations": [
+        "What is your smallest one-bed home?",
+        "A small place for one person, please."
+      ],
+      "must_satisfy": [
+        "Do not infer Willow Nook storeys or accessibility."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P09",
+      "original_qa_ids": [
+        "Q018",
+        "Q020"
+      ],
+      "category": "ADUs and compact homes",
+      "question": "I need two bedrooms around 600 sq. ft. What fits?",
+      "expected_answer": "Moonlight is about 616 sq. ft. with two bedrooms, each with a private bathroom. Limetree is about 647 sq. ft. of published model area, with two bedrooms, one bathroom and a study; its internal area is about 589 sq. ft.",
+      "optional_follow_up": "Would the second bathroom or the study be more useful?",
+      "source_ids": [
+        "S-M-MOONLIGHT-HOUSE",
+        "S-M-LIMETREE-HOUSE"
+      ],
+      "evidence_status": "published_and_derived",
+      "model_ids": [
+        "carriage-moonlight-house",
+        "carriage-limetree-house"
+      ],
+      "variations": [
+        "Two beds, roughly six hundred square feet.",
+        "Which small home gives two people their own bathrooms?"
+      ],
+      "must_satisfy": [
+        "Differentiate model and internal areas; prefer Moonlight when two bathrooms are firm."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P10",
+      "original_qa_ids": [
+        "Q019"
+      ],
+      "category": "ADUs and compact homes",
+      "question": "Which small home has room for an office?",
+      "expected_answer": "Limetree has two bedrooms and a dedicated study. Its page lists 60.1 m² for the model and approximately 54.74 m² internally, so the study is part of a defined compact layout.",
+      "optional_follow_up": "Would you like to review the Limetree plan?",
+      "source_ids": [
+        "S-M-LIMETREE-HOUSE"
+      ],
+      "evidence_status": "published",
+      "model_ids": [
+        "carriage-limetree-house"
+      ],
+      "variations": [
+        "We both work from home. Is there a study?",
+        "Can I have two bedrooms without using one as an office?"
+      ],
+      "must_satisfy": [
+        "Do not count the study as a third bedroom."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P11",
+      "original_qa_ids": [
+        "Q021",
+        "Q023",
+        "Q118"
+      ],
+      "category": "ADUs and compact homes",
+      "question": "Would the Micro work for my parent who needs no stairs?",
+      "expected_answer": "The Micro is a single-storey, one-bedroom reference design at 540 sq. ft., with one bathroom. It is a useful starting point, and we would review entry access, circulation and bathroom needs for your parent.",
+      "optional_follow_up": "What access features matter most?",
+      "source_ids": [
+        "S-M-THE-MICRO",
+        "S-TERMS"
+      ],
+      "evidence_status": "published",
+      "model_ids": [
+        "catalog-the-micro"
+      ],
+      "variations": [
+        "Mum needs a one-bedroom home on one level.",
+        "Is the Micro wheelchair accessible?"
+      ],
+      "must_satisfy": [
+        "Single-storey is not an accessibility certification; answer a direct wheelchair guarantee question with that distinction."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P12",
+      "original_qa_ids": [
+        "Q022"
+      ],
+      "category": "ADUs and compact homes",
+      "question": "How large is the Mini?",
+      "expected_answer": "The Mini is 1,010 sq. ft., with two bedrooms and 1.5 bathrooms over two storeys. It is a CMHC reference design to adapt to your property.",
+      "optional_follow_up": "Would two storeys suit the intended occupants?",
+      "source_ids": [
+        "S-M-THE-MINI",
+        "S-TERMS"
+      ],
+      "evidence_status": "published",
+      "model_ids": [
+        "catalog-the-mini"
+      ],
+      "variations": [
+        "Is the Mini 750 square feet?",
+        "What are the Mini’s bedrooms and bathrooms?"
+      ],
+      "must_satisfy": [
+        "Use current 1,010 figure; no old 750 value."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P13",
+      "original_qa_ids": [
+        "Q026",
+        "Q027",
+        "Q028"
+      ],
+      "category": "ADUs and compact homes",
+      "question": "How big are Heritage Mews and Lantern House?",
+      "expected_answer": "The reviewed pages do not give a confirmed floor area for either model. Heritage Mews has one bedroom with an ensuite, while Lantern has two bedrooms and a central bathroom; Willow Nook, Moonlight and Limetree have published areas if size is the deciding factor.",
+      "optional_follow_up": "What size limit are you working with?",
+      "source_ids": [
+        "S-M-HERITAGE-MEWS",
+        "S-M-LANTERN-HOUSE",
+        "S-M-WILLOW-NOOK",
+        "S-M-MOONLIGHT-HOUSE",
+        "S-M-LIMETREE-HOUSE"
+      ],
+      "evidence_status": "published_with_missing_fields",
+      "model_ids": [],
+      "variations": [
+        "Which of those fits under 700 square feet?",
+        "Can you estimate Lantern’s size from the picture?"
+      ],
+      "must_satisfy": [
+        "Unknown size remains unknown; no image-based estimates or qualifying size claims."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P14",
+      "original_qa_ids": [
+        "Q032"
+      ],
+      "category": "Models and plans",
+      "question": "Which four-bedroom home is closest to 2,500 sq. ft.?",
+      "expected_answer": "Aurora is the closest at 2,486 sq. ft., with four bedrooms and three bathrooms. Summit is a larger alternative at 2,670 sq. ft. with four bedrooms and four bathrooms.",
+      "optional_follow_up": "Is 2,500 sq. ft. a firm ceiling or an approximate target?",
+      "source_ids": [
+        "S-M-AURORA",
+        "S-M-SUMMIT"
+      ],
+      "evidence_status": "derived_comparison",
+      "model_ids": [
+        "home-aurora",
+        "home-summit"
+      ],
+      "variations": [
+        "Four beds, about 2500 sf.",
+        "Roughly 230 m² and four bedrooms."
+      ],
+      "must_satisfy": [
+        "If the ceiling is firm, recommend Aurora only; do not re-ask if already supplied."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P15",
+      "original_qa_ids": [
+        "Q033"
+      ],
+      "category": "Models and plans",
+      "question": "I need four bedrooms around 3,500 sq. ft.",
+      "expected_answer": "Canmore is 3,516 sq. ft. and Cascade is 3,466 sq. ft.; both have four bedrooms and three bathrooms. Canmore includes a main-level bedroom and study, while Cascade has a published 311 sq. ft. deck.",
+      "optional_follow_up": "Is a main-level bedroom important?",
+      "source_ids": [
+        "S-M-CANMORE",
+        "S-M-CASCADE"
+      ],
+      "evidence_status": "derived_comparison",
+      "model_ids": [
+        "home-canmore",
+        "home-cascade"
+      ],
+      "variations": [
+        "Four bedrooms, thirty-five hundred feet or so.",
+        "Compare Canmore and Cascade for a family."
+      ],
+      "must_satisfy": [
+        "Rank actual area distance after bedroom constraints; deck is not additional interior area."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P16",
+      "original_qa_ids": [
+        "Q034"
+      ],
+      "category": "Models and plans",
+      "question": "What if I need five bedrooms around 3,500 sq. ft.?",
+      "expected_answer": "Saturna at 3,469 sq. ft. and Maplewood at 3,422 sq. ft. are the closest five-bedroom options. Saturna has three bathrooms and Maplewood has four.",
+      "optional_follow_up": "Would the extra bathroom be useful?",
+      "source_ids": [
+        "S-M-SATURNA",
+        "S-M-MAPLEWOOD"
+      ],
+      "evidence_status": "derived_comparison",
+      "model_ids": [
+        "home-saturna",
+        "home-maplewood"
+      ],
+      "variations": [
+        "Actually make that five bedrooms.",
+        "Five beds and roughly 3500 sf, please."
+      ],
+      "must_satisfy": [
+        "Latest explicit bedroom correction overrides earlier value."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P17",
+      "original_qa_ids": [
+        "Q035"
+      ],
+      "category": "Models and plans",
+      "question": "Tell me about Cedarview.",
+      "expected_answer": "Cedarview has four bedrooms, three bathrooms and two living areas in a published 3,337 sq. ft. plan. The listed configuration also includes a two-car garage, and you can explore Premium and Signature directions in its Design Studio.",
+      "optional_follow_up": "Would you like to start with the floor plan or finishes?",
+      "source_ids": [
+        "S-M-CEDARVIEW",
+        "S-INCLUSIONS"
+      ],
+      "evidence_status": "published",
+      "model_ids": [
+        "home-cedarview"
+      ],
+      "variations": [
+        "What does Cedarview offer a family?",
+        "How many beds and baths does that Cedarview have?"
+      ],
+      "must_satisfy": [
+        "Do not infer whether garage is included in the published area."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P18",
+      "original_qa_ids": [
+        "Q036"
+      ],
+      "category": "Models and plans",
+      "question": "Which five-bedroom homes are near 4,000 sq. ft.?",
+      "expected_answer": "Dalton is 3,937 sq. ft. with three bathrooms; South Bay is 3,878 sq. ft. with four bathrooms. Both have five bedrooms, and Profile at 4,151 sq. ft. is another option if a slightly larger plan suits you.",
+      "optional_follow_up": "Do you have a maximum area?",
+      "source_ids": [
+        "S-M-DALTON",
+        "S-M-SOUTH-BAY",
+        "S-M-PROFILE"
+      ],
+      "evidence_status": "derived_comparison",
+      "model_ids": [
+        "home-dalton",
+        "home-south-bay",
+        "home-profile"
+      ],
+      "variations": [
+        "Five beds, something just under 4000.",
+        "What can I compare with Dalton?"
+      ],
+      "must_satisfy": [
+        "For a hard 4,000 maximum, omit Profile from qualifying matches."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P19",
+      "original_qa_ids": [
+        "Q040"
+      ],
+      "category": "Models and plans",
+      "question": "Is Salt Spring 6,073 sq. ft. per residence?",
+      "expected_answer": "No, 6,073 sq. ft. is the combined area of both residences. The eight bedrooms and eight bathrooms are combined totals too; the individual residence areas and room allocations need confirmation.",
+      "optional_follow_up": "Are you considering it for two households?",
+      "source_ids": [
+        "S-M-SALT-SPRING"
+      ],
+      "evidence_status": "published",
+      "model_ids": [
+        "home-salt-spring"
+      ],
+      "variations": [
+        "So each side is six thousand feet?",
+        "Can I split the total exactly in half?"
+      ],
+      "must_satisfy": [
+        "No assumed equal halves or detached eight-bedroom recommendation."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P20",
+      "original_qa_ids": [
+        "Q044"
+      ],
+      "category": "Models and plans",
+      "question": "Where can I see the floor plans?",
+      "expected_answer": "The architectural model pages have reference-plan sections, and the CMHC model pages link to drawing PDFs. I can take you straight to the design you are considering; the construction drawings will still need site-specific review.",
+      "optional_follow_up": "Which model would you like?",
+      "source_ids": [
+        "S-M-AURORA",
+        "S-M-THE-MICRO",
+        "S-TERMS"
+      ],
+      "evidence_status": "published",
+      "model_ids": [],
+      "variations": [
+        "Show me that plan.",
+        "Can I download drawings for the fourplex?"
+      ],
+      "must_satisfy": [
+        "Resolve known model from conversation and provide its allowlisted plan link immediately."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P21",
+      "original_qa_ids": [
+        "Q045"
+      ],
+      "category": "Models and plans",
+      "question": "Do you have a three-bedroom detached home around 1,800 sq. ft.?",
+      "expected_answer": "There is no verified match for that brief in the current architectural collection, which starts with the four-bedroom Aurora at 2,486 sq. ft. We can take a three-bedroom, approximately 1,800 sq. ft. detached home forward as a custom-design brief.",
+      "optional_follow_up": "Where would you build it?",
+      "source_ids": [
+        "S-HOME",
+        "S-M-AURORA",
+        "S-CUSTOM"
+      ],
+      "evidence_status": "verified_catalogue_gap",
+      "model_ids": [],
+      "variations": [
+        "Three beds, 1800, and it must be detached.",
+        "Please stop showing me bigger houses."
+      ],
+      "must_satisfy": [
+        "No invented model; do not substitute a multiplex unit or keep pushing a larger house."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P22",
+      "original_qa_ids": [
+        "Q046"
+      ],
+      "category": "Pricing and scope",
+      "question": "What are your published prices per square foot?",
+      "expected_answer": "The Salt Spring Design Studio displays Premium at $250 and Signature at $300 per sq. ft.; House Delivery’s approved public pricing statement identifies these as CAD package planning references. They are not finished-home prices, and the selected model, chargeable area and scope need confirmation before a quotation.",
+      "optional_follow_up": "Which home are you considering?",
+      "source_ids": [
+        "S-M-SALT-SPRING",
+        "S-APPROVED-PRICE",
+        "S-CUSTOM"
+      ],
+      "evidence_status": "published_planning_reference",
+      "model_ids": [],
+      "variations": [
+        "What is your current price per foot?",
+        "Do Premium and Signature have advertised rates?"
+      ],
+      "must_satisfy": [
+        "Use current 250/300, not old search-cache rates; do not apply universally."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P23",
+      "original_qa_ids": [
+        "Q047",
+        "Q054",
+        "Q055",
+        "Q056"
+      ],
+      "category": "Pricing and scope",
+      "question": "Does the package price cover a finished home on my land?",
+      "expected_answer": "No. The package is an engineered kit and selected materials; site preparation, foundations, services, local engineering and permits, Canadian assembly and completion, appliances and sales taxes are separately considered unless expressly included. Freight and applicable import costs are defined in the written quotation.",
+      "optional_follow_up": "Are you comparing package costs or a complete project budget?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-LANEWAY"
+      ],
+      "evidence_status": "published",
+      "model_ids": [],
+      "variations": [
+        "What is left out?",
+        "Does $250 per foot get me a move-in-ready house?"
+      ],
+      "must_satisfy": [
+        "For “what is left out,” omit the opening No; retain material scope boundaries."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P24",
+      "original_qa_ids": [
+        "Q048"
+      ],
+      "category": "Pricing and scope",
+      "question": "Can I get a firm price today?",
+      "expected_answer": "A firm price comes from a written quotation for the selected design and project scope. We can start that review with your model or plans, location, finish preferences and known site information.",
+      "optional_follow_up": "Do you have a preferred design?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-PROCESS"
+      ],
+      "evidence_status": "project_specific",
+      "model_ids": [],
+      "variations": [
+        "Can you quote Aurora for my lot?",
+        "What do you need to give me an actual price?"
+      ],
+      "must_satisfy": [
+        "No fabricated quotation, deposit, validity period or offer."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P25",
+      "original_qa_ids": [
+        "Q049",
+        "Q050"
+      ],
+      "category": "Pricing and scope",
+      "question": "What is 2,486 sq. ft. multiplied by $250?",
+      "expected_answer": "The arithmetic is $621,500. If you are using those as CAD planning inputs for Aurora, that is a calculation using your stated rate, not a verified Aurora package price or a completed-home budget; model applicability, chargeable area and the written supply and site scope still need confirmation.",
+      "optional_follow_up": "Would you like the remaining project-budget categories?",
+      "source_ids": [
+        "S-M-AURORA",
+        "S-M-SALT-SPRING",
+        "S-APPROVED-PRICE",
+        "S-CUSTOM"
+      ],
+      "evidence_status": "user_assumption_arithmetic",
+      "model_ids": [
+        "home-aurora"
+      ],
+      "variations": [
+        "Just calculate 2486 times 250 for me.",
+        "What about 2,486 at $300?"
+      ],
+      "must_satisfy": [
+        "At $300 compute $745,800; never present either as a validated model offer."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P26",
+      "original_qa_ids": [
+        "Q051",
+        "Q052"
+      ],
+      "category": "Pricing and scope",
+      "question": "What is the Essential price for an ADU?",
+      "expected_answer": "There is no current verified Essential rate in the reviewed information. The ADU needs its own package quotation, and the Salt Spring planning rates should not be applied to it.",
+      "optional_follow_up": "Which ADU are you considering?",
+      "source_ids": [
+        "S-INCLUSIONS",
+        "S-LANEWAY",
+        "S-M-SALT-SPRING"
+      ],
+      "evidence_status": "missing",
+      "model_ids": [],
+      "variations": [
+        "Can I price the Micro at $250 a foot?",
+        "What does Essential cost for Moonlight?"
+      ],
+      "must_satisfy": [
+        "No old calculator rate or architectural-rate transfer."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P27",
+      "original_qa_ids": [
+        "Q053",
+        "Q097"
+      ],
+      "category": "Pricing and scope",
+      "question": "Is shipping included?",
+      "expected_answer": "Freight, applicable import costs and delivery arrangements are confirmed in the written quotation. The destination, site access and any special handling are reviewed as part of that scope.",
+      "optional_follow_up": "Where is the destination?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-LANEWAY",
+        "S-PROCESS"
+      ],
+      "evidence_status": "project_specific",
+      "model_ids": [],
+      "variations": [
+        "Do you deliver the package to my site?",
+        "Do I pay freight on top?"
+      ],
+      "must_satisfy": [
+        "No blanket included/excluded freight rule; avoid double-counting."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P28",
+      "original_qa_ids": [
+        "Q057"
+      ],
+      "category": "Pricing and scope",
+      "question": "What will the whole project cost?",
+      "expected_answer": "The complete budget combines the housing package with site and foundation work, services, professional work and approvals, Canadian construction, delivery arrangements, appliances and taxes. There is no verified universal turnkey rate; the team can build a budget around your actual design and site.",
+      "optional_follow_up": "Which location and design should that review use?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-LANEWAY"
+      ],
+      "evidence_status": "project_specific",
+      "model_ids": [],
+      "variations": [
+        "I mean the finished house, not just the kit.",
+        "What is my all-in budget?"
+      ],
+      "must_satisfy": [
+        "Use known location/model instead of re-asking; no unsupported numerical range."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P29",
+      "original_qa_ids": [
+        "Q059",
+        "Q129"
+      ],
+      "category": "Pricing and scope",
+      "question": "Would a 50-home development get better pricing?",
+      "expected_answer": "A repeatable 50-home program can be reviewed around a common housing mix, specifications and phased delivery. Any volume pricing belongs in that project’s commercial proposal; there is no verified standard discount percentage.",
+      "optional_follow_up": "Would the homes share a few repeatable designs?",
+      "source_ids": [
+        "S-PROCESS",
+        "S-M-LANGLEY",
+        "S-CUSTOM"
+      ],
+      "evidence_status": "project_specific",
+      "model_ids": [],
+      "variations": [
+        "What volume discount do you offer?",
+        "Can we price several phases together?"
+      ],
+      "must_satisfy": [
+        "Take scale seriously without guaranteeing savings or exposing margin."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P30",
+      "original_qa_ids": [
+        "Q061",
+        "Q062",
+        "Q063"
+      ],
+      "category": "Finish levels",
+      "question": "How do Essential, Premium and Signature differ?",
+      "expected_answer": "Essential is the durable, coordinated baseline; Premium adds refinement in materials and details; Signature introduces selected feature finishes. The actual products and available tiers depend on the home and agreed specification.",
+      "optional_follow_up": "Which model would you like to personalize?",
+      "source_ids": [
+        "S-HOME",
+        "S-INCLUSIONS"
+      ],
+      "evidence_status": "published",
+      "model_ids": [],
+      "variations": [
+        "Explain the three finish levels simply.",
+        "Is Signature just more expensive, or a different look?"
+      ],
+      "must_satisfy": [
+        "No invented SKU, exact stone species, appliance pack or superiority guarantee."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P31",
+      "original_qa_ids": [
+        "Q064"
+      ],
+      "category": "Finish levels",
+      "question": "Can I choose Essential for an architectural custom home?",
+      "expected_answer": "The current inclusions page lists Premium and Signature for the architectural custom-home collection. We can discuss your budget and priorities with the team, but Essential is not a verified selectable tier for every architectural model.",
+      "optional_follow_up": "Which model are you considering?",
+      "source_ids": [
+        "S-INCLUSIONS",
+        "S-CUSTOM"
+      ],
+      "evidence_status": "published",
+      "model_ids": [],
+      "variations": [
+        "I want Aurora in Essential.",
+        "Can I lower the tier on Cedarview?"
+      ],
+      "must_satisfy": [
+        "No automatic tier availability or invented downgrade amount."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P32",
+      "original_qa_ids": [
+        "Q065"
+      ],
+      "category": "Finish levels",
+      "question": "Are the CMHC catalogue homes always Premium?",
+      "expected_answer": "The inclusions page offers Essential and Premium for that home family, while the homepage describes Premium as the starting point. The selected design’s default and included scope should be confirmed before budgeting.",
+      "optional_follow_up": "Which catalogue design do you have in mind?",
+      "source_ids": [
+        "S-HOME",
+        "S-INCLUSIONS"
+      ],
+      "evidence_status": "unresolved_default",
+      "model_ids": [],
+      "variations": [
+        "Is Essential available on pre-reviewed homes?",
+        "Which tier is standard on the fourplex?"
+      ],
+      "must_satisfy": [
+        "Treat as default-versus-availability ambiguity; do not invent a resolved default."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P33",
+      "original_qa_ids": [
+        "Q068",
+        "Q085"
+      ],
+      "category": "Finish levels",
+      "question": "Can the two Salt Spring residences have different finishes?",
+      "expected_answer": "Yes. Each residence can have its own Premium or Signature interior direction and independent interior selections, with shared exterior and glazing choices. A mixed-tier price needs the confirmed area of each residence.",
+      "optional_follow_up": "Would you like a different interior tier for each household?",
+      "source_ids": [
+        "S-M-SALT-SPRING"
+      ],
+      "evidence_status": "published",
+      "model_ids": [
+        "home-salt-spring"
+      ],
+      "variations": [
+        "Premium for us and Signature for my parents?",
+        "Can Residence A and B have different kitchens?"
+      ],
+      "must_satisfy": [
+        "Do not halve the combined area to invent a blended quote."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P34",
+      "original_qa_ids": [
+        "Q076",
+        "Q077"
+      ],
+      "category": "Design and customization",
+      "question": "What can I do in the Design Studio?",
+      "expected_answer": "You can compare coordinated room and finish directions for the selected home and bring your choices into a personal Look Book. Depending on the model, chapters include kitchens, ensuites, wardrobes, doors, flooring, window coverings and exterior openings.",
+      "optional_follow_up": "Which home would you like to explore?",
+      "source_ids": [
+        "S-INCLUSIONS",
+        "S-M-SOLACE"
+      ],
+      "evidence_status": "published",
+      "model_ids": [],
+      "variations": [
+        "How do I choose my finishes?",
+        "What does Design My Home let me customize?"
+      ],
+      "must_satisfy": [
+        "Use model-specific options; no claim that all controls exist on every model."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P35",
+      "original_qa_ids": [
+        "Q081",
+        "Q082",
+        "Q083"
+      ],
+      "category": "Design and customization",
+      "question": "Can I change a floor plan or add a bedroom?",
+      "expected_answer": "We can review that as a project-specific design request. We would check the layout, structure, services and approvals, then confirm any cost and schedule effect.",
+      "optional_follow_up": "What change would make the plan work better for you?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-PROCESS"
+      ],
+      "evidence_status": "project_specific",
+      "model_ids": [],
+      "variations": [
+        "Could Aurora have a fifth bedroom?",
+        "Can we change the roof or move a wall?"
+      ],
+      "must_satisfy": [
+        "Do not represent a structural change as a Studio toggle or guaranteed free redesign."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P36",
+      "original_qa_ids": [
+        "Q088",
+        "Q071"
+      ],
+      "category": "Design and customization",
+      "question": "Can I have a central island in the wardrobe?",
+      "expected_answer": "That is a feature we can review for the chosen room and model. The wardrobe layout, circulation space and agreed inclusions would determine whether an island works.",
+      "optional_follow_up": "Which home’s wardrobe are you considering?",
+      "source_ids": [
+        "S-INCLUSIONS",
+        "S-M-SOLACE"
+      ],
+      "evidence_status": "project_specific",
+      "model_ids": [],
+      "variations": [
+        "I want an island in the dressing room.",
+        "Is that wardrobe island included?"
+      ],
+      "must_satisfy": [
+        "No automatic size, inclusion or technical suitability claim."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P37",
+      "original_qa_ids": [
+        "Q078",
+        "Q089"
+      ],
+      "category": "Design and customization",
+      "question": "Does the Look Book guarantee exactly what will be supplied?",
+      "expected_answer": "The Look Book records your design direction and visual selections. The written project specification and quotation confirm the actual products, quantities, technical requirements and price.",
+      "optional_follow_up": "Is there a particular pictured feature you want confirmed?",
+      "source_ids": [
+        "S-INCLUSIONS",
+        "S-M-SOLACE",
+        "S-CUSTOM"
+      ],
+      "evidence_status": "published",
+      "model_ids": [],
+      "variations": [
+        "Will I receive every item shown?",
+        "Is Raven Basalt necessarily a real basalt countertop?"
+      ],
+      "must_satisfy": [
+        "Do not infer materials or supplier identities from palette names or images."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P38",
+      "original_qa_ids": [
+        "Q091",
+        "Q092",
+        "Q006"
+      ],
+      "category": "Manufacturing and construction",
+      "question": "Where are your homes manufactured and assembled?",
+      "expected_answer": "The system may use domestic timber or internationally manufactured light-gauge steel, depending on the project. Qualified Canadian construction professionals handle site work, foundations, assembly and completion under the agreed scope.",
+      "optional_follow_up": "Is there a particular component-origin requirement for your project?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-LANEWAY"
+      ],
+      "evidence_status": "published",
+      "model_ids": [],
+      "variations": [
+        "How does factory manufacturing fit with Canadian assembly?",
+        "Are all the components made in Canada?"
+      ],
+      "must_satisfy": [
+        "Answer benign origin questions; exact country needs confirmation; no confidential partner identities."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P39",
+      "original_qa_ids": [
+        "Q093"
+      ],
+      "category": "Manufacturing and construction",
+      "question": "Does a finished house arrive on a truck?",
+      "expected_answer": "The published approach is a coordinated kit of engineered components and selected materials for assembly on the Canadian site. A different modular or delivery arrangement would need to be confirmed for the project.",
+      "optional_follow_up": "What type of home or development are you planning?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-PROCESS"
+      ],
+      "evidence_status": "published",
+      "model_ids": [],
+      "variations": [
+        "Is it a complete modular unit?",
+        "What actually arrives at the property?"
+      ],
+      "must_satisfy": [
+        "Do not promise volumetric modular availability or identify partners."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P40",
+      "original_qa_ids": [
+        "Q094",
+        "Q095",
+        "Q126"
+      ],
+      "category": "Manufacturing and construction",
+      "question": "Who handles the Canadian construction?",
+      "expected_answer": "The Canadian construction team handles the agreed site work, foundations, assembly and completion. The general contractor retains responsibility for local execution, trades and construction management, with the responsibilities defined for the project.",
+      "optional_follow_up": "Do you already have a general contractor?",
+      "source_ids": [
+        "S-PROCESS",
+        "S-CUSTOM"
+      ],
+      "evidence_status": "published",
+      "model_ids": [],
+      "variations": [
+        "Who builds the foundations and connects utilities?",
+        "Do you replace our GC?"
+      ],
+      "must_satisfy": [
+        "Preserve existing builder/GC state; no unquoted turnkey promise."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P41",
+      "original_qa_ids": [
+        "Q105"
+      ],
+      "category": "Manufacturing and construction",
+      "question": "Who helps if there is a warranty issue?",
+      "expected_answer": "House Delivery helps identify the component, locate the applicable warranty documents and coordinate the next step. Product coverage and local installation or construction responsibilities follow the relevant project agreements.",
+      "optional_follow_up": "Is this a product question or an installation issue?",
+      "source_ids": [
+        "S-WARRANTY"
+      ],
+      "evidence_status": "published",
+      "model_ids": [],
+      "variations": [
+        "How do manufacturer warranties work?",
+        "Will you help me find the right support contact?"
+      ],
+      "must_satisfy": [
+        "Answer benign manufacturer wording; no universal warranty duration or guaranteed replacement."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P42",
+      "original_qa_ids": [
+        "Q029",
+        "Q106",
+        "Q107",
+        "Q116"
+      ],
+      "category": "Property and timing",
+      "question": "How do I find out whether a home will fit my property?",
+      "expected_answer": "The preliminary property check is a useful starting point using available government information. A proper fit review considers the proposed layout, site dimensions, access, services and local requirements; the check is not a survey or an approval.",
+      "optional_follow_up": "Which municipality is the property in?",
+      "source_ids": [
+        "S-LANEWAY",
+        "S-CUSTOM"
+      ],
+      "evidence_status": "published",
+      "model_ids": [],
+      "variations": [
+        "My lot is narrow. What fits?",
+        "Can the free property check confirm my zoning?"
+      ],
+      "must_satisfy": [
+        "Use known location, route to existing check; do not claim to perform lookup in chat."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P43",
+      "original_qa_ids": [
+        "Q108",
+        "Q109",
+        "Q110"
+      ],
+      "category": "Property and timing",
+      "question": "Do CMHC catalogue plans mean the home is already approved?",
+      "expected_answer": "No. They are reference designs for project-specific adaptation by qualified professionals, with the applicable local approvals still required. Their use does not mean CMHC endorses or certifies House Delivery.",
+      "optional_follow_up": "Which design and location are involved?",
+      "source_ids": [
+        "S-TERMS",
+        "S-CMHC-OFFICIAL"
+      ],
+      "evidence_status": "published",
+      "model_ids": [],
+      "variations": [
+        "Can I submit the PDF and start building?",
+        "Does pre-reviewed mean no building permit?"
+      ],
+      "must_satisfy": [
+        "No automatic permit, manufacturer certification or CMHC endorsement."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P44",
+      "original_qa_ids": [
+        "Q112",
+        "Q113",
+        "Q096"
+      ],
+      "category": "Property and timing",
+      "question": "How quickly could the home be ready?",
+      "expected_answer": "Timing depends on the design, approvals, site readiness, manufacturing, delivery and Canadian construction. Some work can run in parallel, and the team can establish a project schedule once those steps are defined.",
+      "optional_follow_up": "What stage has your project reached?",
+      "source_ids": [
+        "S-PROCESS",
+        "S-HOME"
+      ],
+      "evidence_status": "project_specific",
+      "model_ids": [],
+      "variations": [
+        "Can we move in in four months?",
+        "Can manufacturing happen while foundations are prepared?"
+      ],
+      "must_satisfy": [
+        "No universal date; for explicit four-month commitment, say it cannot be confirmed from current information."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P45",
+      "original_qa_ids": [
+        "Q121",
+        "Q122",
+        "Q123",
+        "Q129"
+      ],
+      "category": "Developers and institutions",
+      "question": "Can you discuss a phased program of 50 or 500 homes?",
+      "expected_answer": "Yes. We can discuss the housing mix, repeatable designs and phased delivery as one program, with each phase planned around the sites and construction requirements. Production allocations and dates would be agreed through the project review.",
+      "optional_follow_up": "What would the first phase include?",
+      "source_ids": [
+        "S-PROCESS",
+        "S-M-LANGLEY",
+        "S-PLANNER"
+      ],
+      "evidence_status": "project_specific",
+      "model_ids": [],
+      "variations": [
+        "We are considering 500 homes in four phases.",
+        "Could we use three designs across a 50-home project?"
+      ],
+      "must_satisfy": [
+        "Treat proposed scale as a legitimate discussion, not existing proven capacity or guaranteed orders."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P46",
+      "original_qa_ids": [
+        "Q042",
+        "Q127",
+        "Q128"
+      ],
+      "category": "Developers and institutions",
+      "question": "Which fourplex could provide four three-bedroom homes?",
+      "expected_answer": "BC Fourplex 2 is a three-storey reference design with four three-bedroom, two-bathroom homes. Its published 5,985 sq. ft. is the combined building area, and the design needs site-specific review.",
+      "optional_follow_up": "Where is the proposed site?",
+      "source_ids": [
+        "S-M-BC-FOURPLEX-2",
+        "S-D-BC-FOURPLEX-2",
+        "S-TERMS"
+      ],
+      "evidence_status": "published",
+      "model_ids": [
+        "catalog-bc-fourplex-2"
+      ],
+      "variations": [
+        "We need four family rentals, all three beds.",
+        "Is the fourplex area per unit?"
+      ],
+      "must_satisfy": [
+        "Use unit schedule; do not divide combined area into equal assumed unit areas."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P47",
+      "original_qa_ids": [
+        "Q124",
+        "Q125",
+        "Q130",
+        "Q135"
+      ],
+      "category": "Developers and institutions",
+      "question": "We are a municipality or institution. What is the next step?",
+      "expected_answer": "Start with the housing need, location, intended households and what is already known about the site and delivery partners. The housing-project planner can organize that for discussion, whether your organization is the buyer, landowner, facilitator or operator.",
+      "optional_follow_up": "What role would your organization have in the project?",
+      "source_ids": [
+        "S-PLANNER",
+        "S-PROCESS"
+      ],
+      "evidence_status": "published",
+      "model_ids": [],
+      "variations": [
+        "The city has land but will not buy the homes.",
+        "Our non-profit may operate 40 rentals. Where do we start?"
+      ],
+      "must_satisfy": [
+        "Do not assume municipality is purchaser; retain already-stated land/operator roles."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P48",
+      "original_qa_ids": [
+        "Q136",
+        "Q137",
+        "Q138",
+        "Q144"
+      ],
+      "category": "First Nations and community housing",
+      "question": "Can our Nation lead the design and housing mix?",
+      "expected_answer": "Yes. House Delivery is Indigenous-owned, and the community pathway starts with the Nation’s housing needs, land and priorities. The design direction is developed with the community and its chosen partners, including cultural expression, privacy, gathering and multigenerational living.",
+      "optional_follow_up": "Which household needs should guide the first phase?",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-NATIONS",
+        "S-PROCESS"
+      ],
+      "evidence_status": "published",
+      "model_ids": [],
+      "variations": [
+        "Do we have to choose a fixed community package?",
+        "Can the housing reflect our Nation’s priorities and culture?"
+      ],
+      "must_satisfy": [
+        "Nation-led planning, no stereotyped design assumptions or invented commitments."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P49",
+      "original_qa_ids": [
+        "Q139",
+        "Q141",
+        "Q150"
+      ],
+      "category": "First Nations and community housing",
+      "question": "Can we keep employment and skills in the community?",
+      "expected_answer": "Local participation and assembly training can be included where appropriate, with roles and resources developed around the project. We would start with the workforce and construction capacity the community wants to involve.",
+      "optional_follow_up": "Do you have local construction or training partners in mind?",
+      "source_ids": [
+        "S-NATIONS",
+        "S-FNPLANNER"
+      ],
+      "evidence_status": "published",
+      "model_ids": [],
+      "variations": [
+        "Our Nation wants local jobs and training.",
+        "How can community members take part in assembly?"
+      ],
+      "must_satisfy": [
+        "No job count, ratio, funding or guaranteed employment promise."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    },
+    {
+      "id": "P50",
+      "original_qa_ids": [
+        "Q146",
+        "Q147",
+        "Q150"
+      ],
+      "category": "First Nations and community housing",
+      "question": "Can we start planning before funding is approved?",
+      "expected_answer": "Yes. The First Nations planner can organize the housing needs, quantities, sites and project readiness using what is already known. It does not establish funding eligibility or approval, and Indigenous ownership alone does not guarantee a grant.",
+      "optional_follow_up": "What is already known about the first phase?",
+      "source_ids": [
+        "S-FNPLANNER",
+        "S-NATIONS"
+      ],
+      "evidence_status": "published",
+      "model_ids": [],
+      "variations": [
+        "We need 20 homes but do not have funding yet.",
+        "Does using an Indigenous-owned housing company automatically qualify us?"
+      ],
+      "must_satisfy": [
+        "Support early planning, preserve actual funding status, no funding guarantee."
+      ],
+      "conversation_rule": "Use the answer as a standard of meaning, not a script. Omit the follow-up if answered, declined or irrelevant; do not repeat qualifications already understood unless the risk changes."
+    }
+  ]
+}

@@ -1,0 +1,4361 @@
+{
+  "schema_version": "2.0",
+  "knowledge_version": "2026-11-14.qa1",
+  "reviewed_on": "2026-11-14",
+  "status": "audited_candidate_not_live_validated",
+  "classification": "customer_safe",
+  "sources": [
+    {
+      "id": "S-HOME",
+      "url": "https://www.housedelivery.ca",
+      "title": "House Delivery collection and company",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "78d6895ab3c05d79d3d9c407e2e0b16b0d0b14d392a46ca2d0cd0b5a296d42f1",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-INCLUSIONS",
+      "url": "https://www.housedelivery.ca/inclusions",
+      "title": "Finishes and inclusions",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "bcae59d7a08cfc0f704199c6ab84c16edaeeaa119bfd0926e4c1e8cda58ff714",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-PROCESS",
+      "url": "https://www.housedelivery.ca/how-it-works",
+      "title": "Delivery journey",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "b2a559888aee2ead85a836a07429105ff347769ce1eba66e67f12955ea651e71",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-CUSTOM",
+      "url": "https://www.housedelivery.ca/build-your-home/custom-homes",
+      "title": "Custom homes and package scope",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "a7d5c9bce49a6f1c523b683bcebbee4dbb960ed9889b57d575945fca513b27b2",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-LANEWAY",
+      "url": "https://www.housedelivery.ca/build-your-home/laneway-carriage-homes",
+      "title": "Laneway property review and supply scope",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "cdd896e0a1842f919732fba08050f686be92524290ee236c4ad1aa01c09043ad",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-NATIONS",
+      "url": "https://www.housedelivery.ca/first-nations-inspired",
+      "title": "Community-led housing",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "784392a0a0af80e83784adef0fc4f5944e040f45b6e670fe9769755e9665f796",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-WARRANTY",
+      "url": "https://www.housedelivery.ca/warranty",
+      "title": "Warranty and after-sales support",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "f1af3c20f819971b842cb652ade8a0aa80f5abcc5242568ac5f4fd34ff8fc04d",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-TERMS",
+      "url": "https://www.housedelivery.ca/cmhc-catalogue-terms",
+      "title": "CMHC catalogue terms",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "be4e5fee585194bdbfb1bb9e3abe8a0300141fad31c7ed1432b005ca8524fa7d",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-PRIVACY",
+      "url": "https://www.housedelivery.ca/privacy",
+      "title": "Privacy and cookies",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "5c09f75edc4a5c90df74540836dcfe7d37444cdb9ac255947a144ceac792ea47",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-PLANNER",
+      "url": "https://www.housedelivery.ca/plan-a-housing-project",
+      "title": "Project planning entry",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "3c175fbe4f6162e6b76c1f34d4b740cb8f9f05dea640f73167c5621138fa0de5",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-FNPLANNER",
+      "url": "https://www.housedelivery.ca/first-nations-project-planner",
+      "title": "First Nations planner",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "cba238af82c556347a657b802a45d98bab754d2d34f9d1165a01e22d4d7d58c9",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-BUILD",
+      "url": "https://www.housedelivery.ca/build-your-home",
+      "title": "Build your home",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "e3321a8cf732143217f98beab5a9693280b6db09257e78d1dd6c11a8ce161eaf",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-M-LANGLEY",
+      "url": "https://www.housedelivery.ca/homes/langley",
+      "title": "The Langley House",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "2a381a23b548125582cfc526221278bdbc1fd1c4cc8a50a8397d114ce73a9ca1",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-M-SALT-SPRING",
+      "url": "https://www.housedelivery.ca/homes/salt-spring",
+      "title": "The Salt Spring Duplex",
+      "checked_on": "2026-11-14",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "025a16a6e8aa972c583a5b1611998bc9b6a220f1869d84c7b420780c5b8500a3",
+      "notes": "Fresh retrieval confirms $250/$300 residence controls. Older search cache is superseded, not a second current price.",
+      "audit_method": "fresh_primary_page"
+    },
+    {
+      "id": "S-M-SOLACE",
+      "url": "https://www.housedelivery.ca/homes/solace",
+      "title": "Solace",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "0bd8f231f4ad8535739d3d9df07d9ffd361b4d876b9c308c70a0f3b6b3085332",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-M-TIMBERLINE",
+      "url": "https://www.housedelivery.ca/homes/timberline",
+      "title": "The Timberline",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "e5a7f67483ba0b73c83c61874845d1dde61bea405b80e776a8b90a1ea595138b",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-M-PROFILE",
+      "url": "https://www.housedelivery.ca/homes/profile",
+      "title": "The Profile",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "bbe2c9d4a3d5ca5bcd01418bb2e0688b60eae58c14674a925773b788ecb88edf",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-M-LAURENTIAN",
+      "url": "https://www.housedelivery.ca/homes/laurentian",
+      "title": "The Laurentian",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "1c5f50c06b3f7bfb051d5940704e711a38f974ca47bc0feebd7ae31cbc88bbca",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-M-DALTON",
+      "url": "https://www.housedelivery.ca/homes/dalton",
+      "title": "The Dalton",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "814376ae97f696fc53ee0d9c77885f3e13de779a5993f112d1d7a1ac143ccac4",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-M-SOUTH-BAY",
+      "url": "https://www.housedelivery.ca/homes/south-bay",
+      "title": "The South Bay",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "d3b5abfd0d7fd23a6bdea79e1868c7d24bebeff02119272bbc10c8646cf64d02",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-M-BOREAL",
+      "url": "https://www.housedelivery.ca/homes/boreal",
+      "title": "The Boreal",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "98a953c1f1bc175db3b6af3dc92b8ef48e87a8c15431f6e1e05255cc57cfcade",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-M-KEATS",
+      "url": "https://www.housedelivery.ca/homes/keats",
+      "title": "Keats House",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "436258c786db507e190cb98915de9fce3af6d8ccc55f308883d8244bd4ca1354",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-M-CANMORE",
+      "url": "https://www.housedelivery.ca/homes/canmore",
+      "title": "Canmore",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "9c4f52c628003b64839d7386c4b468fade24917bf2421588bc596b09c69b6da6",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-M-SATURNA",
+      "url": "https://www.housedelivery.ca/homes/saturna",
+      "title": "The Saturna",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "a8661d82e89ee6e24e71eef1ba77ae377b79b42546bd1a83cab93704776559b9",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-M-CASCADE",
+      "url": "https://www.housedelivery.ca/homes/cascade",
+      "title": "The Cascade",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "52e0aa13ecac1f5109e7ba5f5362224542a490f7761e314f703ab19750b09089",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-M-MAPLEWOOD",
+      "url": "https://www.housedelivery.ca/homes/maplewood",
+      "title": "The Maplewood",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "f6cc955b29dec4187e10d34d09a6b8053665d4270579caccbad1f21e990fdaf2",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-M-CEDARVIEW",
+      "url": "https://www.housedelivery.ca/homes/cedarview",
+      "title": "The Cedarview",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "223e3a3825cbec5604a26642d798a8f36f8a6da65bd62da7da74cd69eb62148d",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-M-MAYNE",
+      "url": "https://www.housedelivery.ca/homes/mayne",
+      "title": "Mayne House",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "21f0ab7e490719c56bb9cb7aa8fc8e4a1635f0d2e547252181a2f6a873c7eba5",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-M-SUMMIT",
+      "url": "https://www.housedelivery.ca/homes/summit",
+      "title": "The Summit",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "0843734726a7117ae4a45332691d69464eee149d786d1353dc659eb058ca4c4d",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-M-AURORA",
+      "url": "https://www.housedelivery.ca/homes/aurora",
+      "title": "The Aurora",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "2279e33045852d86776f80be48130c7f0bd05fc90c34e5ce94460aae976b5e0e",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-M-WILLOW-NOOK",
+      "url": "https://www.housedelivery.ca/homes/laneway-carriage/willow-nook",
+      "title": "The Willow Nook",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "b9e7fe8ae2807ecca51a19b14cf19e6b95b5be61256cc3b26d99dc01a12f4d0e",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-M-LANTERN-HOUSE",
+      "url": "https://www.housedelivery.ca/homes/laneway-carriage/lantern-house",
+      "title": "The Lantern House",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "7733bc19bddb7b09273db0508ddbb7a302897295b97a5a6acbf595b6d87cf2e4",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-M-COURTYARD-COTTAGE",
+      "url": "https://www.housedelivery.ca/homes/laneway-carriage/courtyard-cottage",
+      "title": "The Courtyard Cottage",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "fb3a6ccbce3d45e2057e2abbd2b5c90ad5e102b5421b7c210eb65d1a076c5945",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-M-HERITAGE-MEWS",
+      "url": "https://www.housedelivery.ca/homes/laneway-carriage/heritage-mews",
+      "title": "The Heritage Mews",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "942d3a112a961a584d88bda1e4ac18d0c8dacf94bfaee2a47ad1e1ce912798ae",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-M-LIMETREE-HOUSE",
+      "url": "https://www.housedelivery.ca/homes/laneway-carriage/limetree-house",
+      "title": "Limetree House",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "38000e3000c42c1465f019ff4f161d82daad78223e4be2301d9166ec4b0c4383",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-M-MOONLIGHT-HOUSE",
+      "url": "https://www.housedelivery.ca/homes/laneway-carriage/moonlight-house",
+      "title": "Moonlight House",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "36b72b5a277a03c1cb54348ea293309e78c635a3fe64dd218ae33086709d104b",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-M-THE-MICRO",
+      "url": "https://www.housedelivery.ca/catalog/the-micro",
+      "title": "The Micro",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "e855f72ad053f60ab32094913489ee9b889d5dadbf03a86ffd646202331a2d2b",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-M-THE-MINI",
+      "url": "https://www.housedelivery.ca/catalog/the-mini",
+      "title": "The Mini",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "c1cd15415b741a4606c8dc962169012800add8b8d75ebb5b504c12da00510864",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-M-BC-DUPLEX",
+      "url": "https://www.housedelivery.ca/catalog/bc-duplex",
+      "title": "BC Duplex",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "00e12ecacd400b6c95493e0b4019e650bc311e301b955e4d9945d950ac774af6",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-M-BC-FOURPLEX-1",
+      "url": "https://www.housedelivery.ca/catalog/bc-fourplex-1",
+      "title": "BC Fourplex 1",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "62e11c619e8c652d24b650dc4a7e131d59282d2c7004dbf75a4a02743af254b0",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-M-BC-FOURPLEX-2",
+      "url": "https://www.housedelivery.ca/catalog/bc-fourplex-2",
+      "title": "BC Fourplex 2",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "c29231166a550f4bb5438527e0546b9abb65f6b08e0d1cfb073926597c52ef34",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-M-BC-ROWHOUSE",
+      "url": "https://www.housedelivery.ca/catalog/bc-rowhouse",
+      "title": "BC Rowhouse",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "d0199f8bfdfd961afb5193829fb344ddcbc4c8e813a001ffea6f1c891251e41a",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-M-SIXPLEX-COURTYARD",
+      "url": "https://www.housedelivery.ca/catalog/sixplex-courtyard",
+      "title": "Sixplex Courtyard",
+      "checked_on": "2026-11-13",
+      "status": "retrieved",
+      "http_status": 200,
+      "evidence_sha256": "c3cab2f9f48ac0cb91b4b639dab1c80582cdacca151e96870cc20d3751b5e901",
+      "notes": "Live public page retrieved November 13, 2026 Pacific time.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-D-THE-MICRO",
+      "title": "CMHC reference drawings: The Micro",
+      "url": "https://www.housedelivery.ca/pdfs/BC_ADU_01_Drawings.pdf",
+      "checked_on": "2026-11-13",
+      "http_status": 200,
+      "status": "retrieved_text_only",
+      "evidence_sha256": "e10bc66d85092066da4a64f5ef99d3a0bb780c62ef5f966d7cb1821012f4732c",
+      "notes": "Cover sheet A001 unit schedule and A010 code matrix gross area, extracted PDF text; not an engineering verification. No inferred measurements from images.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-D-THE-MINI",
+      "title": "CMHC reference drawings: The Mini",
+      "url": "https://www.housedelivery.ca/pdfs/BC_ADU_02_Drawings.pdf",
+      "checked_on": "2026-11-13",
+      "http_status": 200,
+      "status": "retrieved_text_only",
+      "evidence_sha256": "53e2ad66e4c6813145b9ad704b494d0922d3ae496a866c6921d9d046683a86fc",
+      "notes": "Cover sheet A001 unit schedule and A010 code matrix gross area, extracted PDF text; not an engineering verification. No inferred measurements from images.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-D-BC-DUPLEX",
+      "title": "CMHC reference drawings: BC Duplex",
+      "url": "https://www.housedelivery.ca/pdfs/BC_Duplex_Drawings.pdf",
+      "checked_on": "2026-11-14",
+      "http_status": 200,
+      "status": "retrieved_text_only",
+      "evidence_sha256": "53a07191a309f09d6d86d9e552bbc0abead651af789186145ef64d36d94ffcbc",
+      "notes": "Visual check of A001, PDF page 2.",
+      "audit_method": "fresh_pdf_and_visual_sheet_check"
+    },
+    {
+      "id": "S-D-BC-FOURPLEX-1",
+      "title": "CMHC reference drawings: BC Fourplex 1",
+      "url": "https://www.housedelivery.ca/pdfs/BC_Fourplex_01_Drawings.pdf",
+      "checked_on": "2026-11-13",
+      "http_status": 200,
+      "status": "retrieved_text_only",
+      "evidence_sha256": "cd39c5189c56fb76042606f58a1e979cfea5d12c5913ac904abb5d2e016569ea",
+      "notes": "Cover sheet A001 unit schedule and A010 code matrix gross area, extracted PDF text; not an engineering verification. No inferred measurements from images.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-D-BC-FOURPLEX-2",
+      "title": "CMHC reference drawings: BC Fourplex 2",
+      "url": "https://www.housedelivery.ca/pdfs/BC_Fourplex_02_Drawings.pdf",
+      "checked_on": "2026-11-13",
+      "http_status": 200,
+      "status": "retrieved_text_only",
+      "evidence_sha256": "d0e06374980a7fbf8487b0700a625054bbf7a0a8eae0b893d2eb166526227075",
+      "notes": "Cover sheet A001 unit schedule and A010 code matrix gross area, extracted PDF text; not an engineering verification. No inferred measurements from images.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-D-BC-ROWHOUSE",
+      "title": "CMHC reference drawings: BC Rowhouse",
+      "url": "https://www.housedelivery.ca/pdfs/BC_Rowhouse_Drawings.pdf",
+      "checked_on": "2026-11-13",
+      "http_status": 200,
+      "status": "retrieved_text_only",
+      "evidence_sha256": "f6c9a4553718bb94e599d8be0fcde47d4a29956907467fb079c80d2c8a95f6a5",
+      "notes": "Cover sheet A001 unit schedule and A010 code matrix gross area, extracted PDF text; not an engineering verification. No inferred measurements from images.",
+      "audit_method": "cross_checked_against_retained_primary_evidence"
+    },
+    {
+      "id": "S-D-SIXPLEX-COURTYARD",
+      "title": "CMHC reference drawings: Sixplex Courtyard",
+      "url": "https://www.housedelivery.ca/pdfs/BC_Sixplex%20Courtyard_Drawings.pdf",
+      "checked_on": "2026-11-14",
+      "http_status": 200,
+      "status": "retrieved_text_only",
+      "evidence_sha256": "f08797b7f8fd6701f64750a20643ef32fe75cb3b336e8708396825ee8e670933",
+      "notes": "Visual checks of A001, PDF page 2, and A010, PDF page 9.",
+      "audit_method": "fresh_pdf_and_visual_sheet_check"
+    },
+    {
+      "id": "S-CMHC-OFFICIAL",
+      "title": "CMHC Housing Design Catalogue User Terms and Conditions",
+      "url": "https://assets.cmhc-schl.gc.ca/sites/housing%20catalog/resources/housing-design-catalogue-user-terms-and-conditions.pdf?rev=8aa4ec1f-26db-4c8f-b542-fc502732904d",
+      "checked_on": "2026-11-14",
+      "http_status": 200,
+      "status": "retrieved_text_only",
+      "evidence_sha256": "45de9e506af9ea4b27edcfa8d978e8519e3dc76a657a8803b125a8df65ca3276",
+      "notes": "Official terms, sections 4 and applicable use conditions; reference professional adaptation and non-endorsement only. No independent legal interpretation.",
+      "audit_method": "official_terms_reopened"
+    },
+    {
+      "id": "S-APPROVED-PRICE",
+      "url": null,
+      "title": "House Delivery approved public Concierge pricing statement, version 2026-11-13.2, fact prices",
+      "checked_on": "2026-11-14",
+      "status": "approved_public_statement",
+      "http_status": null,
+      "evidence_sha256": "88c14f78a3fabf68af11d703d8670b68e677a3a1c347c0cbd9dbe198c4a39f5d",
+      "notes": "Carries CAD denomination and planning-only scope. Does not establish a model-specific quotation.",
+      "audit_method": "approved_customer_safe_statement_review"
+    }
+  ],
+  "facts": [
+    {
+      "id": "F-COMPANY",
+      "text": "House Delivery is an Indigenous-owned Canadian housing company combining housing design, manufacturing, procurement, logistics and Canadian construction expertise. Its founder brings more than 35 years of manufacturing and commercial experience.",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-BUILD"
+      ],
+      "tags": [
+        "company"
+      ],
+      "qualifiers": [],
+      "status": "verified_public"
+    },
+    {
+      "id": "F-MARKETS",
+      "text": "House Delivery serves developers, municipalities, institutions, non-profits, First Nations and Indigenous communities, alongside individual homeowners and ADU customers. A project may be one home or a repeatable, phased housing program.",
+      "source_ids": [
+        "S-HOME",
+        "S-PLANNER",
+        "S-PROCESS"
+      ],
+      "tags": [
+        "audiences",
+        "scale"
+      ],
+      "qualifiers": [],
+      "status": "verified_public"
+    },
+    {
+      "id": "F-SYSTEMS",
+      "text": "Light-gauge steel, domestic timber and other suitable engineered systems can be considered for the project; a model rendering does not fix the final construction specification.",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-LANEWAY"
+      ],
+      "tags": [
+        "systems"
+      ],
+      "qualifiers": [],
+      "status": "verified_public"
+    },
+    {
+      "id": "F-ORIGIN",
+      "text": "Depending on the project, the housing system may include domestic timber or light-gauge steel manufactured internationally. Qualified Canadian construction professionals undertake site work, foundations, assembly and completion under an agreed scope.",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-LANEWAY"
+      ],
+      "tags": [
+        "origin",
+        "assembly"
+      ],
+      "qualifiers": [
+        "No verified public country-by-component matrix. Do not name a country, factory or partner from private knowledge."
+      ],
+      "status": "verified_public"
+    },
+    {
+      "id": "F-SCOPE",
+      "text": "The supplied home package is an engineered kit of components and selected materials. Package contents, finishes, freight and applicable import costs are established in the written project quotation.",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-LANEWAY"
+      ],
+      "tags": [
+        "scope",
+        "pricing"
+      ],
+      "qualifiers": [],
+      "status": "verified_public"
+    },
+    {
+      "id": "F-EXCLUSIONS",
+      "text": "Site preparation, foundations, service connections, local engineering and permits, Canadian assembly and completion, appliances and sales taxes are separately considered unless expressly included. Delivery access and special logistics also need review; a package price is not a turnkey construction price.",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-LANEWAY"
+      ],
+      "tags": [
+        "pricing",
+        "exclusions"
+      ],
+      "qualifiers": [],
+      "status": "verified_public"
+    },
+    {
+      "id": "F-PRICE",
+      "text": "The Salt Spring Design Studio displays Premium at $250 per sq. ft. and Signature at $300 per sq. ft. House Delivery’s approved public pricing statement identifies CAD home-package planning references; these are not completed-home prices or firm quotations.",
+      "source_ids": [
+        "S-M-SALT-SPRING",
+        "S-APPROVED-PRICE"
+      ],
+      "tags": [
+        "pricing"
+      ],
+      "qualifiers": [
+        "The observed display is Salt Spring residence-level tier controls. A rate is not a verified price for another model.",
+        "Confirm model applicability, chargeable area, selected scope and delivery in a written quotation."
+      ],
+      "status": "published_planning_reference"
+    },
+    {
+      "id": "F-ESSENTIAL",
+      "text": "Essential is described as a durable coordinated baseline; Premium adds refinement in materials and detail; Signature introduces selective feature finishes. The inclusions page lists Premium and Signature for custom homes, and Essential and Premium for laneway/carriage and pre-reviewed homes.",
+      "source_ids": [
+        "S-HOME",
+        "S-INCLUSIONS"
+      ],
+      "tags": [
+        "tiers"
+      ],
+      "qualifiers": [
+        "The inclusions page offers Essential/Premium for compact and catalogue homes; the homepage describes Premium as the catalogue starting point. This is an ambiguity about default versus available tiers, not proof that Essential is unavailable.",
+        "Confirm the selected design’s baseline. No current Essential rate is verified."
+      ],
+      "status": "verified_public"
+    },
+    {
+      "id": "F-INCLUSIONS",
+      "text": "Visible selections can coordinate flooring, tile and surfaces, kitchens, wardrobes, interior doors, exterior openings, bathrooms, lighting and window coverings. Final products and specifications are confirmed for the selected home and project.",
+      "source_ids": [
+        "S-INCLUSIONS"
+      ],
+      "tags": [
+        "inclusions"
+      ],
+      "qualifiers": [],
+      "status": "verified_public"
+    },
+    {
+      "id": "F-STUDIO",
+      "text": "Where the model offers Design My Home, its curated room and finish choices create a personalized Look Book. The images establish design intent; actual products, availability, quantities, price and technical suitability need project review.",
+      "source_ids": [
+        "S-INCLUSIONS",
+        "S-M-SOLACE",
+        "S-M-SALT-SPRING"
+      ],
+      "tags": [
+        "design",
+        "lookbook"
+      ],
+      "qualifiers": [],
+      "status": "verified_public"
+    },
+    {
+      "id": "F-CUSTOMIZATION",
+      "text": "Model-specific Design Studio choices coordinate finishes. Layout, structural and exterior changes can be discussed through project-specific design and engineering review.",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-PROCESS"
+      ],
+      "tags": [
+        "customization"
+      ],
+      "qualifiers": [
+        "A visual selection does not authorize a structural change or establish a free redesign."
+      ],
+      "status": "verified_public"
+    },
+    {
+      "id": "F-APPLIANCES",
+      "text": "Appliances are project coordinated; final package and model selections are confirmed during project review. They must be budgeted separately unless expressly included in the written scope.",
+      "source_ids": [
+        "S-M-SOLACE",
+        "S-CUSTOM"
+      ],
+      "tags": [
+        "appliances",
+        "pricing"
+      ],
+      "qualifiers": [],
+      "status": "verified_public"
+    },
+    {
+      "id": "F-TECHNICAL",
+      "text": "Published design boards do not establish final product ratings or code compliance. Site-specific professionals must confirm the selected structure, envelope, services and local authority requirements.",
+      "source_ids": [
+        "S-HOME",
+        "S-PROCESS",
+        "S-TERMS"
+      ],
+      "tags": [
+        "compliance",
+        "energy"
+      ],
+      "qualifiers": [],
+      "status": "verified_public"
+    },
+    {
+      "id": "F-PROCESS",
+      "text": "Begin with the site and housing need, choose models and quantities, set design directions, review scope and readiness, then authorize the next project stage. Site-specific professional work and approvals precede the relevant manufacturing and construction commitments.",
+      "source_ids": [
+        "S-PROCESS"
+      ],
+      "tags": [
+        "process"
+      ],
+      "qualifiers": [],
+      "status": "verified_public"
+    },
+    {
+      "id": "F-PARALLEL",
+      "text": "Factory preparation and site work can progress in parallel where approvals, procurement and site readiness permit. Logistics and the agreed supply package are coordinated with Canadian assembly teams.",
+      "source_ids": [
+        "S-PROCESS"
+      ],
+      "tags": [
+        "manufacturing",
+        "timing"
+      ],
+      "qualifiers": [],
+      "status": "verified_public"
+    },
+    {
+      "id": "F-BUILDER",
+      "text": "House Delivery welcomes discussion with your existing builder. The general contractor remains responsible for local site execution, trades and construction management under the agreed scope.",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-PROCESS"
+      ],
+      "tags": [
+        "builder",
+        "assembly"
+      ],
+      "qualifiers": [],
+      "status": "verified_public"
+    },
+    {
+      "id": "F-TIMING",
+      "text": "Timing depends on the agreed design, approvals, site readiness, procurement, delivery and Canadian construction plan.",
+      "source_ids": [
+        "S-HOME",
+        "S-PROCESS"
+      ],
+      "tags": [
+        "timing"
+      ],
+      "qualifiers": [
+        "No universal production, shipping, assembly or move-in duration is verified."
+      ],
+      "status": "verified_public"
+    },
+    {
+      "id": "F-PROPERTY",
+      "text": "The free preliminary property review uses available government property information and can require manual review. It is not a survey, formal zoning determination, engineering assessment or guarantee of approval.",
+      "source_ids": [
+        "S-LANEWAY"
+      ],
+      "tags": [
+        "property",
+        "approvals"
+      ],
+      "qualifiers": [],
+      "status": "verified_public"
+    },
+    {
+      "id": "F-START",
+      "text": "You do not need completed architectural plans to start a conversation: a property, idea or preferred model is enough. The sales team reviews the project and follows up personally; an inquiry creates no purchase commitment.",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-LANEWAY"
+      ],
+      "tags": [
+        "next_steps"
+      ],
+      "qualifiers": [],
+      "status": "verified_public"
+    },
+    {
+      "id": "F-CMHC",
+      "text": "CMHC catalogue designs are pre-reviewed reference designs. They are not automatically approved construction documents, certified House Delivery manufacturing drawings or permission to build on a particular property. Qualified Canadian professionals and the relevant authorities must review and approve the site-specific project.",
+      "source_ids": [
+        "S-TERMS",
+        "S-CMHC-OFFICIAL"
+      ],
+      "tags": [
+        "cmhc",
+        "approvals"
+      ],
+      "qualifiers": [],
+      "status": "verified_public"
+    },
+    {
+      "id": "F-CMHC-INDEPENDENT",
+      "text": "House Delivery is independent of CMHC. Featuring CMHC designs does not imply CMHC endorsement, sponsorship or certification of House Delivery; CMHC official catalogue terms govern use.",
+      "source_ids": [
+        "S-TERMS",
+        "S-CMHC-OFFICIAL"
+      ],
+      "tags": [
+        "cmhc"
+      ],
+      "qualifiers": [],
+      "status": "verified_public"
+    },
+    {
+      "id": "F-NATIONS",
+      "text": "Community housing planning starts with the Nation’s land, housing needs, timing and people. Cultural expression, privacy, gathering, multigenerational living and local design priorities are developed with the community and its chosen local partners.",
+      "source_ids": [
+        "S-NATIONS"
+      ],
+      "tags": [
+        "indigenous",
+        "community"
+      ],
+      "qualifiers": [],
+      "status": "verified_public"
+    },
+    {
+      "id": "F-PARTICIPATION",
+      "text": "Where appropriate, community projects can include local participation and assembly training, with the community and delivery team agreeing roles and resources.",
+      "source_ids": [
+        "S-NATIONS"
+      ],
+      "tags": [
+        "indigenous",
+        "workforce"
+      ],
+      "qualifiers": [
+        "No specific job count, training ratio, wage or funding commitment is verified."
+      ],
+      "status": "verified_public"
+    },
+    {
+      "id": "F-PORTFOLIO",
+      "text": "The planning process organizes multiple home types, quantities and phases. Public model pages invite programs of 20, 50, 100 or more homes.",
+      "source_ids": [
+        "S-PROCESS",
+        "S-M-LANGLEY"
+      ],
+      "tags": [
+        "developers",
+        "scale"
+      ],
+      "qualifiers": [
+        "Planning scale is not a guaranteed production allocation, contract or delivery commitment."
+      ],
+      "status": "verified_public"
+    },
+    {
+      "id": "F-FUNDING",
+      "text": "The First Nations planner helps organize housing needs, project readiness and funding context.",
+      "source_ids": [
+        "S-FNPLANNER"
+      ],
+      "tags": [
+        "funding"
+      ],
+      "qualifiers": [
+        "It is preliminary planning, not a quotation, eligibility decision or funding approval. Current program advice requires a current official source."
+      ],
+      "status": "verified_public"
+    },
+    {
+      "id": "F-WARRANTY",
+      "text": "Warranty coverage follows the actual selected components and construction scope. House Delivery helps identify applicable documentation and coordinate the next step, while local construction responsibilities remain with the responsible contractors under the project agreement and applicable requirements.",
+      "source_ids": [
+        "S-WARRANTY"
+      ],
+      "tags": [
+        "warranty"
+      ],
+      "qualifiers": [],
+      "status": "verified_public"
+    },
+    {
+      "id": "F-IMAGES",
+      "text": "The campaign pages identify images as design references and say renderings do not depict completed Canadian projects. Do not present gallery imagery as evidence of a completed home, show home or Canadian development.",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-LANEWAY"
+      ],
+      "tags": [
+        "evidence",
+        "images"
+      ],
+      "qualifiers": [],
+      "status": "verified_public"
+    },
+    {
+      "id": "F-CONTACT",
+      "text": "For project follow-up use the existing custom-home inquiry, preliminary laneway property check, or housing-project planning path. The published sales email is sales@housedelivery.ca; general questions can use hello@housedelivery.ca.",
+      "source_ids": [
+        "S-CUSTOM",
+        "S-LANEWAY",
+        "S-WARRANTY"
+      ],
+      "tags": [
+        "handoff"
+      ],
+      "qualifiers": [],
+      "status": "verified_public"
+    },
+    {
+      "id": "F-PRIVACY",
+      "text": "Project inquiry information is used to respond to the request. Submitting an inquiry does not subscribe the visitor to marketing.",
+      "source_ids": [
+        "S-PRIVACY",
+        "S-CUSTOM"
+      ],
+      "tags": [
+        "privacy"
+      ],
+      "qualifiers": [
+        "The reviewed public notice does not establish complete AI-specific processing or retention terms. Do not invent a retention or privacy promise."
+      ],
+      "status": "verified_public"
+    },
+    {
+      "id": "F-CATALOG-UNIT-MIX",
+      "text": "The BC Fourplex 1 drawing schedule has two one-bedroom/one-bathroom reference units marked adaptable and two three-bedroom/two-bathroom units. Sixplex Courtyard has two one-bedroom/one-bathroom adaptable reference units, two three-bedroom/two-bathroom units and two two-bedroom/one-bathroom units.",
+      "source_ids": [
+        "S-D-BC-FOURPLEX-1",
+        "S-D-SIXPLEX-COURTYARD"
+      ],
+      "tags": [
+        "models",
+        "bedrooms",
+        "unit_mix"
+      ],
+      "qualifiers": [
+        "Reference design only; adaptable does not mean a delivered project is fully accessible."
+      ],
+      "status": "verified_public"
+    },
+    {
+      "id": "F-CATALOG-CONFLICTS",
+      "text": "The BC Duplex webpage says two storeys while its linked drawing schedule shows three. The Sixplex Courtyard page gives 6,216 total square feet while its drawing matrix gives 573.9 m², approximately 6,177 square feet.",
+      "source_ids": [
+        "S-M-BC-DUPLEX",
+        "S-D-BC-DUPLEX",
+        "S-M-SIXPLEX-COURTYARD",
+        "S-D-SIXPLEX-COURTYARD"
+      ],
+      "tags": [
+        "conflicts",
+        "models"
+      ],
+      "qualifiers": [
+        "Exclude BC Duplex from confirmed two-storey matches. Exclude Sixplex Courtyard from numeric area ranking and price calculations until its area basis is resolved. These restrictions do not prevent factual unit-mix discussions."
+      ],
+      "status": "verified_conflict"
+    }
+  ],
+  "models": [
+    {
+      "id": "home-langley",
+      "name": "The Langley House",
+      "slug": "langley",
+      "family": "architectural",
+      "url": "https://www.housedelivery.ca/homes/langley",
+      "source_ids": [
+        "S-M-LANGLEY"
+      ],
+      "area_sqft": 6810,
+      "area_sqm_published": null,
+      "area_basis": "published_model_area_conditioned_basis_not_confirmed",
+      "area_conversion": null,
+      "units": 1,
+      "bedrooms": 5,
+      "bedrooms_basis": "single_home",
+      "bathrooms": null,
+      "bathrooms_basis": "per_home",
+      "storeys": 2,
+      "features": [
+        "Double-height entry",
+        "Open kitchen and family zone",
+        "Five-bedroom private wing",
+        "Covered terrace"
+      ],
+      "footprint": "124 × 63 ft",
+      "floor_plan_url": "https://www.housedelivery.ca/homes/langley",
+      "floor_plan_status": "reference_design_not_site_approved",
+      "price_rule": "PR-QUOTE",
+      "uncertainties": [
+        "Bathroom count is published as on request; do not infer it from images."
+      ],
+      "field_sources": {
+        "bedrooms": [
+          "S-M-LANGLEY"
+        ],
+        "bathrooms": [
+          "S-M-LANGLEY"
+        ],
+        "features": [
+          "S-M-LANGLEY"
+        ],
+        "footprint": [
+          "S-M-LANGLEY"
+        ],
+        "area_sqft": [
+          "S-M-LANGLEY"
+        ],
+        "storeys": [
+          "S-M-LANGLEY"
+        ],
+        "units": [
+          "S-M-LANGLEY"
+        ],
+        "published_system": [
+          "S-M-LANGLEY"
+        ]
+      },
+      "numeric_area_matching_allowed": true,
+      "field_status": {
+        "area_sqft": "published",
+        "bedrooms": "published",
+        "bathrooms": "unknown",
+        "storeys": "published",
+        "footprint": "published",
+        "published_system": "published_description"
+      },
+      "published_system": "Precision light steel frame",
+      "system_qualification": "Public design description; final system, engineering and specification are project-specific."
+    },
+    {
+      "id": "home-salt-spring",
+      "name": "The Salt Spring Duplex",
+      "slug": "salt-spring",
+      "family": "architectural",
+      "url": "https://www.housedelivery.ca/homes/salt-spring",
+      "source_ids": [
+        "S-M-SALT-SPRING"
+      ],
+      "area_sqft": 6073,
+      "area_sqm_published": null,
+      "area_basis": "combined_two_residences",
+      "area_conversion": null,
+      "units": 2,
+      "bedrooms": 8,
+      "bedrooms_basis": "combined_building",
+      "bathrooms": 8,
+      "bathrooms_basis": "combined_building",
+      "storeys": 2,
+      "features": [
+        "Two independent residences in one architectural form",
+        "Independent interior selections with shared exterior and glazing"
+      ],
+      "footprint": "27.18 × 13.52 m",
+      "floor_plan_url": "https://www.housedelivery.ca/homes/salt-spring#plans",
+      "floor_plan_status": "reference_design_not_site_approved",
+      "price_rule": "PR-SALT-DISPLAY",
+      "uncertainties": [
+        "No verified separate area or room allocation for Residence A and B; do not halve combined totals."
+      ],
+      "field_sources": {
+        "bedrooms": [
+          "S-M-SALT-SPRING"
+        ],
+        "bathrooms": [
+          "S-M-SALT-SPRING"
+        ],
+        "features": [
+          "S-M-SALT-SPRING"
+        ],
+        "footprint": [
+          "S-M-SALT-SPRING"
+        ],
+        "area_sqft": [
+          "S-M-SALT-SPRING"
+        ],
+        "storeys": [
+          "S-M-SALT-SPRING"
+        ],
+        "units": [
+          "S-M-SALT-SPRING"
+        ],
+        "published_system": [
+          "S-M-SALT-SPRING"
+        ]
+      },
+      "numeric_area_matching_allowed": true,
+      "field_status": {
+        "area_sqft": "published",
+        "bedrooms": "published",
+        "bathrooms": "published",
+        "storeys": "published",
+        "footprint": "published",
+        "published_system": "published_description"
+      },
+      "published_system": "Project-specific",
+      "system_qualification": "Public design description; final system, engineering and specification are project-specific."
+    },
+    {
+      "id": "home-solace",
+      "name": "Solace",
+      "slug": "solace",
+      "family": "architectural",
+      "url": "https://www.housedelivery.ca/homes/solace",
+      "source_ids": [
+        "S-M-SOLACE"
+      ],
+      "area_sqft": 5405,
+      "area_sqm_published": null,
+      "area_basis": "published_model_area_conditioned_basis_not_confirmed",
+      "area_conversion": null,
+      "units": 1,
+      "bedrooms": 5,
+      "bedrooms_basis": "single_home",
+      "bathrooms": 6.0,
+      "bathrooms_basis": "per_home",
+      "storeys": 2,
+      "features": [
+        "Three living rooms",
+        "Five bedrooms",
+        "Six bathrooms"
+      ],
+      "footprint": "80.1 × 43.3 ft",
+      "floor_plan_url": "https://www.housedelivery.ca/homes/solace",
+      "floor_plan_status": "reference_design_not_site_approved",
+      "price_rule": "PR-QUOTE",
+      "uncertainties": [],
+      "field_sources": {
+        "bedrooms": [
+          "S-M-SOLACE"
+        ],
+        "bathrooms": [
+          "S-M-SOLACE"
+        ],
+        "features": [
+          "S-M-SOLACE"
+        ],
+        "footprint": [
+          "S-M-SOLACE"
+        ],
+        "area_sqft": [
+          "S-M-SOLACE"
+        ],
+        "storeys": [
+          "S-M-SOLACE"
+        ],
+        "units": [
+          "S-M-SOLACE"
+        ],
+        "published_system": [
+          "S-M-SOLACE"
+        ]
+      },
+      "numeric_area_matching_allowed": true,
+      "field_status": {
+        "area_sqft": "published",
+        "bedrooms": "published",
+        "bathrooms": "published",
+        "storeys": "published",
+        "footprint": "published",
+        "published_system": "published_description"
+      },
+      "published_system": "Precision light steel frame",
+      "system_qualification": "Public design description; final system, engineering and specification are project-specific."
+    },
+    {
+      "id": "home-timberline",
+      "name": "The Timberline",
+      "slug": "timberline",
+      "family": "architectural",
+      "url": "https://www.housedelivery.ca/homes/timberline",
+      "source_ids": [
+        "S-M-TIMBERLINE"
+      ],
+      "area_sqft": 4524,
+      "area_sqm_published": null,
+      "area_basis": "published_model_area_conditioned_basis_not_confirmed",
+      "area_conversion": null,
+      "units": 1,
+      "bedrooms": 4,
+      "bedrooms_basis": "single_home",
+      "bathrooms": 2.0,
+      "bathrooms_basis": "per_home",
+      "storeys": 2,
+      "features": [
+        "Four living areas",
+        "Four bedrooms",
+        "Two-car garage"
+      ],
+      "footprint": "59.8 × 45.2 ft",
+      "floor_plan_url": "https://www.housedelivery.ca/homes/timberline#plans",
+      "floor_plan_status": "reference_design_not_site_approved",
+      "price_rule": "PR-QUOTE",
+      "uncertainties": [],
+      "field_sources": {
+        "bedrooms": [
+          "S-M-TIMBERLINE"
+        ],
+        "bathrooms": [
+          "S-M-TIMBERLINE"
+        ],
+        "features": [
+          "S-M-TIMBERLINE"
+        ],
+        "footprint": [
+          "S-M-TIMBERLINE"
+        ],
+        "area_sqft": [
+          "S-M-TIMBERLINE"
+        ],
+        "storeys": [
+          "S-M-TIMBERLINE"
+        ],
+        "units": [
+          "S-M-TIMBERLINE"
+        ],
+        "published_system": [
+          "S-M-TIMBERLINE"
+        ]
+      },
+      "numeric_area_matching_allowed": true,
+      "field_status": {
+        "area_sqft": "published",
+        "bedrooms": "published",
+        "bathrooms": "published",
+        "storeys": "published",
+        "footprint": "published",
+        "published_system": "published_description"
+      },
+      "published_system": "Precision light steel frame",
+      "system_qualification": "Public design description; final system, engineering and specification are project-specific."
+    },
+    {
+      "id": "home-profile",
+      "name": "The Profile",
+      "slug": "profile",
+      "family": "architectural",
+      "url": "https://www.housedelivery.ca/homes/profile",
+      "source_ids": [
+        "S-M-PROFILE"
+      ],
+      "area_sqft": 4151,
+      "area_sqm_published": null,
+      "area_basis": "published_model_area_conditioned_basis_not_confirmed",
+      "area_conversion": null,
+      "units": 1,
+      "bedrooms": 5,
+      "bedrooms_basis": "single_home",
+      "bathrooms": 3.0,
+      "bathrooms_basis": "per_home",
+      "storeys": 2,
+      "features": [
+        "Connected ground-floor living spaces",
+        "Five upper-floor bedrooms",
+        "Two-car garage"
+      ],
+      "footprint": "Site-adapted",
+      "floor_plan_url": "https://www.housedelivery.ca/homes/profile",
+      "floor_plan_status": "reference_design_not_site_approved",
+      "price_rule": "PR-QUOTE",
+      "uncertainties": [],
+      "field_sources": {
+        "bedrooms": [
+          "S-M-PROFILE"
+        ],
+        "bathrooms": [
+          "S-M-PROFILE"
+        ],
+        "features": [
+          "S-M-PROFILE"
+        ],
+        "footprint": [
+          "S-M-PROFILE"
+        ],
+        "area_sqft": [
+          "S-M-PROFILE"
+        ],
+        "storeys": [
+          "S-M-PROFILE"
+        ],
+        "units": [
+          "S-M-PROFILE"
+        ],
+        "published_system": [
+          "S-M-PROFILE"
+        ]
+      },
+      "numeric_area_matching_allowed": true,
+      "field_status": {
+        "area_sqft": "published",
+        "bedrooms": "published",
+        "bathrooms": "published",
+        "storeys": "published",
+        "footprint": "published",
+        "published_system": "published_description"
+      },
+      "published_system": "Precision light steel frame",
+      "system_qualification": "Public design description; final system, engineering and specification are project-specific."
+    },
+    {
+      "id": "home-laurentian",
+      "name": "The Laurentian",
+      "slug": "laurentian",
+      "family": "architectural",
+      "url": "https://www.housedelivery.ca/homes/laurentian",
+      "source_ids": [
+        "S-M-LAURENTIAN"
+      ],
+      "area_sqft": 4022,
+      "area_sqm_published": null,
+      "area_basis": "published_model_area_conditioned_basis_not_confirmed",
+      "area_conversion": null,
+      "units": 1,
+      "bedrooms": 4,
+      "bedrooms_basis": "single_home",
+      "bathrooms": 4.0,
+      "bathrooms_basis": "per_home",
+      "storeys": 2,
+      "features": [
+        "Main-level suite and study",
+        "Three upper bedrooms and family lounge",
+        "Two-car garage"
+      ],
+      "footprint": "Site-adapted",
+      "floor_plan_url": "https://www.housedelivery.ca/homes/laurentian#plans",
+      "floor_plan_status": "reference_design_not_site_approved",
+      "price_rule": "PR-QUOTE",
+      "uncertainties": [],
+      "field_sources": {
+        "bedrooms": [
+          "S-M-LAURENTIAN"
+        ],
+        "bathrooms": [
+          "S-M-LAURENTIAN"
+        ],
+        "features": [
+          "S-M-LAURENTIAN"
+        ],
+        "footprint": [
+          "S-M-LAURENTIAN"
+        ],
+        "area_sqft": [
+          "S-M-LAURENTIAN"
+        ],
+        "storeys": [
+          "S-M-LAURENTIAN"
+        ],
+        "units": [
+          "S-M-LAURENTIAN"
+        ],
+        "published_system": [
+          "S-M-LAURENTIAN"
+        ]
+      },
+      "numeric_area_matching_allowed": true,
+      "field_status": {
+        "area_sqft": "published",
+        "bedrooms": "published",
+        "bathrooms": "published",
+        "storeys": "published",
+        "footprint": "published",
+        "published_system": "published_description"
+      },
+      "published_system": "Precision light steel frame",
+      "system_qualification": "Public design description; final system, engineering and specification are project-specific."
+    },
+    {
+      "id": "home-dalton",
+      "name": "The Dalton",
+      "slug": "dalton",
+      "family": "architectural",
+      "url": "https://www.housedelivery.ca/homes/dalton",
+      "source_ids": [
+        "S-M-DALTON"
+      ],
+      "area_sqft": 3937,
+      "area_sqm_published": null,
+      "area_basis": "published_model_area_conditioned_basis_not_confirmed",
+      "area_conversion": null,
+      "units": 1,
+      "bedrooms": 5,
+      "bedrooms_basis": "single_home",
+      "bathrooms": 3.0,
+      "bathrooms_basis": "per_home",
+      "storeys": 2,
+      "features": [
+        "Five upper-floor bedrooms",
+        "Connected living spaces and alfresco terrace",
+        "Two-car garage"
+      ],
+      "footprint": "61 × 42 ft",
+      "floor_plan_url": "https://www.housedelivery.ca/homes/dalton#plans",
+      "floor_plan_status": "reference_design_not_site_approved",
+      "price_rule": "PR-QUOTE",
+      "uncertainties": [],
+      "field_sources": {
+        "bedrooms": [
+          "S-M-DALTON"
+        ],
+        "bathrooms": [
+          "S-M-DALTON"
+        ],
+        "features": [
+          "S-M-DALTON"
+        ],
+        "footprint": [
+          "S-M-DALTON"
+        ],
+        "area_sqft": [
+          "S-M-DALTON"
+        ],
+        "storeys": [
+          "S-M-DALTON"
+        ],
+        "units": [
+          "S-M-DALTON"
+        ],
+        "published_system": [
+          "S-M-DALTON"
+        ]
+      },
+      "numeric_area_matching_allowed": true,
+      "field_status": {
+        "area_sqft": "published",
+        "bedrooms": "published",
+        "bathrooms": "published",
+        "storeys": "published",
+        "footprint": "published",
+        "published_system": "published_description"
+      },
+      "published_system": "Precision light steel frame",
+      "system_qualification": "Public design description; final system, engineering and specification are project-specific."
+    },
+    {
+      "id": "home-south-bay",
+      "name": "The South Bay",
+      "slug": "south-bay",
+      "family": "architectural",
+      "url": "https://www.housedelivery.ca/homes/south-bay",
+      "source_ids": [
+        "S-M-SOUTH-BAY"
+      ],
+      "area_sqft": 3878,
+      "area_sqm_published": null,
+      "area_basis": "published_model_area_conditioned_basis_not_confirmed",
+      "area_conversion": null,
+      "units": 1,
+      "bedrooms": 5,
+      "bedrooms_basis": "single_home",
+      "bathrooms": 4.0,
+      "bathrooms_basis": "per_home",
+      "storeys": 2,
+      "features": [
+        "Two living rooms",
+        "Five bedrooms",
+        "Two-car garage"
+      ],
+      "footprint": "Site-adapted",
+      "floor_plan_url": "https://www.housedelivery.ca/homes/south-bay",
+      "floor_plan_status": "reference_design_not_site_approved",
+      "price_rule": "PR-QUOTE",
+      "uncertainties": [],
+      "field_sources": {
+        "bedrooms": [
+          "S-M-SOUTH-BAY"
+        ],
+        "bathrooms": [
+          "S-M-SOUTH-BAY"
+        ],
+        "features": [
+          "S-M-SOUTH-BAY"
+        ],
+        "footprint": [
+          "S-M-SOUTH-BAY"
+        ],
+        "area_sqft": [
+          "S-M-SOUTH-BAY"
+        ],
+        "storeys": [
+          "S-M-SOUTH-BAY"
+        ],
+        "units": [
+          "S-M-SOUTH-BAY"
+        ],
+        "published_system": [
+          "S-M-SOUTH-BAY"
+        ]
+      },
+      "numeric_area_matching_allowed": true,
+      "field_status": {
+        "area_sqft": "published",
+        "bedrooms": "published",
+        "bathrooms": "published",
+        "storeys": "published",
+        "footprint": "published",
+        "published_system": "published_description"
+      },
+      "published_system": "Precision light steel frame",
+      "system_qualification": "Public design description; final system, engineering and specification are project-specific."
+    },
+    {
+      "id": "home-boreal",
+      "name": "The Boreal",
+      "slug": "boreal",
+      "family": "architectural",
+      "url": "https://www.housedelivery.ca/homes/boreal",
+      "source_ids": [
+        "S-M-BOREAL"
+      ],
+      "area_sqft": 3788,
+      "area_sqm_published": null,
+      "area_basis": "published_model_area_conditioned_basis_not_confirmed",
+      "area_conversion": null,
+      "units": 1,
+      "bedrooms": 4,
+      "bedrooms_basis": "single_home",
+      "bathrooms": 4.0,
+      "bathrooms_basis": "per_home",
+      "storeys": 2,
+      "features": [
+        "Four bedrooms and four bathrooms",
+        "Two-car garage"
+      ],
+      "footprint": "Site-adapted",
+      "floor_plan_url": "https://www.housedelivery.ca/homes/boreal#plans",
+      "floor_plan_status": "reference_design_not_site_approved",
+      "price_rule": "PR-QUOTE",
+      "uncertainties": [],
+      "field_sources": {
+        "bedrooms": [
+          "S-M-BOREAL"
+        ],
+        "bathrooms": [
+          "S-M-BOREAL"
+        ],
+        "features": [
+          "S-M-BOREAL"
+        ],
+        "footprint": [
+          "S-M-BOREAL"
+        ],
+        "area_sqft": [
+          "S-M-BOREAL"
+        ],
+        "storeys": [
+          "S-M-BOREAL"
+        ],
+        "units": [
+          "S-M-BOREAL"
+        ],
+        "published_system": [
+          "S-M-BOREAL"
+        ]
+      },
+      "numeric_area_matching_allowed": true,
+      "field_status": {
+        "area_sqft": "published",
+        "bedrooms": "published",
+        "bathrooms": "published",
+        "storeys": "published",
+        "footprint": "published",
+        "published_system": "published_description"
+      },
+      "published_system": "Precision light steel frame",
+      "system_qualification": "Public design description; final system, engineering and specification are project-specific."
+    },
+    {
+      "id": "home-keats",
+      "name": "Keats House",
+      "slug": "keats",
+      "family": "architectural",
+      "url": "https://www.housedelivery.ca/homes/keats",
+      "source_ids": [
+        "S-M-KEATS"
+      ],
+      "area_sqft": 3713,
+      "area_sqm_published": null,
+      "area_basis": "published_model_area_conditioned_basis_not_confirmed",
+      "area_conversion": null,
+      "units": 1,
+      "bedrooms": 4,
+      "bedrooms_basis": "single_home",
+      "bathrooms": 3.0,
+      "bathrooms_basis": "per_home",
+      "storeys": 2,
+      "features": [
+        "Four bedrooms and three bathrooms",
+        "Two-car garage"
+      ],
+      "footprint": "13.59 × 21.19 m",
+      "floor_plan_url": "https://www.housedelivery.ca/homes/keats#plans",
+      "floor_plan_status": "reference_design_not_site_approved",
+      "price_rule": "PR-QUOTE",
+      "uncertainties": [],
+      "field_sources": {
+        "bedrooms": [
+          "S-M-KEATS"
+        ],
+        "bathrooms": [
+          "S-M-KEATS"
+        ],
+        "features": [
+          "S-M-KEATS"
+        ],
+        "footprint": [
+          "S-M-KEATS"
+        ],
+        "area_sqft": [
+          "S-M-KEATS"
+        ],
+        "storeys": [
+          "S-M-KEATS"
+        ],
+        "units": [
+          "S-M-KEATS"
+        ],
+        "published_system": [
+          "S-M-KEATS"
+        ]
+      },
+      "numeric_area_matching_allowed": true,
+      "field_status": {
+        "area_sqft": "published",
+        "bedrooms": "published",
+        "bathrooms": "published",
+        "storeys": "published",
+        "footprint": "published",
+        "published_system": "published_description"
+      },
+      "published_system": "Project-specific",
+      "system_qualification": "Public design description; final system, engineering and specification are project-specific."
+    },
+    {
+      "id": "home-canmore",
+      "name": "Canmore",
+      "slug": "canmore",
+      "family": "architectural",
+      "url": "https://www.housedelivery.ca/homes/canmore",
+      "source_ids": [
+        "S-M-CANMORE"
+      ],
+      "area_sqft": 3516,
+      "area_sqm_published": null,
+      "area_basis": "published_model_area_conditioned_basis_not_confirmed",
+      "area_conversion": null,
+      "units": 1,
+      "bedrooms": 4,
+      "bedrooms_basis": "single_home",
+      "bathrooms": 3.0,
+      "bathrooms_basis": "per_home",
+      "storeys": 2,
+      "features": [
+        "Main-level bedroom and study",
+        "Three upper bedrooms",
+        "Two-car garage"
+      ],
+      "footprint": "59 × 59 ft",
+      "floor_plan_url": "https://www.housedelivery.ca/homes/canmore#plans",
+      "floor_plan_status": "reference_design_not_site_approved",
+      "price_rule": "PR-QUOTE",
+      "uncertainties": [],
+      "field_sources": {
+        "bedrooms": [
+          "S-M-CANMORE"
+        ],
+        "bathrooms": [
+          "S-M-CANMORE"
+        ],
+        "features": [
+          "S-M-CANMORE"
+        ],
+        "footprint": [
+          "S-M-CANMORE"
+        ],
+        "area_sqft": [
+          "S-M-CANMORE"
+        ],
+        "storeys": [
+          "S-M-CANMORE"
+        ],
+        "units": [
+          "S-M-CANMORE"
+        ],
+        "published_system": [
+          "S-M-CANMORE"
+        ]
+      },
+      "numeric_area_matching_allowed": true,
+      "field_status": {
+        "area_sqft": "published",
+        "bedrooms": "published",
+        "bathrooms": "published",
+        "storeys": "published",
+        "footprint": "published",
+        "published_system": "published_description"
+      },
+      "published_system": "Precision light steel frame",
+      "system_qualification": "Public design description; final system, engineering and specification are project-specific."
+    },
+    {
+      "id": "home-saturna",
+      "name": "The Saturna",
+      "slug": "saturna",
+      "family": "architectural",
+      "url": "https://www.housedelivery.ca/homes/saturna",
+      "source_ids": [
+        "S-M-SATURNA"
+      ],
+      "area_sqft": 3469,
+      "area_sqm_published": null,
+      "area_basis": "published_model_area_conditioned_basis_not_confirmed",
+      "area_conversion": null,
+      "units": 1,
+      "bedrooms": 5,
+      "bedrooms_basis": "single_home",
+      "bathrooms": 3.0,
+      "bathrooms_basis": "per_home",
+      "storeys": 2,
+      "features": [
+        "Private guest suite",
+        "Upper primary wing",
+        "Two-car garage"
+      ],
+      "footprint": "Site-adapted",
+      "floor_plan_url": "https://www.housedelivery.ca/homes/saturna#plans",
+      "floor_plan_status": "reference_design_not_site_approved",
+      "price_rule": "PR-QUOTE",
+      "uncertainties": [],
+      "field_sources": {
+        "bedrooms": [
+          "S-M-SATURNA"
+        ],
+        "bathrooms": [
+          "S-M-SATURNA"
+        ],
+        "features": [
+          "S-M-SATURNA"
+        ],
+        "footprint": [
+          "S-M-SATURNA"
+        ],
+        "area_sqft": [
+          "S-M-SATURNA"
+        ],
+        "storeys": [
+          "S-M-SATURNA"
+        ],
+        "units": [
+          "S-M-SATURNA"
+        ],
+        "published_system": [
+          "S-M-SATURNA"
+        ]
+      },
+      "numeric_area_matching_allowed": true,
+      "field_status": {
+        "area_sqft": "published",
+        "bedrooms": "published",
+        "bathrooms": "published",
+        "storeys": "published",
+        "footprint": "published",
+        "published_system": "published_description"
+      },
+      "published_system": "Precision light steel frame",
+      "system_qualification": "Public design description; final system, engineering and specification are project-specific."
+    },
+    {
+      "id": "home-cascade",
+      "name": "The Cascade",
+      "slug": "cascade",
+      "family": "architectural",
+      "url": "https://www.housedelivery.ca/homes/cascade",
+      "source_ids": [
+        "S-M-CASCADE"
+      ],
+      "area_sqft": 3466,
+      "area_sqm_published": null,
+      "area_basis": "published_model_area_conditioned_basis_not_confirmed",
+      "area_conversion": null,
+      "units": 1,
+      "bedrooms": 4,
+      "bedrooms_basis": "single_home",
+      "bathrooms": 3.0,
+      "bathrooms_basis": "per_home",
+      "storeys": 2,
+      "features": [
+        "Four bedrooms",
+        "Published 311 sq. ft. deck",
+        "Two-car garage"
+      ],
+      "footprint": "50 × 40 ft",
+      "floor_plan_url": "https://www.housedelivery.ca/homes/cascade",
+      "floor_plan_status": "reference_design_not_site_approved",
+      "price_rule": "PR-QUOTE",
+      "uncertainties": [],
+      "field_sources": {
+        "bedrooms": [
+          "S-M-CASCADE"
+        ],
+        "bathrooms": [
+          "S-M-CASCADE"
+        ],
+        "features": [
+          "S-M-CASCADE"
+        ],
+        "footprint": [
+          "S-M-CASCADE"
+        ],
+        "area_sqft": [
+          "S-M-CASCADE"
+        ],
+        "storeys": [
+          "S-M-CASCADE"
+        ],
+        "units": [
+          "S-M-CASCADE"
+        ],
+        "published_system": [
+          "S-M-CASCADE"
+        ]
+      },
+      "numeric_area_matching_allowed": true,
+      "field_status": {
+        "area_sqft": "published",
+        "bedrooms": "published",
+        "bathrooms": "published",
+        "storeys": "published",
+        "footprint": "published",
+        "published_system": "published_description"
+      },
+      "published_system": "Precision light steel frame",
+      "system_qualification": "Public design description; final system, engineering and specification are project-specific."
+    },
+    {
+      "id": "home-maplewood",
+      "name": "The Maplewood",
+      "slug": "maplewood",
+      "family": "architectural",
+      "url": "https://www.housedelivery.ca/homes/maplewood",
+      "source_ids": [
+        "S-M-MAPLEWOOD"
+      ],
+      "area_sqft": 3422,
+      "area_sqm_published": null,
+      "area_basis": "published_model_area_conditioned_basis_not_confirmed",
+      "area_conversion": null,
+      "units": 1,
+      "bedrooms": 5,
+      "bedrooms_basis": "single_home",
+      "bathrooms": 4.0,
+      "bathrooms_basis": "per_home",
+      "storeys": 2,
+      "features": [
+        "Ground-floor guest room",
+        "Five bedrooms",
+        "Two-car garage"
+      ],
+      "footprint": "62.7 × 33.4 ft",
+      "floor_plan_url": "https://www.housedelivery.ca/homes/maplewood#plans",
+      "floor_plan_status": "reference_design_not_site_approved",
+      "price_rule": "PR-QUOTE",
+      "uncertainties": [],
+      "field_sources": {
+        "bedrooms": [
+          "S-M-MAPLEWOOD"
+        ],
+        "bathrooms": [
+          "S-M-MAPLEWOOD"
+        ],
+        "features": [
+          "S-M-MAPLEWOOD"
+        ],
+        "footprint": [
+          "S-M-MAPLEWOOD"
+        ],
+        "area_sqft": [
+          "S-M-MAPLEWOOD"
+        ],
+        "storeys": [
+          "S-M-MAPLEWOOD"
+        ],
+        "units": [
+          "S-M-MAPLEWOOD"
+        ],
+        "published_system": [
+          "S-M-MAPLEWOOD"
+        ]
+      },
+      "numeric_area_matching_allowed": true,
+      "field_status": {
+        "area_sqft": "published",
+        "bedrooms": "published",
+        "bathrooms": "published",
+        "storeys": "published",
+        "footprint": "published",
+        "published_system": "published_description"
+      },
+      "published_system": "Precision light steel frame",
+      "system_qualification": "Public design description; final system, engineering and specification are project-specific."
+    },
+    {
+      "id": "home-cedarview",
+      "name": "The Cedarview",
+      "slug": "cedarview",
+      "family": "architectural",
+      "url": "https://www.housedelivery.ca/homes/cedarview",
+      "source_ids": [
+        "S-M-CEDARVIEW"
+      ],
+      "area_sqft": 3337,
+      "area_sqm_published": null,
+      "area_basis": "published_model_area_conditioned_basis_not_confirmed",
+      "area_conversion": null,
+      "units": 1,
+      "bedrooms": 4,
+      "bedrooms_basis": "single_home",
+      "bathrooms": 3.0,
+      "bathrooms_basis": "per_home",
+      "storeys": 2,
+      "features": [
+        "Two living areas",
+        "Four bedrooms and three bathrooms",
+        "Two-car garage"
+      ],
+      "footprint": "56.4 × 43.6 ft",
+      "floor_plan_url": "https://www.housedelivery.ca/homes/cedarview",
+      "floor_plan_status": "reference_design_not_site_approved",
+      "price_rule": "PR-QUOTE",
+      "uncertainties": [],
+      "field_sources": {
+        "bedrooms": [
+          "S-M-CEDARVIEW"
+        ],
+        "bathrooms": [
+          "S-M-CEDARVIEW"
+        ],
+        "features": [
+          "S-M-CEDARVIEW"
+        ],
+        "footprint": [
+          "S-M-CEDARVIEW"
+        ],
+        "area_sqft": [
+          "S-M-CEDARVIEW"
+        ],
+        "storeys": [
+          "S-M-CEDARVIEW"
+        ],
+        "units": [
+          "S-M-CEDARVIEW"
+        ],
+        "published_system": [
+          "S-M-CEDARVIEW"
+        ]
+      },
+      "numeric_area_matching_allowed": true,
+      "field_status": {
+        "area_sqft": "published",
+        "bedrooms": "published",
+        "bathrooms": "published",
+        "storeys": "published",
+        "footprint": "published",
+        "published_system": "published_description"
+      },
+      "published_system": "Cold-formed light steel frame",
+      "system_qualification": "Public design description; final system, engineering and specification are project-specific."
+    },
+    {
+      "id": "home-mayne",
+      "name": "Mayne House",
+      "slug": "mayne",
+      "family": "architectural",
+      "url": "https://www.housedelivery.ca/homes/mayne",
+      "source_ids": [
+        "S-M-MAYNE"
+      ],
+      "area_sqft": 3116,
+      "area_sqm_published": null,
+      "area_basis": "published_model_area_conditioned_basis_not_confirmed",
+      "area_conversion": null,
+      "units": 1,
+      "bedrooms": 4,
+      "bedrooms_basis": "single_home",
+      "bathrooms": 4.0,
+      "bathrooms_basis": "per_home",
+      "storeys": 2,
+      "features": [
+        "Four bedrooms and four bathrooms",
+        "No garage in the published configuration"
+      ],
+      "footprint": "17.81 × 16.42 m",
+      "floor_plan_url": "https://www.housedelivery.ca/homes/mayne",
+      "floor_plan_status": "reference_design_not_site_approved",
+      "price_rule": "PR-QUOTE",
+      "uncertainties": [],
+      "field_sources": {
+        "bedrooms": [
+          "S-M-MAYNE"
+        ],
+        "bathrooms": [
+          "S-M-MAYNE"
+        ],
+        "features": [
+          "S-M-MAYNE"
+        ],
+        "footprint": [
+          "S-M-MAYNE"
+        ],
+        "area_sqft": [
+          "S-M-MAYNE"
+        ],
+        "storeys": [
+          "S-M-MAYNE"
+        ],
+        "units": [
+          "S-M-MAYNE"
+        ],
+        "published_system": [
+          "S-M-MAYNE"
+        ]
+      },
+      "numeric_area_matching_allowed": true,
+      "field_status": {
+        "area_sqft": "published",
+        "bedrooms": "published",
+        "bathrooms": "published",
+        "storeys": "published",
+        "footprint": "published",
+        "published_system": "published_description"
+      },
+      "published_system": "Project-specific",
+      "system_qualification": "Public design description; final system, engineering and specification are project-specific."
+    },
+    {
+      "id": "home-summit",
+      "name": "The Summit",
+      "slug": "summit",
+      "family": "architectural",
+      "url": "https://www.housedelivery.ca/homes/summit",
+      "source_ids": [
+        "S-M-SUMMIT"
+      ],
+      "area_sqft": 2670,
+      "area_sqm_published": null,
+      "area_basis": "published_model_area_conditioned_basis_not_confirmed",
+      "area_conversion": null,
+      "units": 1,
+      "bedrooms": 4,
+      "bedrooms_basis": "single_home",
+      "bathrooms": 4.0,
+      "bathrooms_basis": "per_home",
+      "storeys": 2,
+      "features": [
+        "Four bedrooms and four bathrooms",
+        "Two-car garage"
+      ],
+      "footprint": "55.4 × 35.1 ft",
+      "floor_plan_url": "https://www.housedelivery.ca/homes/summit#plans",
+      "floor_plan_status": "reference_design_not_site_approved",
+      "price_rule": "PR-QUOTE",
+      "uncertainties": [],
+      "field_sources": {
+        "bedrooms": [
+          "S-M-SUMMIT"
+        ],
+        "bathrooms": [
+          "S-M-SUMMIT"
+        ],
+        "features": [
+          "S-M-SUMMIT"
+        ],
+        "footprint": [
+          "S-M-SUMMIT"
+        ],
+        "area_sqft": [
+          "S-M-SUMMIT"
+        ],
+        "storeys": [
+          "S-M-SUMMIT"
+        ],
+        "units": [
+          "S-M-SUMMIT"
+        ],
+        "published_system": [
+          "S-M-SUMMIT"
+        ]
+      },
+      "numeric_area_matching_allowed": true,
+      "field_status": {
+        "area_sqft": "published",
+        "bedrooms": "published",
+        "bathrooms": "published",
+        "storeys": "published",
+        "footprint": "published",
+        "published_system": "published_description"
+      },
+      "published_system": "Precision light steel frame",
+      "system_qualification": "Public design description; final system, engineering and specification are project-specific."
+    },
+    {
+      "id": "home-aurora",
+      "name": "The Aurora",
+      "slug": "aurora",
+      "family": "architectural",
+      "url": "https://www.housedelivery.ca/homes/aurora",
+      "source_ids": [
+        "S-M-AURORA"
+      ],
+      "area_sqft": 2486,
+      "area_sqm_published": null,
+      "area_basis": "published_model_area_conditioned_basis_not_confirmed",
+      "area_conversion": null,
+      "units": 1,
+      "bedrooms": 4,
+      "bedrooms_basis": "single_home",
+      "bathrooms": 3.0,
+      "bathrooms_basis": "per_home",
+      "storeys": 2,
+      "features": [
+        "Main-floor suite",
+        "Three upper bedrooms"
+      ],
+      "footprint": "36.1 × 34.4 ft",
+      "floor_plan_url": "https://www.housedelivery.ca/homes/aurora#plans",
+      "floor_plan_status": "reference_design_not_site_approved",
+      "price_rule": "PR-QUOTE",
+      "uncertainties": [],
+      "field_sources": {
+        "bedrooms": [
+          "S-M-AURORA"
+        ],
+        "bathrooms": [
+          "S-M-AURORA"
+        ],
+        "features": [
+          "S-M-AURORA"
+        ],
+        "footprint": [
+          "S-M-AURORA"
+        ],
+        "area_sqft": [
+          "S-M-AURORA"
+        ],
+        "storeys": [
+          "S-M-AURORA"
+        ],
+        "units": [
+          "S-M-AURORA"
+        ],
+        "published_system": [
+          "S-M-AURORA"
+        ]
+      },
+      "numeric_area_matching_allowed": true,
+      "field_status": {
+        "area_sqft": "published",
+        "bedrooms": "published",
+        "bathrooms": "published",
+        "storeys": "published",
+        "footprint": "published",
+        "published_system": "published_description"
+      },
+      "published_system": "Precision light steel frame",
+      "system_qualification": "Public design description; final system, engineering and specification are project-specific."
+    },
+    {
+      "id": "carriage-willow-nook",
+      "name": "The Willow Nook",
+      "slug": "willow-nook",
+      "family": "laneway_carriage",
+      "url": "https://www.housedelivery.ca/homes/laneway-carriage/willow-nook",
+      "source_ids": [
+        "S-M-WILLOW-NOOK"
+      ],
+      "area_sqft": 433,
+      "area_sqm_published": 40.2,
+      "area_basis": "published_metric_home_area_basis_to_confirm",
+      "area_conversion": "Approximate square-foot conversion from published square metres; 1 ft² = 0.09290304 m².",
+      "units": 1,
+      "bedrooms": 1,
+      "bedrooms_basis": "single_home",
+      "bathrooms": 1,
+      "bathrooms_basis": "per_home",
+      "storeys": null,
+      "features": [
+        "One-bedroom compact layout",
+        "Central kitchen",
+        "Separate living area"
+      ],
+      "footprint": null,
+      "floor_plan_url": null,
+      "floor_plan_status": "reference_design_not_site_approved",
+      "price_rule": "PR-QUOTE",
+      "uncertainties": [],
+      "field_sources": {
+        "bedrooms": [
+          "S-M-WILLOW-NOOK"
+        ],
+        "bathrooms": [
+          "S-M-WILLOW-NOOK"
+        ],
+        "features": [
+          "S-M-WILLOW-NOOK"
+        ],
+        "footprint": [
+          "S-M-WILLOW-NOOK"
+        ],
+        "area_sqft": [
+          "S-M-WILLOW-NOOK"
+        ],
+        "storeys": [
+          "S-M-WILLOW-NOOK"
+        ],
+        "units": [
+          "S-M-WILLOW-NOOK"
+        ],
+        "published_system": [
+          "S-M-WILLOW-NOOK"
+        ]
+      },
+      "numeric_area_matching_allowed": true,
+      "field_status": {
+        "area_sqft": "derived_conversion",
+        "bedrooms": "published",
+        "bathrooms": "published",
+        "storeys": "unknown",
+        "footprint": "unknown",
+        "published_system": "unknown"
+      },
+      "published_system": null,
+      "system_qualification": "Public design description; final system, engineering and specification are project-specific."
+    },
+    {
+      "id": "carriage-lantern-house",
+      "name": "The Lantern House",
+      "slug": "lantern-house",
+      "family": "laneway_carriage",
+      "url": "https://www.housedelivery.ca/homes/laneway-carriage/lantern-house",
+      "source_ids": [
+        "S-M-LANTERN-HOUSE"
+      ],
+      "area_sqft": null,
+      "area_sqm_published": null,
+      "area_basis": "not_verified",
+      "area_conversion": null,
+      "units": 1,
+      "bedrooms": 2,
+      "bedrooms_basis": "single_home",
+      "bathrooms": 1,
+      "bathrooms_basis": "per_home",
+      "storeys": null,
+      "features": [
+        "Two bedrooms toward the rear",
+        "Shared living area",
+        "Central bathroom"
+      ],
+      "footprint": null,
+      "floor_plan_url": null,
+      "floor_plan_status": "reference_design_not_site_approved",
+      "price_rule": "PR-QUOTE",
+      "uncertainties": [
+        "No verified numeric floor area."
+      ],
+      "field_sources": {
+        "bedrooms": [
+          "S-M-LANTERN-HOUSE"
+        ],
+        "bathrooms": [
+          "S-M-LANTERN-HOUSE"
+        ],
+        "features": [
+          "S-M-LANTERN-HOUSE"
+        ],
+        "footprint": [
+          "S-M-LANTERN-HOUSE"
+        ],
+        "area_sqft": [
+          "S-M-LANTERN-HOUSE"
+        ],
+        "storeys": [
+          "S-M-LANTERN-HOUSE"
+        ],
+        "units": [
+          "S-M-LANTERN-HOUSE"
+        ],
+        "published_system": [
+          "S-M-LANTERN-HOUSE"
+        ]
+      },
+      "numeric_area_matching_allowed": false,
+      "field_status": {
+        "area_sqft": "unknown",
+        "bedrooms": "published",
+        "bathrooms": "published",
+        "storeys": "unknown",
+        "footprint": "unknown",
+        "published_system": "unknown"
+      },
+      "published_system": null,
+      "system_qualification": "Public design description; final system, engineering and specification are project-specific."
+    },
+    {
+      "id": "carriage-courtyard-cottage",
+      "name": "The Courtyard Cottage",
+      "slug": "courtyard-cottage",
+      "family": "laneway_carriage",
+      "url": "https://www.housedelivery.ca/homes/laneway-carriage/courtyard-cottage",
+      "source_ids": [
+        "S-M-COURTYARD-COTTAGE"
+      ],
+      "area_sqft": null,
+      "area_sqm_published": null,
+      "area_basis": "not_verified",
+      "area_conversion": null,
+      "units": 1,
+      "bedrooms": null,
+      "bedrooms_basis": "single_home",
+      "bathrooms": null,
+      "bathrooms_basis": "per_home",
+      "storeys": null,
+      "features": [
+        "Flexible room arrangement; fixed bedroom count needs confirmation"
+      ],
+      "footprint": null,
+      "floor_plan_url": null,
+      "floor_plan_status": "reference_design_not_site_approved",
+      "price_rule": "PR-QUOTE",
+      "uncertainties": [
+        "No verified numeric floor area.",
+        "No verified fixed bedroom or bathroom count."
+      ],
+      "field_sources": {
+        "bedrooms": [
+          "S-M-COURTYARD-COTTAGE"
+        ],
+        "bathrooms": [
+          "S-M-COURTYARD-COTTAGE"
+        ],
+        "features": [
+          "S-M-COURTYARD-COTTAGE"
+        ],
+        "footprint": [
+          "S-M-COURTYARD-COTTAGE"
+        ],
+        "area_sqft": [
+          "S-M-COURTYARD-COTTAGE"
+        ],
+        "storeys": [
+          "S-M-COURTYARD-COTTAGE"
+        ],
+        "units": [
+          "S-M-COURTYARD-COTTAGE"
+        ],
+        "published_system": [
+          "S-M-COURTYARD-COTTAGE"
+        ]
+      },
+      "numeric_area_matching_allowed": false,
+      "field_status": {
+        "area_sqft": "unknown",
+        "bedrooms": "unknown",
+        "bathrooms": "unknown",
+        "storeys": "unknown",
+        "footprint": "unknown",
+        "published_system": "unknown"
+      },
+      "published_system": null,
+      "system_qualification": "Public design description; final system, engineering and specification are project-specific."
+    },
+    {
+      "id": "carriage-heritage-mews",
+      "name": "The Heritage Mews",
+      "slug": "heritage-mews",
+      "family": "laneway_carriage",
+      "url": "https://www.housedelivery.ca/homes/laneway-carriage/heritage-mews",
+      "source_ids": [
+        "S-M-HERITAGE-MEWS"
+      ],
+      "area_sqft": null,
+      "area_sqm_published": null,
+      "area_basis": "not_verified",
+      "area_conversion": null,
+      "units": 1,
+      "bedrooms": 1,
+      "bedrooms_basis": "single_home",
+      "bathrooms": 1,
+      "bathrooms_basis": "per_home",
+      "storeys": null,
+      "features": [
+        "One bedroom with ensuite bathroom",
+        "Front deck"
+      ],
+      "footprint": null,
+      "floor_plan_url": null,
+      "floor_plan_status": "reference_design_not_site_approved",
+      "price_rule": "PR-QUOTE",
+      "uncertainties": [
+        "No verified numeric floor area."
+      ],
+      "field_sources": {
+        "bedrooms": [
+          "S-M-HERITAGE-MEWS"
+        ],
+        "bathrooms": [
+          "S-M-HERITAGE-MEWS"
+        ],
+        "features": [
+          "S-M-HERITAGE-MEWS"
+        ],
+        "footprint": [
+          "S-M-HERITAGE-MEWS"
+        ],
+        "area_sqft": [
+          "S-M-HERITAGE-MEWS"
+        ],
+        "storeys": [
+          "S-M-HERITAGE-MEWS"
+        ],
+        "units": [
+          "S-M-HERITAGE-MEWS"
+        ],
+        "published_system": [
+          "S-M-HERITAGE-MEWS"
+        ]
+      },
+      "numeric_area_matching_allowed": false,
+      "field_status": {
+        "area_sqft": "unknown",
+        "bedrooms": "published",
+        "bathrooms": "published",
+        "storeys": "unknown",
+        "footprint": "unknown",
+        "published_system": "unknown"
+      },
+      "published_system": null,
+      "system_qualification": "Public design description; final system, engineering and specification are project-specific."
+    },
+    {
+      "id": "carriage-limetree-house",
+      "name": "Limetree House",
+      "slug": "limetree-house",
+      "family": "laneway_carriage",
+      "url": "https://www.housedelivery.ca/homes/laneway-carriage/limetree-house",
+      "source_ids": [
+        "S-M-LIMETREE-HOUSE"
+      ],
+      "area_sqft": 647,
+      "area_sqm_published": 60.1,
+      "area_basis": "published_metric_home_area_basis_to_confirm",
+      "area_conversion": "Approximate square-foot conversion from published square metres; 1 ft² = 0.09290304 m².",
+      "units": 1,
+      "bedrooms": 2,
+      "bedrooms_basis": "single_home",
+      "bathrooms": 1,
+      "bathrooms_basis": "per_home",
+      "storeys": null,
+      "features": [
+        "Two bedrooms",
+        "Dedicated study",
+        "Distinct published model and internal areas"
+      ],
+      "footprint": null,
+      "floor_plan_url": null,
+      "floor_plan_status": "reference_design_not_site_approved",
+      "price_rule": "PR-QUOTE",
+      "uncertainties": [
+        "60.1 m² model area and 54.74 m² internal area have different bases; do not treat them as interchangeable."
+      ],
+      "internal_area_sqm_published": 54.74,
+      "internal_area_sqft_approx": 589,
+      "field_sources": {
+        "bedrooms": [
+          "S-M-LIMETREE-HOUSE"
+        ],
+        "bathrooms": [
+          "S-M-LIMETREE-HOUSE"
+        ],
+        "features": [
+          "S-M-LIMETREE-HOUSE"
+        ],
+        "footprint": [
+          "S-M-LIMETREE-HOUSE"
+        ],
+        "area_sqft": [
+          "S-M-LIMETREE-HOUSE"
+        ],
+        "storeys": [
+          "S-M-LIMETREE-HOUSE"
+        ],
+        "units": [
+          "S-M-LIMETREE-HOUSE"
+        ],
+        "published_system": [
+          "S-M-LIMETREE-HOUSE"
+        ]
+      },
+      "numeric_area_matching_allowed": true,
+      "field_status": {
+        "area_sqft": "derived_conversion",
+        "bedrooms": "published",
+        "bathrooms": "published",
+        "storeys": "unknown",
+        "footprint": "unknown",
+        "published_system": "unknown"
+      },
+      "published_system": null,
+      "system_qualification": "Public design description; final system, engineering and specification are project-specific."
+    },
+    {
+      "id": "carriage-moonlight-house",
+      "name": "Moonlight House",
+      "slug": "moonlight-house",
+      "family": "laneway_carriage",
+      "url": "https://www.housedelivery.ca/homes/laneway-carriage/moonlight-house",
+      "source_ids": [
+        "S-M-MOONLIGHT-HOUSE"
+      ],
+      "area_sqft": 616,
+      "area_sqm_published": 57.2,
+      "area_basis": "published_metric_home_area_basis_to_confirm",
+      "area_conversion": "Approximate square-foot conversion from published square metres; 1 ft² = 0.09290304 m².",
+      "units": 1,
+      "bedrooms": 2,
+      "bedrooms_basis": "single_home",
+      "bathrooms": 2,
+      "bathrooms_basis": "per_home",
+      "storeys": null,
+      "features": [
+        "Two bedrooms, each with a private bathroom",
+        "Front deck"
+      ],
+      "footprint": null,
+      "floor_plan_url": null,
+      "floor_plan_status": "reference_design_not_site_approved",
+      "price_rule": "PR-QUOTE",
+      "uncertainties": [],
+      "field_sources": {
+        "bedrooms": [
+          "S-M-MOONLIGHT-HOUSE"
+        ],
+        "bathrooms": [
+          "S-M-MOONLIGHT-HOUSE"
+        ],
+        "features": [
+          "S-M-MOONLIGHT-HOUSE"
+        ],
+        "footprint": [
+          "S-M-MOONLIGHT-HOUSE"
+        ],
+        "area_sqft": [
+          "S-M-MOONLIGHT-HOUSE"
+        ],
+        "storeys": [
+          "S-M-MOONLIGHT-HOUSE"
+        ],
+        "units": [
+          "S-M-MOONLIGHT-HOUSE"
+        ],
+        "published_system": [
+          "S-M-MOONLIGHT-HOUSE"
+        ]
+      },
+      "numeric_area_matching_allowed": true,
+      "field_status": {
+        "area_sqft": "derived_conversion",
+        "bedrooms": "published",
+        "bathrooms": "published",
+        "storeys": "unknown",
+        "footprint": "unknown",
+        "published_system": "unknown"
+      },
+      "published_system": null,
+      "system_qualification": "Public design description; final system, engineering and specification are project-specific."
+    },
+    {
+      "id": "catalog-the-micro",
+      "name": "The Micro",
+      "slug": "the-micro",
+      "family": "cmhc_catalogue",
+      "url": "https://www.housedelivery.ca/catalog/the-micro",
+      "source_ids": [
+        "S-M-THE-MICRO",
+        "S-D-THE-MICRO"
+      ],
+      "area_sqft": 540,
+      "area_sqm_published": null,
+      "area_basis": "website_labelled_total_building_area_basis_to_confirm",
+      "area_conversion": null,
+      "units": 1,
+      "bedrooms": 1,
+      "bedrooms_basis": "single_home",
+      "bathrooms": 1,
+      "bathrooms_basis": "per_home",
+      "storeys": 1,
+      "features": [
+        "Single-storey one-bedroom reference design"
+      ],
+      "footprint": null,
+      "floor_plan_url": "https://www.housedelivery.ca/pdfs/BC_ADU_01_Drawings.pdf",
+      "floor_plan_status": "reference_design_not_site_approved",
+      "price_rule": "PR-QUOTE",
+      "uncertainties": [],
+      "drawing_source_ids": [
+        "S-D-THE-MICRO"
+      ],
+      "drawing_gross_area_sqm": 50.2,
+      "drawing_gross_area_sqft_approx": 540,
+      "unit_schedule": [
+        {
+          "unit": "1",
+          "bedrooms": 1,
+          "bathrooms": 1,
+          "adaptable_reference": true,
+          "source_ids": [
+            "S-D-THE-MICRO"
+          ]
+        }
+      ],
+      "field_sources": {
+        "area_sqft": [
+          "S-M-THE-MICRO"
+        ],
+        "name": [
+          "S-M-THE-MICRO"
+        ],
+        "drawing_gross_area_sqm": [
+          "S-D-THE-MICRO"
+        ],
+        "unit_schedule": [
+          "S-D-THE-MICRO"
+        ],
+        "storeys": [
+          "S-D-THE-MICRO"
+        ],
+        "bedrooms": [
+          "S-M-THE-MICRO"
+        ],
+        "bathrooms": [
+          "S-M-THE-MICRO"
+        ],
+        "features": [
+          "S-M-THE-MICRO",
+          "S-D-THE-MICRO"
+        ],
+        "footprint": [
+          "S-M-THE-MICRO"
+        ],
+        "units": [
+          "S-D-THE-MICRO"
+        ],
+        "published_system": [
+          "S-M-THE-MICRO"
+        ]
+      },
+      "adaptability_note": "Drawing schedule labels the reference unit adaptable; this is not a guarantee of a fully accessible delivered project.",
+      "numeric_area_matching_allowed": true,
+      "field_status": {
+        "area_sqft": "published",
+        "bedrooms": "published",
+        "bathrooms": "published",
+        "storeys": "published",
+        "footprint": "unknown",
+        "published_system": "published_description"
+      },
+      "published_system": "Light steel frame system",
+      "system_qualification": "Public design description; final system, engineering and specification are project-specific."
+    },
+    {
+      "id": "catalog-the-mini",
+      "name": "The Mini",
+      "slug": "the-mini",
+      "family": "cmhc_catalogue",
+      "url": "https://www.housedelivery.ca/catalog/the-mini",
+      "source_ids": [
+        "S-M-THE-MINI",
+        "S-D-THE-MINI"
+      ],
+      "area_sqft": 1010,
+      "area_sqm_published": null,
+      "area_basis": "website_labelled_total_building_area_basis_to_confirm",
+      "area_conversion": null,
+      "units": 1,
+      "bedrooms": 2,
+      "bedrooms_basis": "single_home",
+      "bathrooms": 1.5,
+      "bathrooms_basis": "per_home",
+      "storeys": 2,
+      "features": [
+        "Two-storey two-bedroom reference design"
+      ],
+      "footprint": null,
+      "floor_plan_url": "https://www.housedelivery.ca/pdfs/BC_ADU_02_Drawings.pdf",
+      "floor_plan_status": "reference_design_not_site_approved",
+      "price_rule": "PR-QUOTE",
+      "uncertainties": [],
+      "drawing_source_ids": [
+        "S-D-THE-MINI"
+      ],
+      "drawing_gross_area_sqm": 93.8,
+      "drawing_gross_area_sqft_approx": 1010,
+      "unit_schedule": [
+        {
+          "unit": "1",
+          "bedrooms": 2,
+          "bathrooms": 1.5,
+          "adaptable_reference": false,
+          "source_ids": [
+            "S-D-THE-MINI"
+          ]
+        }
+      ],
+      "field_sources": {
+        "area_sqft": [
+          "S-M-THE-MINI"
+        ],
+        "name": [
+          "S-M-THE-MINI"
+        ],
+        "drawing_gross_area_sqm": [
+          "S-D-THE-MINI"
+        ],
+        "unit_schedule": [
+          "S-D-THE-MINI"
+        ],
+        "storeys": [
+          "S-D-THE-MINI"
+        ],
+        "bedrooms": [
+          "S-M-THE-MINI"
+        ],
+        "bathrooms": [
+          "S-M-THE-MINI"
+        ],
+        "features": [
+          "S-M-THE-MINI",
+          "S-D-THE-MINI"
+        ],
+        "footprint": [
+          "S-M-THE-MINI"
+        ],
+        "units": [
+          "S-D-THE-MINI"
+        ],
+        "published_system": [
+          "S-M-THE-MINI"
+        ]
+      },
+      "numeric_area_matching_allowed": true,
+      "field_status": {
+        "area_sqft": "published",
+        "bedrooms": "published",
+        "bathrooms": "published",
+        "storeys": "published",
+        "footprint": "unknown",
+        "published_system": "published_description"
+      },
+      "published_system": "Light steel frame system",
+      "system_qualification": "Public design description; final system, engineering and specification are project-specific."
+    },
+    {
+      "id": "catalog-bc-duplex",
+      "name": "BC Duplex",
+      "slug": "bc-duplex",
+      "family": "cmhc_catalogue",
+      "url": "https://www.housedelivery.ca/catalog/bc-duplex",
+      "source_ids": [
+        "S-M-BC-DUPLEX",
+        "S-D-BC-DUPLEX"
+      ],
+      "area_sqft": 2927,
+      "area_sqm_published": null,
+      "area_basis": "website_labelled_total_building_area_basis_to_confirm",
+      "area_conversion": null,
+      "units": 2,
+      "bedrooms": 3,
+      "bedrooms_basis": "per_unit",
+      "bathrooms": 2.5,
+      "bathrooms_basis": "per_unit",
+      "storeys": null,
+      "features": [
+        "Two three-bedroom reference homes",
+        "Published page and drawing storey counts differ"
+      ],
+      "footprint": null,
+      "floor_plan_url": "https://www.housedelivery.ca/pdfs/BC_Duplex_Drawings.pdf",
+      "floor_plan_status": "reference_design_not_site_approved",
+      "price_rule": "PR-QUOTE",
+      "uncertainties": [
+        "Use drawing unit schedule for bedrooms and bathrooms; website headline is not a per-unit schedule.",
+        "Website says two storeys; linked drawing cover and A101-A103 schedule say three. Do not recommend as a confirmed two-storey design."
+      ],
+      "drawing_source_ids": [
+        "S-D-BC-DUPLEX"
+      ],
+      "drawing_gross_area_sqm": 271.9,
+      "drawing_gross_area_sqft_approx": 2927,
+      "unit_schedule": [
+        {
+          "unit": "1",
+          "bedrooms": 3,
+          "bathrooms": 2.5,
+          "adaptable_reference": false,
+          "source_ids": [
+            "S-D-BC-DUPLEX"
+          ]
+        },
+        {
+          "unit": "2",
+          "bedrooms": 3,
+          "bathrooms": 2.5,
+          "adaptable_reference": false,
+          "source_ids": [
+            "S-D-BC-DUPLEX"
+          ]
+        }
+      ],
+      "field_sources": {
+        "area_sqft": [
+          "S-M-BC-DUPLEX"
+        ],
+        "name": [
+          "S-M-BC-DUPLEX"
+        ],
+        "drawing_gross_area_sqm": [
+          "S-D-BC-DUPLEX"
+        ],
+        "unit_schedule": [
+          "S-D-BC-DUPLEX"
+        ],
+        "bedrooms": [
+          "S-D-BC-DUPLEX"
+        ],
+        "bathrooms": [
+          "S-D-BC-DUPLEX"
+        ],
+        "features": [
+          "S-M-BC-DUPLEX",
+          "S-D-BC-DUPLEX"
+        ],
+        "footprint": [
+          "S-M-BC-DUPLEX"
+        ],
+        "storeys": [
+          "S-M-BC-DUPLEX"
+        ],
+        "units": [
+          "S-D-BC-DUPLEX"
+        ],
+        "published_system": [
+          "S-M-BC-DUPLEX"
+        ]
+      },
+      "storeys_website": 2,
+      "storeys_drawings": 3,
+      "conflicts": [
+        "Website says two storeys; linked drawing cover and A101-A103 schedule say three. Do not recommend as a confirmed two-storey design."
+      ],
+      "numeric_area_matching_allowed": true,
+      "field_status": {
+        "area_sqft": "published",
+        "bedrooms": "published",
+        "bathrooms": "published",
+        "storeys": "conflicting",
+        "footprint": "unknown",
+        "published_system": "published_description"
+      },
+      "published_system": "Light steel frame system",
+      "system_qualification": "Public design description; final system, engineering and specification are project-specific."
+    },
+    {
+      "id": "catalog-bc-fourplex-1",
+      "name": "BC Fourplex 1",
+      "slug": "bc-fourplex-1",
+      "family": "cmhc_catalogue",
+      "url": "https://www.housedelivery.ca/catalog/bc-fourplex-1",
+      "source_ids": [
+        "S-M-BC-FOURPLEX-1",
+        "S-D-BC-FOURPLEX-1"
+      ],
+      "area_sqft": 4027,
+      "area_sqm_published": null,
+      "area_basis": "website_labelled_total_building_area_basis_to_confirm",
+      "area_conversion": null,
+      "units": 4,
+      "bedrooms": null,
+      "bedrooms_basis": "unit_mix_not_single_number",
+      "bathrooms": null,
+      "bathrooms_basis": "not_verified",
+      "storeys": 3,
+      "features": [
+        "Mixed one- and three-bedroom reference homes",
+        "Drawing schedule identifies two adaptable one-bedroom units"
+      ],
+      "footprint": ".",
+      "floor_plan_url": "https://www.housedelivery.ca/pdfs/BC_Fourplex_01_Drawings.pdf",
+      "floor_plan_status": "reference_design_not_site_approved",
+      "price_rule": "PR-QUOTE",
+      "uncertainties": [
+        "Use drawing unit schedule for bedrooms and bathrooms; website headline is not a per-unit schedule."
+      ],
+      "drawing_source_ids": [
+        "S-D-BC-FOURPLEX-1"
+      ],
+      "drawing_gross_area_sqm": 374.1,
+      "drawing_gross_area_sqft_approx": 4027,
+      "unit_schedule": [
+        {
+          "unit": "1",
+          "bedrooms": 1,
+          "bathrooms": 1,
+          "adaptable_reference": true,
+          "source_ids": [
+            "S-D-BC-FOURPLEX-1"
+          ]
+        },
+        {
+          "unit": "2",
+          "bedrooms": 1,
+          "bathrooms": 1,
+          "adaptable_reference": true,
+          "source_ids": [
+            "S-D-BC-FOURPLEX-1"
+          ]
+        },
+        {
+          "unit": "3",
+          "bedrooms": 3,
+          "bathrooms": 2,
+          "adaptable_reference": false,
+          "source_ids": [
+            "S-D-BC-FOURPLEX-1"
+          ]
+        },
+        {
+          "unit": "4",
+          "bedrooms": 3,
+          "bathrooms": 2,
+          "adaptable_reference": false,
+          "source_ids": [
+            "S-D-BC-FOURPLEX-1"
+          ]
+        }
+      ],
+      "field_sources": {
+        "area_sqft": [
+          "S-M-BC-FOURPLEX-1"
+        ],
+        "name": [
+          "S-M-BC-FOURPLEX-1"
+        ],
+        "drawing_gross_area_sqm": [
+          "S-D-BC-FOURPLEX-1"
+        ],
+        "unit_schedule": [
+          "S-D-BC-FOURPLEX-1"
+        ],
+        "storeys": [
+          "S-D-BC-FOURPLEX-1"
+        ],
+        "bedrooms": [
+          "S-M-BC-FOURPLEX-1"
+        ],
+        "bathrooms": [
+          "S-M-BC-FOURPLEX-1"
+        ],
+        "features": [
+          "S-M-BC-FOURPLEX-1",
+          "S-D-BC-FOURPLEX-1"
+        ],
+        "footprint": [
+          "S-M-BC-FOURPLEX-1"
+        ],
+        "units": [
+          "S-D-BC-FOURPLEX-1"
+        ],
+        "published_system": [
+          "S-M-BC-FOURPLEX-1"
+        ]
+      },
+      "numeric_area_matching_allowed": true,
+      "field_status": {
+        "area_sqft": "published",
+        "bedrooms": "unknown",
+        "bathrooms": "unknown",
+        "storeys": "published",
+        "footprint": "published",
+        "published_system": "published_description"
+      },
+      "published_system": "Light steel frame system",
+      "system_qualification": "Public design description; final system, engineering and specification are project-specific."
+    },
+    {
+      "id": "catalog-bc-fourplex-2",
+      "name": "BC Fourplex 2",
+      "slug": "bc-fourplex-2",
+      "family": "cmhc_catalogue",
+      "url": "https://www.housedelivery.ca/catalog/bc-fourplex-2",
+      "source_ids": [
+        "S-M-BC-FOURPLEX-2",
+        "S-D-BC-FOURPLEX-2"
+      ],
+      "area_sqft": 5985,
+      "area_sqm_published": null,
+      "area_basis": "website_labelled_total_building_area_basis_to_confirm",
+      "area_conversion": null,
+      "units": 4,
+      "bedrooms": 3,
+      "bedrooms_basis": "per_unit",
+      "bathrooms": 2,
+      "bathrooms_basis": "per_unit",
+      "storeys": 3,
+      "features": [
+        "Four three-bedroom reference homes",
+        "Three-storey reference design"
+      ],
+      "footprint": null,
+      "floor_plan_url": "https://www.housedelivery.ca/pdfs/BC_Fourplex_02_Drawings.pdf",
+      "floor_plan_status": "reference_design_not_site_approved",
+      "price_rule": "PR-QUOTE",
+      "uncertainties": [],
+      "drawing_source_ids": [
+        "S-D-BC-FOURPLEX-2"
+      ],
+      "drawing_gross_area_sqm": 556,
+      "drawing_gross_area_sqft_approx": 5985,
+      "unit_schedule": [
+        {
+          "unit": "1",
+          "bedrooms": 3,
+          "bathrooms": 2,
+          "adaptable_reference": false,
+          "source_ids": [
+            "S-D-BC-FOURPLEX-2"
+          ]
+        },
+        {
+          "unit": "2",
+          "bedrooms": 3,
+          "bathrooms": 2,
+          "adaptable_reference": false,
+          "source_ids": [
+            "S-D-BC-FOURPLEX-2"
+          ]
+        },
+        {
+          "unit": "3",
+          "bedrooms": 3,
+          "bathrooms": 2,
+          "adaptable_reference": false,
+          "source_ids": [
+            "S-D-BC-FOURPLEX-2"
+          ]
+        },
+        {
+          "unit": "4",
+          "bedrooms": 3,
+          "bathrooms": 2,
+          "adaptable_reference": false,
+          "source_ids": [
+            "S-D-BC-FOURPLEX-2"
+          ]
+        }
+      ],
+      "field_sources": {
+        "area_sqft": [
+          "S-M-BC-FOURPLEX-2"
+        ],
+        "name": [
+          "S-M-BC-FOURPLEX-2"
+        ],
+        "drawing_gross_area_sqm": [
+          "S-D-BC-FOURPLEX-2"
+        ],
+        "unit_schedule": [
+          "S-D-BC-FOURPLEX-2"
+        ],
+        "storeys": [
+          "S-D-BC-FOURPLEX-2"
+        ],
+        "bedrooms": [
+          "S-D-BC-FOURPLEX-2"
+        ],
+        "bathrooms": [
+          "S-D-BC-FOURPLEX-2"
+        ],
+        "features": [
+          "S-M-BC-FOURPLEX-2",
+          "S-D-BC-FOURPLEX-2"
+        ],
+        "footprint": [
+          "S-M-BC-FOURPLEX-2"
+        ],
+        "units": [
+          "S-D-BC-FOURPLEX-2"
+        ],
+        "published_system": [
+          "S-M-BC-FOURPLEX-2"
+        ]
+      },
+      "numeric_area_matching_allowed": true,
+      "field_status": {
+        "area_sqft": "published",
+        "bedrooms": "published",
+        "bathrooms": "published",
+        "storeys": "published",
+        "footprint": "unknown",
+        "published_system": "published_description"
+      },
+      "published_system": "Three-storey steel frame",
+      "system_qualification": "Public design description; final system, engineering and specification are project-specific."
+    },
+    {
+      "id": "catalog-bc-rowhouse",
+      "name": "BC Rowhouse",
+      "slug": "bc-rowhouse",
+      "family": "cmhc_catalogue",
+      "url": "https://www.housedelivery.ca/catalog/bc-rowhouse",
+      "source_ids": [
+        "S-M-BC-ROWHOUSE",
+        "S-D-BC-ROWHOUSE"
+      ],
+      "area_sqft": 2718,
+      "area_sqm_published": null,
+      "area_basis": "website_labelled_total_building_area_basis_to_confirm",
+      "area_conversion": null,
+      "units": 2,
+      "bedrooms": 3,
+      "bedrooms_basis": "per_unit",
+      "bathrooms": 2.5,
+      "bathrooms_basis": "per_unit",
+      "storeys": 2,
+      "features": [
+        "Two three-bedroom reference homes",
+        "Adaptable plan variants are alternatives, not extra units"
+      ],
+      "footprint": null,
+      "floor_plan_url": "https://www.housedelivery.ca/pdfs/BC_Rowhouse_Drawings.pdf",
+      "floor_plan_status": "reference_design_not_site_approved",
+      "price_rule": "PR-QUOTE",
+      "uncertainties": [
+        "Use drawing unit schedule for bedrooms and bathrooms; website headline is not a per-unit schedule."
+      ],
+      "drawing_source_ids": [
+        "S-D-BC-ROWHOUSE"
+      ],
+      "drawing_gross_area_sqm": 252.5,
+      "drawing_gross_area_sqft_approx": 2718,
+      "unit_schedule": [
+        {
+          "unit": "1",
+          "bedrooms": 3,
+          "bathrooms": 2.5,
+          "adaptable_reference": false,
+          "source_ids": [
+            "S-D-BC-ROWHOUSE"
+          ]
+        },
+        {
+          "unit": "2",
+          "bedrooms": 3,
+          "bathrooms": 2.5,
+          "adaptable_reference": false,
+          "source_ids": [
+            "S-D-BC-ROWHOUSE"
+          ]
+        }
+      ],
+      "field_sources": {
+        "area_sqft": [
+          "S-M-BC-ROWHOUSE"
+        ],
+        "name": [
+          "S-M-BC-ROWHOUSE"
+        ],
+        "drawing_gross_area_sqm": [
+          "S-D-BC-ROWHOUSE"
+        ],
+        "unit_schedule": [
+          "S-D-BC-ROWHOUSE"
+        ],
+        "storeys": [
+          "S-D-BC-ROWHOUSE"
+        ],
+        "bedrooms": [
+          "S-D-BC-ROWHOUSE"
+        ],
+        "bathrooms": [
+          "S-D-BC-ROWHOUSE"
+        ],
+        "features": [
+          "S-M-BC-ROWHOUSE",
+          "S-D-BC-ROWHOUSE"
+        ],
+        "footprint": [
+          "S-M-BC-ROWHOUSE"
+        ],
+        "units": [
+          "S-D-BC-ROWHOUSE"
+        ],
+        "published_system": [
+          "S-M-BC-ROWHOUSE"
+        ]
+      },
+      "rowhouse_variants": "Reference block has two homes; units 1a and 2a are adaptable alternatives, not additional homes.",
+      "numeric_area_matching_allowed": true,
+      "field_status": {
+        "area_sqft": "published",
+        "bedrooms": "published",
+        "bathrooms": "published",
+        "storeys": "published",
+        "footprint": "unknown",
+        "published_system": "published_description"
+      },
+      "published_system": "Light steel frame system",
+      "system_qualification": "Public design description; final system, engineering and specification are project-specific."
+    },
+    {
+      "id": "catalog-sixplex-courtyard",
+      "name": "Sixplex Courtyard",
+      "slug": "sixplex-courtyard",
+      "family": "cmhc_catalogue",
+      "url": "https://www.housedelivery.ca/catalog/sixplex-courtyard",
+      "source_ids": [
+        "S-M-SIXPLEX-COURTYARD",
+        "S-D-SIXPLEX-COURTYARD"
+      ],
+      "area_sqft": 6216,
+      "area_sqm_published": null,
+      "area_basis": "website_labelled_total_building_area_basis_to_confirm",
+      "area_conversion": null,
+      "units": 6,
+      "bedrooms": null,
+      "bedrooms_basis": "unit_mix_not_single_number",
+      "bathrooms": null,
+      "bathrooms_basis": "not_verified",
+      "storeys": null,
+      "features": [
+        "Six homes arranged around a courtyard",
+        "Mixed one-, two- and three-bedroom reference homes",
+        "Three-storey front and two-storey rear composition"
+      ],
+      "footprint": null,
+      "floor_plan_url": "https://www.housedelivery.ca/pdfs/BC_Sixplex%20Courtyard_Drawings.pdf",
+      "floor_plan_status": "reference_design_not_site_approved",
+      "price_rule": "PR-QUOTE",
+      "uncertainties": [
+        "Use drawing unit schedule for bedrooms and bathrooms; website headline is not a per-unit schedule.",
+        "Website total 6,216 sq. ft.; drawing gross area 573.9 m², approximately 6,177 sq. ft. Keep both bases visible and confirm before costing."
+      ],
+      "drawing_source_ids": [
+        "S-D-SIXPLEX-COURTYARD"
+      ],
+      "drawing_gross_area_sqm": 573.9,
+      "drawing_gross_area_sqft_approx": 6177,
+      "unit_schedule": [
+        {
+          "unit": "1",
+          "bedrooms": 1,
+          "bathrooms": 1,
+          "adaptable_reference": true,
+          "source_ids": [
+            "S-D-SIXPLEX-COURTYARD"
+          ]
+        },
+        {
+          "unit": "2",
+          "bedrooms": 1,
+          "bathrooms": 1,
+          "adaptable_reference": true,
+          "source_ids": [
+            "S-D-SIXPLEX-COURTYARD"
+          ]
+        },
+        {
+          "unit": "3",
+          "bedrooms": 3,
+          "bathrooms": 2,
+          "adaptable_reference": false,
+          "source_ids": [
+            "S-D-SIXPLEX-COURTYARD"
+          ]
+        },
+        {
+          "unit": "4",
+          "bedrooms": 3,
+          "bathrooms": 2,
+          "adaptable_reference": false,
+          "source_ids": [
+            "S-D-SIXPLEX-COURTYARD"
+          ]
+        },
+        {
+          "unit": "5",
+          "bedrooms": 2,
+          "bathrooms": 1,
+          "adaptable_reference": false,
+          "source_ids": [
+            "S-D-SIXPLEX-COURTYARD"
+          ]
+        },
+        {
+          "unit": "6",
+          "bedrooms": 2,
+          "bathrooms": 1,
+          "adaptable_reference": false,
+          "source_ids": [
+            "S-D-SIXPLEX-COURTYARD"
+          ]
+        }
+      ],
+      "field_sources": {
+        "area_sqft": [
+          "S-M-SIXPLEX-COURTYARD"
+        ],
+        "name": [
+          "S-M-SIXPLEX-COURTYARD"
+        ],
+        "drawing_gross_area_sqm": [
+          "S-D-SIXPLEX-COURTYARD"
+        ],
+        "unit_schedule": [
+          "S-D-SIXPLEX-COURTYARD"
+        ],
+        "bedrooms": [
+          "S-M-SIXPLEX-COURTYARD"
+        ],
+        "bathrooms": [
+          "S-M-SIXPLEX-COURTYARD"
+        ],
+        "features": [
+          "S-M-SIXPLEX-COURTYARD",
+          "S-D-SIXPLEX-COURTYARD"
+        ],
+        "footprint": [
+          "S-M-SIXPLEX-COURTYARD"
+        ],
+        "storeys": [
+          "S-M-SIXPLEX-COURTYARD"
+        ],
+        "units": [
+          "S-D-SIXPLEX-COURTYARD"
+        ],
+        "storeys_description": [
+          "S-D-SIXPLEX-COURTYARD"
+        ],
+        "published_system": [
+          "S-M-SIXPLEX-COURTYARD"
+        ]
+      },
+      "storeys_description": "Linked drawings identify a three-storey plus two-storey composition.",
+      "conflicts": [
+        "Website total 6,216 sq. ft.; drawing gross area 573.9 m², approximately 6,177 sq. ft. Keep both bases visible and confirm before costing."
+      ],
+      "numeric_area_matching_allowed": false,
+      "field_status": {
+        "area_sqft": "conflicting",
+        "bedrooms": "unknown",
+        "bathrooms": "unknown",
+        "storeys": "unknown",
+        "footprint": "unknown",
+        "published_system": "published_description"
+      },
+      "published_system": "Light steel frame system",
+      "system_qualification": "Public design description; final system, engineering and specification are project-specific."
+    }
+  ],
+  "design_studios": [
+    {
+      "model_id": "home-langley",
+      "source_ids": [
+        "S-M-LANGLEY"
+      ],
+      "chapters": [],
+      "verified_visible_kitchen_directions": [],
+      "verification": "live_text",
+      "qualification": "Design directions only; no product SKU, stock, quantity or contractual inclusion established.",
+      "availability_note": "The model page did not expose complete Studio content in the retrieval; use general customization guidance.",
+      "selection_count": null
+    },
+    {
+      "model_id": "home-salt-spring",
+      "source_ids": [
+        "S-M-SALT-SPRING"
+      ],
+      "chapters": [
+        "Kitchen Look & Feel",
+        "Primary Ensuite Look & Feel",
+        "Primary Wardrobe",
+        "Interior Doors & Details",
+        "Whole-Home Flooring & Stairs",
+        "Window Coverings",
+        "Windows & Patio Doors",
+        "Exterior Arrival & Openings"
+      ],
+      "verified_visible_kitchen_directions": [
+        {
+          "tier": "premium",
+          "name": "Warm Oak"
+        },
+        {
+          "tier": "premium",
+          "name": "Soft White"
+        },
+        {
+          "tier": "premium",
+          "name": "Sandstone Oak"
+        },
+        {
+          "tier": "premium",
+          "name": "Graphite Oak"
+        }
+      ],
+      "verification": "live_text",
+      "qualification": "Design directions only; no product SKU, stock, quantity or contractual inclusion established.",
+      "availability_note": null,
+      "selection_count": 14,
+      "structure": "Six interior chapters for each residence; shared windows/patio doors and exterior. Kitchen options in this retrieval represent the currently displayed Residence A Premium tier, not all tiers or both residences."
+    },
+    {
+      "model_id": "home-solace",
+      "source_ids": [
+        "S-M-SOLACE"
+      ],
+      "chapters": [
+        "Kitchen Look & Feel",
+        "Primary Ensuite Look & Feel",
+        "Primary Wardrobe",
+        "Interior Doors & Details",
+        "Whole-Home Flooring & Stairs",
+        "Window Coverings",
+        "Windows & Patio Doors",
+        "Exterior Arrival & Openings"
+      ],
+      "verified_visible_kitchen_directions": [
+        {
+          "tier": "premium",
+          "name": "Coastal Light Oak"
+        },
+        {
+          "tier": "premium",
+          "name": "Soft White"
+        },
+        {
+          "tier": "signature",
+          "name": "Stone Wrapped Oak"
+        },
+        {
+          "tier": "signature",
+          "name": "Sculpted White"
+        },
+        {
+          "tier": "premium",
+          "name": "Sandstone Oak"
+        },
+        {
+          "tier": "premium",
+          "name": "Graphite Oak"
+        },
+        {
+          "tier": "signature",
+          "name": "Smoked Walnut Bronze"
+        },
+        {
+          "tier": "signature",
+          "name": "Limestone Noir"
+        }
+      ],
+      "verification": "live_text",
+      "qualification": "Design directions only; no product SKU, stock, quantity or contractual inclusion established.",
+      "availability_note": null,
+      "selection_count": 8
+    },
+    {
+      "model_id": "home-timberline",
+      "source_ids": [
+        "S-M-TIMBERLINE"
+      ],
+      "chapters": [
+        "Kitchen Look & Feel",
+        "Primary Ensuite Look & Feel",
+        "Primary Wardrobe",
+        "Interior Doors & Details",
+        "Whole-Home Flooring & Stairs",
+        "Window Coverings",
+        "Windows & Patio Doors",
+        "Exterior Arrival & Openings"
+      ],
+      "verified_visible_kitchen_directions": [
+        {
+          "tier": "premium",
+          "name": "Coastal Light Oak"
+        },
+        {
+          "tier": "premium",
+          "name": "Soft White"
+        },
+        {
+          "tier": "signature",
+          "name": "Stone Wrapped Oak"
+        },
+        {
+          "tier": "signature",
+          "name": "Sculpted White"
+        },
+        {
+          "tier": "premium",
+          "name": "Sandstone Oak"
+        },
+        {
+          "tier": "premium",
+          "name": "Graphite Oak"
+        },
+        {
+          "tier": "signature",
+          "name": "Smoked Walnut Bronze"
+        },
+        {
+          "tier": "signature",
+          "name": "Limestone Noir"
+        }
+      ],
+      "verification": "live_text",
+      "qualification": "Design directions only; no product SKU, stock, quantity or contractual inclusion established.",
+      "availability_note": null,
+      "selection_count": 8
+    },
+    {
+      "model_id": "home-profile",
+      "source_ids": [
+        "S-M-PROFILE"
+      ],
+      "chapters": [
+        "Kitchen Look & Feel",
+        "Primary Ensuite Look & Feel",
+        "Primary Wardrobe",
+        "Interior Doors & Details",
+        "Whole-Home Flooring & Stairs",
+        "Window Coverings",
+        "Windows & Patio Doors",
+        "Exterior Arrival & Openings"
+      ],
+      "verified_visible_kitchen_directions": [
+        {
+          "tier": "premium",
+          "name": "Warm Oak & Travertine"
+        },
+        {
+          "tier": "premium",
+          "name": "Tailored Greige"
+        },
+        {
+          "tier": "signature",
+          "name": "Smoked Walnut & Graphite"
+        },
+        {
+          "tier": "signature",
+          "name": "Limestone, Bronze & Charcoal"
+        },
+        {
+          "tier": "premium",
+          "name": "Sandstone Oak"
+        },
+        {
+          "tier": "premium",
+          "name": "Graphite Oak"
+        },
+        {
+          "tier": "signature",
+          "name": "Smoked Walnut Bronze"
+        },
+        {
+          "tier": "signature",
+          "name": "Limestone Noir"
+        }
+      ],
+      "verification": "live_text",
+      "qualification": "Design directions only; no product SKU, stock, quantity or contractual inclusion established.",
+      "availability_note": null,
+      "selection_count": 8
+    },
+    {
+      "model_id": "home-laurentian",
+      "source_ids": [
+        "S-M-LAURENTIAN"
+      ],
+      "chapters": [],
+      "verified_visible_kitchen_directions": [],
+      "verification": "live_text",
+      "qualification": "Design directions only; no product SKU, stock, quantity or contractual inclusion established.",
+      "availability_note": "The model page did not expose complete Studio content in the retrieval; use general customization guidance.",
+      "selection_count": null
+    },
+    {
+      "model_id": "home-dalton",
+      "source_ids": [
+        "S-M-DALTON"
+      ],
+      "chapters": [
+        "Kitchen Look & Feel",
+        "Primary Ensuite Look & Feel",
+        "Primary Wardrobe",
+        "Interior Doors & Details",
+        "Whole-Home Flooring & Stairs",
+        "Window Coverings",
+        "Windows & Patio Doors",
+        "Exterior Arrival & Openings"
+      ],
+      "verified_visible_kitchen_directions": [
+        {
+          "tier": "premium",
+          "name": "Premium 1"
+        },
+        {
+          "tier": "premium",
+          "name": "Premium 2"
+        },
+        {
+          "tier": "signature",
+          "name": "Signature 1"
+        },
+        {
+          "tier": "signature",
+          "name": "Signature 2"
+        },
+        {
+          "tier": "premium",
+          "name": "Sandstone Oak"
+        },
+        {
+          "tier": "premium",
+          "name": "Graphite Oak"
+        },
+        {
+          "tier": "signature",
+          "name": "Smoked Walnut Bronze"
+        },
+        {
+          "tier": "signature",
+          "name": "Limestone Noir"
+        }
+      ],
+      "verification": "live_text",
+      "qualification": "Design directions only; no product SKU, stock, quantity or contractual inclusion established.",
+      "availability_note": null,
+      "selection_count": 8
+    },
+    {
+      "model_id": "home-south-bay",
+      "source_ids": [
+        "S-M-SOUTH-BAY"
+      ],
+      "chapters": [
+        "Kitchen Look & Feel",
+        "Primary Ensuite Look & Feel",
+        "Primary Wardrobe",
+        "Interior Doors & Details",
+        "Whole-Home Flooring & Stairs",
+        "Window Coverings",
+        "Windows & Patio Doors",
+        "Exterior Arrival & Openings"
+      ],
+      "verified_visible_kitchen_directions": [
+        {
+          "tier": "premium",
+          "name": "Shoreline Oak"
+        },
+        {
+          "tier": "premium",
+          "name": "Mist Linen"
+        },
+        {
+          "tier": "signature",
+          "name": "Basalt Frame"
+        },
+        {
+          "tier": "signature",
+          "name": "Cove Bronze"
+        },
+        {
+          "tier": "premium",
+          "name": "Sandstone Oak"
+        },
+        {
+          "tier": "premium",
+          "name": "Graphite Oak"
+        },
+        {
+          "tier": "signature",
+          "name": "Smoked Walnut Bronze"
+        },
+        {
+          "tier": "signature",
+          "name": "Limestone Noir"
+        }
+      ],
+      "verification": "live_text",
+      "qualification": "Design directions only; no product SKU, stock, quantity or contractual inclusion established.",
+      "availability_note": null,
+      "selection_count": 8
+    },
+    {
+      "model_id": "home-boreal",
+      "source_ids": [
+        "S-M-BOREAL"
+      ],
+      "chapters": [
+        "Kitchen Look & Feel",
+        "Primary Ensuite Look & Feel",
+        "Primary Wardrobe",
+        "Interior Doors & Details",
+        "Whole-Home Flooring & Stairs",
+        "Window Coverings",
+        "Windows & Patio Doors",
+        "Exterior Arrival & Openings"
+      ],
+      "verified_visible_kitchen_directions": [
+        {
+          "tier": "premium",
+          "name": "Hearthstone Oak"
+        },
+        {
+          "tier": "premium",
+          "name": "Silver Birch"
+        },
+        {
+          "tier": "signature",
+          "name": "Midnight Schist"
+        },
+        {
+          "tier": "signature",
+          "name": "Bronze Ember"
+        },
+        {
+          "tier": "premium",
+          "name": "Sandstone Oak"
+        },
+        {
+          "tier": "premium",
+          "name": "Graphite Oak"
+        },
+        {
+          "tier": "signature",
+          "name": "Smoked Walnut Bronze"
+        },
+        {
+          "tier": "signature",
+          "name": "Limestone Noir"
+        }
+      ],
+      "verification": "live_text",
+      "qualification": "Design directions only; no product SKU, stock, quantity or contractual inclusion established.",
+      "availability_note": null,
+      "selection_count": 8
+    },
+    {
+      "model_id": "home-keats",
+      "source_ids": [
+        "S-M-KEATS"
+      ],
+      "chapters": [
+        "Kitchen Look & Feel",
+        "Primary Ensuite Look & Feel",
+        "Primary Wardrobe",
+        "Interior Doors & Details",
+        "Whole-Home Flooring & Stairs",
+        "Window Coverings",
+        "Windows & Patio Doors",
+        "Exterior Arrival & Openings"
+      ],
+      "verified_visible_kitchen_directions": [
+        {
+          "tier": "premium",
+          "name": "Harbour Oak Sandstone"
+        },
+        {
+          "tier": "premium",
+          "name": "Gallery Ash Pearlstone"
+        },
+        {
+          "tier": "signature",
+          "name": "Night Fir Basalt"
+        },
+        {
+          "tier": "signature",
+          "name": "Walnut Bronze Veined Limestone"
+        },
+        {
+          "tier": "premium",
+          "name": "Sandstone Oak"
+        },
+        {
+          "tier": "premium",
+          "name": "Graphite Oak"
+        },
+        {
+          "tier": "signature",
+          "name": "Smoked Walnut Bronze"
+        },
+        {
+          "tier": "signature",
+          "name": "Limestone Noir"
+        }
+      ],
+      "verification": "live_text",
+      "qualification": "Design directions only; no product SKU, stock, quantity or contractual inclusion established.",
+      "availability_note": null,
+      "selection_count": 8
+    },
+    {
+      "model_id": "home-canmore",
+      "source_ids": [
+        "S-M-CANMORE"
+      ],
+      "chapters": [
+        "Kitchen Look & Feel",
+        "Primary Ensuite Look & Feel",
+        "Primary Wardrobe",
+        "Interior Doors & Details",
+        "Whole-Home Flooring & Stairs",
+        "Window Coverings",
+        "Windows & Patio Doors",
+        "Exterior Arrival & Openings"
+      ],
+      "verified_visible_kitchen_directions": [
+        {
+          "tier": "premium",
+          "name": "Hearth Oak"
+        },
+        {
+          "tier": "premium",
+          "name": "Mineral Linen"
+        },
+        {
+          "tier": "signature",
+          "name": "Carbon Ridge"
+        },
+        {
+          "tier": "signature",
+          "name": "Bronze Walnut"
+        },
+        {
+          "tier": "premium",
+          "name": "Sandstone Oak"
+        },
+        {
+          "tier": "premium",
+          "name": "Graphite Oak"
+        },
+        {
+          "tier": "signature",
+          "name": "Smoked Walnut Bronze"
+        },
+        {
+          "tier": "signature",
+          "name": "Limestone Noir"
+        }
+      ],
+      "verification": "live_text",
+      "qualification": "Design directions only; no product SKU, stock, quantity or contractual inclusion established.",
+      "availability_note": null,
+      "selection_count": 8
+    },
+    {
+      "model_id": "home-saturna",
+      "source_ids": [
+        "S-M-SATURNA"
+      ],
+      "chapters": [
+        "Kitchen Look & Feel",
+        "Primary Ensuite Look & Feel",
+        "Primary Wardrobe",
+        "Interior Doors & Details",
+        "Whole-Home Flooring & Stairs",
+        "Window Coverings",
+        "Windows & Patio Doors",
+        "Exterior Arrival & Openings"
+      ],
+      "verified_visible_kitchen_directions": [
+        {
+          "tier": "premium",
+          "name": "Warm Modern"
+        },
+        {
+          "tier": "premium",
+          "name": "Contemporary Luxe"
+        },
+        {
+          "tier": "signature",
+          "name": "Scandi Light"
+        },
+        {
+          "tier": "signature",
+          "name": "Modern Earth"
+        },
+        {
+          "tier": "premium",
+          "name": "Sandstone Oak"
+        },
+        {
+          "tier": "premium",
+          "name": "Graphite Oak"
+        },
+        {
+          "tier": "signature",
+          "name": "Smoked Walnut Bronze"
+        },
+        {
+          "tier": "signature",
+          "name": "Limestone Noir"
+        }
+      ],
+      "verification": "live_text",
+      "qualification": "Design directions only; no product SKU, stock, quantity or contractual inclusion established.",
+      "availability_note": null,
+      "selection_count": 8
+    },
+    {
+      "model_id": "home-cascade",
+      "source_ids": [
+        "S-M-CASCADE"
+      ],
+      "chapters": [
+        "Kitchen Look & Feel",
+        "Primary Ensuite Look & Feel",
+        "Primary Wardrobe",
+        "Interior Doors & Details",
+        "Whole-Home Flooring & Stairs",
+        "Window Coverings",
+        "Windows & Patio Doors",
+        "Exterior Arrival & Openings"
+      ],
+      "verified_visible_kitchen_directions": [
+        {
+          "tier": "premium",
+          "name": "Meadow Oak"
+        },
+        {
+          "tier": "premium",
+          "name": "Gallery Ash"
+        },
+        {
+          "tier": "signature",
+          "name": "Carbon Elm"
+        },
+        {
+          "tier": "signature",
+          "name": "Bronze Strata"
+        },
+        {
+          "tier": "premium",
+          "name": "Sandstone Oak"
+        },
+        {
+          "tier": "premium",
+          "name": "Graphite Oak"
+        },
+        {
+          "tier": "signature",
+          "name": "Smoked Walnut Bronze"
+        },
+        {
+          "tier": "signature",
+          "name": "Limestone Noir"
+        }
+      ],
+      "verification": "live_text",
+      "qualification": "Design directions only; no product SKU, stock, quantity or contractual inclusion established.",
+      "availability_note": null,
+      "selection_count": 8
+    },
+    {
+      "model_id": "home-maplewood",
+      "source_ids": [
+        "S-M-MAPLEWOOD"
+      ],
+      "chapters": [
+        "Kitchen Look & Feel",
+        "Primary Ensuite Look & Feel",
+        "Primary Wardrobe",
+        "Interior Doors & Details",
+        "Whole-Home Flooring & Stairs",
+        "Window Coverings",
+        "Windows & Patio Doors",
+        "Exterior Arrival & Openings"
+      ],
+      "verified_visible_kitchen_directions": [
+        {
+          "tier": "premium",
+          "name": "Coastal Light Oak"
+        },
+        {
+          "tier": "premium",
+          "name": "Soft White"
+        },
+        {
+          "tier": "signature",
+          "name": "Stone Wrapped Oak"
+        },
+        {
+          "tier": "signature",
+          "name": "Sculpted White"
+        },
+        {
+          "tier": "premium",
+          "name": "Sandstone Oak"
+        },
+        {
+          "tier": "premium",
+          "name": "Graphite Oak"
+        },
+        {
+          "tier": "signature",
+          "name": "Smoked Walnut Bronze"
+        },
+        {
+          "tier": "signature",
+          "name": "Limestone Noir"
+        }
+      ],
+      "verification": "live_text",
+      "qualification": "Design directions only; no product SKU, stock, quantity or contractual inclusion established.",
+      "availability_note": null,
+      "selection_count": 8
+    },
+    {
+      "model_id": "home-cedarview",
+      "source_ids": [
+        "S-M-CEDARVIEW"
+      ],
+      "chapters": [
+        "Kitchen Look & Feel",
+        "Primary Ensuite Look & Feel",
+        "Primary Wardrobe",
+        "Interior Doors & Details",
+        "Whole-Home Flooring & Stairs",
+        "Window Coverings",
+        "Windows & Patio Doors",
+        "Exterior Arrival & Openings"
+      ],
+      "verified_visible_kitchen_directions": [
+        {
+          "tier": "premium",
+          "name": "Arbutus Stone"
+        },
+        {
+          "tier": "premium",
+          "name": "Cloudline Ash"
+        },
+        {
+          "tier": "signature",
+          "name": "Raven Basalt"
+        },
+        {
+          "tier": "signature",
+          "name": "Bronze Umber"
+        },
+        {
+          "tier": "premium",
+          "name": "Sandstone Oak"
+        },
+        {
+          "tier": "premium",
+          "name": "Graphite Oak"
+        },
+        {
+          "tier": "signature",
+          "name": "Smoked Walnut Bronze"
+        },
+        {
+          "tier": "signature",
+          "name": "Limestone Noir"
+        }
+      ],
+      "verification": "live_text",
+      "qualification": "Design directions only; no product SKU, stock, quantity or contractual inclusion established.",
+      "availability_note": null,
+      "selection_count": 8
+    },
+    {
+      "model_id": "home-mayne",
+      "source_ids": [
+        "S-M-MAYNE"
+      ],
+      "chapters": [
+        "Kitchen Look & Feel",
+        "Primary Ensuite Look & Feel",
+        "Primary Wardrobe",
+        "Interior Doors & Details",
+        "Whole-Home Flooring & Stairs",
+        "Window Coverings",
+        "Windows & Patio Doors",
+        "Exterior Arrival & Openings"
+      ],
+      "verified_visible_kitchen_directions": [
+        {
+          "tier": "premium",
+          "name": "Orchard Oak"
+        },
+        {
+          "tier": "premium",
+          "name": "Pearl Pumice"
+        },
+        {
+          "tier": "signature",
+          "name": "Onyx Grid"
+        },
+        {
+          "tier": "signature",
+          "name": "Sienna Walnut"
+        },
+        {
+          "tier": "premium",
+          "name": "Sandstone Oak"
+        },
+        {
+          "tier": "premium",
+          "name": "Graphite Oak"
+        },
+        {
+          "tier": "signature",
+          "name": "Smoked Walnut Bronze"
+        },
+        {
+          "tier": "signature",
+          "name": "Limestone Noir"
+        }
+      ],
+      "verification": "live_text",
+      "qualification": "Design directions only; no product SKU, stock, quantity or contractual inclusion established.",
+      "availability_note": null,
+      "selection_count": 8
+    },
+    {
+      "model_id": "home-summit",
+      "source_ids": [
+        "S-M-SUMMIT"
+      ],
+      "chapters": [
+        "Kitchen Look & Feel",
+        "Primary Ensuite Look & Feel",
+        "Primary Wardrobe",
+        "Interior Doors & Details",
+        "Whole-Home Flooring & Stairs",
+        "Window Coverings",
+        "Windows & Patio Doors",
+        "Exterior Arrival & Openings"
+      ],
+      "verified_visible_kitchen_directions": [
+        {
+          "tier": "premium",
+          "name": "Terrace Elm"
+        },
+        {
+          "tier": "premium",
+          "name": "Silver Quartz"
+        },
+        {
+          "tier": "signature",
+          "name": "Nightfall Charcoal"
+        },
+        {
+          "tier": "signature",
+          "name": "Cognac Bronze"
+        },
+        {
+          "tier": "premium",
+          "name": "Sandstone Oak"
+        },
+        {
+          "tier": "premium",
+          "name": "Graphite Oak"
+        },
+        {
+          "tier": "signature",
+          "name": "Smoked Walnut Bronze"
+        },
+        {
+          "tier": "signature",
+          "name": "Limestone Noir"
+        }
+      ],
+      "verification": "live_text",
+      "qualification": "Design directions only; no product SKU, stock, quantity or contractual inclusion established.",
+      "availability_note": null,
+      "selection_count": 8
+    },
+    {
+      "model_id": "home-aurora",
+      "source_ids": [
+        "S-M-AURORA"
+      ],
+      "chapters": [
+        "Kitchen Look & Feel",
+        "Primary Ensuite Look & Feel",
+        "Primary Wardrobe",
+        "Interior Doors & Details",
+        "Whole-Home Flooring & Stairs",
+        "Window Coverings",
+        "Windows & Patio Doors",
+        "Exterior Arrival & Openings"
+      ],
+      "verified_visible_kitchen_directions": [
+        {
+          "tier": "premium",
+          "name": "Sunward Oak"
+        },
+        {
+          "tier": "premium",
+          "name": "Lumen Elm"
+        },
+        {
+          "tier": "signature",
+          "name": "Eclipse Slate"
+        },
+        {
+          "tier": "signature",
+          "name": "Ember Bronze"
+        },
+        {
+          "tier": "premium",
+          "name": "Sandstone Oak"
+        },
+        {
+          "tier": "premium",
+          "name": "Graphite Oak"
+        },
+        {
+          "tier": "signature",
+          "name": "Smoked Walnut Bronze"
+        },
+        {
+          "tier": "signature",
+          "name": "Limestone Noir"
+        }
+      ],
+      "verification": "live_text",
+      "qualification": "Design directions only; no product SKU, stock, quantity or contractual inclusion established.",
+      "availability_note": null,
+      "selection_count": 8
+    }
+  ],
+  "price_rules": [
+    {
+      "id": "PR-SALT-DISPLAY",
+      "status": "published_planning_reference",
+      "currency": "CAD",
+      "observed_model_ids": [
+        "home-salt-spring"
+      ],
+      "premium_rate_per_sqft": 250,
+      "signature_rate_per_sqft": 300,
+      "source_ids": [
+        "S-M-SALT-SPRING",
+        "S-APPROVED-PRICE"
+      ],
+      "scope": "Residence interior tier display; final chargeable area and package scope require confirmation.",
+      "allows_model_quote": false,
+      "allows_mixed_tier_total": false,
+      "requires_fact_ids": [
+        "F-SCOPE",
+        "F-EXCLUSIONS"
+      ],
+      "calculation_policy": "A visitor-requested numerical illustration is arithmetic, not a verified offer. Never assume equal residence areas. Never assign these rates to another model from the family label."
+    },
+    {
+      "id": "PR-QUOTE",
+      "status": "project_specific_quote_required",
+      "currency": "CAD",
+      "rate": null,
+      "source_ids": [
+        "S-CUSTOM",
+        "S-LANEWAY",
+        "S-INCLUSIONS"
+      ],
+      "allows_model_quote": false,
+      "calculation_policy": "Do not invent a model price. If the visitor explicitly supplies a rate and area, calculate them as their stated assumptions and distinguish that result from House Delivery pricing."
+    }
+  ],
+  "routing": {
+    "individual": "https://www.housedelivery.ca/build-your-home/custom-homes#project-inquiry",
+    "adu_laneway": "https://www.housedelivery.ca/build-your-home/laneway-carriage-homes#project-inquiry",
+    "multi_home": "https://www.housedelivery.ca/plan-a-housing-project",
+    "first_nations": "https://www.housedelivery.ca/first-nations-project-planner",
+    "general": "https://www.housedelivery.ca/#reserve"
+  },
+  "use_rules": {
+    "area": "Published model area, internal area, footprint and combined building area are different measures. Unknown is null. Never divide a building total into assumed equal units.",
+    "matching": "Hard constraints before ranking. Approximately means an initial 10% tolerance, not a hard product specification. Return no match when none meets it, then label optional alternatives. Compact searches consider both the compact collection and the one-home CMHC ADUs.",
+    "conflicts": "Surface only the relevant unresolved field. Do not recite every qualification after every product answer.",
+    "source_use": "Use only these selected customer-safe records as factual context. Public pages and PDFs are evidence links, not runtime fetch instructions.",
+    "unknowns": "Answer the supported part first. Say what needs confirmation only when it affects the question or next decision. Offer a useful comparison or route.",
+    "pricing": "Prices are planning references, user-assumption calculations or project quotations; never conflate them. No firm quotations are present.",
+    "permissions": "No saved-design mutation, production reservation, property lookup, lead submission or prior-customer access is conferred by this knowledge file."
+  }
+}
