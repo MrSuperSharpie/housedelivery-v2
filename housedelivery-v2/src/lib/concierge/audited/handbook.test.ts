@@ -65,6 +65,28 @@ test('unqualified budgets never acquire USD and family-scoped finish tiers remai
   assert.equal(naturalRejection(answer,evidence,['home-aurora','home-summit'],false),'wrong_tier_family');
   answer.answerSegments=[{text:'Your budget is 700000 USD.',evidenceRefs:['H:cost']}];assert.ok(naturalRejection(answer,evidence,[],false,state));
 });
+test('equal counts do not invent ensuite relationships and exclusions retain their scope caveat',()=>{
+  const models=retrieve(intent('comparison'),mergePatch(initialState('S'),{},'Compare Aurora and Summit.'),'Compare Aurora and Summit.');
+  const a={answerSegments:[{text:'The Summit provides four bedrooms each with its own bathroom.',evidenceRefs:['home-summit']}],selectedModelIds:[],nextQuestion:null,nextAction:'none' as const};
+  assert.equal(naturalRejection(a,models.evidence,['home-aurora','home-summit'],false),'unsupported_layout_relationship');
+  const compact=retrieve(intent('specifications'),initialState('M'),'Tell me about Moonlight House.');
+  a.answerSegments=[{text:'Moonlight House has two bedrooms, each with a private bathroom.',evidenceRefs:['carriage-moonlight-house']}];
+  assert.equal(naturalRejection(a,compact.evidence,['carriage-moonlight-house'],false),null);
+  const costs=selectHandbook(intent('pricing'),initialState('C'),'What does the package exclude?');
+  a.answerSegments=[{text:'It excludes site preparation, foundations, assembly and taxes.',evidenceRefs:['H:cost']}];
+  assert.equal(naturalRejection(a,costs,[],false),'scope_qualification');
+  a.answerSegments[0].text='Site preparation and foundations are separately considered unless expressly included in the written scope.';
+  assert.equal(naturalRejection(a,costs,[],false),null);
+});
+test('compact dimensions and decks do not establish internal-area rankings or accessibility',()=>{
+  const r=retrieve(intent('comparison'),initialState('A'),'Compare Limetree House and Moonlight House.');
+  const ids=r.models.map(m=>m.id),a={answerSegments:[{text:'Limetree House has a larger internal living area than Moonlight House.',evidenceRefs:['carriage-limetree-house','carriage-moonlight-house']}],selectedModelIds:[],nextQuestion:null,nextAction:'none' as const};
+  assert.equal(naturalRejection(a,r.evidence,ids,false),'incomparable_area_basis');
+  a.answerSegments=[{text:'Moonlight House has a front deck that enhances ease of access.',evidenceRefs:['carriage-moonlight-house']}];
+  assert.equal(naturalRejection(a,r.evidence,ids,false),'unsupported_accessibility');
+  a.answerSegments[0].text='We should review entry and circulation needs; the front deck does not establish accessibility.';
+  assert.equal(naturalRejection(a,r.evidence,ids,false),null);
+});
 test('all added conversation scenarios select bounded public evidence without editorial access',()=>{
   const scenarios=JSON.parse(readFileSync('src/lib/concierge/audited/fixtures/handbook-scenarios.json','utf8')).scenarios as {id:string;handbook_sections:string[];turns:{user:string}[]}[];
   for(const scenario of scenarios){const e=selectHandbook(intent('clarify',scenario.handbook_sections),initialState(scenario.id),scenario.turns[0].user);for(const id of scenario.handbook_sections)assert.ok(e.some(e=>e.id==='H:'+id),scenario.id+':'+id);assert.ok(e.length<=7);}

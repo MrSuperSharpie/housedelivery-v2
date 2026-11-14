@@ -85,7 +85,11 @@ identified one incorrect expected soft-target shortlist and one real rental-home
 quantity parser gap. Both were corrected; the focused audit suite passes. Live review additionally caught an unsupported Essential
 tier recommendation for custom homes and an inferred USD budget. Shared family-tier
 and currency guards now reject these; currency extraction requires an explicit
-currency statement. The corrected focused suite contains 24 passing tests.
+currency statement. Further live review found unsupported ensuite, internal-area and access inferences,
+and missing scope qualifications. Final shared guards block these without adding
+new facts. The final focused checks cover 26 tests. The last mixed-topic turn hit
+429 again; live testing stopped, so those final guards are not live-retested.
+See `concierge-knowledge-expansion-review.md` for actual before/after excerpts and limits.
 TypeScript, changed-file lint and a production build are checked. Repository lint
 retains the pre-existing planner set-state-in-effect error and unused type warning;
 those unrelated files are unchanged.
