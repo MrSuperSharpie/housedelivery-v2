@@ -19,7 +19,7 @@ export function validateNatural(answer:NaturalAnswer,evidence:Evidence[],allowed
   const ids=new Set(evidence.map(e=>e.id));
   if(answer.answerSegments.length>4||answer.selectedModelIds.some(id=>!allowedModels.includes(id)))return false;
   for(const seg of answer.answerSegments){if(!validText(seg.text)||seg.evidenceRefs.some(id=>!ids.has(id))||!numericSupport(seg.text,evidence.filter(e=>seg.evidenceRefs.includes(e.id)),state))return false;
-    if(/\b(?:conditioned|internal|living)\s+(?:floor\s+|living\s+)?(?:area|space)\b/i.test(seg.text)&&!/\b(?:not|unconfirmed|unknown|unverified)\b|needs? confirmation/i.test(seg.text)&&seg.evidenceRefs.some(id=>{const m=modelIndex.get(id);return m?.area_basis==='published_model_area_conditioned_basis_not_confirmed'}))return false;
+    if(/\bconditioned\b|\b(?:internal|living|chargeable)\s+(?:floor\s+)?(?:area|space)\b/i.test(seg.text)&&evidence.some(e=>modelIndex.get(e.id)?.area_basis==='published_model_area_conditioned_basis_not_confirmed'))return false;
     // Commercial numbers and authorizations use server-controlled rendering.
     if(/\$|\bCAD\b|\b(?:firm quote|reserved for you|has been sent|submitted your|funding is approved|guaranteed permit)\b/i.test(seg.text))return false;
   }
