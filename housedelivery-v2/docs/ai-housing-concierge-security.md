@@ -47,6 +47,6 @@ The lightweight site-wide launcher loads the panel only when opened. It measures
 
 ## Configuration and rollback
 
-Only this branch's Preview has `CONCIERGE_ENABLED=true`, `AI_GATEWAY_MODEL` and a new secret `CONCIERGE_REQUEST_SECRET`. Existing Preview Resend configuration is reused by the lead route. No production environment variable is changed. Local verification uses short-lived project OIDC, never a committed `.env` or provider key.
+Only this branch's Preview has `CONCIERGE_ENABLED=true`, `AI_GATEWAY_MODEL` and a new secret `CONCIERGE_REQUEST_SECRET`. Existing Preview Resend configuration is reused by the lead route. No production environment variable is changed. Deployed readiness uses Vercel’s trusted request-context OIDC helper, matching the Gateway SDK; it does not assume deployed tokens are environment variables. Local verification uses short-lived project OIDC, never a committed `.env` or provider key.
 
 Rollback: disable `CONCIERGE_ENABLED` for this branch and create a new Preview, or revert the Concierge implementation commit. The merge bringing the branch onto current production may remain. Existing website functionality does not depend on the Concierge; existing project-review forms remain available. Do not promote or change live aliases without Edgar's explicit approval.

@@ -1,9 +1,9 @@
-import {planAnswer} from '@/lib/concierge/model';
+import {planAnswer,hasGatewayAuthentication} from '@/lib/concierge/model';
 import {parseChat,renderPlan,restrictedQuestion,restrictedReply} from '@/lib/concierge/knowledge';
 import {anonymousKey,checkOrigin,ConciergeRequestError,conciergeEnabled,createLimiter,issueToken,json,readBody,verifyToken} from '@/lib/concierge/security';
 export const runtime='nodejs';export const maxDuration=30;
 const sessions=createLimiter(20),requests=createLimiter(30),turns=createLimiter(16);let inFlight=0;
-function ready(){return conciergeEnabled()&&Boolean(process.env.CONCIERGE_REQUEST_SECRET&&process.env.AI_GATEWAY_MODEL&&(process.env.AI_GATEWAY_API_KEY||process.env.VERCEL_OIDC_TOKEN))}
+function ready(){return conciergeEnabled()&&Boolean(process.env.CONCIERGE_REQUEST_SECRET&&process.env.AI_GATEWAY_MODEL&&hasGatewayAuthentication())}
 export async function GET(request:Request){if(!ready())return json({available:false},503);const secret=process.env.CONCIERGE_REQUEST_SECRET!;if(!sessions(anonymousKey(request,secret)))return json({error:'Please wait before starting another conversation.'},429);return json({available:true,token:issueToken(secret,'chat')})}
 export async function POST(request:Request){
   try{
