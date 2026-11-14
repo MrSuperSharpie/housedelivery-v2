@@ -40,8 +40,8 @@ test('metric conversion and internal-area matching keep distinct bases',()=>{
   assert.deepEqual(shortlist({family:'compact',units:1,bedrooms:2,maxSqft:600,areaBasis:'internal'}).matches.map(m=>m.id),['carriage-limetree-house']);
 });
 test('latest corrections and ordinary shorthand preserve a hard maximum',()=>{
-  let s=mergePatch(initialState('session'),{},'4br around 2.5k square feet, maximum 2500 sf');assert.equal(stateValue(s,'bedrooms'),4);assert.equal(stateValue(s,'areaMax')?.sqft,2500);
-  s=mergePatch(s,{},'Actually five bed, still close to that size.');assert.equal(stateValue(s,'bedrooms'),5);assert.equal(stateValue(s,'areaMax')?.sqft,2500);
+  let s=mergePatch(initialState('session'),{selectedModel:'home-aurora'},'4br around 2.5k square feet, maximum 2500 sf');assert.equal(stateValue(s,'bedrooms'),4);assert.equal(stateValue(s,'areaMax')?.sqft,2500);
+  s=mergePatch(s,{},'Actually five bed, still close to that size.');assert.equal(stateValue(s,'bedrooms'),5);assert.equal(stateValue(s,'areaMax')?.sqft,2500);assert.equal(stateValue(s,'selectedModel'),undefined);
   s=mergePatch(s,{},'Correction, it is Calgary, not Vancouver.');assert.equal(stateValue(s,'province'),'Alberta');assert.equal(shortlist(constraints(s)).matches.length,0);
 });
 test('signed state is version/session/expiry bound and cannot be forged',()=>{

@@ -1,6 +1,6 @@
 import {createHmac,timingSafeEqual} from 'node:crypto';
 import {knowledgeVersion,modelIndex} from './registry';
-import {toSqft,type MatchConstraints} from './matching';
+import {toSqft,shortlist,type MatchConstraints} from './matching';
 export type Area={value:number;unit:'sf'|'m2';sqft:number;basis:'published'|'internal'|'footprint'|'chargeable'|'unknown'};
 export type Preferences={audience:string;role:string;location:string;province:string;land:string;builder:boolean;family:'architectural'|'compact'|'cmhc_catalogue';homes:number;phasing:string;unitsPerBuilding:number;bedrooms:number;bedroomMode:'exact'|'minimum';bedroomBasis:'per_home'|'per_unit';bathroomsMin:number;storeys:number;study:boolean;accessibility:boolean;areaTarget:Area;areaMax:Area;areaMin:Area;selectedModel:string;comparedModels:string[];finish:string;budgetAmount:number;budgetCurrency:string;budgetScope:string;targetDate:string;funding:string;declinedContact:boolean;declinedQuestions:string[];requestedAction:string;avoidLarger:boolean};
 export type Patch=Partial<Preferences>;
@@ -52,7 +52,11 @@ export function mergePatch(s:State,patch:Patch,q:string){
   const combined={...patch,...deterministicPatch(q,s)},turn=s.turn+1,values={...s.values};
   for(const [key,value]of Object.entries(combined))if(value!==null&&value!==undefined)(values as Record<string,unknown>)[key]={value,sourceTurn:turn,status:'visitor_reported'};
   if(/please tell.*approved funding/i.test(q)&&/not approved|pending/.test(stateValue(s,'funding')??''))values.funding=s.values.funding;
-  return {...s,values,turn};
+  const next:State={...s,values,turn};
+  const requirementsChanged=['family','unitsPerBuilding','bedrooms','bedroomMode','bedroomBasis','bathroomsMin','storeys','study','areaTarget','areaMax','areaMin'].some(k=>Object.hasOwn(combined,k));
+  const selected=stateValue(next,'selectedModel');
+  if(requirementsChanged&&selected&&!namedModels(q).length&&!shortlist(constraints(next),[modelIndex.get(selected)!]).matches.length){delete values.selectedModel;next.recommended=[];}
+  return next;
 }
 export function constraints(s:State):MatchConstraints{
   const v=<K extends keyof Preferences>(key:K)=>stateValue(s,key),family=v('family')??'architectural',basis=v('areaMax')?.basis??v('areaTarget')?.basis??'published';
