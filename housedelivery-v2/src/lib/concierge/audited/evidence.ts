@@ -1,5 +1,5 @@
 import {knowledge,modelIndex,factIndex,publicModel,safeLink,type Model} from './registry';
-import {shortlist} from './matching';
+import {shortlist,compactInventoryRequested} from './matching';
 import {constraints,stateValue,namedModels,type State} from './state';
 import type {Intent} from './intent';
 export type Evidence={id:string;data:unknown;sourceIds:string[]};
@@ -7,7 +7,8 @@ const topicFacts:Record<Intent['topic'],string[]>={company:['F-COMPANY','F-MARKE
 export function retrieve(intent:Intent,state:State,question:string){
   const match=shortlist(constraints(state),/known (size|area)|published (size|area)|known floor area/i.test(question)?knowledge.models.filter(m=>m.numeric_area_matching_allowed&&m.area_sqft!==null):knowledge.models),ids=namedModels(question);
   let models:Model[]=[];
-  if(ids.length)models=ids.map(id=>modelIndex.get(id)!);
+  if(compactInventoryRequested(question))models=knowledge.models.filter(m=>m.family==='laneway_carriage'||m.family==='cmhc_catalogue'&&m.units===1);
+  else if(ids.length)models=ids.map(id=>modelIndex.get(id)!);
   else if(intent.topic==='matching')models=match.matches;
   else if(stateValue(state,'selectedModel'))models=[modelIndex.get(stateValue(state,'selectedModel')!)!];
   else if(state.recommended.length&&['specifications','comparison','customization','arithmetic'].includes(intent.topic))models=state.recommended.map(id=>modelIndex.get(id)!).filter(Boolean);

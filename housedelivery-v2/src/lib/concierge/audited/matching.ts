@@ -22,3 +22,5 @@ export function shortlist(c:MatchConstraints,models:Model[]=knowledge.models,tol
   return {matches:ranked.filter(r=>c.targetSqft===undefined||r.distance<=c.targetSqft*tolerance).slice(0,limit).map(r=>r.model),outsideTargetAlternatives:ranked.filter(r=>c.targetSqft!==undefined&&r.distance>c.targetSqft*tolerance).slice(0,limit).map(r=>r.model),areaBasis:c.areaBasis,tolerance};
 }
 export function illustrativeTotal(area:number,rate:number){if(!Number.isFinite(area)||!Number.isFinite(rate)||area<=0||rate<=0)throw Error('Invalid arithmetic');return Math.round(area*rate*100)/100}
+
+export function compactInventoryRequested(q:string){return /(?:what|which).*(?:laneway|carriage|compact).*(?:offer|available|designs)|(?:what|which).*(?:designs|homes).*(?:offer|available).*(?:laneway|carriage)/i.test(q)}
