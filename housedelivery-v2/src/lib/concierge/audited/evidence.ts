@@ -3,6 +3,7 @@ import {shortlist} from './matching';
 import {constraints,stateValue,namedModels,type State} from './state';
 import type {Intent} from './intent';
 export type Evidence={id:string;data:unknown;sourceIds:string[]};
+const topicFacts:Record<Intent['topic'],string[]>={company:['F-COMPANY','F-MARKETS','F-START'],matching:['F-CUSTOMIZATION'],specifications:[],comparison:[],customization:['F-CUSTOMIZATION','F-STUDIO','F-INCLUSIONS','F-ESSENTIAL'],pricing:['F-PRICE','F-SCOPE','F-EXCLUSIONS'],arithmetic:['F-PRICE','F-SCOPE','F-EXCLUSIONS'],process:['F-PROCESS','F-PARALLEL','F-TIMING'],scope:['F-SCOPE','F-EXCLUSIONS','F-APPLIANCES'],property:['F-PROPERTY','F-START'],community:['F-NATIONS','F-PARTICIPATION','F-PORTFOLIO','F-FUNDING'],builder:['F-BUILDER','F-SCOPE','F-PROCESS'],origin:['F-ORIGIN','F-SYSTEMS'],warranty:['F-WARRANTY'],terms:['F-CMHC','F-CMHC-INDEPENDENT','F-TECHNICAL'],contact:['F-CONTACT','F-PRIVACY','F-START'],summary:['F-CONTACT','F-PRIVACY'],clarify:['F-START'],unrelated:['F-START']};
 export function retrieve(intent:Intent,state:State,question:string){
   const match=shortlist(constraints(state),/known (size|area)|published (size|area)|known floor area/i.test(question)?knowledge.models.filter(m=>m.numeric_area_matching_allowed&&m.area_sqft!==null):knowledge.models),ids=namedModels(question);
   let models:Model[]=[];
@@ -12,7 +13,9 @@ export function retrieve(intent:Intent,state:State,question:string){
   else if(state.recommended.length&&['specifications','comparison','customization','arithmetic'].includes(intent.topic))models=state.recommended.map(id=>modelIndex.get(id)!).filter(Boolean);
   else models=intent.modelIds.map(id=>modelIndex.get(id)!).filter(Boolean);
   if(/main.level|main.floor|ground.floor/i.test(question)&&models.length>1){const suited=models.filter(m=>m.features.some(f=>/main.level.*(suite|bedroom)|main.floor.*suite|ground.floor.*(bedroom|suite)/i.test(f)));if(suited.length)models=suited;}
-  const requestedFacts=[...new Set(intent.factIds)];
+  const requestedFacts=[...new Set([...topicFacts[intent.topic],...intent.factIds])];
+  if(/show.?home|rendering|gallery|completed.*project/i.test(question))requestedFacts.push('F-IMAGES','F-CONTACT');
+  if(/good value|savings|better value/i.test(question))requestedFacts.push('F-COMPANY','F-PARALLEL','F-SYSTEMS');
   if(models.some(m=>m.family==='cmhc_catalogue'))requestedFacts.push('F-CMHC');
   if(intent.topic==='pricing'||intent.topic==='arithmetic')requestedFacts.push('F-PRICE','F-SCOPE','F-EXCLUSIONS');
   if(intent.topic==='origin')requestedFacts.push('F-ORIGIN');
@@ -29,4 +32,4 @@ export function modelLine(m:Model){
   const schedule=m.units>1&&m.unit_schedule?`; ${m.units} dwellings — ${m.unit_schedule.map(u=>`${u.bedrooms}-bed/${u.bathrooms}-bath`).join(', ')}`:'';
   return `${m.name}: ${area}; ${beds}${bath}${schedule}.`;
 }
-export function modelLink(m:Model,kind:'model'|'studio'|'lookbook'|'floorplan'='model'){const href=kind==='floorplan'&&m.floor_plan_url?m.floor_plan_url:m.url;return safeLink(href)+(kind==='studio'||kind==='lookbook'?'#home-inclusions':'')}
+export function modelLink(m:Model,kind:'model'|'studio'|'lookbook'|'floorplan'='model'){const href=kind==='floorplan'&&m.floor_plan_url?m.floor_plan_url:m.url;return safeLink(href)+(m.family==='architectural'?(kind==='studio'||kind==='lookbook'?'#home-inclusions':kind==='floorplan'?'#plans':''):'')}

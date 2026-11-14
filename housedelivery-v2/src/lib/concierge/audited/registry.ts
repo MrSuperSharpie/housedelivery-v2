@@ -22,7 +22,7 @@ export function validateKnowledge(value:unknown):asserts value is Knowledge{
   for(const s of k.sources)if(s.url){safeLink(s.url);if(!approvedUrls.has(s.url))throw Error('Unapproved evidence URL')}
   for(const f of k.facts)refs(f.source_ids);
   for(const m of k.models){
-    if(!['architectural','laneway_carriage','cmhc_catalogue'].includes(m.family)||!['combined_two_residences','not_verified','published_metric_home_area_basis_to_confirm','published_model_area_conditioned_basis_not_confirmed','website_labelled_total_building_area_basis_to_confirm'].includes(m.area_basis)||!['combined_building','per_unit','single_home','unit_mix_not_single_number'].includes(m.bedrooms_basis)||!Number.isInteger(m.units)||m.units<1||!rules.has(m.price_rule))throw Error('Invalid model scope');refs(m.source_ids);safeLink(m.url);if(!approvedUrls.has(m.url)||m.floor_plan_url&&!approvedUrls.has(m.floor_plan_url))throw Error('Unapproved model URL');if(m.floor_plan_url)safeLink(m.floor_plan_url);
+    if(!['architectural','laneway_carriage','cmhc_catalogue'].includes(m.family)||!['combined_two_residences','not_verified','published_metric_home_area_basis_to_confirm','published_model_area_conditioned_basis_not_confirmed','website_labelled_total_building_area_basis_to_confirm'].includes(m.area_basis)||!['combined_building','per_unit','single_home','unit_mix_not_single_number'].includes(m.bedrooms_basis)||!['combined_building','per_home','per_unit','not_verified'].includes(m.bathrooms_basis)||!Number.isInteger(m.units)||m.units<1||!rules.has(m.price_rule))throw Error('Invalid model scope');refs(m.source_ids);safeLink(m.url);if(!approvedUrls.has(m.url)||m.floor_plan_url&&!approvedUrls.has(m.floor_plan_url))throw Error('Unapproved model URL');if(m.floor_plan_url)safeLink(m.floor_plan_url);
     for(const v of Object.values(m.field_sources))if(v.length)refs(v);
     for(const field of ['area_sqft','units','bedrooms','bathrooms','storeys','features','footprint','published_system'] as const){if(m[field]!==null&&(!m.field_sources[field]?.length))throw Error('Missing field provenance')}
     for(const field of ['area_sqft','bedrooms','bathrooms','storeys'] as const)if(m[field]!==null&&(!Number.isFinite(m[field])||m[field]!<=0||m.field_status[field]==='unknown'))throw Error('Invalid asserted model value');
@@ -31,6 +31,8 @@ export function validateKnowledge(value:unknown):asserts value is Knowledge{
     for(const unit of m.unit_schedule??[])refs(unit.source_ids);
   }
   for(const s of k.design_studios){if(!models.has(s.model_id))throw Error('Unknown Studio model');refs(s.source_ids)}
+  const facts=new Set(k.facts.map(f=>f.id));
+  for(const rule of k.price_rules){refs(rule.source_ids as string[]);if(rule.allows_model_quote!==false||(rule.observed_model_ids as string[]|undefined)?.some(id=>!models.has(id))||(rule.requires_fact_ids as string[]|undefined)?.some(id=>!facts.has(id)))throw Error('Invalid price-rule authority or reference')}
   for(const url of Object.values(k.routing))safeLink(url);
   const text=JSON.stringify(k);if(/PRIVATE_[A-Z_]*CANARY|service_role|api[_-]?key|raw_html|<[a-z][^>]*>|\.jpe?g|\.webp|\.png|landed_cost|supplier_id|manufacturer_id/i.test(text))throw Error('Disallowed knowledge field or content');
   if(k.models.find(m=>m.id==='catalog-sixplex-courtyard')?.numeric_area_matching_allowed!==false||k.models.find(m=>m.id==='catalog-bc-duplex')?.storeys!==null)throw Error('Unresolved field restriction lost');

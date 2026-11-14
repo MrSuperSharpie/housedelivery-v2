@@ -4,10 +4,10 @@ import {toSqft,type MatchConstraints} from './matching';
 export type Area={value:number;unit:'sf'|'m2';sqft:number;basis:'published'|'internal'|'footprint'|'chargeable'|'unknown'};
 export type Preferences={audience:string;role:string;location:string;province:string;land:string;builder:boolean;family:'architectural'|'compact'|'cmhc_catalogue';homes:number;phasing:string;unitsPerBuilding:number;bedrooms:number;bedroomMode:'exact'|'minimum';bedroomBasis:'per_home'|'per_unit';bathroomsMin:number;storeys:number;study:boolean;accessibility:boolean;areaTarget:Area;areaMax:Area;areaMin:Area;selectedModel:string;comparedModels:string[];finish:string;budgetAmount:number;budgetCurrency:string;budgetScope:string;targetDate:string;funding:string;declinedContact:boolean;declinedQuestions:string[];requestedAction:string;avoidLarger:boolean};
 export type Patch=Partial<Preferences>;
-export type State={version:string;session:string;expires:number;turn:number;values:{[K in keyof Preferences]?:{value:Preferences[K];sourceTurn:number;status:'visitor_reported'}};recommended:string[];scopeExplained:boolean;lastQuestion:string;lastArithmetic:{area:number;rate:number}|null};
+export type State={version:string;session:string;expires:number;turn:number;values:{[K in keyof Preferences]?:{value:Preferences[K];sourceTurn:number;status:'visitor_reported'}};recommended:string[];scopeExplained:boolean;lastQuestion:string;lastArithmetic:{area:number;rate:number}|null;lastTopic?:string;lastEvidenceRefs?:string[]};
 export function initialState(session:string,now=Date.now()):State{return{version:knowledgeVersion,session,expires:now+3600_000,turn:0,values:{},recommended:[],scopeExplained:false,lastQuestion:'',lastArithmetic:null}}
 export function stateValue<K extends keyof Preferences>(s:State,key:K):Preferences[K]|undefined{return s.values[key]?.value}
-export function conversationContext(s:State){return{turn:s.turn,values:s.values,recommended:s.recommended,scopeExplained:s.scopeExplained,lastQuestion:s.lastQuestion,lastArithmetic:s.lastArithmetic}}
+export function conversationContext(s:State){return{turn:s.turn,values:s.values,recommended:s.recommended,scopeExplained:s.scopeExplained,lastQuestion:s.lastQuestion,lastArithmetic:s.lastArithmetic,lastTopic:s.lastTopic,lastEvidenceRefs:s.lastEvidenceRefs}}
 export function signState(s:State,secret:string){const payload=Buffer.from(JSON.stringify(s)).toString('base64url');return payload+'.'+createHmac('sha256',secret).update('hd-concierge-state:'+payload).digest('hex')}
 export function readState(raw:unknown,session:string,secret:string,now=Date.now()):State{
   if(raw===undefined||raw==='')return initialState(session,now);
@@ -23,7 +23,7 @@ export function deterministicPatch(q:string,s:State):Patch{
   const bath=q.match(/\b(one|two|three|four|five|\d+(?:\.\d+)?)[ -]?(?:bathrooms?|baths?)\b/i);if(bath)p.bathroomsMin=num(bath[1]);
   if(/no stairs|single.storey|one.storey/i.test(q))p.storeys=1;
   const storey=q.match(/\b(two|three|\d)[ -]storey/i);if(storey)p.storeys=num(storey[1]);
-  if(/\bADU\b|laneway|carriage|backyard/i.test(q))p.family='compact';
+  if(/\bADU\b|laneway|carriage|backyard|\bsmall (?:home|one.bed|two.bed)|\bcompact (?:home|housing)/i.test(q))p.family='compact';
   if(/detached|not a duplex|myself|my family|our family/i.test(q)){p.family='architectural';p.unitsPerBuilding=1;p.bedroomBasis='per_home'}
   if(/fourplex|sixplex|rowhouse|BC Duplex/i.test(q))p.family='cmhc_catalogue';
   if(/fourplex|four (family )?rentals/i.test(q)){p.family='cmhc_catalogue';p.unitsPerBuilding=4;p.bedroomBasis='per_unit'}
@@ -37,8 +37,9 @@ export function deterministicPatch(q:string,s:State):Patch{
   if(/stop suggesting big|not.*larger|keep the size firm/i.test(q))p.avoidLarger=true;
   if(/funding is not approved|funding.*pending|not.*approved.*funding/i.test(q))p.funding='not approved — visitor report';
   const area=[...q.matchAll(/\b([\d,]+(?:\.\d+)?)\s*(k)?\s*(?:square (feet|metres|meters)|sq\.?\s*(ft|m)|sf\b|m²)/gi)].at(-1);
-  if(area){const value=num(area[1])*(area[2]?1000:1),unit=/met|m²|sq\.?\s*m/i.test(area[0])?'m2':'sf',basis=/internal|living area/i.test(q)?'internal':'published';const a:Area={value,unit,sqft:toSqft(value,unit),basis};if(/maximum|\bmax\b|ceiling|no more than|at most|under/i.test(q))p.areaMax=a;else if(/minimum|at least.*(?:feet|sf|m²)/i.test(q))p.areaMin=a;else p.areaTarget=a;}
+  if(area){const value=num(area[1])*(area[2]?1000:1),unit=/met|m²|sq\.?\s*m/i.test(area[0])?'m2':'sf',basis=/internal|living area/i.test(q)?'internal':/footprint/i.test(q)?'footprint':/chargeable/i.test(q)?'chargeable':'published';const a:Area={value,unit,sqft:toSqft(value,unit),basis};if(/maximum|\bmax\b|ceiling|no more than|at most|under/i.test(q))p.areaMax=a;else if(/minimum|at least.*(?:feet|sf|m²)/i.test(q))p.areaMin=a;else p.areaTarget=a;}
   if(/keep (?:the )?size firm|hard (?:size|ceiling|limit)/i.test(q)&&!p.areaMax&&stateValue(s,'areaTarget'))p.areaMax=stateValue(s,'areaTarget');
+  if(!p.family&&!stateValue(s,'family')&&(p.areaTarget?.sqft??p.areaMax?.sqft??Infinity)<=1200&&(p.bedrooms??stateValue(s,'bedrooms')??9)<=2)p.family='compact';
   const ids=namedModels(q);if(ids.length===1)p.selectedModel=ids[0];if(ids.length>1)p.comparedModels=ids.slice(0,3);
   if(!ids.length&&/\b(that one|that home|that design|it)\b/i.test(q)){if(stateValue(s,'selectedModel'))p.selectedModel=stateValue(s,'selectedModel');else if(s.recommended.length===1)p.selectedModel=s.recommended[0];}
   if(!ids.length&&/\bfirst (one|design|home)\b/i.test(q)&&s.recommended[0])p.selectedModel=s.recommended[0];

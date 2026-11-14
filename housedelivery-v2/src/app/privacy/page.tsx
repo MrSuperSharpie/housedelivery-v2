@@ -125,7 +125,7 @@ export default function PrivacyPage() {
                   and understand which project information is useful.
                 </p>
                 <p className="mt-5 text-[9px] font-semibold uppercase tracking-[0.17em] text-black/38">
-                  Updated November 14, 2026
+                  Updated November 13, 2026
                 </p>
               </div>
             </div>

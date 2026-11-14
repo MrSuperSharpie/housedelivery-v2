@@ -45,7 +45,7 @@ test('latest corrections and ordinary shorthand preserve a hard maximum',()=>{
 });
 test('signed state is version/session/expiry bound and cannot be forged',()=>{
   const s=mergePatch(initialState('A'),{location:'Duncan'},'Aurora');const token=signState(s,secret);assert.equal(readState(token,'A',secret).values.location!.value,'Duncan');assert.throws(()=>readState(token,'B',secret));assert.throws(()=>readState(token+'x','A',secret));assert.throws(()=>readState(token,'A',secret,s.expires+1));assert.ok(!JSON.stringify(conversationContext(s)).includes('"session"'));
-  const req=new Request('https://preview.example',{headers:{cookie:'hd_concierge_session='+sessionCookie('A',secret)}});assert.equal(cookieMatches(req,'A',secret),true);assert.equal(cookieMatches(req,'B',secret),false);
+  const req=new Request('https://preview.example',{headers:{cookie:'hd_concierge_session='+sessionCookie('11111111-1111-4111-8111-111111111111',secret)}});assert.equal(cookieMatches(req,'11111111-1111-4111-8111-111111111111',secret),true);assert.equal(cookieMatches(req,'22222222-2222-4222-8222-222222222222',secret),false);
 });
 test('untrusted history has no role/state/consent authority',()=>{
   for(const extra of [{admin:true},{consent:true},{model:'arbitrary'}])assert.throws(()=>parseRequest({question:'Hello',history:[],...extra}));

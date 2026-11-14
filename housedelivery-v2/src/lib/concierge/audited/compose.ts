@@ -44,8 +44,11 @@ export async function answerQuestion(question:string,state:State,ctx:InferenceCo
   try{const extracted=await extractIntent(question,state,ctx);intent=extracted.intent;next=extracted.state}
   catch{fallback=true;next=mergePatch(state,{},question);intent={topic:/\$|price|rate|cost|budget/i.test(question)?'pricing':/bed|sq|sf|main.level/i.test(question)?'matching':'clarify',factIds:['F-START'],modelIds:[],questionKey:null,patch:{},arithmetic:null,detail:false,ambiguous:false}}
   const explicit=deterministicPatch(question,state);
+  if(/architect|change.*floor plan|add.*bedroom|change.*layout/i.test(question))intent.topic='customization';
+  const arithmeticRequested=/times|multiplied by|\bdivide\b|×|\d\s*[x*]\s*\$?\d|(?:at|use)\s*\$(?:250|300)\b/i.test(question);
+  if(arithmeticRequested)intent.topic='arithmetic';
   if(intent.topic!=='arithmetic'&&!/price|rate|\$|multipl|times|divide|per side|per residence/i.test(question)&&(!namedModels(question).length||/want|need|looking|closest|around|about|maximum/i.test(question))&&['bedrooms','areaTarget','areaMax','areaMin','bathroomsMin','storeys','study'].some(k=>Object.hasOwn(explicit,k)))intent.topic='matching';
-  if(/price|\brate\b|quotation|turnkey|shipping|freight|whole project cost|new approved|\$\d/i.test(question)&&intent.topic!=='arithmetic'&&intent.topic!=='warranty')intent.topic='pricing';
+  if(/price|\brate\b|quotation|turnkey|shipping|freight|whole project cost|new approved|\$\d/i.test(question)&&!arithmeticRequested&&intent.topic!=='warranty')intent.topic='pricing';
   const result=retrieve(intent,next,question),controlled=controlledAnswer(question,intent,next,result.models),declined=stateValue(next,'declinedContact')===true;
   const evidence=result.evidence.length?result.evidence:[{id:'F-START',data:factIndex.get('F-START')!,sourceIds:factIndex.get('F-START')!.source_ids}];
   let segments:string[]=[],segmentRefs:string[][]=[],nextQuestion='',nextAction:Action='none',mode:AnswerResult['mode']=fallback?'reviewed_fallback':'generated';
@@ -61,6 +64,7 @@ export async function answerQuestion(question:string,state:State,ctx:InferenceCo
   if(fallback&&!segments.length){
     segments=intent.topic==='matching'?(result.match.matches.length?['These published designs meet the requirements supplied so far.']:['I haven’t found a published design that meets those requirements; we can keep them as a custom project brief.']):[result.facts[0]?.text??factIndex.get('F-START')!.text];
     if(ctx.timeoutInjected)segments.unshift('The AI connection timed out just now; your project context is still here.');
+    else if(ctx.failures?.length)segments.unshift('The AI connection is busy just now. I can still show the relevant published information below.');
   }
   if(intent.topic==='matching'&&!controlled){
     if(!result.match.matches.length&&!segments.some(s=>/no |haven.t|none|not.*match/i.test(s)))segments.unshift('No published design meets all of the stated requirements.');
@@ -76,6 +80,7 @@ export async function answerQuestion(question:string,state:State,ctx:InferenceCo
   if(nextQuestion&&stateValue(next,'land')&&/do you (?:have|own).*(?:land|site|property)/i.test(nextQuestion))nextQuestion='';
   if(declined&&/contact|email|phone|personal review/i.test(nextQuestion))nextQuestion='';
   next.scopeExplained=next.scopeExplained||['pricing','scope','arithmetic'].includes(intent.topic);next.lastQuestion=nextQuestion;
+  next.lastTopic=intent.topic;next.lastEvidenceRefs=evidence.map(e=>e.id);
   const linked=linkFacts(evidence,result.models,intent,question);
   const actionHref=nextAction==='property_review'?safeLink(knowledge.routing.adu_laneway):undefined;
   return{reply:{introduction:'',facts:linked,answerSegments:segments.map((text,i)=>({text,evidenceRefs:segmentRefs[i]??evidence.map(e=>e.id)})),modelCards:cards,question:nextQuestion,next:'none',disposition:'answer',nextAction,actionHref,proposedSummary:projectSummary(next),knowledgeVersion:knowledge.knowledge_version,detailed:intent.detail},state:next,sourceIds:[...new Set(evidence.flatMap(e=>e.sourceIds))],mode};
