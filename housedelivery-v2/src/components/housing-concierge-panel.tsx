@@ -16,7 +16,7 @@ export default function HousingConciergePanel({open,onClose}:{open:boolean;onClo
   useEffect(()=>{if(open&&!dialog.current?.open)dialog.current?.show();else if(!open)dialog.current?.close()},[open]);
   useEffect(()=>{if(!open)return;const escape=(e:KeyboardEvent)=>{if(e.key==='Escape'){e.preventDefault();onClose()}};window.addEventListener('keydown',escape);return()=>window.removeEventListener('keydown',escape)},[open,onClose]);
   useEffect(()=>{const controller=new AbortController();fetch('/api/concierge',{cache:'no-store',signal:controller.signal}).then(async r=>{const d=await r.json();if(!r.ok||!d.available||!d.token)throw Error(d.error||'The assistant is temporarily unavailable. Please try connecting again.');setToken(d.token)}).catch(e=>{if(!controller.signal.aborted)setError(e instanceof Error?e.message:'Please try connecting again.')}).finally(()=>{if(!controller.signal.aborted)setLoading(false)});return()=>{controller.abort();abort.current?.abort()}},[]);
-  useEffect(()=>{if(open)end.current?.scrollIntoView({block:'nearest',behavior:'instant'})},[messages,busy,error,open]);
+  useEffect(()=>{if(open&&(messages.length||busy||error))end.current?.scrollIntoView({block:'nearest',behavior:'instant'})},[messages,busy,error,open]);
   async function send(question:string){
     if(busy||!token||!question.trim())return;setError('');setDraft('');
     const history:ChatTurn[]=messages.filter((m):m is Message&{reply:ConciergeReply}=>Boolean(m.reply)).slice(-12).map(m=>({question:m.question,factIds:m.reply.facts.map(f=>f.id),next:m.reply.next}));

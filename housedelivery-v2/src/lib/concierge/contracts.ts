@@ -11,7 +11,7 @@ export const followUps = {
   location: 'Which municipality and province or territory are you considering?',
   scale: 'Approximately how many homes are you considering, and what housing mix would help?',
   site: 'Do you have a site already, or are you exploring land and servicing options?',
-  timeline: 'What timing or phasing are you working toward?',
+  timeline: 'What timing are you hoping to work toward?',
   objective: 'What matters most for this project: housing mix, design, value, local participation, or another priority?',
   bedrooms: 'How many bedrooms would feel right for you?',
   size: 'What approximate home size are you looking for?',

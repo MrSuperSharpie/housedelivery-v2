@@ -1,6 +1,7 @@
 import snapshot from '@/data/concierge/approved-knowledge.json';
 import { followUps, type ChatTurn, type ConciergeReply, type Fact, type FollowUp } from './contracts';
 import {conciseFacts,detailRequested} from './presentation';
+import {relevantDesigns} from './conversation';
 
 // This static, reviewed public snapshot is the ONLY application knowledge source.
 // No file reader, database client, private registry, URL fetcher or model tools.
@@ -16,7 +17,7 @@ export function retrieveFacts(turns: ChatTurn[], question: string) {
   const ranked = approvedFacts.map(f => ({ f, score: tokens.reduce((n, w) => n + (f.title.toLowerCase().includes(w) ? 5 : 0) + (f.text.toLowerCase().includes(w) ? 1 : 0), 0) })).sort((a,b) => b.score-a.score);
   // Always give the planner the complete design collection and key scope facts.
   const fixed = approvedFacts.filter(f => ['home','carriage','catalog'].includes(f.kind) || ['company','prices','exclusions','cmhc-terms','handoff','customization','scale','community','national','systems','delivery','site','timing','tiers'].includes(f.id));
-  return [...new Map([...fixed, ...ranked.filter(x=>x.score>0).slice(0,12).map(x=>x.f)].map(f=>[f.id,f])).values()];
+  return relevantDesigns([...new Map([...fixed, ...ranked.filter(x=>x.score>0).slice(0,12).map(x=>x.f)].map(f=>[f.id,f])).values()],turns,question);
 }
 
 export function validatePlan(value: unknown, candidates: readonly Fact[]): AnswerPlan {
