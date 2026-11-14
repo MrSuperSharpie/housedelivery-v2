@@ -47,6 +47,9 @@ export function deterministicPatch(q:string,s:State):Patch{
   if(!ids.length&&/\b(that one|that home|that design|it)\b/i.test(q)){if(stateValue(s,'selectedModel'))p.selectedModel=stateValue(s,'selectedModel');else if(s.recommended.length===1)p.selectedModel=s.recommended[0];}
   if(!ids.length&&/\bfirst (one|design|home)\b/i.test(q)&&s.recommended[0])p.selectedModel=s.recommended[0];
   if(!ids.length&&/\bsecond (one|design|home)\b/i.test(q)&&s.recommended[1])p.selectedModel=s.recommended[1];
+  const placeToken="([A-Z][\\p{L}\\p{M}'’.-]*(?:[ -][A-Z][\\p{L}\\p{M}'’.-]*){0,3})";
+  const statedPlace=q.match(new RegExp("\\b(?:site|property|land|lot)\\s+(?:is\\s+)?(?:in|near|at)\\s+(?:the\\s+)?"+placeToken,'u'))??q.match(new RegExp("\\b(?:own|have|control)\\s+(?:the|our|a)\\s+"+placeToken+"\\s+(?:site|property|lot)\\b",'u'));
+  if(statedPlace&&!/^(?:City|Town|District|Municipality|Village|The)$/i.test(statedPlace[1]))p.location=statedPlace[1].replace(/[.]+$/,'');
   if(/correction|actually|not Vancouver/i.test(q)&&/Calgary/i.test(q)){p.location='Calgary';p.province='Alberta'}
   if(/please tell.*approved funding/i.test(lower)&&/not approved|pending/.test(stateValue(s,'funding')??''))delete p.funding;
   return p;
