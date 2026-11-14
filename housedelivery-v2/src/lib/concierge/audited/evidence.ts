@@ -18,6 +18,7 @@ export function retrieve(intent:Intent,state:State,question:string){
   if(intent.topic==='community'&&/Nation|Indigenous/i.test(question+' '+(stateValue(state,'audience')??'')+' '+(stateValue(state,'role')??'')))requestedFacts.push('F-NATIONS','F-PARTICIPATION','F-FUNDING');
   if(/funding|grant/i.test(question))requestedFacts.push('F-FUNDING','F-START');
   if(/local jobs|training|local participation|employment|skills/i.test(question))requestedFacts.push('F-PARTICIPATION');
+  if(/Essential|Premium|Signature/i.test(question))requestedFacts.unshift('F-ESSENTIAL');
   if(/show.?home|rendering|gallery|completed.*project/i.test(question))requestedFacts.push('F-IMAGES','F-CONTACT');
   if(/good value|savings|better value/i.test(question))requestedFacts.push('F-COMPANY','F-PARALLEL','F-SYSTEMS');
   if(models.some(m=>m.family==='cmhc_catalogue'))requestedFacts.push('F-CMHC');

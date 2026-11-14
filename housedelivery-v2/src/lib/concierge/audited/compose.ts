@@ -49,6 +49,7 @@ export async function answerQuestion(question:string,state:State,ctx:InferenceCo
   const explicit=deterministicPatch(question,state);
   if(/municip|institution|Nation|Indigenous|developer|non.?profit/i.test((stateValue(next,'audience')??'')+' '+(stateValue(next,'role')??''))&&['company','property','process','clarify'].includes(intent.topic)&&!/property (?:check|review)|check.*property|zoning/i.test(question))intent.topic='community';
   if(state.lastEvidenceRefs?.includes('F-CATALOG-CONFLICTS')&&stateValue(state,'selectedModel')&&/which (?:one|source).*trust|both sources?|show.*sources?/i.test(question))intent.topic='specifications';
+  if(/Essential|Premium|Signature/i.test(question)&&/differ|compare|difference|which tier/i.test(question))intent.topic='customization';
   if(/funding|grant/i.test(question)&&!/price|cost|rate|quotation/i.test(question))intent.topic='community';
   if(/what (?:would|do|will) you coordinate/i.test(question))intent.topic='builder';
   if(/(?:we|our team|I).*(?:supply|provide).*appliances/i.test(question))intent.topic='scope';
