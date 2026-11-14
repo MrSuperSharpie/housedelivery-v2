@@ -1,0 +1,84 @@
+{
+  "version": "2026-11-13.2",
+  "websiteBaseline": "f690d81580969e5e2a64bd945a42dcd9f6f2706f",
+  "reviewBasis": "Explicitly selected customer-facing fields from approved production content; no private records or automatic ingestion.",
+  "sha256": "e9f6dc48f55c94a46446383c81014b312cadb0a5875f4a3b4ac053d2c35d3a4c",
+  "factCount": 255,
+  "approvedSources": [
+    {
+      "path": "src/data/models.ts",
+      "fields": [
+        "slug",
+        "name",
+        "squareFeet",
+        "bedrooms",
+        "storeys",
+        "bathrooms",
+        "structure",
+        "summary",
+        "planCallouts",
+        "projectSelectionStatus",
+        "footprint"
+      ]
+    },
+    {
+      "path": "src/data/catalog.ts",
+      "fields": [
+        "slug",
+        "name",
+        "squareFootage",
+        "description",
+        "public Typology / Configuration specs"
+      ]
+    },
+    {
+      "path": "src/data/carriage-homes.ts",
+      "fields": [
+        "slug",
+        "name",
+        "description",
+        "supportingCopy"
+      ]
+    },
+    {
+      "path": "src/data/inclusions.ts",
+      "fields": [
+        "category name / description / package context",
+        "product name / tier / customer description / public specifications"
+      ]
+    },
+    {
+      "path": "src/data/home-configurator-registry.ts and referenced public definition modules",
+      "fields": [
+        "home name",
+        "active category title / description",
+        "published non-legacy option name / level / description",
+        "flooring zone title / public options",
+        "coordinated public message"
+      ]
+    },
+    {
+      "path": "src/app/build-your-home/page.tsx; src/app/first-nations-inspired/page.tsx; src/data/home-pricing.ts; src/data/cmhc-catalogue.ts",
+      "fields": [
+        "public delivery and participation descriptions",
+        "advertised package rates and scope qualifications",
+        "pre-reviewed terminology and reference date"
+      ]
+    },
+    {
+      "path": "src/data/custom-home-presentation.ts",
+      "fields": [
+        "Salt Spring combined-residences area scope only"
+      ]
+    }
+  ],
+  "excluded": [
+    "image and original asset filenames",
+    "supplier or manufacturer identities and relationships",
+    "factory quotes, internal costs, margins and markups",
+    "contracts and negotiations",
+    "customer records and saved personalizations",
+    "private correspondence and credentials"
+  ],
+  "runtimeAccess": "Only approved-knowledge.json. No dynamic source imports, database, filesystem, browsing, URL fetching or LLM tools."
+}

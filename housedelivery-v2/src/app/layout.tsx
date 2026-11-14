@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { AnalyticsManager } from "@/components/analytics-manager";
 import { CampaignFooterBoundary } from "@/components/campaign-footer-boundary";
 import { SiteFooter } from "@/components/site-footer";
+import { HousingConcierge } from "@/components/housing-concierge";
 
 import "./globals.css";
 
@@ -52,6 +53,7 @@ export default function RootLayout({
       <body className="flex min-h-full flex-col">
         {children}
         <CampaignFooterBoundary><SiteFooter /></CampaignFooterBoundary>
+        {process.env.CONCIERGE_ENABLED === "true" && process.env.VERCEL_ENV !== "production" ? <HousingConcierge /> : null}
         <Suspense fallback={null}>
           <AnalyticsManager />
         </Suspense>

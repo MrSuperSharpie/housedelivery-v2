@@ -11,6 +11,10 @@ export const metadata: Metadata = {
 
 const sections = [
   {
+    title: "Automated housing concierge",
+    content: (<div className="space-y-5"><p>The optional House Delivery Concierge uses AI providers to select relevant information from a curated public knowledge base. Questions are processed through Vercel AI Gateway with zero-data-retention and no-training routing requested. Please keep names, contact details and confidential information out of chat. The assistant cannot retrieve private customer records, saved projects or internal business information.</p><p>This website retains conversation history in the open panel’s memory rather than saving a transcript to a House Delivery database. It is cleared when the panel is closed or the page reloads. Questions and relevant conversation context are sent to the AI service for each answer. We do not publish transcripts or add them to the knowledge base. Basic anonymous request limits help prevent abuse. If you request personal follow-up, only the project and contact details you review in the separate form are sent through our existing email provider to House Delivery, with your express permission. They are not sent back to the AI. This is not a marketing subscription.</p></div>),
+  },
+  {
     title: "Analytics we use",
     content: (
       <div className="space-y-5">
@@ -121,7 +125,7 @@ export default function PrivacyPage() {
                   and understand which project information is useful.
                 </p>
                 <p className="mt-5 text-[9px] font-semibold uppercase tracking-[0.17em] text-black/38">
-                  Updated October 27, 2026
+                  Updated November 13, 2026
                 </p>
               </div>
             </div>

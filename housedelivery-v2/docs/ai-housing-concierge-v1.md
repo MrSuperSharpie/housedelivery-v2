@@ -8,7 +8,7 @@ Convert House Delivery website visitors into qualified, permission-based housing
 ## Source of truth and placement
 - Repository: MrSuperSharpie/housedelivery-v2
 - Actual Next.js site is in `housedelivery-v2/`, not the unrelated root-level Vero Permit app.
-- Feature branch `feature/ai-housing-concierge-20261113` starts from the verified live deployment commit `b1b6fd39d74a89e9db4c87e4409f6a8cb0f8ffd8`.
+- Feature branch `feature/ai-housing-concierge-20261113` originally started from `b1b6fd39d74a89e9db4c87e4409f6a8cb0f8ffd8`. On November 13 it was merged with verified current production `f690d81580969e5e2a64bd945a42dcd9f6f2706f`, including the completed image optimization and typography corrections, as explicitly requested by Edgar. The original brief branch is preserved by tag `ai-concierge-before-foundation-20261113`.
 - Current production is `www.housedelivery.ca`. Work only on this feature branch and a protected Vercel preview. Never promote/merge without Edgar's explicit approval.
 - Inspect existing `src/app/api/inquiries`, `src/app/api/build-your-home-inquiries`, relevant components, typography, navigation, analytics and privacy before editing. Reuse the current verified lead-submission infrastructure where possible.
 
@@ -30,7 +30,7 @@ Convert House Delivery website visitors into qualified, permission-based housing
 ## Scope boundaries
 - V1: text assistant, contextual suggestions, project qualification, live lead submission, preview tests.
 - V1.1 only after V1 works: microphone and AI voice assistant; start with push-to-talk, permission prompt, captions/transcript visibility and a clear stop button. No auto-playing voice or always-on microphone. Voice must use the same safe knowledge and lead intake.
-- No unrelated edits to hero video, images, fonts, existing pages, landing pages, forms, pricing calculator, or routing. Don't carry in-progress optimization or clipping changes into this branch.
+- No unrelated edits to hero video, images, fonts, existing pages, landing pages, forms, pricing calculator, or routing. Preserve the completed image optimization and typography corrections in the verified production foundation; do not add unrelated changes to them.
 - No production deployment or domain changes without Edgar's written approval.
 
 ## Acceptance criteria
