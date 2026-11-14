@@ -27,6 +27,8 @@ test('generic code/permit questions retain the home in memory but exclude it and
 test('visitor contractor identity, six infill homes and timing are separate from an external builder',()=>{
  const s=mergePatch(initialState('B'),{builder:true,targetDate:'next year'},"I'm a general contractor looking to build six infill units next year.");
  assert.equal(stateValue(s,'role'),'general contractor');assert.equal(stateValue(s,'builder'),undefined);assert.equal(stateValue(s,'homes'),6);assert.equal(stateValue(s,'targetDate'),'next year');assert.equal(stateValue(s,'unitsPerBuilding'),undefined);
+ const corrected=mergePatch(s,{role:'homeowner'},"Actually I'm the homeowner on this project.");assert.equal(stateValue(corrected,'role'),'homeowner');
+ const withBuilder=mergePatch(corrected,{builder:true},'I already have a general contractor.');assert.equal(stateValue(withBuilder,'role'),'homeowner');assert.equal(stateValue(withBuilder,'builder'),true);
  const r=retrieve(intent('builder'),s,'Do you work with builders on multi-unit orders?');
  const a={answerSegments:[{text:'We welcome discussion with your existing builder.',evidenceRefs:['F-BUILDER']}],selectedModelIds:[],nextQuestion:null,nextAction:'none' as const};
  assert.equal(naturalRejection(a,r.evidence,[],false,s),'wrong_actor');

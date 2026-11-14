@@ -21,8 +21,8 @@ export function namedModels(q:string){const ids=[...modelIndex.values()].filter(
 export function deterministicPatch(q:string,s:State):Patch{
   const p:Patch={},lower=q.toLowerCase(),num=(x:string)=>(x.toLowerCase()==='one hundred'?100:wordNumbers[x.toLowerCase()]??Number(x.replaceAll(',','')));
   if(/\bour Nation\b|\b(?:we|I).{0,25}(?:First Nation|Indigenous community)/i.test(q))p.audience='First Nation / Indigenous community';
-  const selfRole=q.match(/\b(?:I am|I'm|I’m|we are|we're|we’re)\s+(?:a |an |the )?(general contractor|builder)\b/i);
-  if(selfRole){p.role=selfRole[1].toLowerCase();p.audience='Builder / general contractor';}
+  const selfRole=q.match(/\b(?:I am|I'm|I’m|we are|we're|we’re)\s+(?:a |an |the )?(general contractor|builder|homeowner|owner|developer|architect|project manager|housing manager|municipal official)\b/i);
+  if(selfRole){p.role=selfRole[1].toLowerCase();if(/contractor|builder/.test(p.role))p.audience='Builder / general contractor';else if(/homeowner|^owner$/.test(p.role))p.audience='Individual / family';else if(p.role==='developer')p.audience='Developer';}
   const bed=[...q.matchAll(/\b(one|two|three|four|five|six|seven|eight|\d+)[ -]?(?:bedrooms?|beds?|br)\b/gi)].at(-1);if(bed){p.bedrooms=num(bed[1]);p.bedroomMode=/at least|minimum|or more/i.test(q)?'minimum':'exact'}
   const bath=q.match(/\b(one|two|three|four|five|\d+(?:\.\d+)?)[ -]?(?:bathrooms?|baths?)\b/i);if(bath)p.bathroomsMin=num(bath[1]);
   if(/no stairs|single.storey|one.storey/i.test(q))p.storeys=1;
