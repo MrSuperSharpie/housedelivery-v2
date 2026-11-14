@@ -23,7 +23,7 @@ export function retrieve(intent:Intent,state:State,question:string){
   if(intent.topic==='warranty')requestedFacts.push('F-WARRANTY');
   const facts=[...new Set(requestedFacts)].map(id=>factIndex.get(id)).filter((x):x is NonNullable<typeof x>=>Boolean(x));
   const studios=intent.topic==='customization'?knowledge.design_studios.filter(s=>models.some(m=>m.id===s.model_id)):[];
-  const evidence:Evidence[]=[...facts.map(f=>({id:f.id,data:{text:f.text,qualifiers:f.qualifiers},sourceIds:f.source_ids})),...models.map(m=>({id:m.id,data:publicModel(m),sourceIds:m.source_ids})),...studios.map(s=>({id:'STUDIO:'+s.model_id,data:{chapters:s.chapters,directions:s.verified_visible_kitchen_directions,qualification:s.qualification,availability:s.availability_note,observedSelections:s.selection_count},sourceIds:s.source_ids}))];
+  const evidence:Evidence[]=[...facts.map(f=>({id:f.id,data:{text:f.text,qualifiers:f.qualifiers},sourceIds:f.source_ids})),...models.map(m=>({id:m.id,data:publicModel(m),sourceIds:m.source_ids})),...studios.map(s=>({id:'STUDIO:'+s.model_id,data:{chapters:s.chapters,directions:s.verified_visible_kitchen_directions,qualification:s.qualification,availability:s.availability_note,observedSelections:s.selection_count,structure:s.structure??null},sourceIds:s.source_ids}))];
   return {match,models,facts,studios,evidence};
 }
 export function modelLine(m:Model){
