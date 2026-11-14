@@ -2,7 +2,7 @@ import {structured,objectSchema,type InferenceContext} from './llm';
 import {knowledge,modelIndex,factIndex,sourceIndex,safeLink} from './registry';
 import {retrieve,modelLine,modelLink,type Evidence} from './evidence';
 import {controlledAnswer,privateRequest} from './commercial';
-import {stateValue,conversationContext,projectSummary,type State,mergePatch,deterministicPatch,namedModels} from './state';
+import {stateValue,conversationContext,projectSummary,visitorNumbers,type State,mergePatch,deterministicPatch,namedModels} from './state';
 import {extractIntent,type Intent} from './intent';
 import {type ConciergeReply,type Fact} from '../contracts';
 export type Action='none'|'browse_designs'|'studio'|'lookbook'|'property_review'|'consultation'|'summary';
@@ -12,7 +12,7 @@ function outputSchema(ids:string[],models:string[]){return objectSchema({answerS
 function validText(text:string){return !/[<>]|https?:|www\.|\b(?:PRIVATE_[A-Z_]+|service_role|api.?key)\b/i.test(text)&&text.length<=650&&/[.!?…][’”"']?$/.test(text.trim())}
 function numericSupport(text:string,evidence:Evidence[],state?:State){
   const allowed=new Set(JSON.stringify(evidence.map(e=>e.data)).match(/\d+(?:\.\d+)?/g)??[]);
-  const visitor=new Set(JSON.stringify(state?conversationContext(state).values:{}).match(/\d+(?:\.\d+)?/g)??[]),normalized=text.replaceAll(',','');
+  const visitor=visitorNumbers(state),normalized=text.replaceAll(',','');
   return [...normalized.matchAll(/\d+(?:\.\d+)?/g)].every(match=>allowed.has(match[0])||visitor.has(match[0])&&/your|target|requirement|requested|looking for|proposed|planning|discuss|review|program|phase|community|Nation/i.test(normalized.slice(Math.max(0,match.index!-65),match.index)));
 }
 export function validateNatural(answer:NaturalAnswer,evidence:Evidence[],allowedModels:string[],declined:boolean,state?:State){

@@ -49,7 +49,7 @@ export const factIndex=new Map(knowledge.facts.map(f=>[f.id,f]));
 export const sourceIndex=new Map(knowledge.sources.map(s=>[s.id,s]));
 const aliases:Record<string,string>={company:'F-COMPANY',delivery:'F-PROCESS',systems:'F-SYSTEMS',national:'F-MARKETS',scale:'F-PORTFOLIO',community:'F-NATIONS',municipal:'F-MARKETS',prices:'F-PRICE',exclusions:'F-EXCLUSIONS',tiers:'F-ESSENTIAL',customization:'F-CUSTOMIZATION',lookbook:'F-STUDIO','cmhc-terms':'F-CMHC',site:'F-PROPERTY',timing:'F-TIMING',builder:'F-BUILDER',handoff:'F-CONTACT'};
 export function historicalId(id:string):string|null{
-  if(modelIndex.has(id)||factIndex.has(id))return id;if(aliases[id])return aliases[id];
+  if(modelIndex.has(id)||factIndex.has(id))return id;if(Object.hasOwn(aliases,id))return aliases[id];
   if(Object.hasOwn(historicalStudios,id))return historicalStudios[id as keyof typeof historicalStudios];
   if(id.startsWith('STUDIO:')&&knowledge.design_studios.some(s=>s.model_id===id.slice(7)))return id;
   return null;
