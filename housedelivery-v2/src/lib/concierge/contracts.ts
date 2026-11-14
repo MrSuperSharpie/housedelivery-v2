@@ -1,10 +1,11 @@
 // Public transport contract; no knowledge, credentials or server modules belong here.
-export const conciergePrompts = [
-  'Plan a multi-home development',
-  'Housing for a First Nation or community',
-  'Explore home designs and customization',
-  'Understand costs, inclusions and delivery',
+export const conciergeJourneys = [
+  {id:'home', label:'Build My Home', description:'Find a design that fits your life.', prompt:'I’m exploring a home for myself or my family. Help me find a starting point.'},
+  {id:'adu', label:'ADU / Laneway Home', description:'Explore more possibilities for your property.', prompt:'I’m exploring an ADU, laneway or carriage home. Where should I start?'},
+  {id:'development', label:'Multi-Home Development', description:'Plan housing for a site or community.', prompt:'I’m exploring a multi-home housing project. Help me work through the first steps.'},
+  {id:'anything', label:'Ask Anything', description:'Costs, customization, delivery and more.', prompt:''},
 ] as const;
+export const conciergePrompts = conciergeJourneys.map(j=>j.label);
 export const followUps = {
   audience: 'Are you planning for yourself, a developer, a municipality, a First Nation, or another organization?',
   location: 'Which municipality and province or territory are you considering?',
@@ -12,6 +13,10 @@ export const followUps = {
   site: 'Do you have a site already, or are you exploring land and servicing options?',
   timeline: 'What timing or phasing are you working toward?',
   objective: 'What matters most for this project: housing mix, design, value, local participation, or another priority?',
+  bedrooms: 'How many bedrooms would feel right for you?',
+  size: 'What approximate home size are you looking for?',
+  design: 'What would you most like your home to offer: shared living space, private rooms, or a stronger outdoor connection?',
+  property: 'Which municipality is the property in?',
   human: 'Would you like to share a short project brief for a personal review with House Delivery?',
   none: '',
 } as const;
@@ -20,7 +25,7 @@ export type Fact = { id: string; title: string; text: string; href: string; kind
 export type ChatTurn = { question: string; factIds: string[]; next: FollowUp };
 export type ConciergeReply = {
   introduction: string; facts: Fact[]; question: string; next: FollowUp;
-  disposition: 'answer' | 'clarify' | 'human';
+  disposition: 'answer' | 'clarify' | 'human'; detailed?: boolean;
 };
 export const audiences = ['Individual / family', 'Developer', 'Municipality', 'First Nation / Indigenous community', 'Non-profit / institution', 'Other organization'] as const;
 export const housingTypes = ['Custom home', 'Laneway / carriage home', 'Duplex / multiplex', 'Multi-home development', 'Community housing program', 'Still exploring'] as const;

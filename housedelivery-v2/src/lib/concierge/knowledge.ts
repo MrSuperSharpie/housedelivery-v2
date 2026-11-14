@@ -1,5 +1,6 @@
 import snapshot from '@/data/concierge/approved-knowledge.json';
 import { followUps, type ChatTurn, type ConciergeReply, type Fact, type FollowUp } from './contracts';
+import {conciseFacts,detailRequested} from './presentation';
 
 // This static, reviewed public snapshot is the ONLY application knowledge source.
 // No file reader, database client, private registry, URL fetcher or model tools.
@@ -25,8 +26,9 @@ export function validatePlan(value: unknown, candidates: readonly Fact[]): Answe
   return {facts:[...new Set(p.facts as string[])], next:p.next as FollowUp, disposition:p.disposition as AnswerPlan['disposition']};
 }
 
-export function renderPlan(plan: AnswerPlan): ConciergeReply {
-  return { introduction: plan.disposition==='clarify' ? 'Let’s narrow down a useful starting point.' : plan.disposition==='human' ? 'This deserves a project-specific conversation with our team.' : 'Here’s a starting point from House Delivery’s published information.', facts:plan.facts.map(id=>index.get(id)).filter((f):f is Fact=>Boolean(f)), question:followUps[plan.next], next:plan.next, disposition:plan.disposition };
+export function renderPlan(plan: AnswerPlan,question=''): ConciergeReply {
+  const facts=plan.facts.map(id=>index.get(id)).filter((f):f is Fact=>Boolean(f)),detailed=detailRequested(question);
+  return { introduction:facts.length?'':plan.disposition==='human'?'Our team can help with the project-specific details.':'Let’s find the right starting point for you.', facts:detailed?facts:conciseFacts(facts,question), question:followUps[plan.next], next:plan.next, disposition:plan.disposition,detailed };
 }
 
 // Refuse extraction before inference. The stronger boundary is the closed output
