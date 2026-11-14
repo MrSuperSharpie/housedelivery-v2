@@ -1,5 +1,5 @@
 // Adapter for the audited package harness. Expected answers are never read.
-import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import {readFile,writeFile,mkdir,appendFile} from 'node:fs/promises';
 import {createHmac,randomUUID} from 'node:crypto';
 import path from 'node:path';
 const dir=process.env.HD_CONCIERGE_EVALUATION_DIR;
@@ -20,4 +20,4 @@ const r=await fetch(config.base+'/api/concierge',{method:'POST',headers:{...head
 if(!r.ok||!d.reply)throw Error('Preview conversation failed: '+r.status);
 session.sessionState=d.sessionState;session.history.push({question:p.question,factIds:d.reply.facts.map(f=>f.id),next:d.reply.next});await writeFile(file,JSON.stringify(session),{mode:0o600});
 const answer=[d.reply.introduction,...(d.reply.answerSegments??[]).map(s=>s.text),...(d.reply.modelCards??[]).map(c=>c.text),d.reply.nextAction==='summary'?d.reply.proposedSummary:'',d.reply.question].filter(Boolean).join('\n\n');
-console.log(JSON.stringify({answer,sourceIds:d.sourceIds??[],knowledgeVersion:d.knowledgeVersion,links:d.reply.facts.map(f=>({label:f.title,href:f.href})),selectedModelIds:d.reply.modelCards?.map(m=>m.id)??[],responseMode:d.responseMode,session:{evaluationId:p.session?.evaluationId??ref,sessionRef:ref},executionEvidence:{...d._evaluation,leadDelivery:'mock_only'}}));
+const captured={answer,sourceIds:d.sourceIds??[],knowledgeVersion:d.knowledgeVersion,links:d.reply.facts.map(f=>({label:f.title,href:f.href})),selectedModelIds:d.reply.modelCards?.map(m=>m.id)??[],responseMode:d.responseMode,session:{evaluationId:p.session?.evaluationId??ref,sessionRef:ref},executionEvidence:{...d._evaluation,leadDelivery:'mock_only'}};await appendFile(path.join(dir,'turns.ndjson'),JSON.stringify({caseId:p.caseId,turnIndex:p.turnIndex,actual:captured})+'\n',{mode:0o600});console.log(JSON.stringify(captured));

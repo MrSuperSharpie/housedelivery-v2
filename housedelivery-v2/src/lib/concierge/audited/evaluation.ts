@@ -1,6 +1,7 @@
 import {createHmac,timingSafeEqual,createHash} from 'node:crypto';
 import {conciergeEnabled,createLimiter} from '../security';
 import type {InferenceContext} from './llm';
+import {getContext,getVercelOidcTokenSync} from '@vercel/oidc';
 export type Evaluation={run:string;caseId:string;expires:number;fault:'none'|'timeout'|'invalid'|'busy'|'rate'|'lead_failure'|'restore'};
 const runLimit=createLimiter(600,2*3600_000);
 export function evaluationAccess(request:Request):Evaluation|null{
@@ -15,5 +16,6 @@ export function evaluationAccess(request:Request):Evaluation|null{
 }
 export function evidence(evaluation:Evaluation|null,ctx?:InferenceContext,extra:Record<string,unknown>={}){
   if(!evaluation)return undefined;
-  return {evaluationId:evaluation.run,caseId:evaluation.caseId,modelCalls:ctx?.calls??0,completedModelCalls:ctx?.completed??0,providerTimeoutInjected:ctx?.timeoutInjected===true,appliedCondition:evaluation.fault==='timeout'&&ctx?.timeoutInjected?'force_inference_timeout':evaluation.fault==='restore'&&(ctx?.completed??0)>0?'restore_inference':null,leadDelivery:'mock_only',contextHashes:(ctx?.contexts??[]).map(s=>createHash('sha256').update(s).digest('hex')),privateCanaryInContext:(ctx?.contexts??[]).some(s=>s.includes(process.env.CONCIERGE_TEST_PRIVATE_CANARY??'PRIVATE_CANARY_NOT_CONFIGURED')),leadSideEffects:0,...extra};
+  let expires:number|null=null;try{const token=getVercelOidcTokenSync();expires=JSON.parse(Buffer.from(token.split('.')[1],'base64url').toString()).exp??null}catch{}
+  return {evaluationId:evaluation.run,caseId:evaluation.caseId,modelCalls:ctx?.calls??0,completedModelCalls:ctx?.completed??0,failures:ctx?.failures??[],runtimeAuthentication:{requestOidcPresent:Boolean(getContext().headers?.['x-vercel-oidc-token']),environmentOidcPresent:Boolean(process.env.VERCEL_OIDC_TOKEN),gatewayKeyPresent:Boolean(process.env.AI_GATEWAY_API_KEY),secondsUntilOidcExpiry:expires?Math.round(expires-Date.now()/1000):null},providerTimeoutInjected:ctx?.timeoutInjected===true,appliedCondition:evaluation.fault==='timeout'&&ctx?.timeoutInjected?'force_inference_timeout':evaluation.fault==='restore'&&(ctx?.completed??0)>0?'restore_inference':null,leadDelivery:'mock_only',contextHashes:(ctx?.contexts??[]).map(s=>createHash('sha256').update(s).digest('hex')),privateCanaryInContext:(ctx?.contexts??[]).some(s=>s.includes(process.env.CONCIERGE_TEST_PRIVATE_CANARY??'PRIVATE_CANARY_NOT_CONFIGURED')),leadSideEffects:0,...extra};
 }
