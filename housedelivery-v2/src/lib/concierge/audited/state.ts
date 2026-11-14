@@ -53,7 +53,7 @@ export function mergePatch(s:State,patch:Patch,q:string){
   for(const [key,value]of Object.entries(combined))if(value!==null&&value!==undefined)(values as Record<string,unknown>)[key]={value,sourceTurn:turn,status:'visitor_reported'};
   if(/please tell.*approved funding/i.test(q)&&/not approved|pending/.test(stateValue(s,'funding')??''))values.funding=s.values.funding;
   const next:State={...s,values,turn};
-  const requirementsChanged=['family','unitsPerBuilding','bedrooms','bedroomMode','bedroomBasis','bathroomsMin','storeys','study','areaTarget','areaMax','areaMin'].some(k=>Object.hasOwn(combined,k));
+  const requirementsChanged=['family','unitsPerBuilding','bedrooms','bedroomMode','bedroomBasis','bathroomsMin','storeys','study','areaTarget','areaMax','areaMin'].some(k=>Object.hasOwn(combined,k)&&JSON.stringify(s.values[k as keyof Preferences]?.value)!==JSON.stringify(combined[k as keyof Preferences]));
   const selected=stateValue(next,'selectedModel');
   if(selected&&!stateValue(next,'family')){const m=modelIndex.get(selected)!;values.family={value:m.family==='laneway_carriage'?'compact':m.family,sourceTurn:turn,status:'visitor_reported'};}
   if(requirementsChanged&&selected&&!namedModels(q).length&&!shortlist(constraints(next),[modelIndex.get(selected)!]).matches.length){delete values.selectedModel;next.recommended=[];}

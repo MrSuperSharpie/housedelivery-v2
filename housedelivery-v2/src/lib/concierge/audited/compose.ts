@@ -45,6 +45,7 @@ export async function answerQuestion(question:string,state:State,ctx:InferenceCo
   try{const extracted=await extractIntent(question,state,ctx);intent=extracted.intent;next=extracted.state}
   catch{fallback=true;next=mergePatch(state,{},question);intent={topic:/\$|price|rate|cost|budget/i.test(question)?'pricing':/bed|sq|sf|main.level/i.test(question)?'matching':'clarify',factIds:['F-START'],modelIds:[],questionKey:null,patch:{},arithmetic:null,detail:false,ambiguous:false}}
   const explicit=deterministicPatch(question,state);
+  if(state.lastEvidenceRefs?.includes('F-CATALOG-CONFLICTS')&&stateValue(state,'selectedModel')&&/which (?:one|source).*trust|both sources?|show.*sources?/i.test(question))intent.topic='specifications';
   if(/architect|change.*floor plan|add.*bedroom|change.*layout/i.test(question))intent.topic='customization';
   const arithmeticRequested=/times|multiplied by|\bdivide\b|×|\d\s*[x*]\s*\$?\d|(?:at|use)\s*\$(?:250|300)\b/i.test(question);
   if(arithmeticRequested)intent.topic='arithmetic';
