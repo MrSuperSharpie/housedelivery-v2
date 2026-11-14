@@ -18,7 +18,7 @@ function numericSupport(text:string,evidence:Evidence[],state?:State){
 export function validateNatural(answer:NaturalAnswer,evidence:Evidence[],allowedModels:string[],declined:boolean,state?:State){
   const ids=new Set(evidence.map(e=>e.id));
   if(answer.answerSegments.length>4||answer.selectedModelIds.some(id=>!allowedModels.includes(id)))return false;
-  for(const seg of answer.answerSegments){if(!validText(seg.text)||seg.evidenceRefs.some(id=>!ids.has(id))||!numericSupport(seg.text,evidence.filter(e=>seg.evidenceRefs.includes(e.id)),state))return false;
+  for(const seg of answer.answerSegments){if(namedModels(seg.text).some(id=>!ids.has(id)))return false;if(!validText(seg.text)||seg.evidenceRefs.some(id=>!ids.has(id))||!numericSupport(seg.text,evidence.filter(e=>seg.evidenceRefs.includes(e.id)),state))return false;
     if(/\bconditioned\b|\b(?:internal|living|chargeable)\s+(?:floor\s+)?(?:area|space)\b/i.test(seg.text)&&evidence.some(e=>modelIndex.get(e.id)?.area_basis==='published_model_area_conditioned_basis_not_confirmed'))return false;
     if(/\bADU\b|laneway|carriage/i.test(seg.text)&&evidence.some(e=>modelIndex.get(e.id)?.family==='architectural')&&!evidence.some(e=>{const m=modelIndex.get(e.id);return m&&m.family!=='architectural'}))return false;
     if(/\bwe\s+(?:can\s+|will\s+)?(?:deliver|reserve|guarantee|allocate|produce)\s+\d/i.test(seg.text))return false;
@@ -27,7 +27,7 @@ export function validateNatural(answer:NaturalAnswer,evidence:Evidence[],allowed
     // Commercial numbers and authorizations use server-controlled rendering.
     if(/\$|\bCAD\b|\b(?:firm quote|reserved for you|has been sent|submitted your|funding is approved|guaranteed permit)\b/i.test(seg.text))return false;
   }
-  if(answer.nextQuestion&&(!validText(answer.nextQuestion)||(answer.nextQuestion.match(/\?/g)??[]).length>1||declined&&/email|phone|contact|share.*brief|personal review/i.test(answer.nextQuestion)))return false;
+  if(answer.nextQuestion&&(namedModels(answer.nextQuestion).some(id=>!ids.has(id))||!validText(answer.nextQuestion)||(answer.nextQuestion.match(/\?/g)??[]).length>1||declined&&/email|phone|contact|share.*brief|personal review/i.test(answer.nextQuestion)))return false;
   return true;
 }
 async function grounded(answer:NaturalAnswer,evidence:Evidence[],state:State,ctx:InferenceContext){
