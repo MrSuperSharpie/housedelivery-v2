@@ -30,7 +30,10 @@ questions using the same approved topics. The response schema requires an answer
 entry for each planned part. Staff-only diagnostics record topic IDs, model-context
 scope, retained/missing answer IDs and non-sensitive failure reasons.
 
-The existing independent support check still reviews every retained passage.
+The existing independent support check still reviews every retained passage,
+and now sees the original question and complete request plan. It separately
+checks whether the answer actually covers every asked part, not merely whether
+its citations are valid.
 Unsupported content is not allowed through for fluency. Missing/rejected parts
 are exposed as incomplete and are not a quality pass. Provider failures remain
 failures. There is no unbounded regeneration loop.

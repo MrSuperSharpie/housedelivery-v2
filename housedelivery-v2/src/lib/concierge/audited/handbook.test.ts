@@ -111,7 +111,7 @@ function fixtureModel(rejectSecond:boolean):LanguageModel{
       const patch=Object.fromEntries(Object.entries(patchSchema).map(([k,v])=>[k,v.type==='array'?[]:null]));
       output={...intent('company',['company','roles']),requests:[{id:'r1',topic:'company',question:'Company coordination'},{id:'r2',topic:'builder',question:'Local responsibilities'}],modelContext:'none',unconfirmedProduct:false,patch};
     }else if(call===2)output={answers:{r1:{text:'We coordinate design, purchasing, manufacturing and logistics with Canadian construction.',evidenceRefs:['H:company']},r2:{text:rejectSecond?'We replace your general contractor for every project.':'Your local general contractor manages site execution and trades under the agreed scope.',evidenceRefs:['H:roles']}},selectedModelIds:[],nextQuestion:null,nextAction:'none'};
-    else output={segments:[{index:0,supported:true,issues:[]},{index:1,supported:!rejectSecond,issues:rejectSecond?['unsupported_claim']:[]}],followUpSupported:true};
+    else output={segments:[{index:0,supported:true,issues:[]},{index:1,supported:!rejectSecond,issues:rejectSecond?['unsupported_claim']:[]}],followUpSupported:true,complete:!rejectSecond};
     return {content:[{type:'text',text:JSON.stringify(output)}],finishReason:{unified:'stop',raw:undefined},usage:{inputTokens:{total:0,noCache:0,cacheRead:undefined,cacheWrite:undefined},outputTokens:{total:0,text:0,reasoning:undefined}},warnings:[]};
   }};
 }
