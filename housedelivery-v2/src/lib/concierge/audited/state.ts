@@ -16,7 +16,7 @@ export function readState(raw:unknown,session:string,secret:string,now=Date.now(
   const s=JSON.parse(Buffer.from(payload,'base64url').toString()) as State;if(s.version!==knowledgeVersion||s.session!==session||s.expires<now||s.turn>16)throw Error('Invalid signed conversation');return s;
 }
 const wordNumbers:Record<string,number>={one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,ten:10,twenty:20,fifty:50,hundred:100};
-export function namedModels(q:string){return [...modelIndex.values()].filter(m=>new RegExp('\\b'+m.name.replace(/^the /i,'').replace(/\s+(house|duplex)$/i,'').trim().replaceAll(' ','\\s+')+'\\b','i').test(q)).map(m=>m.id)}
+export function namedModels(q:string){const ids=[...modelIndex.values()].filter(m=>new RegExp('\\b'+m.name.replace(/^the /i,'').replace(/\s+(house|duplex)$/i,'').trim().replaceAll(' ','\\s+')+'\\b','i').test(q)).map(m=>m.id);if(/\bcourtyard\s+sixplex\b/i.test(q))ids.push('catalog-sixplex-courtyard');return [...new Set(ids)]}
 export function deterministicPatch(q:string,s:State):Patch{
   const p:Patch={},lower=q.toLowerCase(),num=(x:string)=>(x.toLowerCase()==='one hundred'?100:wordNumbers[x.toLowerCase()]??Number(x.replaceAll(',','')));
   const bed=[...q.matchAll(/\b(one|two|three|four|five|six|seven|eight|\d+)[ -]?(?:bedrooms?|beds?|br)\b/gi)].at(-1);if(bed){p.bedrooms=num(bed[1]);p.bedroomMode=/at least|minimum|or more/i.test(q)?'minimum':'exact'}
@@ -52,7 +52,7 @@ export function mergePatch(s:State,patch:Patch,q:string){
   const explicit=deterministicPatch(q,s),combined={...patch,...explicit},turn=s.turn+1,values={...s.values};
   // Hard numeric/family requirements must be explicit in this utterance; a
   // model-extraction guess cannot silently replace a visitor's constraints.
-  for(const key of ['family','unitsPerBuilding','homes','phaseHomes','bedrooms','bedroomMode','bathroomsMin','storeys','study','areaTarget','areaMax','areaMin'] as const)if(!Object.hasOwn(explicit,key))delete combined[key];
+  for(const key of ['selectedModel','comparedModels','family','unitsPerBuilding','homes','phaseHomes','bedrooms','bedroomMode','bathroomsMin','storeys','study','areaTarget','areaMax','areaMin'] as const)if(!Object.hasOwn(explicit,key))delete combined[key];
   if(!/per[ -](?:unit|dwelling|home|residence)|each (?:unit|dwelling|home|residence)/i.test(q)&&!Object.hasOwn(explicit,'bedroomBasis'))delete combined.bedroomBasis;
   for(const [key,value]of Object.entries(combined))if(value!==null&&value!==undefined)(values as Record<string,unknown>)[key]={value,sourceTurn:turn,status:'visitor_reported'};
   if(/please tell.*approved funding/i.test(q)&&/not approved|pending/.test(stateValue(s,'funding')??''))values.funding=s.values.funding;

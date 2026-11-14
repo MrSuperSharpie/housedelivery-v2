@@ -49,7 +49,7 @@ export async function answerQuestion(question:string,state:State,ctx:InferenceCo
   try{const extracted=await extractIntent(question,state,ctx);intent=extracted.intent;next=extracted.state}
   catch{fallback=true;next=mergePatch(state,{},question);intent={topic:/\$|price|rate|cost|budget/i.test(question)?'pricing':/bed|sq|sf|main.level/i.test(question)?'matching':'clarify',factIds:['F-START'],modelIds:[],questionKey:null,patch:{},arithmetic:null,detail:false,ambiguous:false}}
   const explicit=deterministicPatch(question,state);
-  if(/municip|institution|Nation|Indigenous|developer|non.?profit/i.test((stateValue(next,'audience')??'')+' '+(stateValue(next,'role')??''))&&['company','property','process','clarify'].includes(intent.topic)&&!/property (?:check|review)|check.*property|zoning/i.test(question))intent.topic='community';
+  if(/municip|institution|Nation|Indigenous|developer|non.?profit/i.test((stateValue(next,'audience')??'')+' '+(stateValue(next,'role')??''))&&['company','property','process','clarify',...(!stateValue(next,'selectedModel')&&!namedModels(question).length?['customization']:[])].includes(intent.topic)&&!/property (?:check|review)|check.*property|zoning/i.test(question))intent.topic='community';
   if(state.lastEvidenceRefs?.includes('F-CATALOG-CONFLICTS')&&stateValue(state,'selectedModel')&&/which (?:one|source).*trust|both sources?|show.*sources?/i.test(question))intent.topic='specifications';
   if(/Essential|Premium|Signature/i.test(question)&&/differ|compare|difference|which tier/i.test(question))intent.topic='customization';
   if(/funding|grant/i.test(question)&&!/price|cost|rate|quotation/i.test(question))intent.topic='community';
