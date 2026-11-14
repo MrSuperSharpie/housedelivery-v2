@@ -55,6 +55,7 @@ export function mergePatch(s:State,patch:Patch,q:string){
   const next:State={...s,values,turn};
   const requirementsChanged=['family','unitsPerBuilding','bedrooms','bedroomMode','bedroomBasis','bathroomsMin','storeys','study','areaTarget','areaMax','areaMin'].some(k=>Object.hasOwn(combined,k));
   const selected=stateValue(next,'selectedModel');
+  if(selected&&!stateValue(next,'family')){const m=modelIndex.get(selected)!;values.family={value:m.family==='laneway_carriage'?'compact':m.family,sourceTurn:turn,status:'visitor_reported'};}
   if(requirementsChanged&&selected&&!namedModels(q).length&&!shortlist(constraints(next),[modelIndex.get(selected)!]).matches.length){delete values.selectedModel;next.recommended=[];}
   return next;
 }
