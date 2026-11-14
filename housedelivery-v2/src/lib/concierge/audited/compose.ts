@@ -5,7 +5,7 @@ import {controlledAnswer} from './commercial';
 import {stateValue,conversationContext,projectSummary,visitorNumbers,type State,mergePatch,deterministicPatch,namedModels} from './state';
 import {extractIntent,type Intent} from './intent';
 import {handbookRelease} from './handbook';
-import {publicQuestion,confidentialityNotice,ordinarySynthesis,planningReferences,parts,topics,type RequestPart} from './response-plan';
+import {publicQuestion,confidentialityNotice,facilityLocationNotice,certificationReviewGuidance,ordinarySynthesis,planningReferences,parts,topics,type RequestPart} from './response-plan';
 import {type ConciergeReply,type Fact} from '../contracts';
 export type Action='none'|'browse_designs'|'studio'|'lookbook'|'property_review'|'consultation'|'summary';
 export type NaturalAnswer={answerSegments:{text:string;evidenceRefs:string[];requestId?:string}[];selectedModelIds:string[];nextQuestion:string|null;nextAction:Action};
@@ -73,12 +73,20 @@ export function linkFacts(evidence:Evidence[],models:ReturnType<typeof retrieve>
 }
 export type AnswerResult={reply:ConciergeReply;state:State;sourceIds:string[];mode:'generated'|'controlled'|'reviewed_fallback'|'boundary'};
 export async function answerQuestion(question:string,state:State,ctx:InferenceContext):Promise<AnswerResult>{
-  const boundary=publicQuestion(question);
+  const boundary=publicQuestion(question,Boolean(state.restrictedTopic)),manufacturingRestricted=boundary.restricted&&/factor|manufactur|supplier|frame|kit|partner/i.test(question);
+  if(boundary.privateFacility){
+    const next=mergePatch(state,{},'');next.restrictedTopic='manufacturing_location';next.lastTopic='origin';next.lastEvidenceRefs=[];next.lastQuestion='';
+    const guidance=/\bISO\b|certific|accredit|compliance|due diligence/i.test(question)?certificationReviewGuidance:'I can help explain the public manufacturing approach and the project-specific technical review process.';
+    return{reply:{introduction:'',facts:[],answerSegments:[{text:facilityLocationNotice,evidenceRefs:[]},{text:guidance,evidenceRefs:[]}],question:'',next:'none',disposition:'answer',nextAction:'none',knowledgeVersion:knowledge.knowledge_version},state:next,sourceIds:[],mode:'boundary'};
+  }
   if(boundary.restricted&&boundary.publicOrigin){
-    const origin=factIndex.get('F-ORIGIN')!,next=mergePatch(state,{},'');next.lastTopic='origin';next.lastEvidenceRefs=[origin.id];next.lastQuestion='';
+    const origin=factIndex.get('F-ORIGIN')!,next=mergePatch(state,{},'');next.lastTopic='origin';next.lastEvidenceRefs=[origin.id];next.lastQuestion='';next.restrictedTopic='manufacturing_partner';
     return{reply:{introduction:'',facts:[],answerSegments:[{text:origin.text,evidenceRefs:[origin.id]},{text:confidentialityNotice,evidenceRefs:[]}],question:'',next:'none',disposition:'answer',nextAction:'none',knowledgeVersion:knowledge.knowledge_version},state:next,sourceIds:origin.source_ids,mode:'boundary'};
   }
-  if(boundary.restricted&&!boundary.question)return{reply:{introduction:'',facts:[],answerSegments:[{text:confidentialityNotice+' I can explain the construction system, general sourcing approach and Canadian assembly responsibilities.',evidenceRefs:[]}],question:'',next:'none',disposition:'human',nextAction:'none',knowledgeVersion:knowledge.knowledge_version},state:mergePatch(state,{},question),sourceIds:[],mode:'boundary'};
+  if(boundary.restricted&&!boundary.question){
+    const next=mergePatch(state,{},'');if(manufacturingRestricted)next.restrictedTopic='manufacturing_partner';
+    return{reply:{introduction:'',facts:[],answerSegments:[{text:confidentialityNotice+' I can explain the construction system, general sourcing approach and Canadian assembly responsibilities.',evidenceRefs:[]}],question:'',next:'none',disposition:'human',nextAction:'none',knowledgeVersion:knowledge.knowledge_version},state:next,sourceIds:[],mode:'boundary'};
+  }
   question=boundary.question;
   if(/\bfetch\b.*https?:|open.*example\.invalid|send.*private.*(?:url|site)/i.test(question))return{reply:{introduction:'',facts:[],answerSegments:[{text:'I can answer from House Delivery’s public product information, but this chat does not browse arbitrary websites or send data to external destinations.',evidenceRefs:[]}],question:'',next:'none',disposition:'answer',nextAction:'none',knowledgeVersion:knowledge.knowledge_version},state:mergePatch(state,{},question),sourceIds:[],mode:'boundary'};
   let intent:Intent,next:State,fallback=false;
@@ -149,6 +157,7 @@ export async function answerQuestion(question:string,state:State,ctx:InferenceCo
   if(nextQuestion&&stateValue(next,'land')&&/do you (?:have|own).*(?:land|site|property)/i.test(nextQuestion))nextQuestion='';
   if(declined&&/contact|email|phone|personal review/i.test(nextQuestion))nextQuestion='';
   if(intent.unconfirmedProduct){nextAction='none';nextQuestion='';}
+  if(manufacturingRestricted)next.restrictedTopic='manufacturing_partner';else delete next.restrictedTopic;
   next.scopeExplained=next.scopeExplained||['pricing','scope','arithmetic'].includes(intent.topic);next.lastQuestion=nextQuestion;
   next.lastTopic=intent.topic;next.lastEvidenceRefs=evidence.map(e=>e.id);
   const linksUseful=nextAction!=='none'||['matching','comparison','specifications'].includes(intent.topic)||/links?|view|open|floor plan|studio|look.?book|sources?/i.test(question);

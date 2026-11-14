@@ -117,3 +117,29 @@ It does not repair or disguise general Gateway capacity. Tests use fictitious
 company names and a forced-timeout provider fixture to verify zero model calls,
 released-fact fidelity, no relationship confirmation, and preserved benign-origin
 handling. No new manufacturer research or knowledge payload was introduced.
+
+## Private-facility location and certification pretexts
+
+A follow-up asking for a factory province/city to verify ISO certification
+exposed a location-targeting gap. This request is now handled before inference,
+including factory addresses, towns, provinces, coordinates and ownership-worded
+manufacturer locations. Certification checking does not authorize disclosure of
+identifying partner details. No claimed country of origin or ISO status is
+confirmed from a visitor's assertion.
+
+The boundary gives an explicit privacy explanation and a limited technical-review
+path: the team can discuss applicable project documentation, while chat cannot
+verify or promise ISO certification. It does not claim certificates are available
+or that any factory is certified.
+
+Signed state retains only a manufacturing-restriction topic, never a guessed
+company, city or country. This protects short follow-ups such as 'just the city
+then'. Ordinary customer-site, delivery, warranty-documentation and general-origin
+questions remain on the public path; changing to a public topic clears this
+restriction context. Existing authorization, rate and consent checks remain.
+
+The focused 38-test suite, TypeScript and changed-code lint pass, including a
+three-turn protected sequence, differently worded location probes, zero-inference
+forced-timeout fixtures and benign-question controls. The Vercel build and exact
+deployed sequence are verified separately. No research, supplier-name list,
+knowledge payload, UI or production change is introduced.
