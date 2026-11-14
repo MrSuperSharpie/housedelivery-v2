@@ -24,6 +24,7 @@ export function validateNatural(answer:NaturalAnswer,evidence:Evidence[],allowed
     if(/\bwe\s+(?:can\s+|will\s+)?(?:deliver|reserve|guarantee|allocate|produce)\s+\d/i.test(seg.text))return false;
     if(/\bnot (?:standard|offered)\b|not available (?:as|for|in|with)/i.test(seg.text))return false;
     if(/\b(?:island|wardrobe)\b/i.test(seg.text)&&/\bstructural (?:element|modification|change)/i.test(seg.text))return false;
+    if(/\b\d[\d,.]*\s*(?:per\s+(?:sq|square)|\/\s*(?:sq|sf))|\bblended (?:amount|price|cost|total)\b/i.test(seg.text)||evidence.some(e=>e.id==='F-PRICE')&&/\b(?:250|300)\b/.test(seg.text))return false;
     // Commercial numbers and authorizations use server-controlled rendering.
     if(/\$|\bCAD\b|\b(?:firm quote|reserved for you|has been sent|submitted your|funding is approved|guaranteed permit)\b/i.test(seg.text))return false;
   }
@@ -61,7 +62,7 @@ export async function answerQuestion(question:string,state:State,ctx:InferenceCo
   const arithmeticRequested=/times|multiplied by|\bdivide\b|×|\d\s*[x*]\s*\$?\d|(?:at|use)\s*\$(?:250|300)\b/i.test(question);
   if(arithmeticRequested)intent.topic='arithmetic';
   if(intent.topic!=='arithmetic'&&!/price|rate|\$|multipl|times|divide|per side|per residence/i.test(question)&&(!namedModels(question).length||/want|need|looking|closest|around|about|maximum/i.test(question))&&['bedrooms','areaTarget','areaMax','areaMin','bathroomsMin','storeys','study'].some(k=>Object.hasOwn(explicit,k)))intent.topic='matching';
-  if(/price|\brate\b|quotation|turnkey|shipping|freight|whole project cost|new approved|\$\d/i.test(question)&&!arithmeticRequested&&intent.topic!=='warranty')intent.topic='pricing';
+  if(/price|\brate\b|quotation|turnkey|shipping|freight|whole project cost|blended|mixed[ -]tier|exact.*(?:amount|total)|new approved|\$\d/i.test(question)&&!arithmeticRequested&&intent.topic!=='warranty')intent.topic='pricing';
   const result=retrieve(intent,next,question),controlled=controlledAnswer(question,intent,next,result.models),declined=stateValue(next,'declinedContact')===true;
   const evidence=result.evidence.length?result.evidence:[{id:'F-START',data:factIndex.get('F-START')!,sourceIds:factIndex.get('F-START')!.source_ids}];
   let segments:string[]=[],segmentRefs:string[][]=[],nextQuestion='',nextAction:Action='none',mode:AnswerResult['mode']=fallback?'reviewed_fallback':'generated';
