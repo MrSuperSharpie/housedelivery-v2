@@ -2,6 +2,7 @@ import Ajv from 'ajv/dist/2020';
 import {createHash} from 'node:crypto';
 import data from '@/data/concierge/audited-knowledge.json';
 import schema from '@/data/concierge/audited-knowledge.schema.json';
+import historicalStudios from '@/data/concierge/audited-historical-studio-ids.json';
 
 export type Source={id:string;url:string|null;title:string};
 export type PublicFact={id:string;text:string;source_ids:string[];tags:string[];qualifiers:string[]};
@@ -49,9 +50,8 @@ export const sourceIndex=new Map(knowledge.sources.map(s=>[s.id,s]));
 const aliases:Record<string,string>={company:'F-COMPANY',delivery:'F-PROCESS',systems:'F-SYSTEMS',national:'F-MARKETS',scale:'F-PORTFOLIO',community:'F-NATIONS',municipal:'F-MARKETS',prices:'F-PRICE',exclusions:'F-EXCLUSIONS',tiers:'F-ESSENTIAL',customization:'F-CUSTOMIZATION',lookbook:'F-STUDIO','cmhc-terms':'F-CMHC',site:'F-PROPERTY',timing:'F-TIMING',builder:'F-BUILDER',handoff:'F-CONTACT'};
 export function historicalId(id:string):string|null{
   if(modelIndex.has(id)||factIndex.has(id))return id;if(aliases[id])return aliases[id];
-  const studio=knowledge.models.find(m=>m.family==='architectural'&&id.startsWith('studio-'+m.slug+'-'));
-  if(studio)return 'STUDIO:'+studio.id;
-  if(id.startsWith('STUDIO:')&&modelIndex.has(id.slice(7)))return id;
+  if(Object.hasOwn(historicalStudios,id))return historicalStudios[id as keyof typeof historicalStudios];
+  if(id.startsWith('STUDIO:')&&knowledge.design_studios.some(s=>s.model_id===id.slice(7)))return id;
   return null;
 }
 export function publicModel(m:Model){
