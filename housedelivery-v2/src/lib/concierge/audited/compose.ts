@@ -22,6 +22,8 @@ export function validateNatural(answer:NaturalAnswer,evidence:Evidence[],allowed
     if(/\bconditioned\b|\b(?:internal|living|chargeable)\s+(?:floor\s+)?(?:area|space)\b/i.test(seg.text)&&evidence.some(e=>modelIndex.get(e.id)?.area_basis==='published_model_area_conditioned_basis_not_confirmed'))return false;
     if(/\bADU\b|laneway|carriage/i.test(seg.text)&&evidence.some(e=>modelIndex.get(e.id)?.family==='architectural')&&!evidence.some(e=>{const m=modelIndex.get(e.id);return m&&m.family!=='architectural'}))return false;
     if(/\bwe\s+(?:can\s+|will\s+)?(?:deliver|reserve|guarantee|allocate|produce)\s+\d/i.test(seg.text))return false;
+    if(/\bnot (?:standard|offered)\b|not available (?:as|for|in|with)/i.test(seg.text))return false;
+    if(/\b(?:island|wardrobe)\b/i.test(seg.text)&&/\bstructural (?:element|modification|change)/i.test(seg.text))return false;
     // Commercial numbers and authorizations use server-controlled rendering.
     if(/\$|\bCAD\b|\b(?:firm quote|reserved for you|has been sent|submitted your|funding is approved|guaranteed permit)\b/i.test(seg.text))return false;
   }
