@@ -61,7 +61,7 @@ test('arithmetic is useful and cannot silently become a model offer',()=>{
   assert.equal(illustrativeTotal(2486,250),621500);assert.equal(illustrativeTotal(2486,300),745800);
   const i={...intent('arithmetic'),arithmetic:{operation:'multiply' as const,left:2486,right:250}};
   const r=controlledAnswer('What is 2,486 multiplied by $250?',i,initialState('A'),[modelIndex.get('home-aurora')!])!;
-  assert.match(r.segments.join(' '),/621,500/);assert.match(r.segments.join(' '),/not a validated model offer/);assert.match(r.segments.join(' '),/freight|foundations/);
+  assert.match(r.segments.join(' '),/621,500/);assert.match(r.segments.join(' '),/not a validated model offer/);assert.match(r.segments.join(' '),/freight|foundations/);const scalar=controlledAnswer('What is 2 times 3?',{...intent('arithmetic'),arithmetic:{operation:'multiply',left:2,right:3}},initialState('A'),[])!;assert.doesNotMatch(scalar.segments.join(' '),/CAD \$/);const compact=controlledAnswer('616 times $250',i,initialState('A'),[modelIndex.get('carriage-moonlight-house')!])!;assert.match(compact.segments.join(' '),/not a quotation/);
 });
 test('required pricing and unresolved-field qualifications survive controlled responses',()=>{
   const inventory=controlledAnswer('What laneway and carriage homes do you offer?',intent('matching'),initialState('A'),[])!;assert.match(inventory.segments.join(' '),/6 laneway/);assert.match(inventory.segments.join(' '),/Micro and Mini/);const collection=retrieve(intent('matching'),initialState('A'),'What laneway and carriage homes do you offer?');assert.equal(collection.models.length,8);assert.equal(collection.evidence.filter(e=>e.id.startsWith('carriage-')||e.id.startsWith('catalog-')).length,8);
