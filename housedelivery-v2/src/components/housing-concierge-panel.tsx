@@ -2,6 +2,7 @@
 import {useEffect,useRef,useState,type FormEvent} from 'react';
 import {ArrowUpRight,ArrowUp,X,RotateCcw,ArrowLeft} from 'lucide-react';
 import {usePathname} from 'next/navigation';
+import Link from 'next/link';
 import {conciergeJourneys,type ChatTurn,type ConciergeReply} from '@/lib/concierge/contracts';
 import {trackAnalyticsEvent} from '@/lib/analytics';
 import ConciergeLeadForm from './housing-concierge-lead-form';
@@ -16,7 +17,7 @@ export default function HousingConciergePanel({open,onClose}:{open:boolean;onClo
   useEffect(()=>{if(open&&!dialog.current?.open)dialog.current?.show();else if(!open)dialog.current?.close()},[open]);
   useEffect(()=>{if(!open)return;const escape=(e:KeyboardEvent)=>{if(e.key==='Escape'){e.preventDefault();onClose()}};window.addEventListener('keydown',escape);return()=>window.removeEventListener('keydown',escape)},[open,onClose]);
   useEffect(()=>{const controller=new AbortController();fetch('/api/concierge',{cache:'no-store',signal:controller.signal}).then(async r=>{const d=await r.json();if(!r.ok||!d.available||!d.token)throw Error(d.error||'The assistant is temporarily unavailable. Please try connecting again.');setToken(d.token)}).catch(e=>{if(!controller.signal.aborted)setError(e instanceof Error?e.message:'Please try connecting again.')}).finally(()=>{if(!controller.signal.aborted)setLoading(false)});return()=>{controller.abort();abort.current?.abort()}},[]);
-  useEffect(()=>{if(open&&(messages.length||busy||error))end.current?.scrollIntoView({block:'nearest',behavior:'instant'})},[messages,busy,error,open]);
+  useEffect(()=>{if(!open)return;if(messages.length||busy||error)end.current?.scrollIntoView({block:'nearest',behavior:'instant'});else end.current?.parentElement?.scrollTo({top:0})},[messages,busy,error,open]);
   async function send(question:string){
     if(busy||!token||!question.trim())return;setError('');setDraft('');
     const history:ChatTurn[]=messages.filter((m):m is Message&{reply:ConciergeReply}=>Boolean(m.reply)).slice(-12).map(m=>({question:m.question,factIds:m.reply.facts.map(f=>f.id),next:m.reply.next}));
@@ -36,7 +37,7 @@ export default function HousingConciergePanel({open,onClose}:{open:boolean;onClo
           {messages.map((m,i)=><div key={i} className={styles.exchange}><p className={styles.visitor}><span className={styles.srOnly}>You: </span>{m.question}</p>{m.reply?<div className={styles.answer} data-concierge-answer>
             {m.reply.introduction?<p>{m.reply.introduction}</p>:null}
             {m.reply.facts.map(f=><div key={f.id} className={m.reply?.detailed?styles.fact:styles.responseText}>{m.reply?.detailed?<h4>{f.title}</h4>:null}<p>{f.text}</p></div>)}
-            {m.reply.facts.length?<div className={styles.sourceLinks}>{[...new Map(m.reply.facts.map(f=>[f.href,f])).values()].slice(0,3).map(f=><a key={f.href} href={f.href}>{f.title}<ArrowUpRight size={12} aria-hidden="true"/></a>)}</div>:null}
+            {m.reply.facts.length?<div className={styles.sourceLinks}>{[...new Map(m.reply.facts.map(f=>[f.href,f])).values()].slice(0,3).map(f=><Link key={f.href} href={f.href} prefetch={false}>{f.title}<ArrowUpRight size={12} aria-hidden="true"/></Link>)}</div>:null}
             {m.reply.question?<p className={styles.followUp}>{m.reply.question}</p>:null}
             {m.reply.next==='human'?<button className={styles.consultation} type="button" onClick={()=>setLead(true)}>Talk with our team<ArrowUpRight size={14}/></button>:null}
           </div>:null}</div>)}
