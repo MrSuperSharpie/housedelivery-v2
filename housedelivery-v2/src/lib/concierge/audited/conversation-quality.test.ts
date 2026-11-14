@@ -7,6 +7,7 @@ import {publicQuestion,ordinarySynthesis,planningReferences} from './response-pl
 import {privateRequest} from './commercial';
 import type {Intent} from './intent';
 import type {LanguageModel} from 'ai';
+import type {InferenceContext} from './llm';
 const intent=(topic:Intent['topic'],requests:Intent['requests']=[],modelContext:Intent['modelContext']='none'):Intent=>({topic,requests,modelContext,factIds:[],modelIds:[],questionKey:null,patch:{},arithmetic:null,detail:false,ambiguous:false});
 test('multi-part retrieval includes both supply and local work without unrelated model sources',()=>{
  const i=intent('specifications',[{id:'r1',topic:'scope',question:'Package contents?'},{id:'r2',topic:'builder',question:'Locally arranged work?'}],'explicit');
@@ -77,7 +78,11 @@ test('approved rate references survive the complete SDK composition and support-
  const model:LanguageModel={specificationVersion:'v4',provider:'synthetic-rate-fixture',modelId:'source-rendering',supportedUrls:{},doStream:async()=>{throw Error('No streaming')},doGenerate:async options=>{
   calls++;let output:unknown;
   if(calls===1){const schema=options.responseFormat?.type==='json'?options.responseFormat.schema:undefined;const props=(schema?.properties?.patch as {properties:Record<string,{type?:unknown}>}).properties;const patch=Object.fromEntries(Object.entries(props).map(([k,v])=>[k,v.type==='array'?[]:null]));output={...intent('pricing',[{id:'r1',topic:'pricing',question:'Published package planning rates?'}]),sectionIds:['cost'],unconfirmedProduct:false,patch};}
-  else if(calls===2)output={answers:{r1:{text:'These are home-package planning references, not completed-home prices; model applicability, chargeable area, scope and delivery require a written quotation.',evidenceRefs:['F-PRICE','F-SCOPE'],planningRates:['Premium','Signature']}},selectedModelIds:[],nextQuestion:null,nextAction:'none'};
+  else if(calls===2){
+   // OpenAI/Azure reject this keyword before generation; uniqueness stays server-checked.
+   assert.doesNotMatch(JSON.stringify(options.responseFormat),/"uniqueItems"/);
+   output={answers:{r1:{text:'These are home-package planning references, not completed-home prices; model applicability, chargeable area, scope and delivery require a written quotation.',evidenceRefs:['F-PRICE','F-SCOPE'],planningRates:['Premium','Signature']}},selectedModelIds:[],nextQuestion:null,nextAction:'none'};
+  }
   else output={segments:[{index:0,supported:true,issues:[]}],followUpSupported:true,complete:true};
   return{content:[{type:'text',text:JSON.stringify(output)}],finishReason:{unified:'stop',raw:undefined},usage:{inputTokens:{total:0,noCache:0,cacheRead:undefined,cacheWrite:undefined},outputTokens:{total:0,text:0,reasoning:undefined}},warnings:[]};
  }};
@@ -117,4 +122,22 @@ test('location and certification pretexts remain outside inference across repeat
  const cert=await answerQuestion(probes[0],first.state,{calls:0});assert.match(cert.reply.answerSegments!.map(s=>s.text).join(' '),/cannot verify ISO/);
  for(const q of ['What city do you ship to?','Which province can homes be delivered to?','What do you need about my property in Calgary?','Where can I find manufacturer warranty information?','Where are the components manufactured?'])assert.equal(publicQuestion(q,true).privateFacility,false,q);
  assert.doesNotMatch(JSON.stringify(state.values),/China|ExampleFrameCo|ISO|coordinates/);
+});
+
+
+// A real HTTP error must not be presented as an answer-validation rejection.
+test('invalid requests, busy providers and timeouts have distinct service notices',async()=>{
+ for(const [status,message,category,copy] of [
+  [400,"Invalid schema: uniqueItems is not permitted; authorization fields are unchanged.",'request_schema',/couldn’t complete this request/],
+  [400,'Invalid request; credential configuration is unchanged.','invalid_request',/couldn’t complete this request/],
+  [429,'Too many requests.','rate_limit',/connection is busy/],
+  [408,'Request timed out.','timeout',/connection timed out/]
+ ] as const){
+  const model:LanguageModel={specificationVersion:'v4',provider:'synthetic-http-error',modelId:'service-failure',supportedUrls:{},doStream:async()=>{throw Error('No streaming')},doGenerate:async()=>{throw Object.assign(new Error(message),{statusCode:status})}};
+  const ctx:InferenceContext={calls:0,model};
+  const r=await answerQuestion('Can I inspect the manufacturing plant before I buy, or get the factory’s direct engineering spec sheets?',initialState('E'),ctx);
+  assert.deepEqual(ctx.failures,[{stage:1,status,category}]);assert.equal(ctx.completed??0,0);assert.deepEqual(ctx.rejections??[],[]);
+  const text=r.reply.answerSegments!.map(s=>s.text).join(' ');assert.match(text,copy);assert.doesNotMatch(text,/couldn’t verify a complete answer/);
+  if(status!==429)assert.doesNotMatch(text,/connection is busy/);
+ }
 });

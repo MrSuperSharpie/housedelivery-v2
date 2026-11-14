@@ -12,7 +12,7 @@ export type NaturalAnswer={answerSegments:{text:string;evidenceRefs:string[];req
 const actions=['none','browse_designs','studio','lookbook','property_review','consultation','summary'];
 type PlannedAnswer={answers:Record<string,{text:string;evidenceRefs:string[];planningRates:string[]}>;selectedModelIds:string[];nextQuestion:string|null;nextAction:Action};
 function outputSchema(ids:string[],models:string[],detail=false,requests:RequestPart[]=[]){
-  const segment=objectSchema({text:{type:'string',minLength:1,maxLength:650},evidenceRefs:{type:'array',minItems:1,maxItems:4,items:{enum:ids}},...(requests.length?{planningRates:{type:'array',maxItems:2,uniqueItems:true,items:{enum:['Premium','Signature']}}}:{})});
+  const segment=objectSchema({text:{type:'string',minLength:1,maxLength:650},evidenceRefs:{type:'array',minItems:1,maxItems:4,items:{enum:ids}},...(requests.length?{planningRates:{type:'array',maxItems:2,items:{enum:['Premium','Signature']}}}:{})});
   const rest={selectedModelIds:{type:'array',maxItems:models.length?2:0,items:{enum:models.length?models:['none']}},nextQuestion:{type:['string','null'],maxLength:180},nextAction:{enum:actions}};
   return requests.length?objectSchema({answers:objectSchema(Object.fromEntries(requests.map(r=>[r.id,segment]))),...rest}):objectSchema({answerSegments:{type:'array',minItems:1,maxItems:detail?4:3,items:segment},...rest});
 }
@@ -136,9 +136,10 @@ export async function answerQuestion(question:string,state:State,ctx:InferenceCo
     }catch{fallback=true;mode='reviewed_fallback';ctx.fallbackReason=ctx.failures?.length?'provider_failure':'answer_validation'}
   }
   if(fallback&&!segments.length){
-    segments=intent.topic==='matching'?(result.match.matches.length?['These published designs meet the requirements supplied so far.']:['I haven’t found a published design that meets those requirements; we can keep them as a custom project brief.']):['specifications','comparison'].includes(intent.topic)&&result.models.length?result.models.map(modelLine):['I couldn’t verify a complete answer just now. Your project details are still here; please try again or request a project review.'];
-    if(ctx.timeoutInjected)segments.unshift('The AI connection timed out just now; your project context is still here.');
-    else if(ctx.failures?.length)segments.unshift('The AI connection is busy just now. Your project context is still here.');
+    const failure=ctx.failures?.[ctx.failures.length-1]?.category;
+    const serviceNotice=ctx.timeoutInjected||failure==='timeout'?'The AI connection timed out just now; your project context is still here.':failure==='rate_limit'?'The AI connection is busy just now. Your project context is still here.':failure?'The automated assistant couldn’t complete this request just now. Your project context is still here.':null;
+    segments=intent.topic==='matching'?(result.match.matches.length?['These published designs meet the requirements supplied so far.']:['I haven’t found a published design that meets those requirements; we can keep them as a custom project brief.']):['specifications','comparison'].includes(intent.topic)&&result.models.length?result.models.map(modelLine):[serviceNotice??'I couldn’t verify a complete answer just now. Your project details are still here; please try again or request a project review.'];
+    if(serviceNotice&&segments[0]!==serviceNotice)segments.unshift(serviceNotice);
   }
   if(mode==='generated'&&intent.topic==='pricing'&&ctx.rejections?.includes('scope_qualification')){segments.push('Site preparation, foundations, services, local engineering and permits, Canadian assembly and completion, appliances and sales taxes are separately considered unless expressly included in the written scope.');segmentRefs.push(['F-SCOPE','F-EXCLUSIONS']);}
   if(topics(intent).includes('matching')&&!controlled){

@@ -143,3 +143,34 @@ three-turn protected sequence, differently worded location probes, zero-inferenc
 forced-timeout fixtures and benign-question controls. The Vercel build and exact
 deployed sequence are verified separately. No research, supplier-name list,
 knowledge payload, UI or production change is introduced.
+
+
+## Plant access / direct technical sheets: evidenced schema failure
+
+Before edits, the exact two-part customer question was reproduced once on
+Preview commit `2d27b3552b8ca3cf6be0afdc0cb1a744c9c0fce5`. Intent extraction
+completed. The answer request then failed with HTTP 400, no generated answer,
+no support-review call and no answer-validation rejections. Retrieval selected
+process/specifications evidence without a model recommendation.
+
+The project AI Gateway request log at `2026-11-14T21:27:06.215Z`
+(`gen_01M7DZ9X77VE29ZCYMMQFE8YN0`) records OpenAI and Azure both rejecting
+`answers.r1.planningRates`: **uniqueItems is not permitted**. This establishes
+a provider-facing request-schema defect, not rate limiting, missing knowledge,
+a timeout, or a confidentiality refusal. The original customer's request has no
+correlation ID, so this trace is the unchanged-Preview reproduction, not a claim
+to have identified their original individual request.
+
+Remove only that unsupported schema keyword; `planningReferences()` still
+rejects duplicate/unknown tiers and renders pinned public prices server-side.
+No prompt or knowledge change is needed to correct this request rejection.
+HTTP 400 is classified as a request/schema error before loose authentication
+keyword matching. Busy wording is reserved for rate limits; timeouts and other
+service failures use distinct notices. A service failure no longer also claims
+the answer was rejected by verification. Missing information and confidentiality
+remain subject to the existing grounded-answer and privacy architecture. Plant
+access and releasable documentation availability must not be invented.
+
+Focused offline contract/error tests and one corrected-Preview conversation are
+the bounded verification scope. No production, billing, credential or provider
+configuration changes are included.
