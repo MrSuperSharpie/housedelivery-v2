@@ -12,7 +12,7 @@ export function retrieve(intent:Intent,state:State,question:string){
   else if(intent.topic==='matching')models=match.matches;
   else if(stateValue(state,'selectedModel'))models=[modelIndex.get(stateValue(state,'selectedModel')!)!];
   else if(state.recommended.length&&['specifications','comparison','customization','arithmetic'].includes(intent.topic))models=state.recommended.map(id=>modelIndex.get(id)!).filter(Boolean);
-  else models=intent.modelIds.map(id=>modelIndex.get(id)!).filter(Boolean);
+  else if(['specifications','comparison','customization','arithmetic'].includes(intent.topic))models=intent.modelIds.map(id=>modelIndex.get(id)!).filter(Boolean);
   if(/main.level|main.floor|ground.floor/i.test(question)&&models.length>1){const suited=models.filter(m=>m.features.some(f=>/main.level.*(suite|bedroom)|main.floor.*suite|ground.floor.*(bedroom|suite)/i.test(f)));if(suited.length)models=suited;}
   const requestedFacts=[...new Set([...topicFacts[intent.topic],...intent.factIds])];
   if(/show.?home|rendering|gallery|completed.*project/i.test(question))requestedFacts.push('F-IMAGES','F-CONTACT');
