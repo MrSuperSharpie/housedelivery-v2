@@ -60,6 +60,7 @@ export async function answerQuestion(question:string,state:State,ctx:InferenceCo
   if(/what (?:would|do|will) you coordinate/i.test(question))intent.topic='builder';
   if(/(?:we|our team|I).*(?:supply|provide).*appliances/i.test(question))intent.topic='scope';
   if(/architect|change.*floor plan|add.*bedroom|change.*layout/i.test(question))intent.topic='customization';
+  if(/\b(?:manufacturing|manufactured|factory|framing|frame)\b/i.test(question)&&!/price|cost|rate|quotation|\$/i.test(question))intent.topic='origin';
   const arithmeticRequested=/times|multiplied by|\bdivide\b|×|\d\s*[x*]\s*\$?\d|(?:at|use)\s*\$(?:250|300)\b/i.test(question);
   if(arithmeticRequested)intent.topic='arithmetic';
   if(intent.topic!=='arithmetic'&&!/price|rate|\$|multipl|times|divide|per side|per residence/i.test(question)&&(!namedModels(question).length||/want|need|looking|closest|around|about|maximum/i.test(question))&&['bedrooms','areaTarget','areaMax','areaMin','bathroomsMin','storeys','study'].some(k=>Object.hasOwn(explicit,k)))intent.topic='matching';
