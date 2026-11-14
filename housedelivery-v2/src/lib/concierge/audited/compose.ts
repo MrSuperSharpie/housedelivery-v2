@@ -19,6 +19,7 @@ export function validateNatural(answer:NaturalAnswer,evidence:Evidence[],allowed
   const ids=new Set(evidence.map(e=>e.id));
   if(answer.answerSegments.length>4||answer.selectedModelIds.some(id=>!allowedModels.includes(id)))return false;
   for(const seg of answer.answerSegments){if(!validText(seg.text)||seg.evidenceRefs.some(id=>!ids.has(id))||!numericSupport(seg.text,evidence.filter(e=>seg.evidenceRefs.includes(e.id)),state))return false;
+    if(/\b(?:conditioned|internal|living)\s+(?:floor\s+|living\s+)?(?:area|space)\b/i.test(seg.text)&&!/\b(?:not|unconfirmed|unknown|unverified)\b|needs? confirmation/i.test(seg.text)&&seg.evidenceRefs.some(id=>{const m=modelIndex.get(id);return m?.area_basis==='published_model_area_conditioned_basis_not_confirmed'}))return false;
     // Commercial numbers and authorizations use server-controlled rendering.
     if(/\$|\bCAD\b|\b(?:firm quote|reserved for you|has been sent|submitted your|funding is approved|guaranteed permit)\b/i.test(seg.text))return false;
   }
@@ -52,7 +53,7 @@ export async function answerQuestion(question:string,state:State,ctx:InferenceCo
   const result=retrieve(intent,next,question),controlled=controlledAnswer(question,intent,next,result.models),declined=stateValue(next,'declinedContact')===true;
   const evidence=result.evidence.length?result.evidence:[{id:'F-START',data:factIndex.get('F-START')!,sourceIds:factIndex.get('F-START')!.source_ids}];
   let segments:string[]=[],segmentRefs:string[][]=[],nextQuestion='',nextAction:Action='none',mode:AnswerResult['mode']=fallback?'reviewed_fallback':'generated';
-  if(controlled){segments=controlled.segments;mode='controlled';for(const id of controlled.factIds)if(!evidence.some(e=>e.id===id)){const f=factIndex.get(id)!;evidence.push({id,data:f,sourceIds:f.source_ids})}if(controlled.arithmetic)next.lastArithmetic=controlled.arithmetic;}
+  if(controlled){segments=controlled.segments;nextQuestion=controlled.question??'';mode='controlled';for(const id of controlled.factIds)if(!evidence.some(e=>e.id===id)){const f=factIndex.get(id)!;evidence.push({id,data:f,sourceIds:f.source_ids})}if(controlled.arithmetic)next.lastArithmetic=controlled.arithmetic;}
   else if(intent.ambiguous&&!stateValue(next,'selectedModel')&&next.recommended.length>1){segments=['I can help with either design.'];nextQuestion='Which one do you mean: '+next.recommended.map(id=>modelIndex.get(id)!.name).join(' or ')+'?';mode='controlled'}
   else if(!fallback){
     try{
@@ -62,7 +63,7 @@ export async function answerQuestion(question:string,state:State,ctx:InferenceCo
     }catch{fallback=true;mode='reviewed_fallback'}
   }
   if(fallback&&!segments.length){
-    segments=intent.topic==='matching'?(result.match.matches.length?['These published designs meet the requirements supplied so far.']:['I haven’t found a published design that meets those requirements; we can keep them as a custom project brief.']):[result.facts[0]?.text??factIndex.get('F-START')!.text];
+    segments=intent.topic==='matching'?(result.match.matches.length?['These published designs meet the requirements supplied so far.']:['I haven’t found a published design that meets those requirements; we can keep them as a custom project brief.']):['specifications','comparison'].includes(intent.topic)&&result.models.length?result.models.map(modelLine):[result.facts[0]?.text??factIndex.get('F-START')!.text];
     if(ctx.timeoutInjected)segments.unshift('The AI connection timed out just now; your project context is still here.');
     else if(ctx.failures?.length)segments.unshift('The AI connection is busy just now. I can still show the relevant published information below.');
   }
