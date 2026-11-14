@@ -51,6 +51,8 @@ export async function answerQuestion(question:string,state:State,ctx:InferenceCo
   try{const extracted=await extractIntent(question,state,ctx);intent=extracted.intent;next=extracted.state}
   catch{fallback=true;next=mergePatch(state,{},question);intent={topic:/\$|price|rate|cost|budget/i.test(question)?'pricing':/bed|sq|sf|main.level/i.test(question)?'matching':'clarify',factIds:['F-START'],modelIds:[],questionKey:null,patch:{},arithmetic:null,detail:false,ambiguous:false}}
   const explicit=deterministicPatch(question,state);
+  const summaryRequested=/\bsummari[sz]e\b|\bproject (?:brief|summary)\b/i.test(question);
+  if(summaryRequested)intent.topic='summary';
   if(namedModels(question).length&&/compare|versus|\bvs\b|difference/i.test(question))intent.topic='comparison';
   if(namedModels(question).length&&/^(?:tell me about|describe)\b/i.test(question)&&!/kitchen|finish|studio|price|cost|warranty|delivery|system|process|custom|look.?book|floor plan/i.test(question))intent.topic='specifications';
   if(/municip|institution|Nation|Indigenous|developer|non.?profit/i.test((stateValue(next,'audience')??'')+' '+(stateValue(next,'role')??''))&&['company','property','process','clarify',...(!stateValue(next,'selectedModel')&&!namedModels(question).length?['customization']:[])].includes(intent.topic)&&!/property (?:check|review)|check.*property|zoning/i.test(question))intent.topic='community';
@@ -93,7 +95,7 @@ export async function answerQuestion(question:string,state:State,ctx:InferenceCo
   if(result.models.length){next.recommended=result.models.map(m=>m.id).slice(0,3);if(result.models.length===1)next.values.selectedModel={value:result.models[0].id,sourceTurn:next.turn,status:'visitor_reported'}}
   if(/floor plan|both source|drawing|look book|studio|save it/i.test(question)&&result.models.length)nextAction=/look book|save it/i.test(question)?'lookbook':/studio/i.test(question)?'studio':'browse_designs';
   if(intent.topic==='contact'||intent.topic==='summary'||/share only.*summary|did you send/i.test(question))nextAction=declined?'none':'summary';
-  if(declined&&['consultation','summary'].includes(nextAction))nextAction='none';
+  if(declined&&['consultation','summary'].includes(nextAction)||summaryRequested&&/without sending|do not send|don't send|just summari/i.test(question))nextAction='none';
   if(nextQuestion&&stateValue(next,'location')&&/which (municipality|city|province)|where.*(?:property|site)/i.test(nextQuestion))nextQuestion='';
   if(nextQuestion&&stateValue(next,'land')&&/do you (?:have|own).*(?:land|site|property)/i.test(nextQuestion))nextQuestion='';
   if(declined&&/contact|email|phone|personal review/i.test(nextQuestion))nextQuestion='';
@@ -101,5 +103,5 @@ export async function answerQuestion(question:string,state:State,ctx:InferenceCo
   next.lastTopic=intent.topic;next.lastEvidenceRefs=evidence.map(e=>e.id);
   const linked=linkFacts(evidence,result.models,intent,question);
   const actionHref=nextAction==='property_review'?safeLink(knowledge.routing.adu_laneway):undefined;
-  return{reply:{introduction:'',facts:linked,answerSegments:segments.map((text,i)=>({text,evidenceRefs:segmentRefs[i]??evidence.map(e=>e.id)})),modelCards:cards,question:nextQuestion,next:'none',disposition:'answer',nextAction,actionHref,proposedSummary:projectSummary(next),knowledgeVersion:knowledge.knowledge_version,detailed:intent.detail},state:next,sourceIds:[...new Set(evidence.flatMap(e=>e.sourceIds))],mode};
+  return{reply:{introduction:'',facts:linked,answerSegments:segments.map((text,i)=>({text,evidenceRefs:segmentRefs[i]??evidence.map(e=>e.id)})),modelCards:cards,question:nextQuestion,next:'none',disposition:'answer',nextAction,actionHref,proposedSummary:projectSummary(next),showSummary:summaryRequested,knowledgeVersion:knowledge.knowledge_version,detailed:intent.detail},state:next,sourceIds:[...new Set(evidence.flatMap(e=>e.sourceIds))],mode};
 }

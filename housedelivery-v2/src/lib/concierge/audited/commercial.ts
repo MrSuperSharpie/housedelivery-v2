@@ -20,6 +20,7 @@ export function controlledAnswer(q:string,intent:Intent,state:State,models:Model
     return{segments:[`The compact collection includes ${compact.length} laneway and carriage designs: ${compact.map(m=>m.name).join(', ')}.`,`The ${adus.map(m=>m.name.replace(/^The /,'')).join(' and ')} are also CMHC ADU reference designs; we can narrow these options by bedrooms, size and property needs.`],factIds:['F-CMHC','F-PROPERTY'],suppressCards:true};
   }
   if((selected==='home-salt-spring'||model?.id==='home-salt-spring')&&/blend|mixed[ -]tier|exact.*(?:amount|total)/i.test(q))return{segments:['The two Salt Spring residences can explore different interior tiers, but their individual chargeable areas are not confirmed here.','We cannot split the combined area into assumed equal halves or give a mixed-tier total; that needs the residence areas and written scope.'],factIds:['F-PRICE','F-SCOPE'],suppressCards:true};
+  if(/\bsummari[sz]e\b|\bproject (?:brief|summary)\b/i.test(q))return{segments:['Here is the project brief from this conversation. Chat has not submitted this summary.'],factIds:['F-CONTACT','F-PRIVACY'],suppressCards:true};
   if(intent.topic==='arithmetic'){
     let calc=intent.arithmetic;if(/divide.*total.*(?:six|6)/i.test(q)&&model?.area_sqft)calc={operation:'divide',left:model.area_sqft,right:6};
     const direct=q.replaceAll(',','').match(/(\d+(?:\.\d+)?)\s*(?:sq\.?\s*ft\.?|square feet)?\s*(?:times|multiplied by|×|\bx\b|\*)\s*\$?(\d+(?:\.\d+)?)/i);

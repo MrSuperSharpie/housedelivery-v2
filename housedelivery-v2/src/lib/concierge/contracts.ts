@@ -30,7 +30,7 @@ export type ConciergeReply = {
   modelCards?:Fact[];
   nextAction?:'none'|'browse_designs'|'studio'|'lookbook'|'property_review'|'consultation'|'summary';
   actionHref?:string;
-  proposedSummary?:string;
+  proposedSummary?:string;showSummary?:boolean;
   knowledgeVersion?:string;
 };
 export const audiences = ['Individual / family', 'Developer', 'Municipality', 'First Nation / Indigenous community', 'Non-profit / institution', 'Other organization'] as const;
