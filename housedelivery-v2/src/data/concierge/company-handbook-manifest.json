@@ -1,0 +1,34 @@
+{
+  "releaseId": "2026-11-14.knowledge-expansion.1",
+  "sha256": "de6457fdad3bc8ab0929b57b301e140ab43599f690af5c145bff283f0a45d98d",
+  "canonicalSha256": "f944fb59d0dee76163e52d1462549dbe45be13646fc4300925157da1f74d7b14",
+  "sections": [
+    "company",
+    "value",
+    "roles",
+    "systems",
+    "selection",
+    "layout",
+    "design",
+    "finishes",
+    "cost",
+    "property",
+    "process",
+    "developments",
+    "community",
+    "aftercare",
+    "next_step"
+  ],
+  "sources": [
+    "W-PROCESS",
+    "W-INCLUSIONS",
+    "W-WARRANTY",
+    "W-NATIONS",
+    "B-KNOWLEDGE",
+    "D-CAPABILITY",
+    "D-JOURNEY",
+    "D-PROTOTYPE",
+    "O-POSITIONING",
+    "O-CUSTOMER-EXPERIENCE"
+  ]
+}

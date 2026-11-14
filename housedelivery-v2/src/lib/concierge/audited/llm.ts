@@ -1,6 +1,6 @@
 import Ajv from 'ajv/dist/2020';
 import {generateText,jsonSchema,Output,type LanguageModel} from 'ai';
-export type InferenceContext={signal?:AbortSignal;calls:number;completed?:number;model?:LanguageModel;fault?:'timeout'|'invalid';timeoutInjected?:boolean;contexts?:string[];rejections?:string[];failures?:{stage:number;status:number|null;category:string}[];onValidatedOutput?:(value:unknown)=>void};
+export type InferenceContext={signal?:AbortSignal;calls:number;completed?:number;retrieval?:{releaseId:string;sectionIds:string[];modelIds:string[];evidenceIds:string[]};model?:LanguageModel;fault?:'timeout'|'invalid';timeoutInjected?:boolean;contexts?:string[];rejections?:string[];failures?:{stage:number;status:number|null;category:string}[];onValidatedOutput?:(value:unknown)=>void};
 const validator=new Ajv({strict:true,allowUnionTypes:true});
 export async function structured<T>(schema:Record<string,unknown>,system:string,prompt:object,ctx:InferenceContext,model?:LanguageModel):Promise<T>{
   try{

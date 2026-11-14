@@ -44,3 +44,6 @@ next-env.d.ts
 # Local Python evaluation caches
 __pycache__/
 *.py[cod]
+
+# Local editorial package; publish only the reviewed runtime JSON.
+/docs/House_Delivery_Knowledge_Expansion_2026-11-14/

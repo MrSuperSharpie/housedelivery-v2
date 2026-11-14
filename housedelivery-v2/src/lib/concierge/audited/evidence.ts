@@ -2,6 +2,7 @@ import {knowledge,modelIndex,factIndex,publicModel,safeLink,type Model} from './
 import {shortlist,compactInventoryRequested} from './matching';
 import {constraints,stateValue,namedModels,type State} from './state';
 import type {Intent} from './intent';
+import {selectHandbook} from './handbook';
 export type Evidence={id:string;data:unknown;sourceIds:string[]};
 const topicFacts:Record<Intent['topic'],string[]>={company:['F-COMPANY','F-MARKETS','F-START'],matching:['F-CUSTOMIZATION'],specifications:[],comparison:[],customization:['F-CUSTOMIZATION','F-STUDIO','F-INCLUSIONS','F-ESSENTIAL'],pricing:['F-PRICE','F-SCOPE','F-EXCLUSIONS'],arithmetic:['F-PRICE','F-SCOPE','F-EXCLUSIONS'],process:['F-PROCESS','F-PARALLEL','F-TIMING'],scope:['F-SCOPE','F-EXCLUSIONS','F-APPLIANCES'],property:['F-PROPERTY','F-START'],community:['F-MARKETS','F-PORTFOLIO','F-PROCESS'],builder:['F-BUILDER','F-COMPANY','F-SCOPE','F-ORIGIN','F-PROCESS'],origin:['F-ORIGIN','F-SYSTEMS'],warranty:['F-WARRANTY'],terms:['F-CMHC','F-CMHC-INDEPENDENT','F-TECHNICAL'],contact:['F-CONTACT','F-PRIVACY','F-START'],summary:['F-CONTACT','F-PRIVACY'],clarify:['F-START'],unrelated:['F-START']};
 export function retrieve(intent:Intent,state:State,question:string){
@@ -28,7 +29,7 @@ export function retrieve(intent:Intent,state:State,question:string){
   if(intent.topic==='warranty')requestedFacts.push('F-WARRANTY');
   const facts=[...new Set(requestedFacts)].map(id=>factIndex.get(id)).filter((x):x is NonNullable<typeof x>=>Boolean(x));
   const studios=intent.topic==='customization'?knowledge.design_studios.filter(s=>models.some(m=>m.id===s.model_id)):[];
-  const evidence:Evidence[]=[...facts.map(f=>({id:f.id,data:{text:f.text,qualifiers:f.qualifiers},sourceIds:f.source_ids})),...models.map(m=>({id:m.id,data:publicModel(m),sourceIds:m.source_ids})),...studios.map(s=>({id:'STUDIO:'+s.model_id,data:{chapters:s.chapters,directions:s.verified_visible_kitchen_directions,qualification:s.qualification,availability:s.availability_note,observedSelections:s.selection_count,structure:s.structure??null},sourceIds:s.source_ids}))];
+  const evidence:Evidence[]=[...selectHandbook(intent,state,question),...facts.map(f=>({id:f.id,data:{text:f.text,qualifiers:f.qualifiers},sourceIds:f.source_ids})),...models.map(m=>({id:m.id,data:publicModel(m),sourceIds:m.source_ids})),...studios.map(s=>({id:'STUDIO:'+s.model_id,data:{chapters:s.chapters,directions:s.verified_visible_kitchen_directions,qualification:s.qualification,availability:s.availability_note,observedSelections:s.selection_count,structure:s.structure??null},sourceIds:s.source_ids}))];
   return {match,models,facts,studios,evidence};
 }
 export function modelLine(m:Model){

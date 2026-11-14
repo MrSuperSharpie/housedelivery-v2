@@ -1,0 +1,594 @@
+{
+  "schema_version": "1.0",
+  "release_id": "2026-11-14.knowledge-expansion.1",
+  "status": "customer_safe_preview_candidate",
+  "purpose": "Supplement the existing audited model and price registry with connected company understanding; do not replace it.",
+  "approval_note": "Prepared from reviewed sources and owner instructions. This is not production release approval. Model-level specifications and quotation authority remain in the existing controlled registry.",
+  "sections": [
+    {
+      "id": "company",
+      "title": "What House Delivery does",
+      "sources": [
+        "D-CAPABILITY",
+        "O-POSITIONING",
+        "B-KNOWLEDGE"
+      ],
+      "related": [
+        "value",
+        "roles",
+        "developments",
+        "community"
+      ],
+      "facts": [
+        "House Delivery is an Indigenous-owned Canadian housing company building a scalable housing delivery platform. It serves developers, municipalities, First Nations, institutions and housing organizations, alongside individual homeowners and ADU customers.",
+        "The offer connects housing design, appropriate engineered building systems, manufacturing coordination, purchasing, quality oversight, logistics and Canadian construction. The founder brings more than 35 years of international manufacturing, sourcing, importing and commercial experience.",
+        "Individual home designs are useful starting points within a wider delivery approach. A development can involve a mix of designs, quantities and phases."
+      ],
+      "guidance": "Explain the part of the business relevant to the visitor. A housing manager asking about a program needs an explanation of scope, site readiness and delivery roles before a list of homes. A homeowner can receive a direct model comparison without hearing the entire company story.",
+      "limits": [
+        "Experience in manufacturing must not be presented as a record of completed Canadian housing projects.",
+        "Development scale is a project brief to assess, not evidence of booked production capacity."
+      ],
+      "classification": "customer_safe",
+      "effective_date": "2026-11-14",
+      "review_date": "2026-11-14",
+      "retrieval_terms": [
+        "What House Delivery does",
+        "value",
+        "roles",
+        "developments",
+        "community"
+      ]
+    },
+    {
+      "id": "value",
+      "title": "Quality, durability and lasting value",
+      "sources": [
+        "O-POSITIONING",
+        "D-CAPABILITY"
+      ],
+      "related": [
+        "systems",
+        "finishes",
+        "aftercare"
+      ],
+      "facts": [
+        "House Delivery's stated priorities are quality, durability, reliability, serviceability and lasting value. Selection should consider how products perform and can be maintained over their useful life, alongside appearance and purchase price.",
+        "Coordinating design choices, manufactured components and construction responsibilities is central to the company's approach."
+      ],
+      "guidance": "Translate value into the customer's priorities: maintenance, suitability for intensive use, replacement support, coherent finishes and clarity about what is included. Explain these as selection considerations. Do not assume a higher package level is automatically the right choice or that a lower package sacrifices essential suitability.",
+      "limits": [
+        "No quantified savings, lifespan, maintenance interval or superiority claim without product-specific evidence.",
+        "Do not describe an unselected material as included in a package."
+      ],
+      "classification": "customer_safe",
+      "effective_date": "2026-11-14",
+      "review_date": "2026-11-14",
+      "retrieval_terms": [
+        "Quality, durability and lasting value",
+        "systems",
+        "finishes",
+        "aftercare"
+      ]
+    },
+    {
+      "id": "roles",
+      "title": "Who does what",
+      "sources": [
+        "W-PROCESS",
+        "W-WARRANTY",
+        "D-CAPABILITY"
+      ],
+      "related": [
+        "cost",
+        "process",
+        "aftercare"
+      ],
+      "facts": [
+        "House Delivery coordinates production, logistics and the agreed supply package. Qualified Canadian professionals undertake the site-specific design and engineering work required.",
+        "Local construction teams assemble the homes on the prepared site. The general contractor is responsible for local site execution, trades and construction management.",
+        "The written project scope must establish responsibility for site preparation, foundations, utilities, permits, receiving, installation, completion and handover. The housing package and the complete project are different scopes."
+      ],
+      "guidance": "If the visitor already has a builder, explain how the supply and design work can be coordinated with the project team. If the visitor asks for a completed home, first explain the required construction scope and then identify which responsibilities need confirmation. Avoid implying the visitor must manage every trade themselves.",
+      "limits": [
+        "Do not promise that House Delivery is the general contractor, provides a turnkey contract everywhere, or has a local partner assigned to an unspecified site.",
+        "Do not make every customer question trigger a scope disclaimer."
+      ],
+      "classification": "customer_safe",
+      "effective_date": "2026-11-14",
+      "review_date": "2026-11-14",
+      "retrieval_terms": [
+        "Who does what",
+        "cost",
+        "process",
+        "aftercare"
+      ]
+    },
+    {
+      "id": "systems",
+      "title": "Manufacturing, origin and construction systems",
+      "sources": [
+        "D-CAPABILITY",
+        "B-KNOWLEDGE",
+        "O-POSITIONING"
+      ],
+      "related": [
+        "roles",
+        "process",
+        "community"
+      ],
+      "facts": [
+        "House Delivery evaluates light-gauge steel, timber and other appropriate engineered solutions according to the project. Its delivery approach combines manufactured components with Canadian construction and assembly.",
+        "Domestic and international manufacturing pathways may be involved. The exact origin, system and specification must be established for the selected project.",
+        "A component package assembled on site is different from a volumetric modular home delivered as substantially assembled modules. Modular options require project-specific confirmation."
+      ],
+      "guidance": "Answer benign origin and construction-method questions directly. Explain what happens off site and what happens in Canada using the known scope. Discuss why system selection depends on site, design, code requirements and delivery conditions without declaring one material universally best.",
+      "limits": [
+        "No confidential manufacturing identities, locations that identify a private facility, supplier URLs or commercial terms.",
+        "No unsupported Canadian-made, all-Canadian-content, fire-rating, energy-rating, certification or approval claim.",
+        "Do not describe every model as available in every structural system."
+      ],
+      "classification": "customer_safe",
+      "effective_date": "2026-11-14",
+      "review_date": "2026-11-14",
+      "retrieval_terms": [
+        "Manufacturing, origin and construction systems",
+        "roles",
+        "process",
+        "community"
+      ]
+    },
+    {
+      "id": "selection",
+      "title": "Choosing homes by how people will live",
+      "sources": [
+        "B-KNOWLEDGE"
+      ],
+      "related": [
+        "layout",
+        "finishes",
+        "property",
+        "developments"
+      ],
+      "facts": [
+        "The existing audited product registry is the source for model names, areas, bedroom and bathroom counts, unit basis, plan links and verified features. This add-on does not replace that registry or resolve its unknown fields.",
+        "Published building area, internal living area, per-residence area and combined multi-unit area are not interchangeable.",
+        "A request that has no supported catalogue match can still become a custom project brief."
+      ],
+      "guidance": "Interpret the full brief: household or occupants, housing type, approximate size versus hard maximum, bedrooms, privacy, gathering, access, maintenance and site constraints. Recommend one or two supported options and explain the actual fit and trade-off. Retain earlier requirements. If no design meets every condition, say which condition is unmet rather than silently relaxing it. Treat a small home, a compact multi-unit building and a large development as distinct needs.",
+      "limits": [
+        "Do not infer unrecorded room dimensions, accessibility, rental legality or structural alterations from a rendering.",
+        "Do not make unknown-area records win numeric matching.",
+        "Do not offer only the last-mentioned design when the user requests a comparison across the range."
+      ],
+      "classification": "customer_safe",
+      "effective_date": "2026-11-14",
+      "review_date": "2026-11-14",
+      "retrieval_terms": [
+        "Choosing homes by how people will live",
+        "layout",
+        "finishes",
+        "property",
+        "developments"
+      ]
+    },
+    {
+      "id": "layout",
+      "title": "Layout, everyday use and design changes",
+      "sources": [
+        "B-KNOWLEDGE",
+        "O-CUSTOMER-EXPERIENCE"
+      ],
+      "related": [
+        "selection",
+        "design",
+        "property"
+      ],
+      "facts": [
+        "Layout and structural changes require project review. Finish selections do not establish whether a wall can be removed or a building can be resized.",
+        "Existing verified plan features can help compare connected living spaces, separate living areas, bedroom distribution, guest arrangements and indoor-outdoor connections."
+      ],
+      "guidance": "Use all available plan evidence to relate the design to the visitor's goal. 'More open', 'room for family', 'easy to maintain', 'privacy for guests' and 'something smaller' are expressions of needs, not automatic routing commands. Discuss the relevant layout facts first. Ask one clarifying question only when it would change the recommendation. A main-floor bedroom is not proof of full accessibility. If the plans do not support a confident ranking, identify the exact feature that needs checking and keep the rest of the comparison useful.",
+      "limits": [
+        "No unsupported open-plan label or invented floor-plan detail.",
+        "No blanket promise to move walls, add storeys or change footprint at no cost."
+      ],
+      "classification": "customer_safe",
+      "effective_date": "2026-11-14",
+      "review_date": "2026-11-14",
+      "retrieval_terms": [
+        "Layout, everyday use and design changes",
+        "selection",
+        "design",
+        "property"
+      ]
+    },
+    {
+      "id": "design",
+      "title": "Design Studio and Look Books",
+      "sources": [
+        "W-INCLUSIONS",
+        "B-KNOWLEDGE"
+      ],
+      "related": [
+        "selection",
+        "layout",
+        "finishes",
+        "cost"
+      ],
+      "facts": [
+        "The website's Design My Home experience allows customers to compare curated design directions for key spaces and finishes. Selections are brought together in a project Look Book.",
+        "The selected home's architecture informs the available design directions. Final products, specifications, availability, pricing and technical suitability are confirmed for the project.",
+        "Look Books communicate design intent. They are not final construction drawings, a priced purchase order or a guarantee that every pictured product is included."
+      ],
+      "guidance": "Explain what the Studio helps decide before offering the relevant home's link. Use it when the customer wants to explore or save a finish direction. Answer factual and comparative questions in the conversation first. Do not use a Studio invitation as a default response to every customization question.",
+      "limits": [
+        "No claim that a saved Look Book commits the customer, books production or fixes a price.",
+        "No fabricated Studio options or unsupported save/email success claim."
+      ],
+      "classification": "customer_safe",
+      "effective_date": "2026-11-14",
+      "review_date": "2026-11-14",
+      "retrieval_terms": [
+        "Design Studio and Look Books",
+        "selection",
+        "layout",
+        "finishes",
+        "cost"
+      ]
+    },
+    {
+      "id": "finishes",
+      "title": "Inclusion levels and coherent choices",
+      "sources": [
+        "W-INCLUSIONS",
+        "B-KNOWLEDGE",
+        "D-PROTOTYPE"
+      ],
+      "related": [
+        "value",
+        "design",
+        "cost"
+      ],
+      "facts": [
+        "The published inclusions page lists Premium and Signature for custom homes, and Essential and Premium for laneway, carriage and pre-reviewed homes.",
+        "Kitchens, bathrooms, flooring, wardrobes, doors, windows and other visible selections can be coordinated around the home. The selected model and project determine the final specification.",
+        "The audited guide describes Essential as a durable baseline, Premium as additional refinement and Signature as selected feature finishes. These descriptions do not establish a universal material schedule."
+      ],
+      "guidance": "Begin with the overall finish experience and the customer's priorities, then supply category detail when requested. For a development, discuss coherent choices across units without assuming every unit needs the same finish. Distinguish something that can be coordinated from something included in the quoted price. Images, palette names and illustrative prototype tables do not prove a material, brand, appliance pack or HVAC inclusion.",
+      "limits": [
+        "The inclusion prototype is not a final specification.",
+        "Do not make all three tiers available on every model.",
+        "The earlier catalogue-default conflict remains unresolved until the controlled product record confirms it."
+      ],
+      "classification": "customer_safe",
+      "effective_date": "2026-11-14",
+      "review_date": "2026-11-14",
+      "retrieval_terms": [
+        "Inclusion levels and coherent choices",
+        "value",
+        "design",
+        "cost"
+      ]
+    },
+    {
+      "id": "cost",
+      "title": "Understanding price and total project cost",
+      "sources": [
+        "B-KNOWLEDGE",
+        "D-CAPABILITY"
+      ],
+      "related": [
+        "roles",
+        "finishes",
+        "property",
+        "developments"
+      ],
+      "facts": [
+        "A package reference, an estimate and a project quotation have different meanings. Package scope must be understood before comparing a price with a completed-home or development budget.",
+        "The complete project can involve the housing package, freight and applicable import costs, site preparation, foundations, servicing, Canadian construction, professional fees, permits, taxes and contingency. Inclusion or exclusion depends on the written scope.",
+        "Published rates and their applicability must come from the existing approved pricing record. This add-on introduces no new rates, discounts, allowances or project estimates."
+      ],
+      "guidance": "Answer the price question directly using whatever approved price information actually applies. Identify the most important missing scope, rather than responding only 'contact sales'. If the user requests multiplication, show the arithmetic with the stated inputs and explain it is not a model quotation. For a total budget, retain the budget and clarify what it must cover before assessing fit. Do not assume a package reference proves the whole project is affordable.",
+      "limits": [
+        "No universal per-square-foot rate or inferred turnkey price.",
+        "No private costs, purchasing terms, markups or margins.",
+        "No invented volume discounts or unsupported return on investment.",
+        "Preserve existing mixed-unit and area-conflict pricing protections."
+      ],
+      "classification": "customer_safe",
+      "effective_date": "2026-11-14",
+      "review_date": "2026-11-14",
+      "retrieval_terms": [
+        "Understanding price and total project cost",
+        "roles",
+        "finishes",
+        "property",
+        "developments"
+      ]
+    },
+    {
+      "id": "property",
+      "title": "Property fit and early feasibility",
+      "sources": [
+        "B-KNOWLEDGE",
+        "D-CAPABILITY",
+        "W-PROCESS"
+      ],
+      "related": [
+        "selection",
+        "cost",
+        "process"
+      ],
+      "facts": [
+        "The starting point is available property or site information, existing plans, surveys and the customer's housing need. New technical studies are not required merely to start a conversation.",
+        "Property screening considers local rules, servicing, access, the design concept and the approval pathway. A preliminary check is not a survey, permit or confirmation that a particular home is allowed.",
+        "Detailed design and engineering depend on the site and the relevant professionals and authorities."
+      ],
+      "guidance": "Use the information the customer already has. Explain why a location, intended use, known lot dimensions or existing servicing would help. Keep an approximate model shortlist separate from a determination that it fits legally and physically. Avoid asking for a full address when a municipality-level discussion is enough.",
+      "limits": [
+        "No zoning, setback, density, short-term-rental, occupancy or permit entitlement invented from a city name.",
+        "No guarantee that catalogue status removes professional review or local approvals."
+      ],
+      "classification": "customer_safe",
+      "effective_date": "2026-11-14",
+      "review_date": "2026-11-14",
+      "retrieval_terms": [
+        "Property fit and early feasibility",
+        "selection",
+        "cost",
+        "process"
+      ]
+    },
+    {
+      "id": "process",
+      "title": "How a project advances",
+      "sources": [
+        "W-PROCESS",
+        "D-CAPABILITY",
+        "B-KNOWLEDGE"
+      ],
+      "related": [
+        "roles",
+        "property",
+        "cost",
+        "aftercare"
+      ],
+      "facts": [
+        "The published pathway starts with the site and housing mix, then design direction and Look Books, review and commercial commitment, project-specific professional work, manufacturing and site preparation, delivery and assembly, and completion and handover.",
+        "Funding, financing or deposit requirements are confirmed before project-specific technical work is released. The amount and terms are project-specific.",
+        "Manufacturing and site work can overlap where approvals and readiness permit. Canadian assembly is one stage within the overall project."
+      ],
+      "guidance": "Place the visitor at their current stage and explain the next useful step. Early exploration is welcome even if funding is not secured. Do not jump straight from an expression of interest to a deposit request. Separate manufacturing lead time, shipping, site work, assembly and occupancy when discussing timing.",
+      "limits": [
+        "No guaranteed total schedule, delivery date, deposit percentage or capacity reservation.",
+        "No claim that a conversational project summary has initiated procurement, engineering or a contract."
+      ],
+      "classification": "customer_safe",
+      "effective_date": "2026-11-14",
+      "review_date": "2026-11-14",
+      "retrieval_terms": [
+        "How a project advances",
+        "roles",
+        "property",
+        "cost",
+        "aftercare"
+      ]
+    },
+    {
+      "id": "developments",
+      "title": "Developers, municipalities and institutional programs",
+      "sources": [
+        "D-CAPABILITY",
+        "D-JOURNEY",
+        "O-POSITIONING"
+      ],
+      "related": [
+        "company",
+        "roles",
+        "cost",
+        "process",
+        "community"
+      ],
+      "facts": [
+        "A multi-home discussion can cover the site or land portfolio, intended residents, unit mix, quantities, phases, readiness, design direction and delivery responsibilities.",
+        "House Delivery's approach is intended to coordinate repeatable housing packages with Canadian project delivery. An actual program requires a project-specific assessment of scope and execution.",
+        "Municipalities and housing organizations may be exploring a delivery approach or facilitating projects rather than buying homes directly."
+      ],
+      "guidance": "Retain overall program size separately from phase quantities. Recognize a developer, operator, GC, municipal official or institutional sponsor without forcing the conversation into a homeowner form. For a portfolio, help distinguish what can repeat and what changes by site. Explain the coordination opportunity before asking for more detail. Offer a concise development brief or the housing-project planner when useful.",
+      "limits": [
+        "No claim that a requested 20, 50, 100 or 500 homes is accepted capacity or a committed delivery schedule.",
+        "No confidential opportunity names, customer records, private introductions or municipal endorsement.",
+        "Do not require secured financing before answering ordinary exploratory questions."
+      ],
+      "classification": "customer_safe",
+      "effective_date": "2026-11-14",
+      "review_date": "2026-11-14",
+      "retrieval_terms": [
+        "Developers, municipalities and institutional programs",
+        "company",
+        "roles",
+        "cost",
+        "process",
+        "community"
+      ]
+    },
+    {
+      "id": "community",
+      "title": "First Nations and community-led housing",
+      "sources": [
+        "W-NATIONS",
+        "D-CAPABILITY",
+        "O-POSITIONING"
+      ],
+      "related": [
+        "developments",
+        "selection",
+        "systems",
+        "value"
+      ],
+      "facts": [
+        "House Delivery is Indigenous-owned. Its published community design approach starts with the Nation's priorities, local knowledge, land, climate, gathering, privacy and multigenerational needs.",
+        "Local teams and community participation can be part of the project discussion. Roles, work opportunities, training and delivery arrangements need to be established for the specific project.",
+        "Community context informs design and delivery. It does not prescribe one architectural style for all Nations."
+      ],
+      "guidance": "Listen to the housing team and respect its decision process. Discuss household mix, cultural priorities, durability, servicing and local participation together. A community might need several housing types or phased sites. Preserve their stated priorities instead of redirecting them automatically to a luxury model or a funding program.",
+      "limits": [
+        "No promised local job count, training funding, grant eligibility or government backing.",
+        "No named community project or agreement from private material.",
+        "No stereotyped cultural treatment or assumption that one Nation speaks for another."
+      ],
+      "classification": "customer_safe",
+      "effective_date": "2026-11-14",
+      "review_date": "2026-11-14",
+      "retrieval_terms": [
+        "First Nations and community-led housing",
+        "developments",
+        "selection",
+        "systems",
+        "value"
+      ]
+    },
+    {
+      "id": "aftercare",
+      "title": "Warranty, support and accountability",
+      "sources": [
+        "W-WARRANTY"
+      ],
+      "related": [
+        "value",
+        "roles",
+        "systems"
+      ],
+      "facts": [
+        "House Delivery helps identify supplied components, locate applicable warranty documentation and coordinate the next step with the responsible supplier or project team.",
+        "Warranty coverage, duration, exclusions and procedures depend on the selected product and project documentation. Local construction and installation have their own applicable responsibilities.",
+        "Applicable warranty information is assembled around the selected products before final procurement."
+      ],
+      "guidance": "Give a direct explanation of the support pathway. A prospective buyer can learn how accountability works without receiving private supplier records. An existing customer should use the established support contact for their project details. The public Concierge should not retrieve another customer's project history or claim to have checked a warranty record it cannot access.",
+      "limits": [
+        "No generic whole-home warranty duration or guaranteed replacement outcome.",
+        "No exposure of private warranty files, supplier contact records or customer addresses."
+      ],
+      "classification": "customer_safe",
+      "effective_date": "2026-11-14",
+      "review_date": "2026-11-14",
+      "retrieval_terms": [
+        "Warranty, support and accountability",
+        "value",
+        "roles",
+        "systems"
+      ]
+    },
+    {
+      "id": "next_step",
+      "title": "A useful conversation and an appropriate next step",
+      "sources": [
+        "O-CUSTOMER-EXPERIENCE",
+        "B-KNOWLEDGE"
+      ],
+      "related": [
+        "selection",
+        "property",
+        "developments",
+        "community"
+      ],
+      "facts": [
+        "Customers can explore homes, compare supported features, discuss design direction and understand the project pathway before deciding to contact House Delivery.",
+        "The existing website provides routes for custom-home enquiries, preliminary ADU/property enquiries, housing-project planning and First Nations project planning."
+      ],
+      "guidance": "Answer first. Use a warm, direct tone, normally two to four sentences but longer when comparison needs it. Remember the visitor's requirements, corrections, shortlisted models and decision about contact. Ask at most one useful follow-up and sometimes none. Offer the next step that matches readiness, such as a plan link, comparison, saved design direction, property review or development brief. Keep helping after contact is declined. Treat customer conversations as private session context, not new company knowledge.",
+      "limits": [
+        "No forced lead capture to receive ordinary information.",
+        "No invented submission, appointment, quotation or saved-data success.",
+        "Do not reset requirements when the visitor changes topics or corrects one detail."
+      ],
+      "classification": "customer_safe",
+      "effective_date": "2026-11-14",
+      "review_date": "2026-11-14",
+      "retrieval_terms": [
+        "A useful conversation and an appropriate next step",
+        "selection",
+        "property",
+        "developments",
+        "community"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "W-PROCESS",
+      "title": "How House Delivery Works",
+      "url": "https://www.housedelivery.ca/how-it-works",
+      "kind": "published_company_page",
+      "retrieved_on": "2026-11-14",
+      "retrieval_note": "Web text retrieved; crawler reported two days old."
+    },
+    {
+      "id": "W-INCLUSIONS",
+      "title": "Finishes and Inclusions",
+      "url": "https://www.housedelivery.ca/inclusions",
+      "kind": "published_company_page",
+      "retrieved_on": "2026-11-14",
+      "retrieval_note": "Web text retrieved; crawler reported two days old."
+    },
+    {
+      "id": "W-WARRANTY",
+      "title": "Warranty and After-Sales Support",
+      "url": "https://www.housedelivery.ca/warranty",
+      "kind": "published_company_page",
+      "retrieved_on": "2026-11-14",
+      "retrieval_note": "Web text retrieved; crawler reported five days old."
+    },
+    {
+      "id": "W-NATIONS",
+      "title": "First Nations Inspired Designs",
+      "url": "https://www.housedelivery.ca/first-nations-inspired",
+      "kind": "published_company_page",
+      "retrieved_on": "2026-11-14",
+      "retrieval_note": "Older cached page; only durable community-design principles retained, not its model list."
+    },
+    {
+      "id": "B-KNOWLEDGE",
+      "title": "Existing audited Concierge knowledge, 2026-11-14.qa1",
+      "url": null,
+      "kind": "existing_customer_safe_candidate",
+      "retrieved_on": "2026-11-14"
+    },
+    {
+      "id": "D-CAPABILITY",
+      "title": "Company capability statement",
+      "url": null,
+      "kind": "customer_safe_company_statement",
+      "retrieved_on": "2026-11-14"
+    },
+    {
+      "id": "D-JOURNEY",
+      "title": "Company development journey, sanitized interpretation",
+      "url": null,
+      "kind": "company_process_reference",
+      "retrieved_on": "2026-11-14"
+    },
+    {
+      "id": "D-PROTOTYPE",
+      "title": "Design experience concept, exclusions only",
+      "url": null,
+      "kind": "illustrative_not_specification",
+      "retrieved_on": "2026-11-14"
+    },
+    {
+      "id": "O-POSITIONING",
+      "title": "Owner-supplied company positioning and value principles",
+      "url": null,
+      "kind": "owner_statement",
+      "retrieved_on": "2026-11-14"
+    },
+    {
+      "id": "O-CUSTOMER-EXPERIENCE",
+      "title": "Owner-requested Concierge behaviour",
+      "url": null,
+      "kind": "conversation_policy",
+      "retrieved_on": "2026-11-14"
+    }
+  ]
+}

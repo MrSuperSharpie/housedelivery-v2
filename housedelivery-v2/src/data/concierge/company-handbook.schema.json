@@ -1,0 +1,248 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "release_id": {
+      "const": "2026-11-14.knowledge-expansion.1"
+    },
+    "status": {
+      "const": "customer_safe_preview_candidate"
+    },
+    "purpose": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 250
+    },
+    "approval_note": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 350
+    },
+    "sections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "enum": [
+              "company",
+              "value",
+              "roles",
+              "systems",
+              "selection",
+              "layout",
+              "design",
+              "finishes",
+              "cost",
+              "property",
+              "process",
+              "developments",
+              "community",
+              "aftercare",
+              "next_step"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "W-PROCESS",
+                "W-INCLUSIONS",
+                "W-WARRANTY",
+                "W-NATIONS",
+                "B-KNOWLEDGE",
+                "D-CAPABILITY",
+                "D-JOURNEY",
+                "D-PROTOTYPE",
+                "O-POSITIONING",
+                "O-CUSTOMER-EXPERIENCE"
+              ]
+            },
+            "minItems": 1,
+            "maxItems": 5,
+            "uniqueItems": true
+          },
+          "related": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "company",
+                "value",
+                "roles",
+                "systems",
+                "selection",
+                "layout",
+                "design",
+                "finishes",
+                "cost",
+                "property",
+                "process",
+                "developments",
+                "community",
+                "aftercare",
+                "next_step"
+              ]
+            },
+            "minItems": 1,
+            "maxItems": 6,
+            "uniqueItems": true
+          },
+          "facts": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 650
+            },
+            "minItems": 1,
+            "maxItems": 5,
+            "uniqueItems": true
+          },
+          "guidance": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1300
+          },
+          "limits": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            "minItems": 1,
+            "maxItems": 5,
+            "uniqueItems": true
+          },
+          "classification": {
+            "const": "customer_safe"
+          },
+          "effective_date": {
+            "const": "2026-11-14"
+          },
+          "review_date": {
+            "const": "2026-11-14"
+          },
+          "retrieval_terms": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            },
+            "minItems": 1,
+            "maxItems": 8,
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "sources",
+          "related",
+          "facts",
+          "guidance",
+          "limits",
+          "classification",
+          "effective_date",
+          "review_date",
+          "retrieval_terms"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 15,
+      "maxItems": 15,
+      "uniqueItems": true
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "enum": [
+              "W-PROCESS",
+              "W-INCLUSIONS",
+              "W-WARRANTY",
+              "W-NATIONS",
+              "B-KNOWLEDGE",
+              "D-CAPABILITY",
+              "D-JOURNEY",
+              "D-PROTOTYPE",
+              "O-POSITIONING",
+              "O-CUSTOMER-EXPERIENCE"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 140
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "null"
+              },
+              {
+                "enum": [
+                  "https://www.housedelivery.ca/how-it-works",
+                  "https://www.housedelivery.ca/inclusions",
+                  "https://www.housedelivery.ca/warranty",
+                  "https://www.housedelivery.ca/first-nations-inspired"
+                ]
+              }
+            ]
+          },
+          "kind": {
+            "enum": [
+              "published_company_page",
+              "existing_customer_safe_candidate",
+              "customer_safe_company_statement",
+              "company_process_reference",
+              "illustrative_not_specification",
+              "owner_statement",
+              "conversation_policy"
+            ]
+          },
+          "retrieved_on": {
+            "const": "2026-11-14"
+          },
+          "retrieval_note": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "url",
+          "kind",
+          "retrieved_on"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 10,
+      "maxItems": 10,
+      "uniqueItems": true
+    }
+  },
+  "required": [
+    "schema_version",
+    "release_id",
+    "status",
+    "purpose",
+    "approval_note",
+    "sections",
+    "sources"
+  ],
+  "additionalProperties": false
+}
