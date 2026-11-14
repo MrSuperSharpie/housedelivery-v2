@@ -3,9 +3,10 @@ import assert from 'node:assert/strict';
 import {initialState,mergePatch,stateValue} from './state';
 import {retrieve} from './evidence';
 import {naturalRejection,linkFacts,answerQuestion} from './compose';
-import {publicQuestion,ordinarySynthesis} from './response-plan';
+import {publicQuestion,ordinarySynthesis,planningReferences} from './response-plan';
 import {privateRequest} from './commercial';
 import type {Intent} from './intent';
+import type {LanguageModel} from 'ai';
 const intent=(topic:Intent['topic'],requests:Intent['requests']=[],modelContext:Intent['modelContext']='none'):Intent=>({topic,requests,modelContext,factIds:[],modelIds:[],questionKey:null,patch:{},arithmetic:null,detail:false,ambiguous:false});
 test('multi-part retrieval includes both supply and local work without unrelated model sources',()=>{
  const i=intent('specifications',[{id:'r1',topic:'scope',question:'Package contents?'},{id:'r2',topic:'builder',question:'Locally arranged work?'}],'explicit');
@@ -20,6 +21,7 @@ test('generic code/permit questions retain the home in memory but exclude it and
  const i=intent('terms',[{id:'r1',topic:'terms',question:'Canadian code compliance?'},{id:'r2',topic:'builder',question:'Who handles permits?'}]);
  const r=retrieve(i,state,'Do your steel kits meet Canadian building codes and do you handle local permits?');
  assert.equal(stateValue(state,'selectedModel'),'home-cedarview');assert.equal(r.models.length,0);
+ const stalePrimary=retrieve(intent('matching',[{id:'r1',topic:'builder',question:'Do you work with my crew?'}]),state,'Do you work with my crew?');assert.equal(stalePrimary.models.length,0);
  assert.ok(r.evidence.some(e=>e.id==='F-TECHNICAL'));assert.ok(r.evidence.some(e=>e.id==='F-BUILDER'));assert.ok(!r.evidence.some(e=>e.id.startsWith('F-CMHC')));
  assert.equal(ordinarySynthesis(i,'Do you handle local building permits?'),true);
  const explicit=retrieve({...i,modelContext:'explicit'},state,'Do the CMHC BC Duplex plans establish a permit?');assert.ok(explicit.evidence.some(e=>e.id==='F-CMHC'));
@@ -68,3 +70,17 @@ test('internal audit phrasing and irrelevant CMHC warnings cannot pass as custom
 });
 
 test('a delivery-region comparison does not silently become the customer site',()=>{const s=mergePatch(initialState('D'),{location:'Manitoba',province:'Manitoba'},'What does it cost to deliver a kit to Manitoba or rural BC?');assert.equal(stateValue(s,'location'),undefined);assert.equal(stateValue(s,'province'),undefined);});
+
+test('public rate rendering selects approved values rather than parsing free-form money',()=>{const text=planningReferences(['Premium','Signature']);assert.match(text,/Premium: CAD \$250/);assert.match(text,/Signature: CAD \$300/);assert.throws(()=>planningReferences(['Essential']));assert.throws(()=>planningReferences(['Premium','Premium']));assert.equal(planningReferences([]),'');});
+test('approved rate references survive the complete SDK composition and support-review path',async()=>{
+ let calls=0;
+ const model:LanguageModel={specificationVersion:'v4',provider:'synthetic-rate-fixture',modelId:'source-rendering',supportedUrls:{},doStream:async()=>{throw Error('No streaming')},doGenerate:async options=>{
+  calls++;let output:unknown;
+  if(calls===1){const schema=options.responseFormat?.type==='json'?options.responseFormat.schema:undefined;const props=(schema?.properties?.patch as {properties:Record<string,{type?:unknown}>}).properties;const patch=Object.fromEntries(Object.entries(props).map(([k,v])=>[k,v.type==='array'?[]:null]));output={...intent('pricing',[{id:'r1',topic:'pricing',question:'Published package planning rates?'}]),sectionIds:['cost'],unconfirmedProduct:false,patch};}
+  else if(calls===2)output={answers:{r1:{text:'These are home-package planning references, not completed-home prices; model applicability, chargeable area, scope and delivery require a written quotation.',evidenceRefs:['F-PRICE','F-SCOPE'],planningRates:['Premium','Signature']}},selectedModelIds:[],nextQuestion:null,nextAction:'none'};
+  else output={segments:[{index:0,supported:true,issues:[]}],followUpSupported:true,complete:true};
+  return{content:[{type:'text',text:JSON.stringify(output)}],finishReason:{unified:'stop',raw:undefined},usage:{inputTokens:{total:0,noCache:0,cacheRead:undefined,cacheWrite:undefined},outputTokens:{total:0,text:0,reasoning:undefined}},warnings:[]};
+ }};
+ const ctx={calls:0,model};const result=await answerQuestion('What are the published package rates?',initialState('R'),ctx);
+ assert.equal(result.mode,'generated');assert.equal(calls,3);assert.match(result.reply.answerSegments![0].text,/Premium: CAD \$250/);assert.match(result.reply.answerSegments![0].text,/Signature: CAD \$300/);assert.match(result.reply.answerSegments![0].text,/not completed-home prices/);
+});

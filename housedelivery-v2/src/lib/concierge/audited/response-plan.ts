@@ -4,7 +4,7 @@ import {knowledge} from './registry';
 
 export type RequestPart={id:string;topic:Intent['topic'];question:string};
 export function parts(intent:Intent):RequestPart[]{return intent.requests??[]}
-export function topics(intent:Intent){return [...new Set([intent.topic,...parts(intent).map(p=>p.topic)])]}
+export function topics(intent:Intent){return [...new Set(parts(intent).length?parts(intent).map(p=>p.topic):[intent.topic])]}
 // This boundary runs before inference. A conversational claim never enables a
 // private lookup. Only a remaining public clause can enter the ordinary engine.
 export function publicQuestion(question:string){
@@ -25,4 +25,10 @@ export function ordinarySynthesis(intent:Intent,question:string){
   // explicit guarantees and actual action outcomes. Ordinary explanations use
   // the same grounded LLM regardless of the wording or number of requests.
   return !/blended|mixed[ -]tier|per residence|per side|both sources?|which one.*trust|(?:page|drawing).*discrepancy|did you send|have you sent|share only|tell the team|can you save|save it|save that|reserve.*confirm|\b25 years\b|\$99|new approved rate|catalog.*(?:always|default)/i.test(question);
+}
+
+export function planningReferences(tiers:string[]){
+  if(tiers.length>2||new Set(tiers).size!==tiers.length||tiers.some(t=>!['Premium','Signature'].includes(t)))throw Error('Invalid public rate reference');
+  const rule=knowledge.price_rules.find(r=>r.id==='PR-SALT-DISPLAY')!;
+  return tiers.length?'Home-package planning references — '+tiers.map(t=>`${t}: ${rule.currency} $${t==='Premium'?rule.premium_rate_per_sqft:rule.signature_rate_per_sqft} per square foot`).join('; ')+'. ':'';
 }

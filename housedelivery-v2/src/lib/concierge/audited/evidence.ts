@@ -12,7 +12,7 @@ export function retrieve(intent:Intent,state:State,question:string){
   if(intent.unconfirmedProduct)models=[];
   else if(compactInventoryRequested(question))models=knowledge.models.filter(m=>m.family==='laneway_carriage'||m.family==='cmhc_catalogue'&&m.units===1);
   else if(ids.length)models=ids.map(id=>modelIndex.get(id)!);
-  else if(intent.topic==='matching')models=match.matches;
+  else if(topics(intent).includes('matching'))models=match.matches;
   else if(intent.modelContext!=='none'&&stateValue(state,'selectedModel'))models=[modelIndex.get(stateValue(state,'selectedModel')!)!];
   else if(intent.modelContext!=='none'&&state.recommended.length&&['specifications','comparison','customization','arithmetic'].includes(intent.topic))models=state.recommended.map(id=>modelIndex.get(id)!).filter(Boolean);
 

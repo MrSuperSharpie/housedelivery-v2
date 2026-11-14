@@ -14,7 +14,7 @@ comparison is a useful positive control, not evidence that every answer was bad.
 |---|---|---|
 | One part answered, another offered as a follow-up | Planning/generation and control flow: one topic selected; the first matching controlled branch replaced the entire answer | A bounded request plan and closed answer object require an entry for every substantive part. Retrieval combines their topics. Rejected parts are explicitly incomplete, not silently omitted or counted as quality passes. |
 | Inclusions replaced by model room counts; local sourcing omitted | Evidence selection: the primary model topic did not guarantee scope, exclusions and local-role evidence | Supply/local questions retrieve all relevant supply, exclusion, finish and builder facts, with the model description distinguished from the written package. |
-| Freight plus rate question returned only a rate paragraph | Controlled pricing default answered the primary topic; `deliver` did not trigger the narrower freight branch | Ordinary price explanations synthesize the complete requests. Only source-checked CAD planning rates pass; freight charges remain unknown without a project quotation. Arithmetic and unresolved pricing conflicts stay controlled. |
+| Freight plus rate question returned only a rate paragraph | Controlled pricing default answered the primary topic; `deliver` did not trigger the narrower freight branch | Ordinary price explanations synthesize the complete requests. Rates are selected as structured public-tier references and rendered from the pinned approved values; freight charges remain unknown without a project quotation. Arithmetic and unresolved pricing conflicts stay controlled. |
 | General code/permit question became a CMHC warning | Broad `permit` control branch plus terms retrieval | Ordinary technical explanations use technical, system and local-responsibility evidence. CMHC evidence is selected only for a relevant catalogue/design question. |
 | Contractor addressed as someone with another builder | Context extraction did not explicitly distinguish self-role from an external builder; generation parroted the existing-builder fact | Explicit self-role is retained separately. Written infill quantities and timing are retained. Role-consistency validation rejects misaddressing the contractor. |
 | Old home links and unrelated Solace link | Unconditional carry-forward of `selectedModel`; UI links chosen from the first provenance source URL | Model context is selected for the current question without erasing saved context. Links resolve to the current home or relevant canonical public page, never a provenance example. |
@@ -39,7 +39,7 @@ are exposed as incomplete and are not a quality pass. Provider failures remain
 failures. There is no unbounded regeneration loop.
 
 The approved audited registry and 15-topic handbook are unchanged, including
-their fingerprints and unknown/conflicting product fields. Rates are validated
+their fingerprints and unknown/conflicting product fields. Public rate references are rendered and validated
 against the existing CAD price rule with correct Premium/Signature associations
 and planning scope. No model quotation, freight amount or private commercial
 figure is inferred. A public origin question remains answerable without revealing
@@ -69,3 +69,30 @@ The local editorial package stays excluded from Git, deployment and inference.
 
 No production promotion, main merge, live-domain alias or billing change is part
 of this work. Stop for owner review after the finite Preview verification.
+
+## Actual Preview findings and remaining gate
+
+On the deployed `d8ec8eb` checkpoint, the first two original questions generated
+complete answers. The construction/modular distinction and Cedarview local-work
+scope were both answered directly; Cedarview linked only to Cedarview, inclusions
+and delivery responsibilities. The review removed unnecessary follow-ups.
+
+Q3 answered freight but its rate passage was rejected as `uncontrolled_price`.
+That is a validation-stage finding, not proof that missing knowledge caused the
+omission. The discarded wording was not retained, so its precise lexical failure
+is not asserted. The final change replaces free-form money in generated text
+with structured tier references and source-derived CAD values. An actual SDK
+fixture verifies extraction, rendering, validation and support review together.
+
+Q4 then received a genuine provider HTTP 429 during composition (stage 2 after
+successful extraction). The finite live batch stopped. Q5/Q6 and the paraphrases
+were not run; no hypothetical answer is presented as an observed response. The
+final numerical renderer and these remaining conversations are not live-verified
+until provider capacity is available. No billing/model/security change or retry
+cycle was used. Full actual responses and execution traces remain local review
+artifacts, outside runtime knowledge and the public repository.
+
+Offline: 390 tests passed in the full run; focused follow-up checks cover the
+additional role, destination, coverage and deterministic-rate changes. TypeScript
+and changed-code lint pass. The final Vercel build/readiness and zero-inference
+security checks are reported in the handoff. Production remains unchanged.
