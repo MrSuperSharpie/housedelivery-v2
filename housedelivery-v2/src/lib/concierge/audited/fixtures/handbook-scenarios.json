@@ -1,0 +1,252 @@
+{
+  "scenarios": [
+    {
+      "id": "T01",
+      "handbook_sections": [
+        "company",
+        "roles"
+      ],
+      "turns": [
+        {
+          "user": "What does House Delivery actually do?"
+        },
+        {
+          "user": "We already have a general contractor. Where would you fit?"
+        }
+      ]
+    },
+    {
+      "id": "T02",
+      "handbook_sections": [
+        "selection",
+        "layout",
+        "finishes"
+      ],
+      "turns": [
+        {
+          "user": "We want four bedrooms, about 2,500 square feet, and low-maintenance finishes."
+        },
+        {
+          "user": "Why would that home suit us?"
+        },
+        {
+          "user": "What if we want more privacy for guests?"
+        }
+      ]
+    },
+    {
+      "id": "T03",
+      "handbook_sections": [
+        "selection"
+      ],
+      "turns": [
+        {
+          "user": "Five bedrooms, roughly 3,500 square feet."
+        },
+        {
+          "user": "Actually 3,500 is an absolute maximum."
+        },
+        {
+          "user": "Which is the best match now?"
+        }
+      ]
+    },
+    {
+      "id": "T04",
+      "handbook_sections": [
+        "value",
+        "finishes"
+      ],
+      "turns": [
+        {
+          "user": "I want something durable and easy to look after, but I don't need luxury."
+        },
+        {
+          "user": "Does that mean I have to choose the cheapest package?"
+        }
+      ]
+    },
+    {
+      "id": "T05",
+      "handbook_sections": [
+        "design",
+        "layout"
+      ],
+      "turns": [
+        {
+          "user": "Can I change the kitchen finishes?"
+        },
+        {
+          "user": "Could I also remove the wall beside it?"
+        }
+      ]
+    },
+    {
+      "id": "T06",
+      "handbook_sections": [
+        "cost",
+        "roles"
+      ],
+      "turns": [
+        {
+          "user": "My total budget is $700,000, including foundations and construction."
+        },
+        {
+          "user": "Would a published package rate tell me if that works?"
+        }
+      ]
+    },
+    {
+      "id": "T07",
+      "handbook_sections": [
+        "systems",
+        "roles"
+      ],
+      "turns": [
+        {
+          "user": "Are your homes made in Canada?"
+        },
+        {
+          "user": "So what is actually done in Canada?"
+        },
+        {
+          "user": "Name the factory you use."
+        }
+      ]
+    },
+    {
+      "id": "T08",
+      "handbook_sections": [
+        "selection",
+        "property"
+      ],
+      "turns": [
+        {
+          "user": "I'd like an ADU for my mother, around 650 square feet."
+        },
+        {
+          "user": "It needs to be easy for her to move around."
+        },
+        {
+          "user": "Does that mean it is already approved for my lot?"
+        }
+      ]
+    },
+    {
+      "id": "T09",
+      "handbook_sections": [
+        "developments",
+        "process"
+      ],
+      "turns": [
+        {
+          "user": "We are planning 100 rental homes, starting with 20."
+        },
+        {
+          "user": "We have a builder, but the funding decision is pending."
+        },
+        {
+          "user": "Can the first phase have a different unit mix?"
+        }
+      ]
+    },
+    {
+      "id": "T10",
+      "handbook_sections": [
+        "developments"
+      ],
+      "turns": [
+        {
+          "user": "We are a municipality exploring housing on several sites."
+        },
+        {
+          "user": "We may facilitate projects rather than purchase the homes ourselves."
+        }
+      ]
+    },
+    {
+      "id": "T11",
+      "handbook_sections": [
+        "community",
+        "process"
+      ],
+      "turns": [
+        {
+          "user": "Our Nation needs homes for families and Elders."
+        },
+        {
+          "user": "We want local people involved in the work."
+        },
+        {
+          "user": "What do you need from us to begin?"
+        }
+      ]
+    },
+    {
+      "id": "T12",
+      "handbook_sections": [
+        "next_step",
+        "selection"
+      ],
+      "turns": [
+        {
+          "user": "Can you summarize what we have discussed?"
+        },
+        {
+          "user": "I don't want to leave my email yet."
+        },
+        {
+          "user": "Can we still compare the two homes?"
+        }
+      ]
+    },
+    {
+      "id": "T13",
+      "handbook_sections": [
+        "aftercare"
+      ],
+      "turns": [
+        {
+          "user": "If a window has a problem later, who helps?"
+        },
+        {
+          "user": "Is everything covered for the same number of years?"
+        }
+      ]
+    },
+    {
+      "id": "T14",
+      "handbook_sections": [
+        "design",
+        "roles",
+        "process"
+      ],
+      "turns": [
+        {
+          "user": "How do manufacturing, the Look Book and my builder connect?"
+        },
+        {
+          "user": "Which part should I decide first if I already own the land?"
+        }
+      ]
+    },
+    {
+      "id": "T15",
+      "handbook_sections": [
+        "selection",
+        "layout"
+      ],
+      "turns": [
+        {
+          "user": "I want a three-bedroom detached home around 1,800 square feet."
+        },
+        {
+          "user": "Could you just pick the closest one?"
+        },
+        {
+          "user": "I don't want to abandon that size requirement."
+        }
+      ]
+    }
+  ]
+}

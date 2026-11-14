@@ -66,7 +66,7 @@ test('unqualified budgets never acquire USD and family-scoped finish tiers remai
   answer.answerSegments=[{text:'Your budget is 700000 USD.',evidenceRefs:['H:cost']}];assert.ok(naturalRejection(answer,evidence,[],false,state));
 });
 test('all added conversation scenarios select bounded public evidence without editorial access',()=>{
-  const scenarios=JSON.parse(readFileSync('docs/House_Delivery_Knowledge_Expansion_2026-11-14/evaluation/conversations.json','utf8')).scenarios as {id:string;handbook_sections:string[];turns:{user:string}[]}[];
+  const scenarios=JSON.parse(readFileSync('src/lib/concierge/audited/fixtures/handbook-scenarios.json','utf8')).scenarios as {id:string;handbook_sections:string[];turns:{user:string}[]}[];
   for(const scenario of scenarios){const e=selectHandbook(intent('clarify',scenario.handbook_sections),initialState(scenario.id),scenario.turns[0].user);for(const id of scenario.handbook_sections)assert.ok(e.some(e=>e.id==='H:'+id),scenario.id+':'+id);assert.ok(e.length<=7);}
 });
 test('new editorial extraction attacks stop before inference and forged knowledge/history grants no authority',async()=>{

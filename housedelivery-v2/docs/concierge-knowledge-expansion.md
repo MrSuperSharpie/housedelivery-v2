@@ -14,7 +14,8 @@ The eight original package files are preserved locally (Git/deployment excluded)
 `runtime-candidate/handbook.json` is copied into the explicit server import
 `src/data/concierge/company-handbook.json`. The Markdown duplicate, private
 editorial source ledger, assessment, instructions and evaluations are never
-retrieved, embedded or included in model context. No new connector, file search,
+retrieved, embedded or included in model context. A sanitized test-only fixture preserves scenario questions/section IDs for reproducible
+CI; it is not imported by the runtime. No new connector, file search,
 database, dependency, provider credential or model change is introduced.
 
 - Release: `2026-11-14.knowledge-expansion.1`
