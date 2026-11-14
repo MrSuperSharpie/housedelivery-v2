@@ -63,6 +63,7 @@ test('arithmetic is useful and cannot silently become a model offer',()=>{
   assert.match(r.segments.join(' '),/621,500/);assert.match(r.segments.join(' '),/not a validated model offer/);assert.match(r.segments.join(' '),/freight|foundations/);
 });
 test('required pricing and unresolved-field qualifications survive controlled responses',()=>{
+  const inventory=controlledAnswer('What laneway and carriage homes do you offer?',intent('matching'),initialState('A'),[])!;assert.match(inventory.segments.join(' '),/6 laneway/);assert.match(inventory.segments.join(' '),/Micro and Mini/);
   const price=controlledAnswer('What are the prices?',intent('pricing'),initialState('A'),[])!;assert.match(price.segments.join(' '),/CAD \$250/);assert.match(price.segments.join(' '),/not verified offers for every model/);
   const s=mergePatch(initialState('A'),{},'Salt Spring');const mix=controlledAnswer('Give me the exact blended amount.',intent('pricing'),s,[modelIndex.get('home-salt-spring')!])!;assert.match(mix.segments.join(' '),/not confirmed|cannot split/);
 });

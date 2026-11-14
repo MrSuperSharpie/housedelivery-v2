@@ -1,4 +1,4 @@
-import {modelIndex,type Model} from './registry';
+import {knowledge,modelIndex,type Model} from './registry';
 import type {Intent} from './intent';
 import {stateValue,type State} from './state';
 import {illustrativeTotal} from './matching';
@@ -7,6 +7,10 @@ export type ControlledAnswer={segments:string[];factIds:string[];arithmetic?:{ar
 export function controlledAnswer(q:string,intent:Intent,state:State,models:Model[]):ControlledAnswer|null{
   const selected=stateValue(state,'selectedModel'),model=models[0]??(selected?modelIndex.get(selected):undefined);
   if(/did you send|have you sent|is it sent|submitted|share only|tell the team|send.*summary/i.test(q))return{segments:[/approved funding/i.test(q)&&/not approved|pending/i.test(stateValue(state,'funding')??'')?'Your project summary still records funding as unapproved; we should keep that accurate for the team.':'You can review and edit the project summary before sharing it with our team.','Chat messages do not submit an inquiry; delivery is confirmed separately after you complete the consented form.'],factIds:['F-CONTACT','F-PRIVACY'],suppressCards:true};
+  if(/(?:what|which).*(?:laneway|carriage|compact).*(?:offer|available|designs)|(?:what|which).*(?:designs|homes).*(?:offer|available).*(?:laneway|carriage)/i.test(q)){
+    const compact=knowledge.models.filter(m=>m.family==='laneway_carriage'),adus=knowledge.models.filter(m=>m.family==='cmhc_catalogue'&&m.units===1);
+    return{segments:[`The compact collection includes ${compact.length} laneway and carriage designs: ${compact.map(m=>m.name).join(', ')}.`,`The ${adus.map(m=>m.name.replace(/^The /,'')).join(' and ')} are also CMHC ADU reference designs; we can narrow these options by bedrooms, size and property needs.`],factIds:['F-CMHC','F-PROPERTY'],suppressCards:true};
+  }
   if(intent.topic==='arithmetic'){
     let calc=intent.arithmetic;if(/divide.*total.*(?:six|6)/i.test(q)&&model?.area_sqft)calc={operation:'divide',left:model.area_sqft,right:6};
     const direct=q.replaceAll(',','').match(/(\d+(?:\.\d+)?)\s*(?:sq\.?\s*ft\.?|square feet)?\s*(?:times|multiplied by|×|\bx\b|\*)\s*\$?(\d+(?:\.\d+)?)/i);
