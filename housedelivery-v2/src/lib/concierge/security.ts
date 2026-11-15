@@ -1,6 +1,6 @@
 import {createHmac, randomUUID, timingSafeEqual} from 'node:crypto';
 export class ConciergeRequestError extends Error { constructor(message:string, public status=400){super(message)} }
-export function conciergeEnabled(){return process.env.CONCIERGE_ENABLED==='true' && process.env.VERCEL_ENV!=='production'}
+export function conciergeEnabled(){return process.env.CONCIERGE_ENABLED==='true'}
 export function json(body:object,status=200){return Response.json(body,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}})}
 export function checkOrigin(request:Request){
   let origin:URL;try{origin=new URL(request.headers.get('origin')??'')}catch{throw new ConciergeRequestError('Please use the House Delivery website.',403)}

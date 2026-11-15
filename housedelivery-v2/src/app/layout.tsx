@@ -53,7 +53,7 @@ export default function RootLayout({
       <body className="flex min-h-full flex-col">
         {children}
         <CampaignFooterBoundary><SiteFooter /></CampaignFooterBoundary>
-        {process.env.CONCIERGE_ENABLED === "true" && process.env.VERCEL_ENV !== "production" ? <HousingConcierge /> : null}
+        {process.env.CONCIERGE_ENABLED === "true" ? <HousingConcierge /> : null}
         <Suspense fallback={null}>
           <AnalyticsManager />
         </Suspense>
