@@ -174,3 +174,40 @@ access and releasable documentation availability must not be invented.
 Focused offline contract/error tests and one corrected-Preview conversation are
 the bounded verification scope. No production, billing, credential or provider
 configuration changes are included.
+
+
+## Evidence-backed company policies and explicit unknowns
+
+The completed `e1ca3dd` browser trace had three completed model calls, no service
+failures, both requests retained, and zero validation rejections. Its accepted
+answer nevertheless claimed direct factory engineering sheets were not routinely
+provided. No selected approved passage established that practice. The old
+support-review result contained only a verdict/issues, so an accepted source ID
+and a broad support verdict did not demonstrate policy-specific evidence. The
+saved trace does not contain the review's internal reasoning; none is invented.
+
+The existing review call now audits company-practice, availability, access,
+inclusion/exclusion, responsibility and document-release claims. Final policy
+claims carry exact approved supporting passages and an explicit entailment
+verdict. The server verifies passages against retrieved assertions and complete
+qualifications, excluding titles and writing guidance. Unbacked claims fail
+closed. Scope and conditions must remain intact; silence is not a refusal policy.
+
+For an unsupported policy, the same review may preserve supported information
+and replace only the unsupported portion with a specific uncertainty requiring
+team confirmation. That replacement passes the existing output, numerical,
+commercial, model and follow-up controls. Other rejection types keep their
+existing fail-closed behaviour. This adds no inference calls, answer blacklist or
+question-specific response. Authenticated Preview diagnostics retain decision
+counts and whether a segment was revised, without raw prompts or private records.
+
+The owner-confirmed boundary is explicit: unrecorded access arrangements and
+project-specific documentation availability/release require team confirmation.
+Private factory identities/records remain protected; that does not imply every
+technical document is confidential or unavailable. The accepted HTTP-400 schema
+fix, rate limits, consent, signed state and approved knowledge isolation remain.
+
+Bounded verification: focused evidence/review and security regression tests,
+TypeScript/changed-file lint, the Preview build, and exactly the original question
+plus two paraphrases through the deployed website. Actual results remain local
+review artifacts. Production is not modified.
