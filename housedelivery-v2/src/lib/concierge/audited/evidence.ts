@@ -1,8 +1,9 @@
-import {knowledge,modelIndex,factIndex,publicModel,safeLink,type Model} from './registry';
+import {knowledge,modelIndex,factIndex,safeLink,type Model} from './registry';
 import {shortlist,compactInventoryRequested} from './matching';
 import {constraints,stateValue,namedModels,type State} from './state';
 import type {Intent} from './intent';
 import {selectHandbook} from './handbook';
+import {publicFactContent,publicModelContent} from './publication';
 import {topics,cmhcRelevant,chatLimits} from './response-plan';
 export type Evidence={id:string;data:unknown;sourceIds:string[]};
 const topicFacts:Record<Intent['topic'],string[]>={company:['F-COMPANY','F-MARKETS','F-START'],matching:['F-CUSTOMIZATION'],specifications:[],comparison:[],customization:['F-CUSTOMIZATION','F-STUDIO','F-INCLUSIONS','F-ESSENTIAL'],pricing:['F-PRICE','F-SCOPE','F-EXCLUSIONS'],arithmetic:['F-PRICE','F-SCOPE','F-EXCLUSIONS'],process:['F-PROCESS','F-PARALLEL','F-TIMING'],scope:['F-SCOPE','F-EXCLUSIONS','F-APPLIANCES'],property:['F-PROPERTY','F-START'],community:['F-MARKETS','F-PORTFOLIO','F-PROCESS'],builder:['F-BUILDER','F-COMPANY','F-SCOPE','F-ORIGIN','F-PROCESS'],origin:['F-ORIGIN','F-SYSTEMS'],warranty:['F-WARRANTY'],terms:['F-CMHC','F-CMHC-INDEPENDENT','F-TECHNICAL'],contact:['F-CONTACT','F-PRIVACY','F-START'],summary:['F-CONTACT','F-PRIVACY'],clarify:['F-START'],unrelated:['F-START']};
@@ -27,6 +28,7 @@ export function retrieve(intent:Intent,state:State,question:string){
   if(/Essential|Premium|Signature/i.test(question))requestedFacts.unshift('F-ESSENTIAL');
   if(/show.?home|rendering|gallery|completed.*project/i.test(question))requestedFacts.push('F-IMAGES','F-CONTACT');
   if(/good value|savings|better value/i.test(question))requestedFacts.push('F-COMPANY','F-PARALLEL','F-SYSTEMS');
+  if(models.some(m=>m.conflicts?.length))requestedFacts.push('F-CATALOG-CONFLICTS');
   if(models.some(m=>m.family==='cmhc_catalogue'))requestedFacts.push('F-CMHC');
   if(intent.topic==='pricing'||intent.topic==='arithmetic')requestedFacts.push('F-PRICE','F-SCOPE','F-EXCLUSIONS');
   if(intent.topic==='origin')requestedFacts.push('F-ORIGIN');
@@ -35,7 +37,7 @@ export function retrieve(intent:Intent,state:State,question:string){
   const cmhc=cmhcRelevant(intent,question,models.map(m=>m.id));
   const facts=[...new Set(requestedFacts)].filter(id=>!deliveryOnly||id!=='F-PRICE').filter(id=>cmhc||!['F-CMHC','F-CMHC-INDEPENDENT','F-CATALOG-UNIT-MIX','F-CATALOG-CONFLICTS'].includes(id)).map(id=>factIndex.get(id)).filter((x):x is NonNullable<typeof x>=>Boolean(x));
   const studios=intent.topic==='customization'?knowledge.design_studios.filter(s=>models.some(m=>m.id===s.model_id)):[];
-  const evidence:Evidence[]=[...selectHandbook(intent,state,question),chatLimits,...(intent.unconfirmedProduct?[{id:'CAPABILITY-LIMIT',data:{text:'The requested project type is not established as an available offering by the approved housing information. Do not infer either availability or a company policy refusing it. Chat cannot issue a binding quotation.'},sourceIds:[]}]:[]),...facts.map(f=>({id:f.id,data:factProjection(f),sourceIds:f.source_ids})),...models.map(m=>({id:m.id,data:publicModel(m),sourceIds:m.source_ids})),...studios.map(s=>({id:'STUDIO:'+s.model_id,data:{chapters:s.chapters,directions:s.verified_visible_kitchen_directions,qualification:s.qualification,availability:s.availability_note,observedSelections:s.selection_count,structure:s.structure??null},sourceIds:s.source_ids}))];
+  const evidence:Evidence[]=[...selectHandbook(intent,state,question),chatLimits,...(intent.unconfirmedProduct?[{id:'CAPABILITY-LIMIT',data:{text:'Availability of the requested project type requires team confirmation. Chat cannot issue a binding quotation.'},sourceIds:[]}]:[]),...facts.map(f=>({id:f.id,data:factProjection(f),sourceIds:f.source_ids})),...models.map(m=>({id:m.id,data:publicModelContent(m),sourceIds:m.source_ids})),...studios.map(s=>({id:'STUDIO:'+s.model_id,data:{chapters:s.chapters,directions:s.verified_visible_kitchen_directions,qualification:s.qualification},sourceIds:s.source_ids}))];
   return {match,models,facts,studios,evidence};
 }
 export function modelLine(m:Model){
@@ -47,7 +49,4 @@ export function modelLine(m:Model){
 }
 export function modelLink(m:Model,kind:'model'|'studio'|'lookbook'|'floorplan'='model'){const href=kind==='floorplan'&&m.floor_plan_url?m.floor_plan_url:m.url;return safeLink(href)+(m.family==='architectural'?(kind==='studio'||kind==='lookbook'?'#home-inclusions':kind==='floorplan'?'#plans':''):'')}
 
-function factProjection(f:{id:string;text:string;qualifiers:string[]}){
-  if(f.id==='F-PRICE'){const rule=knowledge.price_rules.find(r=>r.id==='PR-SALT-DISPLAY')!;return{text:`Published CAD home-package planning references: Premium ${rule.premium_rate_per_sqft} per sq. ft.; Signature ${rule.signature_rate_per_sqft} per sq. ft. These are not completed-home prices or binding quotations.`,qualifiers:['Do not assign a rate as a confirmed offer for a selected model. Model applicability, chargeable area, selected package contents, delivery and written scope require confirmation.']};}
-  return{text:f.text,qualifiers:f.qualifiers};
-}
+const factProjection=publicFactContent;

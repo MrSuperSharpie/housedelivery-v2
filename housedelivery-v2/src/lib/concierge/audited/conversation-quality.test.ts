@@ -42,7 +42,7 @@ test('retail planning rates are source-checked, correctly tiered, and distinct f
  const a={answerSegments:[{text:'Premium is CAD $250 per sq. ft. and Signature is CAD $300 per sq. ft. as home-package planning references, subject to a project quotation.',evidenceRefs:['F-PRICE']}],selectedModelIds:[],nextQuestion:null,nextAction:'none' as const};
  assert.equal(naturalRejection(a,r.evidence,[],false),null);
  for(const text of [a.answerSegments[0].text.replace('$250','$225'),a.answerSegments[0].text.replace('Premium','Signature').replace('Signature is CAD $300','Premium is CAD $300'),'Freight to Manitoba is CAD $250.'])assert.ok(naturalRejection({...a,answerSegments:[{text,evidenceRefs:['F-PRICE']}]},r.evidence,[],false));
- assert.doesNotMatch(JSON.stringify(r.evidence.find(e=>e.id==='F-PRICE')?.data),/observed|Studio|controls|Salt Spring/);
+ assert.doesNotMatch(JSON.stringify(r.evidence.find(e=>e.id==='F-PRICE')?.data),/observed|Studio|controls/);assert.match(JSON.stringify(r.evidence.find(e=>e.id==='F-PRICE')?.data),/Salt Spring/);
 });
 test('manufacturing identity variations stop before inference; mixed requests retain only public questions',async()=>{
  for(const q of ['Who manufactures your steel frames?','Which company makes the kit?','What factory supplies the frames?','Which company fabricates the steel sections?']){

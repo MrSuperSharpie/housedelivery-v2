@@ -1,17 +1,23 @@
+import {continuesQuestion,questionForAnswer,systemComparisonAsked} from './continuity';
 import type {Intent} from './intent';
 import type {State} from './state';
 import {stateValue} from './state';
 import {policyIndex} from './policies';
 export type RequestPricing='none'|'planning_rates'|'freight'|'project_quote';
 export function planningRatesEligible(request:NonNullable<Intent['requests']>[number],unconfirmedProduct=false,hasPriceEvidence=true){
+ if(systemComparisonAsked(request.question))return false;
  const freightOnly=/freight|shipping|delivery|deliver/i.test(request.question)&&!/(?:published|planning|package)\s+(?:planning\s+)?(?:rates?|prices?)|per\s+(?:sq|square)|\/\s*(?:sq|sf)/i.test(request.question);
  return !freightOnly&&request.topic==='pricing'&&request.pricing==='planning_rates'&&!unconfirmedProduct&&hasPriceEvidence;
 }
 export function normalizeIntent(raw:Intent,question:string,state:State):Intent{
+ const continuation=continuesQuestion(question,state);
+ if(continuation)raw={...raw,topic:state.lastTopic as Intent['topic']??raw.topic,requests:state.activeRequests,modelContext:'none'};
+ question=questionForAnswer(question,state);
  const nonHousing=/\b(?:warehouse|industrial shed|industrial building|commercial warehouse)\b/i.test(question);
  const housing=/\b(?:home|homes|house|housing|residen\w*|dwelling\w*|ADU|laneway|carriage)\b/i.test(question);
  const unconfirmedProduct=nonHousing||Boolean(raw.unconfirmedProduct&&!housing);
  let requests=(raw.requests??[]).map(r=>{
+  if(systemComparisonAsked(r.question)||systemComparisonAsked(question)&&raw.requests?.length===1) return {...r,topic:'pricing' as const,pricing:'project_quote' as const,policyIds:['system_comparison']};
   const publishedRate=r.topic==='pricing'&&/\brate|rates\b|per (?:sq|square)/i.test(r.question)&&/published|planning|package|Premium|Signature|per (?:sq|square)/i.test(r.question);
   return{...r,policyIds:(r.policyIds??[]).filter(id=>policyIndex.has(id)),pricing:(publishedRate?'planning_rates':r.pricing??'none') as RequestPricing};
  });
@@ -23,6 +29,21 @@ export function normalizeIntent(raw:Intent,question:string,state:State):Intent{
  const named=stateValue(state,'selectedModel');let modelContext=raw.modelContext;
  if(named&&/\b(?:home we discussed|that home|that design|the model|the home|it|those priorities)\b/i.test(question))modelContext='follow_up';
  requests=requests.map(r=>({...r,policyIds:relevantPolicyIds(r,question,state)}));
+ // Positive, explicit scope questions cannot disappear when intake combines
+ // clauses or selects only one of their records. These records answer known
+ // public parts; other reasoning stays on the existing generation path.
+ const obligations:[string,boolean,Intent['topic'],string,RequestPricing][]=[
+  ['system_comparison',systemComparisonAsked(question),'pricing',question,'project_quote'],
+  ['package_scope',/\b(?:what|which)\b[^?]{0,120}\b(?:includ|comes? with|contents)|\bpackage contents\b/i.test(question),'scope','What is included in the selected home package?','none'],
+  ['local_work',/arrang[^?]{0,40}locally|source locally|(?:what|which)[^?]{0,60}local (?:work|responsibilit)|what[^?]{0,50}locally/i.test(question),'builder','What work needs to be arranged locally?','none'],
+  ['pricing_scope',/published[^?]{0,100}(?:rates?|prices?)|(?:Premium|Signature)[^?]{0,60}(?:rates?|per square foot)/i.test(question)&&(!/freight|delivery|shipping/i.test(question)||/(?:package|Premium|Signature)[^?;]{0,80}(?:rate|price)|(?:rate|price)[^?;]{0,80}(?:package|Premium|Signature)/i.test(question)),'pricing','Published '+(['Premium','Signature'].filter(t=>new RegExp('\\b'+t+'\\b','i').test(question)).join(' and ')||'Premium and Signature')+' package rates and model applicability?','planning_rates']
+ ];
+ for(const [id,needed,partTopic,partQuestion,pricing]of obligations){
+  if(!needed||requests.some(r=>r.policyIds.includes(id)))continue;
+  const candidate=id==='pricing_scope'?requests.find(r=>planningRatesEligible(r)):requests.find(r=>!planningRatesEligible(r)&&relevantPolicyIds({...r,policyIds:[id]},r.question,state).includes(id));
+  if(candidate)candidate.policyIds.push(id);
+  else{const free=['r1','r2','r3','r4'].find(id=>!requests.some(r=>r.id===id));if(free)requests.push({id:free,topic:partTopic,question:partQuestion,pricing,policyIds:[id]});}
+ }
  return{...raw,topic,requests,unconfirmedProduct,modelContext};
 }
 
@@ -32,6 +53,7 @@ export function relevantPolicyIds(request:NonNullable<Intent['requests']>[number
  return [...new Set(request.policyIds??[])].filter(id=>{
   if(!policyIndex.has(id))return false;
   switch(id){
+   case 'system_comparison':return systemComparisonAsked(q);
    case 'finish_tiers':return /compare|differ|versus|\bvs\b|between|tiers?|levels?|finish options/i.test(q)&&/Essential|Premium|Signature|tiers?|levels?/i.test(q);
    case 'pricing_scope':return rate;
    case 'freight_quotation':return /freight|shipping|deliver|logistics|transport/i.test(q)&&(request.pricing==='freight'||/freight|shipping|deliver|logistics|transport/i.test(request.question));

@@ -6,6 +6,7 @@ import manifest from '@/data/concierge/company-handbook-manifest.json';
 import type {Intent} from './intent';
 import {stateValue,type State} from './state';
 import type {Evidence} from './evidence';
+import {publicHandbookContent} from './publication';
 
 type Section=typeof data.sections[number];
 const check=new Ajv({allErrors:true,strict:true}).compile(schema);
@@ -49,9 +50,9 @@ export function selectHandbook(intent:Intent,state:State,question:string):Eviden
   else if(stateValue(state,'homes')||/municip|institution|developer/i.test(stateValue(state,'audience')??''))retained.push('developments');
   if(stateValue(state,'householdNeeds')||stateValue(state,'finish'))retained.push('selection','finishes');
   const chosen=[...new Set(['company',...(intent.requests?.flatMap(p=>topics[p.topic])??[]),...(intent.sectionIds??[]),...current,...topics[intent.topic],...retained,...(followUp?previous:[])])].filter(id=>handbookIndex.has(id)).slice(0,7);
-  // Complete sections retain qualifications. Related topics add context only when
-  // space remains; limits are never trimmed into stand-alone marketing claims.
+  // Only published assertions are evidence. Internal rules are supplied separately
+  // to generation and cannot be cited as product facts.
   for(const id of [...chosen]){if(chosen.length>=7)break;const related=handbookIndex.get(id)!.related.find(r=>!chosen.includes(r)&&[...current,...retained,...previous].includes(r));if(related)chosen.push(related);}
-  return chosen.map(id=>{const s=handbookIndex.get(id)!;return{id:'H:'+s.id,data:{title:s.title,facts:s.facts,guidance:s.guidance,limits:s.limits},sourceIds:s.sources}});
+  return chosen.map(id=>{const s=handbookIndex.get(id)!;return{id:'H:'+s.id,data:publicHandbookContent(s),sourceIds:s.sources}});
 }
 export function handbookSection(id:string):Section|undefined{return handbookIndex.get(id.replace(/^H:/,''))}

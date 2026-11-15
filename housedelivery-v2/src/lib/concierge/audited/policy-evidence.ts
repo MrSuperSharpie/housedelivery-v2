@@ -5,7 +5,7 @@ export type PolicyClaim={claim:string;entailed:boolean;support:{evidenceId:strin
 function passages(value:unknown):string[]{
   if(typeof value==='string')return[value];
   if(Array.isArray(value))return value.flatMap(passages);
-  if(value&&typeof value==='object')return Object.entries(value).filter(([key])=>['text','facts','qualifiers','limits'].includes(key)).flatMap(([,v])=>passages(v));
+  if(value&&typeof value==='object')return Object.entries(value).filter(([key])=>['text','facts','qualifications'].includes(key)).flatMap(([,v])=>passages(v));
   return[];
 }
 const normalize=(s:string)=>s.replace(/\s+/g,' ').trim();

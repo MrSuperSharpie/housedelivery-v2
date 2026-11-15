@@ -25,7 +25,7 @@ test('mixed questions retrieve connected whole sections and keep private editori
   const evidence=selectHandbook(intent('process',['design','roles','process']),initialState('M'),'How do manufacturing, the Look Book and my builder connect?');
   for(const id of ['company','design','roles','process','systems'])assert.ok(evidence.some(e=>e.id==='H:'+id));
   assert.ok(evidence.length<=7);
-  for(const e of evidence){const source=handbook.sections.find(s=>'H:'+s.id===e.id)!;assert.deepEqual((e.data as {limits:string[]}).limits,source.limits);}
+  for(const e of evidence){assert.ok((e.data as {facts:string[]}).facts.length);assert.ok(!Object.hasOwn(e.data as object,'guidance'));assert.ok(!Object.hasOwn(e.data as object,'limits'));}
   assert.doesNotMatch(JSON.stringify(evidence),/https?:|drive\.google|source-ledger|CODEX_PROMPT|evaluation\/|libfile_/);
 });
 test('contextual selection and controlled model matching work together without guessing layout details',()=>{
