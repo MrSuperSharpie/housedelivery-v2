@@ -20,7 +20,7 @@ const sections = [
       <div className="space-y-5">
         <p>
           If you choose <strong>Allow analytics</strong>, House Delivery loads
-          Google Analytics 4, Microsoft Clarity and the LinkedIn Insight Tag.
+          Google Analytics 4, Google Ads measurement, Microsoft Clarity and the LinkedIn Insight Tag.
           These services help us understand site visits, useful pages, campaign
           performance and interactions with project tools.
         </p>
@@ -29,6 +29,12 @@ const sections = [
             <strong>Google Analytics 4</strong> measures page views and selected
             actions. Google Signals and advertising personalization are
             disabled.
+          </li>
+          <li>
+            <strong>Google Ads measurement</strong> helps attribute accepted
+            project inquiries to advertising campaigns. Advertising
+            personalization is disabled, and our conversion events do not
+            include contact information or form contents.
           </li>
           <li>
             <strong>Microsoft Clarity</strong> provides site-use and session
@@ -55,7 +61,7 @@ const sections = [
         <p>
           Form contents and contact information—including names, email
           addresses, phone numbers, addresses, companies and notes—are not sent
-          to Google Analytics, Microsoft Clarity or LinkedIn through this
+          to Google Analytics, Google Ads, Microsoft Clarity or LinkedIn through this
           implementation. Contact information submitted to House Delivery is
           used to respond to the request.
         </p>
@@ -90,8 +96,8 @@ const sections = [
           consent.
         </p>
         <p>
-          Choosing <strong>Essential only</strong> prevents the three analytics
-          services from loading. We also respect supported Global Privacy
+          Choosing <strong>Essential only</strong> prevents these analytics and
+          measurement services from loading. We also respect supported Global Privacy
           Control and Do Not Track browser signals. You can clear this site’s
           browser data to reset your choice.
         </p>

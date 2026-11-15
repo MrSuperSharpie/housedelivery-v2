@@ -18,8 +18,8 @@ import { getCampaignAttributionProperties } from "@/lib/lookbook/attribution";
 
 import { campaignConsentEvent, campaignLeadEvent, consumeCampaignConversions } from "@/lib/campaign-browser";
 import { isCampaignPath } from "@/lib/campaign-lead";
+import { googleAdsConversion, googleAnalyticsId, googleTagInitialization } from "@/lib/google-tag";
 
-const googleAnalyticsId = "G-59Q25GQB61";
 const clarityProjectId = "ymeoc631lr";
 const linkedInPartnerId = "10059612";
 const consentStorageKey = "house-delivery:analytics-consent:v1";
@@ -96,7 +96,7 @@ export function AnalyticsManager() {
         ...getCampaignAttributionProperties(),
         ...properties,
       });
-      window.gtag?.("event", event, safeProperties);
+      window.gtag?.("event", event, { ...safeProperties, send_to: googleAnalyticsId });
       window.clarity?.("event", event);
     },
     [trackingReady],
@@ -122,6 +122,7 @@ export function AnalyticsManager() {
     if (sentPageViews.current.has(route)) return;
     sentPageViews.current.add(route);
     window.gtag?.("event", "page_view", {
+      send_to: googleAnalyticsId,
       page_location: `${window.location.origin}${route}`,
       page_path: route,
       page_title: document.title,
@@ -199,6 +200,8 @@ export function AnalyticsManager() {
     if (!trackingReady || !window.gtag) return;
     const drain = () => consumeCampaignConversions((reference, campaign) => {
       sendEvent("generate_lead", { form_name: "focused_project_inquiry", transaction_id: reference, lead_source: campaign });
+      const conversion = googleAdsConversion(reference, campaign);
+      if (conversion) window.gtag?.("event", "conversion", conversion);
     });
     drain();
     window.addEventListener(campaignLeadEvent, drain);
@@ -216,7 +219,7 @@ export function AnalyticsManager() {
       {enabled ? (
         <>
           <Script id="house-delivery-ga-init" strategy="afterInteractive">
-            {`window.dataLayer=window.dataLayer||[];window.gtag=window.gtag||function(){window.dataLayer.push(arguments)};window.gtag('js',new Date());window.gtag('config','${googleAnalyticsId}',{send_page_view:false,allow_google_signals:false,allow_ad_personalization_signals:false});`}
+            {googleTagInitialization}
           </Script>
           <Script
             id="house-delivery-ga"
