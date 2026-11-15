@@ -9,8 +9,9 @@ export const googleTagInitialization = `window.dataLayer=window.dataLayer||[];wi
 
 export type GoogleAdsDestinations = Partial<Record<Campaign, string | undefined>>;
 const configuredDestinations: GoogleAdsDestinations = {
-  "custom-homes": process.env.NEXT_PUBLIC_GOOGLE_ADS_CUSTOM_HOMES_SEND_TO,
-  "laneway-carriage-homes": process.env.NEXT_PUBLIC_GOOGLE_ADS_LANEWAY_CARRIAGE_SEND_TO,
+  // Public event-snippet destinations supplied by Edgar for these two actions.
+  "custom-homes": "AW-18548497593/iH1vCKiUlLkdELm5zoxF",
+  "laneway-carriage-homes": "AW-18548497593/zTrzCKuUlLkdELm5zoxF",
 };
 
 // Only exact snippets supplied by the Ads account can enable an action. An

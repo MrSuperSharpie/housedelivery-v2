@@ -24,36 +24,32 @@ Direct thank-you visits, field validation failures, preliminary property checks 
 
 - `src/lib/google-tag.ts` centralizes the existing GA4 ID and supplied Ads ID `AW-18548497593`, and adds an Ads destination to the existing initialization. GA4 manual page-view and privacy settings are preserved; advertising personalization remains disabled. There is no second application loader, GTM install, package or framework.
 - `src/components/analytics-manager.tsx` reuses its existing root-level script IDs/loader. Existing events and page views explicitly target GA4, so adding another destination does not broadcast all existing analytics events to Ads. A direct Ads conversion is emitted only in the accepted-receipt callback and only when a valid, action-specific destination has been supplied.
-- The direct Ads payload contains only `send_to` and `transaction_id`. No contact details, form contents, fabricated conversion value or currency are added. Missing/invalid destinations disable only direct Ads reporting; GA4 and customer inquiries continue functioning.
+- The direct Ads payload contains only `send_to` and `transaction_id`. No contact details, form contents, fabricated conversion value or currency are added. Invalid destinations fail closed for direct Ads reporting; GA4 and customer inquiries continue functioning. Both actual public destinations supplied by Edgar are now included in the shared source configuration.
 - `src/app/privacy/page.tsx` adds Google Ads to the existing measurement disclosure without changing layout, banner choices or the consent storage key.
 - `src/lib/google-tag.test.ts` verifies initialization, privacy options, campaign mapping and fail-closed handling of missing/malformed labels. Synthetic destinations are unit-test fixtures only and are never deployment settings.
 - `scripts/verify-google-ads.mjs` verifies the built site with tracking beacons and inquiry POSTs intercepted. Production-host behavior is tested by serving the feature build through browser routing; it does not modify or send submissions to Production.
 
 Google's actual library fetched both the existing GA4 resource and a Google-injected Ads destination dependency, each once, with HTTP 200. The application still installs only its existing loader. Each destination was configured once; no GTM container or duplicate manual installation was found. Do not suppress Google's internal Ads dependency as a supposed duplicate.
 
-## Required Google Ads configuration — not supplied yet
+## Supplied conversion actions and account checks
 
-The Ads ID is known, but neither action's conversion label/event snippet nor whether the two actions are website actions or GA4 imports has been supplied. A request for the exact snippets/source was made. No labels are invented and no action-specific direct Ads conversions are enabled by default.
+Edgar supplied both actual event-snippet destinations during implementation. The first response maps to Custom Homes; the labelled Carriage & Laneway snippet maps to the second landing page:
 
-If these are **website conversion actions**, copy the complete `send_to` value from each action's event snippet and map it exactly:
+| Website audience | Actual approved `send_to` |
+| --- | --- |
+| Custom Homes | `AW-18548497593/iH1vCKiUlLkdELm5zoxF` |
+| Laneway / Carriage Homes | `AW-18548497593/zTrzCKuUlLkdELm5zoxF` |
 
-| Website audience | Public build configuration | Required value |
-| --- | --- | --- |
-| Custom Homes | `NEXT_PUBLIC_GOOGLE_ADS_CUSTOM_HOMES_SEND_TO` | Actual `AW-18548497593/<Custom Homes label>` from Ads |
-| Laneway / Carriage Homes | `NEXT_PUBLIC_GOOGLE_ADS_LANEWAY_CARRIAGE_SEND_TO` | Actual `AW-18548497593/<Laneway / Carriage label>` from Ads |
+These public destinations are committed in the shared configuration, as is the existing GA4 ID. No additional Production environment variables or credentials are required. The callback chooses the submitted campaign's action and uses its anonymous inquiry reference as `transaction_id`. No conversion value or currency is invented or overridden.
 
-These are public tag destinations, not credentials. Configure only the review branch first and rebuild; Production values/release require approval. Do not use test fixture labels. The inquiry reference becomes the Ads transaction ID for deduplication.
-
-If these are **GA4-imported actions**, leave direct destinations unset and confirm the intended GA4 key-event mapping uses the existing `form_name` and separate `lead_source` values. Avoid making both imported and direct versions primary conversions for the same inquiry. No Google Ads/GA4 account settings were changed.
-
-In Ads, confirm each action measures accepted inquiries rather than a landing-page URL or ordinary thank-you page visit, use lead counting appropriate to one inquiry, and verify the intended primary/secondary status. Confirm auto-tagging and, for imports, the correct GA4/account linkage. After an approved release, check both IDs and actual accepted-inquiry behavior in Tag Assistant/Ads diagnostics with analytics consent. No campaign or spend changes are authorized by this task.
+No Google Ads/GA4 account settings were changed. In Ads, confirm these actions use accepted-inquiry event snippets rather than landing-page URL matching, use lead counting appropriate to one inquiry, and have the intended primary/secondary status. Avoid making a GA4-imported version primary alongside a direct version for the same inquiry. Confirm auto-tagging. After an approved release, check both IDs and actual accepted-inquiry behavior in Tag Assistant/Ads diagnostics with analytics consent. This Preview intentionally does not change the live site's tag detection status. No campaign or spend changes are authorized.
 
 ## Verification
 
-- All 442 unit/integration tests pass, including the prior Concierge/security suite and three new tag tests. Optimized build, TypeScript, changed-file ESLint and whitespace checks pass.
+- All 443 unit/integration tests pass, including the prior Concierge/security suite and four new tag tests. Optimized build, TypeScript, changed-file ESLint and whitespace checks pass.
 - Nine unique browser cases pass: both ordinary Preview landing-page guards; real Google resources and destination initialization; both accepted inquiry journeys (desktop Custom Homes, mobile Laneway); Essential only, GPC and DNT; direct thank-you visit.
 - Both campaign journeys produce one GA4 accepted lead with the correct audience and preserve GA4 routing. Failed submissions, page/property views and repeated receipt notifications produce no extra leads; reload/return navigation do not duplicate them. Test form/query canaries are absent from custom event payloads.
-- No direct Ads conversion is emitted without verified labels. Positive destination selection is unit-tested using clearly synthetic fixtures; real Google Ads action receipt/account attribution cannot be verified until the actual action configuration is supplied.
+- Each campaign emits one direct Ads event with its actual supplied destination after successful acceptance. Unit tests also verify fail-closed handling of malformed destinations. Google Ads account receipt/attribution is not claimed: QA blocks measurement beacons and does not send fabricated conversions into the account.
 - All measurement beacons and inquiry emails are blocked/mocked in browser QA. No test advertising conversion, sales inquiry, government property request or campaign change is sent. Actual Google tag JavaScript resources are fetched only for the isolated library check.
 - Existing website styling, imagery, video, model/configurator/Look Book code, Concierge intelligence/API/security and inquiry delivery integrations have no diff.
 

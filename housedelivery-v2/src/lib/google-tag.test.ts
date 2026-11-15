@@ -28,6 +28,11 @@ test("verified campaign destinations are separate and carry only an anonymous tr
   assert.notEqual(googleAdsConversion(reference, "custom-homes", destinations)!.send_to, googleAdsConversion(reference, "laneway-carriage-homes", destinations)!.send_to);
 });
 
+test("default destinations match the two actual conversion snippets supplied by Edgar", () => {
+  assert.deepEqual(googleAdsConversion(reference, "custom-homes"), { send_to: "AW-18548497593/iH1vCKiUlLkdELm5zoxF", transaction_id: reference });
+  assert.deepEqual(googleAdsConversion(reference, "laneway-carriage-homes"), { send_to: "AW-18548497593/zTrzCKuUlLkdELm5zoxF", transaction_id: reference });
+});
+
 test("missing, malformed or other-account snippets never fabricate Ads conversions", () => {
   for (const value of [undefined, "", "AW-18548497593", "AW-123/OTHER_ACCOUNT", "https://example.test/label", "AW-18548497593/<script>"]) {
     assert.equal(googleAdsConversion(reference, "custom-homes", { "custom-homes": value }), null);
