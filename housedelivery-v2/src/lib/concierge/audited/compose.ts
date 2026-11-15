@@ -6,7 +6,7 @@ import {stateValue,conversationContext,projectSummary,visitorNumbers,type State,
 import {extractIntent,type Intent} from './intent';
 import {handbookRelease} from './handbook';
 import {policyIndex,renderPolicies} from './policies';
-import {planningRatesEligible} from './request-plan';
+import {planningRatesEligible,relevantPolicyIds} from './request-plan';
 import {publicQuestion,confidentialityNotice,facilityLocationNotice,certificationReviewGuidance,ordinarySynthesis,planningReferences,parts,topics,type RequestPart} from './response-plan';
 import {type ConciergeReply,type Fact} from '../contracts';
 export type Action='none'|'browse_designs'|'studio'|'lookbook'|'property_review'|'consultation'|'summary';
@@ -24,6 +24,28 @@ export function requestAnswer(segment:{text:string;evidenceRefs:string[];plannin
   if(!eligible&&segment.planningRates?.length){if(ctx){ctx.rejections??=[];ctx.rejections.push('ineligible_rate_reference_ignored');}}
   const rates=eligible?segment.planningRates??[]:[];
   return{text:planningReferences(rates)+segment.text,evidenceRefs:rates.length?[...new Set(['F-PRICE','F-SCOPE',...segment.evidenceRefs])].slice(0,4):segment.evidenceRefs,requestId:request.id};
+}
+
+export function compilePolicyAnswers(requests:RequestPart[],state:State,question:string,evidenceIds:string[],unconfirmedProduct=false){
+ const groups=new Map<string,{requests:Set<string>;rates:Set<string>}>();
+ for(const request of requests){
+  const rate=planningRatesEligible(request,unconfirmedProduct,evidenceIds.includes('F-PRICE'));
+  const ids=relevantPolicyIds(request,question,state);
+  if(rate)ids.unshift('pricing_scope');
+  for(const id of new Set(ids)){
+   const group=groups.get(id)??{requests:new Set<string>(),rates:new Set<string>()};group.requests.add(request.id);
+   if(id==='pricing_scope'&&rate){
+    const tiers=['Premium','Signature'].filter(t=>new RegExp('\\b'+t+'\\b','i').test(request.question));
+    const selected=tiers.length?tiers:/\brates?\b/i.test(request.question)?['Premium','Signature']:['Premium','Signature'].filter(t=>t===stateValue(state,'finish'));
+    for(const tier of selected.length?selected:['Premium','Signature'])group.rates.add(tier);
+   }
+   groups.set(id,group);
+  }
+ }
+ const rows=renderPolicies([...groups.keys()],state,question);
+ const segments:NaturalAnswer['answerSegments']=rows.map(row=>({text:planningReferences(['Premium','Signature'].filter(t=>groups.get(row.id)!.rates.has(t)))+row.text,evidenceRefs:row.evidenceRefs,requestId:[...groups.get(row.id)!.requests][0]}));
+ const records=rows.flatMap(row=>[...groups.get(row.id)!.requests].map(requestId=>({requestId,id:row.id,status:row.status})));
+ return{segments,records,answeredRequestIds:[...new Set(records.map(r=>r.requestId))]};
 }
 
 function publicRates(text:string,evidence:Evidence[]){
@@ -127,22 +149,14 @@ export async function answerQuestion(question:string,state:State,ctx:InferenceCo
   ctx.retrieval={releaseId:handbookRelease.id,sectionIds:result.evidence.filter(e=>e.id.startsWith('H:')).map(e=>e.id),modelIds:result.models.map(m=>m.id),evidenceIds:result.evidence.map(e=>e.id),requestTopics:topics(intent),modelContext:intent.modelContext};
   const evidence=result.evidence.length?result.evidence:[{id:'F-START',data:factIndex.get('F-START')!,sourceIds:factIndex.get('F-START')!.source_ids}];
   for(const id of parts(intent).flatMap(r=>(r.policyIds??[]).flatMap(p=>policyIndex.get(p)?.factIds??[]))){if(!evidence.some(e=>e.id===id)){const fact=factIndex.get(id);if(fact)evidence.push({id,data:{text:fact.text,qualifiers:fact.qualifiers},sourceIds:fact.source_ids});}}
-  const recordSegments:NaturalAnswer['answerSegments']=parts(intent).flatMap(r=>{
-    const rows=renderPolicies(r.policyIds??[],next);ctx.policyRecords??=[];ctx.policyRecords.push(...rows.map(row=>({requestId:r.id,id:row.id,status:row.status})));
-    if(planningRatesEligible(r,Boolean(intent.unconfirmedProduct),evidence.some(e=>e.id==='F-PRICE'))){
-      const tiers=['Premium','Signature'].filter(t=>new RegExp('\\b'+t+'\\b','i').test(r.question));
-      const selected=tiers.length?tiers:/\brates?\b/i.test(r.question)?['Premium','Signature']:['Premium','Signature'].filter(t=>t===stateValue(next,'finish'));
-      rows.unshift({id:'pricing_scope',status:'published',text:planningReferences(selected.length?selected:['Premium','Signature'])+policyIndex.get('pricing_scope')!.text,evidenceRefs:['F-PRICE','F-SCOPE']});
-      ctx.policyRecords.push({requestId:r.id,id:'pricing_scope',status:'published'});
-    }
-    return rows.map(row=>({text:row.text,evidenceRefs:row.evidenceRefs,requestId:r.id}));
-  });
-  const generatedRequests=parts(intent).filter(r=>!recordSegments.some(s=>s.requestId===r.id));
+  const compiledPolicies=compilePolicyAnswers(parts(intent),next,question,evidence.map(e=>e.id),Boolean(intent.unconfirmedProduct));
+  const recordSegments=compiledPolicies.segments;ctx.policyRecords=compiledPolicies.records;
+  const generatedRequests=parts(intent).filter(r=>!compiledPolicies.answeredRequestIds.includes(r.id));
   let segments:string[]=[],segmentRefs:string[][]=[],nextQuestion='',nextAction:Action='none',mode:AnswerResult['mode']=fallback?'reviewed_fallback':'generated';
   if(controlled){segments=controlled.segments;nextQuestion=controlled.question??'';mode='controlled';for(const id of controlled.factIds)if(!evidence.some(e=>e.id===id)){const f=factIndex.get(id)!;evidence.push({id,data:f,sourceIds:f.source_ids})}if(controlled.arithmetic)next.lastArithmetic=controlled.arithmetic;}
   else if(intent.ambiguous&&!stateValue(next,'selectedModel')&&next.recommended.length>1){segments=['I can help with either design.'];nextQuestion='Which one do you mean: '+next.recommended.map(id=>modelIndex.get(id)!.name).join(' or ')+'?';mode='controlled'}
   else if(!fallback&&parts(intent).length>0&&!generatedRequests.length){
-    segments=recordSegments.map(s=>s.text);segmentRefs=recordSegments.map(s=>s.evidenceRefs);mode='controlled';ctx.coverage={requested:parts(intent).map(r=>r.id),retained:recordSegments.map(s=>s.requestId!),missing:[]};
+    segments=recordSegments.map(s=>s.text);segmentRefs=recordSegments.map(s=>s.evidenceRefs);mode='controlled';ctx.coverage={requested:parts(intent).map(r=>r.id),retained:compiledPolicies.answeredRequestIds,missing:[]};
   }
   else if(!fallback){
     try{
@@ -156,9 +170,9 @@ export async function answerQuestion(question:string,state:State,ctx:InferenceCo
       if(naturalRejection({...clean,answerSegments:[]},evidence,allowedModels,declined,next)){ctx.rejections??=[];ctx.rejections.push('invalid_follow_up');clean.nextQuestion=null;}
       const supported=await grounded(clean,evidence,next,ctx,question,generatedRequests);if(!supported)throw Error('Unsupported response');
       supported.answerSegments=[...supported.answerSegments,...recordSegments].sort((a,b)=>parts(intent).findIndex(r=>r.id===a.requestId)-parts(intent).findIndex(r=>r.id===b.requestId));
-      ctx.coverage={requested:parts(intent).map(r=>r.id),retained:supported.answerSegments.flatMap(s=>s.requestId?[s.requestId]:[]),missing:parts(intent).filter(r=>!supported.answerSegments.some(s=>s.requestId===r.id)).map(r=>r.id)};
+      ctx.coverage={requested:parts(intent).map(r=>r.id),retained:[...new Set([...compiledPolicies.answeredRequestIds,...supported.answerSegments.flatMap(s=>s.requestId?[s.requestId]:[])])],missing:parts(intent).filter(r=>!compiledPolicies.answeredRequestIds.includes(r.id)&&!supported.answerSegments.some(s=>s.requestId===r.id)).map(r=>r.id)};
       segments=supported.answerSegments.map(s=>s.text);segmentRefs=supported.answerSegments.map(s=>s.evidenceRefs);nextQuestion=supported.nextQuestion??'';nextAction=supported.nextAction;
-    }catch{fallback=true;mode='reviewed_fallback';ctx.fallbackReason=ctx.failures?.length?'generation_failure':'answer_validation';if(recordSegments.length){segments=recordSegments.map(s=>s.text);segmentRefs=recordSegments.map(s=>s.evidenceRefs);ctx.coverage={requested:parts(intent).map(r=>r.id),retained:recordSegments.map(s=>s.requestId!),missing:generatedRequests.map(r=>r.id)};}}
+    }catch{fallback=true;mode='reviewed_fallback';ctx.fallbackReason=ctx.failures?.length?'generation_failure':'answer_validation';if(recordSegments.length){segments=recordSegments.map(s=>s.text);segmentRefs=recordSegments.map(s=>s.evidenceRefs);ctx.coverage={requested:parts(intent).map(r=>r.id),retained:compiledPolicies.answeredRequestIds,missing:generatedRequests.map(r=>r.id)};}}
   }
   if(fallback&&!segments.length){
     const failure=ctx.failures?.[ctx.failures.length-1]?.category;
@@ -174,7 +188,7 @@ export async function answerQuestion(question:string,state:State,ctx:InferenceCo
   if(ctx.coverage?.missing.length||ctx.fallbackReason==='incomplete_answer'){mode='reviewed_fallback';ctx.fallbackReason=ctx.fallbackReason??'partial_validation';segments.push('I couldn’t confirm the remaining part of your question just now.');nextQuestion='';}
   if(boundary.restricted){segments.push(confidentialityNotice);segmentRefs.push([]);}
   const answerText=segments.join(' ').replaceAll(',','');
-  const cards=controlled?.suppressCards||!['matching','comparison'].includes(intent.topic)&&!intent.detail?[]:result.models.filter(m=>!answerText.includes(m.name.replace(/^The /,''))||m.area_sqft===null||!answerText.includes(String(m.area_sqft))).map(m=>({id:m.id,title:m.name,text:modelLine(m),href:modelLink(m),kind:'home'}));
+  const cards=controlled?.suppressCards||!['matching','comparison'].includes(intent.topic)&&(!intent.detail||recordSegments.length>0)?[]:result.models.filter(m=>!answerText.includes(m.name.replace(/^The /,''))||m.area_sqft===null||!answerText.includes(String(m.area_sqft))).map(m=>({id:m.id,title:m.name,text:modelLine(m),href:modelLink(m),kind:'home'}));
   if(result.models.length){next.recommended=result.models.map(m=>m.id).slice(0,3);if(result.models.length===1)next.values.selectedModel={value:result.models[0].id,sourceTurn:next.turn,status:'visitor_reported'}}
   if(/floor plan|both source|drawing|look book|studio|save it/i.test(question)&&result.models.length)nextAction=/look book|save it/i.test(question)?'lookbook':/studio/i.test(question)?'studio':'browse_designs';
   if(intent.topic==='contact'||intent.topic==='summary'||/share only.*summary|did you send/i.test(question))nextAction=declined?'none':'summary';
@@ -186,7 +200,7 @@ export async function answerQuestion(question:string,state:State,ctx:InferenceCo
   if(manufacturingRestricted)next.restrictedTopic='manufacturing_partner';else delete next.restrictedTopic;
   next.scopeExplained=next.scopeExplained||['pricing','scope','arithmetic'].includes(intent.topic);next.lastQuestion=nextQuestion;
   next.lastTopic=intent.topic;next.lastEvidenceRefs=evidence.map(e=>e.id);
-  const linksUseful=nextAction!=='none'||['matching','comparison','specifications'].includes(intent.topic)||/links?|view|open|floor plan|studio|look.?book|sources?/i.test(question);
+  const linksUseful=nextAction!=='none'||recordSegments.length>0&&result.models.length>0||['matching','comparison','specifications'].includes(intent.topic)||/links?|view|open|floor plan|studio|look.?book|sources?/i.test(question);
   const linked=linksUseful?linkFacts(evidence,result.models,intent,question):[];
   const actionHref=nextAction==='property_review'?safeLink(knowledge.routing.adu_laneway):undefined;
   return{reply:{introduction:'',facts:linked,answerSegments:segments.map((text,i)=>({text,evidenceRefs:segmentRefs[i]??evidence.map(e=>e.id)})),modelCards:cards,question:nextQuestion,next:'none',disposition:'answer',nextAction,actionHref,proposedSummary:projectSummary(next),showSummary:summaryRequested,knowledgeVersion:knowledge.knowledge_version,detailed:intent.detail},state:next,sourceIds:[...new Set(evidence.flatMap(e=>e.sourceIds))],mode};
