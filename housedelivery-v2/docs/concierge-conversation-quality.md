@@ -220,3 +220,13 @@ same review supply a neutral confirmation subject for each request. If policy
 proof fails, the server renders only a specific team-confirmation statement for
 that subject, retaining supported segments. It adds no inference or assertions
 about the answer, and no question-specific detection or replacement text.
+
+
+A subsequent exact-question trace exposed an inconsistent review verdict
+(unsupported segments accompanied by replacement fields), which the strict
+contract rejected. The final review contract removes replacement prose and its
+interdependent flags. The reviewer classifies the original and supplies evidence
+and a neutral confirmation subject. For unsupported/missing policy information,
+the server renders only that specific uncertainty. Protected/factual-conflict
+issue codes still reject. Completeness is restored only when every planned
+request is retained and an explicit confirmation statement resolves the unknown.
