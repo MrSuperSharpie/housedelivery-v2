@@ -1,7 +1,7 @@
-import {continuesQuestion,questionForAnswer,systemComparisonAsked} from './continuity';
+import {continuesQuestion,questionForAnswer,systemComparisonAsked,refersToSelectedHome} from './continuity';
 import type {Intent} from './intent';
 import type {State} from './state';
-import {stateValue} from './state';
+import {stateValue,namedModels} from './state';
 import {policyIndex} from './policies';
 export type RequestPricing='none'|'planning_rates'|'freight'|'project_quote';
 export function planningRatesEligible(request:NonNullable<Intent['requests']>[number],unconfirmedProduct=false,hasPriceEvidence=true){
@@ -27,16 +27,19 @@ export function normalizeIntent(raw:Intent,question:string,state:State):Intent{
  if(designAsk&&requests.length===1){requests=requests.map(r=>({...r,topic:'matching' as const,policyIds:[],pricing:'none' as const}));topic='matching';}
  if(program&&!designAsk&&topic==='matching'){topic=/contractor|builder/i.test(stateValue(state,'role')??'')?'builder':'community';requests=requests.map(r=>r.topic==='matching'?{...r,topic,policyIds:r.policyIds.length?r.policyIds:['builder_collaboration','program_phasing']}:r);}
  const named=stateValue(state,'selectedModel');let modelContext=raw.modelContext;
- if(named&&/\b(?:home we discussed|that home|that design|the model|the home|it|those priorities)\b/i.test(question))modelContext='follow_up';
+ if(systemComparisonAsked(question)||!namedModels(question).length&&/\b(?:deliver|delivery|freight|shipping)\b/i.test(question)&&!refersToSelectedHome(question))modelContext='none';
+ if(named&&refersToSelectedHome(question)&&!systemComparisonAsked(question))modelContext='follow_up';
  requests=requests.map(r=>({...r,policyIds:relevantPolicyIds(r,question,state)}));
  // Positive, explicit scope questions cannot disappear when intake combines
  // clauses or selects only one of their records. These records answer known
  // public parts; other reasoning stays on the existing generation path.
  const obligations:[string,boolean,Intent['topic'],string,RequestPricing][]=[
+  ['manufacturing_approach',/how[^?]{0,90}(?:built|constructed|manufactured)|construction method/i.test(question),'origin','How are House Delivery homes built?','none'],
+  ['modular_comparison',/\bmodular\b/i.test(question)&&/differ|compar|versus|traditional|how/i.test(question),'origin','How is component construction different from traditional modular homes?','none'],
   ['system_comparison',systemComparisonAsked(question),'pricing',question,'project_quote'],
   ['package_scope',/\b(?:what|which)\b[^?]{0,120}\b(?:includ|comes? with|contents)|\bpackage contents\b/i.test(question),'scope','What is included in the selected home package?','none'],
   ['local_work',/arrang[^?]{0,40}locally|source locally|(?:what|which)[^?]{0,60}local (?:work|responsibilit)|what[^?]{0,50}locally/i.test(question),'builder','What work needs to be arranged locally?','none'],
-  ['pricing_scope',/published[^?]{0,100}(?:rates?|prices?)|(?:Premium|Signature)[^?]{0,60}(?:rates?|per square foot)/i.test(question)&&(!/freight|delivery|shipping/i.test(question)||/(?:package|Premium|Signature)[^?;]{0,80}(?:rate|price)|(?:rate|price)[^?;]{0,80}(?:package|Premium|Signature)/i.test(question)),'pricing','Published '+(['Premium','Signature'].filter(t=>new RegExp('\\b'+t+'\\b','i').test(question)).join(' and ')||'Premium and Signature')+' package rates and model applicability?','planning_rates']
+  ['pricing_scope',/published[^?]{0,100}(?:rates?|prices?)|(?:Premium|Signature)[^?]{0,60}(?:rates?|per square foot)|(?:price|rate|cost)[^?]{0,35}per (?:sq\.?|square) (?:foot|ft)/i.test(question)&&(!/freight|delivery|shipping/i.test(question)||/(?:package|Premium|Signature)[^?;]{0,80}(?:rate|price)|(?:rate|price)[^?;]{0,80}(?:package|Premium|Signature)/i.test(question)),'pricing','Published '+(['Premium','Signature'].filter(t=>new RegExp('\\b'+t+'\\b','i').test(question)).join(' and ')||'Premium and Signature')+' package rates and model applicability?','planning_rates']
  ];
  for(const [id,needed,partTopic,partQuestion,pricing]of obligations){
   if(!needed||requests.some(r=>r.policyIds.includes(id)))continue;
@@ -53,6 +56,7 @@ export function relevantPolicyIds(request:NonNullable<Intent['requests']>[number
  return [...new Set(request.policyIds??[])].filter(id=>{
   if(!policyIndex.has(id))return false;
   switch(id){
+   case 'modular_comparison':return /\bmodular\b/i.test(q)&&/differ|compar|versus|traditional|how/i.test(q);
    case 'system_comparison':return systemComparisonAsked(q);
    case 'finish_tiers':return /compare|differ|versus|\bvs\b|between|tiers?|levels?|finish options/i.test(q)&&/Essential|Premium|Signature|tiers?|levels?/i.test(q);
    case 'pricing_scope':return rate;

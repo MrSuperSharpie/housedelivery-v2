@@ -33,7 +33,7 @@ const instructions=[...handbook.sections.flatMap(s=>[s.guidance,...s.limits,...s
 const normalize=(s:string)=>s.normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]+/gu,' ').trim();
 // Defense at the answer boundary is derived from the classified source fields,
 // not a blacklist of sentences found in a particular failing conversation.
-const internalPassages=instructions.map(normalize).filter(s=>s.split(' ').length>=8);
+const internalPassages=instructions.flatMap(s=>s.split(/(?<=[.!?])\s+/)).map(normalize).filter(s=>s.split(' ').length>=4);
 export function containsInternalInstruction(text:string){const n=normalize(text);return internalPassages.some(p=>n.includes(p));}
 
 export function publicModelContent(m:Model){

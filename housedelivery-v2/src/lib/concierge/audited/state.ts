@@ -1,7 +1,7 @@
 import {createHmac,timingSafeEqual} from 'node:crypto';
 import {knowledge,knowledgeVersion,modelIndex} from './registry';
 import type {RequestPart} from './response-plan';
-import {relativeTiming} from './clock';
+import {relativeTiming,projectTimingContext} from './clock';
 import {toSqft,shortlist,type MatchConstraints} from './matching';
 export type Area={value:number;unit:'sf'|'m2';sqft:number;basis:'published'|'internal'|'footprint'|'chargeable'|'unknown'};
 export type Preferences={audience:string;role:string;operator:string;location:string;province:string;land:string;builder:boolean;constructionScope:string;householdNeeds:string;family:'architectural'|'compact'|'cmhc_catalogue';homes:number;phaseHomes:number;phasing:string;unitsPerBuilding:number;bedrooms:number;bedroomMode:'exact'|'minimum';bedroomBasis:'per_home'|'per_unit';bathroomsMin:number;storeys:number;study:boolean;accessibility:boolean;areaTarget:Area;areaMax:Area;areaMin:Area;selectedModel:string;comparedModels:string[];finish:string;budgetAmount:number;budgetCurrency:string;budgetScope:string;targetDate:string;funding:string;declinedContact:boolean;declinedQuestions:string[];requestedAction:string;avoidLarger:boolean};
@@ -39,7 +39,7 @@ export function deterministicPatch(q:string,s:State,now=Date.now()):Patch{
   if(phase)p.phaseHomes=num(phase[1]);
   const groups=q.match(/\b(\d+|one|two|three|four|five|six)\s+groups? of\s+(\d+|one|two|three|four|five|six)\b/i);
   if(groups&&/phase|phasing|stages?/i.test(q)){p.phaseHomes=num(groups[2]);p.phasing=groups[0];}
-  const timing=relativeTiming(q,now);if(timing)p.targetDate=timing;
+  const timingContext=projectTimingContext(q,s.lastQuestion),timing=timingContext?relativeTiming(timingContext,now):undefined;if(timing)p.targetDate=timing;
   const scope=q.split(/(?<=[.!?])\s+/).filter(line=>/\b(?:our contractor|my contractor|our builder|my builder|my crew|our crew|our team|we|I)\b[^.!?]{0,180}\b(?:handle|supply|provide)\b[^.!?]{0,140}\b(?:foundation|assembly|appliance|site work|trade|construction)s?\b/i.test(line));if(scope.length)p.constructionScope=scope.join(' ').slice(0,360);
   if(/\bstudy\b|\boffice\b/i.test(q))p.study=!/more than a study|instead of.*study|no study|not.*study/i.test(q);
   if(/wheelchair|accessible|accessibility/i.test(q))p.accessibility=true;
@@ -89,6 +89,7 @@ export function mergePatch(s:State,patch:Patch,q:string,now=Date.now()){
   // model-extraction guess cannot silently replace a visitor's constraints.
   for(const key of ['selectedModel','comparedModels','family','unitsPerBuilding','homes','phaseHomes','bedrooms','bedroomMode','bathroomsMin','storeys','study','areaTarget','areaMax','areaMin'] as const)if(!Object.hasOwn(explicit,key))delete combined[key];
   if(!/per[ -](?:unit|dwelling|home|residence)|each (?:unit|dwelling|home|residence)/i.test(q)&&!Object.hasOwn(explicit,'bedroomBasis'))delete combined.bedroomBasis;
+  if(!projectTimingContext(q,s.lastQuestion))delete combined.targetDate;
   if(explicit.role&&!Object.hasOwn(explicit,'builder'))delete combined.builder;
   // An occupation belongs to the speaker only when explicitly self-attributed.
   // A contractor relationship is an independent fact and survives follow-ups.
