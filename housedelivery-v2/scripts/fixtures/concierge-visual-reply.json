@@ -1,0 +1,40 @@
+{
+  "question": "How are your homes built, what can a package include, and what work do I need to arrange locally? Please explain in detail.",
+  "reply": {
+    "introduction": "",
+    "facts": [],
+    "answerSegments": [
+      {
+        "text": "Depending on the project, the housing system may include domestic timber or light-gauge steel manufactured internationally. Qualified Canadian construction professionals undertake site work, foundations, assembly and completion under an agreed scope.",
+        "evidenceRefs": [
+          "F-ORIGIN",
+          "F-SYSTEMS"
+        ]
+      },
+      {
+        "text": "House Delivery coordinates engineered housing systems with design, manufacturing, purchasing, logistics and Canadian construction. Published selections cover windows and exterior openings, doors, kitchens/cabinetry, wardrobes, flooring and bathroom finishes; these are coordinated options, not confirmed model/package inclusions. The selected products, supplied materials, finishes, freight and applicable import costs are confirmed in the written project quotation.",
+        "evidenceRefs": [
+          "F-SCOPE",
+          "F-INCLUSIONS",
+          "F-COMPANY"
+        ]
+      },
+      {
+        "text": "Site preparation, foundations, service connections, local engineering and permits, Canadian assembly and completion, appliances and sales taxes are separately considered unless expressly included. Delivery access and special logistics also need review; a package price is not a turnkey construction price.",
+        "evidenceRefs": [
+          "F-EXCLUSIONS",
+          "F-BUILDER"
+        ]
+      }
+    ],
+    "modelCards": [],
+    "question": "",
+    "next": "none",
+    "disposition": "answer",
+    "nextAction": "none",
+    "proposedSummary": "",
+    "showSummary": false,
+    "knowledgeVersion": "2026-11-14.qa1",
+    "detailed": true
+  }
+}
