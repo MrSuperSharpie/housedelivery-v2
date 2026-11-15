@@ -98,6 +98,15 @@
 .backRow button { display: flex; align-items: center; gap: 9px; min-height: 44px; color: #615037; font-size: 11px; }
 .leadBody { flex: 1; min-height: 0; padding: 25px 24px 30px; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; background: #f4f5ef; }
 .leadBody h3 { font-size: 29px; }
+.leadBody>.leadPrivacy { margin-top: 8px; font-size: 11px; }
+.projectDescription { resize: vertical; }
+.projectDetails { margin-top: 22px; border-block: 1px solid var(--concierge-rule); }
+.projectDetails summary { display: flex; align-items: center; gap: 9px; min-height: 48px; padding-block: 10px; color: #615037; font-size: 12px; line-height: 1.5; cursor: pointer; list-style: none; }
+.projectDetails summary::-webkit-details-marker { display: none; }
+.projectDetails summary:focus-visible { outline: 2px solid #806638; outline-offset: -2px; }
+.projectDetails summary svg { flex-shrink: 0; }
+.projectDetails[open] summary svg { transform: rotate(45deg); }
+.projectDetails>.fields { padding: 9px 0 20px; }
 .leadBody fieldset { min-width: 0; margin: 27px 0 0; padding: 0; border: 0; }
 .leadBody legend { margin-bottom: 17px; font-size: 17px; font-weight: 500; letter-spacing: -.03em; }
 .fields { display: grid; gap: 17px; }
