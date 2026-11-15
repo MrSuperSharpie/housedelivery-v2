@@ -7,6 +7,7 @@ const base=process.env.ADS_QA_URL??'http://127.0.0.1:3021',production='https://w
 assert.ok(['localhost','127.0.0.1'].includes(new URL(base).hostname)||new URL(base).hostname.endsWith('.vercel.app'));
 const out=process.env.ADS_QA_OUTPUT??'/private/tmp/hd-google-ads-20261115/local-qa';await mkdir(out,{recursive:true});
 const access=process.env.ADS_QA_BYPASS_FILE?(await readFile(process.env.ADS_QA_BYPASS_FILE,'utf8')).trim():'';
+const safeError=error=>String(error).replaceAll(access||'__no_access_value__','[REDACTED_PREVIEW_ACCESS]');
 const ga='G-59Q25GQB61',ads='AW-18548497593',consentKey='house-delivery:analytics-consent:v1';
 const campaigns=['custom-homes','laneway-carriage-homes'];
 let activePage;
@@ -14,9 +15,9 @@ const expected={'custom-homes':'AW-18548497593/iH1vCKiUlLkdELm5zoxF','laneway-ca
 const resume=process.env.ADS_QA_RESUME==='true';
 const browser=await chromium.launch({headless:true,executablePath:process.env.ADS_QA_CHROME??'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'}),results=[];
 async function surface({simulate=true,privacy,realLibrary=false,width=1440}={}){
- const origin=simulate?production:base,context=await browser.newContext({viewport:{width,height:950},reducedMotion:'reduce'}),page=await context.newPage(),requests=[],responses=[],blocked=[],posts=[],errors=[];const controls={fail:true};
+ const origin=simulate?production:base,context=await browser.newContext({viewport:{width,height:950},reducedMotion:'reduce'}),page=await context.newPage(),requests=[],responses=[],blocked=[],posts=[],errors=[];const controls={fail:true};let closing=false;
  if(privacy)await page.addInitScript(kind=>{Object.defineProperty(navigator,kind==='gpc'?'globalPrivacyControl':'doNotTrack',{configurable:true,get:()=>kind==='gpc'?true:'1'})},privacy);
- page.on('pageerror',e=>errors.push(e.message));
+ page.on('pageerror',e=>errors.push(safeError(e.message)));
  page.on('response',r=>{const u=new URL(r.url());if(u.hostname==='www.googletagmanager.com'&&/\/gtag\/(js|destination)/.test(u.pathname))responses.push({path:u.pathname,id:u.searchParams.get('id'),status:r.status()})});
  await context.route('**/*',async route=>{
   const req=route.request(),u=new URL(req.url());
@@ -33,11 +34,12 @@ async function surface({simulate=true,privacy,realLibrary=false,width=1440}={}){
   if(req.method()==='POST'&&u.pathname.startsWith('/api/'))return route.abort();
   if(simulate){
    const headers={...req.headers(),...(access?{'x-vercel-protection-bypass':access}:{})};delete headers.host;
-   const response=await route.fetch({url:base+u.pathname+u.search,headers});return route.fulfill({response});
+   try{const response=await route.fetch({url:base+u.pathname+u.search,headers});return await route.fulfill({response})}
+   catch(e){if(!closing)errors.push('Preview proxy '+u.pathname+': '+safeError(e).split('\n')[0]);return route.abort().catch(()=>{})}
   }
   return route.continue({headers:{...req.headers(),...(access?{'x-vercel-protection-bypass':access}:{})}});
  });
- activePage=page;return{page,context,origin,requests,responses,blocked,posts,errors,controls};
+ activePage=page;return{page,context,origin,requests,responses,blocked,posts,errors,controls,close:async()=>{closing=true;await context.unrouteAll({behavior:'ignoreErrors'});await context.close()}};
 }
 const commands=p=>p.evaluate(()=>Array.from(window.dataLayer??[],c=>Array.from(c)));
 const events=async(p,name)=>(await commands(p)).filter(c=>c[0]==='event'&&c[1]===name);
@@ -52,9 +54,9 @@ try{
   results.push({case:'Real Google library',passed:true,loaderStatus:200,destinations:[ga,ads],applicationLoaderCount:1,googleInjectedAdsDependency:true,realMeasurementBeacons:'blocked',resources:diagnostic.responses,evidence:'saved real-library diagnosis; network request not repeated'});
  }else{
  // Ordinary Preview behavior must remain telemetry-free, even after consent.
- for(const campaign of campaigns){const s=await surface({simulate:false});await s.page.goto(base+'/build-your-home/'+campaign);await s.page.getByRole('button',{name:'Allow analytics',exact:true}).click();await s.page.waitForFunction(key=>localStorage.getItem(key)==='accepted',consentKey);assert.deepEqual(s.requests,[]);assert.equal(await s.page.locator('script[id="house-delivery-ga"]').count(),0);results.push({case:'Preview guard',campaign,passed:true});await s.context.close()}
+ for(const campaign of campaigns){const s=await surface({simulate:false});await s.page.goto(base+'/build-your-home/'+campaign);await s.page.getByRole('button',{name:'Allow analytics',exact:true}).click();await s.page.waitForFunction(key=>localStorage.getItem(key)==='accepted',consentKey);assert.deepEqual(s.requests,[]);assert.equal(await s.page.locator('script[id="house-delivery-ga"]').count(),0);results.push({case:'Preview guard',campaign,passed:true});await s.close()}
  // The real Google loader is allowed once; all analytics/advertising beacons are intercepted.
- const live=await surface({realLibrary:true});await live.page.goto(production);await live.page.getByRole('button',{name:'Allow analytics',exact:true}).waitFor();assert.deepEqual(live.requests,[]);const loaded=live.page.waitForResponse(r=>r.url().includes('googletagmanager.com/gtag/js?'),{timeout:30000});await allow(live);const resource=await loaded;assert.equal(resource.status(),200);await live.page.waitForFunction(()=>Boolean(window.google_tag_manager));await tagged(live);assert.equal((await events(live.page,'generate_lead')).length,0);assert.equal((await events(live.page,'conversion')).length,0);await live.page.screenshot({path:out+'/home-tagged.png'});results.push({case:'Real Google library',passed:true,loaderStatus:200,destinations:[ga,ads],applicationLoaderCount:1,googleInjectedAdsDependency:true,realMeasurementBeacons:'blocked',resources:live.responses});await live.context.close();
+ const live=await surface({realLibrary:true});await live.page.goto(production);await live.page.getByRole('button',{name:'Allow analytics',exact:true}).waitFor();assert.deepEqual(live.requests,[]);const loaded=live.page.waitForResponse(r=>r.url().includes('googletagmanager.com/gtag/js?'),{timeout:30000});await allow(live);const resource=await loaded;assert.equal(resource.status(),200);await live.page.waitForFunction(()=>Boolean(window.google_tag_manager));await tagged(live);assert.equal((await events(live.page,'generate_lead')).length,0);assert.equal((await events(live.page,'conversion')).length,0);await live.page.screenshot({path:out+'/home-tagged.png'});results.push({case:'Real Google library',passed:true,loaderStatus:200,destinations:[ga,ads],applicationLoaderCount:1,googleInjectedAdsDependency:true,realMeasurementBeacons:'blocked',resources:live.responses});await live.close();
  }
  for(const campaign of campaigns){
   if(results.some(r=>r.case==='Accepted inquiry'&&r.campaign===campaign&&r.adsDestination===expected[campaign]))continue;
@@ -71,9 +73,9 @@ try{
   const conversions=await events(p,'conversion');if(expected[campaign]){assert.equal(conversions.length,1);assert.deepEqual(conversions[0][2],{send_to:expected[campaign],transaction_id:leads[0][2].transaction_id})}else assert.equal(conversions.length,0,'no unknown or fabricated Ads labels');
   const serialized=JSON.stringify((await commands(p)).filter(c=>c[0]==='event'));assert.ok(!serialized.includes('PRIVATE_CANARY'));assert.ok(!serialized.includes('PRIVATE_FORM_CANARY'));assert.ok(!serialized.includes('TEST_ONLY_CLICK'));
   await p.evaluate(()=>window.dispatchEvent(new Event('house-delivery:campaign-lead-ready')));assert.equal((await events(p,'generate_lead')).length,1);await p.getByRole('link',{name:'Return to your project page'}).click();await p.waitForURL(url=>url.pathname==='/build-your-home/'+campaign,{waitUntil:'domcontentloaded'});await tagged(s);assert.equal((await events(p,'generate_lead')).length,1);await p.reload();await p.waitForFunction(()=>Array.from(window.dataLayer??[]).some(c=>c[0]==='config'&&c[1]==='AW-18548497593'));assert.equal((await events(p,'generate_lead')).length,0);assert.equal((await events(p,'conversion')).length,0);
-  assert.deepEqual(s.errors,[]);results.push({case:'Accepted inquiry',campaign,passed:true,pageAndPropertyViewsAreNotLeads:true,failedSubmissionIsNotLead:true,ga4EventsBeforeReload:1,adsEventsBeforeReload:conversions.length,adsDestinationConfigured:Boolean(expected[campaign]),adsDestination:conversions[0]?.[2]?.send_to??null,repeatAndReloadDeduplicated:true,privateFormAndQueryDataExcluded:true,realEmails:0});await s.context.close();
+  assert.deepEqual(s.errors,[]);results.push({case:'Accepted inquiry',campaign,passed:true,pageAndPropertyViewsAreNotLeads:true,failedSubmissionIsNotLead:true,ga4EventsBeforeReload:1,adsEventsBeforeReload:conversions.length,adsDestinationConfigured:Boolean(expected[campaign]),adsDestination:conversions[0]?.[2]?.send_to??null,repeatAndReloadDeduplicated:true,privateFormAndQueryDataExcluded:true,realEmails:0});await s.close();
  }
- for(const privacy of ['essential','gpc','dnt']){if(results.some(r=>r.case==='Privacy control'&&r.privacy===privacy))continue;const s=await surface({privacy:privacy==='essential'?undefined:privacy});await s.page.goto(production+'/homes/langley');if(privacy==='essential')await s.page.getByRole('button',{name:'Essential only',exact:true}).click();else await s.page.waitForFunction(()=>document.querySelector('main'));await s.page.waitForTimeout(500);assert.deepEqual(s.requests,[]);assert.equal(await s.page.locator('script[id="house-delivery-ga"]').count(),0);results.push({case:'Privacy control',privacy,passed:true});await s.context.close()}
- if(!results.some(r=>r.case==='Direct thank-you visit')){const direct=await surface();await direct.page.goto(production+'/build-your-home/thank-you');await allow(direct);await tagged(direct);assert.equal((await events(direct.page,'generate_lead')).length,0);assert.equal((await events(direct.page,'conversion')).length,0);results.push({case:'Direct thank-you visit',passed:true,leadEvents:0});await direct.context.close();}
+ for(const privacy of ['essential','gpc','dnt']){if(results.some(r=>r.case==='Privacy control'&&r.privacy===privacy))continue;const s=await surface({privacy:privacy==='essential'?undefined:privacy});await s.page.goto(production+'/homes/langley');if(privacy==='essential')await s.page.getByRole('button',{name:'Essential only',exact:true}).click();else await s.page.waitForFunction(()=>document.querySelector('main'));await s.page.waitForTimeout(500);assert.deepEqual(s.requests,[]);assert.equal(await s.page.locator('script[id="house-delivery-ga"]').count(),0);results.push({case:'Privacy control',privacy,passed:true});await s.close()}
+ if(!results.some(r=>r.case==='Direct thank-you visit')){const direct=await surface();await direct.page.goto(production+'/build-your-home/thank-you');await allow(direct);await tagged(direct);assert.equal((await events(direct.page,'generate_lead')).length,0);assert.equal((await events(direct.page,'conversion')).length,0);results.push({case:'Direct thank-you visit',passed:true,leadEvents:0});await direct.close();}
  console.log(JSON.stringify({passed:true,results,actualAdvertisingConversionsSent:0,actualInquiryEmailsSent:0},null,2));
-}catch(e){results.push({passed:false,error:String(e),url:activePage?.url()});console.error(e);process.exitCode=1}finally{await writeFile(out+'/results.json',JSON.stringify({results},null,2));await browser.close()}
+}catch(e){results.push({passed:false,error:safeError(e),url:activePage?.url()});console.error(safeError(e));process.exitCode=1}finally{await writeFile(out+'/results.json',JSON.stringify({results},null,2));await browser.close()}

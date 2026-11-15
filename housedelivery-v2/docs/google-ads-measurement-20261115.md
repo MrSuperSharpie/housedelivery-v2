@@ -53,7 +53,7 @@ No Google Ads/GA4 account settings were changed. In Ads, confirm these actions u
 - All measurement beacons and inquiry emails are blocked/mocked in browser QA. No test advertising conversion, sales inquiry, government property request or campaign change is sent. Actual Google tag JavaScript resources are fetched only for the isolated library check.
 - Existing website styling, imagery, video, model/configurator/Look Book code, Concierge intelligence/API/security and inquiry delivery integrations have no diff.
 
-Artifacts: `/private/tmp/hd-google-ads-20261115/`, including build/test logs, `real-tag-diagnostic.json`, browser results/screenshots and final Preview verification. This is not a Google Ads account-status or full accessibility certification.
+Artifacts: `/private/tmp/hd-google-ads-20261115/`, including build/test logs, `real-tag-diagnostic.json`, browser results/screenshots and final Preview verification. This is not a Google Ads account-status or full accessibility certification. QA unregisters browser routes before closing contexts, and its error reporting redacts Preview access values. A Preview access header appeared in private tool output during a teardown error; local review artifacts were redacted. No access credential is included in repository or website changes.
 
 ## Primary references
 
