@@ -1,6 +1,7 @@
 import {continuesQuestion,questionForAnswer,refersToSelectedHome} from './continuity';
 import {financeRequested,guidanceContinuation,inheritFinanceGuidance} from './guidance';
 import {comparisonLimit,inheritComparisonLimits} from './comparison';
+import {thermalEnvelopeAsked} from './building-science';
 import type {Intent} from './intent';
 import type {State} from './state';
 import {stateValue,namedModels} from './state';
@@ -39,6 +40,7 @@ export function normalizeIntent(raw:Intent,question:string,state:State):Intent{
   ['manufacturing_approach',/how[^?]{0,90}(?:built|constructed|manufactured)|construction method/i.test(question),'origin','How are House Delivery homes built?','none'],
   ['modular_comparison',/\bmodular\b/i.test(question)&&/differ|compar|versus|traditional|how/i.test(question),'origin','How is component construction different from traditional modular homes?','none'],
   ['system_comparison',Boolean(comparisonLimit(question)),'pricing',question,'project_quote'],
+  ['thermal_envelope',thermalEnvelopeAsked(question),'specifications','How are thermal bridging and condensation addressed in wall assemblies?','none'],
   ['local_selections',/\b(?:customiz\w*|swap\w*|substitut\w*|replac\w*|source|sourc\w*)\b[^?]{0,90}\b(?:appliance|fixture|window|cabinet|finish|bathroom|kitchen)\w*\b/i.test(question),'customization','Can I propose locally sourced products or substitute selections?','none'],
   ['package_scope',/\b(?:what|which)\b[^?]{0,120}\b(?:includ|comes? with|contents)|\bpackage contents\b|(?:bare|only|framing).*\b(?:shell|frame)|package that.*includ/i.test(question),'scope','What is included in the selected home package?','none'],
   ['local_work',/arrang[^?]{0,40}locally|source locally|(?:what|which)[^?]{0,60}local (?:work|responsibilit)|what[^?]{0,50}locally/i.test(question),'builder','What work needs to be arranged locally?','none'],
@@ -63,6 +65,7 @@ export function relevantPolicyIds(request:NonNullable<Intent['requests']>[number
    case 'local_selections':return /customiz|swap|substitut|replac|sourc/i.test(q);
    case 'modular_comparison':return /\bmodular\b/i.test(q)&&/differ|compar|versus|traditional|how/i.test(q);
    case 'system_comparison':return Boolean(comparisonLimit(q));
+   case 'thermal_envelope':return thermalEnvelopeAsked(q);
    case 'finish_tiers':return /compare|differ|versus|\bvs\b|between|tiers?|levels?|finish options/i.test(q)&&/Essential|Premium|Signature|tiers?|levels?/i.test(q);
    case 'pricing_scope':return rate;
    case 'freight_quotation':return /freight|shipping|deliver|logistics|transport/i.test(q)&&(request.pricing==='freight'||/freight|shipping|deliver|logistics|transport/i.test(request.question));

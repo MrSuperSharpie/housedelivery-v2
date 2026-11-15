@@ -1,14 +1,16 @@
 import handbook from '@/data/concierge/company-handbook.json';
 import type {GuidanceStage} from './guidance';
 import {comparisonLimit} from './comparison';
+import {thermalEnvelopeRecord} from './building-science';
 import {publicFactText,containsInternalInstruction} from './publication';
 import {factIndex,modelIndex} from './registry';
 import {stateValue,type State} from './state';
 export type PolicyStatus='published'|'team_confirmation'|'confidential';
-export type PolicyRecord={id:string;subject:string;status:PolicyStatus;text:string;factIds:string[];authority:'approved_public_information'|'owner_confirmation_2026_11_14'};
+export type PolicyRecord={id:string;subject:string;status:PolicyStatus;text:string;factIds:string[];authority:'approved_public_information'|'owner_confirmation_2026_11_14'|'verified_general_building_science';sourceUrls?:string[]};
 const fact=publicFactText;
 // Explicit customer-safe policy authority. Silence in a source never creates a rule.
 export const policyRecords:readonly PolicyRecord[]=Object.freeze([
+ thermalEnvelopeRecord,
  {id:'plant_visit',subject:'Manufacturing-plant visit availability before purchase',status:'team_confirmation',text:'Plant-visit availability and any access arrangements require confirmation from our team; this chat cannot promise a visit.',factIds:[],authority:'owner_confirmation_2026_11_14'},
  {id:'engineering_documents',subject:'Availability and release of project-specific engineering documentation',status:'team_confirmation',text:'The availability and release of project-specific engineering documentation require team confirmation. Factory identities and private factory records remain protected; this does not mean all technical documentation is confidential or unavailable.',factIds:[],authority:'owner_confirmation_2026_11_14'},
  {id:'factory_confidentiality',subject:'Private factory identities and records',status:'confidential',text:'Manufacturing partner identities and private factory records are confidential. We do not confirm or deny relationships with named companies.',factIds:[],authority:'owner_confirmation_2026_11_14'},

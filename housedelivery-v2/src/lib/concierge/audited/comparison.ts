@@ -1,4 +1,5 @@
 import type {Intent} from './intent';
+import {heatTransferSpeedOnly,thermalEnvelopeAsked} from './building-science';
 export type ComparisonMetric='cost'|'quality'|'reliability'|'speed'|'superiority';
 export type ComparisonLimit={missing:ComparisonMetric[];requested:ComparisonMetric[]};
 type Part=NonNullable<Intent['requests']>[number];
@@ -10,7 +11,7 @@ const metricPatterns:Record<ComparisonMetric,RegExp>={
  superiority:/superior|inferior|better|best|advantage|worth|why.*(?:should|choose|use|buy|hire)/i
 };
 const metrics=Object.keys(metricPatterns) as ComparisonMetric[];
-function requestedMetrics(q:string){return metrics.filter(m=>metricPatterns[m].test(q));}
+function requestedMetrics(q:string){return metrics.filter(m=>metricPatterns[m].test(q)&&(m!=='speed'||!heatTransferSpeedOnly(q)));}
 export function publishedRateComparison(q:string){
  return !/\b(?:steel|timber|wood|lumber|concrete|masonry|prefab|site[ -]?built|framers?|builders?|competitor|turnkey)\b/i.test(q)&&/\bPremium\b/i.test(q)&&/\bSignature\b/i.test(q)&&/published|planning|reference/i.test(q)&&/rate|per (?:sq|square)/i.test(q);
 }
@@ -26,6 +27,9 @@ export function comparisonLimit(q:string):ComparisonLimit|null{
 }
 export function relatedComparisonPart(part:Part,limit:ComparisonLimit){
  const q=part.question,explicit=/compar|versus|\bvs\b|\bthan\b|rather|instead|better|superior|advantage|why.*(?:should|choose|use|buy|hire)/i.test(q);
+ // An independent mechanism question stays answerable even when the parent
+ // also asks for an unsupported price or construction-performance comparison.
+ if(thermalEnvelopeAsked(q)&&!comparisonLimit(q))return false;
  const asked=requestedMetrics(q).some(m=>limit.missing.includes(m));
  // Preserve separately requested scope, documentation, freight inputs and
  // published numeric attributes; those are not unverified relative benefits.
