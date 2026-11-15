@@ -1,3 +1,4 @@
+import {guidanceContinuation,type PendingQuestion} from './guidance';
 import {createHmac,timingSafeEqual} from 'node:crypto';
 import {knowledge,knowledgeVersion,modelIndex} from './registry';
 import type {RequestPart} from './response-plan';
@@ -6,10 +7,10 @@ import {toSqft,shortlist,type MatchConstraints} from './matching';
 export type Area={value:number;unit:'sf'|'m2';sqft:number;basis:'published'|'internal'|'footprint'|'chargeable'|'unknown'};
 export type Preferences={audience:string;role:string;operator:string;location:string;province:string;land:string;builder:boolean;constructionScope:string;householdNeeds:string;family:'architectural'|'compact'|'cmhc_catalogue';homes:number;phaseHomes:number;phasing:string;unitsPerBuilding:number;bedrooms:number;bedroomMode:'exact'|'minimum';bedroomBasis:'per_home'|'per_unit';bathroomsMin:number;storeys:number;study:boolean;accessibility:boolean;areaTarget:Area;areaMax:Area;areaMin:Area;selectedModel:string;comparedModels:string[];finish:string;budgetAmount:number;budgetCurrency:string;budgetScope:string;targetDate:string;funding:string;declinedContact:boolean;declinedQuestions:string[];requestedAction:string;avoidLarger:boolean};
 export type Patch=Partial<Preferences>;
-export type State={version:string;session:string;expires:number;turn:number;values:{[K in keyof Preferences]?:{value:Preferences[K];sourceTurn:number;status:'visitor_reported'}};recommended:string[];scopeExplained:boolean;lastQuestion:string;lastArithmetic:{area:number;rate:number}|null;lastTopic?:string;lastEvidenceRefs?:string[];activeQuestion?:string;activeUpdates?:string[];activeRequests?:RequestPart[];restrictedTopic?:'manufacturing_partner'|'manufacturing_location'};
+export type State={version:string;session:string;expires:number;turn:number;values:{[K in keyof Preferences]?:{value:Preferences[K];sourceTurn:number;status:'visitor_reported'}};recommended:string[];scopeExplained:boolean;lastQuestion:string;pendingQuestion?:PendingQuestion;lastArithmetic:{area:number;rate:number}|null;lastTopic?:string;lastEvidenceRefs?:string[];activeQuestion?:string;activeUpdates?:string[];activeRequests?:RequestPart[];restrictedTopic?:'manufacturing_partner'|'manufacturing_location'};
 export function initialState(session:string,now=Date.now()):State{return{version:knowledgeVersion,session,expires:now+3600_000,turn:0,values:{},recommended:[],scopeExplained:false,lastQuestion:'',lastArithmetic:null}}
 export function stateValue<K extends keyof Preferences>(s:State,key:K):Preferences[K]|undefined{return s.values[key]?.value}
-export function conversationContext(s:State){return{turn:s.turn,values:s.values,recommended:s.recommended,scopeExplained:s.scopeExplained,lastQuestion:s.lastQuestion,lastArithmetic:s.lastArithmetic,lastTopic:s.lastTopic,lastEvidenceRefs:s.lastEvidenceRefs,activeQuestion:s.activeQuestion,activeUpdates:s.activeUpdates,activeRequests:s.activeRequests}}
+export function conversationContext(s:State){return{turn:s.turn,values:s.values,recommended:s.recommended,scopeExplained:s.scopeExplained,lastQuestion:s.lastQuestion,pendingQuestion:s.pendingQuestion,lastArithmetic:s.lastArithmetic,lastTopic:s.lastTopic,lastEvidenceRefs:s.lastEvidenceRefs,activeQuestion:s.activeQuestion,activeUpdates:s.activeUpdates,activeRequests:s.activeRequests}}
 export function signState(s:State,secret:string){const payload=Buffer.from(JSON.stringify(s)).toString('base64url');return payload+'.'+createHmac('sha256',secret).update('hd-concierge-state:'+payload).digest('hex')}
 export function readState(raw:unknown,session:string,secret:string,now=Date.now()):State{
   if(raw===undefined||raw==='')return initialState(session,now);
@@ -25,6 +26,7 @@ export function deterministicPatch(q:string,s:State,now=Date.now()):Patch{
   if(/\bour Nation\b|\b(?:we|I).{0,25}(?:First Nation|Indigenous community)/i.test(q))p.audience='First Nation / Indigenous community';
   const selfRole=q.match(/\b(?:I am|I'm|I’m|I work as|we are|we're|we’re|we work as)\s+(?:a |an |the )?(general contractor|construction contractor|contractor|builder|homeowner|owner|developer|architect|project manager|housing manager|municipal official)\b/i);
   if(selfRole){p.role=selfRole[1].toLowerCase();if(/contractor|builder/.test(p.role))p.audience='Builder / general contractor';else if(/homeowner|^owner$/.test(p.role))p.audience='Individual / family';else if(p.role==='developer')p.audience='Developer';}
+  if(guidanceContinuation(q,s)==='location')p.location=q.trim().replace(/[.]+$/,'').replace(/^./u,c=>c.toUpperCase());
   const bed=[...q.matchAll(/\b(one|two|three|four|five|six|seven|eight|\d+)[ -]?(?:bedrooms?|beds?|br)\b/gi)].at(-1);if(bed){p.bedrooms=num(bed[1]);p.bedroomMode=/at least|minimum|or more/i.test(q)?'minimum':'exact'}
   const bath=q.match(/\b(one|two|three|four|five|\d+(?:\.\d+)?)[ -]?(?:bathrooms?|baths?)\b/i);if(bath)p.bathroomsMin=num(bath[1]);
   if(/no stairs|single.storey|one.storey/i.test(q))p.storeys=1;
@@ -89,6 +91,7 @@ export function mergePatch(s:State,patch:Patch,q:string,now=Date.now()){
   // model-extraction guess cannot silently replace a visitor's constraints.
   for(const key of ['selectedModel','comparedModels','family','unitsPerBuilding','homes','phaseHomes','bedrooms','bedroomMode','bathroomsMin','storeys','study','areaTarget','areaMax','areaMin'] as const)if(!Object.hasOwn(explicit,key))delete combined[key];
   if(!/per[ -](?:unit|dwelling|home|residence)|each (?:unit|dwelling|home|residence)/i.test(q)&&!Object.hasOwn(explicit,'bedroomBasis'))delete combined.bedroomBasis;
+  if(guidanceContinuation(q,s)==='location'&&!q.includes(',')&&!Object.hasOwn(explicit,'province'))delete combined.province;
   if(!projectTimingContext(q,s.lastQuestion))delete combined.targetDate;
   if(explicit.role&&!Object.hasOwn(explicit,'builder'))delete combined.builder;
   // An occupation belongs to the speaker only when explicitly self-attributed.

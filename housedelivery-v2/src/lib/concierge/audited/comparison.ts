@@ -44,8 +44,8 @@ export type AnswerSegment={text:string;evidenceRefs:string[];requestId?:string};
 // Only server-rendered evidence-limit records may answer limited requests.
 // Even an approving support verdict cannot authorize replacement prose.
 export function finalizeComparisonAnswers(generated:AnswerSegment[],requests:Part[],published:AnswerSegment[]){
- const limited=new Set(requests.filter(r=>r.comparisonLimit).map(r=>r.id));
+ const limited=new Set(requests.filter(r=>r.comparisonLimit||r.guidanceStage).map(r=>r.id));
  if(!limited.size)return [...generated,...published];
- const other=new Set(requests.filter(r=>!r.comparisonLimit).map(r=>r.id));
+ const other=new Set(requests.filter(r=>!r.comparisonLimit&&!r.guidanceStage).map(r=>r.id));
  return [...generated.filter(s=>s.requestId&&other.has(s.requestId)),...published];
 }

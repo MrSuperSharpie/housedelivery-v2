@@ -1,3 +1,4 @@
+import {guidanceContinuation,pendingLocation,inheritFinanceGuidance} from './guidance';
 import {structured,objectSchema,type InferenceContext} from './llm';
 import {knowledge,modelIndex,factIndex,sourceIndex,safeLink} from './registry';
 import {retrieve,modelLine,modelLink,type Evidence} from './evidence';
@@ -30,7 +31,7 @@ export function requestAnswer(segment:{text:string;evidenceRefs:string[];plannin
 }
 
 export function compilePolicyAnswers(requests:RequestPart[],state:State,question:string,evidenceIds:string[],unconfirmedProduct=false){
- requests=inheritComparisonLimits(requests,question);
+ requests=inheritFinanceGuidance(inheritComparisonLimits(requests,question),question,requests.find(r=>r.guidanceStage)?.guidanceStage);
  const groups=new Map<string,{requests:Set<string>;rates:Set<string>}>();
  for(const request of requests){
   const rate=planningRatesEligible(request,unconfirmedProduct,evidenceIds.includes('F-PRICE'));
@@ -46,10 +47,10 @@ export function compilePolicyAnswers(requests:RequestPart[],state:State,question
    groups.set(id,group);
   }
  }
- const rows=renderPolicies([...groups.keys()],state,question);
+ const rows=renderPolicies([...groups.keys()],state,question,requests.find(r=>r.guidanceStage)?.guidanceStage);
  const segments:NaturalAnswer['answerSegments']=rows.map(row=>({text:planningReferences(['Premium','Signature'].filter(t=>groups.get(row.id)!.rates.has(t)))+row.text,evidenceRefs:row.evidenceRefs,requestId:[...groups.get(row.id)!.requests][0]}));
  const records=rows.flatMap(row=>[...groups.get(row.id)!.requests].map(requestId=>({requestId,id:row.id,status:row.status})));
- return{segments,records,requests,limitedRequestIds:requests.filter(r=>r.comparisonLimit).map(r=>r.id),answeredRequestIds:[...new Set(records.map(r=>r.requestId))]};
+ return{segments,records,requests,limitedRequestIds:requests.filter(r=>r.comparisonLimit||r.guidanceStage).map(r=>r.id),answeredRequestIds:[...new Set(records.map(r=>r.requestId))]};
 }
 
 function publicRates(text:string,evidence:Evidence[]){
@@ -77,7 +78,7 @@ function unsupportedSystemComparison(text:string,evidence:Evidence[]){
   !/cannot (?:establish|confirm|compare)|can’t (?:establish|confirm|compare)|not established|not confirmed|no (?:verified|confirmed|like.for.like)|requires? .*compar|need.*(?:comparison|quotation|evidence)/i.test(sentence));
 }
 export function naturalRejection(answer:NaturalAnswer,evidence:Evidence[],allowedModels:string[],declined:boolean,state?:State,requests:RequestPart[]=[]){
-  const limited=new Set(requests.filter(r=>r.comparisonLimit).map(r=>r.id));
+  const limited=new Set(requests.filter(r=>r.comparisonLimit||r.guidanceStage).map(r=>r.id));
   if(answer.answerSegments.some(s=>s.requestId&&limited.has(s.requestId)))return 'comparison_evidence_required';
   const ids=new Set(evidence.map(e=>e.id));
   const scopedModels=allowedModels.map(id=>modelIndex.get(id)).filter(m=>Boolean(m));
@@ -124,12 +125,12 @@ export type AnswerResult={reply:ConciergeReply;state:State;sourceIds:string[];mo
 export async function answerQuestion(question:string,state:State,ctx:InferenceContext):Promise<AnswerResult>{
   ctx.now??=Date.now();
   const boundary=publicQuestion(question,Boolean(state.restrictedTopic)),manufacturingRestricted=boundary.restricted&&/factor|manufactur|supplier|frame|kit|partner/i.test(question);
-  if(boundary.privateFacility){
+  if(boundary.privateFacility&&!boundary.question){
     const next=mergePatch(state,{},'');next.restrictedTopic='manufacturing_location';next.lastTopic='origin';next.lastEvidenceRefs=[];next.lastQuestion='';
     const guidance=/\bISO\b|certific|accredit|compliance|due diligence/i.test(question)?certificationReviewGuidance:'I can help explain the public manufacturing approach and the project-specific technical review process.';
     return{reply:{introduction:'',facts:[],answerSegments:[{text:facilityLocationNotice,evidenceRefs:[]},{text:guidance,evidenceRefs:[]}],question:'',next:'none',disposition:'answer',nextAction:'none',knowledgeVersion:knowledge.knowledge_version},state:next,sourceIds:[],mode:'boundary'};
   }
-  if(boundary.restricted&&boundary.publicOrigin){
+  if(boundary.restricted&&boundary.publicOrigin&&!boundary.question){
     const origin=factIndex.get('F-ORIGIN')!,next=mergePatch(state,{},'');next.lastTopic='origin';next.lastEvidenceRefs=[origin.id];next.lastQuestion='';next.restrictedTopic='manufacturing_partner';
     return{reply:{introduction:'',facts:[],answerSegments:[{text:origin.text,evidenceRefs:[origin.id]},{text:confidentialityNotice,evidenceRefs:[]}],question:'',next:'none',disposition:'answer',nextAction:'none',knowledgeVersion:knowledge.knowledge_version},state:next,sourceIds:origin.source_ids,mode:'boundary'};
   }
@@ -206,7 +207,8 @@ export async function answerQuestion(question:string,state:State,ctx:InferenceCo
     if(!stateValue(next,'avoidLarger')&&result.match.matches.length===0&&result.match.outsideTargetAlternatives.length&&next.values.areaTarget&&!next.values.areaMax){const a=result.match.outsideTargetAlternatives[0];segments.push(`Outside your approximate size target: ${modelLine(a)}`)}
   }
   if(ctx.coverage?.missing.length||ctx.fallbackReason==='incomplete_answer'){mode='reviewed_fallback';ctx.fallbackReason=ctx.fallbackReason??'partial_validation';segments.push('I don’t have confirmed information for the remaining part of your question.');nextQuestion='';}
-  if(boundary.restricted){segments.push(confidentialityNotice);segmentRefs.push([]);}
+  if(boundary.restricted&&boundary.publicOrigin&&!segmentRefs.some(refs=>refs.includes('F-ORIGIN'))){const origin=factIndex.get('F-ORIGIN')!;segments.push(origin.text);segmentRefs.push([origin.id]);if(!evidence.some(e=>e.id===origin.id))evidence.push({id:origin.id,data:publicFactContent(origin),sourceIds:origin.source_ids});}
+  if(boundary.restricted){segments.push(boundary.privateFacility?facilityLocationNotice:confidentialityNotice);segmentRefs.push([]);}
   const answerText=segments.join(' ').replaceAll(',','');
   const cards=controlled?.suppressCards||compiledPolicies.limitedRequestIds.length>0&&!generatedRequests.length||!['matching','comparison'].includes(intent.topic)&&(!intent.detail||recordSegments.length>0)?[]:result.models.filter(m=>!answerText.includes(m.name.replace(/^The /,''))||m.area_sqft===null||!answerText.includes(String(m.area_sqft))).map(m=>({id:m.id,title:m.name,text:modelLine(m),href:modelLink(m),kind:'home'}));
   if(result.models.length){next.recommended=result.models.map(m=>m.id).slice(0,3);if(result.models.length===1)next.values.selectedModel={value:result.models[0].id,sourceTurn:next.turn,status:'visitor_reported'}}
@@ -218,7 +220,10 @@ export async function answerQuestion(question:string,state:State,ctx:InferenceCo
   if(declined&&/contact|email|phone|personal review/i.test(nextQuestion))nextQuestion='';
   if(compiledPolicies.limitedRequestIds.length)nextQuestion='';
   if(intent.unconfirmedProduct){nextAction='none';nextQuestion='';}
-  if(manufacturingRestricted)next.restrictedTopic='manufacturing_partner';else delete next.restrictedTopic;
+  if(boundary.privateFacility)next.restrictedTopic='manufacturing_location';else if(manufacturingRestricted)next.restrictedTopic='manufacturing_partner';else delete next.restrictedTopic;
+  const guidance=guidanceContinuation(visitorQuestion,state),financeStage=compiledPolicies.requests.find(r=>r.guidanceStage)?.guidanceStage;
+  if(financeStage==='accepted'&&!stateValue(next,'location')&&!next.values.declinedQuestions?.value.includes('location'))nextQuestion='Which municipality is your project in?';
+  next.pendingQuestion=pendingLocation(nextQuestion)??(guidance==='acknowledged'||guidance==='accepted'?state.pendingQuestion??pendingLocation(state.lastQuestion):undefined);
   next.scopeExplained=next.scopeExplained||['pricing','scope','arithmetic'].includes(intent.topic);next.lastQuestion=nextQuestion;
   next.activeQuestion=continuesQuestion(visitorQuestion,state)?state.activeQuestion:visitorQuestion;next.activeUpdates=continuesQuestion(visitorQuestion,state)?[...new Set([...(state.activeUpdates??[]),visitorQuestion])].slice(-3):[];next.activeRequests=parts(intent);
   next.lastTopic=intent.topic;next.lastEvidenceRefs=evidence.map(e=>e.id);

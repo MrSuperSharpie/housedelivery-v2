@@ -8,13 +8,16 @@ export function topics(intent:Intent){return [...new Set(parts(intent).length?pa
 // This boundary runs before inference. A conversational claim never enables a
 // private lookup. Only a remaining public clause can enter the ordinary engine.
 export function publicQuestion(question:string,manufacturingContext=false){
-  if(privateManufacturingLocation(question,manufacturingContext))return{question:'',restricted:true,publicOrigin:false,privateFacility:true};
-  if(!privateRequest(question))return{question,restricted:false,publicOrigin:false,privateFacility:false};
-  if(/\.env\b|api.?key|system.?prompt|system message|hidden|source ledger|source archive|maintainer|original files|previous customer|previous chats|ignore|override|base64|rot13|private.*(?:record|email|correspondence)/i.test(question))return{question:'',restricted:true,publicOrigin:false,privateFacility:false};
-  const clauses=question.split(/[?;]|(?<=[.!])\s+(?=[A-Z])|,?\s+\b(?:and|or|also)\b\s+/i).map(s=>s.trim()).filter(Boolean);
-  const safe=clauses.filter(s=>!privateRequest(s)&&/\b(?:home|housing|kit|built|build|design|quote|quotation|cost|price|deliver|scope|includ|warehouse|project|warrant|assembl)\w*\b/i.test(s));
-  const publicOrigin=/\b(?:where|country|origin|Canada|Canadian|domestic|overseas|international(?:ly)?|import(?:ed|s|ing)?)\b/i.test(question);
-  return{question:safe.join('; ').slice(0,1200),restricted:true,publicOrigin,privateFacility:false};
+  const privateFacility=privateManufacturingLocation(question,manufacturingContext),restricted=privateFacility||privateRequest(question);
+  if(!restricted)return{question,restricted:false,publicOrigin:false,privateFacility:false};
+  if(/\.env\b|api.?key|system.?prompt|system message|hidden|source ledger|source archive|maintainer|original files|previous customer|previous chats|ignore|override|base64|rot13|private.*(?:record|email|correspondence)/i.test(question))return{question:'',restricted:true,publicOrigin:false,privateFacility};
+  // Split independent requests, not noun lists such as appliances or fixtures.
+  const clauses=question.split(/[?;]|(?<=[.!])\s+(?=[A-Z])|(?:[,—–]\s*|\s+)\b(?:and|or|also|but)\s+(?=(?:can|could|would|will|may|do|does|is|are|what|which|who|where|how|I|we|my|our|tell|show|please)\b)/i).map(s=>s.trim()).filter(Boolean);
+  const originClause=(s:string)=>/\b(?:origin|overseas|import(?:ed|s|ing)?)\b|(?:made|manufactur\w*)[^?]{0,35}(?:Canada|Canadian|domestic|international)|\b(?:components?|frames?|kits?|steel|timber)\b[^?]{0,35}\b(?:Canadian|domestic)\b|\bwhere\b.*\b(?:components?|frames?|kits?)\b.*\b(?:made|manufactur\w*|from)\b/i.test(s);
+  const publicClauses=clauses.filter(s=>!privateRequest(s)&&!privateManufacturingLocation(s,manufacturingContext||/\b(?:they|them|their|it|just|only|then)\b/i.test(s))&&!(/\b(?:they|them|their)\b/i.test(s)&&/charge|buying|invoice|margin|markup|cost percentage/i.test(s))&&/^(?:can|could|would|will|may|do|does|is|are|what|which|who|where|how|I|we|my|our|tell|show|please)\b/i.test(s));
+  const safe=publicClauses.filter(s=>!originClause(s));
+  const publicOrigin=clauses.some(originClause);
+  return{question:safe.join('; ').slice(0,1200),restricted:true,publicOrigin,privateFacility};
 }
 export const confidentialityNotice='We keep manufacturing partner identities and private commercial information confidential; we do not confirm or deny relationships with named companies.';
 export const chatLimits={id:'CHAT-LIMITS',data:{text:'This text assistant can explain public housing information and prepare a visitor-reviewed project brief. It cannot issue binding quotations, enter contracts, confirm production capacity, submit permits, verify code certification, or confirm an unlisted product capability. A project team must confirm project-specific scope and capabilities. Unknown availability is not evidence that a product or service is unavailable. Unrecorded access arrangements and the availability or release of project-specific documentation require team confirmation. Manufacturing identities and private factory records remain confidential; this does not establish that all technical documentation is confidential or unavailable.'},sourceIds:[] as string[]};
