@@ -110,17 +110,18 @@ function fixtureModel(rejectSecond:boolean):LanguageModel{
       const patchSchema=(schema?.properties?.patch as {properties:Record<string,{type?:unknown}>}).properties;
       const patch=Object.fromEntries(Object.entries(patchSchema).map(([k,v])=>[k,v.type==='array'?[]:null]));
       output={...intent('company',['company','roles']),requests:[{id:'r1',topic:'company',question:'Company coordination'},{id:'r2',topic:'builder',question:'Local responsibilities'}],modelContext:'none',unconfirmedProduct:false,patch};
-    }else if(call===2)output={answers:{r1:{text:'We coordinate design, purchasing, manufacturing and logistics with Canadian construction.',evidenceRefs:['H:company'],planningRates:[]},r2:{text:rejectSecond?'We replace your general contractor for every project.':'Your local general contractor manages site execution and trades under the agreed scope.',evidenceRefs:['H:roles'],planningRates:[]}},selectedModelIds:[],nextQuestion:null,nextAction:'none'};
-    else output={segments:[{index:0,supported:true,issues:[],confirmationSubject:'local construction responsibilities for your project',policyClaims:[]},{index:1,supported:!rejectSecond,issues:rejectSecond?['unsupported_claim']:[],confirmationSubject:'local construction responsibilities for your project',policyClaims:[]}],followUpSupported:true,complete:!rejectSecond};
+    }else if(call===2)output={answers:{r1:{text:'We coordinate design, purchasing, manufacturing and logistics with Canadian construction.',evidenceRefs:['H:company'],},r2:{text:rejectSecond?'We replace your general contractor for every project.':'Your local general contractor manages site execution and trades under the agreed scope.',evidenceRefs:['H:roles'],}},selectedModelIds:[],nextQuestion:null,nextAction:'none'};
+    else output={segments:[{index:0,supported:true,issues:[]},{index:1,supported:!rejectSecond,issues:rejectSecond?['unsupported_claim']:[]}],followUpSupported:true,complete:!rejectSecond};
+    if(output&&typeof output==='object'&&'requests' in output)for(const r of (output as {requests:{policyIds?:string[];pricing?:string;topic:string;question:string}[]}).requests){r.policyIds??=[];r.pricing??='none';}
     return {content:[{type:'text',text:JSON.stringify(output)}],finishReason:{unified:'stop',raw:undefined},usage:{inputTokens:{total:0,noCache:0,cacheRead:undefined,cacheWrite:undefined},outputTokens:{total:0,text:0,reasoning:undefined}},warnings:[]};
   }};
 }
-test('broad answers retain supported content and make an unsupported request explicit for team confirmation',async()=>{
+test('broad answers retain supported content after rejecting an unsupported non-record assertion',async()=>{
   for(const reject of [false,true]){
     const ctx:InferenceContext={calls:0,model:fixtureModel(reject),contexts:[]};
     const result=await answerQuestion('What does House Delivery actually do?',initialState('F'),ctx);
-    assert.equal(result.mode,'generated');assert.equal(ctx.calls,3);assert.ok(ctx.retrieval?.sectionIds.includes('H:company'));
-    assert.equal(result.reply.answerSegments!.length,2);assert.deepEqual(ctx.coverage?.missing,[]);if(reject)assert.match(result.reply.answerSegments![1].text,/Our team needs to confirm local construction responsibilities/);assert.doesNotMatch(JSON.stringify(result.reply),/replace your general contractor/);
+    assert.equal(result.mode,reject?'reviewed_fallback':'generated');assert.equal(ctx.calls,3);assert.ok(ctx.retrieval?.sectionIds.includes('H:company'));
+    assert.equal(result.reply.answerSegments!.length,2);if(reject)assert.deepEqual(ctx.coverage?.missing,['r2']);assert.doesNotMatch(JSON.stringify(result.reply),/replace your general contractor/);
     assert.match(ctx.contexts![1],/scalable housing delivery platform/);assert.doesNotMatch(ctx.contexts!.join(' '),/source-ledger|drive\.google|CODEX_PROMPT/);
     if(reject)assert.ok(ctx.rejections?.includes('unsupported_claim'));
   }

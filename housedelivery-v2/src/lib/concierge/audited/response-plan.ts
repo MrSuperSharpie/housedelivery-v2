@@ -2,7 +2,7 @@ import type {Intent} from './intent';
 import {privateRequest,privateManufacturingLocation} from './commercial';
 import {knowledge} from './registry';
 
-export type RequestPart={id:string;topic:Intent['topic'];question:string};
+export type RequestPart=NonNullable<Intent['requests']>[number];
 export function parts(intent:Intent):RequestPart[]{return intent.requests??[]}
 export function topics(intent:Intent){return [...new Set(parts(intent).length?parts(intent).map(p=>p.topic):[intent.topic])]}
 // This boundary runs before inference. A conversational claim never enables a

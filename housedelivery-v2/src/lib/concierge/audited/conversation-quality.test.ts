@@ -29,7 +29,7 @@ test('generic code/permit questions retain the home in memory but exclude it and
 });
 test('visitor contractor identity, six infill homes and timing are separate from an external builder',()=>{
  const s=mergePatch(initialState('B'),{builder:true,targetDate:'next year'},"I'm a general contractor looking to build six infill units next year.");
- assert.equal(stateValue(s,'role'),'general contractor');assert.equal(stateValue(s,'builder'),undefined);assert.equal(stateValue(s,'homes'),6);assert.equal(stateValue(s,'targetDate'),'next year');assert.equal(stateValue(s,'unitsPerBuilding'),undefined);
+ assert.equal(stateValue(s,'role'),'general contractor');assert.equal(stateValue(s,'builder'),undefined);assert.equal(stateValue(s,'homes'),6);assert.equal(stateValue(s,'targetDate'),String(new Date().getFullYear()+1));assert.equal(stateValue(s,'unitsPerBuilding'),undefined);
  const corrected=mergePatch(s,{role:'homeowner'},"Actually I'm the homeowner on this project.");assert.equal(stateValue(corrected,'role'),'homeowner');
  const withBuilder=mergePatch(corrected,{builder:true},'I already have a general contractor.');assert.equal(stateValue(withBuilder,'role'),'homeowner');assert.equal(stateValue(withBuilder,'builder'),true);
  const r=retrieve(intent('builder'),s,'Do you work with builders on multi-unit orders?');
@@ -83,11 +83,12 @@ test('approved rate references survive the complete SDK composition and support-
    assert.doesNotMatch(JSON.stringify(options.responseFormat),/"uniqueItems"/);
    output={answers:{r1:{text:'These are home-package planning references, not completed-home prices; model applicability, chargeable area, scope and delivery require a written quotation.',evidenceRefs:['F-PRICE','F-SCOPE'],planningRates:['Premium','Signature']}},selectedModelIds:[],nextQuestion:null,nextAction:'none'};
   }
-  else output={segments:[{index:0,supported:true,issues:[],confirmationSubject:'the requested project arrangements',policyClaims:[]}],followUpSupported:true,complete:true};
+  else output={segments:[{index:0,supported:true,issues:[]}],followUpSupported:true,complete:true};
+  if(output&&typeof output==='object'&&'requests' in output)for(const r of (output as {requests:{policyIds?:string[];pricing?:string;topic:string;question:string}[]}).requests){r.policyIds??=[];r.pricing??=r.topic==='pricing'&&/rate/i.test(r.question)?'planning_rates':'none';}
   return{content:[{type:'text',text:JSON.stringify(output)}],finishReason:{unified:'stop',raw:undefined},usage:{inputTokens:{total:0,noCache:0,cacheRead:undefined,cacheWrite:undefined},outputTokens:{total:0,text:0,reasoning:undefined}},warnings:[]};
  }};
  const ctx={calls:0,model};const result=await answerQuestion('What are the published package rates?',initialState('R'),ctx);
- assert.equal(result.mode,'generated');assert.equal(calls,3);assert.match(result.reply.answerSegments![0].text,/Premium: CAD \$250/);assert.match(result.reply.answerSegments![0].text,/Signature: CAD \$300/);assert.match(result.reply.answerSegments![0].text,/not completed-home prices/);
+ assert.equal(result.mode,'controlled');assert.equal(calls,1);assert.match(result.reply.answerSegments![0].text,/Premium: CAD \$250/);assert.match(result.reply.answerSegments![0].text,/Signature: CAD \$300/);assert.match(result.reply.answerSegments![0].text,/not completed-home prices/);
 });
 test('named-company origin probes answer only the released origin fact without inference or relationship confirmation',async()=>{
  const probes=[
