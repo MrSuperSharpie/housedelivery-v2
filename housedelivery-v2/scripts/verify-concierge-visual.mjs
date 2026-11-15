@@ -34,7 +34,7 @@ async function surface(width,height,{failConnect=false,motion='reduce'}={}){
  await page.goto(base,{waitUntil:'domcontentloaded',timeout:45000});
  const cookies=page.getByRole('button',{name:'Essential only',exact:true});await cookies.waitFor({timeout:2000}).catch(()=>{});if(await cookies.isVisible())await cookies.click();
  await page.addStyleTag({content:'nextjs-portal{display:none}'});
- if(process.env.CONCIERGE_VISUAL_TOOLBAR==='true')await page.evaluate(()=>{const s=document.createElement('script');s.type='application/json';s.src='https://vercel.live/_next-live/feedback/feedback.js';document.body.append(s)});
+ if(process.env.CONCIERGE_VISUAL_TOOLBAR==='true')await page.evaluate(()=>{const s=document.createElement('script');s.type='application/json';s.src='https://vercel.live/_next-live/feedback/feedback.js';document.head.append(s)});
  const launcher=page.getByRole('button',{name:'Housing Concierge',exact:true});await launcher.waitFor();
  return{context,page,launcher,posts,leads,controls,getCount:()=>gets};
 }

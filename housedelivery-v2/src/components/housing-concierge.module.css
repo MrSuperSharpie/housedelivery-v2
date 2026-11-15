@@ -121,7 +121,7 @@
 }
 /* Vercel's own authenticated review control remains enabled. Reserve its edge,
    rather than suppressing its iframe or changing a project/Production setting. */
-:global(body:has(script[src*="vercel.live/_next-live/feedback/feedback.js"])) .dialog { --concierge-inset:72px; --concierge-mobile-inset:56px; }
+:global(html:has(script[src*="vercel.live/_next-live/feedback/feedback.js"])) .dialog { --concierge-inset:72px; --concierge-mobile-inset:56px; }
 @media(max-width:1023px) {
   .launcher { top:max(15px,env(safe-area-inset-top,0px)); right:80px; width:44px; min-height:44px; padding:0; border-radius:15px; }
   .launcherIcon { width:30px; height:30px; border:0; background:transparent; }
