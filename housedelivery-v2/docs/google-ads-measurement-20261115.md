@@ -2,9 +2,9 @@
 
 ## Protected production baseline
 
-Project: `housedelivery-v2` (`prj_sAbWmbKd31KAkSvkugVp2udEPK49`), team `edavis-animalmarkets-projects`. Both public domain aliases resolved to Ready Production deployment `dpl_H2UeS9ffcGSjw9a43Kq2h3qszwM7`, whose Git metadata identifies `ee7c8e1c8e0f6ee0952a7d2db0179d478ade84a4` in `MrSuperSharpie/housedelivery-v2`.
+Project: `housedelivery-v2` (`prj_sAbWmbKd31KAkSvkugVp2udEPK49`), team `edavis-animalmarkets-projects`. The final verified live Production deployment is `dpl_667FSAFwns4ochXCfTZ2GSv2dWUe`, URL `housedelivery-v2-59w3yxa9h-edavis-animalmarkets-projects.vercel.app`, whose Git metadata identifies `a3be2d689d5b223cf113158cd87ac7400ae0f721` in `MrSuperSharpie/housedelivery-v2`.
 
-`feature/google-ads-measurement-20261115` was created from that exact commit before editing. The separate inquiry-simplification branch/commit `a3be2d6` is preserved and was not merged into this work. The unrelated dirty Desktop checkout, main, Production deployments, domain aliases and Production settings are unchanged.
+`feature/google-ads-measurement-20261115` originally started from `ee7c8e1c8e0f6ee0952a7d2db0179d478ade84a4` while that was live. Production advanced to the approved inquiry-simplification commit during this work. The exact newly verified commit was then included in the existing Ads feature branch, preserving the new five-field inquiry, optional details and all approved functionality. This was a feature-branch integration only. The unrelated dirty Desktop checkout, main and existing branches/backups were preserved. This task made no Production deployment, promotion, domain/alias or Production-setting change.
 
 ## Existing tagging and inquiry path
 
@@ -46,7 +46,7 @@ No Google Ads/GA4 account settings were changed. In Ads, confirm these actions u
 
 ## Verification
 
-- All 443 unit/integration tests pass, including the prior Concierge/security suite and four new tag tests. Optimized build, TypeScript, changed-file ESLint and whitespace checks pass.
+- All 448 unit/integration tests pass, including the prior Concierge/security suite and four new tag tests. Optimized build, TypeScript, changed-file ESLint and whitespace checks pass.
 - Nine unique browser cases pass: both ordinary Preview landing-page guards; real Google resources and destination initialization; both accepted inquiry journeys (desktop Custom Homes, mobile Laneway); Essential only, GPC and DNT; direct thank-you visit.
 - Both campaign journeys produce one GA4 accepted lead with the correct audience and preserve GA4 routing. Failed submissions, page/property views and repeated receipt notifications produce no extra leads; reload/return navigation do not duplicate them. Test form/query canaries are absent from custom event payloads.
 - Each campaign emits one direct Ads event with its actual supplied destination after successful acceptance. Unit tests also verify fail-closed handling of malformed destinations. Google Ads account receipt/attribution is not claimed: QA blocks measurement beacons and does not send fabricated conversions into the account.
