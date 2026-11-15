@@ -6,6 +6,7 @@ import {stateValue,conversationContext,projectSummary,visitorNumbers,type State,
 import {extractIntent,type Intent} from './intent';
 import {handbookRelease} from './handbook';
 import {policyEvidenceValid,type PolicyClaim} from './policy-evidence';
+import {auditCompanyPolicies,policyAuditSupported} from './policy-audit';
 import {publicQuestion,confidentialityNotice,facilityLocationNotice,certificationReviewGuidance,ordinarySynthesis,planningReferences,parts,topics,type RequestPart} from './response-plan';
 import {type ConciergeReply,type Fact} from '../contracts';
 export type Action='none'|'browse_designs'|'studio'|'lookbook'|'property_review'|'consultation'|'summary';
@@ -80,6 +81,21 @@ async function grounded(answer:NaturalAnswer,evidence:Evidence[],state:State,ctx
     const rejection=naturalRejection({...answer,answerSegments:[candidate],nextQuestion:null},evidence,evidence.filter(e=>modelIndex.has(e.id)).map(e=>e.id),stateValue(state,'declinedContact')===true,state);
     if(rejection){ctx.rejections??=[];ctx.rejections.push(rejection);continue;}
     accepted.push(candidate);
+  }
+  const auditTargets=accepted.flatMap((s,index)=>{const review=ctx.policyReviews?.find(r=>r.index===answer.answerSegments.findIndex(a=>a.requestId===s.requestId));return review?.policyClaims&&!review.revised?[{index,text:s.text}]:[];});
+  if(auditTargets.length){
+    const refs=new Set(accepted.flatMap(s=>s.evidenceRefs));refs.add('CHAT-LIMITS');
+    const auditEvidence=evidence.filter(e=>refs.has(e.id));
+    const audited=await auditCompanyPolicies(auditTargets,auditEvidence,question,ctx);
+    for(const verdict of audited){
+      if(policyAuditSupported(verdict,auditEvidence))continue;
+      ctx.rejections??=[];ctx.rejections.push('company_policy_not_entailed');
+      const subject=verdict.confirmationSubject.trim().replace(/[.!?]+$/,'');
+      const candidate={...accepted[verdict.index],text:'Our team needs to confirm '+subject+'.',evidenceRefs:['CHAT-LIMITS']};
+      if(!subject||/[.!?;:\n]/.test(subject)||naturalRejection({...answer,answerSegments:[candidate],nextQuestion:null},evidence,evidence.filter(e=>modelIndex.has(e.id)).map(e=>e.id),stateValue(state,'declinedContact')===true,state))throw Error('Invalid policy-confirmation subject');
+      accepted[verdict.index]=candidate;
+      const originalIndex=answer.answerSegments.findIndex(s=>s.requestId===candidate.requestId);const review=ctx.policyReviews?.find(r=>r.index===originalIndex);if(review)review.revised=true;
+    }
   }
   if(!accepted.length)return null;
   const confirmedUnknowns=ctx.policyReviews?.some(r=>r.revised)&&requests.length>0&&requests.every(r=>accepted.some(s=>s.requestId===r.id));

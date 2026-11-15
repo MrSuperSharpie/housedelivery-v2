@@ -230,3 +230,25 @@ and a neutral confirmation subject. For unsupported/missing policy information,
 the server renders only that specific uncertainty. Protected/factual-conflict
 issue codes still reject. Completeness is restored only when every planned
 request is retained and an explicit confirmation statement resolves the unknown.
+
+
+## Narrow entailment safeguard and finite acceptance gate
+
+The prior review falsely accepted a real but merely related passage as support
+for an unrecorded disclosure practice. A separate, policy-only check now examines
+complete accepted policy paragraphs: could the cited facts remain true while the
+asserted company rule was false? A concrete counterexample or absent support
+requires explicit team confirmation, retaining supported answer parts. Proof
+passages still undergo server validation. This is not a phrase list or a stored
+answer to the factory question. It adds at most one focused model call only when
+the existing review identifies company-policy claims. Same model, approved
+evidence, authentication and privacy architecture; no new retrieval or account.
+Authenticated evaluation traces include the policy decision and proof so a
+false-positive can be diagnosed rather than inferred from an API status.
+
+After this commit, acceptance is one factory question and five ordinary
+conversations, with one follow-up each (11 turns total), through one Preview.
+Questions cover home selection, inclusions, pricing/delivery, customization and
+a six-unit contractor project. No acceptance retries, patches or extra research
+follow a material failure. Quality and remembered requirements, not completion
+counters, determine acceptance.

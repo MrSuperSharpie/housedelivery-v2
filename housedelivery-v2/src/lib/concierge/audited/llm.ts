@@ -1,6 +1,7 @@
 import Ajv from 'ajv/dist/2020';
 import {generateText,jsonSchema,Output,type LanguageModel} from 'ai';
-export type InferenceContext={signal?:AbortSignal;calls:number;completed?:number;retrieval?:{releaseId:string;sectionIds:string[];modelIds:string[];evidenceIds:string[];requestTopics?:string[];modelContext?:string};coverage?:{requested:string[];retained:string[];missing:string[]};fallbackReason?:string;policyReviews?:{index:number;originalSupported:boolean;policyClaims:number;evidenceBacked:boolean;revised:boolean}[];model?:LanguageModel;fault?:'timeout'|'invalid';timeoutInjected?:boolean;contexts?:string[];rejections?:string[];failures?:{stage:number;status:number|null;category:string}[];onValidatedOutput?:(value:unknown)=>void};
+import type {PolicyAudit} from './policy-audit';
+export type InferenceContext={signal?:AbortSignal;calls:number;completed?:number;retrieval?:{releaseId:string;sectionIds:string[];modelIds:string[];evidenceIds:string[];requestTopics?:string[];modelContext?:string};coverage?:{requested:string[];retained:string[];missing:string[]};fallbackReason?:string;policyAudits?:PolicyAudit[];policyReviews?:{index:number;originalSupported:boolean;policyClaims:number;evidenceBacked:boolean;revised:boolean}[];model?:LanguageModel;fault?:'timeout'|'invalid';timeoutInjected?:boolean;contexts?:string[];rejections?:string[];failures?:{stage:number;status:number|null;category:string}[];onValidatedOutput?:(value:unknown)=>void};
 const validator=new Ajv({strict:true,allowUnionTypes:true});
 export async function structured<T>(schema:Record<string,unknown>,system:string,prompt:object,ctx:InferenceContext,model?:LanguageModel):Promise<T>{
   try{
