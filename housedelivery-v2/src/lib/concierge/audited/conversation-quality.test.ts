@@ -83,7 +83,7 @@ test('approved rate references survive the complete SDK composition and support-
    assert.doesNotMatch(JSON.stringify(options.responseFormat),/"uniqueItems"/);
    output={answers:{r1:{text:'These are home-package planning references, not completed-home prices; model applicability, chargeable area, scope and delivery require a written quotation.',evidenceRefs:['F-PRICE','F-SCOPE'],planningRates:['Premium','Signature']}},selectedModelIds:[],nextQuestion:null,nextAction:'none'};
   }
-  else output={segments:[{index:0,supported:true,issues:[],replacement:null,replacementSupported:false,policyClaims:[]}],followUpSupported:true,complete:true};
+  else output={segments:[{index:0,supported:true,issues:[],replacement:null,replacementSupported:false,confirmationSubject:'the requested project arrangements',policyClaims:[]}],followUpSupported:true,complete:true};
   return{content:[{type:'text',text:JSON.stringify(output)}],finishReason:{unified:'stop',raw:undefined},usage:{inputTokens:{total:0,noCache:0,cacheRead:undefined,cacheWrite:undefined},outputTokens:{total:0,text:0,reasoning:undefined}},warnings:[]};
  }};
  const ctx={calls:0,model};const result=await answerQuestion('What are the published package rates?',initialState('R'),ctx);

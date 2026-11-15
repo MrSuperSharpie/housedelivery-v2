@@ -211,3 +211,12 @@ Bounded verification: focused evidence/review and security regression tests,
 TypeScript/changed-file lint, the Preview build, and exactly the original question
 plus two paraphrases through the deployed website. Actual results remain local
 review artifacts. Production is not modified.
+
+
+The first policy-gate Preview check withheld a documentation policy whose proof
+failed server verification. Three model calls completed; there was no service
+error. The initial fallback then omitted that part. A focused follow-up lets the
+same review supply a neutral confirmation subject for each request. If policy
+proof fails, the server renders only a specific team-confirmation statement for
+that subject, retaining supported segments. It adds no inference or assertions
+about the answer, and no question-specific detection or replacement text.
