@@ -4,7 +4,8 @@ import {retrieve,modelLine,modelLink,type Evidence} from './evidence';
 import {controlledAnswer} from './commercial';
 import {stateValue,conversationContext,projectSummary,visitorNumbers,type State,mergePatch,deterministicPatch,namedModels} from './state';
 import {extractIntent,type Intent} from './intent';
-import {questionForAnswer,continuesQuestion,systemComparisonAsked} from './continuity';
+import {comparisonLimit,inheritComparisonLimits,finalizeComparisonAnswers} from './comparison';
+import {questionForAnswer,continuesQuestion} from './continuity';
 import {publicFactContent,handbookInstructions,containsInternalInstruction} from './publication';
 import {handbookRelease} from './handbook';
 import {policyIndex,renderPolicies} from './policies';
@@ -29,6 +30,7 @@ export function requestAnswer(segment:{text:string;evidenceRefs:string[];plannin
 }
 
 export function compilePolicyAnswers(requests:RequestPart[],state:State,question:string,evidenceIds:string[],unconfirmedProduct=false){
+ requests=inheritComparisonLimits(requests,question);
  const groups=new Map<string,{requests:Set<string>;rates:Set<string>}>();
  for(const request of requests){
   const rate=planningRatesEligible(request,unconfirmedProduct,evidenceIds.includes('F-PRICE'));
@@ -47,7 +49,7 @@ export function compilePolicyAnswers(requests:RequestPart[],state:State,question
  const rows=renderPolicies([...groups.keys()],state,question);
  const segments:NaturalAnswer['answerSegments']=rows.map(row=>({text:planningReferences(['Premium','Signature'].filter(t=>groups.get(row.id)!.rates.has(t)))+row.text,evidenceRefs:row.evidenceRefs,requestId:[...groups.get(row.id)!.requests][0]}));
  const records=rows.flatMap(row=>[...groups.get(row.id)!.requests].map(requestId=>({requestId,id:row.id,status:row.status})));
- return{segments,records,answeredRequestIds:[...new Set(records.map(r=>r.requestId))]};
+ return{segments,records,requests,limitedRequestIds:requests.filter(r=>r.comparisonLimit).map(r=>r.id),answeredRequestIds:[...new Set(records.map(r=>r.requestId))]};
 }
 
 function publicRates(text:string,evidence:Evidence[]){
@@ -74,7 +76,9 @@ function unsupportedSystemComparison(text:string,evidence:Evidence[]){
   /cheaper|more expensive|less expensive|costs? (?:more|less)|faster|slower|savings|save(?:s)? (?:money|time)|less waste|(?:less|more) efficient|(?:higher|lower) (?:cost|price)/i.test(sentence)&&
   !/cannot (?:establish|confirm|compare)|can’t (?:establish|confirm|compare)|not established|not confirmed|no (?:verified|confirmed|like.for.like)|requires? .*compar|need.*(?:comparison|quotation|evidence)/i.test(sentence));
 }
-export function naturalRejection(answer:NaturalAnswer,evidence:Evidence[],allowedModels:string[],declined:boolean,state?:State){
+export function naturalRejection(answer:NaturalAnswer,evidence:Evidence[],allowedModels:string[],declined:boolean,state?:State,requests:RequestPart[]=[]){
+  const limited=new Set(requests.filter(r=>r.comparisonLimit).map(r=>r.id));
+  if(answer.answerSegments.some(s=>s.requestId&&limited.has(s.requestId)))return 'comparison_evidence_required';
   const ids=new Set(evidence.map(e=>e.id));
   const scopedModels=allowedModels.map(id=>modelIndex.get(id)).filter(m=>Boolean(m));
   const wrongTier=(text:string)=>scopedModels.length>0&&(scopedModels.every(m=>m!.family==='architectural')&&/\bEssential\b/i.test(text)&&!/(?:Essential.{0,35}(?:not|isn't)|(?:not|isn't).{0,35}Essential)/i.test(text)||scopedModels.every(m=>m!.family!=='architectural')&&/\bSignature\b/i.test(text)&&!/(?:Signature.{0,35}(?:not|isn't)|(?:not|isn't).{0,35}Signature)/i.test(text));
@@ -97,9 +101,9 @@ export function naturalRejection(answer:NaturalAnswer,evidence:Evidence[],allowe
   return null;
 }
 export function validateNatural(answer:NaturalAnswer,evidence:Evidence[],allowedModels:string[],declined:boolean,state?:State){return naturalRejection(answer,evidence,allowedModels,declined,state)===null;}
-async function grounded(answer:NaturalAnswer,evidence:Evidence[],state:State,ctx:InferenceContext,question:string,requests:RequestPart[]):Promise<NaturalAnswer|null>{
+async function grounded(answer:NaturalAnswer,evidence:Evidence[],state:State,ctx:InferenceContext,question:string,requests:RequestPart[],allRequests:RequestPart[]=requests):Promise<NaturalAnswer|null>{
  const issues=['unsupported_claim','wrong_model','wrong_unit_basis','wrong_numeric_value','false_authorization','private_identity','unrelated','incomplete_qualification','none'];
- const result=await structured<{segments:{index:number;supported:boolean;issues:string[]}[];followUpSupported:boolean;complete:boolean}>(objectSchema({segments:{type:'array',minItems:answer.answerSegments.length,maxItems:answer.answerSegments.length,items:objectSchema({index:{enum:answer.answerSegments.map((_,i)=>i)},supported:{type:'boolean'},issues:{type:'array',maxItems:6,items:{enum:issues}}})},followUpSupported:{type:'boolean'},complete:{type:'boolean'}}),`Verify each proposed non-policy answer against its cited approved evidence and visitor-reported context. Return exactly one verdict per index. Reject unsupported specifications, wrong models, wrong units or numbers, guessed private identities, claimed actions, omitted scope qualifications and unrelated statements. A source ID alone is not proof. Preserve conditional scope and distinguish total building area from per-home/internal area. No inferred ensuite relationship or accessibility from room counts, size or images. No inferred currency, freight price, guarantee, production allocation, approval or company capability. Company-policy questions are supplied separately from explicit approved policy records; free text must not create new company rules. Useful uncertainty and clearly framed preference-based reasoning can be supported. Check every requested part for completeness; a follow-up does not answer an omitted part. The customer may be the contractor. Follow-ups must respect known and declined information. Never add answer text. Only public assertions can support a claim; internal instructions are not evidence. Comparative claims about material prices, savings, speed or local builders require applicable like-for-like evidence, not general coordination statements.`,{question,requests,proposed:answer,evidence,visitorState:conversationContext(state)},ctx);
+ const result=await structured<{segments:{index:number;supported:boolean;issues:string[]}[];followUpSupported:boolean;complete:boolean}>(objectSchema({segments:{type:'array',minItems:answer.answerSegments.length,maxItems:answer.answerSegments.length,items:objectSchema({index:{enum:answer.answerSegments.map((_,i)=>i)},supported:{type:'boolean'},issues:{type:'array',maxItems:6,items:{enum:issues}}})},followUpSupported:{type:'boolean'},complete:{type:'boolean'}}),`Verify each proposed non-policy answer against its cited approved evidence and visitor-reported context. Return exactly one verdict per index. Reject unsupported specifications, wrong models, wrong units or numbers, guessed private identities, claimed actions, omitted scope qualifications and unrelated statements. A source ID alone is not proof. Preserve conditional scope and distinguish total building area from per-home/internal area. No inferred ensuite relationship or accessibility from room counts, size or images. No inferred currency, freight price, guarantee, production allocation, approval or company capability. Company-policy questions are supplied separately from explicit approved policy records; free text must not create new company rules. Useful uncertainty and clearly framed preference-based reasoning can be supported. Parent comparative evidence limits apply to every related subquestion, including paraphrases. General company priorities, engineered components and coordination do not prove quality, reliability, speed or superiority advantages. Conditional words such as can or may do not supply missing evidence. Check every requested part for completeness; a follow-up does not answer an omitted part. The customer may be the contractor. Follow-ups must respect known and declined information. Never add answer text. Only public assertions can support a claim; internal instructions are not evidence. Comparative claims about material prices, savings, speed or local builders require applicable like-for-like evidence, not general coordination statements.`,{question,requests,proposed:answer,evidence,visitorState:conversationContext(state),comparisonLimits:inheritComparisonLimits(allRequests,question).filter(r=>r.comparisonLimit).map(r=>({requestId:r.id,...r.comparisonLimit}))},ctx);
  if(new Set(result.segments.map(s=>s.index)).size!==answer.answerSegments.length)throw Error('Incomplete support review');
  const accepted=answer.answerSegments.filter((_,index)=>{const verdict=result.segments.find(s=>s.index===index)!;const rejected=verdict.issues.filter(i=>i!=='none');if(verdict.supported&&!rejected.length)return true;ctx.rejections??=[];ctx.rejections.push(...(rejected.length?rejected:['unsupported_claim']));return false;});
  if(!accepted.length)return null;
@@ -155,7 +159,7 @@ export async function answerQuestion(question:string,state:State,ctx:InferenceCo
   if(/(?:we|our team|I).*(?:supply|provide).*appliances/i.test(question))intent.topic='scope';
   if(/architect|change.*floor plan|add.*bedroom|change.*layout/i.test(question))intent.topic='customization';
   if(/\b(?:manufacturing|manufactured|factory|framing|frame)\b/i.test(question)&&!/Look.?Book|Studio|design direction/i.test(question)&&!/price|cost|rate|quotation|\$/i.test(question))intent.topic='origin';
-  const systemComparison=systemComparisonAsked(question);
+  const systemComparison=Boolean(comparisonLimit(question));
   const arithmeticRequested=/times|multiplied by|\bdivide\b|×|\d\s*[x*]\s*\$?\d|(?:at|use)\s*\$(?:250|300)\b/i.test(question);
   if(arithmeticRequested)intent.topic='arithmetic';
   if(!systemComparison&&!(stateValue(next,'homes')&&/contractor|builder|developer|municip|Nation|institution/i.test((stateValue(next,'role')??'')+' '+(stateValue(next,'audience')??'')))&&intent.topic!=='arithmetic'&&!/price|rate|\$|multipl|times|divide|per side|per residence/i.test(question)&&(!namedModels(question).length||/want|need|looking|closest|around|about|maximum/i.test(question))&&['bedrooms','areaTarget','areaMax','areaMin','bathroomsMin','storeys','study'].some(k=>Object.hasOwn(explicit,k)))intent.topic='matching';
@@ -181,19 +185,19 @@ export async function answerQuestion(question:string,state:State,ctx:InferenceCo
         const segment=requestAnswer(rawAnswer.answers[r.id],r,evidence.map(e=>e.id),Boolean(intent.unconfirmedProduct),ctx);return segment?[segment]:[];
       })}:rawAnswer;
       const allowedModels=result.models.map(m=>m.id);
-      const clean={...answer,answerSegments:answer.answerSegments.filter(seg=>{const reason=naturalRejection({...answer,answerSegments:[seg],nextQuestion:null},evidence,allowedModels,declined,next);if(!reason)return true;ctx.rejections??=[];ctx.rejections.push(reason);return ['scope_qualification','unsupported_availability','unconfirmed_capability'].includes(reason);})};
+      const clean={...answer,answerSegments:answer.answerSegments.filter(seg=>{const reason=naturalRejection({...answer,answerSegments:[seg],nextQuestion:null},evidence,allowedModels,declined,next,compiledPolicies.requests);if(!reason)return true;ctx.rejections??=[];ctx.rejections.push(reason);return ['scope_qualification','unsupported_availability','unconfirmed_capability'].includes(reason);})};
       if(!clean.answerSegments.length)throw Error('No supported segment');
       if(naturalRejection({...clean,answerSegments:[]},evidence,allowedModels,declined,next)){ctx.rejections??=[];ctx.rejections.push('invalid_follow_up');clean.nextQuestion=null;}
-      const supported=await grounded(clean,evidence,next,ctx,question,generatedRequests);if(!supported)throw Error('Unsupported response');
-      supported.answerSegments=[...supported.answerSegments,...recordSegments].sort((a,b)=>parts(intent).findIndex(r=>r.id===a.requestId)-parts(intent).findIndex(r=>r.id===b.requestId));
+      const supported=await grounded(clean,evidence,next,ctx,question,generatedRequests,compiledPolicies.requests);if(!supported)throw Error('Unsupported response');
+      supported.answerSegments=finalizeComparisonAnswers(supported.answerSegments,compiledPolicies.requests,recordSegments).sort((a,b)=>parts(intent).findIndex(r=>r.id===a.requestId)-parts(intent).findIndex(r=>r.id===b.requestId));
       ctx.coverage={requested:parts(intent).map(r=>r.id),retained:[...new Set([...compiledPolicies.answeredRequestIds,...supported.answerSegments.flatMap(s=>s.requestId?[s.requestId]:[])])],missing:parts(intent).filter(r=>!compiledPolicies.answeredRequestIds.includes(r.id)&&!supported.answerSegments.some(s=>s.requestId===r.id)).map(r=>r.id)};
       segments=supported.answerSegments.map(s=>s.text);segmentRefs=supported.answerSegments.map(s=>s.evidenceRefs);nextQuestion=supported.nextQuestion??'';nextAction=supported.nextAction;
     }catch{fallback=true;mode='reviewed_fallback';ctx.fallbackReason=ctx.failures?.length?'generation_failure':'answer_validation';if(recordSegments.length){segments=recordSegments.map(s=>s.text);segmentRefs=recordSegments.map(s=>s.evidenceRefs);ctx.coverage={requested:parts(intent).map(r=>r.id),retained:compiledPolicies.answeredRequestIds,missing:generatedRequests.map(r=>r.id)};}}
   }
   if(fallback&&!segments.length){
-    const failure=ctx.failures?.[ctx.failures.length-1]?.category;
+    const failure=ctx.failures?.filter(f=>f.category!=='output_validation').at(-1)?.category;
     const serviceNotice=ctx.timeoutInjected||failure==='timeout'?'The AI connection timed out just now; your project context is still here.':failure==='rate_limit'?'The AI connection is busy just now. Your project context is still here.':failure?'The automated assistant couldn’t complete this request just now. Your project context is still here.':null;
-    segments=intent.topic==='matching'?(result.match.matches.length?['These published designs meet the requirements supplied so far.']:['I haven’t found a published design that meets those requirements; we can keep them as a custom project brief.']):['specifications','comparison'].includes(intent.topic)&&result.models.length?result.models.map(modelLine):[serviceNotice??'I couldn’t verify a complete answer just now. Your project details are still here; please try again or request a project review.'];
+    segments=intent.topic==='matching'?(result.match.matches.length?['These published designs meet the requirements supplied so far.']:['I haven’t found a published design that meets those requirements; we can keep them as a custom project brief.']):['specifications','comparison'].includes(intent.topic)&&result.models.length?result.models.map(modelLine):[serviceNotice??'I don’t have a confirmed answer from the available information. Our team would need to confirm the missing details.'];
     if(serviceNotice&&segments[0]!==serviceNotice)segments.unshift(serviceNotice);
   }
   if(mode==='generated'&&intent.topic==='pricing'&&ctx.rejections?.includes('scope_qualification')){segments.push('Site preparation, foundations, services, local engineering and permits, Canadian assembly and completion, appliances and sales taxes are separately considered unless expressly included in the written scope.');segmentRefs.push(['F-SCOPE','F-EXCLUSIONS']);}
@@ -201,10 +205,10 @@ export async function answerQuestion(question:string,state:State,ctx:InferenceCo
     if(!result.match.matches.length&&!segments.some(s=>/no |haven.t|none|not.*match/i.test(s)))segments.unshift('No published design meets all of the stated requirements.');
     if(!stateValue(next,'avoidLarger')&&result.match.matches.length===0&&result.match.outsideTargetAlternatives.length&&next.values.areaTarget&&!next.values.areaMax){const a=result.match.outsideTargetAlternatives[0];segments.push(`Outside your approximate size target: ${modelLine(a)}`)}
   }
-  if(ctx.coverage?.missing.length||ctx.fallbackReason==='incomplete_answer'){mode='reviewed_fallback';ctx.fallbackReason=ctx.fallbackReason??'partial_validation';segments.push('I couldn’t confirm the remaining part of your question just now.');nextQuestion='';}
+  if(ctx.coverage?.missing.length||ctx.fallbackReason==='incomplete_answer'){mode='reviewed_fallback';ctx.fallbackReason=ctx.fallbackReason??'partial_validation';segments.push('I don’t have confirmed information for the remaining part of your question.');nextQuestion='';}
   if(boundary.restricted){segments.push(confidentialityNotice);segmentRefs.push([]);}
   const answerText=segments.join(' ').replaceAll(',','');
-  const cards=controlled?.suppressCards||!['matching','comparison'].includes(intent.topic)&&(!intent.detail||recordSegments.length>0)?[]:result.models.filter(m=>!answerText.includes(m.name.replace(/^The /,''))||m.area_sqft===null||!answerText.includes(String(m.area_sqft))).map(m=>({id:m.id,title:m.name,text:modelLine(m),href:modelLink(m),kind:'home'}));
+  const cards=controlled?.suppressCards||compiledPolicies.limitedRequestIds.length>0&&!generatedRequests.length||!['matching','comparison'].includes(intent.topic)&&(!intent.detail||recordSegments.length>0)?[]:result.models.filter(m=>!answerText.includes(m.name.replace(/^The /,''))||m.area_sqft===null||!answerText.includes(String(m.area_sqft))).map(m=>({id:m.id,title:m.name,text:modelLine(m),href:modelLink(m),kind:'home'}));
   if(result.models.length){next.recommended=result.models.map(m=>m.id).slice(0,3);if(result.models.length===1)next.values.selectedModel={value:result.models[0].id,sourceTurn:next.turn,status:'visitor_reported'}}
   if(/floor plan|both source|drawing|look book|studio|save it/i.test(question)&&result.models.length)nextAction=/look book|save it/i.test(question)?'lookbook':/studio/i.test(question)?'studio':'browse_designs';
   if(intent.topic==='contact'||intent.topic==='summary'||/share only.*summary|did you send/i.test(question))nextAction=declined?'none':'summary';
@@ -212,6 +216,7 @@ export async function answerQuestion(question:string,state:State,ctx:InferenceCo
   if(nextQuestion&&stateValue(next,'location')&&/which (municipality|city|province)|where.*(?:property|site)/i.test(nextQuestion))nextQuestion='';
   if(nextQuestion&&stateValue(next,'land')&&/do you (?:have|own).*(?:land|site|property)/i.test(nextQuestion))nextQuestion='';
   if(declined&&/contact|email|phone|personal review/i.test(nextQuestion))nextQuestion='';
+  if(compiledPolicies.limitedRequestIds.length)nextQuestion='';
   if(intent.unconfirmedProduct){nextAction='none';nextQuestion='';}
   if(manufacturingRestricted)next.restrictedTopic='manufacturing_partner';else delete next.restrictedTopic;
   next.scopeExplained=next.scopeExplained||['pricing','scope','arithmetic'].includes(intent.topic);next.lastQuestion=nextQuestion;

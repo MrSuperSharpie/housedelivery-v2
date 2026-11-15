@@ -21,7 +21,7 @@ const plans:NonNullable<Intent['requests']>[]=[
  [{id:'r1',topic:'origin',question:exactQuestions[0],policyIds:['manufacturing_approach'],pricing:'none'}],
  [{id:'r1',topic:'scope',question:exactQuestions[1],policyIds:['package_scope'],pricing:'none'}],
  [{id:'r1',topic:'pricing',question:'How is freight priced?',policyIds:['freight_quotation'],pricing:'freight'},{id:'r2',topic:'pricing',question:'Rough home-package price per square foot?',policyIds:['pricing_scope'],pricing:'planning_rates'}],
- [{id:'r1',topic:'comparison',question:exactQuestions[3],policyIds:[],pricing:'none'}],
+ [{id:'r1',topic:'comparison',question:"Why shouldn't I just have a local framer stick-build this with lumber?",policyIds:[],pricing:'none'},{id:'r2',topic:'comparison',question:"Isn't steel way more expensive right now?",policyIds:[],pricing:'none'}],
  [{id:'r1',topic:'matching',question:exactQuestions[4],policyIds:[],pricing:'planning_rates'}],
  [{id:'r1',topic:'builder',question:'How does the builder work with House Delivery?',policyIds:['builder_collaboration'],pricing:'none'}]
 ];
@@ -46,6 +46,7 @@ test('the exact six-turn transcript retains every supported part, comparison and
   if(turn===0){assert.match(text,/Canadian.*assembly|Canadian.*completion/);assert.match(text,/component package.*volumetric modular home/);}
   if(turn===1){assert.match(text,/Cedarview.*cold-formed light steel frame/);assert.match(text,/not a final model-specific supply schedule/);assert.match(text,/foundations.*unless expressly included/);}
   if(turn===2){assert.match(text,/Freight.*written project quotation/);assert.match(text,/Premium: CAD \$250/);assert.match(text,/Signature: CAD \$300/);assert.match(text,/published for Salt Spring/);assert.equal(stateValue(state,'location'),undefined);assert.ok(!r.reply.facts.some(f=>f.href.includes('cedarview')));}
+  if(turn===3){assert.deepEqual(ctx.coverage?.requested,['r1','r2']);assert.deepEqual(ctx.coverage?.retained,['r1','r2']);assert.equal(r.reply.answerSegments!.length,1);}
   if(turn>=3){assert.match(text,/like-for-like.*comparison is not available/);assert.match(text,/same design, engineering, supply, freight and local construction scope/);assert.doesNotMatch(text,/CAD|\$|20% more|steel can be more expensive|local framer.*not provide/);assert.deepEqual(r.reply.modelCards,[]);}
   if(turn>=4)assert.match(text,/can’t confirm the 20% difference you asked about/);
   if(turn===5){assert.equal(state.activeQuestion,exactQuestions[4]);assert.match(text,/1,500/);assert.match(text,/reported site readiness and builder experience/);assert.match(projectSummary(state),/Site is ready/);assert.equal(stateValue(state,'role'),undefined);assert.equal(r.reply.question,'');}
