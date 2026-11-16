@@ -1,3 +1,4 @@
+import {landedScopeExplanation} from './technical-logistics';
 import type {Intent} from './intent';
 import {heatTransferSpeedOnly,thermalEnvelopeAsked} from './building-science';
 export type ComparisonMetric='cost'|'quality'|'reliability'|'speed'|'superiority';
@@ -16,6 +17,7 @@ export function publishedRateComparison(q:string){
  return !/\b(?:steel|timber|wood|lumber|concrete|masonry|prefab|site[ -]?built|framers?|builders?|competitor|turnkey)\b/i.test(q)&&/\bPremium\b/i.test(q)&&/\bSignature\b/i.test(q)&&/published|planning|reference/i.test(q)&&/rate|per (?:sq|square)/i.test(q);
 }
 export function comparisonLimit(q:string):ComparisonLimit|null{
+ if(landedScopeExplanation(q))return null;
  const comparison=/compar|differ|versus|\bvs\.?\b|\bthan\b|rather|instead|equally priced|same price|worth|more expensive|less expensive|cheaper|faster|slower|quicker|more reliable|more durable|last.*longer|better|superior|inferior|why.*(?:should|choose|use|buy|hire)/i.test(q);
  if(!comparison)return null;
  const requested=requestedMetrics(q).filter(m=>m!=='cost'||!publishedRateComparison(q));
@@ -29,7 +31,7 @@ export function relatedComparisonPart(part:Part,limit:ComparisonLimit){
  const q=part.question,explicit=/compar|versus|\bvs\b|\bthan\b|rather|instead|better|superior|advantage|why.*(?:should|choose|use|buy|hire)/i.test(q);
  // An independent mechanism question stays answerable even when the parent
  // also asks for an unsupported price or construction-performance comparison.
- if(thermalEnvelopeAsked(q)&&!comparisonLimit(q))return false;
+ if(thermalEnvelopeAsked(q)&&!comparisonLimit(q)||landedScopeExplanation(q))return false;
  const asked=requestedMetrics(q).some(m=>limit.missing.includes(m));
  // Preserve separately requested scope, documentation, freight inputs and
  // published numeric attributes; those are not unverified relative benefits.

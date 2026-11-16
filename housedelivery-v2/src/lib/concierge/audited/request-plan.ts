@@ -1,3 +1,4 @@
+import {technicalDocumentationAsked,manufacturingQualityAsked,structuralOptionsAsked,landedDeliveryAsked,plantVisitAsked} from './technical-logistics';
 import {continuesQuestion,questionForAnswer,refersToSelectedHome} from './continuity';
 import {financeRequested,guidanceContinuation,inheritFinanceGuidance} from './guidance';
 import {comparisonLimit,inheritComparisonLimits} from './comparison';
@@ -9,6 +10,7 @@ import {policyIndex} from './policies';
 export type RequestPricing='none'|'planning_rates'|'freight'|'project_quote';
 export function planningRatesEligible(request:NonNullable<Intent['requests']>[number],unconfirmedProduct=false,hasPriceEvidence=true){
  if(request.guidanceStage||request.comparisonLimit||comparisonLimit(request.question))return false;
+ if(landedDeliveryAsked(request.question)&&!/(?:published|planning|package)\s+(?:planning\s+)?(?:rates?|prices?)|per\s+(?:sq|square)|\/\s*(?:sq|sf)/i.test(request.question))return false;
  const freightOnly=/freight|shipping|delivery|deliver/i.test(request.question)&&!/(?:published|planning|package)\s+(?:planning\s+)?(?:rates?|prices?)|per\s+(?:sq|square)|\/\s*(?:sq|sf)/i.test(request.question);
  return !freightOnly&&request.topic==='pricing'&&request.pricing==='planning_rates'&&!unconfirmedProduct&&hasPriceEvidence;
 }
@@ -41,6 +43,10 @@ export function normalizeIntent(raw:Intent,question:string,state:State):Intent{
  // clauses or selects only one of their records. These records answer known
  // public parts; other reasoning stays on the existing generation path.
  const obligations:[string,boolean,Intent['topic'],string,RequestPricing][]=[
+  ['plant_visit',plantVisitAsked(question),'specifications','Can the customer visit or inspect a manufacturing plant?','none'],
+  ['engineering_documents',technicalDocumentationAsked(question)||manufacturingQualityAsked(question),'specifications','What engineering, technical or manufacturing-verification documentation can be reviewed?','none'],
+  ['structural_options',structuralOptionsAsked(question)&&!comparisonLimit(question),'specifications','Which structural systems can be considered, and what does the selected model specification establish?','none'],
+  ['landed_delivery_scope',landedDeliveryAsked(question),'pricing','What do the factory, landed and delivered kit scopes cover, and which import/delivery responsibilities need confirmation?','project_quote'],
   ['manufacturing_approach',/how[^?]{0,90}(?:built|constructed|manufactured)|construction method/i.test(question),'origin','How are House Delivery homes built?','none'],
   ['modular_comparison',/\bmodular\b/i.test(question)&&/differ|compar|versus|traditional|how/i.test(question),'origin','How is component construction different from traditional modular homes?','none'],
   ['system_comparison',Boolean(comparisonLimit(question)),'pricing',question,'project_quote'],
@@ -72,7 +78,10 @@ export function relevantPolicyIds(request:NonNullable<Intent['requests']>[number
    case 'thermal_envelope':return thermalEnvelopeAsked(q);
    case 'finish_tiers':return /compare|differ|versus|\bvs\b|between|tiers?|levels?|finish options/i.test(q)&&/Essential|Premium|Signature|tiers?|levels?/i.test(q);
    case 'pricing_scope':return rate;
-   case 'freight_quotation':return /freight|shipping|deliver|logistics|transport/i.test(q)&&(request.pricing==='freight'||/freight|shipping|deliver|logistics|transport/i.test(request.question));
+   case 'structural_options':return structuralOptionsAsked(q)&&!comparisonLimit(q);
+   case 'landed_delivery_scope':return landedDeliveryAsked(q);
+   case 'unrecorded_policy':return !technicalDocumentationAsked(q)&&!manufacturingQualityAsked(q)&&!structuralOptionsAsked(q)&&!landedDeliveryAsked(q);
+   case 'freight_quotation':return !landedDeliveryAsked(q)&&/freight|shipping|deliver|logistics|transport/i.test(q)&&(request.pricing==='freight'||/freight|shipping|deliver|logistics|transport/i.test(request.question));
    case 'package_scope':return /includ|contents|contain|consist|supplied materials|what.*(?:package|kit)|how.*(?:package|kit).*work|bare|framing shell/i.test(q)&&!rate;
    case 'local_work':return !rate&&/local work|arrang.*locally|source locally|foundation|site work|assembl|exclu|not included|responsibilit|who.*(?:build|construct)/i.test(q);
    case 'written_scope':return /record|responsibilit|written scope|who.*(?:handle|supply)|(?:my|our) (?:contractor|crew).*(?:handle|supply)|we.*(?:provide|supply)/i.test(q);
@@ -81,8 +90,8 @@ export function relevantPolicyIds(request:NonNullable<Intent['requests']>[number
    case 'project_review':return /next|start|begin|assess|review|what.*need|how.*proceed/i.test(q);
    case 'design_changes':return /adjust|chang|customiz|modif|reconfigur|keeping.*architectur/i.test(q);
    case 'studio_lookbook':return /Studio|Look.?Book|design directions?|save.*design/i.test(q);
-   case 'plant_visit':return /visit|inspect|tour|access/i.test(q)&&/plant|factor|manufactur|production facility/i.test(q);
-   case 'engineering_documents':return /engineering|technical|spec(?:ification)?|document|drawing/i.test(q)&&/sheet|document|drawing|release|review|access|get|availab/i.test(q);
+   case 'plant_visit':return plantVisitAsked(q);
+   case 'engineering_documents':return technicalDocumentationAsked(q)||manufacturingQualityAsked(q);
    case 'factory_confidentiality':return /factor|manufactur|supplier|partner/i.test(q)&&/identit|name|who|records?|confidential|private/i.test(q);
    case 'technical_review':return /code|compliance|permit|certificat|rating|standards?|engineering requirements/i.test(q);
    case 'cmhc_reference':return /CMHC|pre.reviewed|catalogue|catalog/i.test(q);
