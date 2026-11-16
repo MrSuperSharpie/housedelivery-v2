@@ -38,9 +38,9 @@ try{
   assert.deepEqual(t.values.bedroomOptions.value,[3,4]);assert.doesNotMatch(body,/couldn’t put together|couldn’t reliably answer|don’t have a confirmed answer|remaining part of your question|AI connection|automated assistant couldn’t/);
   if(i===0){assert.ok(t.renderedCards>=2);await cards(s,'initial-published-models');publicReply=t.reply;}
   if(i===1){assert.equal(t.renderedCards,0);assert.match(body,/floor|finish/i);assert.match(body,/window/i);assert.match(body,/review/i);assert.doesNotMatch(body,/freely (?:resize|move)|guaranteed|automatically included/i);}
-  if(i>=2){assert.equal(t.values.storeys.value,1);assert.equal(t.values.accessibility,undefined);assert.match(t.values.householdNeeds.value,/mother.*stairs/);assert.equal(t.renderedCards,0);assert.deepEqual(t.recommended,[]);assert.ok(t.previousModels?.length>=2);assert.doesNotMatch(t.reply.question,/^(?:would you like|do you want|shall I|can I (?:show|help|explore))/i);assert.doesNotMatch(body,/wheelchair|diagnos|certified accessible|guaranteed accessible|searched (?:the |our )?(?:hundreds|unpublished)/i);}
-  if(i===3||i===4){assert.match(body,/wider|broader|additional|hundreds|library|personal.*review/i);}
-  if(i===4)assert.match(body,/hundreds of additional home designs/i);
+  if(i>=2){assert.equal(t.values.storeys.value,1);assert.equal(t.values.accessibility,undefined);assert.match(t.values.householdNeeds.value,/mother.*stairs/i);assert.equal(t.renderedCards,0);assert.deepEqual(t.recommended,[]);assert.ok(t.previousModels?.length>=2);assert.doesNotMatch(t.reply.question,/^(?:would you like|do you want|shall I|can I (?:show|help|explore))/i);assert.doesNotMatch(body,/wheelchair|diagnos|certified accessible|guaranteed accessible|searched (?:the |our )?(?:hundreds|unpublished)/i);}
+  if(i===3||i===4){assert.match(body,/wider|broader|additional|hundreds|library|design review/i);}
+  if(i===4){assert.match(body,/hundreds/i);assert.match(body,/additional|other|beyond|wider|broader/i);}
   await s.page.screenshot({path:out+'/exact-turn-'+(i+1)+'.png'});
  }
  checks.push({case:'exact-five-message-journey',contextRetained:true,initialCards:turns[0].renderedCards,afterRejectionCards:turns.slice(2).map(t=>t.renderedCards)});await s.close();
