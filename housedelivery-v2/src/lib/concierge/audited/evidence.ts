@@ -1,19 +1,21 @@
 import {knowledge,modelIndex,factIndex,safeLink,type Model} from './registry';
 import {shortlist,compactInventoryRequested} from './matching';
-import {constraints,stateValue,namedModels,type State} from './state';
+import {constraints,stateValue,namedModels,hasMatchPreferences,type State} from './state';
 import type {Intent} from './intent';
 import {selectHandbook} from './handbook';
 import {publicFactContent,publicModelContent} from './publication';
 import {topics,cmhcRelevant,chatLimits} from './response-plan';
 export type Evidence={id:string;data:unknown;sourceIds:string[]};
-const topicFacts:Record<Intent['topic'],string[]>={company:['F-COMPANY','F-MARKETS','F-START'],matching:['F-CUSTOMIZATION'],specifications:[],comparison:[],customization:['F-CUSTOMIZATION','F-STUDIO','F-INCLUSIONS','F-ESSENTIAL'],pricing:['F-PRICE','F-SCOPE','F-EXCLUSIONS'],arithmetic:['F-PRICE','F-SCOPE','F-EXCLUSIONS'],process:['F-PROCESS','F-PARALLEL','F-TIMING'],scope:['F-SCOPE','F-EXCLUSIONS','F-APPLIANCES'],property:['F-PROPERTY','F-START'],community:['F-MARKETS','F-PORTFOLIO','F-PROCESS'],builder:['F-BUILDER','F-COMPANY','F-SCOPE','F-ORIGIN','F-PROCESS'],origin:['F-ORIGIN','F-SYSTEMS'],warranty:['F-WARRANTY'],terms:['F-CMHC','F-CMHC-INDEPENDENT','F-TECHNICAL'],contact:['F-CONTACT','F-PRIVACY','F-START'],summary:['F-CONTACT','F-PRIVACY'],clarify:['F-START'],unrelated:['F-START']};
+const topicFacts:Record<Intent['topic'],string[]>={company:['F-COMPANY','F-MARKETS','F-START'],matching:['F-CUSTOMIZATION','F-PROPERTY'],specifications:[],comparison:[],customization:['F-CUSTOMIZATION','F-STUDIO','F-INCLUSIONS','F-ESSENTIAL'],pricing:['F-PRICE','F-SCOPE','F-EXCLUSIONS'],arithmetic:['F-PRICE','F-SCOPE','F-EXCLUSIONS'],process:['F-PROCESS','F-PARALLEL','F-TIMING'],scope:['F-SCOPE','F-EXCLUSIONS','F-APPLIANCES'],property:['F-PROPERTY','F-START'],community:['F-MARKETS','F-PORTFOLIO','F-PROCESS'],builder:['F-BUILDER','F-COMPANY','F-SCOPE','F-ORIGIN','F-PROCESS'],origin:['F-ORIGIN','F-SYSTEMS'],warranty:['F-WARRANTY'],terms:['F-CMHC','F-CMHC-INDEPENDENT','F-TECHNICAL'],contact:['F-CONTACT','F-PRIVACY','F-START'],summary:['F-CONTACT','F-PRIVACY'],clarify:['F-START'],unrelated:['F-START']};
 export function retrieve(intent:Intent,state:State,question:string){
-  const match=shortlist(constraints(state),/known (size|area)|published (size|area)|known floor area/i.test(question)?knowledge.models.filter(m=>m.numeric_area_matching_allowed&&m.area_sqft!==null):knowledge.models),ids=namedModels(question);
+  const rawMatch=shortlist(constraints(state),/known (size|area)|published (size|area)|known floor area/i.test(question)?knowledge.models.filter(m=>m.numeric_area_matching_allowed&&m.area_sqft!==null):knowledge.models,.1,(stateValue(state,'bedroomOptions')?.length??0)>1?3:2),ids=namedModels(question);
+  const match=hasMatchPreferences(state)?rawMatch:{...rawMatch,matches:[],outsideTargetAlternatives:[]};
   let models:Model[]=[];
   if(intent.unconfirmedProduct)models=[];
   else if(compactInventoryRequested(question))models=knowledge.models.filter(m=>m.family==='laneway_carriage'||m.family==='cmhc_catalogue'&&m.units===1);
   else if(ids.length)models=ids.map(id=>modelIndex.get(id)!);
   else if(topics(intent).includes('matching'))models=match.matches;
+  else if(intent.modelContext==='follow_up'&&state.recommended.length&&/\b(?:them|their|those|these|both|first two)\b/i.test(question))models=state.recommended.map(id=>modelIndex.get(id)!).filter(Boolean);
   else if(intent.modelContext!=='none'&&stateValue(state,'selectedModel'))models=[modelIndex.get(stateValue(state,'selectedModel')!)!];
   else if(intent.modelContext!=='none'&&state.recommended.length&&['specifications','comparison','customization','arithmetic'].includes(intent.topic))models=state.recommended.map(id=>modelIndex.get(id)!).filter(Boolean);
 
@@ -47,6 +49,6 @@ export function modelLine(m:Model){
   const schedule=m.units>1&&m.unit_schedule?`; ${m.units} dwellings — ${m.unit_schedule.map(u=>`${u.bedrooms}-bed/${u.bathrooms}-bath`).join(', ')}`:'';
   return `${m.name}: ${area}; ${beds}${bath}${schedule}.`;
 }
-export function modelLink(m:Model,kind:'model'|'studio'|'lookbook'|'floorplan'='model'){const href=kind==='floorplan'&&m.floor_plan_url?m.floor_plan_url:m.url;return safeLink(href)+(m.family==='architectural'?(kind==='studio'||kind==='lookbook'?'#home-inclusions':kind==='floorplan'?'#plans':''):'')}
+export function modelLink(m:Model,kind:'model'|'studio'|'lookbook'|'floorplan'='model'){const href=kind==='floorplan'&&m.floor_plan_url?m.floor_plan_url:m.url;const link=safeLink(href);return m.family==='architectural'&&kind!=='model'?link.split('#')[0]+(kind==='floorplan'?'#plans':'#home-inclusions'):link}
 
 const factProjection=publicFactContent;

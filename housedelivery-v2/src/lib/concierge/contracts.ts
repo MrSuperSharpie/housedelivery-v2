@@ -22,12 +22,13 @@ export const followUps = {
 } as const;
 export type FollowUp = keyof typeof followUps;
 export type Fact = { id: string; title: string; text: string; href: string; kind: string };
+export type ModelCard=Fact&{image?:{src:string;alt:string};specs?:string[];features?:string[];floorPlanHref?:string};
 export type ChatTurn = { question: string; factIds: string[]; next: FollowUp };
 export type ConciergeReply = {
   introduction: string; facts: Fact[]; question: string; next: FollowUp;
   disposition: 'answer' | 'clarify' | 'human'; detailed?: boolean;
   answerSegments?:{text:string;evidenceRefs:string[]}[];
-  modelCards?:Fact[];
+  modelCards?:ModelCard[];
   nextAction?:'none'|'browse_designs'|'studio'|'lookbook'|'property_review'|'consultation'|'summary';
   actionHref?:string;
   proposedSummary?:string;showSummary?:boolean;

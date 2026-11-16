@@ -4,7 +4,7 @@ import {comparisonLimit,inheritComparisonLimits} from './comparison';
 import {thermalEnvelopeAsked} from './building-science';
 import type {Intent} from './intent';
 import type {State} from './state';
-import {stateValue,namedModels} from './state';
+import {stateValue,namedModels,deterministicPatch} from './state';
 import {policyIndex} from './policies';
 export type RequestPricing='none'|'planning_rates'|'freight'|'project_quote';
 export function planningRatesEligible(request:NonNullable<Intent['requests']>[number],unconfirmedProduct=false,hasPriceEvidence=true){
@@ -24,13 +24,17 @@ export function normalizeIntent(raw:Intent,question:string,state:State):Intent{
   return{...r,policyIds:(r.policyIds??[]).filter(id=>policyIndex.has(id)),pricing:(publishedRate?'planning_rates':r.pricing??'none') as RequestPricing};
  });
  requests=inheritFinanceGuidance(inheritComparisonLimits(requests,question),question,guidanceStage??undefined);
+ const explicit=deterministicPatch(question,state);
+ const preferenceUpdate=['bedrooms','bedroomOptions','areaTarget','areaMin','areaMax','bathroomsMin','storeys','study'].some(k=>Object.hasOwn(explicit,k))&&!namedModels(question).length&&requests.every(r=>['matching','clarify','property','specifications'].includes(r.topic));
+ const acceptedBrowse=guidanceStage==='accepted'&&/browse|explore|recommend|show|look at/i.test(state.lastQuestion)&&/homes?|designs?|models?/i.test(state.lastQuestion);
  const designAsk=/\b(?:which|recommend|suggest|show)\b[^?]{0,100}\b(?:designs?|homes?|models?)\b/i.test(question);
  const program=Boolean(stateValue(state,'homes'))&&/contractor|builder|developer|municip|Nation|institution/i.test((stateValue(state,'role')??'')+' '+(stateValue(state,'audience')??''));
  let topic=requests.length&&requests.every(r=>r.guidanceStage)?'process' as const:raw.topic;
- if(designAsk&&requests.length===1){requests=requests.map(r=>({...r,topic:'matching' as const,policyIds:[],pricing:'none' as const}));topic='matching';}
- if(program&&!designAsk&&topic==='matching'){topic=/contractor|builder/i.test(stateValue(state,'role')??'')?'builder':'community';requests=requests.map(r=>r.topic==='matching'?{...r,topic,policyIds:r.policyIds.length?r.policyIds:['builder_collaboration','program_phasing']}:r);}
+ if((designAsk||preferenceUpdate||acceptedBrowse)&&requests.length<=1){if(!requests.length)requests=[{id:'r1',topic:'matching',question,policyIds:[],pricing:'none'}];requests=requests.map(r=>({...r,topic:'matching' as const,policyIds:[],pricing:'none' as const}));topic='matching';}
+ if(program&&!designAsk&&!acceptedBrowse&&topic==='matching'){topic=/contractor|builder/i.test(stateValue(state,'role')??'')?'builder':'community';requests=requests.map(r=>r.topic==='matching'?{...r,topic,policyIds:r.policyIds.length?r.policyIds:['builder_collaboration','program_phasing']}:r);}
  const named=stateValue(state,'selectedModel');let modelContext=raw.modelContext;
  if(financeRequested(question)||comparisonLimit(question)||!namedModels(question).length&&/\b(?:deliver|delivery|freight|shipping)\b/i.test(question)&&!refersToSelectedHome(question))modelContext='none';
+ if(state.recommended.length&&!namedModels(question).length&&/\b(?:them|their|those|these|both|first two)\b/i.test(question)&&/compar|differ|plan|drawing|bedroom|size|customiz/i.test(question))modelContext='follow_up';
  if(named&&refersToSelectedHome(question)&&!comparisonLimit(question)&&!financeRequested(question))modelContext='follow_up';
  requests=requests.map(r=>({...r,policyIds:relevantPolicyIds(r,question,state)}));
  // Positive, explicit scope questions cannot disappear when intake combines

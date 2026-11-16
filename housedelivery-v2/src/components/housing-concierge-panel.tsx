@@ -3,6 +3,7 @@ import {useEffect,useRef,useState,type FormEvent} from 'react';
 import {ArrowUpRight,ArrowUp,X,RotateCcw,ArrowLeft,House,LandPlot,Building2,MessageSquareText,CircleDashed} from 'lucide-react';
 import {usePathname} from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import {conciergeJourneys,type ChatTurn,type ConciergeReply} from '@/lib/concierge/contracts';
 import {trackAnalyticsEvent} from '@/lib/analytics';
 import ConciergeLeadForm from './housing-concierge-lead-form';
@@ -39,8 +40,15 @@ export default function HousingConciergePanel({open,onClose}:{open:boolean;onClo
           {!messages.length&&token?<div className={styles.suggestions} aria-label="Choose your housing journey">{conciergeJourneys.map(j=>{const Icon=journeyIcons[j.id];return <button key={j.id} type="button" aria-pressed={journey===j.id} disabled={loading||busy} onClick={()=>{setJourney(j.id);if(j.prompt)void send(j.prompt);else input.current?.focus()}}><span className={styles.journeyIcon}><Icon size={19} strokeWidth={1.4} aria-hidden="true"/></span><span><strong>{j.label}</strong><small>{j.description}</small></span><ArrowUpRight className={styles.journeyArrow} size={16} strokeWidth={1.4} aria-hidden="true"/></button>})}</div>:null}
           {messages.map((m,i)=><div key={i} ref={i===messages.length-1?latestExchange:undefined} className={styles.exchange}><p className={styles.visitor}><span className={styles.messageAuthor}>You</span>{m.question}</p>{m.reply?<><p className={styles.responseAuthor}>Housing Concierge</p><div className={styles.answer} data-concierge-answer>
             {m.reply.introduction?<p>{m.reply.introduction}</p>:null}
-            {m.reply.answerSegments?m.reply.answerSegments.map((segment,index)=><p key={index} className={styles.responseText}>{segment.text}</p>):m.reply.facts.map(f=><div key={f.id} className={m.reply?.detailed?styles.fact:styles.responseText}>{m.reply?.detailed?<h4>{f.title}</h4>:null}<p>{f.text}</p></div>)}{m.reply.modelCards?.map(card=><div key={card.id} className={styles.fact}><h4>{card.title}</h4><p>{card.text}</p></div>)}
-            {m.reply.facts.length?<div className={styles.sourceLinks}>{[...new Map(m.reply.facts.map(f=>[f.href,f])).values()].slice(0,3).map(f=><Link key={f.href} href={f.href} prefetch={false}>{f.title}<ArrowUpRight size={12} aria-hidden="true"/></Link>)}</div>:null}
+            {m.reply.answerSegments?m.reply.answerSegments.map((segment,index)=><p key={index} className={styles.responseText}>{segment.text}</p>):m.reply.facts.map(f=><div key={f.id} className={m.reply?.detailed?styles.fact:styles.responseText}>{m.reply?.detailed?<h4>{f.title}</h4>:null}<p>{f.text}</p></div>)}{m.reply.modelCards?.length?<div className={styles.recommendations} aria-label="Recommended home designs">{m.reply.modelCards.map(card=><article key={card.id} className={styles.modelCard} data-concierge-model={card.id}>
+              {card.image?<Link href={card.href} prefetch={false} className={styles.modelImage} aria-label={`Explore ${card.title}`}><Image src={card.image.src} alt={card.image.alt} fill sizes="(max-width: 640px) calc(100vw - 88px), 340px" quality={90}/></Link>:null}
+              <div className={styles.modelBody}><h4><Link href={card.href} prefetch={false}>{card.title}<ArrowUpRight size={15} aria-hidden="true"/></Link></h4>
+                {card.specs?.length?<ul className={styles.modelSpecs} aria-label={`${card.title} published specifications`}>{card.specs.map(spec=><li key={spec}>{spec}</li>)}</ul>:<p>{card.text}</p>}
+                {card.features?.length?<p className={styles.modelFeatures}>{card.features.join(' · ')}</p>:null}
+                <div className={styles.modelActions}><Link href={card.href} prefetch={false}>View home<ArrowUpRight size={13} aria-hidden="true"/></Link>{card.floorPlanHref?<Link href={card.floorPlanHref} prefetch={false}>Floor plans<ArrowUpRight size={13} aria-hidden="true"/></Link>:null}</div>
+              </div>
+            </article>)}</div>:null}
+            {m.reply.facts.some(f=>!m.reply?.modelCards?.some(card=>card.href===f.href||card.floorPlanHref===f.href))?<div className={styles.sourceLinks}>{[...new Map(m.reply.facts.filter(f=>!m.reply?.modelCards?.some(card=>card.href===f.href||card.floorPlanHref===f.href)).map(f=>[f.href,f])).values()].slice(0,3).map(f=><Link key={f.href} href={f.href} prefetch={false}>{f.title}<ArrowUpRight size={12} aria-hidden="true"/></Link>)}</div>:null}
             {(m.reply.nextAction==='summary'||m.reply.showSummary)&&m.reply.proposedSummary?<p className={styles.visitor} style={{marginLeft:0}}>{m.reply.proposedSummary}</p>:null}{m.reply.actionHref?<Link className={styles.consultation} href={m.reply.actionHref}>Review my property<ArrowUpRight size={14}/></Link>:null}{m.reply.question?<p className={styles.followUp}>{m.reply.question}</p>:null}
             {m.reply.next==='human'||m.reply.nextAction==='summary'||m.reply.nextAction==='consultation'?<button className={styles.consultation} type="button" onClick={()=>setLead(true)}>Review a project summary<ArrowUpRight size={14}/></button>:null}
           </div></>:null}</div>)}
