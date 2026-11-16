@@ -69,7 +69,7 @@ test('published model attributes and approved planning references retain their e
 test('rejected output is not reported as provider downtime; a genuine rate limit remains a service error',async()=>{
  const question='Is prefab cheaper than conventional framing?';
  const invalid:InferenceContext={calls:0,fault:'invalid'};const rejected=await answerQuestion(question,initialState('invalid'),invalid),text=rejected.reply.answerSegments!.map(s=>s.text).join(' ');
- assert.ok(invalid.failures?.some(f=>f.category==='output_validation'));assert.match(text,/don’t have a confirmed answer/);assert.doesNotMatch(text,/connection|busy|temporarily|just now|try again/);
+ assert.ok(invalid.failures?.some(f=>f.category==='output_validation'));assert.match(text,/couldn’t put together a reliable response/);assert.doesNotMatch(text,/connection|busy|temporarily|just now|try again/);
  const model:LanguageModel={specificationVersion:'v4',provider:'local-rate-fixture',modelId:'busy',supportedUrls:{},doStream:async()=>{throw Error('No streaming')},doGenerate:async()=>{throw Object.assign(new Error('Too many requests'),{statusCode:429})}};
  const busy:InferenceContext={calls:0,model};const unavailable=await answerQuestion(question,initialState('busy'),busy);
  assert.equal(busy.failures?.[0].category,'rate_limit');assert.match(unavailable.reply.answerSegments!.map(s=>s.text).join(' '),/connection is busy/);

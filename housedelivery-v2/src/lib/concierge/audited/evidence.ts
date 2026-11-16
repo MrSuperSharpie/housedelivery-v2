@@ -1,3 +1,4 @@
+import {visitorEvidence,hasHouseholdDetail} from './visitor-context';
 import {knowledge,modelIndex,factIndex,safeLink,type Model} from './registry';
 import {shortlist,compactInventoryRequested} from './matching';
 import {constraints,stateValue,namedModels,hasMatchPreferences,type State} from './state';
@@ -9,7 +10,8 @@ export type Evidence={id:string;data:unknown;sourceIds:string[]};
 const topicFacts:Record<Intent['topic'],string[]>={company:['F-COMPANY','F-MARKETS','F-START'],matching:['F-CUSTOMIZATION','F-PROPERTY'],specifications:[],comparison:[],customization:['F-CUSTOMIZATION','F-STUDIO','F-INCLUSIONS','F-ESSENTIAL'],pricing:['F-PRICE','F-SCOPE','F-EXCLUSIONS'],arithmetic:['F-PRICE','F-SCOPE','F-EXCLUSIONS'],process:['F-PROCESS','F-PARALLEL','F-TIMING'],scope:['F-SCOPE','F-EXCLUSIONS','F-APPLIANCES'],property:['F-PROPERTY','F-START'],community:['F-MARKETS','F-PORTFOLIO','F-PROCESS'],builder:['F-BUILDER','F-COMPANY','F-SCOPE','F-ORIGIN','F-PROCESS'],origin:['F-ORIGIN','F-SYSTEMS'],warranty:['F-WARRANTY'],terms:['F-CMHC','F-CMHC-INDEPENDENT','F-TECHNICAL'],contact:['F-CONTACT','F-PRIVACY','F-START'],summary:['F-CONTACT','F-PRIVACY'],clarify:['F-START'],unrelated:['F-START']};
 export function retrieve(intent:Intent,state:State,question:string){
   const rawMatch=shortlist(constraints(state),/known (size|area)|published (size|area)|known floor area/i.test(question)?knowledge.models.filter(m=>m.numeric_area_matching_allowed&&m.area_sqft!==null):knowledge.models,.1,(stateValue(state,'bedroomOptions')?.length??0)>1?3:2),ids=namedModels(question);
-  const match=hasMatchPreferences(state)?rawMatch:{...rawMatch,matches:[],outsideTargetAlternatives:[]};
+  const exploratory=!hasMatchPreferences(state)&&hasHouseholdDetail(state)&&topics(intent).includes('matching');
+  const match={...(hasMatchPreferences(state)||exploratory?rawMatch:{...rawMatch,matches:[],outsideTargetAlternatives:[]}),exploratory};
   let models:Model[]=[];
   if(intent.unconfirmedProduct)models=[];
   else if(compactInventoryRequested(question))models=knowledge.models.filter(m=>m.family==='laneway_carriage'||m.family==='cmhc_catalogue'&&m.units===1);
@@ -39,7 +41,7 @@ export function retrieve(intent:Intent,state:State,question:string){
   const cmhc=cmhcRelevant(intent,question,models.map(m=>m.id));
   const facts=[...new Set(requestedFacts)].filter(id=>!deliveryOnly||id!=='F-PRICE').filter(id=>cmhc||!['F-CMHC','F-CMHC-INDEPENDENT','F-CATALOG-UNIT-MIX','F-CATALOG-CONFLICTS'].includes(id)).map(id=>factIndex.get(id)).filter((x):x is NonNullable<typeof x>=>Boolean(x));
   const studios=intent.topic==='customization'?knowledge.design_studios.filter(s=>models.some(m=>m.id===s.model_id)):[];
-  const evidence:Evidence[]=[...selectHandbook(intent,state,question),chatLimits,...(intent.unconfirmedProduct?[{id:'CAPABILITY-LIMIT',data:{text:'Availability of the requested project type requires team confirmation. Chat cannot issue a binding quotation.'},sourceIds:[]}]:[]),...facts.map(f=>({id:f.id,data:factProjection(f),sourceIds:f.source_ids})),...models.map(m=>({id:m.id,data:publicModelContent(m),sourceIds:m.source_ids})),...studios.map(s=>({id:'STUDIO:'+s.model_id,data:{chapters:s.chapters,directions:s.verified_visible_kitchen_directions,qualification:s.qualification},sourceIds:s.source_ids}))];
+  const evidence:Evidence[]=[visitorEvidence(state,question),...selectHandbook(intent,state,question),chatLimits,...(intent.unconfirmedProduct?[{id:'CAPABILITY-LIMIT',data:{text:'Availability of the requested project type requires team confirmation. Chat cannot issue a binding quotation.'},sourceIds:[]}]:[]),...facts.map(f=>({id:f.id,data:factProjection(f),sourceIds:f.source_ids})),...models.map(m=>({id:m.id,data:publicModelContent(m),sourceIds:m.source_ids})),...studios.map(s=>({id:'STUDIO:'+s.model_id,data:{chapters:s.chapters,directions:s.verified_visible_kitchen_directions,qualification:s.qualification},sourceIds:s.source_ids}))];
   return {match,models,facts,studios,evidence};
 }
 export function modelLine(m:Model){
