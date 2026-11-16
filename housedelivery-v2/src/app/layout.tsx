@@ -29,6 +29,7 @@ export const metadata: Metadata = {
     "Pre-engineered component homes coordinated from permits and engineering through delivery and on-site assembly.",
   icons: {
     icon: "/favicon.ico",
+    apple: { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
   },
   openGraph: {
     title: "House Delivery Inc. | Homebuilding, made certain.",
