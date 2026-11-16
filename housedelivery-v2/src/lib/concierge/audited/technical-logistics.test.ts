@@ -7,6 +7,7 @@ import {publicQuestion} from './response-plan';
 import {initialState,mergePatch,stateValue} from './state';
 import {normalizeIntent,planningRatesEligible} from './request-plan';
 import {compilePolicyAnswers,answerQuestion} from './compose';
+import {retrieve} from './evidence';
 import {renderPolicies} from './policies';
 const plan=(question:string,topic:Intent['topic']='specifications',policyIds:string[]=[]):Intent=>({topic,requests:[{id:'r1',topic,question,policyIds,pricing:'none'}],modelContext:'none',unconfirmedProduct:false,sectionIds:[],factIds:[],modelIds:[],questionKey:null,patch:{},arithmetic:null,detail:false,ambiguous:false});
 function intake(question:string,topic:Intent['topic']='specifications',policyIds:string[]=[]):LanguageModel{
@@ -87,4 +88,12 @@ test('the exact factory-name then please follow-up accepts the new public offer,
  const ctx={calls:0};const accepted=await answerQuestion('please',identity.state,ctx),text=accepted.reply.answerSegments!.map(x=>x.text).join(' ');
  assert.equal(ctx.calls,0);assert.equal(accepted.mode,'controlled');assert.match(text,/Canadian.*(?:assembly|completion)/);assert.match(text,/steel, timber and other suitable engineered systems/);assert.doesNotMatch(text,/engineering specification sheets are confidential|not publicly released|Plant-visit|Would you like/);assert.equal(accepted.reply.question,'');assert.equal(accepted.state.boundaryOffer,undefined);assert.equal(stateValue(accepted.state,'siteArea')?.sqft,4000);assert.equal(stateValue(accepted.state,'bedrooms'),4);assert.equal(stateValue(accepted.state,'bedroomMode'),'minimum');
  for(const q of ['no I need factory name first or I cannot proceed','no I need factory name first or I will not proceed']){const c={calls:0};const r=await answerQuestion(q,accepted.state,c);assert.equal(c.calls,0);assert.match(r.reply.answerSegments![0].text,/condition of proceeding/);assert.equal(r.reply.question,'');assert.equal(r.reply.nextAction,'none');}
+});
+
+test('the deployed compound property trace keeps feasibility and retrieves verified design cards',()=>{
+ const q='I am not sure how big of a house I can build on a 4000 square foot lot but I would need 4 bedrooms minimum';
+ let state=mergePatch(initialState('compound-property'),{},'I have a 4000 square foot property in Vancouver');state=mergePatch(state,{},q);
+ const raw={...plan(q,'property'),requests:[{id:'r1',topic:'property' as const,question:'How much home can be built on the Vancouver lot?',policyIds:[],pricing:'none' as const},{id:'r2',topic:'property' as const,question:'Find a design with at least four bedrooms.',policyIds:[],pricing:'none' as const}]};
+ const normalized=normalizeIntent(raw,q,state),r=retrieve(normalized,state,q);
+ assert.equal(normalized.requests![0].topic,'property');assert.equal(normalized.requests![1].topic,'matching');assert.ok(r.models.length>=2);assert.ok(r.models.every(m=>m.bedrooms!>=4));for(const m of r.models)assert.ok(r.evidence.some(e=>e.id===m.id));assert.equal(stateValue(state,'areaTarget'),undefined);assert.equal(stateValue(state,'siteArea')?.sqft,4000);
 });

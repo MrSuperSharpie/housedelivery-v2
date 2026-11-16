@@ -33,6 +33,13 @@ export function normalizeIntent(raw:Intent,question:string,state:State):Intent{
  const program=Boolean(stateValue(state,'homes'))&&/contractor|builder|developer|municip|Nation|institution/i.test((stateValue(state,'role')??'')+' '+(stateValue(state,'audience')??''));
  let topic=requests.length&&requests.every(r=>r.guidanceStage)?'process' as const:raw.topic;
  if((designAsk||preferenceUpdate||acceptedBrowse)&&requests.length<=1){if(!requests.length)requests=[{id:'r1',topic:'matching',question,policyIds:[],pricing:'none'}];requests=requests.map(r=>({...r,topic:'matching' as const,policyIds:[],pricing:'none' as const}));topic='matching';}
+ // A compound property question may also supply actionable home preferences.
+ // Keep its feasibility parts and retrieve model evidence for the design part.
+ if(preferenceUpdate&&requests.length>1&&!requests.some(r=>r.topic==='matching')){
+  requests=requests.map(r=>{const stated=deterministicPatch(r.question,state);return ['bedrooms','bedroomOptions','areaTarget','areaMax','areaMin','bathroomsMin','storeys','study'].some(k=>Object.hasOwn(stated,k))?{...r,topic:'matching' as const,policyIds:[],pricing:'none' as const}:r;});
+  if(!requests.some(r=>r.topic==='matching')&&requests.length<4){const id=['r1','r2','r3','r4'].find(id=>!requests.some(r=>r.id===id))!;requests.push({id,topic:'matching',question:'Which published designs match the visitor’s stated home requirements, without assuming property fit?',policyIds:[],pricing:'none'});}
+  topic='matching';
+ }
  if(program&&!designAsk&&!acceptedBrowse&&topic==='matching'){topic=/contractor|builder/i.test(stateValue(state,'role')??'')?'builder':'community';requests=requests.map(r=>r.topic==='matching'?{...r,topic,policyIds:r.policyIds.length?r.policyIds:['builder_collaboration','program_phasing']}:r);}
  const named=stateValue(state,'selectedModel');let modelContext=raw.modelContext;
  if(financeRequested(question)||comparisonLimit(question)||!namedModels(question).length&&/\b(?:deliver|delivery|freight|shipping)\b/i.test(question)&&!refersToSelectedHome(question))modelContext='none';
