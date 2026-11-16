@@ -1,3 +1,5 @@
+import {widerLibraryAsked} from './design-library';
+import {storeyPreference,stairDifficulty} from './storey-requirements';
 import {propertyDecision,catalogueSearch} from './property-intent';
 import {householdUpdate} from './visitor-context';
 import {bedroomStatement} from './measurements';
@@ -22,7 +24,7 @@ export function normalizeIntent(raw:Intent,question:string,state:State):Intent{
  if(continuation)raw={...raw,topic:state.lastTopic as Intent['topic']??raw.topic,requests:state.activeRequests,modelContext:'none'};
  question=questionForAnswer(question,state);
  const nonHousing=/\b(?:warehouse|industrial shed|industrial building|commercial warehouse)\b/i.test(question);
- const housing=/\b(?:home|homes|house|housing|residen\w*|dwelling\w*|ADU|laneway|carriage)\b/i.test(question);
+ const housing=/\b(?:home|homes|house|housing|residen\w*|dwelling\w*|ADU|laneway|carriage)\b/i.test(question)||widerLibraryAsked(question)||storeyPreference(question)!==undefined;
  const unconfirmedProduct=nonHousing||Boolean(raw.unconfirmedProduct&&!housing);
  let requests=(raw.requests??[]).map(r=>{
   const publishedRate=r.topic==='pricing'&&/\brate|rates\b|per (?:sq|square)/i.test(r.question)&&/published|planning|package|Premium|Signature|per (?:sq|square)/i.test(r.question);
@@ -32,12 +34,14 @@ export function normalizeIntent(raw:Intent,question:string,state:State):Intent{
  const explicit=deterministicPatch(question,state);
  const preferenceUpdate=['bedrooms','bedroomOptions','areaTarget','areaMin','areaMax','bathroomsMin','storeys','study'].some(k=>Object.hasOwn(explicit,k))&&!namedModels(question).length&&(bedroomStatement(question)||requests.every(r=>['matching','clarify','property','specifications'].includes(r.topic)));
  const acceptedBrowse=guidanceStage==='accepted'&&/browse|explore|recommend|show|look at/i.test(state.lastQuestion)&&/homes?|designs?|models?/i.test(state.lastQuestion);
- const designAsk=/\b(?:which|recommend|suggest|show|find|browse|explore)\b[^?]{0,100}\b(?:designs?|homes?|models?)\b/i.test(question)||/\bwhat\s+(?:(?:family|architectural|published|custom)\s+)?(?:homes|designs|models)\b[^?]{0,60}\b(?:work|suit|match|fit|available|offered)\b/i.test(question);
+ const requestedLevel=storeyPreference(question)!==undefined&&!/\b(?:change|resize|move|window|finish|flooring)\b/i.test(question);
+ const designAsk=requestedLevel||/\b(?:which|recommend|suggest|show|find|browse|explore)\b[^?]{0,100}\b(?:designs?|homes?|models?)\b/i.test(question)||/\bwhat\s+(?:(?:family|architectural|published|custom)\s+)?(?:homes|designs|models)\b[^?]{0,60}\b(?:work|suit|match|fit|available|offered)\b/i.test(question);
  const program=Boolean(stateValue(state,'homes'))&&/contractor|builder|developer|municip|Nation|institution/i.test((stateValue(state,'role')??'')+' '+(stateValue(state,'audience')??''));
  let topic=requests.length&&requests.every(r=>r.guidanceStage)?'process' as const:raw.topic;
  // A visitor describing their household is supplying requirements, not asking
  // us to verify a company policy or explain the supply scope.
  if(householdUpdate(question)){requests=[{id:'r1',topic:'matching',question,policyIds:[],pricing:'none'}];topic='matching';}
+ if(stairDifficulty(question)&&storeyPreference(question)===undefined&&stateValue(state,'storeys')===undefined&&householdUpdate(question)){topic='clarify';requests=[{id:'r1',topic,question,policyIds:[],pricing:'none'}];}
  if(bedroomStatement(question)){requests=[{id:'r1',topic:'matching',question,policyIds:[],pricing:'none'}];topic='matching';}
  if((designAsk||preferenceUpdate||acceptedBrowse)&&requests.length<=1){if(!requests.length)requests=[{id:'r1',topic:'matching',question,policyIds:[],pricing:'none'}];requests=requests.map(r=>({...r,topic:'matching' as const,policyIds:[],pricing:'none' as const}));topic='matching';}
  // A compound property question may also supply actionable home preferences.
@@ -48,10 +52,15 @@ export function normalizeIntent(raw:Intent,question:string,state:State):Intent{
   topic='matching';
  }
  if(program&&!designAsk&&!acceptedBrowse&&topic==='matching'){topic=/contractor|builder/i.test(stateValue(state,'role')??'')?'builder':'community';requests=requests.map(r=>r.topic==='matching'?{...r,topic,policyIds:r.policyIds.length?r.policyIds:['builder_collaboration','program_phasing']}:r);}
- const named=stateValue(state,'selectedModel');let modelContext=raw.modelContext;
+ const named=stateValue(state,'selectedModel');let modelContext=topic==='clarify'&&stairDifficulty(question)?'none' as const:raw.modelContext;
  if(financeRequested(question)||comparisonLimit(question)||!namedModels(question).length&&/\b(?:deliver|delivery|freight|shipping)\b/i.test(question)&&!refersToSelectedHome(question))modelContext='none';
  if(state.recommended.length&&!namedModels(question).length&&/\b(?:them|their|those|these|both|first two)\b/i.test(question)&&/compar|differ|plan|drawing|bedroom|size|customiz/i.test(question))modelContext='follow_up';
  if(named&&refersToSelectedHome(question)&&!comparisonLimit(question)&&!financeRequested(question))modelContext='follow_up';
+ // Selecting finishes is not another catalogue search merely because the
+ // visitor already has a shortlist. Preserve independent new home requirements.
+ if(/\b(?:different|pick|choose|select|change|adjust|modify)\b[^?]{0,80}\b(?:floors?|flooring|windows?|finishes|cladding|layout)\b/i.test(question)&&!['bedroomOptions','areaTarget','areaMax','storeys'].some(k=>Object.hasOwn(explicit,k))&&requests.length<=1){
+   topic='customization';requests=[{id:requests[0]?.id??'r1',topic,question,policyIds:['design_changes'],pricing:'none'}];
+ }
  requests=requests.map(r=>({...r,policyIds:relevantPolicyIds(r,question,state)}));
  // Positive, explicit scope questions cannot disappear when intake combines
  // clauses or selects only one of their records. These records answer known
@@ -76,6 +85,7 @@ export function normalizeIntent(raw:Intent,question:string,state:State):Intent{
   if(candidate)candidate.policyIds.push(id);
   else{const free=['r1','r2','r3','r4'].find(id=>!requests.some(r=>r.id===id));if(free)requests.push({id:free,topic:partTopic,question:partQuestion,pricing,policyIds:[id]});}
  }
+ if(widerLibraryAsked(question)&&!propertyDecision(question,state)){topic='company';requests=[{id:'r1',topic:'company',question,policyIds:[],pricing:'none'}];modelContext='none';}
  return prioritizeCurrentQuestion({...raw,topic,requests,unconfirmedProduct,modelContext},question,state);
 }
 
@@ -102,7 +112,7 @@ export function relevantPolicyIds(request:NonNullable<Intent['requests']>[number
    case 'builder_collaboration':return /(?:do|can|would|will) you.*work|work with|coordinat.*(?:builder|contractor)|collaborat|partner with|what would you coordinate/i.test(q);
    case 'program_phasing':return Boolean(stateValue(state,'homes')&&stateValue(state,'homes')!>1)&&/homes|units|program|phase|groups|development|assess/i.test(q);
    case 'project_review':return /next|start|begin|assess|review|what.*need|how.*proceed/i.test(q);
-   case 'design_changes':return /adjust|chang|customiz|modif|reconfigur|keeping.*architectur/i.test(q);
+   case 'design_changes':return /adjust|chang|customiz|modif|reconfigur|keeping.*architectur|(?:different|pick|choose|select)[^?]{0,80}(?:floor|window|finish|cladding|layout)/i.test(q);
    case 'studio_lookbook':return /Studio|Look.?Book|design directions?|save.*design/i.test(q);
    case 'plant_visit':return plantVisitAsked(q);
    case 'engineering_documents':return technicalDocumentationAsked(q)||manufacturingQualityAsked(q);

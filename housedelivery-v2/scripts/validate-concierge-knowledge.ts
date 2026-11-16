@@ -1,3 +1,4 @@
+import {designLibrary} from '../src/lib/concierge/audited/design-library';
 import {validateHandbook} from '../src/lib/concierge/audited/handbook';
 import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
@@ -14,3 +15,5 @@ if(createHash('sha256').update(handbookFile).digest('hex')!==handbookManifest.sh
 
 validateHandbook(JSON.parse(handbookFile.toString()));
 console.log('Company handbook validated: '+handbookManifest.releaseId);
+
+console.log('Founder-confirmed public design library validated: '+designLibrary.effective_date);

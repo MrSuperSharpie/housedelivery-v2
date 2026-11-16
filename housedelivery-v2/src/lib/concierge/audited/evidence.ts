@@ -1,3 +1,4 @@
+import {designLibraryEvidence,widerLibraryAsked} from './design-library';
 import {visitorEvidence,hasHouseholdDetail} from './visitor-context';
 import {knowledge,modelIndex,factIndex,safeLink,type Model} from './registry';
 import {shortlist,compactInventoryRequested} from './matching';
@@ -24,6 +25,7 @@ export function retrieve(intent:Intent,state:State,question:string){
 
   if(intent.topic==='comparison'&&ids.length===1)models=[...models,...state.recommended.filter(id=>!ids.includes(id)).map(id=>modelIndex.get(id)!).filter(Boolean)].slice(0,2);
   if(/main.level|main.floor|ground.floor/i.test(question)&&models.length>1){const suited=models.filter(m=>m.features.some(f=>/main.level.*(suite|bedroom)|main.floor.*suite|ground.floor.*(bedroom|suite)/i.test(f)));if(suited.length)models=suited;}
+  const historicalModels=(topics(intent).includes('matching')||widerLibraryAsked(question)||/those|these|previous|earlier/i.test(question))?(state.previousModels??[]).filter(id=>!models.some(m=>m.id===id)).map(id=>modelIndex.get(id)!).filter(Boolean):[];
   const requestedFacts=[...new Set([...topics(intent).flatMap(t=>topicFacts[t]),...intent.factIds])];
   if(/includ|kit|package|source locally|local.*(?:supply|responsibilit)/i.test(question))requestedFacts.push('F-SCOPE','F-EXCLUSIONS','F-INCLUSIONS','F-BUILDER');
   if(/building code|code complian|permit|regulat|certific/i.test(question))requestedFacts.push('F-TECHNICAL','F-BUILDER','F-SYSTEMS');
@@ -42,8 +44,8 @@ export function retrieve(intent:Intent,state:State,question:string){
   const cmhc=cmhcRelevant(intent,question,models.map(m=>m.id));
   const facts=[...new Set(requestedFacts)].filter(id=>!deliveryOnly||id!=='F-PRICE').filter(id=>cmhc||!['F-CMHC','F-CMHC-INDEPENDENT','F-CATALOG-UNIT-MIX','F-CATALOG-CONFLICTS'].includes(id)).map(id=>factIndex.get(id)).filter((x):x is NonNullable<typeof x>=>Boolean(x));
   const studios=intent.topic==='customization'?knowledge.design_studios.filter(s=>models.some(m=>m.id===s.model_id)):[];
-  const evidence:Evidence[]=[visitorEvidence(state,question),...selectHandbook(intent,state,question),chatLimits,...(intent.unconfirmedProduct?[{id:'CAPABILITY-LIMIT',data:{text:'Availability of the requested project type requires team confirmation. Chat cannot issue a binding quotation.'},sourceIds:[]}]:[]),...facts.map(f=>({id:f.id,data:factProjection(f),sourceIds:f.source_ids})),...models.map(m=>({id:m.id,data:publicModelContent(m),sourceIds:m.source_ids})),...studios.map(s=>({id:'STUDIO:'+s.model_id,data:{chapters:s.chapters,directions:s.verified_visible_kitchen_directions,qualification:s.qualification},sourceIds:s.source_ids}))];
-  return {match,models,facts,studios,evidence};
+  const evidence:Evidence[]=[visitorEvidence(state,question),...(topics(intent).includes('matching')||widerLibraryAsked(question)?[designLibraryEvidence]:[]),...selectHandbook(intent,state,question),chatLimits,...(intent.unconfirmedProduct?[{id:'CAPABILITY-LIMIT',data:{text:'Availability of the requested project type requires team confirmation. Chat cannot issue a binding quotation.'},sourceIds:[]}]:[]),...facts.map(f=>({id:f.id,data:factProjection(f),sourceIds:f.source_ids})),...[...models,...historicalModels].map(m=>({id:m.id,data:publicModelContent(m),sourceIds:m.source_ids})),...studios.map(s=>({id:'STUDIO:'+s.model_id,data:{chapters:s.chapters,directions:s.verified_visible_kitchen_directions,qualification:s.qualification},sourceIds:s.source_ids}))];
+  return {match,models,historicalModels,facts,studios,evidence};
 }
 export function modelLine(m:Model){
   const area=m.numeric_area_matching_allowed&&m.area_sqft!==null?`${m.area_conversion?'approximately ':''}${m.area_sqft.toLocaleString('en-CA')} sq. ft. ${m.units>1?'combined building':'published model'} area`:'area requires confirmation';

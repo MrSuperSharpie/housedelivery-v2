@@ -1,3 +1,4 @@
+import {storeyPreference,stairDifficulty} from './storey-requirements';
 import {propertyDecision} from './property-intent';
 import {householdReport} from './visitor-context';
 import {areaSubject,bedroomRequirement} from './measurements';
@@ -10,10 +11,10 @@ import {toSqft,shortlist,type MatchConstraints} from './matching';
 export type Area={value:number;unit:'sf'|'m2';sqft:number;basis:'published'|'internal'|'footprint'|'chargeable'|'unknown'};
 export type Preferences={audience:string;role:string;operator:string;location:string;province:string;land:string;builder:boolean;constructionScope:string;householdNeeds:string;family:'architectural'|'compact'|'cmhc_catalogue';homes:number;phaseHomes:number;phasing:string;unitsPerBuilding:number;bedrooms:number;bedroomOptions:number[];bedroomMode:'exact'|'minimum';bedroomBasis:'per_home'|'per_unit';bathroomsMin:number;storeys:number;study:boolean;accessibility:boolean;siteArea:Pick<Area,'value'|'unit'|'sqft'>;areaTarget:Area;areaMax:Area;areaMin:Area;selectedModel:string;comparedModels:string[];finish:string;budgetAmount:number;budgetCurrency:string;budgetScope:string;targetDate:string;funding:string;declinedContact:boolean;declinedQuestions:string[];requestedAction:string;avoidLarger:boolean};
 export type Patch=Partial<Preferences>;
-export type State={version:string;session:string;expires:number;turn:number;values:{[K in keyof Preferences]?:{value:Preferences[K];sourceTurn:number;status:'visitor_reported'}};recommended:string[];scopeExplained:boolean;lastQuestion:string;pendingQuestion?:PendingQuestion;lastArithmetic:{area:number;rate:number}|null;lastTopic?:string;lastEvidenceRefs?:string[];activeQuestion?:string;activeUpdates?:string[];activeRequests?:RequestPart[];restrictedTopic?:'manufacturing_partner'|'manufacturing_location';boundaryOffer?:'public_manufacturing_approach'};
+export type State={version:string;session:string;expires:number;turn:number;values:{[K in keyof Preferences]?:{value:Preferences[K];sourceTurn:number;status:'visitor_reported'}};recommended:string[];previousModels?:string[];scopeExplained:boolean;lastQuestion:string;pendingQuestion?:PendingQuestion;lastArithmetic:{area:number;rate:number}|null;lastTopic?:string;lastEvidenceRefs?:string[];activeQuestion?:string;activeUpdates?:string[];activeRequests?:RequestPart[];restrictedTopic?:'manufacturing_partner'|'manufacturing_location';boundaryOffer?:'public_manufacturing_approach'};
 export function initialState(session:string,now=Date.now()):State{return{version:knowledgeVersion,session,expires:now+3600_000,turn:0,values:{},recommended:[],scopeExplained:false,lastQuestion:'',lastArithmetic:null}}
 export function stateValue<K extends keyof Preferences>(s:State,key:K):Preferences[K]|undefined{return s.values[key]?.value}
-export function conversationContext(s:State){return{turn:s.turn,values:s.values,recommended:s.recommended,scopeExplained:s.scopeExplained,lastQuestion:s.lastQuestion,pendingQuestion:s.pendingQuestion,lastArithmetic:s.lastArithmetic,lastTopic:s.lastTopic,lastEvidenceRefs:s.lastEvidenceRefs,activeQuestion:s.activeQuestion,activeUpdates:s.activeUpdates,activeRequests:s.activeRequests}}
+export function conversationContext(s:State){return{turn:s.turn,values:s.values,recommended:s.recommended,previousModels:s.previousModels??[],scopeExplained:s.scopeExplained,lastQuestion:s.lastQuestion,pendingQuestion:s.pendingQuestion,lastArithmetic:s.lastArithmetic,lastTopic:s.lastTopic,lastEvidenceRefs:s.lastEvidenceRefs,activeQuestion:s.activeQuestion,activeUpdates:s.activeUpdates,activeRequests:s.activeRequests}}
 export function signState(s:State,secret:string){const payload=Buffer.from(JSON.stringify(s)).toString('base64url');return payload+'.'+createHmac('sha256',secret).update('hd-concierge-state:'+payload).digest('hex')}
 export function readState(raw:unknown,session:string,secret:string,now=Date.now()):State{
   if(raw===undefined||raw==='')return initialState(session,now);
@@ -33,8 +34,7 @@ export function deterministicPatch(q:string,s:State,now=Date.now()):Patch{
   if(guidanceContinuation(q,s)==='location')p.location=q.trim().replace(/[.]+$/,'').replace(/^./u,c=>c.toUpperCase());
   const bed=bedroomRequirement(q);if(bed){p.bedroomOptions=bed.choices;if(bed.choices.length===1)p.bedrooms=bed.choices[0];p.bedroomMode=bed.minimum?'minimum':'exact'}
   const bath=q.match(/\b(one|two|three|four|five|\d+(?:\.\d+)?)[ -]?(?:bathrooms?|baths?)\b/i);if(bath)p.bathroomsMin=num(bath[1]);
-  if(/no stairs|single.storey|one.storey/i.test(q))p.storeys=1;
-  const storey=q.match(/\b(two|three|\d)[ -]storey/i);if(storey)p.storeys=num(storey[1]);
+  const storeys=storeyPreference(q);if(storeys!==undefined)p.storeys=storeys;
   if(/\bADU\b|laneway|carriage|backyard|\bsmall (?:home|one.bed|two.bed)|\bcompact (?:home|housing)/i.test(q))p.family='compact';
   if(/detached|not a duplex|myself|my family|our family/i.test(q)){p.family='architectural';p.unitsPerBuilding=1;p.bedroomBasis='per_home'}
   if(/fourplex|sixplex|rowhouse|BC Duplex/i.test(q))p.family='cmhc_catalogue';
@@ -75,7 +75,7 @@ export function deterministicPatch(q:string,s:State,now=Date.now()):Patch{
   const tier=q.match(/\b(?:consider(?:ing)?|prefer|choose|select|want)\s+(?:a |the )?(Premium|Signature|Essential)\b/i);if(tier)p.finish=tier[1][0].toUpperCase()+tier[1].slice(1).toLowerCase();
   const preference=q.match(/\b(?:we|I)\s+(?:prefer|need|want)\s+([^.!?]+)/i)?.[1];
   if(preference&&/warm|maintenan|privacy|private|older parent|Elder|guest|gather|mobility|multigenerational/i.test(preference))p.householdNeeds=[stateValue(s,'householdNeeds'),preference.trim()].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join('; ').slice(0,360);
-  const household=householdReport(q);
+  const household=householdReport(q)||(stairDifficulty(q)?q.trim().slice(0,360):'');
   if(household)p.householdNeeds=[stateValue(s,'householdNeeds'),p.householdNeeds,household].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join('; ').slice(-720);
   const ids=namedModels(q);if(ids.length===1)p.selectedModel=ids[0];if(ids.length>1)p.comparedModels=ids.slice(0,3);
   if(!ids.length&&/\b(that one|(?:this|that) (?:home|house|design|model)|it)\b/i.test(q)){if(stateValue(s,'selectedModel'))p.selectedModel=stateValue(s,'selectedModel');else if(s.recommended.length===1)p.selectedModel=s.recommended[0];}
@@ -104,6 +104,7 @@ export function mergePatch(s:State,patch:Patch,q:string,now=Date.now()){
   if(!explicit.role&&/contractor|builder/i.test(String(combined.role??'').replaceAll('_',' ')))delete combined.role;
   if(!explicit.role&&/builder|contractor/i.test(String(combined.audience??'')))delete combined.audience;
   if(!Object.hasOwn(explicit,'builder'))delete combined.builder;
+  if(stairDifficulty(q)&&!explicit.accessibility&&!/access|wheelchair|mobility|move around/i.test(q))delete combined.accessibility;
   if(Object.hasOwn(explicit,'builder')&&!explicit.role)delete combined.role;
   if(!explicit.role&&/\b(?:I am|I'm|I’m|we are|we're|we’re)\s+not\s+(?:a |an |the )?(?:general |construction )?(?:contractor|builder)\b/i.test(q)){
     if(/contractor|builder/i.test(String(values.role?.value??'')))delete values.role;
@@ -125,7 +126,14 @@ export function mergePatch(s:State,patch:Patch,q:string,now=Date.now()){
   const requirementsChanged=['family','unitsPerBuilding','bedrooms','bedroomOptions','bedroomMode','bedroomBasis','bathroomsMin','storeys','study','areaTarget','areaMax','areaMin'].some(k=>Object.hasOwn(combined,k)&&JSON.stringify(s.values[k as keyof Preferences]?.value)!==JSON.stringify(combined[k as keyof Preferences]));
   const selected=stateValue(next,'selectedModel');
   if(selected&&!stateValue(next,'family')){const m=modelIndex.get(selected)!;values.family={value:m.family==='laneway_carriage'?'compact':m.family,sourceTurn:turn,status:'visitor_reported'};}
-  if(requirementsChanged&&selected&&!namedModels(q).length&&!shortlist(constraints(next),[modelIndex.get(selected)!]).matches.length){delete values.selectedModel;next.recommended=[];}
+  if(requirementsChanged){
+    const discussed=[...new Set([...s.recommended,...(selected?[selected]:[])])].filter(id=>modelIndex.has(id));
+    const eligible=new Set(shortlist(constraints(next),discussed.map(id=>modelIndex.get(id)!),.1,discussed.length).matches.map(m=>m.id));
+    const retired=discussed.filter(id=>!eligible.has(id));
+    next.previousModels=[...new Set([...(s.previousModels??[]),...retired])].slice(-6);
+    next.recommended=next.recommended.filter(id=>eligible.has(id));
+    if(selected&&!eligible.has(selected)&&!namedModels(q).length)delete values.selectedModel;
+  }
   return next;
 }
 export function constraints(s:State):MatchConstraints{
@@ -133,6 +141,6 @@ export function constraints(s:State):MatchConstraints{
   const perUnit=v('bedroomBasis')==='per_unit';
   return{family,units:v('unitsPerBuilding')??(family==='cmhc_catalogue'?null:1),bedrooms:perUnit?undefined:v('bedrooms'),bedroomOptions:perUnit?undefined:v('bedroomOptions'),minimumBedrooms:v('bedroomMode')==='minimum',bedroomsPerUnit:perUnit?v('bedrooms'):undefined,bedroomOptionsPerUnit:perUnit?v('bedroomOptions'):undefined,bathroomsMin:v('bathroomsMin'),storeys:v('storeys'),targetSqft:v('areaTarget')?.sqft,maxSqft:v('areaMax')?.sqft,minSqft:v('areaMin')?.sqft,areaBasis:basis==='internal'?'internal':'published',unsupportedAreaBasis:!['internal','published'].includes(basis),study:v('study')};
 }
-export function projectSummary(s:State){const names:Partial<Record<keyof Preferences,string>>={funding:'Funding (visitor report)',audience:'Planning as',role:'Role',operator:'Prospective operator',location:'Location',province:'Province',land:'Land/site',family:'Housing',homes:'Approximate total homes',phaseHomes:'Proposed phase homes',phasing:'Phasing',bedrooms:'Bedrooms',bedroomOptions:'Acceptable bedrooms',builder:'Existing builder',constructionScope:'Visitor-proposed construction scope',targetDate:'Target timing',finish:'Design direction',householdNeeds:'Household priorities',budgetAmount:'Budget (visitor report)',budgetCurrency:'Budget currency',budgetScope:'Budget scope'};const lines=Object.entries(names).flatMap(([key,label])=>{const slot=s.values[key as keyof Preferences];if(key==='bedrooms'&&(stateValue(s,'bedroomOptions')?.length??0)>1||key==='bedroomOptions'&&(stateValue(s,'bedroomOptions')?.length??0)<2)return[];return slot?[`${label}: ${typeof slot.value==='boolean'?(slot.value?'Yes':key==='builder'?'Not selected':'No'):key==='family'?({architectural:'Architectural custom home',compact:'ADU / laneway / carriage home',cmhc_catalogue:'CMHC pre-reviewed reference design'}[String(slot.value)]??String(slot.value)):Array.isArray(slot.value)?slot.value.join(' or '):String(slot.value)}`]:[]});const selected=stateValue(s,'selectedModel');if(selected)lines.splice(1,0,'Selected design: '+modelIndex.get(selected)!.name);const site=stateValue(s,'siteArea');if(site)lines.push(`Lot/site area (visitor report): ${site.value} ${site.unit}; feasibility unconfirmed`);for(const key of ['areaTarget','areaMax','areaMin'] as const){const a=stateValue(s,key);if(a)lines.push(`${key==='areaMax'?'Hard maximum':key==='areaMin'?'Minimum':'Target'}: ${a.value} ${a.unit}, ${a.basis} basis`)}if(s.activeUpdates?.length)lines.push('Project updates (visitor report): '+s.activeUpdates.join(' '));return lines.join('\n').slice(0,1200)}
+export function projectSummary(s:State){const names:Partial<Record<keyof Preferences,string>>={funding:'Funding (visitor report)',audience:'Planning as',role:'Role',operator:'Prospective operator',location:'Location',province:'Province',land:'Land/site',family:'Housing',homes:'Approximate total homes',phaseHomes:'Proposed phase homes',phasing:'Phasing',storeys:'Storeys required',bedrooms:'Bedrooms',bedroomOptions:'Acceptable bedrooms',builder:'Existing builder',constructionScope:'Visitor-proposed construction scope',targetDate:'Target timing',finish:'Design direction',householdNeeds:'Household priorities',budgetAmount:'Budget (visitor report)',budgetCurrency:'Budget currency',budgetScope:'Budget scope'};const lines=Object.entries(names).flatMap(([key,label])=>{const slot=s.values[key as keyof Preferences];if(key==='bedrooms'&&(stateValue(s,'bedroomOptions')?.length??0)>1||key==='bedroomOptions'&&(stateValue(s,'bedroomOptions')?.length??0)<2)return[];return slot?[`${label}: ${typeof slot.value==='boolean'?(slot.value?'Yes':key==='builder'?'Not selected':'No'):key==='family'?({architectural:'Architectural custom home',compact:'ADU / laneway / carriage home',cmhc_catalogue:'CMHC pre-reviewed reference design'}[String(slot.value)]??String(slot.value)):Array.isArray(slot.value)?slot.value.join(' or '):String(slot.value)}`]:[]});const selected=stateValue(s,'selectedModel');if(selected)lines.splice(1,0,'Selected design: '+modelIndex.get(selected)!.name);const site=stateValue(s,'siteArea');if(site)lines.push(`Lot/site area (visitor report): ${site.value} ${site.unit}; feasibility unconfirmed`);for(const key of ['areaTarget','areaMax','areaMin'] as const){const a=stateValue(s,key);if(a)lines.push(`${key==='areaMax'?'Hard maximum':key==='areaMin'?'Minimum':'Target'}: ${a.value} ${a.unit}, ${a.basis} basis`)}if(s.activeUpdates?.length)lines.push('Project updates (visitor report): '+s.activeUpdates.join(' '));return lines.join('\n').slice(0,1200)}
 
 export function hasMatchPreferences(s:State){return ['bedrooms','bedroomOptions','areaTarget','areaMax','areaMin','bathroomsMin','storeys','study'].some(k=>s.values[k as keyof Preferences]!==undefined)||(stateValue(s,'unitsPerBuilding')??0)>1;}
