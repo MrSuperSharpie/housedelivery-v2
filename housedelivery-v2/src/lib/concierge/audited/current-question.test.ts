@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import type {LanguageModel} from 'ai';
-import {answerQuestion,naturalRejection} from './compose';
+import {answerQuestion,naturalRejection,unsupportedNumbers} from './compose';
 import {initialState,mergePatch,stateValue,signState,readState,type State} from './state';
 import {normalizeIntent,prioritizeCurrentQuestion} from './request-plan';
 import {retrieve} from './evidence';
@@ -63,4 +63,15 @@ test('site-fit assertions cannot be rescued by a disclaimer while questions and 
  for(const q of ['These homes fit well on typical urban lots like yours in East Vancouver.','Mayne House is suitable for your property, subject to review.','The design works on your lot, but approval needs checking.'])assert.equal(unsupportedSiteClaim(q),true,q);
  for(const q of ['We cannot confirm whether this home fits on your lot.','A site review is needed to determine if the design works on your property.','Lot dimensions and applicable zoning need checking.'])assert.equal(unsupportedSiteClaim(q),false,q);
  const text='These homes fit well on typical urban lots like yours in East Vancouver.';assert.equal(naturalRejection({answerSegments:[{text,evidenceRefs:['H:property']}],selectedModelIds:[],nextQuestion:null,nextAction:'none'},[{id:'H:property',data:{facts:['A preliminary review is not site approval.']},sourceIds:[]}],[],false),'unsupported_site_feasibility');
+});
+
+test('visitor numbers are reports, not dependent on attribution keywords within 65 characters',()=>{
+ const s=mergePatch(selected(),{},exact[2]),e=retrieve(normalizeIntent(plan(exact[2]),exact[2],s),s,exact[2]).evidence.filter(e=>e.id==='home-mayne'||e.id==='H:property');
+ assert.deepEqual(unsupportedNumbers('On a 4,000 sq. ft. lot, site dimensions and zoning still need review.',e,s),[]);
+ assert.deepEqual(unsupportedNumbers('On a 7,000 sq. ft. lot, site dimensions need review.',e,s),['7000']);
+ assert.deepEqual(unsupportedNumbers('The footprint is 58.43 feet wide.',e,s),['58.43'],'Do not silently authorize a unit conversion or inferred specification');
+});
+test('an unperformed search is distinct from a real no-match result',()=>{
+ const s=mergePatch(initialState('not-searched'),{},exact[0]),i=normalizeIntent(plan(exact[0]),exact[0],s),r=retrieve(i,s,exact[0]);assert.equal(r.match.searched,false);assert.deepEqual(r.models,[]);
+ const narrow=mergePatch(s,{},'I need three bedrooms');const q='I need three bedrooms',searched=retrieve(normalizeIntent(plan(q),q,narrow),narrow,q);assert.equal(searched.match.searched,true);assert.equal(searched.match.matches.length,0);
 });
