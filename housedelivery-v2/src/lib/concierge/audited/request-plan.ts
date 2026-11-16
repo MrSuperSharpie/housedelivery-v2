@@ -1,3 +1,4 @@
+import {bedroomStatement} from './measurements';
 import {technicalDocumentationAsked,manufacturingQualityAsked,structuralOptionsAsked,landedDeliveryAsked,plantVisitAsked} from './technical-logistics';
 import {continuesQuestion,questionForAnswer,refersToSelectedHome} from './continuity';
 import {financeRequested,guidanceContinuation,inheritFinanceGuidance} from './guidance';
@@ -27,11 +28,12 @@ export function normalizeIntent(raw:Intent,question:string,state:State):Intent{
  });
  requests=inheritFinanceGuidance(inheritComparisonLimits(requests,question),question,guidanceStage??undefined);
  const explicit=deterministicPatch(question,state);
- const preferenceUpdate=['bedrooms','bedroomOptions','areaTarget','areaMin','areaMax','bathroomsMin','storeys','study'].some(k=>Object.hasOwn(explicit,k))&&!namedModels(question).length&&requests.every(r=>['matching','clarify','property','specifications'].includes(r.topic));
+ const preferenceUpdate=['bedrooms','bedroomOptions','areaTarget','areaMin','areaMax','bathroomsMin','storeys','study'].some(k=>Object.hasOwn(explicit,k))&&!namedModels(question).length&&(bedroomStatement(question)||requests.every(r=>['matching','clarify','property','specifications'].includes(r.topic)));
  const acceptedBrowse=guidanceStage==='accepted'&&/browse|explore|recommend|show|look at/i.test(state.lastQuestion)&&/homes?|designs?|models?/i.test(state.lastQuestion);
- const designAsk=/\b(?:which|recommend|suggest|show)\b[^?]{0,100}\b(?:designs?|homes?|models?)\b/i.test(question);
+ const designAsk=/\b(?:which|recommend|suggest|show|find|browse|explore)\b[^?]{0,100}\b(?:designs?|homes?|models?)\b/i.test(question)||/\bwhat\s+(?:(?:family|architectural|published|custom)\s+)?(?:homes|designs|models)\b[^?]{0,60}\b(?:work|suit|match|fit|available|offered)\b/i.test(question);
  const program=Boolean(stateValue(state,'homes'))&&/contractor|builder|developer|municip|Nation|institution/i.test((stateValue(state,'role')??'')+' '+(stateValue(state,'audience')??''));
  let topic=requests.length&&requests.every(r=>r.guidanceStage)?'process' as const:raw.topic;
+ if(bedroomStatement(question)){requests=[{id:'r1',topic:'matching',question,policyIds:[],pricing:'none'}];topic='matching';}
  if((designAsk||preferenceUpdate||acceptedBrowse)&&requests.length<=1){if(!requests.length)requests=[{id:'r1',topic:'matching',question,policyIds:[],pricing:'none'}];requests=requests.map(r=>({...r,topic:'matching' as const,policyIds:[],pricing:'none' as const}));topic='matching';}
  // A compound property question may also supply actionable home preferences.
  // Keep its feasibility parts and retrieve model evidence for the design part.

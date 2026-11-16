@@ -1,14 +1,15 @@
+import {propertyStatement} from './measurements';
 import {recommendationCard,matchingIntroduction} from './recommendations';
 import {guidanceContinuation,pendingLocation,inheritFinanceGuidance} from './guidance';
 import {structured,objectSchema,type InferenceContext} from './llm';
-import {knowledge,modelIndex,factIndex,sourceIndex,safeLink} from './registry';
+import {knowledge,modelIndex,factIndex,sourceIndex,safeLink,type Model} from './registry';
 import {retrieve,modelLine,modelLink,type Evidence} from './evidence';
 import {controlledAnswer} from './commercial';
 import {stateValue,conversationContext,projectSummary,visitorNumbers,type State,mergePatch,deterministicPatch,namedModels,hasMatchPreferences} from './state';
 import {extractIntent,type Intent} from './intent';
 import {comparisonLimit,inheritComparisonLimits,finalizeComparisonAnswers} from './comparison';
 import {questionForAnswer,continuesQuestion} from './continuity';
-import {publicFactContent,handbookInstructions,containsInternalInstruction} from './publication';
+import {publicFactContent,publicModelContent,handbookInstructions,containsInternalInstruction} from './publication';
 import {handbookRelease} from './handbook';
 import {policyIndex,renderPolicies} from './policies';
 import {planningRatesEligible,relevantPolicyIds} from './request-plan';
@@ -148,6 +149,15 @@ export async function answerQuestion(question:string,state:State,ctx:InferenceCo
   }
   question=boundary.question;
   if(/\bfetch\b.*https?:|open.*example\.invalid|send.*private.*(?:url|site)/i.test(question))return{reply:{introduction:'',facts:[],answerSegments:[{text:'I can answer from House Delivery’s public product information, but this chat does not browse arbitrary websites or send data to external destinations.',evidenceRefs:[]}],question:'',next:'none',disposition:'answer',nextAction:'none',knowledgeVersion:knowledge.knowledge_version},state:mergePatch(state,{},question),sourceIds:[],mode:'boundary'};
+  const propertyUpdate=deterministicPatch(question,state,ctx.now);
+  if(!boundary.restricted&&propertyUpdate.siteArea&&propertyStatement(question)&&!hasMatchPreferences(state)&&!['areaTarget','areaMin','areaMax','bathroomsMin','storeys','study'].some(k=>Object.hasOwn(propertyUpdate,k))){
+    const next=mergePatch(state,{},question,ctx.now),area=stateValue(next,'siteArea')!,location=stateValue(next,'location');
+    const text='I’ve noted your '+area.value.toLocaleString('en-CA')+' '+(area.unit==='m2'?'m²':'sq. ft.')+' lot'+(location?' in '+location:'')+'. Lot area alone does not establish the buildable home size; site-specific review is needed.';
+    const program=(stateValue(next,'homes')??0)>1||/developer|municip|Nation|Indigenous|institution/i.test((stateValue(next,'role')??'')+' '+(stateValue(next,'audience')??''));
+    const ask=program?'What housing mix or household needs should guide the project?':stateValue(next,'family')?'How many bedrooms would feel right for you?':'What would you like to build on the property?';
+    next.lastQuestion=ask;delete next.pendingQuestion;next.lastTopic='property';next.lastEvidenceRefs=['F-PROPERTY'];next.activeQuestion=question;next.activeUpdates=[];next.activeRequests=[{id:'r1',topic:'property',question,policyIds:[],pricing:'none'}];
+    return{reply:{introduction:'',facts:[],answerSegments:[{text,evidenceRefs:['F-PROPERTY']}],question:ask,next:'none',disposition:'answer',nextAction:'none',proposedSummary:projectSummary(next),knowledgeVersion:knowledge.knowledge_version},state:next,sourceIds:factIndex.get('F-PROPERTY')!.source_ids,mode:'controlled'};
+  }
   let intent:Intent,next:State,fallback=false;
   try{const extracted=await extractIntent(question,state,ctx);intent=extracted.intent;next=extracted.state}
   catch{fallback=true;next=mergePatch(state,{},question);intent={topic:/\$|price|rate|cost|budget/i.test(question)?'pricing':/bed|sq|sf|main.level/i.test(question)?'matching':'clarify',factIds:['F-START'],modelIds:[],modelContext:'none',questionKey:null,patch:{},arithmetic:null,detail:false,ambiguous:false}}
@@ -181,6 +191,8 @@ export async function answerQuestion(question:string,state:State,ctx:InferenceCo
   const compiledPolicies=compilePolicyAnswers(parts(intent),next,question,evidence.map(e=>e.id),Boolean(intent.unconfirmedProduct));
   const recordSegments=compiledPolicies.segments;ctx.policyRecords=compiledPolicies.records;
   const generatedRequests=parts(intent).filter(r=>!compiledPolicies.answeredRequestIds.includes(r.id));
+  const cardsPermitted=!controlled?.suppressCards&&!(compiledPolicies.limitedRequestIds.length>0&&!generatedRequests.length)&&!intent.unconfirmedProduct;
+  let fallbackModels:Model[]=[];
   let segments:string[]=[],segmentRefs:string[][]=[],nextQuestion='',nextAction:Action='none',mode:AnswerResult['mode']=fallback?'reviewed_fallback':'generated';
   if(controlled){segments=controlled.segments;nextQuestion=controlled.question??'';mode='controlled';for(const id of controlled.factIds)if(!evidence.some(e=>e.id===id)){const f=factIndex.get(id)!;evidence.push({id,data:f,sourceIds:f.source_ids})}if(controlled.arithmetic)next.lastArithmetic=controlled.arithmetic;}
   else if(intent.ambiguous&&!stateValue(next,'selectedModel')&&next.recommended.length>1){segments=['I can help with either design.'];nextQuestion='Which one do you mean: '+next.recommended.map(id=>modelIndex.get(id)!.name).join(' or ')+'?';mode='controlled'}
@@ -206,8 +218,13 @@ export async function answerQuestion(question:string,state:State,ctx:InferenceCo
   if(fallback&&!segments.length){
     const failure=ctx.failures?.filter(f=>f.category!=='output_validation').at(-1)?.category;
     const serviceNotice=ctx.timeoutInjected||failure==='timeout'?'The AI connection timed out just now; your project context is still here.':failure==='rate_limit'?'The AI connection is busy just now. Your project context is still here.':failure?'The automated assistant couldn’t complete this request just now. Your project context is still here.':null;
-    segments=intent.topic==='matching'?(result.match.matches.length?[matchingIntroduction(result.match.matches)]:[hasMatchPreferences(next)?'I haven’t found a published design that meets those requirements; we can keep them as a custom project brief.':'Let’s narrow the collection around the home you want, separately from your lot size.']):['specifications','comparison'].includes(intent.topic)&&result.models.length?result.models.map(modelLine):[serviceNotice??'I don’t have a confirmed answer from the available information. Our team would need to confirm the missing details.'];
-    if(serviceNotice&&segments[0]!==serviceNotice)segments.unshift(serviceNotice);
+    if(intent.topic==='matching'&&cardsPermitted){
+      fallbackModels=result.match.matches;
+      segments=fallbackModels.length?[matchingIntroduction(fallbackModels)]:[hasMatchPreferences(next)?'I haven’t found a published design that meets those requirements; we can keep them as a custom project brief.':'Let’s narrow the collection around the home you want, separately from your lot size.'];
+    }else if(['specifications','comparison'].includes(intent.topic)&&cardsPermitted&&result.models.length){fallbackModels=result.models;segments=fallbackModels.map(modelLine);}
+    else segments=[serviceNotice??'I don’t have a confirmed answer from the available information. Our team would need to confirm the missing details.'];
+    if(fallbackModels.length){segmentRefs=segments.map(()=>fallbackModels.map(m=>m.id));for(const m of fallbackModels)if(!evidence.some(e=>e.id===m.id))evidence.push({id:m.id,data:publicModelContent(m),sourceIds:m.source_ids});}
+    if(serviceNotice&&segments[0]!==serviceNotice){segments.unshift(serviceNotice);segmentRefs.unshift([]);}
   }
   if(mode==='generated'&&intent.topic==='pricing'&&ctx.rejections?.includes('scope_qualification')){segments.push('Site preparation, foundations, services, local engineering and permits, Canadian assembly and completion, appliances and sales taxes are separately considered unless expressly included in the written scope.');segmentRefs.push(['F-SCOPE','F-EXCLUSIONS']);}
   if(topics(intent).includes('matching')&&!controlled&&hasMatchPreferences(next)){
@@ -217,20 +234,25 @@ export async function answerQuestion(question:string,state:State,ctx:InferenceCo
   if(ctx.coverage?.missing.length||ctx.fallbackReason==='incomplete_answer'){mode='reviewed_fallback';ctx.fallbackReason=ctx.fallbackReason??'partial_validation';segments.push('I don’t have confirmed information for the remaining part of your question.');nextQuestion='';}
   if(boundary.restricted&&boundary.publicOrigin&&!segmentRefs.some(refs=>refs.includes('F-ORIGIN'))){const origin=factIndex.get('F-ORIGIN')!;segments.push(origin.text);segmentRefs.push([origin.id]);if(!evidence.some(e=>e.id===origin.id))evidence.push({id:origin.id,data:publicFactContent(origin),sourceIds:origin.source_ids});}
   if(boundary.restricted){segments.push(boundary.identityCondition?identityConditionNotice:boundary.privateFacility?facilityLocationNotice:confidentialityNotice);segmentRefs.push([]);}
-  const showCards=!controlled?.suppressCards&&!(compiledPolicies.limitedRequestIds.length>0&&!generatedRequests.length)&&(['matching','comparison'].includes(intent.topic)||intent.detail&&recordSegments.length===0||/floor[ -]?plans?|drawings?/i.test(question));
-  const cards=showCards?result.models.map(recommendationCard):[];
-  if(result.models.length){next.recommended=result.models.map(m=>m.id).slice(0,3);if(result.models.length===1)next.values.selectedModel={value:result.models[0].id,sourceTurn:next.turn,status:'visitor_reported'}}
-  if(/floor plan|both source|drawing|look book|studio|save it/i.test(question)&&result.models.length)nextAction=/look book|save it/i.test(question)?'lookbook':/studio/i.test(question)?'studio':'browse_designs';
+  // Names, cards, links and follow-up context share the same verified models.
+  // A successful matcher must not disappear because intake chose another topic.
+  const matchingRequested=intent.topic==='matching'||topics(intent).includes('matching');
+  const referenced=new Set(namedModels(segments.join(' '))),namedPublicModels=result.models.filter(m=>referenced.has(m.id));
+  const showCards=cardsPermitted&&(fallbackModels.length>0||matchingRequested||intent.topic==='comparison'||intent.detail&&recordSegments.length===0||/floor[ -]?plans?|drawings?/i.test(question)||recordSegments.length===0&&namedPublicModels.length>0);
+  const cardModels=showCards?(fallbackModels.length?fallbackModels:matchingRequested||intent.topic==='comparison'||intent.detail||/floor[ -]?plans?|drawings?/i.test(question)?result.models:namedPublicModels):[];
+  const cards=cardModels.map(recommendationCard),contextModels=cardModels.length?cardModels:result.models;
+  if(contextModels.length){next.recommended=contextModels.map(m=>m.id).slice(0,3);if(contextModels.length===1)next.values.selectedModel={value:contextModels[0].id,sourceTurn:next.turn,status:'visitor_reported'}}
+  if(/floor plan|both source|drawing|look book|studio|save it/i.test(question)&&contextModels.length)nextAction=/look book|save it/i.test(question)?'lookbook':/studio/i.test(question)?'studio':'browse_designs';
   if(intent.topic==='contact'||intent.topic==='summary'||/share only.*summary|did you send/i.test(question))nextAction=declined?'none':'summary';
   if(declined&&['consultation','summary'].includes(nextAction)||summaryRequested&&/without sending|do not send|don't send|just summari/i.test(question))nextAction='none';
-  if(topics(intent).includes('matching')&&cards.length){
+  if((matchingRequested||fallbackModels.length>0)&&cards.length){
     nextAction='browse_designs';
     // A supplied requirement advances to the next decision, never another offer
     // to browse. Do not re-ask a question already asked on the preceding turn.
     const sizeKnown=['areaTarget','areaMax','areaMin'].some(k=>Object.hasOwn(next.values,k));
     const useful=sizeKnown?'Which design would you like to compare or explore in more detail?':'What approximate home size would you like, separate from the lot area?';
     nextQuestion=useful===state.lastQuestion?'':useful;
-    if(stateValue(next,'siteArea')){segments.push('These are design starting points; fit on your property still needs a site-specific review.');segmentRefs.push(['F-PROPERTY']);}
+    if(stateValue(next,'siteArea')){segments.push('These are design starting points; fit on your property still needs a site-specific review.');segmentRefs.push(['F-PROPERTY']);if(!evidence.some(e=>e.id==='F-PROPERTY')){const f=factIndex.get('F-PROPERTY')!;evidence.push({id:f.id,data:publicFactContent(f),sourceIds:f.source_ids});}}
   }
   if(topics(intent).includes('matching')&&!hasMatchPreferences(next)&&!nextQuestion)nextQuestion='How many bedrooms would feel right for you?';
   if(nextQuestion&&stateValue(next,'location')&&/which (municipality|city|province)|where.*(?:property|site)/i.test(nextQuestion))nextQuestion='';
@@ -245,8 +267,8 @@ export async function answerQuestion(question:string,state:State,ctx:InferenceCo
   next.scopeExplained=next.scopeExplained||['pricing','scope','arithmetic'].includes(intent.topic);next.lastQuestion=nextQuestion;
   next.activeQuestion=continuesQuestion(visitorQuestion,state)?state.activeQuestion:visitorQuestion;next.activeUpdates=continuesQuestion(visitorQuestion,state)?[...new Set([...(state.activeUpdates??[]),visitorQuestion])].slice(-3):[];next.activeRequests=parts(intent);
   next.lastTopic=intent.topic;next.lastEvidenceRefs=evidence.map(e=>e.id);
-  const linksUseful=nextAction!=='none'||recordSegments.length>0&&result.models.length>0||['matching','comparison','specifications'].includes(intent.topic)||/links?|view|open|floor plan|studio|look.?book|sources?/i.test(question);
-  const linked=linksUseful?linkFacts(evidence,result.models,intent,question):[];
+  const linksUseful=cards.length>0||nextAction!=='none'||recordSegments.length>0&&result.models.length>0||['matching','comparison','specifications'].includes(intent.topic)||/links?|view|open|floor plan|studio|look.?book|sources?/i.test(question);
+  const linked=linksUseful?linkFacts(evidence,contextModels,intent,question):[];
   const actionHref=nextAction==='property_review'?safeLink(knowledge.routing.adu_laneway):undefined;
   return{reply:{introduction:'',facts:linked,answerSegments:segments.map((text,i)=>({text,evidenceRefs:segmentRefs[i]??evidence.map(e=>e.id)})),modelCards:cards,question:nextQuestion,next:'none',disposition:'answer',nextAction,actionHref,proposedSummary:projectSummary(next),showSummary:summaryRequested,knowledgeVersion:knowledge.knowledge_version,detailed:intent.detail},state:next,sourceIds:[...new Set(evidence.flatMap(e=>e.sourceIds))],mode};
 }
