@@ -9,10 +9,10 @@ import {topics,cmhcRelevant,chatLimits} from './response-plan';
 export type Evidence={id:string;data:unknown;sourceIds:string[]};
 const topicFacts:Record<Intent['topic'],string[]>={company:['F-COMPANY','F-MARKETS','F-START'],matching:['F-CUSTOMIZATION','F-PROPERTY'],specifications:[],comparison:[],customization:['F-CUSTOMIZATION','F-STUDIO','F-INCLUSIONS','F-ESSENTIAL'],pricing:['F-PRICE','F-SCOPE','F-EXCLUSIONS'],arithmetic:['F-PRICE','F-SCOPE','F-EXCLUSIONS'],process:['F-PROCESS','F-PARALLEL','F-TIMING'],scope:['F-SCOPE','F-EXCLUSIONS','F-APPLIANCES'],property:['F-PROPERTY','F-START'],community:['F-MARKETS','F-PORTFOLIO','F-PROCESS'],builder:['F-BUILDER','F-COMPANY','F-SCOPE','F-ORIGIN','F-PROCESS'],origin:['F-ORIGIN','F-SYSTEMS'],warranty:['F-WARRANTY'],terms:['F-CMHC','F-CMHC-INDEPENDENT','F-TECHNICAL'],contact:['F-CONTACT','F-PRIVACY','F-START'],summary:['F-CONTACT','F-PRIVACY'],clarify:['F-START'],unrelated:['F-START']};
 export function retrieve(intent:Intent,state:State,question:string){
-  const rawMatch=shortlist(constraints(state),/known (size|area)|published (size|area)|known floor area/i.test(question)?knowledge.models.filter(m=>m.numeric_area_matching_allowed&&m.area_sqft!==null):knowledge.models,.1,(stateValue(state,'bedroomOptions')?.length??0)>1?3:2),ids=namedModels(question);
+  const ids=namedModels(question),candidates=knowledge.models.filter(m=>(!ids.length||ids.includes(m.id))&&(!/known (size|area)|published (size|area)|known floor area/i.test(question)||m.numeric_area_matching_allowed&&m.area_sqft!==null));
+  const rawMatch=shortlist(constraints(state),candidates,.1,(stateValue(state,'bedroomOptions')?.length??0)>1?3:2);
   const exploratory=!hasMatchPreferences(state)&&hasHouseholdDetail(state)&&topics(intent).includes('matching');
   const match={...(topics(intent).includes('matching')&&(hasMatchPreferences(state)||exploratory)?rawMatch:{...rawMatch,matches:[],outsideTargetAlternatives:[]}),exploratory,searched:topics(intent).includes('matching')&&(hasMatchPreferences(state)||exploratory)};
-  if(ids.length){match.matches=match.matches.filter(m=>ids.includes(m.id));match.outsideTargetAlternatives=match.outsideTargetAlternatives.filter(m=>ids.includes(m.id));}
   let models:Model[]=[];
   if(intent.unconfirmedProduct)models=[];
   else if(compactInventoryRequested(question))models=knowledge.models.filter(m=>m.family==='laneway_carriage'||m.family==='cmhc_catalogue'&&m.units===1);

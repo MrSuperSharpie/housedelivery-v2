@@ -32,7 +32,7 @@ test('a stated house size and maximum are preferences, not an allowable-size que
  const s=mergePatch(initialState('metres'),{},'Our lot is 600 m².');const q='A house of 230 m², maximum 250.';assert.equal(propertyDecision(q,s),null);const next=mergePatch(s,{},q);assert.equal(stateValue(next,'areaTarget')?.value,230);assert.equal(stateValue(next,'areaMax')?.value,250);
 });
 test('named-home discovery scopes both retrieved evidence and fallback matches to that home',()=>{
- const q="We're a couple with two kids and would like to explore the Aurora.",s=mergePatch(initialState('named'),{},q),i=normalizeIntent(plan(q),q,s),r=retrieve(i,s,q);assert.deepEqual(r.models.map(m=>m.id),['home-aurora']);assert.deepEqual(r.match.matches.map(m=>m.id),['home-aurora']);
+ for(const [name,id]of [['the Aurora','home-aurora'],['Mayne House','home-mayne']]){const q="We're a couple with two kids and would like to explore "+name+'.',s=mergePatch(initialState('named'),{},q),i=normalizeIntent(plan(q),q,s),r=retrieve(i,s,q);assert.deepEqual(r.models.map(m=>m.id),[id]);assert.deepEqual(r.match.matches.map(m=>m.id),[id]);}
 });
 test('a dimensional feasibility question is not a new shopping preference',()=>{
  const s=mergePatch(selected(),{},'Would a 1500 square foot footprint fit on my lot?');assert.equal(stateValue(s,'areaTarget')?.sqft,3000);assert.equal(stateValue(s,'selectedModel'),'home-mayne');
