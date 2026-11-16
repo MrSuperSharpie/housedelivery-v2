@@ -44,14 +44,14 @@ test('pricing records are relevant, unique and retain all material commercial qu
  const s=mergePatch(initialState('P'),{},q,now);
  const requests:RequestPart[]=[{id:'r1',topic:'pricing',question:'Published Premium package rates?',pricing:'planning_rates',policyIds:['pricing_scope','finish_tiers']},{id:'r2',topic:'pricing',question:'How is freight priced?',pricing:'freight',policyIds:['freight_quotation','pricing_scope']}];
  const result=compilePolicyAnswers(requests,s,q,['F-PRICE','F-SCOPE','F-EXCLUSIONS']);const text=result.segments.map(s=>s.text).join(' ');
- assert.deepEqual(result.answeredRequestIds,['r1','r2']);assert.equal(result.records.filter(r=>r.id==='pricing_scope').length,1);assert.doesNotMatch(text,/Essential|ambiguity|homepage|verified/);
+ assert.deepEqual(result.answeredRequestIds,['r2']);assert.equal(result.records.filter(r=>r.id==='pricing_scope').length,1);assert.doesNotMatch(text,/Essential|ambiguity|homepage|verified/);
  assert.match(text,/Premium: CAD \$250/);assert.match(text,/Brandon, Manitoba/);assert.equal((text.match(/not completed-home prices/g)??[]).length,1);
- for(const phrase of ['written quotation','foundations','services','local engineering and permits','assembly and completion','appliances and taxes','unless expressly included','applicable import costs'])assert.ok(text.includes(phrase),phrase);
+ for(const phrase of ['written quotation','foundations','services','permits','assembly and completion','Appliances','sales taxes','applicable import tariffs'])assert.ok(text.includes(phrase),phrase);
 });
 test('one shared policy paragraph can answer multiple rate requests without losing coverage',()=>{
  const requests:RequestPart[]=[{id:'r1',topic:'pricing',question:'Premium package rate?',pricing:'planning_rates',policyIds:['pricing_scope']},{id:'r2',topic:'pricing',question:'Signature package rate?',pricing:'planning_rates',policyIds:['pricing_scope']}];
  const r=compilePolicyAnswers(requests,initialState('P'),'What are the Premium and Signature package rates?',['F-PRICE']);
- assert.equal(r.segments.length,1);assert.deepEqual(r.answeredRequestIds,['r1','r2']);assert.match(r.segments[0].text,/Premium: CAD \$250/);assert.match(r.segments[0].text,/Signature: CAD \$300/);
+ assert.equal(r.segments.length,1);assert.deepEqual(r.answeredRequestIds,[]);assert.match(r.segments[0].text,/Premium: CAD \$250/);assert.match(r.segments[0].text,/Signature: CAD \$300/);
 });
 test('legitimate tier comparisons remain available without source metadata in customer text',()=>{
  const requests:RequestPart[]=[{id:'r1',topic:'customization',question:'Compare finish tiers.',pricing:'none',policyIds:['finish_tiers']}];

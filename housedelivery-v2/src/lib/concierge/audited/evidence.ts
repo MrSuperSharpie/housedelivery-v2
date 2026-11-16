@@ -1,3 +1,4 @@
+import {commercialSourceIds} from './current-commercial';
 import {designLibraryEvidence,widerLibraryAsked} from './design-library';
 import {visitorEvidence,hasHouseholdDetail} from './visitor-context';
 import {knowledge,modelIndex,factIndex,safeLink,type Model} from './registry';
@@ -26,6 +27,7 @@ export function retrieve(intent:Intent,state:State,question:string){
   if(intent.topic==='comparison'&&ids.length===1)models=[...models,...state.recommended.filter(id=>!ids.includes(id)).map(id=>modelIndex.get(id)!).filter(Boolean)].slice(0,2);
   if(/main.level|main.floor|ground.floor/i.test(question)&&models.length>1){const suited=models.filter(m=>m.features.some(f=>/main.level.*(suite|bedroom)|main.floor.*suite|ground.floor.*(bedroom|suite)/i.test(f)));if(suited.length)models=suited;}
   const historicalModels=(topics(intent).includes('matching')||widerLibraryAsked(question)||/those|these|previous|earlier/i.test(question))?(state.previousModels??[]).filter(id=>!models.some(m=>m.id===id)).map(id=>modelIndex.get(id)!).filter(Boolean):[];
+  const selected=stateValue(state,'selectedModel'),contextualModel=selected&&!models.some(m=>m.id===selected)&&!historicalModels.some(m=>m.id===selected)?modelIndex.get(selected):undefined;
   const requestedFacts=[...new Set([...topics(intent).flatMap(t=>topicFacts[t]),...intent.factIds])];
   if(/includ|kit|package|source locally|local.*(?:supply|responsibilit)/i.test(question))requestedFacts.push('F-SCOPE','F-EXCLUSIONS','F-INCLUSIONS','F-BUILDER');
   if(/building code|code complian|permit|regulat|certific/i.test(question))requestedFacts.push('F-TECHNICAL','F-BUILDER','F-SYSTEMS');
@@ -42,9 +44,9 @@ export function retrieve(intent:Intent,state:State,question:string){
   if(intent.topic==='warranty')requestedFacts.push('F-WARRANTY');
   const deliveryOnly=/freight|shipping|\bdelivery\b|\bdeliver\b/i.test(question)&&!/sq\.?|square|per foot|Premium|Signature|package rate|planning rate|kit price|package pric/i.test(question);
   const cmhc=cmhcRelevant(intent,question,models.map(m=>m.id));
-  const facts=[...new Set(requestedFacts)].filter(id=>!deliveryOnly||id!=='F-PRICE').filter(id=>cmhc||!['F-CMHC','F-CMHC-INDEPENDENT','F-CATALOG-UNIT-MIX','F-CATALOG-CONFLICTS'].includes(id)).map(id=>factIndex.get(id)).filter((x):x is NonNullable<typeof x>=>Boolean(x));
+  const facts=[...new Set(requestedFacts)].filter(id=>id!=='F-PRICE'||!deliveryOnly&&(!models.length||models.every(m=>m.family==='architectural'))).filter(id=>cmhc||!['F-CMHC','F-CMHC-INDEPENDENT','F-CATALOG-UNIT-MIX','F-CATALOG-CONFLICTS'].includes(id)).map(id=>factIndex.get(id)).filter((x):x is NonNullable<typeof x>=>Boolean(x));
   const studios=intent.topic==='customization'?knowledge.design_studios.filter(s=>models.some(m=>m.id===s.model_id)):[];
-  const evidence:Evidence[]=[visitorEvidence(state,question),...(topics(intent).includes('matching')||widerLibraryAsked(question)?[designLibraryEvidence]:[]),...selectHandbook(intent,state,question),chatLimits,...(intent.unconfirmedProduct?[{id:'CAPABILITY-LIMIT',data:{text:'Availability of the requested project type requires team confirmation. Chat cannot issue a binding quotation.'},sourceIds:[]}]:[]),...facts.map(f=>({id:f.id,data:factProjection(f),sourceIds:f.source_ids})),...[...models,...historicalModels].map(m=>({id:m.id,data:publicModelContent(m),sourceIds:m.source_ids})),...studios.map(s=>({id:'STUDIO:'+s.model_id,data:{chapters:s.chapters,directions:s.verified_visible_kitchen_directions,qualification:s.qualification},sourceIds:s.source_ids}))];
+  const evidence:Evidence[]=[visitorEvidence(state,question),...(topics(intent).includes('matching')||widerLibraryAsked(question)?[designLibraryEvidence]:[]),...selectHandbook(intent,state,question),chatLimits,...(intent.unconfirmedProduct?[{id:'CAPABILITY-LIMIT',data:{text:'Availability of the requested project type requires team confirmation. Chat cannot issue a binding quotation.'},sourceIds:[]}]:[]),...facts.map(f=>({id:f.id,data:factProjection(f),sourceIds:['F-PRICE','F-SCOPE','F-EXCLUSIONS','F-TIMING'].includes(f.id)?commercialSourceIds:f.source_ids})),...[...models,...historicalModels,...(contextualModel?[contextualModel]:[])].map(m=>({id:m.id,data:publicModelContent(m),sourceIds:m.source_ids})),...studios.map(s=>({id:'STUDIO:'+s.model_id,data:{chapters:s.chapters,directions:s.verified_visible_kitchen_directions,qualification:s.qualification},sourceIds:s.source_ids}))];
   return {match,models,historicalModels,facts,studios,evidence};
 }
 export function modelLine(m:Model){

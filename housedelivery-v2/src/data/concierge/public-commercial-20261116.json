@@ -1,0 +1,193 @@
+{
+  "id": "public-commercial-2026-11-16",
+  "classification": "customer_safe",
+  "verifiedDate": "2026-11-16",
+  "sources": [
+    {
+      "slug": "langley",
+      "url": "https://www.housedelivery.ca/homes/langley",
+      "premium": true,
+      "signature": true,
+      "standardLogistics": true,
+      "assemblyPackage": true,
+      "factoryTiming": true,
+      "sha256": "62d16b4b6c2858ae168a0444b36b490a983166def10320fbb12ca39393c8b03a"
+    },
+    {
+      "slug": "salt-spring",
+      "url": "https://www.housedelivery.ca/homes/salt-spring",
+      "premium": true,
+      "signature": true,
+      "standardLogistics": true,
+      "assemblyPackage": true,
+      "factoryTiming": true,
+      "sha256": "6bcbe869d99fe93687dc61fd9b9397363155f972975bdbb595512678b0188eb1"
+    },
+    {
+      "slug": "solace",
+      "url": "https://www.housedelivery.ca/homes/solace",
+      "premium": true,
+      "signature": true,
+      "standardLogistics": true,
+      "assemblyPackage": true,
+      "factoryTiming": true,
+      "sha256": "8a6b6b6f56bdd75e1c2c674980dc99292980aea272845b7f6f1cd6ba50a9eb23"
+    },
+    {
+      "slug": "timberline",
+      "url": "https://www.housedelivery.ca/homes/timberline",
+      "premium": true,
+      "signature": true,
+      "standardLogistics": true,
+      "assemblyPackage": true,
+      "factoryTiming": true,
+      "sha256": "58ee9d466e368a631ee1d91a965373b054f56fa2c8f6556c174ab26ecfba8a34"
+    },
+    {
+      "slug": "profile",
+      "url": "https://www.housedelivery.ca/homes/profile",
+      "premium": true,
+      "signature": true,
+      "standardLogistics": true,
+      "assemblyPackage": true,
+      "factoryTiming": true,
+      "sha256": "7bd2f1e6db2993ab6c62e7cd315d3d4ba7653d0714330f4e95fafa5c70989f6e"
+    },
+    {
+      "slug": "laurentian",
+      "url": "https://www.housedelivery.ca/homes/laurentian",
+      "premium": true,
+      "signature": true,
+      "standardLogistics": true,
+      "assemblyPackage": true,
+      "factoryTiming": true,
+      "sha256": "e5db4c72c9e52a720a4c0c1a29e677ad6ed910380761e52e43840b3262579431"
+    },
+    {
+      "slug": "dalton",
+      "url": "https://www.housedelivery.ca/homes/dalton",
+      "premium": true,
+      "signature": true,
+      "standardLogistics": true,
+      "assemblyPackage": true,
+      "factoryTiming": true,
+      "sha256": "5bca32493b3b801309c1c429c34f6fac75a50000d4579334515c23041b09b23e"
+    },
+    {
+      "slug": "south-bay",
+      "url": "https://www.housedelivery.ca/homes/south-bay",
+      "premium": true,
+      "signature": true,
+      "standardLogistics": true,
+      "assemblyPackage": true,
+      "factoryTiming": true,
+      "sha256": "5f1ba2a24aa471907b06aefd692be2cf9073f7b8c1e7c45bd25c1abe415f693a"
+    },
+    {
+      "slug": "boreal",
+      "url": "https://www.housedelivery.ca/homes/boreal",
+      "premium": true,
+      "signature": true,
+      "standardLogistics": true,
+      "assemblyPackage": true,
+      "factoryTiming": true,
+      "sha256": "8625686c60821cf8b8211a322cbd689bd7a7af7d19c4e13e9e8cd38ca9f446d4"
+    },
+    {
+      "slug": "keats",
+      "url": "https://www.housedelivery.ca/homes/keats",
+      "premium": true,
+      "signature": true,
+      "standardLogistics": true,
+      "assemblyPackage": true,
+      "factoryTiming": true,
+      "sha256": "b41decd11d3801b289a495a70fbf413492c5704d203478fa9b3ccb31a14e135d"
+    },
+    {
+      "slug": "canmore",
+      "url": "https://www.housedelivery.ca/homes/canmore",
+      "premium": true,
+      "signature": true,
+      "standardLogistics": true,
+      "assemblyPackage": true,
+      "factoryTiming": true,
+      "sha256": "1cd454c3119b13f716e7e78f70f327e562dc69d78d33d2372b95acc838322f69"
+    },
+    {
+      "slug": "saturna",
+      "url": "https://www.housedelivery.ca/homes/saturna",
+      "premium": true,
+      "signature": true,
+      "standardLogistics": true,
+      "assemblyPackage": true,
+      "factoryTiming": true,
+      "sha256": "8977550159c75d4e48211ad200d73d0050833780230293237c08d89bca24757a"
+    },
+    {
+      "slug": "cascade",
+      "url": "https://www.housedelivery.ca/homes/cascade",
+      "premium": true,
+      "signature": true,
+      "standardLogistics": true,
+      "assemblyPackage": true,
+      "factoryTiming": true,
+      "sha256": "ccfca5fabdad36f1597a97046f5bd23488136bae52da7c888d3446ea95cc97dd"
+    },
+    {
+      "slug": "maplewood",
+      "url": "https://www.housedelivery.ca/homes/maplewood",
+      "premium": true,
+      "signature": true,
+      "standardLogistics": true,
+      "assemblyPackage": true,
+      "factoryTiming": true,
+      "sha256": "77ff76260c425bec102772d0ffc116dd506d432c7cf9283cdd20c0ca7f03bdd7"
+    },
+    {
+      "slug": "cedarview",
+      "url": "https://www.housedelivery.ca/homes/cedarview",
+      "premium": true,
+      "signature": true,
+      "standardLogistics": true,
+      "assemblyPackage": true,
+      "factoryTiming": true,
+      "sha256": "8cee74fa5f9534deb781db8ee9c58eef175c32cbf5bedf543820a49446f1c147"
+    },
+    {
+      "slug": "mayne",
+      "url": "https://www.housedelivery.ca/homes/mayne",
+      "premium": true,
+      "signature": true,
+      "standardLogistics": true,
+      "assemblyPackage": true,
+      "factoryTiming": true,
+      "sha256": "302d9889500ccd0b2ba1eb0e22f46a621e83ced8c93c63061ba3e62646373226"
+    },
+    {
+      "slug": "summit",
+      "url": "https://www.housedelivery.ca/homes/summit",
+      "premium": true,
+      "signature": true,
+      "standardLogistics": true,
+      "assemblyPackage": true,
+      "factoryTiming": true,
+      "sha256": "2d631c40654522fcc278ca9374b9958ec85df6605fcf1dfdd8f76a5bcd6bf2ec"
+    },
+    {
+      "slug": "aurora",
+      "url": "https://www.housedelivery.ca/homes/aurora",
+      "premium": true,
+      "signature": true,
+      "standardLogistics": true,
+      "assemblyPackage": true,
+      "factoryTiming": true,
+      "sha256": "a563794b76d4f52971a5a9d1e3846b9b2569dce9adbf35548bacaff39f33f67e"
+    }
+  ],
+  "facts": {
+    "F-PRICE": "The 18 published custom-home pages display CAD starting home-package planning references for Premium and Signature, using each page\u2019s published model area. These are not completed-home prices or binding quotations. Final package pricing varies with selections, architectural complexity, glazing, structure, location and logistics. Highly customized homes and alternate structural systems, including timber, require project-specific pricing after review of plans and specifications. The published references do not establish pricing for compact, CMHC or unpublished designs.",
+    "F-SCOPE": "House Delivery coordinates design, engineered housing systems, manufacturing, purchasing, logistics and Canadian construction. Published custom-home package pricing includes the coordinated building package, standard project logistics and applicable import tariffs based on the confirmed project scope. The written quotation establishes the products, materials, scope, destination and exceptions; a package price is not a completed-home price.",
+    "F-EXCLUSIONS": "Site work, foundations, services and local trades are project-specific. Local engineering, permits and Canadian completion responsibilities need agreement in the project scope. Assembly and erection can be provided as a separate project-specific package. Appliances are selected separately. Applicable sales taxes are extra. Remote, island, northern and special-access delivery is quoted separately. These planning distinctions do not establish the final inclusions or exclusions of a written project quotation.",
+    "F-TIMING": "Published custom-home guidance describes factory production as typically 40\u201345 days after approved drawings and payment. Site preparation can run in parallel when the project is ready. Approval-to-assembly can be in months, subject to site readiness, shipping and local requirements. This factory phase is not the full period from choosing a floor plan to moving in. Design revisions, site-specific engineering, permits, procurement, delivery, foundations, assembly, servicing, completion and occupancy requirements determine the complete project schedule; no universal move-in duration is published."
+  }
+}

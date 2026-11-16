@@ -36,7 +36,7 @@ test('ordinary requests for other published homes remain design matching',()=>{
  const q='Show me other homes',s=initial(),i=normalizeIntent(plan(q),q,s),r=retrieve(i,s,q);assert.equal(i.topic,'matching');assert.ok(r.models.length>0);
 });
 test('finish and window questions answer actual selection boundaries without another matching request',()=>{
- const s=initial(),i=normalizeIntent(plan(journey[1]),journey[1],s),r=retrieve(i,s,journey[1]),policies=compilePolicyAnswers(i.requests!,s,journey[1],r.evidence.map(e=>e.id));assert.equal(i.topic,'customization');assert.ok(i.requests!.every(p=>p.topic!=='matching'));assert.equal(policies.segments.length,1);const text=policies.segments[0].text;assert.match(text,/flooring or glazing design directions.*actually presents/);assert.match(text,/resize or move windows/);assert.match(text,/separate project-specific design and engineering review/);
+ const s=initial(),i=normalizeIntent(plan(journey[1]),journey[1],s),r=retrieve(i,s,journey[1]),policies=compilePolicyAnswers(i.requests!,s,journey[1],r.evidence.map(e=>e.id));assert.equal(i.topic,'customization');assert.ok(i.requests!.every(p=>p.topic!=='matching'));assert.equal(policies.segments.length,1);const text=policies.segments[0].text;assert.match(text,/actually presents.*flooring or glazing directions/);assert.match(text,/resize or move windows/);assert.match(text,/separate project-specific design and engineering review/);
 });
 type Schema={type?:unknown;properties:Record<string,Schema>;items:Schema;enum:(string|number)[]};
 function fixture(q:string,{invalid=false,historyOnly=false,question='Would you like to explore other designs?'}={}):LanguageModel{

@@ -1,3 +1,4 @@
+import {policyStageFixture} from './policy-stage.fixture';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import type {LanguageModel} from 'ai';
@@ -16,6 +17,7 @@ const base=(question:string):Intent=>({topic:'matching',requests:[{id:'r1',topic
 const q='For a 1,500-square-foot home, how does a steel kit compare with timber framing on cost and construction speed?';
 function modelFor(requests:NonNullable<Intent['requests']>,topic:Intent['topic']='matching'):LanguageModel{
  return{specificationVersion:'v4',provider:'local-boundary-fixture',modelId:'bounded',supportedUrls:{},doStream:async()=>{throw Error('No streaming')},doGenerate:async options=>{
+  const stage=policyStageFixture(options);if(stage)return stage;
   const schema=options.responseFormat?.type==='json'?options.responseFormat.schema:undefined;
   if(!schema?.properties?.patch)throw Error('Unexpected additional model call');
   const props=(schema.properties.patch as {properties:Record<string,{type?:unknown}>}).properties;
@@ -59,7 +61,7 @@ test('compound model inclusions, local scope and published rates all retain thei
  const requests:NonNullable<Intent['requests']>=[{id:'r1',topic:'scope',question:'What is included with Cedarview?',policyIds:['package_scope'],pricing:'none'},{id:'r2',topic:'builder',question:'What must be arranged locally?',policyIds:['local_work'],pricing:'none'},{id:'r3',topic:'pricing',question:'Do published Premium and Signature package rates apply to Cedarview?',policyIds:['pricing_scope'],pricing:'planning_rates'}];
  const ctx:InferenceContext={calls:0,model:modelFor(requests,'scope')};
  const result=await answerQuestion(question,initialState('I'),ctx),text=result.reply.answerSegments!.map(s=>s.text).join(' ');
- assert.equal(ctx.calls,1);assert.deepEqual(ctx.coverage?.missing,[]);assert.deepEqual(ctx.coverage?.retained,['r1','r2','r3']);assert.match(text,/Cedarview.*cold-formed light steel frame/);assert.match(text,/not a final model-specific supply schedule/);assert.match(text,/unless expressly included/);assert.match(text,/Salt Spring.*applicability to another model/);assert.match(text,/Premium: CAD \$250/);assert.match(text,/Signature: CAD \$300/);
+ assert.equal(ctx.calls,3);assert.equal(result.mode,'generated',JSON.stringify({rejections:ctx.rejections,coverage:ctx.coverage,failures:ctx.failures}));assert.deepEqual(ctx.coverage?.missing,[]);assert.deepEqual(ctx.coverage?.retained,['r1','r2','r3']);assert.match(text,/not confirmed model\/package inclusions/);assert.match(text,/unless expressly included/);assert.match(text,/published custom-home planning references/);assert.match(text,/Premium: CAD \$250/);assert.match(text,/Signature: CAD \$300/);
  for(const segment of result.reply.answerSegments!)assert.equal(containsInternalInstruction(segment.text),false);
  assert.equal(stateValue(result.state,'selectedModel'),'home-cedarview');
 });
@@ -73,7 +75,7 @@ test('explicit compound parts survive an intake plan that selected only inclusio
  const question='What is included with Cedarview, what must be arranged locally, and do the published Premium and Signature rates apply to it?';
  const state=mergePatch(initialState('K'),{},question),i=normalizeIntent({...base(question),requests:[{id:'r1',topic:'scope',question:'What is included with Cedarview?',policyIds:['package_scope'],pricing:'none'}]},question,state);
  const records=compilePolicyAnswers(i.requests!,state,question,['F-SCOPE','F-EXCLUSIONS','F-PRICE']);
- assert.deepEqual(new Set(records.records.map(r=>r.id)),new Set(['package_scope','local_work','pricing_scope']));assert.deepEqual(records.answeredRequestIds,['r1','r2','r3']);
+ assert.deepEqual(new Set(records.records.map(r=>r.id)),new Set(['package_scope','local_work','pricing_scope']));assert.deepEqual(records.answeredRequestIds,[]);assert.deepEqual(records.records.map(r=>r.requestId),['r1','r2','r3']);
  const freight='What are your published freight rates for Manitoba?';const f=normalizeIntent({...base(freight),topic:'pricing',requests:[{id:'r1',topic:'pricing',question:freight,pricing:'freight',policyIds:['freight_quotation']}]},freight,initialState('F'));
  assert.ok(!f.requests!.some(r=>r.policyIds?.includes('pricing_scope')));
 });

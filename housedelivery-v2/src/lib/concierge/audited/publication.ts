@@ -1,3 +1,4 @@
+import {currentCommercialText} from './current-commercial';
 import handbook from '@/data/concierge/company-handbook.json';
 import {factIndex,knowledge,publicModel,type Model,type PublicFact} from './registry';
 
@@ -7,7 +8,7 @@ export type AnswerContent={text:string;qualifications:string[]};
 const mixedFactSlots:Record<string,number[]>={'F-IMAGES':[0]};
 const factSentences=(f:PublicFact)=>f.text.split(/(?<=[.!?])\s+/);
 const qualifications:Record<string,string[]>={
- 'F-PRICE':['These references are published for Salt Spring; they are not confirmed prices for another model. Model applicability, chargeable area, selected scope and delivery require a written quotation.'],
+ 'F-PRICE':['These are starting housing-package planning references for the verified published custom-home selection, not binding quotations. Model-specific scope and final pricing require a written quotation.'],
  'F-CUSTOMIZATION':['A visual selection does not authorize a structural change or establish a free redesign.'],
  'F-TIMING':['Production, shipping, assembly and move-in timing require project-specific confirmation.'],
  'F-PARTICIPATION':['Job counts, training arrangements, wages and funding commitments require project-specific confirmation.'],
@@ -16,8 +17,7 @@ const qualifications:Record<string,string[]>={
  'F-CATALOG-UNIT-MIX':['Reference design only; adaptable does not mean a delivered project is fully accessible.']
 };
 export function publicFactContent(f:PublicFact):AnswerContent{
- const rule=knowledge.price_rules.find(r=>r.id==='PR-SALT-DISPLAY')!;
- return{text:f.id==='F-PRICE'?`Published CAD home-package planning references for Salt Spring: Premium ${rule.premium_rate_per_sqft} per sq. ft.; Signature ${rule.signature_rate_per_sqft} per sq. ft. These are not completed-home prices or binding quotations.`:mixedFactSlots[f.id]?factSentences(f).filter((_,i)=>mixedFactSlots[f.id].includes(i)).join(' '):f.text,qualifications:qualifications[f.id]??[]};
+ return{text:currentCommercialText(f.id)??(mixedFactSlots[f.id]?factSentences(f).filter((_,i)=>mixedFactSlots[f.id].includes(i)).join(' '):f.text),qualifications:qualifications[f.id]??[]};
 }
 export function publicFactText(id:string){const f=publicFactContent(factIndex.get(id)!);return[f.text,...f.qualifications].join(' ')}
 const internalFactSlots:Record<string,number[]>={selection:[0],cost:[2]};

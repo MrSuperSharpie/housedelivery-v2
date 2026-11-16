@@ -1,3 +1,4 @@
+import {policyStageFixture} from './policy-stage.fixture';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import type {LanguageModel} from 'ai';
@@ -19,6 +20,7 @@ export const guidanceQuestions=[
 const raw=(question:string,policyIds:string[]=[],topic:Intent['topic']='process'):Intent=>({topic,requests:[{id:'r1',topic,question,policyIds,pricing:'none'}],modelContext:'none',unconfirmedProduct:false,sectionIds:[],factIds:[],modelIds:[],questionKey:null,patch:{},arithmetic:null,detail:false,ambiguous:false});
 function intake(value:Intent):LanguageModel{
  return{specificationVersion:'v4',provider:'local-guidance-fixture',modelId:'approved-policy-only',supportedUrls:{},doStream:async()=>{throw Error('No streaming')},doGenerate:async options=>{
+  const stage=policyStageFixture(options);if(stage)return stage;
   const schema=options.responseFormat?.type==='json'?options.responseFormat.schema:undefined;if(!schema?.properties?.patch)throw Error('Unexpected extra generation or reviewer');
   const props=(schema.properties.patch as {properties:Record<string,{type?:unknown}>}).properties;
   const out={...value,patch:{...Object.fromEntries(Object.entries(props).map(([k,v])=>[k,v.type==='array'?[]:null])),...value.patch}};
@@ -31,8 +33,8 @@ test('the supplied package/privacy/financing transcript answers supported parts 
  for(let i=0;i<guidanceQuestions.length;i++){
   const q=guidanceQuestions[i],value=i===0?raw(q,['package_scope'],'scope'):i===1?raw('Can I swap out appliances or fixtures locally?',[],'customization'):raw(q,[],'process');
   const ctx:InferenceContext={calls:0,model:intake(value),contexts:[]};const r=await answerQuestion(q,s,ctx),text=publicReplies(r);s=r.state;
-  assert.equal(ctx.calls,1,String(i));assert.equal(r.mode,'controlled',String(i));assert.deepEqual(ctx.failures??[],[]);assert.deepEqual(ctx.coverage?.missing,[]);
-  if(i===0){assert.match(text,/windows.*kitchens\/cabinetry/);assert.match(text,/not confirmed model\/package inclusions/);assert.match(text,/cladding.*need confirmation/);assert.match(text,/design, manufacturing, purchasing, logistics and Canadian construction/);}
+  assert.equal(ctx.calls,i===0?3:1,String(i));assert.equal(r.mode,i===0?'generated':'controlled',String(i));assert.deepEqual(ctx.failures??[],[]);assert.deepEqual(ctx.coverage?.missing,[]);
+  if(i===0){assert.match(text,/windows.*kitchens\/cabinetry/);assert.match(text,/not confirmed model\/package inclusions/);assert.match(text,/(?:quotation|confirmation).*cladding/);}
   if(i===1){assert.match(text,/Locally sourced appliances or fixtures can be proposed/);assert.match(text,/compatibility.*agreed specification and scope/);assert.match(text,/manufacturing partner identities.*confidential/i);assert.doesNotMatch(ctx.contexts!.join(' '),/who manufactures|European-style/);}
   if(i>=2){assert.doesNotMatch(text,/standard.*(?:not sufficient|insufficient)|often required|commonly needed|we (?:can|will) (?:guide you to|identify|introduce|refer)|convert.*permanent financing|recommended lenders/i);assert.equal(r.reply.nextAction,'none');}
   if(i===3){assert.match(text,/organize the selected design and site information/);assert.match(text,/don’t have a verified lender list/);assert.equal(r.reply.question,'Which municipality is your project in?');assert.equal(s.pendingQuestion?.kind,'location');}
@@ -50,7 +52,7 @@ test('independent public customization/sourcing survives identity and facility r
  ];
  for(const q of variants){const boundary=publicQuestion(q);assert.ok(boundary.restricted);assert.match(boundary.question,/customiz|swap|replac|source/i);assert.doesNotMatch(boundary.question,/PrivateExampleCo|which factory|who makes|where.*factory|where are they based/i);
   const ctx:InferenceContext={calls:0,contexts:[],model:intake(raw(boundary.question,[],'customization'))};const r=await answerQuestion(q,initialState('mix'),ctx),text=publicReplies(r);
-  assert.equal(ctx.calls,1);assert.match(text,/project review|project-specific design/);assert.match(text,/confidential/);assert.doesNotMatch(text,/PrivateExampleCo|connection|unavailable/);assert.doesNotMatch(ctx.contexts!.join(' '),/PrivateExampleCo/);
+  assert.equal(ctx.calls,ctx.policyRecords?.some(r=>r.id==='design_changes')?3:1);assert.match(text,/project review|project-specific design/);assert.match(text,/confidential/);assert.doesNotMatch(text,/PrivateExampleCo|connection|unavailable/);assert.doesNotMatch(ctx.contexts!.join(' '),/PrivateExampleCo/);
  }
 });
 test('accepted prior offers resolve to the requested information; an unsupported lender promise never authorizes a referral',async()=>{

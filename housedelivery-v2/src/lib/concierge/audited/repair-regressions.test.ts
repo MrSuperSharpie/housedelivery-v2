@@ -1,3 +1,4 @@
+import {policyStageFixture} from './policy-stage.fixture';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import Ajv from 'ajv/dist/2020';
@@ -70,6 +71,7 @@ test('explicit policy records preserve unknown availability, confidentiality and
 });
 function extractionFixture(requests:NonNullable<Intent['requests']>,patch:Record<string,unknown>={},unconfirmedProduct=false):LanguageModel{
  return{specificationVersion:'v4',provider:'local-extraction-fixture',modelId:'approved-records',supportedUrls:{},doStream:async()=>{throw Error('No streaming')},doGenerate:async options=>{
+  const stage=policyStageFixture(options);if(stage)return stage;
   const schema=options.responseFormat?.type==='json'?options.responseFormat.schema:undefined;if(!schema?.properties?.patch)throw Error('Unexpected generation or reviewer: records must be rendered directly');
   const props=(schema.properties.patch as {properties:Record<string,{type?:unknown}>}).properties;
   const value={...base(requests[0].topic,requests[0].question),requests,unconfirmedProduct,patch:{...Object.fromEntries(Object.entries(props).map(([k,v])=>[k,v.type==='array'?[]:null])),...patch}};
@@ -88,6 +90,6 @@ test('mixed rates and freight render independently with the retained site and no
  const requests:NonNullable<Intent['requests']>=[{id:'r1',topic:'pricing',question:'Published package rates?',policyIds:[],pricing:'planning_rates'},{id:'r2',topic:'pricing',question:'How is freight priced?',policyIds:['freight_quotation'],pricing:'freight'}];
  const ctx:InferenceContext={calls:0,now,model:extractionFixture(requests,{},true)};
  const r=await answerQuestion(freight,initialState('P'),ctx);
- assert.equal(ctx.calls,1);assert.equal(r.mode,'controlled');assert.deepEqual(ctx.coverage?.missing,[]);
+ assert.equal(ctx.calls,3);assert.equal(r.mode,'generated');assert.deepEqual(ctx.coverage?.missing,[]);
  const text=r.reply.answerSegments!.map(s=>s.text).join(' ');assert.match(text,/Premium: CAD \$250/);assert.match(text,/Signature: CAD \$300/);assert.match(text,/Brandon, Manitoba/);assert.match(text,/written project quotation/);assert.match(text,/not completed-home/);
 });

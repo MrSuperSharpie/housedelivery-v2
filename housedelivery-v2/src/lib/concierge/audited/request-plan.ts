@@ -1,3 +1,4 @@
+import {timingAsked,designChangeAsked,permitDrawingsAsked,manufacturingRangeAsked,coastalDurabilityAsked} from './question-subject';
 import {widerLibraryAsked} from './design-library';
 import {storeyPreference,stairDifficulty} from './storey-requirements';
 import {propertyDecision,catalogueSearch} from './property-intent';
@@ -11,9 +12,11 @@ import {thermalEnvelopeAsked} from './building-science';
 import type {Intent} from './intent';
 import type {State} from './state';
 import {stateValue,namedModels,deterministicPatch} from './state';
+import {modelIndex} from './registry';
 import {policyIndex} from './policies';
 export type RequestPricing='none'|'planning_rates'|'freight'|'project_quote';
 export function planningRatesEligible(request:NonNullable<Intent['requests']>[number],unconfirmedProduct=false,hasPriceEvidence=true){
+ if(namedModels(request.question).some(id=>modelIndex.get(id)?.family!=='architectural'))return false;
  if(request.guidanceStage||request.comparisonLimit||comparisonLimit(request.question))return false;
  if(landedDeliveryAsked(request.question)&&!/(?:published|planning|package)\s+(?:planning\s+)?(?:rates?|prices?)|per\s+(?:sq|square)|\/\s*(?:sq|sf)/i.test(request.question))return false;
  const freightOnly=/freight|shipping|delivery|deliver/i.test(request.question)&&!/(?:published|planning|package)\s+(?:planning\s+)?(?:rates?|prices?)|per\s+(?:sq|square)|\/\s*(?:sq|sf)/i.test(request.question);
@@ -58,7 +61,7 @@ export function normalizeIntent(raw:Intent,question:string,state:State):Intent{
  if(named&&refersToSelectedHome(question)&&!comparisonLimit(question)&&!financeRequested(question))modelContext='follow_up';
  // Selecting finishes is not another catalogue search merely because the
  // visitor already has a shortlist. Preserve independent new home requirements.
- if(/\b(?:different|pick|choose|select|change|adjust|modify)\b[^?]{0,80}\b(?:floors?|flooring|windows?|finishes|cladding|layout)\b/i.test(question)&&!['bedroomOptions','areaTarget','areaMax','storeys'].some(k=>Object.hasOwn(explicit,k))&&requests.length<=1){
+ if(designChangeAsked(question)&&!timingAsked(question)&&!['bedroomOptions','areaTarget','areaMax','storeys'].some(k=>Object.hasOwn(explicit,k))&&requests.length<=1){
    topic='customization';requests=[{id:requests[0]?.id??'r1',topic,question,policyIds:['design_changes'],pricing:'none'}];
  }
  requests=requests.map(r=>({...r,policyIds:relevantPolicyIds(r,question,state)}));
@@ -66,8 +69,11 @@ export function normalizeIntent(raw:Intent,question:string,state:State):Intent{
  // clauses or selects only one of their records. These records answer known
  // public parts; other reasoning stays on the existing generation path.
  const obligations:[string,boolean,Intent['topic'],string,RequestPricing][]=[
+  ['project_timing',timingAsked(question),'process',question,'none'],
+  ['manufacturing_dimensions',manufacturingRangeAsked(question),'specifications',question,'none'],
+  ['coastal_durability',coastalDurabilityAsked(question),'specifications',question,'none'],
   ['plant_visit',plantVisitAsked(question),'specifications','Can the customer visit or inspect a manufacturing plant?','none'],
-  ['engineering_documents',technicalDocumentationAsked(question)||manufacturingQualityAsked(question),'specifications','What engineering, technical or manufacturing-verification documentation can be reviewed?','none'],
+  ['engineering_documents',technicalDocumentationAsked(question)||manufacturingQualityAsked(question)||permitDrawingsAsked(question),'specifications','What engineering, technical or manufacturing-verification documentation can be reviewed?','none'],
   ['structural_options',structuralOptionsAsked(question)&&!comparisonLimit(question),'specifications','Which structural systems can be considered, and what does the selected model specification establish?','none'],
   ['landed_delivery_scope',landedDeliveryAsked(question),'pricing','What do the factory, landed and delivered kit scopes cover, and which import/delivery responsibilities need confirmation?','project_quote'],
   ['manufacturing_approach',/how[^?]{0,90}(?:built|constructed|manufactured)|construction method/i.test(question),'origin','How are House Delivery homes built?','none'],
@@ -104,7 +110,7 @@ export function relevantPolicyIds(request:NonNullable<Intent['requests']>[number
    case 'pricing_scope':return rate;
    case 'structural_options':return structuralOptionsAsked(q)&&!comparisonLimit(q);
    case 'landed_delivery_scope':return landedDeliveryAsked(q);
-   case 'unrecorded_policy':return !technicalDocumentationAsked(q)&&!manufacturingQualityAsked(q)&&!structuralOptionsAsked(q)&&!landedDeliveryAsked(q);
+   case 'unrecorded_policy':return !manufacturingRangeAsked(q)&&!timingAsked(q)&&!coastalDurabilityAsked(q)&&!technicalDocumentationAsked(q)&&!manufacturingQualityAsked(q)&&!structuralOptionsAsked(q)&&!landedDeliveryAsked(q);
    case 'freight_quotation':return !landedDeliveryAsked(q)&&/freight|shipping|deliver|logistics|transport/i.test(q)&&(request.pricing==='freight'||/freight|shipping|deliver|logistics|transport/i.test(request.question));
    case 'package_scope':return /includ|contents|contain|consist|supplied materials|what.*(?:package|kit)|how.*(?:package|kit).*work|bare|framing shell/i.test(q)&&!rate;
    case 'local_work':return !rate&&/local work|arrang.*locally|source locally|foundation|site work|assembl|exclu|not included|responsibilit|who.*(?:build|construct)/i.test(q);
@@ -112,10 +118,13 @@ export function relevantPolicyIds(request:NonNullable<Intent['requests']>[number
    case 'builder_collaboration':return /(?:do|can|would|will) you.*work|work with|coordinat.*(?:builder|contractor)|collaborat|partner with|what would you coordinate/i.test(q);
    case 'program_phasing':return Boolean(stateValue(state,'homes')&&stateValue(state,'homes')!>1)&&/homes|units|program|phase|groups|development|assess/i.test(q);
    case 'project_review':return /next|start|begin|assess|review|what.*need|how.*proceed/i.test(q);
-   case 'design_changes':return /adjust|chang|customiz|modif|reconfigur|keeping.*architectur|(?:different|pick|choose|select)[^?]{0,80}(?:floor|window|finish|cladding|layout)/i.test(q);
+   case 'design_changes':return designChangeAsked(q);
+   case 'project_timing':return timingAsked(q);
+   case 'manufacturing_dimensions':return manufacturingRangeAsked(q);
+   case 'coastal_durability':return coastalDurabilityAsked(q);
    case 'studio_lookbook':return /Studio|Look.?Book|design directions?|save.*design/i.test(q);
    case 'plant_visit':return plantVisitAsked(q);
-   case 'engineering_documents':return technicalDocumentationAsked(q)||manufacturingQualityAsked(q);
+   case 'engineering_documents':return technicalDocumentationAsked(q)||manufacturingQualityAsked(q)||permitDrawingsAsked(q);
    case 'factory_confidentiality':return /factor|manufactur|supplier|partner/i.test(q)&&/identit|name|who|records?|confidential|private/i.test(q);
    case 'technical_review':return /code|compliance|permit|certificat|rating|standards?|engineering requirements/i.test(q);
    case 'cmhc_reference':return /CMHC|pre.reviewed|catalogue|catalog/i.test(q);
@@ -130,6 +139,11 @@ export function relevantPolicyIds(request:NonNullable<Intent['requests']>[number
 // Reconcile stale intake labels with the current site decision. Retain truly
 // independent requests (e.g. pricing or explicitly requested alternative homes).
 export function prioritizeCurrentQuestion(intent:Intent,question:string,state:State):Intent{
+ if(timingAsked(question)){
+  const requests=(intent.requests??[]).filter(r=>r.topic!=='matching').map(r=>timingAsked(r.question)||!designChangeAsked(question)&&r.topic==='customization'?{...r,topic:'process' as const,question,policyIds:['project_timing'],pricing:'none' as const}:r);
+  if(!requests.some(r=>r.policyIds?.includes('project_timing'))){const id=['r1','r2','r3','r4'].find(id=>!requests.some(r=>r.id===id));if(id)requests.push({id,topic:'process',question,policyIds:['project_timing'],pricing:'none'});}
+  return{...intent,topic:'process',requests};
+ }
  if(!propertyDecision(question,state))return intent;
  const search=catalogueSearch(question),supplied=deterministicPatch(question,state);
  const newHomeRequirements=['bedrooms','bedroomOptions','areaTarget','areaMin','areaMax'].some(k=>Object.hasOwn(supplied,k));

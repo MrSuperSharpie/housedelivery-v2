@@ -1,3 +1,4 @@
+import {policyStageFixture} from './policy-stage.fixture';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import type {LanguageModel} from 'ai';
@@ -12,6 +13,7 @@ const part=(id:string,question:string,topic:Part['topic']='comparison'):Part=>({
 const plan=(requests:Part[]):Intent=>({topic:'comparison',requests,modelContext:'none',unconfirmedProduct:false,factIds:[],modelIds:[],sectionIds:[],questionKey:null,patch:{},arithmetic:null,detail:false,ambiguous:false});
 function extractionOnly(requests:Part[]):LanguageModel{
  return{specificationVersion:'v4',provider:'local-parent-comparison',modelId:'intake-only',supportedUrls:{},doStream:async()=>{throw Error('No streaming')},doGenerate:async options=>{
+  const stage=policyStageFixture(options);if(stage)return stage;
   const schema=options.responseFormat?.type==='json'?options.responseFormat.schema:undefined;
   if(!schema?.properties?.patch)throw Error('Comparison escaped into generation or a reviewer');
   const props=(schema.properties.patch as {properties:Record<string,{type?:unknown}>}).properties;
@@ -51,7 +53,7 @@ test('separate local scope stays answerable alongside a limited comparison',asyn
  const q='Is prefab cheaper than masonry, and what work must I arrange locally?';
  const requests=[part('r1','Is prefab cheaper than masonry?'),{...part('r2','What work must I arrange locally?','builder'),policyIds:['local_work']}];
  const ctx:InferenceContext={calls:0,model:extractionOnly(requests)};const r=await answerQuestion(q,initialState('mixed'),ctx),text=r.reply.answerSegments!.map(s=>s.text).join(' ');
- assert.equal(ctx.calls,1);assert.deepEqual(ctx.coverage?.missing,[]);assert.deepEqual(ctx.policyRecords?.map(p=>p.id),['system_comparison','local_work']);assert.match(text,/foundations.*unless expressly included/);assert.match(text,/like-for-like/);
+ assert.equal(ctx.calls,3);assert.equal(r.mode,'generated');assert.deepEqual(ctx.coverage?.missing,[]);assert.deepEqual(ctx.policyRecords?.map(p=>p.id),['system_comparison','local_work']);assert.match(text,/foundations.*unless expressly included/i);assert.match(text,/like-for-like/);
  const normalized=normalizeIntent(plan(requests),q,initialState('mixed'));assert.ok(!normalized.requests![1].comparisonLimit);
  const factual={text:'Local scope needs written confirmation.',evidenceRefs:['F-SCOPE'],requestId:'r2'};
  assert.ok(finalizeComparisonAnswers([factual],normalized.requests!,[]).includes(factual));
@@ -63,7 +65,7 @@ test('published model attributes and approved planning references retain their e
  assert.ok(comparisonLimit('Are the published Premium and Signature planning rates cheaper than site-built timber?'));
  const rates='Compare published Premium and Signature planning rates per square foot.';
  const p=normalizeIntent(plan([{...part('r1',rates,'pricing'),pricing:'planning_rates',policyIds:['pricing_scope']}]),rates,initialState('rates'));
- const c=compilePolicyAnswers(p.requests!,initialState('rates'),rates,['F-PRICE','F-SCOPE']);assert.match(c.segments[0].text,/Premium: CAD \$250/);assert.match(c.segments[0].text,/Signature: CAD \$300/);assert.match(c.segments[0].text,/Salt Spring/);
+ const c=compilePolicyAnswers(p.requests!,initialState('rates'),rates,['F-PRICE','F-SCOPE']);assert.match(c.segments[0].text,/Premium: CAD \$250/);assert.match(c.segments[0].text,/Signature: CAD \$300/);assert.match(c.segments[0].text,/custom-home selection/);
 });
 
 test('rejected output is not reported as provider downtime; a genuine rate limit remains a service error',async()=>{

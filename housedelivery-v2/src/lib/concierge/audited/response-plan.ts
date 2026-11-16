@@ -1,6 +1,7 @@
 import {landedDeliveryAsked,technicalDocumentationAsked,manufacturingQualityAsked,structuralOptionsAsked} from './technical-logistics';
 import type {Intent} from './intent';
 import {privateRequest,privateManufacturingLocation,manufacturingIdentityCondition} from './commercial';
+import {publicPackageRates} from './current-commercial';
 import {knowledge} from './registry';
 
 export type RequestPart=NonNullable<Intent['requests']>[number];
@@ -43,8 +44,7 @@ export function ordinarySynthesis(intent:Intent,question:string){
 
 export function planningReferences(tiers:string[]){
   if(tiers.length>2||new Set(tiers).size!==tiers.length||tiers.some(t=>!['Premium','Signature'].includes(t)))throw Error('Invalid public rate reference');
-  const rule=knowledge.price_rules.find(r=>r.id==='PR-SALT-DISPLAY')!;
-  return tiers.length?'Home-package planning references — '+tiers.map(t=>`${t}: ${rule.currency} $${t==='Premium'?rule.premium_rate_per_sqft:rule.signature_rate_per_sqft} per square foot`).join('; ')+'. ':'';
+  return tiers.length?'Home-package planning references — '+tiers.map(t=>`${t}: CAD $${publicPackageRates[t as keyof typeof publicPackageRates]} per square foot`).join('; ')+'. ':'';
 }
 
 export const facilityLocationNotice='Factory addresses, cities, provinces and other identifying manufacturing-partner details are confidential. I can’t confirm the location of a private facility.';

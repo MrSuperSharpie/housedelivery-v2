@@ -1,3 +1,4 @@
+import {policyStageFixture} from './policy-stage.fixture';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import type {LanguageModel} from 'ai';
@@ -27,6 +28,7 @@ const plans:NonNullable<Intent['requests']>[]=[
 ];
 function intake(turn:number):LanguageModel{
  return{specificationVersion:'v4',provider:'exact-transcript-fixture',modelId:'no-provider',supportedUrls:{},doStream:async()=>{throw Error('No streaming')},doGenerate:async options=>{
+  const stage=policyStageFixture(options);if(stage)return stage;
   const schema=options.responseFormat?.type==='json'?options.responseFormat.schema:undefined;
   if(!schema?.properties?.patch)throw Error('Unexpected generation/reviewer');
   const props=(schema.properties.patch as {properties:Record<string,{type?:unknown}>}).properties;
@@ -41,11 +43,11 @@ test('the exact six-turn transcript retains every supported part, comparison and
  for(let turn=0;turn<exactQuestions.length;turn++){
   const ctx:InferenceContext={calls:0,now,model:intake(turn)};
   const r=await answerQuestion(exactQuestions[turn],state,ctx),text=r.reply.answerSegments!.map(s=>s.text).join(' ');state=r.state;
-  assert.equal(ctx.calls,1);assert.equal(r.mode,'controlled',String(turn));assert.deepEqual(ctx.coverage?.missing,[]);assert.deepEqual(ctx.failures??[],[]);assert.equal(stateValue(state,'targetDate'),undefined);
+  assert.equal(ctx.calls,[1,3,3,1,1,1][turn]);assert.equal(r.mode,[1,2].includes(turn)?'generated':'controlled',String(turn));assert.deepEqual(ctx.coverage?.missing,[]);assert.deepEqual(ctx.failures??[],[]);assert.equal(stateValue(state,'targetDate'),undefined);
   assert.doesNotMatch(text,/No verified public country-by-component matrix|Do not name|connection is busy|couldn’t verify a complete answer/);
   if(turn===0){assert.match(text,/Canadian.*assembly|Canadian.*completion/);assert.match(text,/component package.*volumetric modular home/);}
-  if(turn===1){assert.match(text,/Cedarview.*cold-formed light steel frame/);assert.match(text,/not a final model-specific supply schedule/);assert.match(text,/foundations.*unless expressly included/);}
-  if(turn===2){assert.match(text,/Freight.*written project quotation/);assert.match(text,/Premium: CAD \$250/);assert.match(text,/Signature: CAD \$300/);assert.match(text,/published for Salt Spring/);assert.equal(stateValue(state,'location'),undefined);assert.ok(!r.reply.facts.some(f=>f.href.includes('cedarview')));}
+  if(turn===1){assert.match(text,/not confirmed model\/package inclusions/);assert.match(text,/foundations.*unless expressly included/);}
+  if(turn===2){assert.match(text,/Freight.*written project quotation/);assert.match(text,/Premium: CAD \$250/);assert.match(text,/Signature: CAD \$300/);assert.match(text,/published custom-home planning references/);assert.equal(stateValue(state,'location'),undefined);assert.ok(!r.reply.facts.some(f=>f.href.includes('cedarview')));}
   if(turn===3){assert.deepEqual(ctx.coverage?.requested,['r1','r2']);assert.deepEqual(ctx.coverage?.retained,['r1','r2']);assert.equal(r.reply.answerSegments!.length,1);}
   if(turn>=3){assert.match(text,/like-for-like.*comparison is not available/);assert.match(text,/same design, engineering, supply, freight and local construction scope/);assert.doesNotMatch(text,/CAD|\$|20% more|steel can be more expensive|local framer.*not provide/);assert.deepEqual(r.reply.modelCards,[]);}
   if(turn>=4)assert.match(text,/can’t confirm the 20% difference you asked about/);
