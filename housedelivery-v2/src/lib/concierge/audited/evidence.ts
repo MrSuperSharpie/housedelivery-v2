@@ -11,7 +11,8 @@ const topicFacts:Record<Intent['topic'],string[]>={company:['F-COMPANY','F-MARKE
 export function retrieve(intent:Intent,state:State,question:string){
   const rawMatch=shortlist(constraints(state),/known (size|area)|published (size|area)|known floor area/i.test(question)?knowledge.models.filter(m=>m.numeric_area_matching_allowed&&m.area_sqft!==null):knowledge.models,.1,(stateValue(state,'bedroomOptions')?.length??0)>1?3:2),ids=namedModels(question);
   const exploratory=!hasMatchPreferences(state)&&hasHouseholdDetail(state)&&topics(intent).includes('matching');
-  const match={...(hasMatchPreferences(state)||exploratory?rawMatch:{...rawMatch,matches:[],outsideTargetAlternatives:[]}),exploratory};
+  const match={...(topics(intent).includes('matching')&&(hasMatchPreferences(state)||exploratory)?rawMatch:{...rawMatch,matches:[],outsideTargetAlternatives:[]}),exploratory};
+  if(ids.length){match.matches=match.matches.filter(m=>ids.includes(m.id));match.outsideTargetAlternatives=match.outsideTargetAlternatives.filter(m=>ids.includes(m.id));}
   let models:Model[]=[];
   if(intent.unconfirmedProduct)models=[];
   else if(compactInventoryRequested(question))models=knowledge.models.filter(m=>m.family==='laneway_carriage'||m.family==='cmhc_catalogue'&&m.units===1);

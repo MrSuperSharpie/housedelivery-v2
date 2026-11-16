@@ -14,5 +14,5 @@ export function refersToSelectedHome(question:string){
  // In "what does it cost to deliver a kit", it is a dummy subject, not the
  // previously discussed design. A later "ship it" or "that home" still refers.
  const referential=question.replace(/\bit\b(?=\s+(?:cost|take)\b[^?]{0,35}\b(?:deliver|ship|transport)\b)/gi,'');
- return /\b(?:home we discussed|that home|that design|the model|the home|my home|our home|chosen home|selected home|it|its|those priorities)\b/i.test(referential);
+ return /\b(?:home we discussed|(?:this|that) (?:home|house|design|model)|the model|the home|my home|our home|chosen home|selected home|it|its|those priorities)\b/i.test(referential);
 }

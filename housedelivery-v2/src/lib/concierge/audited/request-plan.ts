@@ -1,3 +1,4 @@
+import {propertyDecision,catalogueSearch} from './property-intent';
 import {householdUpdate} from './visitor-context';
 import {bedroomStatement} from './measurements';
 import {technicalDocumentationAsked,manufacturingQualityAsked,structuralOptionsAsked,landedDeliveryAsked,plantVisitAsked} from './technical-logistics';
@@ -75,7 +76,7 @@ export function normalizeIntent(raw:Intent,question:string,state:State):Intent{
   if(candidate)candidate.policyIds.push(id);
   else{const free=['r1','r2','r3','r4'].find(id=>!requests.some(r=>r.id===id));if(free)requests.push({id:free,topic:partTopic,question:partQuestion,pricing,policyIds:[id]});}
  }
- return{...raw,topic,requests,unconfirmedProduct,modelContext};
+ return prioritizeCurrentQuestion({...raw,topic,requests,unconfirmedProduct,modelContext},question,state);
 }
 
 // Relevance is checked against the visitor's actual turn, not an invented subquestion.
@@ -114,4 +115,20 @@ export function relevantPolicyIds(request:NonNullable<Intent['requests']>[number
    default:return true;
   }
  });
+}
+
+// Reconcile stale intake labels with the current site decision. Retain truly
+// independent requests (e.g. pricing or explicitly requested alternative homes).
+export function prioritizeCurrentQuestion(intent:Intent,question:string,state:State):Intent{
+ if(!propertyDecision(question,state))return intent;
+ const search=catalogueSearch(question),supplied=deterministicPatch(question,state);
+ const newHomeRequirements=['bedrooms','bedroomOptions','areaTarget','areaMin','areaMax'].some(k=>Object.hasOwn(supplied,k));
+ let requests=(intent.requests??[]).filter(r=>r.topic!=='matching'||search||newHomeRequirements).map(r=>propertyDecision(r.question,state)?{...r,topic:'property' as const,policyIds:[],pricing:'none' as const}:r);
+ if(!requests.some(r=>r.topic==='property')){
+  const reusable=requests.length===1&&['matching','clarify','specifications','comparison'].includes(requests[0].topic)?requests[0]:undefined;
+  if(reusable)requests=[{...reusable,topic:'property',question,policyIds:[],pricing:'none'}];
+  else{const id=['r1','r2','r3','r4'].find(id=>!requests.some(r=>r.id===id));if(id)requests.push({id,topic:'property',question,policyIds:[],pricing:'none'});}
+ }
+ const referred=namedModels(question).length>0||refersToSelectedHome(question);
+ return{...intent,topic:'property',requests,modelContext:referred?'follow_up':'none',ambiguous:referred&&!stateValue(state,'selectedModel')&&state.recommended.length>1};
 }
