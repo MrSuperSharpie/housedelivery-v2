@@ -242,6 +242,7 @@ export function AnalyticsManager() {
 
       {(isPublicProduction || isCampaignPath(pathname)) && consent === null ? (
         <aside
+          data-analytics-consent-ui
           aria-label="Analytics preferences"
           className="fixed inset-x-4 bottom-4 z-[120] mx-auto max-w-3xl border border-white/20 bg-[#111216] p-5 text-white shadow-2xl sm:inset-x-8 sm:flex sm:items-center sm:justify-between sm:gap-8 sm:p-6"
         >
