@@ -1,11 +1,12 @@
 .homepage {
+  margin-top: -32px;
   padding: 0 20px 40px;
   background: #e7e3d8;
   color: #0b0c10;
 }
 
 .landing {
-  margin-top: 40px;
+  margin-top: 32px;
   color: #f7f7f3;
 }
 
@@ -31,7 +32,7 @@
 
 .copy .heading {
   margin: 0;
-  font-size: clamp(1.65rem, 2.4vw, 2.25rem);
+  font-size: clamp(1.98rem, 2.88vw, 2.7rem);
   font-weight: 500;
   line-height: 1.15;
   letter-spacing: -.045em;
@@ -39,7 +40,7 @@
 
 .copy .description {
   margin-top: 12px;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.85;
   color: #0b0c10b3;
 }
@@ -54,23 +55,34 @@
   align-items: center;
   justify-content: space-between;
   gap: 28px;
-  min-height: 44px;
-  border-bottom: 1px solid currentColor;
-  font-size: 10px;
+  min-height: 52px;
+  padding: 16px 20px;
+  border: 1px solid #0b0c10;
+  background: #0b0c10;
+  color: #fff;
+  font-size: 11px;
   font-weight: 600;
   line-height: 1.6;
   letter-spacing: .13em;
   text-transform: uppercase;
-  transition: opacity .2s;
+  transition: background .2s;
 }
 
 .action:hover {
-  opacity: .75;
+  background: #303136;
 }
 
 .action:focus-visible {
-  outline: 2px solid currentColor;
+  outline: 2px solid #0b0c10;
   outline-offset: 5px;
+}
+
+.landing .action {
+  border-color: #ffffff40;
+}
+
+.landing .action:focus-visible {
+  outline-color: #f7f7f3;
 }
 
 @media (min-width: 640px) {
@@ -78,7 +90,7 @@
 }
 
 @media (min-width: 1024px) {
-  .homepage { padding-inline: 48px; }
+  .homepage { margin-top: -48px; padding-inline: 48px; }
 }
 
 @media (max-width: 767px) {
