@@ -87,6 +87,30 @@ export type StoredLookBookSelection = {
   tier: "premium" | "signature" | "shared";
 };
 
+export type LookBookDeliveryAttempt = {
+  key: string;
+  payloadHash: string;
+  firstAttemptAt: string;
+  attemptedAt: string;
+  status: "pending" | "accepted" | "failed";
+  acceptedAt?: string;
+  providerId?: string;
+  reason?: string;
+};
+
+export type LookBookFulfillment = {
+  version: 1;
+  consent?: {
+    version: string;
+    lookBookRequestedAt: string;
+    contactRequestText?: string;
+    contactRequestedAt?: string;
+    marketingSubscribed: false;
+  };
+  customer?: LookBookDeliveryAttempt;
+  internal?: LookBookDeliveryAttempt;
+};
+
 export type StoredLookBook = {
   id: string;
   homeSlug: string;
@@ -106,6 +130,7 @@ export type StoredLookBook = {
   updatedAt: string;
   completedAt: string;
   emailRequestedAt?: string;
+  fulfillment?: LookBookFulfillment;
 };
 
 export type LookBookEmailIntent = {

@@ -15,17 +15,23 @@ import {
 } from "@/lib/lookbook/domain";
 import {
   getLookBookPublicOrigin,
-  sendCustomerLookBookEmail,
-  sendInternalLookBookNotification,
+  customerLookBookMessage,
+  internalLookBookMessage,
+  sendLookBookMessage,
 } from "@/lib/lookbook/email";
 import {
   getLookBookRepository,
   LookBookStorageUnavailableError,
+  LookBookConflictError,
 } from "@/lib/lookbook/repository";
 import type {
   LookBookSubmission,
   StoredLookBook,
 } from "@/lib/lookbook/types";
+
+import { deliverLookBook, nextLookBookTimestamp } from "@/lib/lookbook/delivery";
+import { getLookBookPdfRevision } from "@/lib/lookbook/pdf-artifact";
+import { lookBookConsentVersion, lookBookContactRequestText } from "@/lib/lookbook/consent";
 
 export const runtime = "nodejs";
 
@@ -87,6 +93,8 @@ export async function POST(request: Request) {
     request.headers.get("x-vercel-id") ??
     request.headers.get("x-request-id") ??
     randomUUID();
+  if (request.headers.get("origin") !== new URL(request.url).origin) return jsonResponse({ error: "Please use the Look Book form on this website." }, 403);
+  if (!request.headers.get("content-type")?.startsWith("application/json")) return jsonResponse({ error: "Please submit the Look Book form as JSON." }, 415);
   const contentLength = Number(request.headers.get("content-length") ?? 0);
 
   if (contentLength > maximumRequestBytes) {
@@ -101,7 +109,10 @@ export async function POST(request: Request) {
 
   let payload: unknown;
   try {
-    payload = await request.json();
+    if (!request.body) throw Error("Missing request");
+    const reader = request.body.getReader(); const chunks: Uint8Array[] = []; let bytes = 0;
+    while (true) { const part = await reader.read(); if (part.done) break; bytes += part.value.length; if (bytes > maximumRequestBytes) { await reader.cancel(); return jsonResponse({ error: "Request is too large." }, 413); } chunks.push(part.value); }
+    payload = JSON.parse(Buffer.concat(chunks).toString("utf8"));
   } catch {
     return jsonResponse({ error: "Invalid Look Book request." }, 400);
   }
@@ -114,6 +125,7 @@ export async function POST(request: Request) {
     return jsonResponse({ accepted: true });
   }
 
+  let savedForRecovery: StoredLookBook | undefined;
   try {
     const repository = getLookBookRepository();
     const suppliedId = parseConfigurationId(payload.configurationId);
@@ -122,7 +134,7 @@ export async function POST(request: Request) {
       : null;
     const now = new Date().toISOString();
     let record: StoredLookBook;
-    let shouldNotify = false;
+    let previousVersion = existing?.updatedAt;
 
     if (payload.intent === "email") {
       const contact = parseContact(payload.contact);
@@ -148,7 +160,7 @@ export async function POST(request: Request) {
         completedAt,
         existing?.configuration.lookBookPersonalization,
       );
-      shouldNotify = followUpRequested && !existing?.followUpRequested;
+
       record = {
         id,
         homeSlug: definition.homeId,
@@ -166,13 +178,19 @@ export async function POST(request: Request) {
         createdAt: existing?.createdAt ?? now,
         updatedAt: now,
         completedAt,
-        emailRequestedAt: now,
+        emailRequestedAt: existing?.emailRequestedAt ?? now,
+        fulfillment: { ...existing?.fulfillment, version: 1, consent: {
+          version: lookBookConsentVersion,
+          lookBookRequestedAt: existing?.fulfillment?.consent?.lookBookRequestedAt ?? now,
+          ...(classification.followUpRequested ? { contactRequestText: existing?.fulfillment?.consent?.contactRequestText ?? lookBookContactRequestText, contactRequestedAt: classification.followUpRequestedAt } : {}),
+          marketingSubscribed: false,
+        } },
       };
     } else {
       const property = parsePropertyFeasibility(payload.property, now);
 
       if (existing) {
-        shouldNotify = !existing.propertyFeasibility;
+
         record = attachPropertyFeasibility(existing, property, now);
       } else {
         const contact = parseContact(payload.contact);
@@ -193,7 +211,7 @@ export async function POST(request: Request) {
           ),
           selections,
           contact,
-          leadState: "qualified_inquiry",
+          leadState: "known_engaged",
           followUpRequested: true,
           followUpRequestedAt: now,
           followUpSource: "property_check",
@@ -203,48 +221,42 @@ export async function POST(request: Request) {
           updatedAt: now,
           completedAt: now,
         };
-        shouldNotify = true;
+
       }
     }
 
-    const saved = await repository.save(record);
+    // A changed design/contact gets a new immutable snapshot. Earlier email
+    // links keep their original design; another visitor cannot replace it.
+    if (payload.intent === "email" && existing && (getLookBookPdfRevision(record) !== getLookBookPdfRevision(existing) || record.contact.email !== existing.contact.email)) {
+      record = { ...record, id: createConfigurationId(), completedAt: now, createdAt: now, updatedAt: now, emailRequestedAt: now, propertyFeasibility: undefined, ...classifyEmailLead(payload.followUpRequested === true, undefined, now), fulfillment: { version: 1, consent: { version: lookBookConsentVersion, lookBookRequestedAt: now, ...(payload.followUpRequested === true ? { contactRequestText: lookBookContactRequestText, contactRequestedAt: now } : {}), marketingSubscribed: false } } };
+      previousVersion = undefined;
+    }
+    if (existing?.propertyFeasibility && record.propertyFeasibility) {
+      const withoutDate = (p: typeof record.propertyFeasibility) => JSON.stringify({ ...p, submittedAt: undefined });
+      if (withoutDate(existing.propertyFeasibility) === withoutDate(record.propertyFeasibility)) record.propertyFeasibility = existing.propertyFeasibility;
+    }
+    const unchanged = existing && record.id === existing.id && JSON.stringify({ ...record, updatedAt: undefined }) === JSON.stringify({ ...existing, updatedAt: undefined });
+    const saved = unchanged ? existing : await repository.save({ ...record, updatedAt: previousVersion ? nextLookBookTimestamp(previousVersion) : now }, previousVersion ?? null);
+    savedForRecovery = saved;
     const origin = getLookBookPublicOrigin(request.url);
-    const customerDelivery =
-      payload.intent === "email"
-        ? await sendCustomerLookBookEmail(saved, origin)
-        : undefined;
-    const internalDelivery = shouldNotify
-      ? await sendInternalLookBookNotification(saved, origin)
-      : undefined;
-
-    if (customerDelivery && !customerDelivery.sent) {
-      safeLog(
-        "lookbook_customer_delivery_failed",
-        requestId,
-        customerDelivery.reason,
-      );
-    }
-    if (internalDelivery && !internalDelivery.sent) {
-      safeLog(
-        "lookbook_internal_delivery_failed",
-        requestId,
-        internalDelivery.reason,
-      );
-    }
-
-    const emailSent = customerDelivery?.sent ?? false;
-    return jsonResponse(
-      {
-        accepted: true,
-        saved: true,
-        configurationId: saved.id,
-        leadState: saved.leadState,
-        followUpRequested: saved.followUpRequested,
-        ...(payload.intent === "email" ? { emailSent } : {}),
-      },
-      payload.intent === "email" && !emailSent ? 202 : 200,
-    );
+    const delivery = await deliverLookBook(saved, repository, {
+      ...(payload.intent === "email" ? { customer: customerLookBookMessage(saved, origin) } : {}),
+      ...(saved.followUpRequested && (payload.intent === "property_check" || payload.followUpRequested === true || saved.fulfillment?.internal && saved.fulfillment.internal.status !== "accepted") ? { internal: internalLookBookMessage(saved, origin) } : {}),
+    }, sendLookBookMessage);
+    for (const reason of delivery.reasons) safeLog("lookbook_delivery_unconfirmed", requestId, reason);
+    return jsonResponse({
+      accepted: true, saved: true, configurationId: saved.id,
+      leadState: saved.leadState, followUpRequested: saved.followUpRequested,
+      followUpNotified: delivery.internalNotified || saved.fulfillment?.internal?.status === "accepted",
+      deliveryRetryAvailable: delivery.retryAvailable,
+      ...(payload.intent === "email" ? { emailSent: delivery.emailSent } : {}),
+    }, payload.intent === "email" && !delivery.emailSent ? 202 : 200);
   } catch (error) {
+    if (savedForRecovery) {
+      safeLog("lookbook_delivery_persistence_unconfirmed", requestId, error instanceof Error ? error.name : "unknown_error");
+      return jsonResponse({ accepted: true, saved: true, configurationId: savedForRecovery.id, leadState: savedForRecovery.leadState, followUpRequested: savedForRecovery.followUpRequested, followUpNotified: false, deliveryRetryAvailable: true, ...(payload.intent === "email" ? { emailSent: false } : {}) }, 202);
+    }
+    if (error instanceof LookBookConflictError) return jsonResponse({ error: "Your Look Book is being updated. Please retry shortly; your selections are still here." }, 409);
     if (error instanceof LookBookValidationError) {
       return jsonResponse({ error: error.message }, 400);
     }

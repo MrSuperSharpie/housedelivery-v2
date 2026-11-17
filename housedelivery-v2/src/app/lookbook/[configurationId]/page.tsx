@@ -14,6 +14,7 @@ export const metadata: Metadata = {
   title: "Saved Look Book",
   description: "Return to a saved House Delivery home configuration.",
   robots: { index: false, follow: false },
+  referrer: "no-referrer",
 };
 
 function localPlannerFallback(

@@ -107,7 +107,7 @@ test("contact validation requires first name and email while phone remains optio
   );
 });
 
-test("email-only save stays known engaged and explicit assistance qualifies it", () => {
+test("email delivery and a contact request remain known engaged until project assessment", () => {
   assert.deepEqual(classifyEmailLead(false), {
     leadState: "known_engaged",
     followUpRequested: false,
@@ -115,7 +115,7 @@ test("email-only save stays known engaged and explicit assistance qualifies it",
   assert.deepEqual(
     classifyEmailLead(true, undefined, "2026-08-29T12:00:00.000Z"),
     {
-      leadState: "qualified_inquiry",
+      leadState: "known_engaged",
       followUpRequested: true,
       followUpRequestedAt: "2026-08-29T12:00:00.000Z",
       followUpSource: "email_assistance_checkbox",
@@ -123,7 +123,7 @@ test("email-only save stays known engaged and explicit assistance qualifies it",
   );
 });
 
-test("property feasibility qualifies and updates the same configuration record", async () => {
+test("property-review requests retain the same record without claiming project qualification", async () => {
   const { getHomeConfiguratorRegistration } = await import(
     "@/data/home-configurators"
   );
@@ -186,7 +186,7 @@ test("property feasibility qualifies and updates the same configuration record",
 
   assert.equal(qualified.id, record.id);
   assert.equal(qualified.contact.email, record.contact.email);
-  assert.equal(qualified.leadState, "qualified_inquiry");
+  assert.equal(qualified.leadState, "known_engaged");
   assert.equal(qualified.followUpRequested, true);
   assert.equal(qualified.followUpSource, "property_check");
   assert.equal(qualified.propertyFeasibility?.municipality, "Vancouver");

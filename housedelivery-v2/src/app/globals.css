@@ -754,7 +754,8 @@ main[data-home-detail-presentation="editorial"] .home-story-story :is(a, button)
   }
 
   #home-configurator > #home-inclusions,
-  .look-book-screen-control {
+  .look-book-screen-control,
+  body:has(#home-look-book) [data-concierge] {
     display: none !important;
   }
 

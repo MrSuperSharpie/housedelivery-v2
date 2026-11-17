@@ -16,7 +16,6 @@ export const maxDuration = 180;
 export const runtime = "nodejs";
 
 const PDF_REVISION_PARAMETER = "pdfRevision";
-const PDF_CDN_MAX_AGE = 31_536_000;
 
 function pdfFileName(homeName: string) {
   const safeHomeName = homeName
@@ -160,11 +159,12 @@ export async function GET(
 
     return new Response(createLookBookPdfResponseStream(artifact.bytes), {
       headers: {
-        "Cache-Control": "public, max-age=0, must-revalidate",
+        "Cache-Control": "private, no-store",
+        "Referrer-Policy": "no-referrer",
         "Content-Disposition": `${disposition}; filename="${fileName}"`,
         "Content-Type": "application/pdf",
         ETag: `"${revision}"`,
-        "Vercel-CDN-Cache-Control": `public, s-maxage=${PDF_CDN_MAX_AGE}`,
+        "Vercel-CDN-Cache-Control": "no-store",
         "X-Content-Type-Options": "nosniff",
         "X-Look-Book-Pdf-Revision": revision,
         "X-Robots-Tag": "noindex, nofollow, noarchive",

@@ -29,6 +29,7 @@ import {
   trackLookBookEvent,
 } from "@/lib/lookbook/analytics";
 import { getFirstTouchAttribution } from "@/lib/lookbook/attribution";
+import { lookBookContactRequestText, lookBookPrivacyText } from "@/lib/lookbook/consent";
 import type { LookBookAttribution } from "@/lib/lookbook/types";
 
 type LookBookCompletionActionsProps = {
@@ -52,6 +53,8 @@ type SubmissionResult = {
   leadState: "known_engaged" | "qualified_inquiry";
   followUpRequested: boolean;
   emailSent?: boolean;
+  followUpNotified?: boolean;
+  deliveryRetryAvailable?: boolean;
 };
 
 function formValue(formData: FormData, name: string) {
@@ -66,6 +69,7 @@ function isSubmissionResult(value: unknown): value is SubmissionResult {
     !Array.isArray(value) &&
     "accepted" in value &&
     (value as { accepted?: unknown }).accepted === true &&
+    "saved" in value && (value as { saved?: unknown }).saved === true &&
     "configurationId" in value &&
     typeof (value as { configurationId?: unknown }).configurationId === "string"
   );
@@ -102,6 +106,9 @@ export function LookBookCompletionActions({
   const [error, setError] = useState("");
   const [savedEmail, setSavedEmail] = useState("");
   const [emailDeliveryPending, setEmailDeliveryPending] = useState(false);
+  const [followUpNotificationPending, setFollowUpNotificationPending] = useState(false);
+  const [deliveryRetryAvailable, setDeliveryRetryAvailable] = useState(true);
+  const retryPayloadRef = useRef<Record<string, unknown> | null>(null);
   const [propertySubmitted, setPropertySubmitted] = useState(false);
   const [configurationSaved, setConfigurationSaved] = useState(
     Boolean(initialConfigurationId),
@@ -129,6 +136,16 @@ export function LookBookCompletionActions({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [savedView]);
 
+  useEffect(() => {
+    if (activeForm !== "email") return;
+    const frame = requestAnimationFrame(() => {
+      const form = document.getElementById("lookbook-email-form");
+      form?.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+      document.getElementById("lookbook-email-heading")?.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [activeForm]);
+
   function downloadLookBook() {
     trackLookBookEvent("lookbook_downloaded", eventBase);
     window.print();
@@ -151,7 +168,7 @@ export function LookBookCompletionActions({
       window.requestAnimationFrame(() => {
         document.getElementById(formId)?.scrollIntoView({
           behavior: "smooth",
-          block: "center",
+          block: formId === "lookbook-email-form" ? "start" : "center",
         });
       });
     });
@@ -205,7 +222,7 @@ export function LookBookCompletionActions({
     }
 
     try {
-      const result = await submitPayload({
+      const payload = {
         intent: "email",
         configurationId: submissionConfigurationId,
         homeSlug: definition.homeId,
@@ -218,13 +235,18 @@ export function LookBookCompletionActions({
         followUpRequested,
         attribution,
         company: formValue(formData, "company"),
-      });
+      };
+      retryPayloadRef.current = payload;
+      const result = await submitPayload(payload);
+      retryPayloadRef.current = { ...payload, configurationId: result.configurationId };
       setConfigurationId(result.configurationId);
       setConfigurationSaved(true);
       setHasSavedContact(true);
       setSavedCustomer({ firstName });
       setSavedEmail(email);
-      setEmailDeliveryPending(result.emailSent === false);
+      setEmailDeliveryPending(result.emailSent !== true);
+      setFollowUpNotificationPending(followUpRequested && result.followUpNotified !== true);
+      setDeliveryRetryAvailable(result.deliveryRetryAvailable !== false);
       setActiveForm(null);
       trackLookBookEvent("lookbook_email_submitted", eventBase);
       if (followUpRequested) {
@@ -240,6 +262,18 @@ export function LookBookCompletionActions({
       submittedRef.current = false;
       setSubmitting(false);
     }
+  }
+
+  async function retryDelivery() {
+    if (submittedRef.current || !retryPayloadRef.current) return;
+    submittedRef.current = true; setSubmitting(true); setError("");
+    try {
+      const result = await submitPayload(retryPayloadRef.current);
+      setEmailDeliveryPending(result.emailSent !== true);
+      setFollowUpNotificationPending(result.followUpRequested && result.followUpNotified !== true);
+      setDeliveryRetryAvailable(result.deliveryRetryAvailable !== false);
+    } catch (failure) { setError(failure instanceof Error ? failure.message : "Please retry delivery shortly."); }
+    finally { submittedRef.current = false; setSubmitting(false); }
   }
 
   async function submitProperty(event: FormEvent<HTMLFormElement>) {
@@ -291,6 +325,7 @@ export function LookBookCompletionActions({
       setConfigurationSaved(true);
       setHasSavedContact(true);
       if (firstName) setSavedCustomer({ firstName });
+      setFollowUpNotificationPending(result.followUpNotified !== true);
       setPropertySubmitted(true);
       setActiveForm(null);
       trackLookBookEvent("property_check_submitted", eventBase);
@@ -342,9 +377,7 @@ export function LookBookCompletionActions({
                 <Check className="size-4" aria-hidden="true" /> Request received
               </p>
               <p className="mt-5 max-w-2xl text-sm leading-7 text-white/66">
-                House Delivery has your {definition.residenceLabel} selections and
-                property information. We’ll review the project details and follow
-                up regarding next steps.
+                Your {definition.residenceLabel} selections and property information are saved. {followUpNotificationPending ? "Your contact request is recorded, but the team notification is delayed." : "Your contact request has been sent to the House Delivery team for review."}
               </p>
             </div>
           ) : savedEmail ? (
@@ -354,11 +387,15 @@ export function LookBookCompletionActions({
               </p>
               <p className="mt-5 max-w-2xl text-sm leading-7 text-white/66">
                 {emailDeliveryPending
-                  ? "Your selections are safely saved, but email delivery is temporarily delayed. You can view or download your Look Book now and retry the email shortly."
-                  : `We’ve sent your ${definition.residenceLabel} Look Book to ${savedEmail}.`}
+                  ? (deliveryRetryAvailable ? "Your selections are safely saved, but email delivery has not been confirmed. You can view or download your Look Book now and retry delivery." : "Your Look Book is saved. Our team needs to confirm email delivery before another send; please contact hello@housedelivery.ca. You can still view or download it now.")
+                  : `Your ${definition.residenceLabel} Look Book email has been accepted for delivery to ${savedEmail}.`}
               </p>
             </div>
           ) : null}
+
+          {savedEmail && followUpNotificationPending ? <p role="status" className="mt-5 text-sm leading-6 text-white/70">Your contact request is saved; the team notification is delayed. Retrying delivery will not resend an already accepted Look Book email.</p> : null}
+          {savedEmail && (emailDeliveryPending || followUpNotificationPending) && deliveryRetryAvailable ? <button type="button" disabled={submitting} onClick={() => void retryDelivery()} className="mt-5 min-h-12 border border-white/50 px-5 text-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white disabled:opacity-50">{submitting ? "Retrying…" : "Retry delivery"}</button> : null}
+          {error && activeForm === null ? <p role="alert" className="mt-5 text-sm text-white">{error}</p> : null}
 
           {hasSavedLookBook ? (
             <div
@@ -414,18 +451,18 @@ export function LookBookCompletionActions({
           {activeForm === "email" ? (
             <form
               id="lookbook-email-form"
+              data-clarity-mask="true"
+              aria-labelledby="lookbook-email-heading"
               onSubmit={submitEmail}
-              className="mt-6 max-w-3xl bg-[#e7e3d8] p-6 text-black sm:p-9"
+              className="mt-6 max-w-3xl scroll-mt-40 bg-[#e7e3d8] p-6 text-black sm:p-9"
             >
               <div className="flex items-start justify-between gap-5">
                 <div>
                   <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/58">
                     Keep your Look Book
                   </p>
-                  <p className="mt-3 max-w-xl text-sm leading-6 text-black/62">
-                    Keep your selections, return anytime, and receive your
-                    personalized Look Book.
-                  </p>
+                  <h4 id="lookbook-email-heading" tabIndex={-1} className="mt-4 max-w-xl text-3xl font-medium leading-tight tracking-[-0.045em] sm:text-4xl">Your design. Yours to keep.</h4>
+                  <p className="mt-4 max-w-xl text-sm leading-7 text-black/70">We&apos;ll email your personalized Look Book so you can revisit your selections, share your ideas and enjoy bringing your vision together.</p>
                 </div>
                 <button
                   type="button"
@@ -438,28 +475,27 @@ export function LookBookCompletionActions({
               <div className="mt-7 grid gap-6 sm:grid-cols-2">
                 <label className={labelClass}>
                   First name / Required
-                  <input className={inputClass} name="firstName" autoComplete="given-name" required />
+                  <input className={inputClass} name="firstName" autoComplete="given-name" maxLength={80} defaultValue={savedCustomer?.firstName} required />
                 </label>
                 <label className={labelClass}>
                   Email address / Required
-                  <input className={inputClass} type="email" name="email" autoComplete="email" required />
+                  <input className={inputClass} type="email" name="email" autoComplete="email" maxLength={254} defaultValue={savedEmail} required />
                 </label>
                 <label className={`${labelClass} sm:col-span-2`}>
                   Phone / Optional
-                  <input className={inputClass} type="tel" name="phone" autoComplete="tel" />
+                  <input className={inputClass} type="tel" name="phone" autoComplete="tel" maxLength={50} />
                 </label>
               </div>
-              <label className="mt-7 flex min-h-12 items-start gap-3 text-sm leading-6 text-black/72">
+              <h5 className="mt-8 text-xl font-medium tracking-[-0.03em]">Ready to explore what&apos;s possible?</h5>
+              <label className="mt-4 flex min-h-12 items-start gap-3 text-sm leading-6 text-black/72">
                 <input className="mt-1 size-5 shrink-0 accent-black" type="checkbox" name="followUpRequested" />
-                <span>I’d like House Delivery to help me explore this home further.</span>
+                <span>{lookBookContactRequestText}</span>
               </label>
               <label className="hidden" aria-hidden="true">
                 Company<input name="company" tabIndex={-1} autoComplete="off" />
               </label>
               <p className="mt-6 text-xs leading-5 text-black/52">
-                We’ll use these details to deliver and save this Look Book. Project
-                follow-up only happens if you request it above. This does not
-                subscribe you to marketing.
+                {lookBookPrivacyText} <Link className="underline underline-offset-4" href="/privacy">Privacy &amp; Cookies</Link>
               </p>
               {error ? <p role="alert" className="mt-5 bg-amber-100 p-4 text-sm leading-6 text-amber-900">{error}</p> : null}
               <button
@@ -467,17 +503,18 @@ export function LookBookCompletionActions({
                 disabled={submitting}
                 className="mt-7 flex min-h-14 w-full items-center justify-between gap-5 bg-black px-6 text-left text-[10px] font-semibold uppercase tracking-[0.17em] text-white disabled:cursor-wait disabled:opacity-55"
               >
-                <span>{submitting ? "Saving…" : "Get My Look Book"}</span>
+                <span>{submitting ? "Sending…" : "Send My Look Book"}</span>
                 <ArrowRight className="size-4" aria-hidden="true" />
               </button>
             </form>
           ) : null}
 
           <div id="check-my-property" className="mt-12 border-t border-white/18 pt-8">
-            <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/52">
-              Optional next step
-            </p>
-            <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
+            <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/52">Optional next step</p>
+            <p className="mt-4 text-xl font-medium tracking-[-0.03em] text-white">Now, imagine coming home to it.</p>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-white/64">You&apos;ve explored the possibilities. You&apos;ve made it your own. Whenever you&apos;re ready, we&apos;d love to help you explore how your design could come to life.</p>
+            <button type="button" onClick={openPropertyFormFromClosing} className="mt-5 inline-flex min-h-12 items-center gap-6 border-b border-white/50 text-[10px] font-semibold uppercase tracking-[.15em] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">Let&apos;s bring it to life <ArrowRight className="size-4" aria-hidden="true" /></button>
+            <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
               <div>
                 <h4 className="text-2xl font-medium tracking-[-0.04em] text-white sm:text-3xl">
                   Could this home work for your property?

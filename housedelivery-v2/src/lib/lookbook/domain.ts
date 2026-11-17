@@ -311,7 +311,7 @@ export function classifyEmailLead(
     return { leadState: "known_engaged", followUpRequested: false };
   }
   return {
-    leadState: "qualified_inquiry",
+    leadState: existing?.leadState ?? "known_engaged",
     followUpRequested: true,
     followUpRequestedAt: existing?.followUpRequestedAt ?? requestedAt,
     followUpSource:
@@ -326,7 +326,7 @@ export function attachPropertyFeasibility(
 ): StoredLookBook {
   return {
     ...existing,
-    leadState: "qualified_inquiry",
+    leadState: existing.leadState,
     followUpRequested: true,
     followUpRequestedAt: existing.followUpRequestedAt ?? requestedAt,
     followUpSource: existing.followUpSource ?? "property_check",

@@ -3,10 +3,11 @@ import "server-only";
 import type { StoredLookBook } from "@/lib/lookbook/types";
 
 export class LookBookStorageUnavailableError extends Error {}
+export class LookBookConflictError extends Error {}
 
 export interface LookBookRepository {
   findById(id: string): Promise<StoredLookBook | null>;
-  save(record: StoredLookBook): Promise<StoredLookBook>;
+  save(record: StoredLookBook, expectedUpdatedAt?: string | null): Promise<StoredLookBook>;
 }
 
 type SupabaseRow = {
@@ -17,7 +18,7 @@ type SupabaseRow = {
   configurator_version: number;
   configuration: StoredLookBook["configuration"];
   selections: StoredLookBook["selections"];
-  contact: StoredLookBook["contact"];
+  contact: StoredLookBook["contact"] & { _lookbookFulfillment?: StoredLookBook["fulfillment"] };
   lead_state: StoredLookBook["leadState"];
   follow_up_requested: boolean;
   follow_up_requested_at: string | null;
@@ -39,7 +40,7 @@ function toRow(record: StoredLookBook): SupabaseRow {
     configurator_version: record.configuratorVersion,
     configuration: record.configuration,
     selections: record.selections,
-    contact: record.contact,
+    contact: { ...record.contact, ...(record.fulfillment ? { _lookbookFulfillment: record.fulfillment } : {}) },
     lead_state: record.leadState,
     follow_up_requested: record.followUpRequested,
     follow_up_requested_at: record.followUpRequestedAt ?? null,
@@ -62,7 +63,8 @@ function fromRow(row: SupabaseRow): StoredLookBook {
     configuratorVersion: row.configurator_version,
     configuration: row.configuration,
     selections: row.selections,
-    contact: row.contact,
+    contact: { firstName: row.contact.firstName, email: row.contact.email, ...(row.contact.phone ? { phone: row.contact.phone } : {}) },
+    ...(row.contact._lookbookFulfillment ? { fulfillment: row.contact._lookbookFulfillment } : {}),
     leadState: row.lead_state,
     followUpRequested: row.follow_up_requested,
     ...(row.follow_up_requested_at
@@ -116,15 +118,20 @@ class SupabaseLookBookRepository implements LookBookRepository {
     return rows[0] ? fromRow(rows[0]) : null;
   }
 
-  async save(record: StoredLookBook) {
+  // Existing planner callers keep upsert semantics. Look Book fulfilment
+  // passes null for create-only, or the prior timestamp for conditional update.
+  async save(record: StoredLookBook, expectedUpdatedAt?: string | null) {
     const url = new URL("/rest/v1/lookbook_configurations", this.baseUrl);
-    url.searchParams.set("on_conflict", "id");
+    if (expectedUpdatedAt) {
+      url.searchParams.set("id", `eq.${record.id}`);
+      url.searchParams.set("updated_at", `eq.${expectedUpdatedAt}`);
+    } else url.searchParams.set("on_conflict", "id");
 
     const response = await fetch(url, {
-      method: "POST",
+      method: expectedUpdatedAt ? "PATCH" : "POST",
       headers: {
         ...this.headers(),
-        Prefer: "resolution=merge-duplicates,return=representation",
+        Prefer: expectedUpdatedAt ? "return=representation" : expectedUpdatedAt === null ? "resolution=ignore-duplicates,return=representation" : "resolution=merge-duplicates,return=representation",
       },
       body: JSON.stringify(toRow(record)),
       cache: "no-store",
@@ -136,7 +143,7 @@ class SupabaseLookBookRepository implements LookBookRepository {
     }
 
     const rows = (await response.json()) as SupabaseRow[];
-    if (!rows[0]) throw new Error("Look Book storage returned no saved record.");
+    if (!rows[0]) throw new LookBookConflictError("This Look Book is being updated. Please retry shortly.");
     return fromRow(rows[0]);
   }
 }
