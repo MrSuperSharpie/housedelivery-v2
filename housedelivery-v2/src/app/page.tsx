@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import { AdditionalDesignsCallout } from "@/components/additional-designs-callout";
 import { CarriageHomeShowcase } from "@/components/carriage-home-showcase";
 import { DeliveryTimeline } from "@/components/delivery-timeline";
 import { FinancialCorridors } from "@/components/financial-corridors";
@@ -50,6 +51,7 @@ export default function Home() {
           introCopy="Each residence begins as a coordinated architectural system and is adapted to your land, local requirements, climate, priorities, and chosen level of finish."
           valueCopy="Begin with a proven design. Shape it around the life, land, and budget it needs to serve."
         />
+        <AdditionalDesignsCallout />
         <CarriageHomeShowcase />
         <PreApprovedShowcase />
         {langley?.video ? (
