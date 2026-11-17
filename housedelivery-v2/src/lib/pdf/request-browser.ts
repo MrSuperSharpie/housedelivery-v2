@@ -8,6 +8,8 @@ import {
   type Page,
 } from "playwright-core";
 
+import { getPrintImageUrl } from "./print-images";
+
 const LOCAL_CHROME_PATH =
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const TRUSTED_OIDC_HEADER = "x-vercel-trusted-oidc-idp-token";
@@ -22,22 +24,6 @@ const FORWARDED_PREVIEW_HEADERS = [
 type RequestBrowserOptions = {
   imageMaxWidth?: number;
 };
-
-function getPrintImageUrl(url: URL, maxWidth?: number) {
-  if (
-    !maxWidth ||
-    !url.pathname.startsWith("/images/") ||
-    url.pathname.endsWith(".svg")
-  ) {
-    return url;
-  }
-
-  const optimizedUrl = new URL("/_next/image", url.origin);
-  optimizedUrl.searchParams.set("url", `${url.pathname}${url.search}`);
-  optimizedUrl.searchParams.set("w", String(maxWidth));
-  optimizedUrl.searchParams.set("q", "95");
-  return optimizedUrl;
-}
 
 function parseRequestCookies(cookieHeader: string | null, origin: string) {
   if (!cookieHeader) return [];

@@ -2,6 +2,29 @@
 // Keep print derivatives bounded to protect Chromium's shared memory.
 export const LOOK_BOOK_PRINT_IMAGE_WIDTH = 1080;
 
+// Next.js appends dpl to static assets for deployment skew protection. It is
+// request metadata, not part of the source image's identity: nesting it inside
+// the optimizer's url parameter causes Vercel to reject the image with 400.
+export function getPrintImageUrl(url: URL, maxWidth?: number) {
+  if (
+    !maxWidth ||
+    !url.pathname.startsWith("/images/") ||
+    url.pathname.endsWith(".svg")
+  ) {
+    return url;
+  }
+
+  const source = new URL(url);
+  const deploymentId = source.searchParams.get("dpl");
+  source.searchParams.delete("dpl");
+  const optimizedUrl = new URL("/_next/image", url.origin);
+  optimizedUrl.searchParams.set("url", `${source.pathname}${source.search}`);
+  optimizedUrl.searchParams.set("w", String(maxWidth));
+  optimizedUrl.searchParams.set("q", "95");
+  if (deploymentId) optimizedUrl.searchParams.set("dpl", deploymentId);
+  return optimizedUrl;
+}
+
 // Runs inside the print browser, so keep this function self-contained.
 export async function waitForPrintImages() {
   await document.fonts.ready;
