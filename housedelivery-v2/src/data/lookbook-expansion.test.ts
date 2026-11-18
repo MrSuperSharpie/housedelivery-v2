@@ -14,7 +14,7 @@ import { parseCompletedLookBook } from "@/lib/lookbook/domain";
 
 const baseline = originals as unknown as Pick<HomeConfiguratorDefinition, "homeId" | "configurationVersion" | "categories">[];
 
-test("ed69bf3 option IDs, images, names, editorial meaning and schema versions remain intact for every original home", () => {
+test("original choice IDs, artwork, names, editorial meaning and schema versions are preserved with the verified Solace corrections", () => {
   for (const original of baseline) {
     const current = getHomeConfiguratorDefinition(original.homeId)!;
     assert.equal(current.configurationVersion, original.configurationVersion);
@@ -32,6 +32,12 @@ test("ed69bf3 option IDs, images, names, editorial meaning and schema versions r
           const bytes = readFileSync(join(process.cwd(), "public", meaning.image.src));
           const revision = createHash("sha256").update(bytes).digest("hex").slice(0, 12);
           assert.equal(meaning.image.src, option.image.src.replace(/\.png$/, `_${revision}.png`));
+          meaning.image = { ...meaning.image, src: option.image.src };
+        }
+        if (original.homeId === "solace" && category.id === "primary-ensuite-look-feel" && option.optionNumber === "2") {
+          const matchingBoard: HomeInclusionOption | undefined = category.options.find((candidate) => candidate.optionNumber === "2" && candidate.level !== option.level);
+          assert.ok(matchingBoard);
+          assert.equal(meaning.image.src, matchingBoard.image.src);
           meaning.image = { ...meaning.image, src: option.image.src };
         }
         assert.deepEqual(meaning, option, `${original.homeId}/${option.id} changed meaning`);

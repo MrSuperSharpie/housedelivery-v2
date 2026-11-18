@@ -22,6 +22,7 @@ type LocalLookBook = {
   definition: HomeConfiguratorDefinition;
   configuration: HomeConfiguration;
   returnHref: string;
+  isFirstNations: boolean;
 };
 
 function findLocalLookBook(configurationId: string): LocalLookBook | undefined {
@@ -63,6 +64,7 @@ function findLocalLookBook(configurationId: string): LocalLookBook | undefined {
             definition,
             configuration: variation.configuration,
             returnHref: getPlannerReturnHref(audience, "planner-design-center"),
+            isFirstNations: audience === "first-nations",
           };
         }
       }
@@ -85,8 +87,13 @@ export function PlannerLocalLookBookFallback({
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    setLocalLookBook(findLocalLookBook(configurationId));
-    setHydrated(true);
+    let active = true;
+    window.queueMicrotask(() => {
+      if (!active) return;
+      setLocalLookBook(findLocalLookBook(configurationId));
+      setHydrated(true);
+    });
+    return () => { active = false; };
   }, [configurationId]);
 
   if (!hydrated) {
@@ -112,7 +119,9 @@ export function PlannerLocalLookBookFallback({
                 Project Look Book / Saved on this device
               </p>
               <p className="mt-2 max-w-2xl text-xs leading-5 text-white/48">
-                This design is safely attached to your active project. It becomes a server-saved project record when Project Review is submitted.
+                {localLookBook.isFirstNations
+                  ? "This Look Book is saved with your draft in this browser. It will be attached when your First Nations Project Review is submitted."
+                  : "This Look Book is saved in this browser. Project Review sends House Delivery a summary of the design. Use Download My Look Book and choose Save as PDF in the print dialog to keep a copy."}
               </p>
             </div>
             <Link
@@ -145,7 +154,7 @@ export function PlannerLocalLookBookFallback({
       <p className="mt-6 max-w-2xl text-sm leading-7 text-white/56">
         {storageReadFailed
           ? "Please retry in a moment. If this Look Book belongs to an active Planner project on this device, return to the project and reopen the saved design."
-          : "A project Look Book created before Project Review remains with the device where the project was created. Return to that project to reopen the saved design."}
+          : "Reopen the project in the browser where you created the Look Book to access your saved design."}
       </p>
       <Link
         href="/plan-a-housing-project"

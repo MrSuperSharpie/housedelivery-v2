@@ -4,7 +4,6 @@ import {
   firstNationsFundingCorridors,
   firstNationsPlannerCatalog,
 } from "@/data/first-nations-planner";
-import { models } from "@/data/models";
 import {
   LookBookValidationError,
   parseCompletedLookBook,
@@ -95,10 +94,6 @@ export function createPlannerSubmissionId(
     .digest("hex")}`;
 }
 
-function homeSlugForModel(modelId: string) {
-  return modelId.startsWith("custom:") ? modelId.slice("custom:".length) : "";
-}
-
 function tierLabel(tier: StoredLookBookSelection["tier"]) {
   return tier === "premium" ? "Premium" : "Signature";
 }
@@ -131,16 +126,23 @@ export function parsePlannerProjectHandoff({
     );
   }
 
+  if (!state.portfolio.length) {
+    throw new PlannerHandoffValidationError("Select at least one home before submission.");
+  }
+
   const seenVariationIds = new Set<string>();
   const packages = state.portfolio.flatMap((line) => {
-    const homeSlug = homeSlugForModel(line.modelId);
-    const model = models.find((candidate) => candidate.slug === homeSlug);
-    if (!homeSlug || !model) {
+    const model = firstNationsPlannerCatalog.find(({ id }) => id === line.modelId);
+    if (!model || model.selectionStatus === "preview-only") {
       throw new PlannerHandoffValidationError(
-        "Every submitted design group must use an active Custom Home.",
+        "Every planning selection must use an active Planner model.",
       );
     }
 
+    // A planning selection is always kept in the project portfolio. Only
+    // currently supported Custom Homes can contribute a saved design package.
+    if (model.family !== "custom-home" || !model.designChapters.length) return [];
+    const homeSlug = model.id.slice("custom:".length);
     const assignedTotal = line.designVariations.reduce(
       (total, variation) => total + variation.assignedQuantity,
       0,
@@ -151,18 +153,18 @@ export function parsePlannerProjectHandoff({
       );
     }
 
-    return line.designVariations.map((variation) => {
-      if (
-        seenVariationIds.has(variation.id) ||
-        variation.status !== "complete" ||
-        !variation.configuration ||
-        !variation.lookBookReference
-      ) {
-        throw new PlannerHandoffValidationError(
-          "Every unique Design Group must have one completed Look Book before submission.",
-        );
+    return line.designVariations.filter((variation) => {
+      if (seenVariationIds.has(variation.id)) {
+        throw new PlannerHandoffValidationError("Each Design Group must have a unique ID.");
       }
       seenVariationIds.add(variation.id);
+      return variation.status === "complete";
+    }).map((variation) => {
+      if (!variation.configuration || !variation.lookBookReference) {
+        throw new PlannerHandoffValidationError(
+          "A completed Design Group must include a valid Look Book.",
+        );
+      }
 
       let resolved;
       try {
@@ -249,12 +251,6 @@ export function parsePlannerProjectHandoff({
     });
   });
 
-  if (packages.length === 0) {
-    throw new PlannerHandoffValidationError(
-      "At least one completed Design Group is required.",
-    );
-  }
-
   return {
     state,
     submissionId:
@@ -289,10 +285,20 @@ export function formatPlannerHandoffEmail(
     state,
     firstNationsFundingCorridors,
   );
-  const portfolio = summary.lines.map(
-    ({ line, model }) =>
-      `${model.name}: ${line.quantity * model.homesPerSelection} home${line.quantity * model.homesPerSelection === 1 ? "" : "s"} / ${phaseLabels[line.phase]} / ${line.designVariations.length} Design Group${line.designVariations.length === 1 ? "" : "s"}`,
-  );
+  const portfolio = summary.lines.map(({ line, model }) => {
+    const homes = line.quantity * model.homesPerSelection;
+    const attached = packages.filter((item) => item.lineId === line.id);
+    const plannedHomes = homes - attached.reduce((total, item) => total + item.assignedQuantity, 0);
+    const designSummary = [
+      attached.length
+        ? `${attached.length} completed Look Book${attached.length === 1 ? "" : "s"}`
+        : null,
+      plannedHomes > 0
+        ? `${plannedHomes} planning selection${plannedHomes === 1 ? "" : "s"} (Look Book pending or unavailable)`
+        : null,
+    ].filter(Boolean).join(" / ");
+    return `${model.name}: ${homes} home${homes === 1 ? "" : "s"} / ${phaseLabels[line.phase]} / ${designSummary}`;
+  });
   const designGroups = packages.flatMap((item) => [
     "",
     item.designGroupName.toUpperCase(),
@@ -343,7 +349,7 @@ export function formatPlannerHandoffEmail(
     ...portfolio,
     "",
     "DESIGN GROUPS / DESIGN HANDOFF",
-    ...designGroups,
+    ...(designGroups.length ? designGroups : ["No completed Look Books attached."]),
     "",
     "PROJECT READINESS — KNOWN TODAY",
     ...known.map((item) => `${item.label}: ${item.detail} [${item.status}]`),

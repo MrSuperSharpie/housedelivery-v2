@@ -20,7 +20,6 @@ export type PersonalizedLookBookOffer = {
   homeKey: string;
   presets: readonly CollectionPreset[];
   presetChapters: readonly string[];
-  imageOptionIds?: Readonly<Record<string, string>>;
 };
 
 const offers: Readonly<Record<string, Omit<PersonalizedLookBookOffer, "homeKey"> | undefined>> = {
@@ -31,12 +30,6 @@ const offers: Readonly<Record<string, Omit<PersonalizedLookBookOffer, "homeKey">
       { id: "stone-wrapped-oak", tier: "signature", optionNumber: "1" },
       { id: "sculpted-white", tier: "signature", optionNumber: "2" },
     ],
-    // These two published files contain each other's art. Keep the original
-    // Studio and saved book definitions as-is and pair the verified boards here.
-    imageOptionIds: {
-      "primary-ensuite-look-feel-premium-2": "primary-ensuite-look-feel-signature-2",
-      "primary-ensuite-look-feel-signature-2": "primary-ensuite-look-feel-premium-2",
-    },
     presetChapters: [
       "kitchen-look-feel", "primary-ensuite-look-feel", "primary-wardrobe",
       "interior-doors-details", "whole-home-flooring-stairs", "window-coverings",
@@ -61,28 +54,6 @@ export function getPersonalizedLookBookOffer(registrationKey: string) {
 
 export function getInteriorCollection(id: InteriorCollectionId) {
   return interiorCollections[id];
-}
-
-export function getPersonalizedHomeDefinition(
-  definition: HomeConfiguratorDefinition,
-  offer: PersonalizedLookBookOffer,
-): HomeConfiguratorDefinition {
-  const { imageOptionIds } = offer;
-  if (!imageOptionIds) return definition;
-  return {
-    ...definition,
-    categories: definition.categories.map((category) => {
-      if (category.kind !== "room-look") return category;
-      return {
-        ...category,
-        options: category.options.map((option) => {
-          const sourceId = imageOptionIds[option.id];
-          const source = sourceId && category.options.find((candidate) => candidate.id === sourceId);
-          return source ? { ...option, image: { ...option.image, src: source.image.src } } : option;
-        }),
-      };
-    }),
-  };
 }
 
 export function applyInteriorCollection(

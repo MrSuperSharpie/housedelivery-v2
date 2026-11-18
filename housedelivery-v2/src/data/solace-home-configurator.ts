@@ -788,6 +788,7 @@ type SolaceVisualGuideChapter = {
   materialRole: string;
   technicalNote?: string;
   optionNames?: readonly [string, string, string, string];
+  assetNameOverrides?: readonly (string | undefined)[];
 };
 
 const solaceVisualGuidePackages = [
@@ -840,6 +841,9 @@ function createSolaceVisualGuideChapter(
     options: [
       ...solaceVisualGuidePackages.map((designPackage, index) => {
         const name = source.optionNames?.[index] ?? designPackage.name;
+        const tierName = designPackage.level === "premium" ? "Premium" : "Signature";
+        const assetName = source.assetNameOverrides?.[index] ??
+          `${tierName}-${designPackage.optionNumber}_${designPackage.filenameLabel}`;
 
         return {
           id: `${source.id}-${designPackage.level}-${designPackage.optionNumber}`,
@@ -852,7 +856,7 @@ function createSolaceVisualGuideChapter(
             materialRole: source.materialRole,
           },
           image: {
-            src: `${visualGuideAssetRoot}/${source.assetPrefix}_${designPackage.level === "premium" ? "Premium" : "Signature"}-${designPackage.optionNumber}_${designPackage.filenameLabel}${
+            src: `${visualGuideAssetRoot}/${source.assetPrefix}_${assetName}${
               source.id === "interior-doors-details" &&
               designPackage.level === "premium" &&
               designPackage.optionNumber === "1"
@@ -900,6 +904,8 @@ const solaceVisualGuideChapters = [
     title: "Primary Ensuite Look & Feel",
     shortTitle: "Primary Ensuite",
     assetPrefix: "Solace_02_Primary-Ensuite",
+    // These published files carry each other's boards.
+    assetNameOverrides: [undefined, "Signature-2_Sculpted-White", undefined, "Premium-2_Soft-White"],
     description:
       "Choose one coordinated primary ensuite package, including surfaces, vanity, fixtures and lighting.",
     represents: [

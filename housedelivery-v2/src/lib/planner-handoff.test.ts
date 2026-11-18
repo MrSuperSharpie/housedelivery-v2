@@ -346,6 +346,47 @@ test("12 homes persist as three unique factory design outputs with real Look Boo
   );
 });
 
+test("mixed portfolios and unfinished design groups survive handoff as planning selections", () => {
+  const base = realisticProject();
+  const [langley, solace] = base.portfolio;
+  const catalogue = { id: "fourplex-line", modelId: "catalogue:bc-fourplex-1", quantity: 2, phase: "phase-2", designVariations: [] } as const;
+  const carriage = { id: "carriage-line", modelId: "carriage:willow-nook", quantity: 3, phase: "future", designVariations: [] } as const;
+  const pendingSolace = { ...solace, designVariations: [createPlannerDesignVariation(solace.id, solace.quantity)] };
+  const state = {
+    ...base,
+    portfolio: [langley, pendingSolace, catalogue, carriage],
+    refinement: { ...base.refinement, communityWorkforceCapacity: ["workforce-training-interest"] },
+  } satisfies PlannerState;
+  const contact = { firstName: "Sky", lastName: "Example", email: "sky@example.test" };
+  const input = { plannerRecord: state, contact, origin: "https://preview.example.test" };
+  const handoff = parsePlannerProjectHandoff(input);
+  assert.deepEqual(handoff.state.portfolio.map(({ modelId, phase, quantity }) => ({ modelId, phase, quantity })),
+    state.portfolio.map(({ modelId, phase, quantity }) => ({ modelId, phase, quantity })));
+  assert.deepEqual(handoff.packages.map(({ lookBookReference }) => lookBookReference), ["LAN-GROUP-A", "LAN-GROUP-B"]);
+  const email = formatPlannerHandoffEmail(handoff, { ...contact, phone: "", notes: "", timeline: "" }, {
+    projectReviewUrl: "https://preview.example.test/internal/review",
+    opportunityReportUrl: "https://preview.example.test/internal/report",
+    opportunityReportPdfUrl: "https://preview.example.test/internal/report/pdf",
+  });
+  assert.match(email, /Total homes: 23/);
+  assert.match(email, /8 planning selections/);
+  assert.match(email, /3 planning selections/);
+  assert.match(email, /2 planning selections/);
+  assert.match(email, /Interested in project-based assembly training/);
+
+  const planningOnly = parsePlannerProjectHandoff({
+    ...input,
+    plannerRecord: { ...state, portfolio: [catalogue, pendingSolace, carriage] },
+  });
+  assert.deepEqual(planningOnly.packages, []);
+  assert.equal(planningOnly.state.portfolio.length, 3);
+
+  assert.throws(() => parsePlannerProjectHandoff({
+    ...input,
+    plannerRecord: { ...state, portfolio: [{ ...catalogue, modelId: "catalogue:unknown" }] },
+  }), /active Planner model/);
+});
+
 test("House Delivery email contains every human-readable design package and the gated commercial sequence", () => {
   const handoff = parsePlannerProjectHandoff({
     plannerRecord: realisticProject(),

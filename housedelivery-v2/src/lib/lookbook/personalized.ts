@@ -3,7 +3,6 @@ import { getHomeTierDefinition } from "@/data/home-pricing";
 import { models } from "@/data/models";
 import {
   getInteriorCollection,
-  getPersonalizedHomeDefinition,
   getPersonalizedLookBookOffer,
   lookBookRequestNotesLimit,
   type PersonalizedLookBookBrief,
@@ -26,7 +25,7 @@ export function resolvePersonalizedLookBook(value: unknown) {
     throw new LookBookValidationError("This collection and package are unavailable for the selected home.");
   }
 
-  const definition = getHomeTierDefinition(getPersonalizedHomeDefinition(registration.definition, offer), preset.tier);
+  const definition = getHomeTierDefinition(registration.definition, preset.tier);
   const { configuration } = resolveLookBookConfiguration(definition, input.configuration);
   const collection = getInteriorCollection(preset.id);
   const notes = singleLine(input.notes, lookBookRequestNotesLimit);

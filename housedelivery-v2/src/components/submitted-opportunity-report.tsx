@@ -104,19 +104,34 @@ export function SubmittedOpportunityReport({
 
       <ReportSection number="02" title="Portfolio and phases">
         <div className="border-t border-black/16">
-          {summary.lines.map(({ line, model }) => (
-            <div key={line.id} className="grid grid-cols-[1fr_auto] gap-5 border-b border-black/16 py-4 text-sm">
-              <div>
-                <p className="font-medium">{model.name}</p>
-                <p className="mt-1 text-xs text-black/45">Custom Home</p>
+          {summary.lines.map(({ line, model }) => {
+            const homes = line.quantity * model.homesPerSelection;
+            const attachedHomes = project.designPackages
+              .filter((item) => item.lineId === line.id)
+              .reduce((total, item) => total + item.assignedQuantity, 0);
+            const family = {
+              "custom-home": "Custom Home",
+              "standardized-catalogue": "CMHC Catalogue",
+              "laneway-carriage-home": "Laneway / Carriage Home",
+            }[model.family];
+
+            return (
+              <div key={line.id} className="grid grid-cols-[1fr_auto] gap-5 border-b border-black/16 py-4 text-sm">
+                <div>
+                  <p className="font-medium">{model.name}</p>
+                  <p className="mt-1 text-xs text-black/45">
+                    {family}
+                    {homes > attachedHomes ? ` · ${homes - attachedHomes} for planning` : null}
+                  </p>
+                </div>
+                <p className="text-right">
+                  {homes} {homes === 1 ? "home" : "homes"}
+                  <br />
+                  <span className="text-xs text-black/45">{line.phase.replace("phase-1", "Active / First Build").replace("phase-2", "Near-Term / Next Build").replace("future", "Future Pipeline")}</span>
+                </p>
               </div>
-              <p className="text-right">
-                {line.quantity * model.homesPerSelection} {line.quantity * model.homesPerSelection === 1 ? "home" : "homes"}
-                <br />
-                <span className="text-xs text-black/45">{line.phase.replace("phase-1", "Active / First Build").replace("phase-2", "Near-Term / Next Build").replace("future", "Future Pipeline")}</span>
-              </p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </ReportSection>
 
@@ -140,7 +155,9 @@ export function SubmittedOpportunityReport({
 
       <ReportSection number="04" title="Design direction">
         <p className="mb-6 max-w-4xl text-sm leading-6 text-black/58">
-          {project.designPackages.length} completed {project.designPackages.length === 1 ? "Design Group" : "Design Groups"}. The completed Look Book establishes the preliminary design direction for each Design Group. Following House Delivery review and the appropriate project authorization, these selections can be used for factory design development, virtual walkthrough preparation and project-specific specification review.
+          {project.designPackages.length
+            ? `${project.designPackages.length} completed ${project.designPackages.length === 1 ? "Design Group" : "Design Groups"}. Each Look Book establishes the preliminary design direction for its assigned homes. Following House Delivery review and the appropriate project authorization, these selections can inform factory design development, virtual walkthrough preparation and specification review.`
+            : "This portfolio was submitted for planning review. No completed Look Books are attached."}
         </p>
         <div className="grid gap-3 sm:grid-cols-2">
           {project.designPackages.map((designPackage) => (

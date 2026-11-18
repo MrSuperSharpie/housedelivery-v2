@@ -4,7 +4,7 @@ import { test } from "node:test";
 import { createDefaultHomeConfiguration, getHomeConfiguratorJourneyCategories } from "@/data/home-configurator";
 import { getHomeConfiguratorDefinition } from "@/data/home-configurators";
 import { getHomeTierDefinition } from "@/data/home-pricing";
-import { applyInteriorCollection, getPersonalizedHomeDefinition, getPersonalizedLookBookOffer } from "@/data/personalized-lookbook";
+import { applyInteriorCollection, getPersonalizedLookBookOffer } from "@/data/personalized-lookbook";
 import { resolvePersonalizedLookBook } from "@/lib/lookbook/personalized";
 
 const homeKey = "custom-home:solace";
@@ -57,17 +57,32 @@ test("unsupported homes, package mismatches and unconfirmed or incompatible fini
   assert.throws(() => resolvePersonalizedLookBook(request), /complete/);
 });
 
-test("the pilot uses the matching ensuite boards while saved books retain their source assets", () => {
+test("both the original Solace Studio and personalized books use the correct ensuite boards", () => {
   const original = getHomeConfiguratorDefinition("solace")!;
-  const pilot = getPersonalizedHomeDefinition(original, offer);
-  const chapter = pilot.categories.find(({ id }) => id === "primary-ensuite-look-feel");
-  const legacyChapter = original.categories.find(({ id }) => id === "primary-ensuite-look-feel");
-  assert.ok(chapter?.kind === "room-look" && legacyChapter?.kind === "room-look");
-  const premium = chapter.options.find(({ id }) => id === "primary-ensuite-look-feel-premium-2")!;
-  const signature = chapter.options.find(({ id }) => id === "primary-ensuite-look-feel-signature-2")!;
-  assert.equal(premium.name, "Soft White");
-  assert.equal(signature.name, "Sculpted White");
-  assert.match(premium.image.src, /Signature-2_Sculpted-White/);
-  assert.match(signature.image.src, /Premium-2_Soft-White/);
-  assert.match(legacyChapter.options.find(({ id }) => id === premium.id)!.image.src, /Premium-2_Soft-White/);
+  const options = [
+    ["premium", "soft-white", "Soft White", "Signature-2_Sculpted-White"],
+    ["signature", "sculpted-white", "Sculpted White", "Premium-2_Soft-White"],
+  ] as const;
+
+  for (const [tier, collectionId, name, sourceFilename] of options) {
+    const tierDefinition = getHomeTierDefinition(original, tier);
+    const preset = offer.presets.find(({ id }) => id === collectionId)!;
+    const configuration = applyInteriorCollection(tierDefinition, createDefaultHomeConfiguration(original), offer, preset);
+    for (const category of getHomeConfiguratorJourneyCategories(tierDefinition)) {
+      assert.ok(category.kind === "room-look");
+      configuration.inclusionSelections[category.id] = {
+        optionId: configuration.inclusionSelections[category.id]?.optionId ?? category.options[0].id,
+        status: "confirmed",
+      };
+    }
+
+    const pilot = resolvePersonalizedLookBook({ homeKey, tier, collectionId, configuration });
+    for (const definition of [original, pilot.definition]) {
+      const chapter = definition.categories.find(({ id }) => id === "primary-ensuite-look-feel");
+      assert.ok(chapter?.kind === "room-look");
+      const option = chapter.options.find(({ id }) => id === `primary-ensuite-look-feel-${tier}-2`);
+      assert.equal(option?.name, name);
+      assert.ok(option.image.src.endsWith(`_${sourceFilename}.png`));
+    }
+  }
 });

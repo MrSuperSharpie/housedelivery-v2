@@ -11,7 +11,7 @@ import production from "@/data/fixtures/solace-production-ed69bf3.json";
 
 const baseline = production as HomeConfiguratorDefinition;
 
-test("Solace preserves production option meanings with the approved Interior Details artwork revision", () => {
+test("Solace preserves production option meanings with the Interior Details and ensuite artwork corrections", () => {
   const withoutAdditions = structuredClone(definition);
   withoutAdditions.categories = withoutAdditions.categories.filter((category) => category.id !== "windows-patio-doors");
   withoutAdditions.lookBook.sections = withoutAdditions.lookBook.sections.filter((section) => section.id !== "windows-patio-doors");
@@ -30,6 +30,14 @@ test("Solace preserves production option meanings with the approved Interior Det
   assert.ok(correctedBoard);
   assert.match(correctedBoard.image.src, /_52819103516b\.png$/);
   correctedBoard.image.src = correctedBoard.image.src.replace("_52819103516b.png", ".png");
+  const ensuite = withoutAdditions.categories.find((category) => category.id === "primary-ensuite-look-feel");
+  assert.ok(ensuite?.kind === "room-look");
+  const softWhite = ensuite.options.find((option) => option.id === "primary-ensuite-look-feel-premium-2");
+  const sculptedWhite = ensuite.options.find((option) => option.id === "primary-ensuite-look-feel-signature-2");
+  assert.ok(softWhite && sculptedWhite);
+  assert.match(softWhite.image.src, /_Signature-2_Sculpted-White\.png$/);
+  assert.match(sculptedWhite.image.src, /_Premium-2_Soft-White\.png$/);
+  [softWhite.image.src, sculptedWhite.image.src] = [sculptedWhite.image.src, softWhite.image.src];
   assert.deepEqual(JSON.parse(JSON.stringify(withoutAdditions)), baseline);
   assert.equal(definition.configurationVersion, 4);
   const newImages = new Set<string>();

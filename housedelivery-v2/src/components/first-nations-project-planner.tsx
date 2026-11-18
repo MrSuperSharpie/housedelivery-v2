@@ -15,7 +15,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
-import { CulturalDesignReport } from "@/components/cultural-design-report";
 import { FirstNationsExteriorDirectionCard } from "@/components/first-nations-exterior-direction-card";
 import {
   getCulturalDesignImage,
@@ -38,12 +37,14 @@ import {
   firstNationsHousingUseQuestion,
   firstNationsHousingUseSupportingText,
   getAudienceFundingCorridors,
+  getCommunityWorkforceCapacityLabels,
   getCulturalDesignReportRecords,
   getFirstNationsCulturalDesignDirectionLabel,
   getPlannerDesignProgress,
   getOpportunityReportFundingCorridors,
   getPortfolioSummary,
   getReadinessProfile,
+  hasCommunityWorkforceCapacityInterest,
   matchFundingCorridors,
   migratePlannerState,
   plannerAudienceLabels,
@@ -1258,16 +1259,6 @@ function RefineStep({
     update("householdPriorities", next.length ? next : ["unknown"]);
   }
 
-  function toggleWorkforceCapacity(value: CommunityWorkforceCapacityId) {
-    update(
-      "communityWorkforceCapacity",
-      toggleCommunityWorkforceCapacitySelection(
-        state.refinement.communityWorkforceCapacity,
-        value,
-      ),
-    );
-  }
-
   const fields = [
     ["accessibility", "Accessibility / adaptability", [["unknown", "Unknown / to confirm"], ["standard", "Standard planning"], ["adaptable", "Adaptable homes required"], ["accessible", "Accessible homes required"], ["mixed", "Mixed accessibility portfolio"]]],
     ["landStatus", "Land / site status", [["unknown", "Unknown / to confirm"], ["on-reserve", "On-reserve"], ["off-reserve", "Off-reserve"], ["mixed", "Mixed land status"]]],
@@ -1312,61 +1303,6 @@ function RefineStep({
           })}
         </div>
       </fieldset> : null}
-      {isFirstNations ? (
-        <fieldset
-          data-community-workforce-capacity
-          className="mt-10 border-t border-black/16 pt-6"
-        >
-          <legend className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/46">
-            Community Workforce &amp; Capacity
-          </legend>
-          <p className="mt-3 max-w-4xl text-sm leading-6 text-black/62">
-            Keep more project value in the community. Create opportunities to
-            train and employ local members in the assembly of your homes, while
-            building skills and capacity that can support future housing
-            projects.
-          </p>
-          <p className="mt-3 max-w-4xl text-xs leading-5 text-black/46">
-            Participation, training scope, partners, employment opportunities,
-            costs and schedules are confirmed during project review.
-          </p>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {communityWorkforceCapacityOptions.map(({ id, label }) => {
-              const checked =
-                state.refinement.communityWorkforceCapacity.includes(id);
-              return (
-                <label
-                  key={id}
-                  className={cn(
-                    "flex min-h-14 cursor-pointer items-center gap-3 border px-4 text-sm",
-                    checked
-                      ? "border-black bg-black text-white"
-                      : unselectedControlClassName,
-                  )}
-                >
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={() => toggleWorkforceCapacity(id)}
-                    className="sr-only"
-                  />
-                  <span
-                    className={cn(
-                      "grid size-5 shrink-0 place-items-center border",
-                      checked ? "border-white" : "border-black/25",
-                    )}
-                  >
-                    {checked ? (
-                      <Check aria-hidden="true" className="size-3" />
-                    ) : null}
-                  </span>
-                  {label}
-                </label>
-              );
-            })}
-          </div>
-        </fieldset>
-      ) : null}
       <div className={cn("grid border-l border-t border-black/16 md:grid-cols-2", isFirstNations ? "mt-10" : "mt-16")}>
         {visibleFields.flatMap(([key, label, options]) => {
           const field = (
@@ -1762,7 +1698,28 @@ function FirstNationsProjectReadinessStep({
     setState((current) => ({
       ...current,
       readiness: { ...current.readiness, [key]: value },
+      ...(key === "communityWorkforce" && value === "no"
+        ? { refinement: { ...current.refinement, communityWorkforceCapacity: ["to-be-determined"] } }
+        : {}),
     }));
+  }
+
+  function toggleWorkforceCapacity(value: CommunityWorkforceCapacityId) {
+    setState((current) => {
+      const communityWorkforceCapacity = toggleCommunityWorkforceCapacitySelection(
+        current.refinement.communityWorkforceCapacity,
+        value,
+      );
+      const interest = current.readiness.communityWorkforce;
+      return {
+        ...current,
+        readiness:
+          interest === "undetermined" && hasCommunityWorkforceCapacityInterest(communityWorkforceCapacity)
+            ? { ...current.readiness, communityWorkforce: "explore" }
+            : current.readiness,
+        refinement: { ...current.refinement, communityWorkforceCapacity },
+      };
+    });
   }
 
   return (
@@ -1853,6 +1810,60 @@ function FirstNationsProjectReadinessStep({
         ))}
       </div>
 
+      {state.readiness.communityWorkforce !== "no" ? (
+        <fieldset
+          data-community-workforce-capacity
+          className="mt-10 border-t border-black/16 pt-6"
+        >
+          <legend className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/46">
+            Local workforce participation options
+          </legend>
+          <p className="mt-3 max-w-4xl text-sm leading-6 text-black/62">
+            Select the types of local participation or training your community
+            would like to discuss.
+          </p>
+          <p className="mt-3 max-w-4xl text-xs leading-5 text-black/46">
+            Participation, training scope, partners, employment opportunities,
+            costs and schedules are confirmed during project review.
+          </p>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {communityWorkforceCapacityOptions.map(({ id, label }) => {
+              const checked =
+                state.refinement.communityWorkforceCapacity.includes(id);
+              return (
+                <label
+                  key={id}
+                  className={cn(
+                    "flex min-h-14 cursor-pointer items-center gap-3 border px-4 text-sm focus-within:outline-2 focus-within:outline-offset-2",
+                    checked
+                      ? "border-black bg-black text-white"
+                      : unselectedControlClassName,
+                  )}
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => toggleWorkforceCapacity(id)}
+                    className="sr-only"
+                  />
+                  <span
+                    className={cn(
+                      "grid size-5 shrink-0 place-items-center border",
+                      checked ? "border-white" : "border-black/25",
+                    )}
+                  >
+                    {checked ? (
+                      <Check aria-hidden="true" className="size-3" />
+                    ) : null}
+                  </span>
+                  {label}
+                </label>
+              );
+            })}
+          </div>
+        </fieldset>
+      ) : null}
+
       <p className="mt-10 border-y border-black/16 py-6 text-sm leading-6 text-black/55">
         Scale describes the opportunity. Readiness describes what is known
         today. Neither is a government, lender or funding-program score.
@@ -1877,10 +1888,10 @@ function FirstNationsProjectReviewSummary({
   const summary = getPortfolioSummary(state.portfolio, catalog);
   const readiness = getReadinessProfile(state, catalog);
   const progress = getPlannerDesignProgress(state.portfolio, catalog);
-  const designGroupCount = state.portfolio.reduce(
-    (total, line) => total + line.designVariations.length,
-    0,
-  );
+  const designGroupCount = progress.totalDesignGroups;
+  const workforceSelections = state.readiness.communityWorkforce === "no"
+    ? []
+    : getCommunityWorkforceCapacityLabels(state.refinement.communityWorkforceCapacity);
   const knownToday = readiness.filter((item) => item.ready);
   const itemsToConfirm = readiness.filter((item) => !item.ready);
 
@@ -1928,6 +1939,7 @@ function FirstNationsProjectReviewSummary({
               <p className="font-medium">{model.name}</p>
               <p className="text-sm text-black/55">
                 {homes} {homes === 1 ? "home" : "homes"} · {plannerPhaseLabels[line.phase]}
+                {!model.designChapters.length ? " · Planning selection" : null}
               </p>
             </div>
           );
@@ -1946,7 +1958,7 @@ function FirstNationsProjectReviewSummary({
           </div>
           <button type="button" onClick={onEditDesigns} className="text-[9px] font-semibold uppercase tracking-[0.16em] text-black/52 hover:text-black">Edit</button>
         </div>
-        {summary.lines.flatMap(({ line, model }) =>
+        {summary.lines.filter(({ model }) => model.designChapters.length > 0).flatMap(({ line, model }) =>
           line.designVariations.map((variation) => (
             <div key={variation.id} className="grid gap-2 border-b border-black/14 py-4 sm:grid-cols-[1fr_auto]">
               <div>
@@ -1959,7 +1971,7 @@ function FirstNationsProjectReviewSummary({
                 </p>
               </div>
               <p className="text-sm text-black/55">
-                {variation.assignedQuantity} {variation.assignedQuantity === 1 ? "home" : "homes"} · {variation.status === "complete" ? "Complete" : "To configure"}
+                {variation.assignedQuantity} {variation.assignedQuantity === 1 ? "home" : "homes"} · {variation.status === "complete" ? "Complete" : "Planning selection"}
               </p>
             </div>
           )),
@@ -1993,6 +2005,11 @@ function FirstNationsProjectReviewSummary({
                       <span className="shrink-0 text-[8px] font-semibold uppercase tracking-[0.14em] text-black/42">{item.status}</span>
                     </div>
                     <p className="mt-2 text-xs leading-5 text-black/48">{item.detail}</p>
+                    {item.id === "communityWorkforce" && workforceSelections.length ? (
+                      <ul className="mt-2 list-disc space-y-1 pl-4 text-xs leading-5 text-black/60">
+                        {workforceSelections.map((selection) => <li key={selection}>{selection}</li>)}
+                      </ul>
+                    ) : null}
                   </div>
                 )) : <p className="text-sm text-black/48">No items in this section.</p>}
               </div>
@@ -2829,7 +2846,7 @@ function SubmittedProjectJourney({
 }) {
   const milestones = [
     ["House Delivery Review", "Current", "House Delivery checks the submitted project, readiness information and completed design packages."],
-    ["Letter of Understanding", "Next", "An authorized Nation representative reviews the preliminary project basis. This is separate from paid design work and is not a purchase agreement."],
+    ["Letter of Understanding", "Next", "An authorized Nation representative reviews the preliminary project basis before any separate paid design work."],
     ["Design Development", "Separate authorization", "Each unique Design Group is one potential factory design-development output. Any fee remains to be configured, disclosed and separately authorized."],
     ["Virtual Walkthrough", "After payment + release", "Only after the LOU, separate authorization, payment clearance and explicit House Delivery release can a design package move to factory development."],
     ["Final Pricing", "After factory development", "House Delivery refines project pricing after sufficient project-specific walkthrough and specification development."],
@@ -2853,30 +2870,34 @@ function SubmittedProjectJourney({
         ))}
       </div>
 
-      <section className="mt-9 border-y border-black/18 py-7">
-        <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/44">Your design moves with the project</p>
-        <p className="mt-4 max-w-4xl text-sm leading-6 text-black/58">
-          Your completed Look Book establishes the design direction for each project home group. Following House Delivery&apos;s project review and an agreed Letter of Understanding, the selected materials, finishes and design direction can move into factory design development.
-        </p>
-        <p className="mt-4 max-w-4xl text-sm leading-6 text-black/58">
-          The factory then uses the approved design brief to prepare the project-specific virtual walkthrough and refine specifications required for final pricing. Factory design-development and virtual walkthrough services are a separate paid next-stage service. Any fee will be disclosed and authorized before that work begins.
-        </p>
-      </section>
+      {completedDesigns.length ? (
+        <>
+          <section className="mt-9 border-y border-black/18 py-7">
+            <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/44">Your design moves with the project</p>
+            <p className="mt-4 max-w-4xl text-sm leading-6 text-black/58">
+              Each completed Look Book establishes the design direction for the homes assigned to its group. Following House Delivery&apos;s project review and an agreed Letter of Understanding, the selected materials, finishes and design direction can move into factory design development.
+            </p>
+            <p className="mt-4 max-w-4xl text-sm leading-6 text-black/58">
+              The factory then uses the approved design brief to prepare the project-specific virtual walkthrough and refine specifications required for final pricing. Factory design-development and virtual walkthrough services are a separate paid next-stage service. Any fee will be disclosed and authorized before that work begins.
+            </p>
+          </section>
 
-      <section className="mt-9">
-        <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/44">Design Development Authorization / Not authorized</p>
-        <p className="mt-3 max-w-3xl text-xs leading-5 text-black/50">
-          One requirement is shown per unique Design Group—not per physical home. This is a future separate authorization, not part of the LOU or this submission.
-        </p>
-        <div className="mt-5 border-t border-black/16">
-          {completedDesigns.map(({ model, variation }) => (
-            <div key={variation.id} className="grid gap-2 border-b border-black/16 py-4 text-sm sm:grid-cols-[1fr_auto]">
-              <p>{variation.projectDesignName ?? `${getPlannerHomeName(model.name)} — ${variation.label}`}<br /><span className="text-xs text-black/44">{variation.assignedQuantity} {variation.assignedQuantity === 1 ? "home" : "homes"} / One design-development package</span></p>
-              <p className="text-black/52">Fee: To be configured<br /><span className="text-xs">Status: Not authorized</span>{variation.lookBookConfigurationId ? <><br /><Link href={`/lookbook/${variation.lookBookConfigurationId}`} target="_blank" rel="noreferrer" className="text-[9px] font-semibold uppercase tracking-[0.14em] underline underline-offset-4">View Look Book</Link>{" / "}<Link href={`/lookbook/${variation.lookBookConfigurationId}/pdf?disposition=attachment`} target="_blank" rel="noreferrer" className="text-[9px] font-semibold uppercase tracking-[0.14em] underline underline-offset-4">PDF</Link></> : null}</p>
+          <section className="mt-9">
+            <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/44">Design Development Authorization / Not authorized</p>
+            <p className="mt-3 max-w-3xl text-xs leading-5 text-black/50">
+              One requirement is shown per unique Design Group—not per physical home. This is a future separate authorization, not part of the LOU or this submission.
+            </p>
+            <div className="mt-5 border-t border-black/16">
+              {completedDesigns.map(({ model, variation }) => (
+                <div key={variation.id} className="grid gap-2 border-b border-black/16 py-4 text-sm sm:grid-cols-[1fr_auto]">
+                  <p>{variation.projectDesignName ?? `${getPlannerHomeName(model.name)} — ${variation.label}`}<br /><span className="text-xs text-black/44">{variation.assignedQuantity} {variation.assignedQuantity === 1 ? "home" : "homes"} / One design-development package</span></p>
+                  <p className="text-black/52">Fee: To be configured<br /><span className="text-xs">Status: Not authorized</span>{variation.lookBookConfigurationId ? <><br /><Link href={`/lookbook/${variation.lookBookConfigurationId}`} target="_blank" rel="noreferrer" className="text-[9px] font-semibold uppercase tracking-[0.14em] underline underline-offset-4">View Look Book</Link>{" / "}<Link href={`/lookbook/${variation.lookBookConfigurationId}/pdf?disposition=attachment`} target="_blank" rel="noreferrer" className="text-[9px] font-semibold uppercase tracking-[0.14em] underline underline-offset-4">PDF</Link></> : null}</p>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </section>
+          </section>
+        </>
+      ) : null}
       <span className="sr-only">Project {state.projectId} remains saved on this device with {completedDesigns.length} attached design packages.</span>
     </div>
   );
@@ -2914,14 +2935,20 @@ function ProjectReviewStep({
   ).filter(
     (corridor) => state.fundingCorridorDecisions[corridor.id] === "include",
   );
+  const isFirstNations = state.audience === "first-nations";
   const completedDesigns = summary.lines.flatMap(({ line, model }) =>
-    line.designVariations.flatMap((variation) =>
-      variation.status === "complete" ? [{ model, variation }] : [],
-    ),
+    model.designChapters.length && (!isFirstNations || model.family === "custom-home")
+      ? line.designVariations
+          .filter((variation) => variation.status === "complete")
+          .map((variation) => ({ model, variation }))
+      : [],
   );
   const workforceReadiness = readiness.find(
     (item) => item.id === "communityWorkforce",
   );
+  const workforceSelections = state.readiness.communityWorkforce === "no"
+    ? []
+    : getCommunityWorkforceCapacityLabels(state.refinement.communityWorkforceCapacity);
   const reviewContext = formatProjectReviewContext(state, catalog, corridors);
 
   function updateContact(
@@ -3005,7 +3032,7 @@ function ProjectReviewStep({
       if (
         !response.ok ||
         !isAcceptedProjectReviewResponse(result) ||
-        (state.audience === "first-nations" &&
+        (isFirstNations &&
           result.designGroups?.length !== completedDesigns.length)
       ) {
         throw new Error("Project review delivery failed.");
@@ -3031,7 +3058,7 @@ function ProjectReviewStep({
         })),
         reviewStatus: "submitted",
         lifecycleStatus: "submitted-for-review",
-        louStatus: "project-review-requested",
+        louStatus: isFirstNations ? "project-review-requested" : current.louStatus,
         submissionId: result.submissionId ?? current.submissionId,
         submittedAt,
       }));
@@ -3056,7 +3083,7 @@ function ProjectReviewStep({
       <StepHeader
         eyebrow={state.audience === "first-nations" ? "08 / Project review / LOU" : "09 / Project review"}
         title="Send your project to House Delivery."
-        intro={state.audience === "first-nations" ? "Submit the project for House Delivery review. House Delivery will review it before preparing any LOU or next-stage authorization." : "Submit the project for House Delivery review. Your saved project details and design records will be included."}
+        intro={isFirstNations ? "Send your housing portfolio, planning selections and completed Look Books for House Delivery review." : "Send a review request with your contact information and a summary of your portfolio and completed designs."}
       />
 
       <div className="mt-14 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -3085,6 +3112,11 @@ function ProjectReviewStep({
             {workforceReadiness?.detail ??
               "Community workforce and capacity interest not yet determined."}
           </p>
+          {workforceSelections.length ? (
+            <ul className="mt-3 list-disc space-y-1 pl-4 text-sm leading-6 text-black/62">
+              {workforceSelections.map((selection) => <li key={selection}>{selection}</li>)}
+            </ul>
+          ) : null}
           <p className="mt-4 text-[9px] font-semibold uppercase tracking-[0.16em] text-black/42">
             {workforceReadiness?.status ?? "Not Yet Determined"}
           </p>
@@ -3101,9 +3133,11 @@ function ProjectReviewStep({
                   <p className="font-medium">{model.name}</p>
                   <p className="text-right">{line.quantity * model.homesPerSelection} {line.quantity * model.homesPerSelection === 1 ? "home" : "homes"}<br /><span className="text-xs text-black/45">{plannerPhaseLabels[line.phase]}</span></p>
                 </div>
-                {line.designVariations.map((variation) => (
+                {isFirstNations && !model.designChapters.length ? (
+                  <p className="mt-3 text-xs leading-5 text-black/52">Planning selection · Look Book unavailable</p>
+                ) : line.designVariations.map((variation) => (
                   <div key={variation.id} className="mt-3 text-xs leading-5 text-black/52">
-                    <p>{variation.projectDesignName ?? `${getPlannerHomeName(model.name)} — ${variation.label}`} · Assigned to {variation.assignedQuantity} {variation.assignedQuantity === 1 ? "home" : "homes"} · {variation.status === "complete" ? `Complete${variation.lookBookReference ? ` / ${variation.lookBookReference}` : ""}` : "Design outstanding"}</p>
+                    <p>{variation.projectDesignName ?? `${getPlannerHomeName(model.name)} — ${variation.label}`} · Assigned to {variation.assignedQuantity} {variation.assignedQuantity === 1 ? "home" : "homes"} · {variation.status === "complete" ? `Complete${variation.lookBookReference ? ` / ${variation.lookBookReference}` : ""}` : isFirstNations ? "Planning selection · Look Book pending" : "Design outstanding"}</p>
                     {variation.culturalExteriorInterest ? <p className="mt-1 text-black/42">Cultural design direction: Indigenous Inspiration</p> : null}
                   </div>
                 ))}
@@ -3140,15 +3174,21 @@ function ProjectReviewStep({
             <div className="max-w-3xl">
             <p className="inline-flex items-center gap-3 text-[9px] font-semibold uppercase tracking-[0.18em] text-black/48"><Check aria-hidden="true" className="size-4" /> Project review received</p>
             <h3 className="mt-5 text-3xl font-medium tracking-[-0.045em] sm:text-5xl">Project received.</h3>
-            <p className="mt-5 text-sm leading-6 text-black/55">House Delivery received project {state.projectId} with Opportunity Report {state.opportunityReportReference} and {completedDesigns.length} completed {completedDesigns.length === 1 ? "design package" : "design packages"}. The next step is House Delivery review before an LOU is prepared. Submission is not an LOU, a paid-design authorization, a factory release or final pricing.</p>
+              <p className="mt-5 text-sm leading-6 text-black/55">
+                {isFirstNations
+                  ? `House Delivery received project ${state.projectId} with Opportunity Report ${state.opportunityReportReference} and ${completedDesigns.length} completed ${completedDesigns.length === 1 ? "Look Book" : "Look Books"}. House Delivery will review the portfolio, including any planning selections, before preparing an LOU.`
+                  : "House Delivery received your review request and portfolio summary. Your working portfolio, Opportunity Report and Look Books are saved in this browser. Use View / Edit My Project to reopen a Look Book and save it as a PDF."}
+              </p>
             </div>
-            <SubmittedProjectJourney state={state} completedDesigns={completedDesigns} />
+            {isFirstNations ? <SubmittedProjectJourney state={state} completedDesigns={completedDesigns} /> : null}
           </div>
         ) : (
           <form onSubmit={submitProjectReview} className="grid gap-x-6 gap-y-8 sm:grid-cols-2">
             <div className="sm:col-span-2">
               <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/42">Project review contact</p>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-black/52">Add the contact for this review. The project record above—not a blank generic inquiry—will be sent with the request.</p>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-black/52">{isFirstNations
+                ? "Add the contact for this review. Your project record and any completed Look Books will be sent with the request."
+                : "Add the contact for this review. House Delivery receives a summary of your selections. Look Book files stay in this browser, where you can save them as PDFs."}</p>
             </div>
             <label className="form-field"><span>First name</span><input name="firstName" autoComplete="given-name" required value={state.contact.firstName} onChange={(event) => updateContact("firstName", event.target.value)} /></label>
             <label className="form-field"><span>Last name</span><input name="lastName" autoComplete="family-name" required value={state.contact.lastName} onChange={(event) => updateContact("lastName", event.target.value)} /></label>
@@ -3172,7 +3212,9 @@ function ProjectReviewStep({
                 {submitting ? "Sending Project Review…" : "Submit Project Review"}<ArrowRight aria-hidden="true" className="size-4" />
               </button>
               {submissionError ? <p role="alert" className="mt-4 text-xs leading-5 text-black/60">{submissionError}</p> : null}
-              <p className="mt-4 text-[10px] leading-4 text-black/40">This request begins a non-binding project review toward the appropriate LOU / commitment pathway. It is not itself an LOU, quotation, funding decision, approval or commitment to deliver.</p>
+              <p className="mt-4 text-[10px] leading-4 text-black/40">{isFirstNations
+                ? "This request begins a non-binding project review. An LOU and any later authorizations are handled separately."
+                : "This request begins a non-binding review of your project with House Delivery."}</p>
             </div>
           </form>
         )}
@@ -3182,7 +3224,7 @@ function ProjectReviewStep({
         <button type="button" onClick={onViewReport} className="inline-flex min-h-12 items-center justify-between gap-7 border border-black/24 px-5 text-left text-[9px] font-semibold uppercase tracking-[0.16em]">View Opportunity Report <ArrowLeft aria-hidden="true" className="size-4" /></button>
         <button type="button" onClick={onEditProject} className="inline-flex min-h-12 items-center justify-between gap-7 px-5 text-left text-[9px] font-semibold uppercase tracking-[0.16em] text-black/48 hover:text-black">View / Edit My Project <ArrowRight aria-hidden="true" className="size-4" /></button>
       </div>
-      <span className="sr-only">{completedDesigns.length} completed {completedDesigns.length === 1 ? "design group" : "design groups"} carried into project review.</span>
+      <span className="sr-only">{completedDesigns.length} completed {completedDesigns.length === 1 ? "design group" : "design groups"} summarized in project review.</span>
     </div>
   );
 }
