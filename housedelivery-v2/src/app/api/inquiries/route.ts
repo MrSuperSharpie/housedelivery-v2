@@ -13,6 +13,7 @@ import {
   PlannerHandoffValidationError,
   type PlannerProjectHandoff,
 } from "@/lib/planner-handoff";
+import { getPlannerPreviewEmailCapture } from "@/lib/planner-preview-email";
 import type { StoredPlannerProject } from "@/lib/planner-project-record";
 import {
   createPlannerProject,
@@ -248,6 +249,7 @@ export async function POST(request: Request) {
   let plannerHandoff: PlannerProjectHandoff | undefined;
   let storedPlannerProject: StoredPlannerProject | undefined;
   let plannerReviewToken = "";
+  let capturePlannerPreviewEmail: ReturnType<typeof getPlannerPreviewEmailCapture>;
   let plannerReviewLinks:
     | {
         projectReviewUrl: string;
@@ -257,7 +259,10 @@ export async function POST(request: Request) {
     | undefined;
   if (payload.plannerRecord !== undefined) {
     try {
-      const publicOrigin = getLookBookPublicOrigin(request.url);
+      capturePlannerPreviewEmail = getPlannerPreviewEmailCapture();
+      const publicOrigin = capturePlannerPreviewEmail
+        ? new URL(request.url).origin
+        : getLookBookPublicOrigin(request.url);
       plannerHandoff = parsePlannerProjectHandoff({
         plannerRecord: payload.plannerRecord,
         contact: {
@@ -280,8 +285,11 @@ export async function POST(request: Request) {
           submittedAt,
         },
       };
-      const reviewSecret =
-        process.env.PLANNER_REVIEW_TOKEN_SECRET?.trim() ?? "";
+      const reviewSecret = (
+        capturePlannerPreviewEmail
+          ? process.env.PLANNER_PREVIEW_REVIEW_TOKEN_SECRET
+          : process.env.PLANNER_REVIEW_TOKEN_SECRET
+      )?.trim() ?? "";
       plannerReviewToken = derivePlannerReviewToken(
         plannerHandoff.submissionId,
         reviewSecret,
@@ -403,7 +411,7 @@ export async function POST(request: Request) {
     process.env.INQUIRY_FROM_EMAIL?.trim() ||
     "House Delivery Website <inquiries@housedelivery.ca>";
 
-  if (shouldDeliverEmail && !resendApiKey) {
+  if (shouldDeliverEmail && !capturePlannerPreviewEmail && !resendApiKey) {
     logInquiryFailure("inquiry_configuration_failed", {
       requestId,
       status: 503,
@@ -539,8 +547,7 @@ export async function POST(request: Request) {
     );
   } else {
     try {
-      const response = await sendInquiryEmail({
-        apiKey: resendApiKey!,
+      const delivery = {
         idempotencyKey,
         message: propertyEmailMessages?.internal ?? {
           from: fromEmail,
@@ -549,7 +556,10 @@ export async function POST(request: Request) {
           subject: internalSubject,
           text: message,
         },
-      });
+      };
+      const response = capturePlannerPreviewEmail
+        ? await capturePlannerPreviewEmail(delivery)
+        : await sendInquiryEmail({ apiKey: resendApiKey!, ...delivery });
 
       const providerResponse: unknown = await response.json().catch(() => null);
 
