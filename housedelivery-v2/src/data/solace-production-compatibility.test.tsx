@@ -11,7 +11,7 @@ import production from "@/data/fixtures/solace-production-ed69bf3.json";
 
 const baseline = production as HomeConfiguratorDefinition;
 
-test("Solace additions preserve the exact production definition and original option meanings", () => {
+test("Solace preserves production option meanings with the approved Interior Details artwork revision", () => {
   const withoutAdditions = structuredClone(definition);
   withoutAdditions.categories = withoutAdditions.categories.filter((category) => category.id !== "windows-patio-doors");
   withoutAdditions.lookBook.sections = withoutAdditions.lookBook.sections.filter((section) => section.id !== "windows-patio-doors");
@@ -24,6 +24,12 @@ test("Solace additions preserve the exact production definition and original opt
       category.options = category.options.slice(0, 4);
     }
   }
+  const interiorDetails = withoutAdditions.categories.find((category) => category.id === "interior-doors-details");
+  assert.ok(interiorDetails?.kind === "room-look");
+  const correctedBoard = interiorDetails.options.find((option) => option.id === "interior-doors-details-premium-1");
+  assert.ok(correctedBoard);
+  assert.match(correctedBoard.image.src, /_52819103516b\.png$/);
+  correctedBoard.image.src = correctedBoard.image.src.replace("_52819103516b.png", ".png");
   assert.deepEqual(JSON.parse(JSON.stringify(withoutAdditions)), baseline);
   assert.equal(definition.configurationVersion, 4);
   const newImages = new Set<string>();
