@@ -15,6 +15,8 @@ import {
 import { matchesModelPlannerContext } from "@/lib/model-inquiry";
 import { usePlannerHomeViewContext } from "@/lib/use-planner-home-view-context";
 
+import { walkthroughQualification } from "@/data/project-next-steps";
+
 type HomeDesignToolCalloutProps = {
   homeName: string;
   href?: string;
@@ -167,6 +169,7 @@ export function HomeDesignToolCallout({
       </div>
 
       <div className={cn("max-w-2xl", isPrimary && "lg:justify-self-end")}>
+        {isPrimary && !isPreviewOnly && !isComingSoon ? <p data-home-walkthrough-invitation className="mb-6 text-sm leading-7 text-white/60"><span className="font-medium text-white/84">Experience your home before it&apos;s built.</span> Explore an optional personalized architectural walkthrough of your selected design, interiors and finishes. {walkthroughQualification}</p> : null}
         {appearance === "editorial" && requiredChapterCount ? <p className="mb-6 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#d5c29f]">{requiredChapterCount} required design chapters</p> : null}
         {appearance === "editorial" && areaScope === "combined-residences" && pricingSquareFeet ? <p className="mb-6 text-sm leading-7 text-white/80">Combined model area: {pricingSquareFeet.toLocaleString("en-CA")} sq. ft. Select each residence’s interior tier independently in the existing Look Book.</p> : null}
         {pricingSquareFeet && isPrimary ? (

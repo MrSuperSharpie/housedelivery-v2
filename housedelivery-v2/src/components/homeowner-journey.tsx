@@ -6,6 +6,8 @@ import { DeliveryProcessGallery } from "@/components/delivery-process-gallery";
 import { HeadlineReveal } from "@/components/headline-reveal";
 import { ScrollReveal } from "@/components/scroll-reveal";
 
+import { billOfMaterialsCopy, walkthroughQualification } from "@/data/project-next-steps";
+
 type JourneyStep = {
   number: string;
   title: string;
@@ -52,6 +54,7 @@ const steps: readonly JourneyStep[] = [
     lead: "Set the design direction.",
     description:
       "Create the Look Book for each home type, selecting the key kitchens, bathrooms, flooring, wardrobes, doors and finishes that define the project.",
+    note: "Experience your home before it's built. A personalized architectural walkthrough can help you explore the selected design and finishes. " + walkthroughQualification,
     visual: {
       src: "/images/journey/03-make-it-yours.png",
       alt: "House Delivery home design selections",
@@ -64,7 +67,7 @@ const steps: readonly JourneyStep[] = [
     title: "Review + Commit",
     lead: "Turn the plan into a real project.",
     description:
-      "House Delivery reviews the site, housing mix, readiness and delivery approach. When the project is ready to proceed, commercial commitment and the next-stage authorization are completed.",
+      "House Delivery reviews the site, housing mix, readiness and delivery approach. When the project is ready to proceed, commercial commitment and the next-stage authorization are completed. " + billOfMaterialsCopy,
     note:
       "Funding, financing or deposit requirements are confirmed before project-specific technical work is released.",
     visual: {

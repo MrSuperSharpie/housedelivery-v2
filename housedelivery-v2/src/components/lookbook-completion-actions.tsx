@@ -29,6 +29,7 @@ import {
   trackLookBookEvent,
 } from "@/lib/lookbook/analytics";
 import { getFirstTouchAttribution } from "@/lib/lookbook/attribution";
+import { billOfMaterialsCopy, walkthroughQualification } from "@/data/project-next-steps";
 import { lookBookContactRequestText, lookBookPrivacyText } from "@/lib/lookbook/consent";
 import type { LookBookAttribution } from "@/lib/lookbook/types";
 
@@ -43,6 +44,7 @@ type LookBookCompletionActionsProps = {
   children: (
     personalizedHomeTitle: string,
     customer?: LookBookCustomer,
+    requestProjectReview?: () => void,
   ) => ReactNode;
 };
 
@@ -129,19 +131,23 @@ export function LookBookCompletionActions({
     if (!savedView) return;
     trackLookBookEvent("lookbook_reopened", eventBase);
     const parameters = new URLSearchParams(window.location.search);
-    if (parameters.get("download") === "1") {
-      window.setTimeout(() => window.print(), 400);
-    }
+    const reviewFrame = parameters.get("projectReview") === "1"
+      ? requestAnimationFrame(() => setActiveForm("property"))
+      : undefined;
+    const printTimer = parameters.get("download") === "1"
+      ? window.setTimeout(() => window.print(), 400)
+      : undefined;
+    return () => { if (reviewFrame !== undefined) cancelAnimationFrame(reviewFrame); window.clearTimeout(printTimer); };
     // The saved-view event should only fire once per mounted page.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [savedView]);
 
   useEffect(() => {
-    if (activeForm !== "email") return;
+    if (!activeForm) return;
     const frame = requestAnimationFrame(() => {
-      const form = document.getElementById("lookbook-email-form");
+      const form = document.getElementById(`lookbook-${activeForm}-form`);
       form?.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
-      document.getElementById("lookbook-email-heading")?.focus({ preventScroll: true });
+      document.getElementById(`lookbook-${activeForm}-heading`)?.focus({ preventScroll: true });
     });
     return () => cancelAnimationFrame(frame);
   }, [activeForm]);
@@ -168,7 +174,7 @@ export function LookBookCompletionActions({
       window.requestAnimationFrame(() => {
         document.getElementById(formId)?.scrollIntoView({
           behavior: "smooth",
-          block: formId === "lookbook-email-form" ? "start" : "center",
+          block: "start",
         });
       });
     });
@@ -513,6 +519,8 @@ export function LookBookCompletionActions({
             <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/52">Optional next step</p>
             <p className="mt-4 text-xl font-medium tracking-[-0.03em] text-white">Now, imagine coming home to it.</p>
             <p className="mt-3 max-w-2xl text-sm leading-7 text-white/64">You&apos;ve explored the possibilities. You&apos;ve made it your own. Whenever you&apos;re ready, we&apos;d love to help you explore how your design could come to life.</p>
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-white/64">{billOfMaterialsCopy}</p>
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-white/64"><span className="font-medium text-white/84">Experience your home before it&apos;s built.</span> A personalized architectural walkthrough can bring your selected design, interiors and finishes to life. {walkthroughQualification}</p>
             <button type="button" onClick={openPropertyFormFromClosing} className="mt-5 inline-flex min-h-12 items-center gap-6 border-b border-white/50 text-[10px] font-semibold uppercase tracking-[.15em] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">Let&apos;s bring it to life <ArrowRight className="size-4" aria-hidden="true" /></button>
             <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
               <div>
@@ -540,14 +548,14 @@ export function LookBookCompletionActions({
             <form
               id="lookbook-property-form"
               onSubmit={submitProperty}
-              className="mt-6 max-w-4xl bg-[#e7e3d8] p-6 text-black sm:p-9"
+              className="scroll-mt-40 mt-6 max-w-4xl bg-[#e7e3d8] p-6 text-black sm:p-9"
             >
               <div className="flex items-start justify-between gap-5">
                 <div>
                   <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/58">
                     Property feasibility
                   </p>
-                  <h4 className="mt-3 text-2xl font-medium tracking-[-0.04em]">
+                  <h4 id="lookbook-property-heading" tabIndex={-1} className="mt-3 text-2xl font-medium tracking-[-0.04em] outline-none">
                     Check my property
                   </h4>
                 </div>
@@ -583,7 +591,7 @@ export function LookBookCompletionActions({
         </div>
       </section>
 
-      {children(personalizedHomeTitle, savedCustomer)}
+      {children(personalizedHomeTitle, savedCustomer, openPropertyFormFromClosing)}
 
       <section
         className="look-book-screen-control bg-[#111216] px-5 pb-16 text-white sm:px-8 sm:pb-20 lg:px-12 lg:pb-24"

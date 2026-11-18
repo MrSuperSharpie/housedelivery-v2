@@ -884,6 +884,41 @@ main[data-home-detail-presentation="editorial"] .home-story-story :is(a, button)
     line-height: 0.86 !important;
   }
 
+  /* Only the added invitation is compacted; the approved finale stays intact. */
+  #home-look-book [data-look-book-project-invitation] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 6mm;
+    row-gap: 1mm;
+    margin-top: 2mm !important;
+    padding-top: 2mm !important;
+  }
+
+  #home-look-book [data-look-book-project-invitation] > p,
+  #home-look-book [data-look-book-project-invitation] > h4 {
+    grid-column: 1;
+    margin-top: 0 !important;
+  }
+
+  #home-look-book [data-look-book-project-invitation] > h4 {
+    font-size: 4.2mm;
+    line-height: 1.2;
+  }
+
+  #home-look-book [data-look-book-project-invitation] > p:not(:first-child) {
+    line-height: 4mm !important;
+  }
+
+  #home-look-book [data-look-book-project-invitation] > a {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+    align-self: center;
+    max-width: 60mm;
+    margin-top: 0 !important;
+    min-height: 12mm !important;
+    padding: 3mm 4mm !important;
+  }
+
   #home-look-book .look-book-design-story {
     grid-template-columns: 0.84fr 1.16fr !important;
   }

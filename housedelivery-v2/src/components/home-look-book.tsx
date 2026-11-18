@@ -35,6 +35,9 @@ import {
   type HomeConfiguratorDefinition,
 } from "@/data/home-configurator";
 
+import { projectNextStepDescription, projectInvitationCopy, walkthroughQualification } from "@/data/project-next-steps";
+import { lookBookProjectReviewHref } from "@/lib/lookbook/project-review";
+
 type HomeLookBookProps = {
   definition: HomeConfiguratorDefinition;
   configuration: HomeConfiguration;
@@ -1263,7 +1266,7 @@ export function HomeLookBook({
         savedView={savedView}
         enabled={!plannerContext}
       >
-        {(customerHomeTitle, customer) => {
+        {(customerHomeTitle, customer, requestProjectReview) => {
           const personalTitle = projectDesignName ?? customerHomeTitle;
           const customerName = customer
             ? getLookBookCustomerName(customer)
@@ -1386,9 +1389,16 @@ export function HomeLookBook({
                 <article key={step.title} className="border-b border-white/16 py-6 lg:border-r lg:px-7 lg:first:pl-0 lg:last:border-r-0">
                   <p className="font-mono text-[8px] tracking-[0.16em] text-white/38">{String(index + 1).padStart(2, "0")}</p>
                   <h4 className="mt-6 text-lg font-medium uppercase tracking-[-0.03em] text-white/84">{step.title}</h4>
-                  <p className="mt-4 text-[11px] leading-6 text-white/48">{step.description}</p>
+                  <p className="mt-4 text-[11px] leading-6 text-white/48">{projectNextStepDescription(step)}</p>
+                  {step.title === "Project-Specific Visualization" ? <p className="mt-2 text-[9px] leading-4 text-white/48">{walkthroughQualification}</p> : null}
                 </article>
               ))}
+            </div>
+            <div data-look-book-project-invitation className="mt-7 border-t border-white/18 pt-5">
+              <p className="text-[8px] font-semibold uppercase tracking-[0.2em] text-white/52">Your next chapter / Let&apos;s begin</p>
+              <h4 className="mt-3 text-2xl font-medium uppercase tracking-[-0.04em] text-white">Let&apos;s talk about your home.</h4>
+              <p className="mt-3 max-w-2xl text-[11px] leading-6 text-white/64">{projectInvitationCopy}</p>
+              <a data-look-book-project-review href={lookBookProjectReviewHref(definition.homeId, savedConfigurationId)} onClick={requestProjectReview ? event => { event.preventDefault(); requestProjectReview(); } : undefined} className="mt-4 inline-flex min-h-11 items-center gap-5 border border-white/44 px-5 py-3 text-[9px] font-semibold uppercase tracking-[0.13em] text-white hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">Request your personal project review <span aria-hidden="true">↗</span></a>
             </div>
           </div>
 
