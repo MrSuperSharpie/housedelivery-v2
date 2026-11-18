@@ -14,8 +14,9 @@ test("homepage hero serves its architectural image and core navigation before vi
   assert.match(markup, /srcSet="/);
   assert.match(markup, /loading="eager"/);
   assert.match(markup, /fetchPriority="high"/);
-  assert.match(markup, /Homes Delivered\./);
-  assert.match(markup, /Not Just Built\./);
+  assert.match(markup, /Architecture\. Delivered\./);
+  assert.match(markup, /More Home\./);
+  assert.match(markup, /Less Waiting\./);
   assert.match(markup, /href="#models"/);
   assert.match(markup, /href="\/plan-a-housing-project"/);
   // Video is enabled after hydration only for eligible desktop motion settings.

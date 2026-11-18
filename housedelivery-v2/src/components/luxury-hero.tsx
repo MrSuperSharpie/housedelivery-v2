@@ -152,11 +152,11 @@ export function LuxuryHero({
         </div>
 
         <div className="visual-hero-heading">
-          <p className="mb-5 text-[10px] uppercase tracking-[0.22em] text-white/75 sm:mb-7">More home. Less waiting.</p>
+          <p className="mb-5 text-[10px] uppercase tracking-[0.22em] text-white/75 sm:mb-7">Architecture. Delivered.</p>
           <h1 className="visual-hero-title font-medium">
-            Homes Delivered.
+            More Home.
             <br />
-            <span className="text-[#d5c29f]">Not Just Built.</span>
+            <span className="text-[#d5c29f]">Less Waiting.</span>
           </h1>
         </div>
 
