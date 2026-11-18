@@ -44,9 +44,9 @@ export function ProjectPlanningRouter() {
         <p className="eyebrow col-span-12 lg:col-span-3">Plan a Housing Project</p>
         <div className="col-span-12 lg:col-span-8 lg:col-start-4">
           <h1 className="max-w-5xl text-[clamp(3.6rem,8vw,8.5rem)] font-medium leading-[0.82] tracking-[-0.075em] text-white/92">
-            Who are you
+            What are you
             <br />
-            <span className="text-white/38">planning for?</span>
+            <span className="text-white/38">planning?</span>
           </h1>
         </div>
       </div>

@@ -34,8 +34,8 @@ export default function Home() {
         <LuxuryHero
           image={models[0].heroImage}
           customHomeCount={models.length}
-          productStatement="Precision manufacturing. Coordinated purchasing. Canadian construction. One integrated system for exceptional quality, better value and a faster path to occupancy."
-          supportingCopy="Exceptional design. A smarter path to ownership. A coordinated home system built to reduce delay, waste, and uncertainty—so more of your investment can remain in the home itself."
+          productStatement="From architectural design and permitting coordination to precision manufacturing, delivery and Canadian construction. One integrated system designed to deliver exceptional quality, better value and a faster path to occupancy."
+          supportingCopy="Explore hundreds of architectural designs, from laneway homes to multiplexes, including CMHC pre-reviewed housing designs."
         />
         <section
           id="home-types"

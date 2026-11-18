@@ -663,7 +663,7 @@ export function FinancialCorridors() {
                 href="/plan-a-housing-project"
                 className="group inline-flex items-center gap-4 border-b border-white/35 pb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/75 transition-colors hover:border-white hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white focus-visible:ring-offset-4 focus-visible:ring-offset-[#0b0c10]"
               >
-                Plan a housing project
+                Start your project
                 <ArrowUpRight
                   size={14}
                   strokeWidth={1.4}

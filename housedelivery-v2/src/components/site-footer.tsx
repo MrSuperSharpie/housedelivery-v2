@@ -56,7 +56,7 @@ export function SiteFooter() {
                 Email
               </a>
               <Link className={footerLinkClassName} href="/plan-a-housing-project">
-                Plan a housing project
+                Start your project
               </Link>
             </div>
           </div>

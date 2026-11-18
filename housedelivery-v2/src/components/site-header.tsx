@@ -96,7 +96,7 @@ export function SiteHeader({
               href="/plan-a-housing-project"
               className="whitespace-nowrap border border-white bg-white px-4 py-3 text-[9px] font-semibold uppercase tracking-[0.14em] text-[#0b0c10] transition-colors hover:bg-transparent hover:text-white xl:px-5 xl:text-[10px] 2xl:text-[11px] 2xl:tracking-[0.16em]"
             >
-              Plan a housing project
+              Start your project
             </Link>
           ) : null}
         </div>
@@ -142,7 +142,7 @@ export function SiteHeader({
               className="mt-5 block bg-white px-5 py-4 text-center text-xs font-semibold uppercase tracking-[0.14em] text-[#0b0c10]"
               onClick={() => setIsOpen(false)}
             >
-              Plan a housing project
+              Start your project
             </Link>
           ) : null}
         </div>

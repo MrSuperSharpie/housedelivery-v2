@@ -154,9 +154,9 @@ export function LuxuryHero({
         <div className="visual-hero-heading">
           <p className="mb-5 text-[10px] uppercase tracking-[0.22em] text-white/75 sm:mb-7">More home. Less waiting.</p>
           <h1 className="visual-hero-title font-medium">
-            Architecture.
+            Homes Delivered.
             <br />
-            <span className="text-[#d5c29f]">Delivered.</span>
+            <span className="text-[#d5c29f]">Not Just Built.</span>
           </h1>
         </div>
 
@@ -169,11 +169,11 @@ export function LuxuryHero({
           </div>
           <div className="flex flex-col gap-3 sm:flex-row lg:pb-1">
             <a href="#models" className="group inline-flex min-h-14 items-center justify-between gap-8 bg-[#e7e3d8] px-6 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#0b0c10] transition-colors hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
-              Explore the Homes
+              Explore Our Homes
               <ArrowDown size={15} aria-hidden="true" className="transition-transform group-hover:translate-y-1 motion-reduce:transform-none" />
             </a>
             <Link href="/plan-a-housing-project" className="group inline-flex min-h-14 items-center justify-between gap-8 border border-white/45 bg-[#0b0c10]/25 px-6 text-[10px] font-semibold uppercase tracking-[0.16em] text-white backdrop-blur-sm transition-colors hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
-              Plan a Housing Project
+              Start Your Project
               <ArrowUpRight size={15} aria-hidden="true" className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 motion-reduce:transform-none" />
             </Link>
           </div>
