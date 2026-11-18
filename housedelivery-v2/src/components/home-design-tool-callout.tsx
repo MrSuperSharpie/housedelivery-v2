@@ -28,6 +28,7 @@ type HomeDesignToolCalloutProps = {
   requiredChapterCount?: number;
   areaScope?: "model" | "combined-residences";
   plannerModelId?: string;
+  personalizedLookBookHref?: string;
 };
 
 export function HomeDesignToolCallout({
@@ -41,6 +42,7 @@ export function HomeDesignToolCallout({
   requiredChapterCount,
   areaScope,
   plannerModelId,
+  personalizedLookBookHref,
 }: HomeDesignToolCalloutProps) {
   const isPrimary = variant === "primary";
   const isPreviewOnly = availability === "preview-only";
@@ -77,6 +79,7 @@ export function HomeDesignToolCallout({
     const url = new URL(window.location.href);
     url.searchParams.set("inclusionTier", tier);
     url.searchParams.delete("solaceTier");
+    if (url.searchParams.get("lookbook") === "personalized") url.searchParams.delete("lookbook");
     url.hash = "home-inclusions";
     if (activePlannerContext) {
       const session = activePlannerContext.designSession ??
@@ -212,6 +215,11 @@ export function HomeDesignToolCallout({
                 );
               })}
             </div>
+            {personalizedLookBookHref && !activePlannerContext ? (
+              <a href={personalizedLookBookHref} className="mt-6 inline-flex min-h-12 items-center gap-4 border-b border-white/40 text-left text-xs font-semibold uppercase tracking-[0.12em] text-white hover:border-white focus-visible:outline-2 focus-visible:outline-offset-4">
+                Create a Look Book from an interior collection <ArrowRight aria-hidden="true" className="size-4 shrink-0" />
+              </a>
+            ) : null}
             <div data-home-package-qualifications={appearance === "editorial" ? "" : undefined} className="mt-6 space-y-2 text-xs leading-6 text-white/55">
               <p>Final housing-package pricing varies with design selections, architectural complexity, glazing, structural requirements, project location and logistics. Highly customized homes and alternate structural systems, including timber, are priced project-specifically following review of the plans and specifications.</p>
               <p><strong>Package pricing includes the coordinated building package, standard project logistics and applicable import tariffs based on the confirmed project scope.</strong></p>

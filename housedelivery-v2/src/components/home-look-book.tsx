@@ -36,6 +36,8 @@ import {
 } from "@/data/home-configurator";
 
 import { projectNextStepDescription, projectInvitationCopy, walkthroughQualification } from "@/data/project-next-steps";
+import { getInclusionPackage } from "@/data/inclusions";
+import { representativeFinishCaption, type PersonalizedLookBookBrief } from "@/data/personalized-lookbook";
 import { lookBookProjectReviewHref } from "@/lib/lookbook/project-review";
 
 type HomeLookBookProps = {
@@ -62,6 +64,7 @@ type HomeLookBookProps = {
   savedHasContact?: boolean;
   savedView?: boolean;
   printMode?: boolean;
+  personalizedBrief?: PersonalizedLookBookBrief;
 };
 
 type ResolvedSelection = LookBookSelection & {
@@ -80,6 +83,7 @@ type EditorialContext = Pick<
   | "onPreviewOption"
   | "directSourceImages"
   | "printMode"
+  | "personalizedBrief"
 > & { readOnly?: boolean };
 
 function CoastalLookBookSummary({
@@ -760,7 +764,7 @@ function SelectionCaption({
       className={compact ? "pt-3" : "pt-5"}
     >
       <p className="text-[8px] font-semibold uppercase tracking-[0.17em] text-black/52">
-        {selection.label} / {levelLabel(selection)}
+        {selection.label} / {context.personalizedBrief ? getInclusionPackage(selection.level).name : levelLabel(selection)}
       </p>
       <div className="mt-2 flex items-start justify-between gap-5">
         <p
@@ -904,6 +908,7 @@ function CinematicSelectionPage({
             }
           />
         </div>
+        {context.personalizedBrief ? <p className="mt-3 text-xs leading-5 text-black/65">{representativeFinishCaption}</p> : null}
         <div className="grid gap-8 lg:grid-cols-[1.25fr_0.75fr] lg:gap-20">
           <div>
             <SelectionCaption selection={hero} context={context} />
@@ -1179,6 +1184,36 @@ function IncompleteLookBook({
   );
 }
 
+function PersonalizedBriefPage({ brief, homeName }: { brief: PersonalizedLookBookBrief; homeName: string }) {
+  return (
+    <section data-look-book-print-page data-look-book-personalized-brief>
+      <div className="look-book-page-inner">
+        <header className="look-book-editorial-header border-t border-black/20 pt-5">
+          <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/65">{homeName} / Design brief</p>
+          <h3 className="mt-5 text-5xl font-medium uppercase leading-none tracking-[-0.065em]">{brief.collectionName}</h3>
+          <p className="mt-4 text-sm leading-6 text-black/75">{brief.collectionPalette}. Individual finishes reflect your selections.</p>
+          <p className="mt-2 text-sm leading-6 text-black/75"><strong>{getInclusionPackage(brief.tier).name} inclusion package direction.</strong> Final scope, product availability and pricing are confirmed during project review.</p>
+        </header>
+        {brief.floorPlan ? (
+          <figure className="mt-7 border-t border-black/20 pt-4">
+            <figcaption className="text-[10px] font-semibold uppercase tracking-[0.15em] text-black/75">Published architectural floor plan / {homeName}</figcaption>
+            <div className="relative mt-3 aspect-[16/9] bg-[#f8f6f0]">
+              <Image src={brief.floorPlan.src} alt={brief.floorPlan.alt} fill loading="eager" unoptimized sizes="100vw" className="object-contain" />
+            </div>
+            <p className="mt-2 text-xs text-black/65">Reference plan. Dimensions and site requirements are confirmed with House Delivery.</p>
+          </figure>
+        ) : null}
+        {brief.notes ? (
+          <div className="mt-6 border-t border-black/20 pt-4">
+            <h4 className="text-[10px] font-semibold uppercase tracking-[0.15em] text-black/75">Your customization requests</h4>
+            <p className="mt-2 text-sm leading-6 text-black/80 [overflow-wrap:anywhere]">{brief.notes}</p>
+          </div>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
 export function HomeLookBook({
   definition,
   configuration,
@@ -1193,6 +1228,7 @@ export function HomeLookBook({
   savedHasContact = false,
   savedView = false,
   printMode = false,
+  personalizedBrief,
 }: HomeLookBookProps) {
   const requiredCategories = getHomeConfiguratorJourneyCategories(definition);
   const isReady = requiredCategories.every((category) =>
@@ -1241,6 +1277,7 @@ export function HomeLookBook({
     directSourceImages,
     readOnly,
     printMode,
+    personalizedBrief,
   };
   const saveLookBook = () => {
     window.print();
@@ -1252,7 +1289,7 @@ export function HomeLookBook({
       tabIndex={-1}
       aria-labelledby="home-look-book-heading"
       data-look-book-ready="true"
-      data-look-book-expected-pages={selectionSections.length + 5 + (projectCulturalImage ? 1 : 0)}
+      data-look-book-expected-pages={selectionSections.length + 5 + (projectCulturalImage ? 1 : 0) + (personalizedBrief ? 1 : 0)}
       data-look-book-personalized="true"
       data-review-status={configuration.reviewStatus}
       className="scroll-mt-20 overflow-x-clip bg-[#e7e3d8] text-[#111216] outline-none"
@@ -1264,7 +1301,7 @@ export function HomeLookBook({
         initialHasContact={savedHasContact}
         initialCustomer={personalization.customer}
         savedView={savedView}
-        enabled={!plannerContext}
+        enabled={!plannerContext && !personalizedBrief}
       >
         {(customerHomeTitle, customer, requestProjectReview) => {
           const personalTitle = projectDesignName ?? customerHomeTitle;
@@ -1329,6 +1366,7 @@ export function HomeLookBook({
             <Image src="/images/brand/house-delivery-logo-tan.png" alt="House Delivery Inc." width={1370} height={537} loading="eager" unoptimized className="h-11 w-auto object-contain" />
             <p className="text-right font-mono text-[8px] uppercase tracking-[0.16em] text-white/70">
               {projectDesignName ? "Project Look Book" : "Personalized Look Book"}<br />{personalization.reference}
+              {personalizedBrief ? <><br />Model exterior rendering</> : null}
             </p>
           </div>
           <div>
@@ -1358,6 +1396,8 @@ export function HomeLookBook({
           image={projectCulturalImage}
         />
       ) : null}
+
+      {personalizedBrief ? <PersonalizedBriefPage brief={personalizedBrief} homeName={definition.residenceLabel} /> : null}
 
       <HouseDeliveryOpeningStatement homeName={definition.residenceLabel} />
 
@@ -1398,7 +1438,7 @@ export function HomeLookBook({
               <p className="text-[8px] font-semibold uppercase tracking-[0.2em] text-white/52">Your next chapter / Let&apos;s begin</p>
               <h4 className="mt-3 text-2xl font-medium uppercase tracking-[-0.04em] text-white">Let&apos;s talk about your home.</h4>
               <p className="mt-3 max-w-2xl text-[11px] leading-6 text-white/64">{projectInvitationCopy}</p>
-              <a data-look-book-project-review href={lookBookProjectReviewHref(definition.homeId, savedConfigurationId)} onClick={requestProjectReview ? event => { event.preventDefault(); requestProjectReview(); } : undefined} className="mt-4 inline-flex min-h-11 items-center gap-5 border border-white/44 px-5 py-3 text-[9px] font-semibold uppercase tracking-[0.13em] text-white hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">Request your personal project review <span aria-hidden="true">↗</span></a>
+              <a data-look-book-project-review href={personalizedBrief ? new URL(lookBookProjectReviewHref(definition.homeId), "https://www.housedelivery.ca").href : lookBookProjectReviewHref(definition.homeId, savedConfigurationId)} onClick={requestProjectReview ? event => { event.preventDefault(); requestProjectReview(); } : undefined} className="mt-4 inline-flex min-h-11 items-center gap-5 border border-white/44 px-5 py-3 text-[9px] font-semibold uppercase tracking-[0.13em] text-white hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">Request your personal project review <span aria-hidden="true">↗</span></a>
             </div>
           </div>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { HomeLookBook } from "@/components/home-look-book";
+import type { PersonalizedLookBookBrief } from "@/data/personalized-lookbook";
 import { getSavedLookBookDefinition } from "@/data/saved-lookbook-definition";
 import type {
   HomeConfiguration,
@@ -12,11 +13,13 @@ export function SavedLookBook({
   configuration,
   configurationId,
   printMode = false,
+  personalizedBrief,
 }: {
   definition: HomeConfiguratorDefinition;
   configuration: HomeConfiguration;
-  configurationId: string;
+  configurationId?: string;
   printMode?: boolean;
+  personalizedBrief?: PersonalizedLookBookBrief;
 }) {
   return (
     <HomeLookBook
@@ -29,7 +32,8 @@ export function SavedLookBook({
       readOnly
       savedConfigurationId={configurationId}
       savedHasContact
-      savedView
+      savedView={Boolean(configurationId)}
+      personalizedBrief={personalizedBrief}
       directSourceImages
       printMode={printMode}
     />

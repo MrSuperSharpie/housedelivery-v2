@@ -23,6 +23,7 @@ const FORWARDED_PREVIEW_HEADERS = [
 
 type RequestBrowserOptions = {
   imageMaxWidth?: number;
+  document?: { url: string; headers: Record<string, string> };
 };
 
 function parseRequestCookies(cookieHeader: string | null, origin: string) {
@@ -106,6 +107,9 @@ export async function createRequestAuthenticatedPage(
           : null);
       if (trustedOidcToken) {
         requestHeaders[TRUSTED_OIDC_HEADER] = trustedOidcToken;
+      }
+      if (options.document?.url === routeUrl.href && route.request().isNavigationRequest()) {
+        Object.assign(requestHeaders, options.document.headers);
       }
       const printUrl = getPrintImageUrl(routeUrl, options.imageMaxWidth);
       await route.continue({

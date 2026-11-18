@@ -165,7 +165,7 @@ export function parsePropertyFeasibility(
   };
 }
 
-function resolveConfiguration(
+export function resolveLookBookConfiguration(
   definition: HomeConfiguratorDefinition,
   value: unknown,
 ) {
@@ -268,7 +268,7 @@ export function parseCompletedLookBook(
     throw new LookBookValidationError("This home does not have an active Look Book.");
   }
 
-  const resolved = resolveConfiguration(definition, configurationValue);
+  const resolved = resolveLookBookConfiguration(definition, configurationValue);
   return { registration, definition, ...resolved };
 }
 

@@ -21,6 +21,7 @@ import { HomeEditorialGallery } from "@/components/home-editorial-gallery";
 import { HomeFloorPlanViewer } from "@/components/home-floor-plan-viewer";
 import { RevealText } from "@/components/reveal-text";
 import { SiteHeader } from "@/components/site-header";
+import { getPersonalizedLookBookOffer } from "@/data/personalized-lookbook";
 import { getHomeConfiguratorRegistration } from "@/data/home-configurators";
 import { models, type HomeModel } from "@/data/models";
 
@@ -112,6 +113,7 @@ export default async function HomeDetailPage({
     "custom-home",
     model.slug,
   );
+  const personalizedOffer = configuratorRegistration && getPersonalizedLookBookOffer(configuratorRegistration.key);
   const configuratorDefinition = configuratorRegistration?.definition;
   const useSourceFidelityImages = sourceFidelityHomeSlugs.has(model.slug);
   const architecturalImageProps = { imageQuality: 90, unoptimized: false };
@@ -325,6 +327,7 @@ export default async function HomeDetailPage({
                 requiredChapterCount={configuratorRegistration?.activeChapterIds.length}
                 areaScope={presentation?.areaScope}
                 plannerModelId={`custom:${model.slug}`}
+                personalizedLookBookHref={personalizedOffer ? "?lookbook=personalized#home-inclusions" : undefined}
               />
             </div>
           </section>
@@ -334,6 +337,7 @@ export default async function HomeDetailPage({
           <Suspense fallback={<section id="home-inclusions" className="px-5 py-24 text-white/55">Loading Look Book options…</section>}>
             <TieredHomeConfigurator
               definition={configuratorDefinition}
+              personalizedOffer={personalizedOffer}
               directSourceImages={useSourceFidelityImages}
             />
           </Suspense>

@@ -12,6 +12,10 @@ const nextConfig: NextConfig = {
   deploymentId,
   serverExternalPackages: ["@sparticuz/chromium", "playwright-core"],
   outputFileTracingIncludes: {
+    "/api/lookbooks/personalized-pdf": [
+      "./node_modules/@sparticuz/chromium/bin/**/*",
+      "./node_modules/playwright-core/browsers.json",
+    ],
     "/lookbook/*/pdf": [
       "./node_modules/@sparticuz/chromium/bin/**/*",
       "./node_modules/playwright-core/browsers.json",
@@ -27,6 +31,13 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
+      {
+        source: "/lookbook/personalized-print",
+        headers: [
+          { key: "Cache-Control", value: "private, no-store" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+        ],
+      },
       {
         source: "/internal/project-review/:path*",
         headers: [

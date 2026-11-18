@@ -16,6 +16,9 @@ import { HomeFlooringCategory } from "@/components/home-flooring-category";
 import { HomeImagePreview } from "@/components/home-image-preview";
 import { HomeInclusionCategory } from "@/components/home-inclusion-category";
 import { HomeLookBook } from "@/components/home-look-book";
+import { PersonalizedLookBookActions } from "@/components/personalized-lookbook-actions";
+import { getInclusionPackage } from "@/data/inclusions";
+import { applyInteriorCollection, getInteriorCollection, representativeFinishCaption, type PersonalizedLookBookOffer } from "@/data/personalized-lookbook";
 import {
   createDefaultHomeConfiguration,
   getDisplayedFlooringOption,
@@ -60,6 +63,7 @@ type HomeConfiguratorProps = {
   directSourceImages?: boolean;
   inclusionTier?: HomeInclusionLevel;
   residenceBTier?: HomeInclusionLevel;
+  personalizedOffer?: PersonalizedLookBookOffer;
 };
 
 type HomeImagePreviewTarget = {
@@ -271,7 +275,10 @@ export function TieredHomeConfigurator(props: Omit<HomeConfiguratorProps, "inclu
     (props.definition.homeId === "solace" ? searchParams.get("solaceTier") : null);
   const tier = value === "premium" || value === "signature" ? value : undefined;
   const residenceBTier = searchParams.get("residenceBTier") === "signature" ? "signature" : "premium";
-  return <HomeConfigurator key={tier ?? "default"} {...props} inclusionTier={tier} residenceBTier={residenceBTier} />;
+  const personalizedOffer = searchParams.get("lookbook") === "personalized"
+    ? props.personalizedOffer
+    : undefined;
+  return <HomeConfigurator key={personalizedOffer ? "personalized" : tier ?? "default"} {...props} personalizedOffer={personalizedOffer} inclusionTier={tier} residenceBTier={residenceBTier} />;
 }
 
 export function HomeConfigurator({
@@ -279,8 +286,11 @@ export function HomeConfigurator({
   directSourceImages = false,
   inclusionTier,
   residenceBTier = "premium",
+  personalizedOffer,
 }: HomeConfiguratorProps) {
-  const selectedTier = inclusionTier;
+  const [personalizedPreset, setPersonalizedPreset] = useState(personalizedOffer?.presets[0]);
+  const selectedTier = personalizedPreset?.tier ?? inclusionTier;
+  const availableTiers = [...new Set(personalizedOffer?.presets.map((preset) => preset.tier))];
   const isDuplex = originalDefinition.homeId === "salt-spring";
   const [duplexTiers, setDuplexTiers] = useState<DuplexTiers>({ a: inclusionTier ?? "premium", b: residenceBTier });
   const definition = useMemo(
@@ -291,7 +301,10 @@ export function HomeConfigurator({
     directSourceImages || hasDesignBoardImages(definition);
   const [configuration, setConfiguration] = useState<HomeConfiguration>(() => {
     const initial = createDefaultHomeConfiguration(originalDefinition);
-    return selectedTier || isDuplex ? applyHomeTier(definition, initial) : initial;
+    const tierConfiguration = selectedTier || isDuplex ? applyHomeTier(definition, initial) : initial;
+    return personalizedOffer && personalizedPreset
+      ? applyInteriorCollection(definition, tierConfiguration, personalizedOffer, personalizedPreset)
+      : tierConfiguration;
   });
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(
     () => getHomeConfiguratorJourneyCategories(definition)[0]?.id ?? null,
@@ -326,7 +339,19 @@ export function HomeConfigurator({
   );
   const closeImagePreview = useCallback(() => {
     setImagePreviewTarget(null);
-  }, []);
+  }, [setImagePreviewTarget]);
+
+  function chooseCollection(preset: NonNullable<typeof personalizedPreset>) {
+    if (!personalizedOffer || preset.id === personalizedPreset?.id) return;
+    const nextDefinition = getHomeTierDefinition(originalDefinition, preset.tier);
+    const compatibleConfiguration = applyHomeTier(nextDefinition, configuration);
+    const next = applyInteriorCollection(nextDefinition, compatibleConfiguration, personalizedOffer, preset);
+    setPersonalizedPreset(preset);
+    setConfiguration(next);
+    setActiveCategoryId(getHomeConfiguratorJourneyCategories(nextDefinition).find((category) => !isCategoryComplete(category, next))?.id ?? null);
+    setActiveFlooringZoneId(null);
+    closeImagePreview();
+  }
 
   function changeResidenceTier(residence: "a" | "b", tier: HomeInclusionLevel) {
     const nextTiers = { ...duplexTiers, [residence]: tier };
@@ -339,6 +364,7 @@ export function HomeConfigurator({
   }
 
   useEffect(() => {
+    if (personalizedOffer) return;
     let active = true;
     window.queueMicrotask(() => {
       if (!active) return;
@@ -399,7 +425,7 @@ export function HomeConfigurator({
     return () => {
       active = false;
     };
-  }, [originalDefinition, isDuplex, selectedTier, residenceBTier]);
+  }, [originalDefinition, isDuplex, selectedTier, residenceBTier, personalizedOffer]);
 
   useEffect(() => {
     const captured = captureFirstTouchAttribution();
@@ -448,7 +474,7 @@ export function HomeConfigurator({
   function completeStandaloneLookBook(
     nextConfiguration: HomeConfiguration,
   ): HomeConfiguration {
-    if (plannerSession || nextConfiguration.lookBookPersonalization) {
+    if (personalizedOffer || plannerSession || nextConfiguration.lookBookPersonalization) {
       return nextConfiguration;
     }
     const preparedAt = new Date();
@@ -974,7 +1000,7 @@ export function HomeConfigurator({
                 Create the visual brief for your home in{" "}
                 {requiredCategories.length} controlled choices. Start with the
                 kitchen, then move through the major spaces and finishes that
-                define your {definition.homeName}. {isDuplex ? "Each residence shows four options from its own interior tier." : selectedTier
+                define your {definition.homeName}. {personalizedPreset ? "Confirm or customize the collection’s starting choices in each chapter." : isDuplex ? "Each residence shows four options from its own interior tier." : selectedTier
                   ? `Your ${homePricing[selectedTier].label} selection shows only ${homePricing[selectedTier].label} options.`
                   : "Begin with the Premium baseline and selectively choose Signature upgrades."}
               </p>
@@ -986,6 +1012,35 @@ export function HomeConfigurator({
               </div>
             </div>
           </div>
+
+          {personalizedPreset && personalizedOffer ? (
+            <fieldset className="mt-12 grid gap-6 border-t border-white/20 pt-7 sm:grid-cols-2">
+              <legend className="pr-4 text-sm font-medium text-white">Personalize your Look Book</legend>
+              <div>
+                <label htmlFor="lookbook-package" className="text-xs font-semibold uppercase tracking-[0.14em] text-white/80">Inclusion package</label>
+                <select id="lookbook-package" value={personalizedPreset.tier} onChange={(event) => {
+                  const next = personalizedOffer.presets.find((preset) => preset.tier === event.target.value);
+                  if (next) chooseCollection(next);
+                }} className="mt-3 block min-h-12 w-full border border-white/25 bg-[#111216] px-4 text-sm text-white focus-visible:outline-2 focus-visible:outline-offset-2">
+                  {availableTiers.map((tier) => <option key={tier} value={tier}>{getInclusionPackage(tier).name}</option>)}
+                </select>
+                <p className="mt-3 text-sm leading-6 text-white/65">Package direction for project review. Final scope and pricing are confirmed with House Delivery.</p>
+              </div>
+              <div>
+                <label htmlFor="lookbook-collection" className="text-xs font-semibold uppercase tracking-[0.14em] text-white/80">Interior collection</label>
+                <select id="lookbook-collection" value={personalizedPreset.id} onChange={(event) => {
+                  const next = personalizedOffer.presets.find((preset) => preset.id === event.target.value && preset.tier === personalizedPreset.tier);
+                  if (next) chooseCollection(next);
+                }} aria-describedby="lookbook-collection-palette" className="mt-3 block min-h-12 w-full border border-white/25 bg-[#111216] px-4 text-sm text-white focus-visible:outline-2 focus-visible:outline-offset-2">
+                  {personalizedOffer.presets.filter((preset) => preset.tier === personalizedPreset.tier).map((preset) => (
+                    <option key={preset.id} value={preset.id}>{getInteriorCollection(preset.id).name}</option>
+                  ))}
+                </select>
+                <p id="lookbook-collection-palette" className="mt-3 text-sm leading-6 text-white/65">{getInteriorCollection(personalizedPreset.id).palette}. Changing the collection resets its suggested interior choices.</p>
+              </div>
+              <p className="text-sm leading-6 text-white/65 sm:col-span-2">{representativeFinishCaption}</p>
+            </fieldset>
+          ) : null}
 
           <ol
             aria-label={`How to design your ${definition.homeName}`}
@@ -1165,38 +1220,49 @@ export function HomeConfigurator({
         </div>
       </section>
 
-      <HomeLookBook
-        definition={definition}
-        configuration={configuration}
-        onCreateLookBook={createLookBook}
-        onEditCategory={editCategory}
-        onPreviewOption={(categoryId, optionId, zoneId) =>
-          setImagePreviewTarget({
-            categoryId,
-            optionId,
-            zoneId,
-            returnFocusId: `home-look-book-preview-trigger-${optionId}-${zoneId ?? categoryId}`,
-          })
-        }
-        onSubmit={() =>
-          setConfiguration((current) => ({
-            ...current,
-            reviewStatus: "ready-for-review",
-          }))
-        }
-        plannerContext={
-          plannerSession
-            ? {
-                designLabel: `${definition.homeName} — ${plannerSession.designLabel}`,
-                assignedQuantity: plannerSession.assignedQuantity,
-                projectName: plannerSession.projectName,
-                deliveryGroup: plannerSession.deliveryGroup,
-                onSaveAndReturn: saveLookBookAndReturnToPlanner,
-              }
-            : undefined
-        }
-        directSourceImages={useDirectSourceImages}
-      />
+      {personalizedPreset && personalizedOffer ? (
+        <PersonalizedLookBookActions
+          homeName={definition.residenceLabel}
+          homeKey={personalizedOffer.homeKey}
+          tier={personalizedPreset.tier}
+          collectionId={personalizedPreset.id}
+          configuration={configuration}
+          canDownload={completedCount === requiredCategories.length}
+        />
+      ) : (
+        <HomeLookBook
+          definition={definition}
+          configuration={configuration}
+          onCreateLookBook={createLookBook}
+          onEditCategory={editCategory}
+          onPreviewOption={(categoryId, optionId, zoneId) =>
+            setImagePreviewTarget({
+              categoryId,
+              optionId,
+              zoneId,
+              returnFocusId: `home-look-book-preview-trigger-${optionId}-${zoneId ?? categoryId}`,
+            })
+          }
+          onSubmit={() =>
+            setConfiguration((current) => ({
+              ...current,
+              reviewStatus: "ready-for-review",
+            }))
+          }
+          plannerContext={
+            plannerSession
+              ? {
+                  designLabel: `${definition.homeName} — ${plannerSession.designLabel}`,
+                  assignedQuantity: plannerSession.assignedQuantity,
+                  projectName: plannerSession.projectName,
+                  deliveryGroup: plannerSession.deliveryGroup,
+                  onSaveAndReturn: saveLookBookAndReturnToPlanner,
+                }
+              : undefined
+          }
+          directSourceImages={useDirectSourceImages}
+        />
+      )}
 
       {imagePreview && imagePreviewTarget ? (
         <HomeImagePreview
