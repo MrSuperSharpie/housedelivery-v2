@@ -28,6 +28,12 @@ test("ed69bf3 option IDs, images, names, editorial meaning and schema versions r
         const legacyOnly = preserved.legacyOnly;
         const meaning: HomeInclusionOption = { ...preserved };
         delete meaning.legacyOnly;
+        if (original.homeId === "solace" && option.id === "interior-doors-details-premium-1") {
+          const bytes = readFileSync(join(process.cwd(), "public", meaning.image.src));
+          const revision = createHash("sha256").update(bytes).digest("hex").slice(0, 12);
+          assert.equal(meaning.image.src, option.image.src.replace(/\.png$/, `_${revision}.png`));
+          meaning.image = { ...meaning.image, src: option.image.src };
+        }
         assert.deepEqual(meaning, option, `${original.homeId}/${option.id} changed meaning`);
         if (legacyOnly) assert.equal(original.homeId, "profile");
       }

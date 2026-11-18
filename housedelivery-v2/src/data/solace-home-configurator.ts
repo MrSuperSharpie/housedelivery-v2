@@ -852,7 +852,13 @@ function createSolaceVisualGuideChapter(
             materialRole: source.materialRole,
           },
           image: {
-            src: `${visualGuideAssetRoot}/${source.assetPrefix}_${designPackage.level === "premium" ? "Premium" : "Signature"}-${designPackage.optionNumber}_${designPackage.filenameLabel}.png`,
+            src: `${visualGuideAssetRoot}/${source.assetPrefix}_${designPackage.level === "premium" ? "Premium" : "Signature"}-${designPackage.optionNumber}_${designPackage.filenameLabel}${
+              source.id === "interior-doors-details" &&
+              designPackage.level === "premium" &&
+              designPackage.optionNumber === "1"
+                ? "_52819103516b"
+                : ""
+            }.png`,
             alt: `${designPackage.level === "premium" ? "Premium" : "Signature"} ${designPackage.optionNumber} — ${name}, ${source.title.toLowerCase()} design board for Solace House.`,
             fit: "contain" as const,
             role: "design-board" as const,
