@@ -18,7 +18,7 @@ import { HomeInclusionCategory } from "@/components/home-inclusion-category";
 import { HomeLookBook } from "@/components/home-look-book";
 import { PersonalizedLookBookActions } from "@/components/personalized-lookbook-actions";
 import { getInclusionPackage } from "@/data/inclusions";
-import { applyInteriorCollection, getInteriorCollection, representativeFinishCaption, type PersonalizedLookBookOffer } from "@/data/personalized-lookbook";
+import { applyInteriorCollection, getInteriorCollection, getPersonalizedHomeDefinition, representativeFinishCaption, type PersonalizedLookBookOffer } from "@/data/personalized-lookbook";
 import {
   createDefaultHomeConfiguration,
   getDisplayedFlooringOption,
@@ -278,7 +278,11 @@ export function TieredHomeConfigurator(props: Omit<HomeConfiguratorProps, "inclu
   const personalizedOffer = searchParams.get("lookbook") === "personalized"
     ? props.personalizedOffer
     : undefined;
-  return <HomeConfigurator key={personalizedOffer ? "personalized" : tier ?? "default"} {...props} personalizedOffer={personalizedOffer} inclusionTier={tier} residenceBTier={residenceBTier} />;
+  const definition = useMemo(
+    () => personalizedOffer ? getPersonalizedHomeDefinition(props.definition, personalizedOffer) : props.definition,
+    [props.definition, personalizedOffer],
+  );
+  return <HomeConfigurator key={personalizedOffer ? "personalized" : tier ?? "default"} {...props} definition={definition} personalizedOffer={personalizedOffer} inclusionTier={tier} residenceBTier={residenceBTier} />;
 }
 
 export function HomeConfigurator({

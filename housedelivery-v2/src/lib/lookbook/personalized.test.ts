@@ -4,7 +4,7 @@ import { test } from "node:test";
 import { createDefaultHomeConfiguration, getHomeConfiguratorJourneyCategories } from "@/data/home-configurator";
 import { getHomeConfiguratorDefinition } from "@/data/home-configurators";
 import { getHomeTierDefinition } from "@/data/home-pricing";
-import { applyInteriorCollection, getPersonalizedLookBookOffer } from "@/data/personalized-lookbook";
+import { applyInteriorCollection, getPersonalizedHomeDefinition, getPersonalizedLookBookOffer } from "@/data/personalized-lookbook";
 import { resolvePersonalizedLookBook } from "@/lib/lookbook/personalized";
 
 const homeKey = "custom-home:solace";
@@ -55,4 +55,19 @@ test("unsupported homes, package mismatches and unconfirmed or incompatible fini
   assert.throws(() => resolvePersonalizedLookBook(request), /invalid/);
   request.configuration.inclusionSelections["kitchen-look-feel"] = { optionId: "kitchen-look-feel-premium-1", status: "draft" };
   assert.throws(() => resolvePersonalizedLookBook(request), /complete/);
+});
+
+test("the pilot uses the matching ensuite boards while saved books retain their source assets", () => {
+  const original = getHomeConfiguratorDefinition("solace")!;
+  const pilot = getPersonalizedHomeDefinition(original, offer);
+  const chapter = pilot.categories.find(({ id }) => id === "primary-ensuite-look-feel");
+  const legacyChapter = original.categories.find(({ id }) => id === "primary-ensuite-look-feel");
+  assert.ok(chapter?.kind === "room-look" && legacyChapter?.kind === "room-look");
+  const premium = chapter.options.find(({ id }) => id === "primary-ensuite-look-feel-premium-2")!;
+  const signature = chapter.options.find(({ id }) => id === "primary-ensuite-look-feel-signature-2")!;
+  assert.equal(premium.name, "Soft White");
+  assert.equal(signature.name, "Sculpted White");
+  assert.match(premium.image.src, /Signature-2_Sculpted-White/);
+  assert.match(signature.image.src, /Premium-2_Soft-White/);
+  assert.match(legacyChapter.options.find(({ id }) => id === premium.id)!.image.src, /Premium-2_Soft-White/);
 });
