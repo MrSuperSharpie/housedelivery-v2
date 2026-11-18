@@ -173,7 +173,7 @@ export function LuxuryHero({
               <ArrowDown size={15} aria-hidden="true" className="transition-transform group-hover:translate-y-1 motion-reduce:transform-none" />
             </a>
             <Link href="/plan-a-housing-project" className="group inline-flex min-h-14 items-center justify-between gap-8 border border-white/45 bg-[#0b0c10]/25 px-6 text-[10px] font-semibold uppercase tracking-[0.16em] text-white backdrop-blur-sm transition-colors hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
-              Start Your Project
+              Explore Your Options
               <ArrowUpRight size={15} aria-hidden="true" className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 motion-reduce:transform-none" />
             </Link>
           </div>
