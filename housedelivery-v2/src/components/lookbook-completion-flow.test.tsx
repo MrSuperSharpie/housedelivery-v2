@@ -108,6 +108,8 @@ test("every migrated home shares the Get My Look Book flow and House Delivery va
     );
     const finaleIndex = markup.indexOf("data-look-book-next-stage");
     const closingActionsIndex = markup.indexOf("data-lookbook-closing-actions");
+    const projectReviewIndex = markup.indexOf("data-look-book-project-review");
+    const fundingIndex = markup.indexOf('href="/#financial-corridors"');
 
     assert.equal(occurrenceCount(markup, "data-design-studio-review-note="), 1);
     assert.equal(occurrenceCount(markup, "data-design-studio-pdf-note="), 1);
@@ -137,6 +139,8 @@ test("every migrated home shares the Get My Look Book flow and House Delivery va
     assert.match(markup, new RegExp(`Sarah’s ${definition.residenceLabel}`));
     assert.doesNotMatch(markup, /House House/);
     assert.match(markup, /View online without saving/);
+    assert.ok(finaleIndex < projectReviewIndex && projectReviewIndex < fundingIndex && fundingIndex < closingActionsIndex);
+    assert.match(markup, /href="\/#financial-corridors" target="_blank" rel="noopener noreferrer"/);
     assert.equal(
       occurrenceCount(markup, "Get My Look Book"),
       2,
@@ -234,6 +238,53 @@ test("PDF source eagerly requests every board before hydration while online save
       assert.equal(occurrenceCount(markup, designStudioImageNote), 2, `${homeId}: saved and printable books carry the shared note`);
       assert.ok(boardTags.every((tag) => tag.includes(`loading="${printMode ? "eager" : "lazy"}"`)));
       assert.match(markup, new RegExp(`data-look-book-expected-pages="${homeId === "salt-spring" ? 19 : 13}"`));
+      assert.equal(markup.includes('href="/#financial-corridors"'), !printMode);
     }
+  }
+});
+
+test("the homeowner funding link stays out of Planner handoffs and the Solace PDF pilot", () => {
+  const definition = homeConfiguratorRegistrations.find(
+    (registration) => registration.homeId === "solace",
+  )?.definition;
+  assert.ok(definition);
+  const configuration = createCompleteConfiguration(definition);
+  assert.ok(configuration.lookBookPersonalization);
+  const props = {
+    definition,
+    configuration,
+    onCreateLookBook: noop,
+    onEditCategory: noop,
+    onPreviewOption: noop,
+    onSubmit: noop,
+    directSourceImages: true,
+  };
+  const savedPlannerBook = renderToStaticMarkup(
+    <HomeLookBook
+      {...props}
+      configuration={{
+        ...configuration,
+        lookBookPersonalization: {
+          ...configuration.lookBookPersonalization,
+          projectDesignName: "Solace — Design Group A",
+        },
+      }}
+      savedView
+    />,
+  );
+  const pilot = renderToStaticMarkup(
+    <HomeLookBook
+      {...props}
+      personalizedBrief={{
+        tier: "premium",
+        collectionName: "Coastal Light Oak",
+        collectionPalette: "Pale oak, warm white and soft ivory stone",
+        notes: "",
+      }}
+    />,
+  );
+  for (const markup of [savedPlannerBook, pilot]) {
+    assert.doesNotMatch(markup, /financial-corridors/);
+    assert.match(markup, /data-look-book-project-review/);
   }
 });

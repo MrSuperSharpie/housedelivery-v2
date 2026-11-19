@@ -21,7 +21,7 @@ const organizationOptions: readonly {
 ];
 
 export function ProjectPlanningRouter() {
-  const [organization, setOrganization] = useState<OrganizationType | "homeowner">();
+  const [organization, setOrganization] = useState<OrganizationType>();
 
   function chooseOrganization(value: OrganizationType) {
     setOrganization(value);
@@ -65,17 +65,16 @@ export function ProjectPlanningRouter() {
                 <ArrowRight aria-hidden="true" className="size-4 shrink-0" />
               </button>
             ))}
-            <button
-              type="button"
-              onClick={() => setOrganization("homeowner")}
+            <Link
+              href="/#models"
               className="group inline-flex min-h-16 items-center justify-between gap-6 border border-white/18 px-5 text-left text-[10px] font-semibold uppercase tracking-[0.16em] text-white/72 transition-colors hover:border-white/60 hover:bg-white hover:text-[#0b0c10] sm:px-6 md:col-span-2"
             >
               Individual Homeowner
               <ArrowRight aria-hidden="true" className="size-4 shrink-0" />
-            </button>
+            </Link>
           </div>
         ) : (
-          <div data-project-planning-size={organization !== "homeowner" ? "" : undefined}>
+          <div data-project-planning-size>
             <button
               type="button"
               onClick={resetChoice}
@@ -83,51 +82,27 @@ export function ProjectPlanningRouter() {
             >
               <ArrowLeft aria-hidden="true" className="size-4" /> Change selection
             </button>
-            {organization === "homeowner" ? (
-              <section aria-labelledby="homeowner-financing">
-                <p className="mt-8 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/60">
-                  Individual Homeowner
-                </p>
-                <h2 id="homeowner-financing" className="mt-5 text-[clamp(2.6rem,5vw,5.5rem)] font-medium leading-[0.88] tracking-[-0.065em] text-white/90">
-                  Explore funding &amp; financing.
-                </h2>
-                <p className="mt-6 max-w-2xl text-sm leading-6 text-white/65">
-                  Consider your total budget, including the home, land and site work. Ask your lender about construction financing and review official program criteria for any savings tools or rebates you want to explore. This step is optional and for information only.
-                </p>
-                <ul className="mt-5 space-y-3 text-sm text-white/78">
-                  <li><Link href="/#financial-corridors" target="_blank" rel="noopener" className="underline underline-offset-4 hover:text-white">House Delivery funding resources (opens in a new tab)</Link></li>
-                  <li><a href="https://www.cmhc-schl.gc.ca/consumers/home-buying/calculators" target="_blank" rel="noopener" className="underline underline-offset-4 hover:text-white">CMHC home-buying calculators (opens in a new tab)</a></li>
-                  <li><a href="https://www.canada.ca/en/financial-consumer-agency/services/buying-home.html" target="_blank" rel="noopener" className="underline underline-offset-4 hover:text-white">Financial Consumer Agency of Canada home-buying guide (opens in a new tab)</a></li>
-                </ul>
-                <Link href="/#models" className="mt-9 inline-flex min-h-16 items-center justify-between gap-8 bg-white px-6 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#0b0c10] hover:bg-white/82">
-                  Explore Custom Homes <ArrowRight aria-hidden="true" className="size-4" />
-                </Link>
-              </section>
-            ) : (
-              <>
-                <p className="mt-8 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/38">
-                  {organizationOptions.find((option) => option.id === organization)?.label}
-                </p>
-                <h2 className="mt-5 text-[clamp(2.6rem,5vw,5.5rem)] font-medium leading-[0.88] tracking-[-0.065em] text-white/90">
-                  How many homes are you planning?
-                </h2>
+            <p className="mt-8 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/38">
+              {organizationOptions.find((option) => option.id === organization)?.label}
+            </p>
+            <h2 className="mt-5 text-[clamp(2.6rem,5vw,5.5rem)] font-medium leading-[0.88] tracking-[-0.065em] text-white/90">
+              How many homes are you planning?
+            </h2>
 
-                <div className="mt-10 grid gap-3 sm:grid-cols-2">
-                  <Link
-                    href="/#models"
-                    className="inline-flex min-h-16 items-center justify-between gap-6 border border-white/22 px-5 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/78 transition-colors hover:border-white hover:bg-white hover:text-[#0b0c10] sm:px-6"
-                  >
-                    One Home <ArrowRight aria-hidden="true" className="size-4" />
-                  </Link>
-                  <Link
-                    href={multipleHomesHref}
-                    className="inline-flex min-h-16 items-center justify-between gap-6 bg-white px-5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#0b0c10] transition-colors hover:bg-white/82 sm:px-6"
-                  >
-                    Multiple Homes <ArrowRight aria-hidden="true" className="size-4" />
-                  </Link>
-                </div>
-              </>
-            )}
+            <div className="mt-10 grid gap-3 sm:grid-cols-2">
+              <Link
+                href="/#models"
+                className="inline-flex min-h-16 items-center justify-between gap-6 border border-white/22 px-5 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/78 transition-colors hover:border-white hover:bg-white hover:text-[#0b0c10] sm:px-6"
+              >
+                One Home <ArrowRight aria-hidden="true" className="size-4" />
+              </Link>
+              <Link
+                href={multipleHomesHref}
+                className="inline-flex min-h-16 items-center justify-between gap-6 bg-white px-5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#0b0c10] transition-colors hover:bg-white/82 sm:px-6"
+              >
+                Multiple Homes <ArrowRight aria-hidden="true" className="size-4" />
+              </Link>
+            </div>
           </div>
         )}
       </div>
