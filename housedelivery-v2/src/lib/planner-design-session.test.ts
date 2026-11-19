@@ -16,6 +16,7 @@ import { parseCompletedLookBook } from "@/lib/lookbook/domain";
 import {
   applyPlannerDesignReturn,
   buildPlannerDesignHref,
+  getFirstNationsLookBookReturnHref,
   getLegacyPlannerConfigurationKey,
   getPlannerConfigurationKey,
   getPlannerReturnHref,
@@ -206,4 +207,12 @@ test("tier comparisons reuse exactly four existing boards from each model's open
     }
     assert.equal(new Set([...comparison.boards.premium, ...comparison.boards.signature].map(({ image }) => image.src)).size, 8);
   }
+});
+
+test("First Nations Look Book returns to the current project stage", () => {
+  const root = "/first-nations-project-planner";
+  assert.equal(getFirstNationsLookBookReturnHref({ step: 2, reviewStatus: "draft" }), root + "#planner-design-center");
+  assert.equal(getFirstNationsLookBookReturnHref({ step: 6, reviewStatus: "draft" }), root + "#planner-lookbook-documents");
+  assert.equal(getFirstNationsLookBookReturnHref({ step: 7, reviewStatus: "submitted" }), root + "#planner-lookbook-documents");
+  assert.equal(getFirstNationsLookBookReturnHref({ step: 7, reviewStatus: "draft" }), root + "#planner-workspace");
 });

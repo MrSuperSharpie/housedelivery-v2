@@ -6,6 +6,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { designStudioImageNote } from "@/components/design-studio-image-note";
 import { HomeConfigurator } from "@/components/home-configurator";
 import { HomeLookBook } from "@/components/home-look-book";
+import { SavedLookBook } from "@/components/saved-lookbook";
 import {
   createDefaultHomeConfiguration,
   getHomeConfiguratorJourneyCategories,
@@ -287,4 +288,29 @@ test("the homeowner funding link stays out of Planner handoffs and the Solace PD
     assert.doesNotMatch(markup, /financial-corridors/);
     assert.match(markup, /data-look-book-project-review/);
   }
+});
+
+test("First Nations saved Look Books keep document actions and return to the project", () => {
+  const definition = homeConfiguratorRegistrations.find(({ homeId }) => homeId === "solace")!.definition!;
+  const configuration = createCompleteConfiguration(definition);
+  configuration.lookBookPersonalization = {
+    ...configuration.lookBookPersonalization!,
+    projectDesignName: "Solace — Design Group A",
+  };
+  const returnHref = "/first-nations-project-planner#planner-lookbook-documents";
+  const markup = renderToStaticMarkup(
+    <SavedLookBook
+      definition={definition}
+      configuration={configuration}
+      localPlannerView
+      firstNationsReturnHref={returnHref}
+    />,
+  );
+
+  assert.match(markup, /Your Project Look Book is ready/);
+  assert.match(markup, /Download PDF/);
+  assert.match(markup, /Download My Look Book/);
+  assert.ok(markup.includes(`href="${returnHref}"`));
+  assert.match(markup, /Return to My Project/);
+  assert.doesNotMatch(markup, /Check My Property|View online without saving|Request your personal project review|Explore Funding &amp; Financing/);
 });

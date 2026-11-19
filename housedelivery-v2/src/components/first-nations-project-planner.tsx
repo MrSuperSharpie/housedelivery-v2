@@ -74,6 +74,8 @@ import {
   buildPlannerDesignHref,
   buildPlannerHomeViewHref,
   getPlannerReturnHref,
+  getFirstNationsLookBookReturnHref,
+  PLANNER_LOOK_BOOK_DOCUMENTS_ANCHOR,
   getLegacyPlannerConfigurationKey,
   getPlannerReturnKey,
   getPlannerStorageKey,
@@ -2155,6 +2157,13 @@ function CompletedPlannerLookBooks({
   state: PlannerState;
   lines: ReturnType<typeof getPortfolioSummary>["lines"];
 }) {
+  useEffect(() => {
+    if (window.location.hash !== `#${PLANNER_LOOK_BOOK_DOCUMENTS_ANCHOR}`) return;
+    const documents = document.getElementById(PLANNER_LOOK_BOOK_DOCUMENTS_ANCHOR);
+    documents?.scrollIntoView({ block: "start" });
+    documents?.focus({ preventScroll: true });
+  }, []);
+
   if (!usesPlannerInclusionTier(state.audience)) return null;
 
   const documents = lines.flatMap(({ line, model }) =>
@@ -2162,7 +2171,12 @@ function CompletedPlannerLookBooks({
       const session = getPlannerDesignSession(
         state.audience, state.projectId, state.community, line, model, variation,
       );
-      const document = getPlannerLookBookDocument(state, model, variation, session);
+      const document = getPlannerLookBookDocument(state, model, variation, {
+        ...session,
+        returnHref: state.audience === "first-nations"
+          ? getFirstNationsLookBookReturnHref(state)
+          : session.returnHref,
+      });
       return document ? [{ key: variation.id, home: model.name, group: variation.label, ...document }] : [];
     }),
   );
@@ -2170,7 +2184,13 @@ function CompletedPlannerLookBooks({
 
   const linkClass = "inline-flex min-h-11 items-center text-xs font-semibold text-black/72 underline decoration-black/32 underline-offset-4 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4";
   return (
-    <section aria-label="Completed Look Books" data-planner-lookbook-documents className="planner-screen-only mt-7 border-y border-black/16 py-4">
+    <section
+      id={PLANNER_LOOK_BOOK_DOCUMENTS_ANCHOR}
+      tabIndex={-1}
+      aria-label="Completed Look Books"
+      data-planner-lookbook-documents
+      className="planner-screen-only mt-7 scroll-mt-44 border-y border-black/16 py-4 focus:outline-none"
+    >
       <h3 className="text-xs font-semibold uppercase tracking-[0.15em] text-black/68">Completed Look Books</h3>
       <ul className="mt-3 divide-y divide-black/14">
         {documents.map(({ key, home, group, tier, browserLocal, viewHref, pdfHref }) => (

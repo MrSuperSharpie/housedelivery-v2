@@ -46,6 +46,19 @@ export function getPlannerReturnHref(
     : `/project-portfolio-planner?audience=${audience}#${anchor}`;
 }
 
+export const PLANNER_LOOK_BOOK_DOCUMENTS_ANCHOR = "planner-lookbook-documents";
+
+export function getFirstNationsLookBookReturnHref(
+  state: Pick<PlannerState, "step" | "reviewStatus">,
+) {
+  const hasDocumentList =
+    state.step === 6 || (state.step === 7 && state.reviewStatus === "submitted");
+  const anchor = hasDocumentList
+    ? PLANNER_LOOK_BOOK_DOCUMENTS_ANCHOR
+    : state.step === 2 ? "planner-design-center" : "planner-workspace";
+  return getPlannerReturnHref("first-nations", anchor);
+}
+
 export type PlannerDesignSession = {
   audience: PlannerAudience;
   projectId?: string;

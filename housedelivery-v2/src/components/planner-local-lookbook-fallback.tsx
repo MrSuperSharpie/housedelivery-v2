@@ -11,6 +11,7 @@ import type {
 } from "@/data/home-configurator";
 import { parseConfigurationId } from "@/lib/lookbook/configuration-id";
 import {
+  getFirstNationsLookBookReturnHref,
   getPlannerReturnHref,
   getPlannerStorageKey,
 } from "@/lib/planner-design-session";
@@ -65,7 +66,9 @@ function findLocalLookBook(configurationId: string): LocalLookBook | undefined {
           return {
             definition,
             configuration: variation.configuration,
-            returnHref: getPlannerReturnHref(audience, "planner-design-center"),
+            returnHref: audience === "first-nations"
+              ? getFirstNationsLookBookReturnHref(state)
+              : getPlannerReturnHref(audience, "planner-design-center"),
             isFirstNations: audience === "first-nations",
             submitted: state.reviewStatus === "submitted",
           };
@@ -129,18 +132,19 @@ export function PlannerLocalLookBookFallback({
                   : "This Look Book is saved in this browser. Project Review sends House Delivery a summary of the design. Use Download My Look Book and choose Save as PDF in the print dialog to keep a copy."}
               </p>
             </div>
-            <Link
+            <a
               href={localLookBook.returnHref}
               className="inline-flex min-h-11 items-center border-b border-white/28 text-[9px] font-semibold uppercase tracking-[0.16em] text-white/68 hover:border-white hover:text-white"
             >
               ← Return to My Project
-            </Link>
+            </a>
           </div>
         </div>
         <SavedLookBook
           definition={localLookBook.definition}
           configuration={localLookBook.configuration}
           configurationId={configurationId}
+          firstNationsReturnHref={localLookBook.isFirstNations ? localLookBook.returnHref : undefined}
         />
       </>
     );

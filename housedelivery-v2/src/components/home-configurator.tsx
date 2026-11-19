@@ -316,7 +316,14 @@ function PlannerSavedDesign({
         <a href={session.returnHref} className="text-sm underline underline-offset-4">← Return to My Project</a>
         {configuration === null ? <p className="mt-4">This Look Book is not available on this device.</p> : null}
       </div>
-      {configuration ? <SavedLookBook definition={definition} configuration={configuration} localPlannerView /> : null}
+      {configuration ? (
+        <SavedLookBook
+          definition={definition}
+          configuration={configuration}
+          localPlannerView
+          firstNationsReturnHref={session.audience === "first-nations" ? session.returnHref : undefined}
+        />
+      ) : null}
     </>
   );
 }
@@ -1351,6 +1358,7 @@ export function HomeConfigurator({
               reviewStatus: "ready-for-review",
             }))
           }
+          firstNationsReturnHref={plannerSession?.audience === "first-nations" ? plannerSession.returnHref : undefined}
           plannerContext={
             plannerSession
               ? {

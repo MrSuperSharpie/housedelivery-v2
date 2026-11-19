@@ -63,6 +63,7 @@ type HomeLookBookProps = {
   savedConfigurationId?: string;
   savedHasContact?: boolean;
   savedView?: boolean;
+  firstNationsReturnHref?: string;
   printMode?: boolean;
   personalizedBrief?: PersonalizedLookBookBrief;
 };
@@ -1230,6 +1231,7 @@ export function HomeLookBook({
   savedConfigurationId,
   savedHasContact = false,
   savedView = false,
+  firstNationsReturnHref,
   printMode = false,
   personalizedBrief,
 }: HomeLookBookProps) {
@@ -1264,6 +1266,7 @@ export function HomeLookBook({
   const projectDesignName =
     personalization.projectDesignName ?? plannerContext?.designLabel;
   const projectRecord = personalization.project;
+  const firstNationsBook = Boolean(firstNationsReturnHref || projectRecord);
   const preparedDate = formatLookBookPreparedDate(personalization.preparedAt);
   const isSubmitted = configuration.reviewStatus === "ready-for-review";
   const selectionSections = getLookBookSelectionSections(lookBook.sections);
@@ -1300,6 +1303,8 @@ export function HomeLookBook({
         initialHasContact={savedHasContact}
         initialCustomer={personalization.customer}
         savedView={savedView}
+        firstNationsBook={firstNationsBook}
+        firstNationsReturnHref={firstNationsReturnHref}
         enabled={!plannerContext && !personalizedBrief}
       >
         {(customerHomeTitle, print, customer, requestProjectReview) => {
@@ -1419,9 +1424,9 @@ export function HomeLookBook({
               <span className="block">{personalTitle}.</span>{" "}<span className="block text-white/48">Ready to become real.</span>
             </h3>
             <p className="mt-9 max-w-2xl text-sm leading-7 text-white/58">
-              This personal Look Book carries your selected design language into
-              House Delivery review, product confirmation and the project-specific
-              visualization stage.
+              {firstNationsBook
+                ? "This Look Book records the selected design direction for your housing project and supports House Delivery review."
+                : "This personal Look Book carries your selected design language into House Delivery review, product confirmation and the project-specific visualization stage."}
             </p>
             <div className="mt-14 grid border-t border-white/20 lg:grid-cols-3">
               {lookBook.nextStageSteps.map((step, index) => (
@@ -1435,9 +1440,15 @@ export function HomeLookBook({
             </div>
             <div data-look-book-project-invitation className="mt-7 border-t border-white/18 pt-5">
               <p className="text-[8px] font-semibold uppercase tracking-[0.2em] text-white/52">Your next chapter / Let&apos;s begin</p>
-              <h4 className="mt-3 text-2xl font-medium uppercase tracking-[-0.04em] text-white">Let&apos;s talk about your home.</h4>
-              <p className="mt-3 max-w-2xl text-[11px] leading-6 text-white/64">{projectInvitationCopy}</p>
-              <a data-look-book-project-review href={personalizedBrief ? new URL(lookBookProjectReviewHref(definition.homeId), "https://www.housedelivery.ca").href : lookBookProjectReviewHref(definition.homeId, savedConfigurationId)} onClick={requestProjectReview ? event => { event.preventDefault(); requestProjectReview(); } : undefined} className="mt-4 inline-flex min-h-11 items-center gap-5 border border-white/44 px-5 py-3 text-[9px] font-semibold uppercase tracking-[0.13em] text-white hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">Request your personal project review <span aria-hidden="true">↗</span></a>
+              <h4 className="mt-3 text-2xl font-medium uppercase tracking-[-0.04em] text-white">
+                {firstNationsBook ? "Continue your housing project." : "Let's talk about your home."}
+              </h4>
+              <p className="mt-3 max-w-2xl text-[11px] leading-6 text-white/64">
+                {firstNationsBook ? "Review this design alongside the Opportunity Report as part of your housing project’s House Delivery review." : projectInvitationCopy}
+              </p>
+              {!firstNationsBook ? (
+                <a data-look-book-project-review href={personalizedBrief ? new URL(lookBookProjectReviewHref(definition.homeId), "https://www.housedelivery.ca").href : lookBookProjectReviewHref(definition.homeId, savedConfigurationId)} onClick={requestProjectReview ? event => { event.preventDefault(); requestProjectReview(); } : undefined} className="mt-4 inline-flex min-h-11 items-center gap-5 border border-white/44 px-5 py-3 text-[9px] font-semibold uppercase tracking-[0.13em] text-white hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">Request your personal project review <span aria-hidden="true">↗</span></a>
+              ) : null}
               {!plannerContext && !projectDesignName && !projectRecord && !personalizedBrief && !printMode ? (
                 <a
                   href="/#financial-corridors"

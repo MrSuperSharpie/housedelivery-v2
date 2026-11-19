@@ -45,6 +45,8 @@ type LookBookCompletionActionsProps = {
   initialConfigurationId?: string;
   initialHasContact?: boolean;
   savedView?: boolean;
+  firstNationsBook?: boolean;
+  firstNationsReturnHref?: string;
   enabled?: boolean;
   initialCustomer?: LookBookCustomer;
   children: (
@@ -100,6 +102,8 @@ export function LookBookCompletionActions({
   initialConfigurationId,
   initialHasContact = false,
   savedView = false,
+  firstNationsBook = false,
+  firstNationsReturnHref,
   enabled = true,
   initialCustomer,
   children,
@@ -140,7 +144,7 @@ export function LookBookCompletionActions({
     if (!savedView) return;
     trackLookBookEvent("lookbook_reopened", eventBase);
     const parameters = new URLSearchParams(window.location.search);
-    const reviewFrame = parameters.get("projectReview") === "1"
+    const reviewFrame = !firstNationsBook && parameters.get("projectReview") === "1"
       ? requestAnimationFrame(() => setActiveForm("property"))
       : undefined;
     const printFrame = parameters.get("download") === "1"
@@ -388,6 +392,9 @@ export function LookBookCompletionActions({
     savedCustomer,
   );
 
+  const displayTitle = firstNationsBook
+    ? configuration.lookBookPersonalization?.projectDesignName ?? definition.residenceLabel
+    : personalizedHomeTitle;
   const print = { download: downloadLookBook, preparing: printStatus === "preparing" };
   const printFeedback = printStatus !== "idle" ? (
     <div className="look-book-screen-control fixed inset-x-5 bottom-5 z-50 ml-auto max-w-md border border-white/24 bg-[#111216] px-5 py-4 text-white shadow-xl">
@@ -425,11 +432,12 @@ export function LookBookCompletionActions({
             Configuration complete
           </p>
           <h3 className="mt-5 max-w-4xl text-[clamp(2.5rem,5.5vw,5.75rem)] font-medium leading-[0.9] tracking-[-0.065em] text-white">
-            {personalizedHomeTitle} is ready.
+            {firstNationsBook ? "Your Project Look Book is ready." : `${personalizedHomeTitle} is ready.`}
           </h3>
           <p className="mt-6 max-w-2xl text-sm leading-7 text-white/64">
-            Your selections have been brought together into your personalized House
-            Delivery Look Book.
+            {firstNationsBook
+              ? `This Look Book records the design selections for ${displayTitle}.`
+              : "Your selections have been brought together into your personalized House Delivery Look Book."}
           </p>
 
           {propertySubmitted ? (
@@ -458,12 +466,12 @@ export function LookBookCompletionActions({
           {savedEmail && (emailDeliveryPending || followUpNotificationPending) && deliveryRetryAvailable ? <button type="button" disabled={submitting} onClick={() => void retryDelivery()} className="mt-5 min-h-12 border border-white/50 px-5 text-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white disabled:opacity-50">{submitting ? "Retrying…" : "Retry delivery"}</button> : null}
           {error && activeForm === null ? <p role="alert" className="mt-5 text-sm text-white">{error}</p> : null}
 
-          {hasSavedLookBook ? (
+          {hasSavedLookBook || firstNationsBook ? (
             <div
               className={`mt-8 grid max-w-3xl gap-3 ${savedView ? "sm:grid-cols-1" : "sm:grid-cols-2"}`}
               data-lookbook-saved-actions
             >
-              {!savedView ? (
+              {hasSavedLookBook && !savedView && !firstNationsBook ? (
                 <Link
                   href={hasSavedLookBook}
                   className="flex min-h-14 items-center justify-between gap-5 bg-white px-6 text-[10px] font-semibold uppercase tracking-[0.17em] text-black hover:bg-white/84 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
@@ -506,7 +514,7 @@ export function LookBookCompletionActions({
             data-lookbook-anonymous-link
             className="mt-8 inline-flex min-h-11 items-center gap-3 border-b border-white/28 text-[9px] font-semibold uppercase tracking-[0.17em] text-white/64 transition-colors hover:border-white hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
           >
-            View online without saving
+            {firstNationsBook ? "View Look Book" : "View online without saving"}
             <ArrowDown className="size-4" aria-hidden="true" />
           </a>
 
@@ -571,7 +579,7 @@ export function LookBookCompletionActions({
             </form>
           ) : null}
 
-          <div id="check-my-property" className="mt-12 border-t border-white/18 pt-8">
+          {!firstNationsBook ? <div id="check-my-property" className="mt-12 border-t border-white/18 pt-8">
             <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/52">Optional next step</p>
             <p className="mt-4 text-xl font-medium tracking-[-0.03em] text-white">Now, imagine coming home to it.</p>
             <p className="mt-3 max-w-2xl text-sm leading-7 text-white/64">You&apos;ve explored the possibilities. You&apos;ve made it your own. Whenever you&apos;re ready, we&apos;d love to help you explore how your design could come to life.</p>
@@ -598,9 +606,9 @@ export function LookBookCompletionActions({
                 <House className="size-4" aria-hidden="true" />
               </button>
             </div>
-          </div>
+          </div> : null}
 
-          {activeForm === "property" ? (
+          {!firstNationsBook && activeForm === "property" ? (
             <form
               id="lookbook-property-form"
               onSubmit={submitProperty}
@@ -647,7 +655,7 @@ export function LookBookCompletionActions({
         </div>
       </section>
 
-      {children(personalizedHomeTitle, print, savedCustomer, openPropertyFormFromClosing)}
+      {children(personalizedHomeTitle, print, savedCustomer, firstNationsBook ? undefined : openPropertyFormFromClosing)}
 
       <section
         className="look-book-screen-control bg-[#111216] px-5 pb-16 text-white sm:px-8 sm:pb-20 lg:px-12 lg:pb-24"
@@ -656,14 +664,14 @@ export function LookBookCompletionActions({
         <div className="mx-auto grid max-w-[1504px] gap-8 border-t border-white/20 pt-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-end lg:gap-16">
           <div>
             <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/52">
-              {personalizedHomeTitle} Look Book
+              {displayTitle} Look Book
             </p>
             <h3 className="mt-4 text-[clamp(2rem,3.5vw,3.75rem)] font-medium leading-[0.92] tracking-[-0.05em] text-white">
               Ready when you are.
             </h3>
           </div>
           <div className={`grid gap-3 ${savedView ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
-            {!hasSavedLookBook && !savedView ? (
+            {!firstNationsBook && !hasSavedLookBook && !savedView ? (
               <button
                 type="button"
                 onClick={openEmailFormFromClosing}
@@ -674,7 +682,7 @@ export function LookBookCompletionActions({
                 <ArrowRight className="size-4 shrink-0" aria-hidden="true" />
               </button>
             ) : null}
-            {hasSavedLookBook && !savedView ? (
+            {!firstNationsBook && hasSavedLookBook && !savedView ? (
               <Link
                 href={hasSavedLookBook}
                 className="flex min-h-14 items-center justify-between gap-4 bg-white px-5 text-[9px] font-semibold uppercase tracking-[0.15em] text-black hover:bg-white/84 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
@@ -692,15 +700,25 @@ export function LookBookCompletionActions({
               <span>Download My Look Book</span>
               <Download className="size-4 shrink-0" aria-hidden="true" />
             </button>
-            <button
-              type="button"
-              onClick={openPropertyFormFromClosing}
-              aria-expanded={activeForm === "property"}
-              className="flex min-h-14 items-center justify-between gap-4 border border-white/44 px-5 text-left text-[9px] font-semibold uppercase tracking-[0.15em] text-white hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-            >
-              <span>Check My Property</span>
-              <House className="size-4 shrink-0" aria-hidden="true" />
-            </button>
+            {firstNationsReturnHref ? (
+              <a
+                href={firstNationsReturnHref}
+                className="flex min-h-14 items-center justify-between gap-4 border border-white/44 px-5 text-left text-[9px] font-semibold uppercase tracking-[0.15em] text-white hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+              >
+                <span>Return to My Project</span>
+                <ArrowRight className="size-4 shrink-0" aria-hidden="true" />
+              </a>
+            ) : !firstNationsBook ? (
+              <button
+                type="button"
+                onClick={openPropertyFormFromClosing}
+                aria-expanded={activeForm === "property"}
+                className="flex min-h-14 items-center justify-between gap-4 border border-white/44 px-5 text-left text-[9px] font-semibold uppercase tracking-[0.15em] text-white hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+              >
+                <span>Check My Property</span>
+                <House className="size-4 shrink-0" aria-hidden="true" />
+              </button>
+            ) : null}
           </div>
         </div>
       </section>
