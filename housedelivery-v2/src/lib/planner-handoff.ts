@@ -4,12 +4,14 @@ import {
   firstNationsFundingCorridors,
   firstNationsPlannerCatalog,
 } from "@/data/first-nations-planner";
+import { models } from "@/data/models";
 import {
   LookBookValidationError,
   parseCompletedLookBook,
   parseConfigurationId,
   singleLine,
 } from "@/lib/lookbook/domain";
+import { savedLookBookPaths } from "@/lib/lookbook/paths";
 import type {
   LookBookContact,
   StoredLookBook,
@@ -52,6 +54,7 @@ export type PlannerHandoffPackage = {
   lookBookUrl: string;
   pdfUrl: string;
   floorPlanUrl: string;
+  documentAccess?: "signed-v1";
   record: StoredLookBook;
 };
 
@@ -100,6 +103,19 @@ function tierLabel(tier: StoredLookBookSelection["tier"]) {
 
 export function selectionDisplayLine(selection: StoredLookBookSelection) {
   return `${selection.zoneTitle ?? selection.categoryTitle}: ${tierLabel(selection.tier)}${selection.optionNumber ? ` ${selection.optionNumber}` : ""} — ${selection.optionName}`;
+}
+
+export function getPlannerDesignLinks(
+  design: Pick<PlannerHandoffPackage, "configurationId" | "homeSlug">,
+  { origin = "", accessToken }: { origin?: string; accessToken?: string } = {},
+) {
+  const paths = savedLookBookPaths(design.configurationId, accessToken);
+  const floorPlan = models.find((model) => model.slug === design.homeSlug)?.floorPlanImage;
+  return {
+    lookBookUrl: `${origin}${paths.viewHref}`,
+    pdfUrl: `${origin}${paths.pdfHref}`,
+    floorPlanUrl: floorPlan?.startsWith("/") ? `${origin}${floorPlan}` : floorPlan ?? "",
+  };
 }
 
 export function parsePlannerProjectHandoff({
@@ -196,6 +212,7 @@ export function parsePlannerProjectHandoff({
             name: state.community,
             ...(state.location ? { location: state.location } : {}),
             designGroupId: variation.id,
+            documentAccess: "signed-v1" as const,
             designGroupName,
             assignedQuantity: variation.assignedQuantity,
             deliveryGroup: phaseLabels[line.phase],
@@ -211,7 +228,6 @@ export function parsePlannerProjectHandoff({
           reference: variation.lookBookReference,
         },
       };
-      const lookBookUrl = `${origin}/lookbook/${configurationId}`;
       const record: StoredLookBook = {
         id: configurationId,
         homeSlug,
@@ -243,9 +259,8 @@ export function parsePlannerProjectHandoff({
         revision: variation.revision,
         designNotes: variation.designNotes,
         selections: resolved.selections,
-        lookBookUrl,
-        pdfUrl: `${lookBookUrl}/pdf?disposition=attachment`,
-        floorPlanUrl: `${origin}/homes/${homeSlug}#plans`,
+        ...getPlannerDesignLinks({ configurationId, homeSlug }, { origin }),
+        documentAccess: "signed-v1",
         record,
       } satisfies PlannerHandoffPackage;
     });
@@ -315,7 +330,7 @@ export function formatPlannerHandoffEmail(
     "",
     `View complete Look Book: ${item.lookBookUrl}`,
     `Download Look Book PDF: ${item.pdfUrl}`,
-    `Home plan reference: ${item.floorPlanUrl}`,
+    ...(item.floorPlanUrl ? [`Home plan reference: ${item.floorPlanUrl}`] : []),
   ]);
 
   return [

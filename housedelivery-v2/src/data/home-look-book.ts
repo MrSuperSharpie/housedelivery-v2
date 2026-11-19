@@ -14,6 +14,7 @@ export type LookBookPersonalization = {
     name: string;
     location?: string;
     designGroupId: string;
+    documentAccess?: "signed-v1";
     designGroupName: string;
     assignedQuantity: number;
     deliveryGroup: string;

@@ -71,7 +71,8 @@ export function AnalyticsManager() {
   const [providersReady, setProvidersReady] = useState(false);
   const sentPageViews = useRef(new Set<string>());
   const sentPricingViews = useRef(new WeakSet<Element>());
-  const enabled = consent === "accepted" && isPublicProduction;
+  const isPrivateDocument = pathname.startsWith("/internal/") || searchParams.has("projectAccess");
+  const enabled = consent === "accepted" && isPublicProduction && !isPrivateDocument;
   const trackingReady = enabled && providersReady;
 
   useEffect(() => {
@@ -80,14 +81,14 @@ export function AnalyticsManager() {
         window.location.hostname,
       );
       setIsPublicProduction(
-        publicProduction && !pathname.startsWith("/internal/"),
+        publicProduction && !isPrivateDocument,
       );
-      if ((!publicProduction && !isCampaignPath(pathname)) || pathname.startsWith("/internal/")) return;
+      if ((!publicProduction && !isCampaignPath(pathname)) || isPrivateDocument) return;
       setConsent(browserPrivacyOptOut() ? "declined" : readConsent());
     };
     const timeout = window.setTimeout(initialize, 0);
     return () => window.clearTimeout(timeout);
-  }, [pathname]);
+  }, [pathname, isPrivateDocument]);
 
   const sendEvent = useCallback(
     (event: string, properties: AnalyticsEventProperties = {}) => {

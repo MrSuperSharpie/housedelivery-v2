@@ -100,3 +100,16 @@ test("legacy saved copies can use their model page and pending or unusable copie
   assert.equal(getPlannerLookBookDocument(state, model, { ...variation, configuration: undefined }, session), undefined);
   assert.equal(getPlannerLookBookDocument(state, { ...model, configurationVersion: 0 }, variation, session), undefined);
 });
+
+
+test("submitted links keep the saved access capability and a newer revision stays browser-local", () => {
+  const { state, variation, session } = fixture("first-nations");
+  const submitted = { ...state, reviewStatus: "submitted" as const, submissionId: "qa-private-submission", submittedAt: "2026-11-19T19:00:00.000Z" };
+  const access = "test-access-token-for-saved-look-book".padEnd(43, "0");
+  const signed = { ...variation, lookBookAccessToken: access };
+  const book = getPlannerLookBookDocument(submitted, model, signed, session);
+  assert.equal(book?.viewHref, `/lookbook/${id}?projectAccess=${access}`);
+  assert.equal(book?.pdfHref, `/lookbook/${id}/pdf?disposition=attachment&projectAccess=${access}`);
+  const revised = { ...signed, savedAt: "2026-11-19T20:00:00.000Z" };
+  assert.equal(getPlannerLookBookDocument(submitted, model, revised, session)?.viewHref, `/lookbook/${id}?local=1`);
+});

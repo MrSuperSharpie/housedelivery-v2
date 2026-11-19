@@ -1,13 +1,18 @@
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 
+import { parseConfigurationId } from "@/lib/lookbook/configuration-id";
+import { parseProjectLookBookAccess } from "@/lib/lookbook/paths";
+import type { StoredLookBook } from "@/lib/lookbook/types";
+
 export class PlannerReviewAccessConfigurationError extends Error {}
 
-const tokenPattern = /^[A-Za-z0-9_-]{43}$/;
+export function getPlannerReviewSecret() {
+  return (process.env.VERCEL_ENV === "preview"
+    ? process.env.PLANNER_PREVIEW_REVIEW_TOKEN_SECRET
+    : process.env.PLANNER_REVIEW_TOKEN_SECRET)?.trim() ?? "";
+}
 
-export function derivePlannerReviewToken(
-  submissionId: string,
-  secret: string,
-) {
+function derivePlannerAccessToken(purpose: string, id: string, secret: string) {
   if (secret.length < 32) {
     throw new PlannerReviewAccessConfigurationError(
       "Planner review access is not configured.",
@@ -15,8 +20,15 @@ export function derivePlannerReviewToken(
   }
 
   return createHmac("sha256", secret)
-    .update(`house-delivery:planner-review:${submissionId}`)
+    .update(`house-delivery:${purpose}:${id}`)
     .digest("base64url");
+}
+
+export function derivePlannerReviewToken(
+  submissionId: string,
+  secret: string,
+) {
+  return derivePlannerAccessToken("planner-review", submissionId, secret);
 }
 
 export function hashPlannerReviewToken(token: string) {
@@ -24,7 +36,7 @@ export function hashPlannerReviewToken(token: string) {
 }
 
 export function isPlannerReviewToken(value: string) {
-  return tokenPattern.test(value);
+  return Boolean(parseProjectLookBookAccess(value));
 }
 
 export function plannerReviewTokenMatches(token: string, expectedHash: string) {
@@ -35,6 +47,62 @@ export function plannerReviewTokenMatches(token: string, expectedHash: string) {
     Buffer.from(hashPlannerReviewToken(token), "hex"),
     Buffer.from(expectedHash, "hex"),
   );
+}
+
+export function isPrivatePlannerSubmissionId(id: string) {
+  const suffix = id.slice("planner-".length);
+  return id.startsWith("planner-") && parseConfigurationId(suffix) === suffix;
+}
+
+export function derivePlannerLookBookAccess(
+  configurationId: string,
+  secret = getPlannerReviewSecret(),
+) {
+  return derivePlannerAccessToken("planner-lookbook", configurationId, secret);
+}
+
+export function canReadSavedLookBook(
+  record: StoredLookBook,
+  access: unknown,
+  secret = getPlannerReviewSecret(),
+) {
+  // Earlier saved links use their existing opaque ID. New submitted copies
+  // have their own read-only capability, separate from staff project review.
+  if (record.configuration.lookBookPersonalization?.project?.documentAccess !== "signed-v1") {
+    return true;
+  }
+  const token = parseProjectLookBookAccess(access);
+  if (!token) return false;
+
+  return timingSafeEqual(
+    Buffer.from(token),
+    Buffer.from(derivePlannerLookBookAccess(record.id, secret)),
+  );
+}
+
+export function getPlannerDocumentOrigin(
+  request: Request,
+  {
+    hosted = process.env.VERCEL === "1",
+    deploymentHost = process.env.VERCEL_URL,
+    branchHost = process.env.VERCEL_BRANCH_URL,
+  } = {},
+) {
+  const url = new URL(request.url);
+  if (!hosted) return url.origin;
+
+  const canonical = "https://www.housedelivery.ca";
+  const live = new Set([canonical, "https://housedelivery.ca"]);
+  const trusted = new Set([...live, url.origin]);
+  if (deploymentHost) trusted.add(`https://${deploymentHost}`);
+  if (branchHost) trusted.add(`https://${branchHost}`);
+  const forwarded = request.headers.get("x-forwarded-host")?.split(",")[0]?.trim();
+  const origin = [
+    request.headers.get("origin") ?? "",
+    forwarded ? `https://${forwarded}` : "",
+  ].find((candidate) => trusted.has(candidate)) ?? url.origin;
+
+  return live.has(origin) ? canonical : origin;
 }
 
 export function isTrustedPlannerReviewMutationRequest(request: Request) {

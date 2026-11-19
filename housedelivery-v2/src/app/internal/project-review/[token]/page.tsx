@@ -9,6 +9,8 @@ import {
   getPlannerFundingSummary,
   getPlannerWorkforceSummary,
 } from "@/lib/planner-documents";
+import { getPlannerDesignLinks } from "@/lib/planner-handoff";
+import { derivePlannerLookBookAccess } from "@/lib/planner-review-access";
 import { getPlannerProjectForReviewToken } from "@/lib/planner-review-server";
 import {
   getPortfolioSummary,
@@ -139,24 +141,31 @@ export default async function PlannerProjectReviewPage({
 
         <ReviewSection eyebrow="03" title="Design Handoff">
           <div className="grid gap-5 xl:grid-cols-2">
-            {project.designPackages.map((designPackage) => (
-              <article key={designPackage.variationId} className="border border-white/14 p-5 sm:p-6">
-                <p className="text-[8px] font-semibold uppercase tracking-[0.17em] text-white/34">{designPackage.lookBookReference}</p>
-                <h3 className="mt-3 text-xl font-medium tracking-[-0.035em]">{designPackage.designGroupName}</h3>
-                <div className="mt-6 grid gap-3 text-xs leading-5 text-white/58 sm:grid-cols-2">
-                  <p>Home: {designPackage.homeName}</p>
-                  <p>Quantity: {designPackage.assignedQuantity}</p>
-                  <p>Delivery group: {designPackage.deliveryGroup}</p>
-                  <p>Exterior: {designPackage.exteriorExpression}</p>
-                  <p className="sm:col-span-2">Design note: {designPackage.designNotes || "None provided"}</p>
-                </div>
-                <div className="mt-6 flex flex-wrap gap-x-5 gap-y-3 text-[9px] font-semibold uppercase tracking-[0.15em]">
-                  <Link href={designPackage.lookBookUrl} target="_blank" rel="noreferrer">View Look Book</Link>
-                  <Link href={designPackage.pdfUrl} prefetch={false} target="_blank" rel="noreferrer">Download PDF</Link>
-                  <Link href={designPackage.floorPlanUrl} target="_blank" rel="noreferrer">Home Plan</Link>
-                </div>
-              </article>
-            ))}
+            {project.designPackages.map((designPackage) => {
+              const links = getPlannerDesignLinks(designPackage, {
+                accessToken: designPackage.documentAccess === "signed-v1"
+                  ? derivePlannerLookBookAccess(designPackage.configurationId)
+                  : undefined,
+              });
+              return (
+                <article key={designPackage.variationId} className="border border-white/14 p-5 sm:p-6">
+                  <p className="text-[8px] font-semibold uppercase tracking-[0.17em] text-white/34">{designPackage.lookBookReference}</p>
+                  <h3 className="mt-3 text-xl font-medium tracking-[-0.035em]">{designPackage.designGroupName}</h3>
+                  <div className="mt-6 grid gap-3 text-xs leading-5 text-white/58 sm:grid-cols-2">
+                    <p>Home: {designPackage.homeName}</p>
+                    <p>Quantity: {designPackage.assignedQuantity}</p>
+                    <p>Delivery group: {designPackage.deliveryGroup}</p>
+                    <p>Exterior: {designPackage.exteriorExpression}</p>
+                    <p className="sm:col-span-2">Design note: {designPackage.designNotes || "None provided"}</p>
+                  </div>
+                  <div className="mt-6 flex flex-wrap gap-x-5 gap-y-3 text-[9px] font-semibold uppercase tracking-[0.15em]">
+                    <Link href={links.lookBookUrl} prefetch={false} target="_blank" rel="noreferrer">View Look Book</Link>
+                    <Link href={links.pdfUrl} prefetch={false} target="_blank" rel="noreferrer">Download PDF</Link>
+                    {links.floorPlanUrl ? <Link href={links.floorPlanUrl} target="_blank" rel="noreferrer">Home Plan</Link> : null}
+                  </div>
+                </article>
+              );
+            })}
           </div>
         </ReviewSection>
 

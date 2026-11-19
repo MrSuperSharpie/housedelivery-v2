@@ -151,6 +151,7 @@ export type PlannerDesignVariation = {
   designSelections: Readonly<Record<string, string>>;
   lookBookReference: string;
   lookBookConfigurationId?: string;
+  lookBookAccessToken?: string;
   configuration?: HomeConfiguration;
   inclusionTier?: HomeInclusionLevel;
   designNotes: string;

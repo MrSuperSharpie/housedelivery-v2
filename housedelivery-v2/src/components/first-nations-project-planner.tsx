@@ -24,6 +24,8 @@ import {
 import { isHomeInclusionLevel } from "@/data/home-configurator";
 import { trackAnalyticsEvent } from "@/lib/analytics";
 import { cn } from "@/lib/cn";
+import { parseConfigurationId } from "@/lib/lookbook/configuration-id";
+import { parseProjectLookBookAccess } from "@/lib/lookbook/paths";
 import { getPlannerLookBookDocument } from "@/lib/planner-lookbook-documents";
 import { waitForPrintImages } from "@/lib/pdf/print-images";
 import {
@@ -1481,11 +1483,7 @@ function DesignStep({
                     const buildHref = !requiresTier || session.inclusionTier
                       ? buildPlannerDesignHref(model.buildMyHref!, session)
                       : undefined;
-                    const lookBookHref = buildPlannerDesignHref(
-                      model.lookBookHref ?? model.buildMyHref!,
-                      session,
-                      "look-book",
-                    );
+                    const document = getPlannerLookBookDocument(state, model, variation, session);
                     return (
                       <section
                         key={variation.id}
@@ -1600,8 +1598,12 @@ function DesignStep({
                           ) : null}
                           {variation.status === "complete" ? (
                             <>
-                              <PlannerLink href={variation.lookBookConfigurationId ? `/lookbook/${variation.lookBookConfigurationId}` : lookBookHref} newTab={Boolean(variation.lookBookConfigurationId)}>View Look Book</PlannerLink>
-                              {variation.lookBookConfigurationId ? <PlannerLink href={`/lookbook/${variation.lookBookConfigurationId}/pdf?disposition=attachment`} newTab>Download PDF</PlannerLink> : null}
+                              {document ? (
+                                <>
+                                  <PlannerLink href={document.viewHref} newTab={Boolean(variation.lookBookConfigurationId)}>View Look Book</PlannerLink>
+                                  {variation.lookBookConfigurationId ? <PlannerLink href={document.pdfHref} newTab>Download PDF</PlannerLink> : null}
+                                </>
+                              ) : null}
                               {buildHref ? <PlannerLink href={buildHref} newTab={false}>Edit Design</PlannerLink> : null}
                             </>
                           ) : (
@@ -3003,11 +3005,11 @@ function isAcceptedProjectReviewResponse(
   accepted: true;
   projectStatus?: string;
   submissionId?: string;
+  submittedAt?: string;
   designGroups?: readonly {
     variationId: string;
     configurationId: string;
-    lookBookUrl: string;
-    pdfUrl: string;
+    accessToken?: string;
   }[];
 } {
   return (
@@ -3170,24 +3172,31 @@ function ProjectReviewStep({
       const value = formData.get(name);
       return typeof value === "string" ? value.trim() : "";
     };
-    const submittedAt = new Date().toISOString();
-    const submissionState: PlannerState = {
-      ...state,
-      contact: {
-        firstName: readValue("firstName"),
-        lastName: readValue("lastName"),
-        email: readValue("email"),
-        phone: readValue("phone"),
-      },
-      authorizedRepresentative: {
-        name: readValue("authorizedRepresentativeName"),
-        title: readValue("authorizedRepresentativeTitle"),
-        councilAuthorizationStatus: (readValue("councilAuthorizationStatus") || "to-confirm") as PlannerState["authorizedRepresentative"]["councilAuthorizationStatus"],
-      },
-      submittedAt,
-    };
-
     try {
+      // Keep the same private submission ID when storage or notification needs a retry.
+      const submissionId = isFirstNations
+        ? state.submissionId || `planner-${crypto.randomUUID()}`
+        : state.submissionId;
+      const submittedAt = new Date().toISOString();
+      const submissionState: PlannerState = {
+        ...state,
+        submissionId,
+        contact: {
+          firstName: readValue("firstName"),
+          lastName: readValue("lastName"),
+          email: readValue("email"),
+          phone: readValue("phone"),
+        },
+        authorizedRepresentative: {
+          name: readValue("authorizedRepresentativeName"),
+          title: readValue("authorizedRepresentativeTitle"),
+          councilAuthorizationStatus: (readValue("councilAuthorizationStatus") || "to-confirm") as PlannerState["authorizedRepresentative"]["councilAuthorizationStatus"],
+        },
+        submittedAt,
+      };
+      if (isFirstNations && !state.submissionId) {
+        setState((current) => ({ ...current, submissionId }));
+      }
       const response = await fetch("/api/inquiries", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -3243,24 +3252,32 @@ function ProjectReviewStep({
           designGroup,
         ]),
       );
+      if (isFirstNations && completedDesigns.some(({ variation }) =>
+        !parseConfigurationId(savedDesignGroups.get(variation.id)?.configurationId)
+      )) {
+        throw new Error("Project review delivery failed.");
+      }
       setState((current) => ({
         ...current,
         contact: submissionState.contact,
         authorizedRepresentative: submissionState.authorizedRepresentative,
         portfolio: current.portfolio.map((line) => ({
           ...line,
-          designVariations: line.designVariations.map((variation) => ({
-            ...variation,
-            lookBookConfigurationId:
-              savedDesignGroups.get(variation.id)?.configurationId ??
-              variation.lookBookConfigurationId,
-          })),
+          designVariations: line.designVariations.map((variation) => {
+            const saved = savedDesignGroups.get(variation.id);
+            if (!saved) return variation;
+            return {
+              ...variation,
+              lookBookConfigurationId: saved.configurationId,
+              lookBookAccessToken: parseProjectLookBookAccess(saved.accessToken),
+            };
+          }),
         })),
         reviewStatus: "submitted",
         lifecycleStatus: "submitted-for-review",
         louStatus: isFirstNations ? "project-review-requested" : current.louStatus,
         submissionId: result.submissionId ?? current.submissionId,
-        submittedAt,
+        submittedAt: result.submittedAt ?? submittedAt,
       }));
       setSubmitted(true);
       trackAnalyticsEvent("project_review_submitted", {

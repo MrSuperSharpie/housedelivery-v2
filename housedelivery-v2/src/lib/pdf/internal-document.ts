@@ -6,6 +6,7 @@ import {
   carryPreviewShareToken,
   createRequestAuthenticatedPage,
 } from "@/lib/pdf/request-browser";
+import { waitForPrintImages } from "@/lib/pdf/print-images";
 
 export async function createInternalDocumentPdf({
   request,
@@ -43,9 +44,7 @@ export async function createInternalDocumentPdf({
 
     await page.locator(selector).waitFor({ state: "attached", timeout: 20_000 });
     await page.emulateMedia({ media: "print" });
-    await page.evaluate(async () => {
-      await document.fonts.ready;
-    });
+    await page.evaluate(waitForPrintImages, `${selector} img`);
 
     const pdf = await page.pdf({
       format: "A4",

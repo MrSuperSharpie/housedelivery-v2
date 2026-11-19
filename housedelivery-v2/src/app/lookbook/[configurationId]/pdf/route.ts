@@ -7,6 +7,7 @@ import { getLookBookRepository } from "@/lib/lookbook/repository";
 import { createLookBookPdfResponseStream } from "@/lib/lookbook/pdf-response";
 import { renderLookBookPdf } from "@/lib/lookbook/render-pdf";
 import { carryPreviewShareToken } from "@/lib/pdf/request-browser";
+import { canReadSavedLookBook } from "@/lib/planner-review-access";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 180;
@@ -29,21 +30,7 @@ function currentRevisionRedirect(requestUrl: URL, revision: string) {
     status: 307,
     headers: {
       "Cache-Control": "private, no-store",
-      Location: revisionUrl.href,
-      "X-Robots-Tag": "noindex, nofollow, noarchive",
-    },
-  });
-}
-
-function localPlannerPdfFallback(requestUrl: URL, configurationId: string) {
-  const fallbackUrl = new URL(`/lookbook/${configurationId}`, requestUrl.origin);
-  fallbackUrl.searchParams.set("download", "1");
-  carryPreviewShareToken(requestUrl, fallbackUrl);
-  return new Response(null, {
-    status: 307,
-    headers: {
-      "Cache-Control": "private, no-store",
-      Location: fallbackUrl.href,
+      Location: revisionUrl.pathname + revisionUrl.search,
       "X-Robots-Tag": "noindex, nofollow, noarchive",
     },
   });
@@ -74,13 +61,22 @@ export async function GET(
   if (!configurationId) return new Response("Not found", { status: 404 });
 
   const requestUrl = new URL(request.url);
+  const projectAccess = requestUrl.searchParams.get("projectAccess");
   let record;
   try {
     record = await getLookBookRepository().findById(configurationId);
+    if (!record || !canReadSavedLookBook(record, projectAccess)) {
+      return new Response("Saved Look Book not found.", {
+        status: 404,
+        headers: {
+          "Cache-Control": "private, no-store",
+          "X-Robots-Tag": "noindex, nofollow, noarchive",
+        },
+      });
+    }
   } catch {
-    return localPlannerPdfFallback(requestUrl, configurationId);
+    return pdfErrorResponse();
   }
-  if (!record) return localPlannerPdfFallback(requestUrl, configurationId);
 
   const revision = getLookBookPdfRevision(record);
   if (requestUrl.searchParams.get(PDF_REVISION_PARAMETER) !== revision) {
@@ -89,6 +85,7 @@ export async function GET(
 
   const sourceUrl = new URL(`/lookbook/${configurationId}`, requestUrl.origin);
   sourceUrl.searchParams.set("print", "1");
+  if (projectAccess) sourceUrl.searchParams.set("projectAccess", projectAccess);
   carryPreviewShareToken(requestUrl, sourceUrl);
   const disposition =
     requestUrl.searchParams.get("disposition") === "attachment"
@@ -123,9 +120,10 @@ export async function GET(
       },
     });
   } catch (error) {
+    const message = error instanceof Error ? error.message : "unknown_error";
     console.error(
       "lookbook_pdf_generation_failed",
-      error instanceof Error ? error.message : "unknown_error",
+      projectAccess ? message.replaceAll(projectAccess, "[redacted]") : message,
     );
     return pdfErrorResponse();
   }

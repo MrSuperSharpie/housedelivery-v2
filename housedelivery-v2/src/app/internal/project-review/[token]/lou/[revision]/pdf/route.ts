@@ -28,7 +28,7 @@ export async function GET(
   } catch (error) {
     console.error(
       "planner_lou_pdf_failed",
-      error instanceof Error ? error.message : "unknown_error",
+      error instanceof Error ? error.message.replaceAll(token, "[redacted]") : "unknown_error",
     );
     return new Response("Unable to generate LOU Draft PDF", {
       status: 500,

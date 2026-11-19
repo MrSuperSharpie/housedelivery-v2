@@ -1,5 +1,6 @@
 import { isHomeInclusionLevel } from "@/data/home-configurator";
 import { parseConfigurationId } from "@/lib/lookbook/configuration-id";
+import { savedLookBookPaths } from "@/lib/lookbook/paths";
 import { buildPlannerDesignHref, type PlannerDesignSession } from "@/lib/planner-design-session";
 import type { PlannerCatalogItem, PlannerDesignVariation, PlannerState } from "@/lib/project-planner";
 
@@ -31,8 +32,7 @@ export function getPlannerLookBookDocument(
     return {
       tier,
       browserLocal: false,
-      viewHref: `/lookbook/${id}`,
-      pdfHref: `/lookbook/${id}/pdf?disposition=attachment`,
+      ...savedLookBookPaths(id, variation.lookBookAccessToken),
     };
   }
 

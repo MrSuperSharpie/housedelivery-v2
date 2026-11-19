@@ -344,7 +344,7 @@ export function TieredHomeConfigurator(props: Omit<HomeConfiguratorProps, "inclu
     (props.definition.homeId === "solace" ? searchParams.get("solaceTier") : null);
   const tier = isTieredPlanner
     ? session?.inclusionTier
-    : isHomeInclusionLevel(value) ? value : undefined;
+    : isHomeInclusionLevel(value) ? value : "premium";
   const residenceBTier = searchParams.get("residenceBTier") === "signature" ? "signature" : "premium";
   const personalizedOffer = !isTieredPlanner && searchParams.get("lookbook") === "personalized"
     ? props.personalizedOffer

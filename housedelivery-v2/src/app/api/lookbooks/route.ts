@@ -132,6 +132,9 @@ export async function POST(request: Request) {
     const existing = suppliedId
       ? await repository.findById(suppliedId)
       : null;
+    if (existing?.configuration.lookBookPersonalization?.project) {
+      return jsonResponse({ error: "Saved Look Book not found." }, 404);
+    }
     const now = new Date().toISOString();
     let record: StoredLookBook;
     let previousVersion = existing?.updatedAt;

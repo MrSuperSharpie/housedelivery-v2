@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import test from "node:test";
 
 import {
@@ -22,13 +24,18 @@ import {
 import {
   createPlannerSubmissionId,
   formatPlannerHandoffEmail,
+  getPlannerDesignLinks,
   parsePlannerProjectHandoff,
 } from "@/lib/planner-handoff";
 import { createPlannerLouDraft } from "@/lib/planner-documents";
 import type { StoredPlannerProject } from "@/lib/planner-project-record";
 import {
+  canReadSavedLookBook,
+  derivePlannerLookBookAccess,
   derivePlannerReviewToken,
+  getPlannerDocumentOrigin,
   hashPlannerReviewToken,
+  isPrivatePlannerSubmissionId,
   isTrustedPlannerReviewMutationRequest,
   plannerReviewTokenMatches,
   PlannerReviewAccessConfigurationError,
@@ -656,4 +663,66 @@ test("LOU, payment and explicit release gates remain separate and factory output
     plannerLifecycleStatuses.indexOf("final-pricing-ready") >
       plannerLifecycleStatuses.indexOf("factory-design-complete"),
   );
+});
+
+
+test("submitted Look Book capabilities are independent, scoped and carried across view and PDF links", () => {
+  const secret = "fake-house-delivery-review-secret-for-tests";
+  const { packages } = parsePlannerProjectHandoff({
+    plannerRecord: realisticProject(),
+    contact: { firstName: "Alex", email: "alex@example.test" },
+    origin: "",
+  });
+  const [first, second] = packages;
+  assert.ok(first && second);
+  const firstToken = derivePlannerLookBookAccess(first.configurationId, secret);
+  assert.notEqual(firstToken, derivePlannerReviewToken(first.configurationId, secret));
+  assert.equal(canReadSavedLookBook(first.record, firstToken, secret), true);
+  assert.equal(canReadSavedLookBook(second.record, firstToken, secret), false);
+  assert.equal(canReadSavedLookBook(first.record, undefined, secret), false);
+  const legacy = {
+    ...first.record,
+    configuration: {
+      ...first.record.configuration,
+      lookBookPersonalization: null,
+    },
+  };
+  assert.equal(canReadSavedLookBook(legacy, undefined, ""), true);
+  assert.equal(isPrivatePlannerSubmissionId("planner-" + first.configurationId), true);
+  assert.equal(isPrivatePlannerSubmissionId(createPlannerSubmissionId("project-id", "report-id")), false);
+
+  for (const homeSlug of ["boreal", "solace"]) {
+    const origin = "https://preview.housedelivery.test";
+    const links = getPlannerDesignLinks({ configurationId: first.configurationId, homeSlug }, { origin, accessToken: firstToken });
+    const plan = new URL(links.floorPlanUrl);
+    assert.equal(plan.href, `${origin}/${homeSlug}-floorplan.jpg`);
+    assert.ok(existsSync(join(process.cwd(), "public", plan.pathname)));
+    const view = new URL(links.lookBookUrl);
+    const pdf = new URL(links.pdfUrl);
+    assert.equal(view.origin, origin);
+    assert.equal(view.pathname, `/lookbook/${first.configurationId}`);
+    assert.equal(pdf.pathname, view.pathname + "/pdf");
+    assert.equal(view.searchParams.get("projectAccess"), firstToken);
+    assert.equal(pdf.searchParams.get("projectAccess"), firstToken);
+    assert.equal(pdf.searchParams.get("disposition"), "attachment");
+  }
+});
+
+test("handoff links stay on the protected deployment used to submit and use the canonical live domain", () => {
+  const options = {
+    hosted: true,
+    deploymentHost: "house-demo.vercel.app",
+    branchHost: "house-branch.vercel.app",
+  };
+  const deployment = "https://house-demo.vercel.app/api/inquiries";
+  assert.equal(getPlannerDocumentOrigin(new Request(deployment), options), "https://house-demo.vercel.app");
+  assert.equal(getPlannerDocumentOrigin(new Request(deployment, {
+    headers: { origin: "https://house-branch.vercel.app" },
+  }), options), "https://house-branch.vercel.app");
+  assert.equal(getPlannerDocumentOrigin(new Request(deployment, {
+    headers: { origin: "https://housedelivery.ca" },
+  }), options), "https://www.housedelivery.ca");
+  assert.equal(getPlannerDocumentOrigin(new Request(deployment, {
+    headers: { origin: "https://other.test", "x-forwarded-host": "other.test" },
+  }), options), "https://house-demo.vercel.app");
 });

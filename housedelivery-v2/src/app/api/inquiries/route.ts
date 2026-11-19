@@ -2,13 +2,13 @@ import { createHash, randomUUID } from "node:crypto";
 
 import { models } from "@/data/models";
 import { sendInquiryEmail } from "@/lib/inquiry-email";
-import { getLookBookPublicOrigin } from "@/lib/lookbook/email";
 import {
   getLookBookRepository,
   LookBookStorageUnavailableError,
 } from "@/lib/lookbook/repository";
 import {
   formatPlannerHandoffEmail,
+  getPlannerDesignLinks,
   parsePlannerProjectHandoff,
   PlannerHandoffValidationError,
   type PlannerProjectHandoff,
@@ -22,7 +22,11 @@ import {
 } from "@/lib/planner-project-repository";
 import {
   derivePlannerReviewToken,
+  derivePlannerLookBookAccess,
+  getPlannerDocumentOrigin,
+  getPlannerReviewSecret,
   hashPlannerReviewToken,
+  isPrivatePlannerSubmissionId,
   PlannerReviewAccessConfigurationError,
 } from "@/lib/planner-review-access";
 import {
@@ -257,7 +261,7 @@ export async function POST(request: Request) {
 
   let plannerHandoff: PlannerProjectHandoff | undefined;
   let storedPlannerProject: StoredPlannerProject | undefined;
-  let plannerReviewToken = "";
+  let submittedDesigns: readonly (StoredPlannerProject["designPackages"][number] & { accessToken?: string })[] = [];
   let capturePlannerPreviewEmail: ReturnType<typeof getPlannerPreviewEmailCapture>;
   let plannerReviewLinks:
     | {
@@ -269,9 +273,7 @@ export async function POST(request: Request) {
   if (payload.plannerRecord !== undefined) {
     try {
       capturePlannerPreviewEmail = getPlannerPreviewEmailCapture();
-      const publicOrigin = capturePlannerPreviewEmail
-        ? new URL(request.url).origin
-        : getLookBookPublicOrigin(request.url);
+      const publicOrigin = getPlannerDocumentOrigin(request);
       plannerHandoff = parsePlannerProjectHandoff({
         plannerRecord: payload.plannerRecord,
         contact: {
@@ -279,7 +281,7 @@ export async function POST(request: Request) {
           email,
           ...(phone ? { phone } : {}),
         },
-        origin: publicOrigin,
+        origin: "",
       });
       const submittedAt =
         plannerHandoff.state.submittedAt ?? new Date().toISOString();
@@ -294,12 +296,8 @@ export async function POST(request: Request) {
           submittedAt,
         },
       };
-      const reviewSecret = (
-        capturePlannerPreviewEmail
-          ? process.env.PLANNER_PREVIEW_REVIEW_TOKEN_SECRET
-          : process.env.PLANNER_REVIEW_TOKEN_SECRET
-      )?.trim() ?? "";
-      plannerReviewToken = derivePlannerReviewToken(
+      const reviewSecret = getPlannerReviewSecret();
+      const plannerReviewToken = derivePlannerReviewToken(
         plannerHandoff.submissionId,
         reviewSecret,
       );
@@ -314,11 +312,40 @@ export async function POST(request: Request) {
       const existingProject = await findPlannerProjectById(
         plannerHandoff.state.projectId,
       );
+      const privateSubmissionId = isPrivatePlannerSubmissionId(plannerHandoff.submissionId);
+      const repository = getLookBookRepository();
+
       if (existingProject) {
-        if (existingProject.submissionId !== plannerHandoff.submissionId) {
+        if (
+          existingProject.submissionId !== plannerHandoff.submissionId ||
+          existingProject.opportunityReportReference !== plannerHandoff.state.opportunityReportReference
+        ) {
           throw new PlannerHandoffValidationError(
             "This Project ID already has a submitted Opportunity Report. Start a new project record for a materially revised submission.",
           );
+        }
+        const requestedDesigns = new Map(plannerHandoff.packages.map((design) => [design.variationId, design]));
+        if (
+          existingProject.designPackages.length !== requestedDesigns.size ||
+          existingProject.designPackages.some((saved) => {
+            const requested = requestedDesigns.get(saved.variationId);
+            return saved.configurationId !== requested?.configurationId ||
+              saved.revision !== requested.revision;
+          })
+        ) {
+          throw new PlannerHandoffValidationError(
+            "The saved review has different Design Groups. Start a new project record to submit a revised design.",
+          );
+        }
+        for (const design of existingProject.designPackages) {
+          const record = await repository.findById(design.configurationId);
+          if (
+            !record || record.homeSlug !== design.homeSlug ||
+            record.configuration.lookBookPersonalization?.project?.id !== existingProject.id ||
+            record.configuration.lookBookPersonalization.project.designGroupId !== design.variationId
+          ) {
+            throw new Error("A submitted Look Book could not be verified in storage.");
+          }
         }
         if (
           existingProject.reviewTokenHash &&
@@ -336,17 +363,23 @@ export async function POST(request: Request) {
               updatedAt: new Date().toISOString(),
             });
       } else {
-        const repository = getLookBookRepository();
+        if (!privateSubmissionId) {
+          throw new PlannerHandoffValidationError(
+            "Reload the Planner to refresh secure project submission and try again.",
+          );
+        }
         for (const designPackage of plannerHandoff.packages) {
           const existingLookBook = await repository.findById(
             designPackage.configurationId,
           );
-          if (
-            existingLookBook &&
-            existingLookBook.homeSlug !== designPackage.homeSlug
-          ) {
+          const previousProject = existingLookBook?.configuration.lookBookPersonalization?.project;
+          if (existingLookBook && (
+            existingLookBook.homeSlug !== designPackage.homeSlug ||
+            previousProject?.id !== plannerHandoff.state.projectId ||
+            previousProject.designGroupId !== designPackage.variationId
+          )) {
             throw new PlannerHandoffValidationError(
-              "A Design Group Look Book belongs to a different home.",
+              "A Design Group Look Book already belongs to another saved design.",
             );
           }
           await repository.save({
@@ -358,7 +391,7 @@ export async function POST(request: Request) {
               existingLookBook?.createdAt ?? designPackage.record.createdAt,
             completedAt:
               existingLookBook?.completedAt ?? designPackage.record.completedAt,
-          });
+          }, existingLookBook?.updatedAt ?? null);
         }
         storedPlannerProject = await createPlannerProject({
           id: plannerHandoff.state.projectId,
@@ -383,6 +416,17 @@ export async function POST(request: Request) {
           submittedAt,
         });
       }
+
+      submittedDesigns = storedPlannerProject.designPackages.map((design) => {
+        const accessToken = design.documentAccess === "signed-v1"
+          ? derivePlannerLookBookAccess(design.configurationId, reviewSecret)
+          : undefined;
+        return {
+          ...design,
+          ...getPlannerDesignLinks(design, { origin: publicOrigin, accessToken }),
+          accessToken,
+        };
+      });
     } catch (error) {
       const isValidation = error instanceof PlannerHandoffValidationError;
       const configurationUnavailable = error instanceof PlannerReviewAccessConfigurationError;
@@ -448,7 +492,7 @@ export async function POST(request: Request) {
     ? formatPlannerHandoffEmail({
         state: storedPlannerProject.projectState,
         submissionId: storedPlannerProject.submissionId,
-        packages: storedPlannerProject.designPackages,
+        packages: submittedDesigns,
       }, {
         firstName,
         lastName,
@@ -686,11 +730,13 @@ export async function POST(request: Request) {
       ? {
           projectStatus: storedPlannerProject.lifecycleStatus,
           submissionId: storedPlannerProject.submissionId,
-          designGroups: storedPlannerProject.designPackages.map((designPackage) => ({
+          submittedAt: storedPlannerProject.submittedAt,
+          designGroups: submittedDesigns.map((designPackage) => ({
             variationId: designPackage.variationId,
             configurationId: designPackage.configurationId,
             lookBookUrl: designPackage.lookBookUrl,
             pdfUrl: designPackage.pdfUrl,
+            accessToken: designPackage.accessToken,
           })),
         }
       : {}),

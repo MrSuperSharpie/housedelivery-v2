@@ -7,6 +7,7 @@ import { SiteHeader } from "@/components/site-header";
 import { getHomeConfiguratorRegistration } from "@/data/home-configurators";
 import { parseConfigurationId } from "@/lib/lookbook/domain";
 import { getLookBookRepository } from "@/lib/lookbook/repository";
+import { canReadSavedLookBook } from "@/lib/planner-review-access";
 
 export const dynamic = "force-dynamic";
 
@@ -17,17 +18,13 @@ export const metadata: Metadata = {
   referrer: "no-referrer",
 };
 
-function localPlannerFallback(
-  configurationId: string,
-  storageReadFailed = false,
-) {
+function localPlannerFallback(configurationId: string) {
   return (
     <>
       <SiteHeader />
       <main className="bg-[#0b0c10] text-white">
         <PlannerLocalLookBookFallback
           configurationId={configurationId}
-          storageReadFailed={storageReadFailed}
         />
       </main>
     </>
@@ -39,22 +36,19 @@ export default async function SavedLookBookPage({
   searchParams,
 }: {
   params: Promise<{ configurationId: string }>;
-  searchParams: Promise<{ print?: string; local?: string }>;
+  searchParams: Promise<{ print?: string; local?: string; projectAccess?: string }>;
 }) {
   const { configurationId: rawConfigurationId } = await params;
   const configurationId = parseConfigurationId(rawConfigurationId);
   if (!configurationId) notFound();
 
   const query = await searchParams;
-  if (query.local === "1") return localPlannerFallback(configurationId);
-
-  let record;
-  try {
-    record = await getLookBookRepository().findById(configurationId);
-  } catch {
-    return localPlannerFallback(configurationId, true);
+  if (query.local === "1" && query.projectAccess === undefined) {
+    return localPlannerFallback(configurationId);
   }
-  if (!record) return localPlannerFallback(configurationId);
+
+  const record = await getLookBookRepository().findById(configurationId);
+  if (!record || !canReadSavedLookBook(record, query.projectAccess)) notFound();
 
   const registration = getHomeConfiguratorRegistration(
     record.homeFamily,

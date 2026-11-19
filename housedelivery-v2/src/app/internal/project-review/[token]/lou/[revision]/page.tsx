@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { PlannerLouDocument } from "@/components/planner-lou-document";
+import { getPlannerDesignLinks } from "@/lib/planner-handoff";
+import { derivePlannerLookBookAccess } from "@/lib/planner-review-access";
 import { getPlannerProjectForReviewToken } from "@/lib/planner-review-server";
 
 export const dynamic = "force-dynamic";
@@ -19,6 +21,19 @@ export default async function PlannerLouDraftPage({
   const draft = project?.louDrafts.find((item) => item.revision === revision);
   if (!project || !draft) notFound();
   const basePath = `/internal/project-review/${token}`;
+  const designDirections = draft.document.designDirections.map((design) => {
+    const designPackage = project.designPackages.find((item) =>
+      design.lookBookUrl.split(/[?#]/, 1)[0]?.endsWith(`/lookbook/${item.configurationId}`),
+    );
+    return designPackage ? {
+      ...design,
+      ...getPlannerDesignLinks(designPackage, {
+        accessToken: designPackage.documentAccess === "signed-v1"
+          ? derivePlannerLookBookAccess(designPackage.configurationId)
+          : undefined,
+      }),
+    } : design;
+  });
 
   return (
     <>
@@ -32,7 +47,7 @@ export default async function PlannerLouDraftPage({
         </div>
       </nav>
       <main className="internal-document-shell bg-white py-8 sm:py-12">
-        <PlannerLouDocument draft={draft} token={token} />
+        <PlannerLouDocument draft={{ ...draft, document: { ...draft.document, designDirections } }} token={token} />
       </main>
     </>
   );
