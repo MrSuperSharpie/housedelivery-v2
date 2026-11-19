@@ -1,8 +1,13 @@
-import type { HomeConfiguration } from "@/data/home-configurator";
+import {
+  isHomeInclusionLevel,
+  type HomeConfiguration,
+  type HomeInclusionLevel,
+} from "@/data/home-configurator";
 import {
   createPlannerDesignVariation,
   isPlannerAudience,
   migratePlannerState,
+  usesPlannerInclusionTier,
   type PlannerAudience,
   type PlannerPhase,
   type PlannerState,
@@ -47,6 +52,7 @@ export type PlannerDesignSession = {
   returnHref: string;
   lookBookConfigurationId?: string;
   culturalExteriorInterest?: boolean;
+  inclusionTier?: HomeInclusionLevel;
 };
 
 export type PlannerDesignReturn = PlannerDesignSession & {
@@ -80,6 +86,10 @@ export function applyPlannerDesignReturn(
     return state;
   }
 
+  const inclusionTier = returned.inclusionTier ?? returned.configuration.inclusionTier;
+  const configuration = usesPlannerInclusionTier(returned.audience) && isHomeInclusionLevel(inclusionTier)
+    ? { ...returned.configuration, inclusionTier }
+    : returned.configuration;
   const designSelections = Object.fromEntries(
     [
       ...Object.entries(returned.configuration.inclusionSelections),
@@ -99,7 +109,10 @@ export function applyPlannerDesignReturn(
               ? {
                   ...variation,
                   status: "complete" as const,
-                  configuration: returned.configuration,
+                  configuration,
+                  ...(configuration.inclusionTier
+                    ? { inclusionTier: configuration.inclusionTier }
+                    : {}),
                   designSelections,
                   lookBookConfigurationId:
                     returned.lookBookConfigurationId ??
@@ -176,6 +189,9 @@ function setPlannerDesignSessionParams(
       session.culturalExteriorInterest ? "1" : "0",
     );
   }
+  if (session.inclusionTier) {
+    url.searchParams.set("inclusionTier", session.inclusionTier);
+  }
   if (session.lookBookConfigurationId) {
     url.searchParams.set(
       "plannerLookBookId",
@@ -184,8 +200,58 @@ function setPlannerDesignSessionParams(
   }
 }
 
-export function getPlannerConfigurationKey(session: PlannerDesignSession) {
+export function getLegacyPlannerConfigurationKey(session: PlannerDesignSession) {
   return `house-delivery:planner-design:v1:${session.modelId}:${session.variationId}`;
+}
+
+export function getPlannerConfigurationKey(session: PlannerDesignSession) {
+  const key = getLegacyPlannerConfigurationKey(session);
+  return session.inclusionTier && usesPlannerInclusionTier(session.audience)
+    ? `${key}:${session.inclusionTier}`
+    : key;
+}
+
+export function getLocalPlannerDesign(session: PlannerDesignSession) {
+  const key = getPlannerStorageKey(session.audience);
+  const saved = window.localStorage.getItem(key);
+  if (!saved) return undefined;
+
+  const state = migratePlannerState(JSON.parse(saved));
+  if (
+    !state ||
+    state.audience !== session.audience ||
+    state.community !== session.projectName ||
+    (session.projectId && state.projectId && session.projectId !== state.projectId)
+  ) {
+    return undefined;
+  }
+  const line = state.portfolio.find(
+    (candidate) => candidate.id === session.lineId && candidate.modelId === session.modelId,
+  );
+  const variation = line?.designVariations.find(
+    (candidate) => candidate.id === session.variationId,
+  );
+  if (!line || !variation) return undefined;
+
+  return { key, state, line, variation };
+}
+
+export function rememberPlannerInclusionTier(session: PlannerDesignSession) {
+  const tier = session.inclusionTier;
+  if (!tier || !usesPlannerInclusionTier(session.audience)) return;
+  const design = getLocalPlannerDesign(session);
+  if (!design || design.variation.inclusionTier === tier) return;
+
+  const portfolio = design.state.portfolio.map((line) => line === design.line
+    ? {
+        ...line,
+        designVariations: line.designVariations.map((variation) =>
+          variation === design.variation ? { ...variation, inclusionTier: tier } : variation,
+        ),
+      }
+    : line,
+  );
+  window.localStorage.setItem(design.key, JSON.stringify({ ...design.state, portfolio }));
 }
 
 export function buildPlannerDesignHref(
@@ -195,7 +261,17 @@ export function buildPlannerDesignHref(
 ) {
   const url = new URL(baseHref, "https://www.housedelivery.ca");
   url.searchParams.set("planner", session.audience);
+  const explicitTier = url.searchParams.get("inclusionTier");
   setPlannerDesignSessionParams(url, session);
+  if (destination === "look-book" && usesPlannerInclusionTier(session.audience)) {
+    url.searchParams.set("plannerView", "look-book");
+    url.searchParams.delete("inclusionTier");
+  } else {
+    url.searchParams.delete("plannerView");
+    if (isHomeInclusionLevel(explicitTier)) {
+      url.searchParams.set("inclusionTier", explicitTier);
+    }
+  }
   url.hash = destination === "look-book" ? "home-look-book" : "home-inclusions";
   return `${url.pathname}${url.search}${url.hash}`;
 }
@@ -327,6 +403,7 @@ export function readPlannerDesignSession(
   const assignedQuantity = Number(params.get("plannerQuantity"));
   const culturalExteriorParam = params.get("plannerCulturalExterior");
   const lookBookConfigurationId = params.get("plannerLookBookId");
+  const inclusionTier = params.get("inclusionTier");
 
   if (
     !projectName ||
@@ -357,6 +434,7 @@ export function readPlannerDesignSession(
     deliveryGroup,
     returnHref,
     ...(lookBookConfigurationId ? { lookBookConfigurationId } : {}),
+    ...(isHomeInclusionLevel(inclusionTier) ? { inclusionTier } : {}),
     ...(culturalExteriorParam === "1" || culturalExteriorParam === "0"
       ? { culturalExteriorInterest: culturalExteriorParam === "1" }
       : {}),
@@ -375,7 +453,8 @@ export function addPlannerHomeViewContextToProject(
     if (
       !state ||
       state.audience !== context.audience ||
-      state.community !== context.projectName
+      state.community !== context.projectName ||
+      (context.projectId && state.projectId && context.projectId !== state.projectId)
     ) {
       return undefined;
     }
@@ -413,6 +492,11 @@ export function addPlannerHomeViewContextToProject(
 
     return {
       audience: context.audience,
+      ...(state.projectId ? { projectId: state.projectId } : {}),
+      ...(variation.inclusionTier ? { inclusionTier: variation.inclusionTier } : {}),
+      ...(variation.lookBookConfigurationId
+        ? { lookBookConfigurationId: variation.lookBookConfigurationId }
+        : {}),
       projectName: state.community,
       lineId: line.id,
       variationId: variation.id,

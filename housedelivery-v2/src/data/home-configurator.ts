@@ -8,6 +8,10 @@ import type {
 
 export type HomeInclusionLevel = "premium" | "signature";
 
+export function isHomeInclusionLevel(value: unknown): value is HomeInclusionLevel {
+  return value === "premium" || value === "signature";
+}
+
 export type HomeInclusionOption = {
   id: string;
   level: HomeInclusionLevel;
@@ -102,6 +106,7 @@ export type HomeConfiguration = {
   flooringSelections: Partial<Record<string, HomeSelection>>;
   reviewStatus: "draft" | "ready-for-review";
   lookBookPersonalization: LookBookPersonalization | null;
+  inclusionTier?: HomeInclusionLevel;
   culturalExteriorInterest?: boolean;
 };
 

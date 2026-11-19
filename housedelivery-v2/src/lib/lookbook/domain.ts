@@ -2,9 +2,12 @@ import { randomUUID } from "node:crypto";
 
 import {
   getHomeConfiguratorJourneyCategories,
+  isHomeInclusionLevel,
   type HomeConfiguration,
   type HomeConfiguratorDefinition,
 } from "@/data/home-configurator";
+import { getDuplexTierDefinition } from "@/data/duplex-home-pricing";
+import { getHomeTierDefinition } from "@/data/home-pricing";
 import { createLookBookReference } from "@/data/home-look-book";
 import { getHomeConfiguratorRegistration } from "@/data/home-configurators";
 import {
@@ -182,11 +185,17 @@ export function resolveLookBookConfiguration(
     throw new LookBookValidationError("The configuration is not valid for this home.");
   }
 
+  const inclusionTier = isHomeInclusionLevel(value.inclusionTier) ? value.inclusionTier : undefined;
+  const selectionDefinition = inclusionTier
+    ? definition.homeId === "salt-spring"
+      ? getDuplexTierDefinition(definition, { a: inclusionTier, b: inclusionTier }, inclusionTier)
+      : getHomeTierDefinition(definition, inclusionTier)
+    : definition;
   const inclusionSelections: HomeConfiguration["inclusionSelections"] = {};
   const flooringSelections: HomeConfiguration["flooringSelections"] = {};
   const selections: StoredLookBookSelection[] = [];
 
-  for (const category of getHomeConfiguratorJourneyCategories(definition)) {
+  for (const category of getHomeConfiguratorJourneyCategories(selectionDefinition)) {
     if (category.kind === "standard" || category.kind === "room-look") {
       const rawSelection = value.inclusionSelections[category.id];
       if (!isRecord(rawSelection) || rawSelection.status !== "confirmed") {
@@ -248,6 +257,7 @@ export function resolveLookBookConfiguration(
     flooringSelections,
     reviewStatus: "ready-for-review",
     lookBookPersonalization: null,
+    ...(inclusionTier ? { inclusionTier } : {}),
     ...(typeof value.culturalExteriorInterest === "boolean"
       ? { culturalExteriorInterest: value.culturalExteriorInterest }
       : {}),

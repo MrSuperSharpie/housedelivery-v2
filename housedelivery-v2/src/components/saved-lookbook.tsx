@@ -13,12 +13,14 @@ export function SavedLookBook({
   configuration,
   configurationId,
   printMode = false,
+  localPlannerView = false,
   personalizedBrief,
 }: {
   definition: HomeConfiguratorDefinition;
   configuration: HomeConfiguration;
   configurationId?: string;
   printMode?: boolean;
+  localPlannerView?: boolean;
   personalizedBrief?: PersonalizedLookBookBrief;
 }) {
   return (
@@ -32,7 +34,7 @@ export function SavedLookBook({
       readOnly
       savedConfigurationId={configurationId}
       savedHasContact
-      savedView={Boolean(configurationId)}
+      savedView={localPlannerView || Boolean(configurationId)}
       personalizedBrief={personalizedBrief}
       directSourceImages
       printMode={printMode}

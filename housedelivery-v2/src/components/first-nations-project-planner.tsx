@@ -20,6 +20,7 @@ import {
   getCulturalDesignImage,
   indigenousArtworkCostNotice,
 } from "@/data/first-nations-cultural-design";
+import { isHomeInclusionLevel } from "@/data/home-configurator";
 import { trackAnalyticsEvent } from "@/lib/analytics";
 import { cn } from "@/lib/cn";
 import { waitForPrintImages } from "@/lib/pdf/print-images";
@@ -53,6 +54,7 @@ import {
   resizePlannerDesignVariations,
   setPlannerCulturalExteriorInterest,
   toggleCommunityWorkforceCapacitySelection,
+  usesPlannerInclusionTier,
   type FundingCorridor,
   type FundingCorridorDecision,
   type CommunityWorkforceCapacityId,
@@ -70,7 +72,7 @@ import {
   buildPlannerDesignHref,
   buildPlannerHomeViewHref,
   getPlannerReturnHref,
-  getPlannerConfigurationKey,
+  getLegacyPlannerConfigurationKey,
   getPlannerReturnKey,
   getPlannerStorageKey,
   type PlannerDesignReturn,
@@ -179,6 +181,7 @@ function getPlannerDesignSession(
     assignedQuantity: variation.assignedQuantity,
     deliveryGroup: plannerPhaseLabels[line.phase],
     returnHref: getPlannerReturnHref(audience, "planner-design-center"),
+    ...(variation.inclusionTier ? { inclusionTier: variation.inclusionTier } : {}),
     ...(variation.lookBookConfigurationId
       ? { lookBookConfigurationId: variation.lookBookConfigurationId }
       : {}),
@@ -205,7 +208,7 @@ function restoreSavedDesignConfigurations(
           }
           try {
             const saved = window.localStorage.getItem(
-              getPlannerConfigurationKey(
+              getLegacyPlannerConfigurationKey(
                 getPlannerDesignSession(
                   state.audience,
                   state.projectId,
@@ -1379,6 +1382,9 @@ function DesignStep({
     )
     .find(({ variation }) => variation.status !== "complete");
 
+  const requiresTier = usesPlannerInclusionTier(state.audience);
+  const nextDesignNeedsTier = requiresTier && !nextDesign?.variation.inclusionTier;
+
   function updateLine(lineId: string, updater: (line: PlannerPortfolioLine) => PlannerPortfolioLine) {
     setState((current) => ({
       ...current,
@@ -1406,7 +1412,9 @@ function DesignStep({
           {nextDesign ? (
             <div className="sm:text-right">
               <PlannerLink
-                href={buildPlannerDesignHref(
+                href={nextDesignNeedsTier
+                  ? `#planner-design-${nextDesign.variation.id}`
+                  : buildPlannerDesignHref(
                   nextDesign.model.buildMyHref!,
                   getPlannerDesignSession(
                     state.audience,
@@ -1419,7 +1427,7 @@ function DesignStep({
                 )}
                 newTab={false}
               >
-                Design Next Group
+                {nextDesignNeedsTier ? "Choose Inclusion Tier" : "Design Next Group"}
               </PlannerLink>
               <p className="mt-2 text-[10px] text-black/44">
                 Next: {getPlannerHomeName(nextDesign.model.name)} — {nextDesign.variation.label}
@@ -1463,7 +1471,9 @@ function DesignStep({
                       model,
                       variation,
                     );
-                    const buildHref = buildPlannerDesignHref(model.buildMyHref!, session);
+                    const buildHref = !requiresTier || session.inclusionTier
+                      ? buildPlannerDesignHref(model.buildMyHref!, session)
+                      : undefined;
                     const lookBookHref = buildPlannerDesignHref(
                       model.lookBookHref ?? model.buildMyHref!,
                       session,
@@ -1515,6 +1525,29 @@ function DesignStep({
                             Cultural design direction / Indigenous Inspiration
                           </p>
                         ) : null}
+                        {requiresTier ? (
+                          <label className="mt-5 block max-w-xs">
+                            <FieldLabel>Inclusion tier</FieldLabel>
+                            <select
+                              value={variation.inclusionTier ?? ""}
+                              onChange={(event) => {
+                                const inclusionTier = event.currentTarget.value;
+                                if (!isHomeInclusionLevel(inclusionTier)) return;
+                                updateLine(line.id, (current) => ({
+                                  ...current,
+                                  designVariations: current.designVariations.map((candidate) =>
+                                    candidate.id === variation.id ? { ...candidate, inclusionTier } : candidate,
+                                  ),
+                                }));
+                              }}
+                              className={selectClassName}
+                            >
+                              <option value="" disabled>Choose Premium or Signature</option>
+                              <option value="premium">Premium</option>
+                              <option value="signature">Signature</option>
+                            </select>
+                          </label>
+                        ) : null}
                         <label className="mt-5 block">
                           <FieldLabel>Design Group notes</FieldLabel>
                           <textarea
@@ -1536,15 +1569,18 @@ function DesignStep({
                           />
                         </label>
                         <div className="mt-7 flex flex-wrap gap-x-5 gap-y-3 border-t border-black/12 pt-4">
+                          {!buildHref ? (
+                            <span className="self-center text-xs text-black/55">Choose an inclusion tier to open the Design Studio.</span>
+                          ) : null}
                           {variation.status === "complete" ? (
                             <>
                               <PlannerLink href={variation.lookBookConfigurationId ? `/lookbook/${variation.lookBookConfigurationId}` : lookBookHref} newTab={Boolean(variation.lookBookConfigurationId)}>View Look Book</PlannerLink>
                               {variation.lookBookConfigurationId ? <PlannerLink href={`/lookbook/${variation.lookBookConfigurationId}/pdf?disposition=attachment`} newTab>Download PDF</PlannerLink> : null}
-                              <PlannerLink href={buildHref} newTab={false}>Edit Design</PlannerLink>
+                              {buildHref ? <PlannerLink href={buildHref} newTab={false}>Edit Design</PlannerLink> : null}
                             </>
                           ) : (
                             <>
-                              <PlannerLink href={buildHref} newTab={false}>Configure Design</PlannerLink>
+                              {buildHref ? <PlannerLink href={buildHref} newTab={false}>Configure Design</PlannerLink> : null}
                               <span className="self-center text-[9px] font-semibold uppercase tracking-[0.15em] text-black/32">Look Book available after design completion</span>
                             </>
                           )}

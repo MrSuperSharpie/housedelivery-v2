@@ -1265,7 +1265,7 @@ export function HomeLookBook({
   const isSubmitted = configuration.reviewStatus === "ready-for-review";
   const selectionSections = getLookBookSelectionSections(lookBook.sections);
   const projectCulturalImage =
-    configuration.culturalExteriorInterest && (plannerContext || projectRecord)
+    configuration.culturalExteriorInterest && (plannerContext || projectRecord || (readOnly && projectDesignName))
       ? getCulturalDesignImage(definition.homeId)
       : undefined;
   const coverImage = projectCulturalImage ?? lookBook.home.heroImage;
@@ -1383,7 +1383,7 @@ export function HomeLookBook({
               {personalTitle}
             </h2>
             <div className="mt-9 flex flex-col gap-3 border-t border-white/48 pt-5 text-[8px] uppercase tracking-[0.17em] text-white/76 sm:flex-row sm:items-center sm:justify-between">
-              <p>{projectRecord ? `${projectRecord.name} / ${projectRecord.id}` : projectDesignName ? `Project design / ${projectDesignName}` : preparedForLabel}</p><p>{preparedDate} / {lookBook.home.areaLabel}</p>
+              <p>{projectRecord ? `${projectRecord.name} / ${projectRecord.id}` : projectDesignName ? `Project design / ${projectDesignName}` : preparedForLabel}</p><p>{configuration.inclusionTier ? <>{configuration.inclusionTier === "premium" ? "Premium" : "Signature"} inclusion tier / </> : null}{preparedDate} / {lookBook.home.areaLabel}</p>
             </div>
             {projectRecord ? <p className="mt-4 max-w-5xl text-[8px] uppercase leading-5 tracking-[0.14em] text-white/62">{projectRecord.designGroupName} / {projectRecord.assignedQuantity} {projectRecord.assignedQuantity === 1 ? "home" : "homes"} / {projectRecord.deliveryGroup} / {projectRecord.exteriorExpression} / Revision {projectRecord.revision}</p> : null}
           </div>

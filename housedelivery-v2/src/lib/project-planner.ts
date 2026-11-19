@@ -1,4 +1,8 @@
-import type { HomeConfiguration } from "@/data/home-configurator";
+import {
+  isHomeInclusionLevel,
+  type HomeConfiguration,
+  type HomeInclusionLevel,
+} from "@/data/home-configurator";
 
 export const plannerAudiences = [
   "first-nations",
@@ -8,6 +12,10 @@ export const plannerAudiences = [
 ] as const;
 
 export type PlannerAudience = (typeof plannerAudiences)[number];
+
+export function usesPlannerInclusionTier(audience: PlannerAudience) {
+  return audience !== "municipality-non-profit";
+}
 
 export const plannerAudienceLabels: Record<PlannerAudience, string> = {
   "first-nations": "First Nation / Indigenous Community",
@@ -136,6 +144,7 @@ export type PlannerDesignVariation = {
   lookBookReference: string;
   lookBookConfigurationId?: string;
   configuration?: HomeConfiguration;
+  inclusionTier?: HomeInclusionLevel;
   designNotes: string;
   revision: number;
   designDevelopment: PlannerDesignDevelopment;
@@ -686,7 +695,10 @@ export function migratePlannerState(value: unknown): PlannerState | undefined {
               ];
         const designVariations = legacyDesignVariations.map(
           (variation: LegacyPlannerDesignVariation) => {
-          const { culturalDesignDirection, ...currentVariation } = variation;
+          const { culturalDesignDirection, inclusionTier, ...currentVariation } = variation;
+          const savedTier = isHomeInclusionLevel(inclusionTier)
+            ? inclusionTier
+            : variation.configuration?.inclusionTier;
           const variationDefaults = createPlannerDesignVariation(
             line.id,
             Math.max(1, variation.assignedQuantity || 1),
@@ -701,6 +713,7 @@ export function migratePlannerState(value: unknown): PlannerState | undefined {
           return {
             ...variationDefaults,
             ...currentVariation,
+            ...(isHomeInclusionLevel(savedTier) ? { inclusionTier: savedTier } : {}),
             designNotes:
               typeof variation.designNotes === "string"
                 ? variation.designNotes

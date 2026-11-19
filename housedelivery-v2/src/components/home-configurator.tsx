@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 import {
   DesignStudioImageNote,
@@ -17,6 +17,7 @@ import { HomeImagePreview } from "@/components/home-image-preview";
 import { HomeInclusionCategory } from "@/components/home-inclusion-category";
 import { HomeLookBook } from "@/components/home-look-book";
 import { PersonalizedLookBookActions } from "@/components/personalized-lookbook-actions";
+import { SavedLookBook } from "@/components/saved-lookbook";
 import { getInclusionPackage } from "@/data/inclusions";
 import { applyInteriorCollection, getInteriorCollection, representativeFinishCaption, type PersonalizedLookBookOffer } from "@/data/personalized-lookbook";
 import {
@@ -27,6 +28,7 @@ import {
   getHomeConfiguratorJourneyCategories,
   getProjectCoordinatedCategories,
   isCategoryComplete,
+  isHomeInclusionLevel,
   type HomeConfiguration,
   type HomeConfiguratorDefinition,
   type HomeFlooringCategory as HomeFlooringCategoryData,
@@ -51,17 +53,24 @@ import {
 } from "@/lib/lookbook/analytics";
 import { captureFirstTouchAttribution } from "@/lib/lookbook/attribution";
 import {
+  buildPlannerDesignHref,
+  getLegacyPlannerConfigurationKey,
+  getLocalPlannerDesign,
   getPlannerConfigurationKey,
   getPlannerReturnKey,
   readPlannerDesignSession,
+  readPlannerHomeViewContext,
+  rememberPlannerInclusionTier,
   type PlannerDesignReturn,
   type PlannerDesignSession,
 } from "@/lib/planner-design-session";
+import { usesPlannerInclusionTier } from "@/lib/project-planner";
 
 type HomeConfiguratorProps = {
   definition: HomeConfiguratorDefinition;
   directSourceImages?: boolean;
   inclusionTier?: HomeInclusionLevel;
+  plannerTier?: HomeInclusionLevel;
   residenceBTier?: HomeInclusionLevel;
   personalizedOffer?: PersonalizedLookBookOffer;
 };
@@ -269,22 +278,102 @@ function PlannerDesignContext({
   );
 }
 
-export function TieredHomeConfigurator(props: Omit<HomeConfiguratorProps, "inclusionTier">) {
+function PlannerSavedDesign({
+  definition,
+  session,
+}: {
+  definition: HomeConfiguratorDefinition;
+  session: PlannerDesignSession;
+}) {
+  const [configuration, setConfiguration] = useState<HomeConfiguration | null>();
+  useEffect(() => {
+    let active = true;
+    window.queueMicrotask(() => {
+      if (!active) return;
+      try {
+        const variation = getLocalPlannerDesign(session)?.variation;
+        const legacy = window.localStorage.getItem(getLegacyPlannerConfigurationKey(session));
+        const saved = variation?.configuration ?? (legacy ? JSON.parse(legacy) as HomeConfiguration : null);
+        setConfiguration(
+          saved?.homeId === definition.homeId &&
+          saved.schemaVersion === definition.configurationVersion &&
+          saved.lookBookPersonalization
+            ? saved
+            : null,
+        );
+      } catch {
+        setConfiguration(null);
+      }
+    });
+    return () => { active = false; };
+  }, [definition.homeId, definition.configurationVersion, session]);
+
+  return (
+    <>
+      <div id={configuration ? undefined : "home-look-book"} className="look-book-screen-control mx-auto max-w-[1504px] scroll-mt-24 px-5 py-8 text-white sm:px-8 lg:px-12">
+        <a href={session.returnHref} className="text-sm underline underline-offset-4">← Return to My Project</a>
+        {configuration === null ? <p className="mt-4">This Look Book is not available on this device.</p> : null}
+      </div>
+      {configuration ? <SavedLookBook definition={definition} configuration={configuration} localPlannerView /> : null}
+    </>
+  );
+}
+
+export function TieredHomeConfigurator(props: Omit<HomeConfiguratorProps, "inclusionTier" | "plannerTier">) {
+  const pathname = usePathname();
   const searchParams = useSearchParams();
+  const search = searchParams.toString();
+  const session = useMemo(() => readPlannerDesignSession(search), [search]);
+  const homeContext = readPlannerHomeViewContext(search);
+  const context = session ?? homeContext;
+  const isTieredPlanner = Boolean(
+    context &&
+    context.modelId === `custom:${props.definition.homeId}` &&
+    usesPlannerInclusionTier(context.audience),
+  );
   const value = searchParams.get("inclusionTier") ??
     (props.definition.homeId === "solace" ? searchParams.get("solaceTier") : null);
-  const tier = value === "premium" || value === "signature" ? value : undefined;
+  const tier = isTieredPlanner
+    ? session?.inclusionTier
+    : isHomeInclusionLevel(value) ? value : undefined;
   const residenceBTier = searchParams.get("residenceBTier") === "signature" ? "signature" : "premium";
-  const personalizedOffer = searchParams.get("lookbook") === "personalized"
+  const personalizedOffer = !isTieredPlanner && searchParams.get("lookbook") === "personalized"
     ? props.personalizedOffer
     : undefined;
-  return <HomeConfigurator key={personalizedOffer ? "personalized" : tier ?? "default"} {...props} personalizedOffer={personalizedOffer} inclusionTier={tier} residenceBTier={residenceBTier} />;
+
+  if (isTieredPlanner && session && searchParams.get("plannerView") === "look-book") {
+    return <PlannerSavedDesign definition={props.definition} session={session} />;
+  }
+
+  if (isTieredPlanner && !tier && context) {
+    const linkStyle = "inline-flex min-h-11 items-center border border-white/35 px-5 text-xs font-semibold uppercase tracking-widest hover:bg-white hover:text-black";
+    return (
+      <section id="home-inclusions" className="scroll-mt-24 bg-[#0b0c10] px-5 py-24 text-white sm:px-8 lg:px-12">
+        <div className="mx-auto max-w-[1504px]">
+          <h2 className="text-3xl font-medium tracking-tight">Choose an inclusion tier</h2>
+          <p className="mt-4 text-sm text-white/65">
+            {session ? "Choose Premium or Signature for this Design Group." : "Choose Premium or Signature in the home’s inclusion packages to start your design."}
+          </p>
+          {session ? (
+            <div className="mt-6 flex flex-wrap gap-3">
+              <a className={linkStyle} href={buildPlannerDesignHref(`${pathname}?inclusionTier=premium`, session)}>Premium</a>
+              <a className={linkStyle} href={buildPlannerDesignHref(`${pathname}?inclusionTier=signature`, session)}>Signature</a>
+            </div>
+          ) : null}
+          <a className="mt-6 inline-block text-sm underline underline-offset-4" href={context.returnHref}>← Return to My Project</a>
+        </div>
+      </section>
+    );
+  }
+
+  return <HomeConfigurator key={personalizedOffer ? "personalized" : tier ?? "default"} {...props} personalizedOffer={personalizedOffer} inclusionTier={tier} plannerTier={isTieredPlanner ? tier : undefined} residenceBTier={isTieredPlanner && tier ? tier : residenceBTier} />;
 }
 
 export function HomeConfigurator({
   definition: originalDefinition,
   directSourceImages = false,
   inclusionTier,
+  plannerTier,
   residenceBTier = "premium",
   personalizedOffer,
 }: HomeConfiguratorProps) {
@@ -294,8 +383,8 @@ export function HomeConfigurator({
   const isDuplex = originalDefinition.homeId === "salt-spring";
   const [duplexTiers, setDuplexTiers] = useState<DuplexTiers>({ a: inclusionTier ?? "premium", b: residenceBTier });
   const definition = useMemo(
-    () => isDuplex ? getDuplexTierDefinition(originalDefinition, duplexTiers) : selectedTier ? getHomeTierDefinition(originalDefinition, selectedTier) : originalDefinition,
-    [originalDefinition, selectedTier, isDuplex, duplexTiers],
+    () => isDuplex ? getDuplexTierDefinition(originalDefinition, duplexTiers, plannerTier) : selectedTier ? getHomeTierDefinition(originalDefinition, selectedTier) : originalDefinition,
+    [originalDefinition, selectedTier, isDuplex, duplexTiers, plannerTier],
   );
   const useDirectSourceImages =
     directSourceImages || hasDesignBoardImages(definition);
@@ -304,7 +393,7 @@ export function HomeConfigurator({
     const tierConfiguration = selectedTier || isDuplex ? applyHomeTier(definition, initial) : initial;
     return personalizedOffer && personalizedPreset
       ? applyInteriorCollection(definition, tierConfiguration, personalizedOffer, personalizedPreset)
-      : tierConfiguration;
+      : plannerTier ? { ...tierConfiguration, inclusionTier: plannerTier } : tierConfiguration;
   });
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(
     () => getHomeConfiguratorJourneyCategories(definition)[0]?.id ?? null,
@@ -376,13 +465,18 @@ export function HomeConfigurator({
         }
 
         setPlannerSession(session);
-        const saved = window.localStorage.getItem(
-          getPlannerConfigurationKey(session),
-        );
-        if (saved) {
-          const restored = JSON.parse(saved) as HomeConfiguration & {
-            culturalDesignDirection?: { choice?: string };
-          };
+        const saved = window.localStorage.getItem(getPlannerConfigurationKey(session));
+        const previous = plannerTier && !saved
+          ? getLocalPlannerDesign(session)?.variation.configuration
+          : undefined;
+        const legacy = plannerTier && !saved && !previous
+          ? window.localStorage.getItem(getLegacyPlannerConfigurationKey(session))
+          : null;
+        const serialized = saved ?? legacy;
+        const restored = (serialized ? JSON.parse(serialized) : previous) as
+          (HomeConfiguration & { culturalDesignDirection?: { choice?: string } }) | undefined;
+        if (plannerTier) rememberPlannerInclusionTier(session);
+        if (restored) {
           if (
             restored.homeId === originalDefinition.homeId &&
             restored.schemaVersion === originalDefinition.configurationVersion
@@ -396,14 +490,17 @@ export function HomeConfigurator({
                 : undefined);
             const restoredConfiguration = {
               ...currentConfiguration,
+              ...(plannerTier ? { inclusionTier: plannerTier } : {}),
               ...(culturalExteriorInterest !== undefined
                 ? { culturalExteriorInterest }
                 : {}),
             };
             if (isDuplex) {
-              const restoredTiers = getSavedDuplexTiers(originalDefinition, restoredConfiguration, { a: selectedTier ?? "premium", b: residenceBTier });
+              const restoredTiers = plannerTier
+                ? { a: plannerTier, b: plannerTier }
+                : getSavedDuplexTiers(originalDefinition, restoredConfiguration, { a: selectedTier ?? "premium", b: residenceBTier });
               setDuplexTiers(restoredTiers);
-              setConfiguration(applyHomeTier(getDuplexTierDefinition(originalDefinition, restoredTiers), restoredConfiguration));
+              setConfiguration(applyHomeTier(getDuplexTierDefinition(originalDefinition, restoredTiers, plannerTier), restoredConfiguration));
             } else {
               setConfiguration(selectedTier
                 ? applyHomeTier(getHomeTierDefinition(originalDefinition, selectedTier), restoredConfiguration)
@@ -425,7 +522,7 @@ export function HomeConfigurator({
     return () => {
       active = false;
     };
-  }, [originalDefinition, isDuplex, selectedTier, residenceBTier, personalizedOffer]);
+  }, [originalDefinition, isDuplex, selectedTier, residenceBTier, personalizedOffer, plannerTier]);
 
   useEffect(() => {
     const captured = captureFirstTouchAttribution();
@@ -952,7 +1049,7 @@ export function HomeConfigurator({
             />
           </div>
 
-          {isDuplex ? (
+          {isDuplex && !plannerTier ? (
             <div data-duplex-tiers className="mb-12 border-t border-white/15 pt-7">
               <p className="max-w-3xl text-sm leading-7 text-white/60">Choose an interior tier independently for each residence, then confirm six interior chapters per residence, one shared exterior and one shared windows and patio doors package. Changing a residence’s tier clears only its incompatible choices.</p>
               <div className="mt-6 grid gap-6 sm:grid-cols-2">
@@ -1000,7 +1097,7 @@ export function HomeConfigurator({
                 Create the visual brief for your home in{" "}
                 {requiredCategories.length} controlled choices. Start with the
                 kitchen, then move through the major spaces and finishes that
-                define your {definition.homeName}. {personalizedPreset ? "Confirm or customize the collection’s starting choices in each chapter." : isDuplex ? "Each residence shows four options from its own interior tier." : selectedTier
+                define your {definition.homeName}. {personalizedPreset ? "Confirm or customize the collection’s starting choices in each chapter." : isDuplex && !plannerTier ? "Each residence shows four options from its own interior tier." : selectedTier
                   ? `Your ${homePricing[selectedTier].label} selection shows only ${homePricing[selectedTier].label} options.`
                   : "Begin with the Premium baseline and selectively choose Signature upgrades."}
               </p>
