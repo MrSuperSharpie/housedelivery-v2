@@ -2,6 +2,7 @@ import {
   isHomeInclusionLevel,
   type HomeConfiguration,
   type HomeInclusionLevel,
+  type HomeInclusionOption,
 } from "@/data/home-configurator";
 
 export const plannerAudiences = [
@@ -65,6 +66,11 @@ export type PlannerDesignChapter = {
   options: readonly PlannerDesignOption[];
 };
 
+export type PlannerTierComparison = {
+  chapter: string;
+  boards: Record<HomeInclusionLevel, readonly Pick<HomeInclusionOption, "name" | "image">[]>;
+};
+
 export type PlannerCatalogItem = {
   id: string;
   family:
@@ -83,6 +89,7 @@ export type PlannerCatalogItem = {
   buildMyHref?: string;
   lookBookHref?: string;
   designChapters: readonly PlannerDesignChapter[];
+  tierComparison?: PlannerTierComparison;
   planningBasis: PlanningBasis;
 };
 

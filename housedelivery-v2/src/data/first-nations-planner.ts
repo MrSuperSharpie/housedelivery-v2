@@ -1,11 +1,17 @@
-import { getRequiredCategories } from "@/data/home-configurator";
+import {
+  getHomeConfiguratorJourneyCategories,
+  getRequiredCategories,
+  type HomeConfiguratorDefinition,
+} from "@/data/home-configurator";
 import { getHomeConfiguratorRegistration } from "@/data/home-configurators";
+import { getHomeTierDefinition } from "@/data/home-pricing";
 import { catalogModels } from "@/data/catalog";
 import { carriageHomes } from "@/data/carriage-homes";
 import { models } from "@/data/models";
 import type {
   FundingCorridor,
   PlannerCatalogItem,
+  PlannerTierComparison,
   PlanningBasis,
 } from "@/lib/project-planner";
 
@@ -45,6 +51,31 @@ function getHomesPerCatalogueSelection(slug: string) {
 
 function parseSquareFeet(value: string) {
   return Number(value.replaceAll(",", ""));
+}
+
+function getTierComparison(
+  definition: HomeConfiguratorDefinition | undefined,
+): PlannerTierComparison | undefined {
+  if (!definition) return undefined;
+
+  // Use the same starting chapter and approved tier options as Design Studio.
+  const premium = getHomeConfiguratorJourneyCategories(getHomeTierDefinition(definition, "premium"))[0];
+  const signature = getHomeConfiguratorJourneyCategories(getHomeTierDefinition(definition, "signature"))[0];
+  if (
+    !premium || !signature ||
+    premium.kind === "flooring" || signature.kind === "flooring" ||
+    premium.options.length !== 4 || signature.options.length !== 4
+  ) {
+    return undefined;
+  }
+
+  return {
+    chapter: premium.title,
+    boards: {
+      premium: premium.options.map(({ name, image }) => ({ name, image })),
+      signature: signature.options.map(({ name, image }) => ({ name, image })),
+    },
+  };
 }
 
 const customHomes: readonly PlannerCatalogItem[] = models.map((model) => {
@@ -90,6 +121,7 @@ const customHomes: readonly PlannerCatalogItem[] = models.map((model) => {
     buildMyHref: definition ? `/homes/${model.slug}#home-inclusions` : undefined,
     lookBookHref: definition ? `/homes/${model.slug}#home-look-book` : undefined,
     designChapters: chapters,
+    tierComparison: getTierComparison(definition),
     planningBasis: underReviewBasis(`custom:${model.slug}`),
   };
 });

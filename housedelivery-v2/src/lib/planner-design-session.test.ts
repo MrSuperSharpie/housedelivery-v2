@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
 import test from "node:test";
 
 import { getDuplexTierDefinition } from "@/data/duplex-home-pricing";
@@ -177,5 +178,32 @@ test("every configurable Planner model shows four options for the tier in tiered
       const completed = { ...completeConfiguration(filtered), inclusionTier: tier };
       assert.equal(parseCompletedLookBook(slug, completed).configuration.inclusionTier, tier);
     }
+  }
+});
+
+test("tier comparisons reuse exactly four existing boards from each model's opening chapter", () => {
+  for (const model of firstNationsPlannerCatalog) {
+    const comparison = model.tierComparison;
+    if (!model.buildMyHref) {
+      assert.equal(comparison, undefined, model.id);
+      continue;
+    }
+
+    assert.ok(comparison, model.id);
+    const slug = model.id.replace(/^custom:/, "");
+    const definition = getHomeConfiguratorDefinition(slug)!;
+    for (const tier of tiers) {
+      const chapter = getHomeConfiguratorJourneyCategories(getHomeTierDefinition(definition, tier))[0];
+      assert.ok(chapter.kind !== "flooring");
+      assert.equal(comparison.chapter, chapter.title);
+      assert.deepEqual(comparison.boards[tier], chapter.options.map(({ name, image }) => ({ name, image })));
+      assert.equal(comparison.boards[tier].length, 4);
+      for (const { image } of comparison.boards[tier]) {
+        assert.equal(image.role, "design-board");
+        assert.ok(image.src.startsWith(`/images/homes/${slug}/`), image.src);
+        assert.ok(existsSync(new URL(`../../public${image.src}`, import.meta.url)), image.src);
+      }
+    }
+    assert.equal(new Set([...comparison.boards.premium, ...comparison.boards.signature].map(({ image }) => image.src)).size, 8);
   }
 });

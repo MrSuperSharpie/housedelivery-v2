@@ -58,6 +58,8 @@ import {
   getLocalPlannerDesign,
   getPlannerConfigurationKey,
   getPlannerReturnKey,
+  plannerInclusionTierLabels,
+  plannerInclusionTierNote,
   readPlannerDesignSession,
   readPlannerHomeViewContext,
   rememberPlannerInclusionTier,
@@ -355,10 +357,13 @@ export function TieredHomeConfigurator(props: Omit<HomeConfiguratorProps, "inclu
             {session ? "Choose Premium or Signature for this Design Group." : "Choose Premium or Signature in the home’s inclusion packages to start your design."}
           </p>
           {session ? (
-            <div className="mt-6 flex flex-wrap gap-3">
-              <a className={linkStyle} href={buildPlannerDesignHref(`${pathname}?inclusionTier=premium`, session)}>Premium</a>
-              <a className={linkStyle} href={buildPlannerDesignHref(`${pathname}?inclusionTier=signature`, session)}>Signature</a>
-            </div>
+            <>
+              <p className="mt-2 text-sm text-white/65">{plannerInclusionTierNote}</p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <a className={linkStyle} href={buildPlannerDesignHref(`${pathname}?inclusionTier=premium`, session)}>{plannerInclusionTierLabels.premium}</a>
+                <a className={linkStyle} href={buildPlannerDesignHref(`${pathname}?inclusionTier=signature`, session)}>{plannerInclusionTierLabels.signature}</a>
+              </div>
+            </>
           ) : null}
           <a className="mt-6 inline-block text-sm underline underline-offset-4" href={context.returnHref}>← Return to My Project</a>
         </div>

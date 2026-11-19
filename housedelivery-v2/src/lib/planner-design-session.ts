@@ -13,6 +13,14 @@ import {
   type PlannerState,
 } from "@/lib/project-planner";
 
+export const plannerInclusionTierLabels: Record<HomeInclusionLevel, string> = {
+  premium: "Premium | Refined Finishes",
+  signature: "Signature | Elevated Finishes + Additional Cost",
+};
+
+export const plannerInclusionTierNote =
+  "Signature offers an elevated level of finishes and design detail, with pricing confirmed for your project.";
+
 export const PLANNER_STORAGE_KEY = "house-delivery:first-nations-planner:v1";
 export const PLANNER_RETURN_KEY =
   "house-delivery:first-nations-planner:return:v1";

@@ -16,6 +16,7 @@ import Link from "next/link";
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import { FirstNationsExteriorDirectionCard } from "@/components/first-nations-exterior-direction-card";
+import { PlannerTierComparison } from "@/components/planner-tier-comparison";
 import {
   getCulturalDesignImage,
   indigenousArtworkCostNotice,
@@ -75,6 +76,8 @@ import {
   getLegacyPlannerConfigurationKey,
   getPlannerReturnKey,
   getPlannerStorageKey,
+  plannerInclusionTierLabels,
+  plannerInclusionTierNote,
   type PlannerDesignReturn,
   type PlannerDesignSession,
 } from "@/lib/planner-design-session";
@@ -1527,12 +1530,23 @@ function DesignStep({
                           </p>
                         ) : null}
                         {requiresTier ? (
-                          <div className="mt-5 max-w-xs">
-                            <label htmlFor={tierInputId}>
+                          <div className="mt-6">
+                            {model.tierComparison ? (
+                              <PlannerTierComparison
+                                homeName={model.name}
+                                comparison={model.tierComparison}
+                                selectedTier={session.inclusionTier}
+                              />
+                            ) : null}
+                            <p id={`${tierInputId}-note`} className="mt-4 text-xs leading-5 text-black/60">
+                              {plannerInclusionTierNote}
+                            </p>
+                            <label htmlFor={tierInputId} className="mt-5 block">
                               <FieldLabel>Inclusion tier</FieldLabel>
                             </label>
                             <select
                               id={tierInputId}
+                              aria-describedby={`${tierInputId}-note`}
                               value={variation.inclusionTier ?? ""}
                               onChange={(event) => {
                                 const inclusionTier = event.currentTarget.value;
@@ -1547,9 +1561,14 @@ function DesignStep({
                               className={selectClassName}
                             >
                               <option value="" disabled>Choose Premium or Signature</option>
-                              <option value="premium">Premium</option>
-                              <option value="signature">Signature</option>
+                              <option value="premium">{plannerInclusionTierLabels.premium}</option>
+                              <option value="signature">{plannerInclusionTierLabels.signature}</option>
                             </select>
+                            {variation.status === "complete" && session.inclusionTier && variation.configuration?.inclusionTier !== session.inclusionTier ? (
+                              <p role="status" className="mt-3 text-xs leading-5 text-black/60">
+                                Your saved Look Book stays available while you revise. The Design Studio keeps only finishes compatible with the selected tier.
+                              </p>
+                            ) : null}
                           </div>
                         ) : null}
                         <label className="mt-5 block">
