@@ -120,6 +120,7 @@ const customHomes: readonly PlannerCatalogItem[] = models.map((model) => {
         : undefined,
     buildMyHref: definition ? `/homes/${model.slug}#home-inclusions` : undefined,
     lookBookHref: definition ? `/homes/${model.slug}#home-look-book` : undefined,
+    configurationVersion: definition?.configurationVersion,
     designChapters: chapters,
     tierComparison: getTierComparison(definition),
     planningBasis: underReviewBasis(`custom:${model.slug}`),

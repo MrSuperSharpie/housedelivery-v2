@@ -9,6 +9,7 @@ import type {
   HomeConfiguration,
   HomeConfiguratorDefinition,
 } from "@/data/home-configurator";
+import { parseConfigurationId } from "@/lib/lookbook/configuration-id";
 import {
   getPlannerReturnHref,
   getPlannerStorageKey,
@@ -23,6 +24,7 @@ type LocalLookBook = {
   configuration: HomeConfiguration;
   returnHref: string;
   isFirstNations: boolean;
+  submitted: boolean;
 };
 
 function findLocalLookBook(configurationId: string): LocalLookBook | undefined {
@@ -39,7 +41,7 @@ function findLocalLookBook(configurationId: string): LocalLookBook | undefined {
       for (const line of state.portfolio) {
         for (const variation of line.designVariations) {
           if (
-            variation.lookBookConfigurationId !== configurationId ||
+            parseConfigurationId(variation.lookBookConfigurationId) !== configurationId ||
             !variation.configuration
           ) {
             continue;
@@ -65,6 +67,7 @@ function findLocalLookBook(configurationId: string): LocalLookBook | undefined {
             configuration: variation.configuration,
             returnHref: getPlannerReturnHref(audience, "planner-design-center"),
             isFirstNations: audience === "first-nations",
+            submitted: state.reviewStatus === "submitted",
           };
         }
       }
@@ -120,7 +123,9 @@ export function PlannerLocalLookBookFallback({
               </p>
               <p className="mt-2 max-w-2xl text-xs leading-5 text-white/48">
                 {localLookBook.isFirstNations
-                  ? "This Look Book is saved with your draft in this browser. It will be attached when your First Nations Project Review is submitted."
+                  ? localLookBook.submitted
+                    ? "This copy is saved in this browser. Choose Save as PDF in the print dialog to keep a copy."
+                    : "This Look Book is saved with your draft in this browser. It will be attached when your First Nations Project Review is submitted."
                   : "This Look Book is saved in this browser. Project Review sends House Delivery a summary of the design. Use Download My Look Book and choose Save as PDF in the print dialog to keep a copy."}
               </p>
             </div>

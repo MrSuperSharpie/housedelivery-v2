@@ -265,22 +265,23 @@ export function rememberPlannerInclusionTier(session: PlannerDesignSession) {
 export function buildPlannerDesignHref(
   baseHref: string,
   session: PlannerDesignSession,
-  destination: "configure" | "look-book" = "configure",
+  destination: "configure" | "look-book" | "look-book-pdf" = "configure",
 ) {
   const url = new URL(baseHref, "https://www.housedelivery.ca");
   url.searchParams.set("planner", session.audience);
   const explicitTier = url.searchParams.get("inclusionTier");
   setPlannerDesignSessionParams(url, session);
-  if (destination === "look-book" && usesPlannerInclusionTier(session.audience)) {
+  if (destination !== "configure" && usesPlannerInclusionTier(session.audience)) {
     url.searchParams.set("plannerView", "look-book");
     url.searchParams.delete("inclusionTier");
+    if (destination === "look-book-pdf") url.searchParams.set("download", "1");
   } else {
     url.searchParams.delete("plannerView");
     if (isHomeInclusionLevel(explicitTier)) {
       url.searchParams.set("inclusionTier", explicitTier);
     }
   }
-  url.hash = destination === "look-book" ? "home-look-book" : "home-inclusions";
+  url.hash = destination === "configure" ? "home-inclusions" : "home-look-book";
   return `${url.pathname}${url.search}${url.hash}`;
 }
 

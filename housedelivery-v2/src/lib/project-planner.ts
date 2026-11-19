@@ -88,6 +88,7 @@ export type PlannerCatalogItem = {
   walkthroughHref?: string;
   buildMyHref?: string;
   lookBookHref?: string;
+  configurationVersion?: number;
   designChapters: readonly PlannerDesignChapter[];
   tierComparison?: PlannerTierComparison;
   planningBasis: PlanningBasis;

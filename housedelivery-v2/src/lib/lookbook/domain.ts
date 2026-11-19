@@ -23,6 +23,10 @@ import {
   type StoredLookBookSelection,
 } from "@/lib/lookbook/types";
 
+import { parseConfigurationId } from "@/lib/lookbook/configuration-id";
+
+export { parseConfigurationId };
+
 export class LookBookValidationError extends Error {}
 
 export function singleLine(value: unknown, maximumLength: number) {
@@ -49,15 +53,6 @@ function isEmail(value: string) {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
-}
-
-export function parseConfigurationId(value: unknown) {
-  const id = singleLine(value, 80);
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-    id,
-  )
-    ? id.toLowerCase()
-    : undefined;
 }
 
 export function createConfigurationId() {

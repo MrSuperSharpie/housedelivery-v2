@@ -24,6 +24,7 @@ import {
 import { isHomeInclusionLevel } from "@/data/home-configurator";
 import { trackAnalyticsEvent } from "@/lib/analytics";
 import { cn } from "@/lib/cn";
+import { getPlannerLookBookDocument } from "@/lib/planner-lookbook-documents";
 import { waitForPrintImages } from "@/lib/pdf/print-images";
 import {
   addPlannerDesignVariation,
@@ -2147,6 +2148,51 @@ function OpportunityReportBrand({ cover = false }: { cover?: boolean }) {
   );
 }
 
+function CompletedPlannerLookBooks({
+  state,
+  lines,
+}: {
+  state: PlannerState;
+  lines: ReturnType<typeof getPortfolioSummary>["lines"];
+}) {
+  if (!usesPlannerInclusionTier(state.audience)) return null;
+
+  const documents = lines.flatMap(({ line, model }) =>
+    line.designVariations.flatMap((variation) => {
+      const session = getPlannerDesignSession(
+        state.audience, state.projectId, state.community, line, model, variation,
+      );
+      const document = getPlannerLookBookDocument(state, model, variation, session);
+      return document ? [{ key: variation.id, home: model.name, group: variation.label, ...document }] : [];
+    }),
+  );
+  if (!documents.length) return null;
+
+  const linkClass = "inline-flex min-h-11 items-center text-xs font-semibold text-black/72 underline decoration-black/32 underline-offset-4 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4";
+  return (
+    <section aria-label="Completed Look Books" data-planner-lookbook-documents className="planner-screen-only mt-7 border-y border-black/16 py-4">
+      <h3 className="text-xs font-semibold uppercase tracking-[0.15em] text-black/68">Completed Look Books</h3>
+      <ul className="mt-3 divide-y divide-black/14">
+        {documents.map(({ key, home, group, tier, browserLocal, viewHref, pdfHref }) => (
+          <li key={key} className="flex flex-col gap-1 py-2 sm:flex-row sm:items-center sm:justify-between sm:gap-5">
+            <div>
+              <p className="text-sm font-medium text-black/82">{home} · {group}</p>
+              <p className="mt-1 text-xs text-black/56">{tier}{browserLocal ? " · Saved in this browser" : ""}</p>
+            </div>
+            <div className="flex shrink-0 flex-wrap gap-x-5">
+              <Link href={viewHref} prefetch={false} target="_blank" rel="noreferrer" className={linkClass}>View Look Book</Link>
+              <Link href={pdfHref} prefetch={false} target="_blank" rel="noreferrer" className={linkClass}>Download PDF</Link>
+            </div>
+          </li>
+        ))}
+      </ul>
+      {documents.some((document) => document.browserLocal) ? (
+        <p className="mt-2 text-xs leading-5 text-black/56">For Look Books saved in this browser, choose Save as PDF in the print dialog.</p>
+      ) : null}
+    </section>
+  );
+}
+
 function OpportunityReport({
   state,
   onBeginReview,
@@ -2255,6 +2301,7 @@ function OpportunityReport({
           <button type="button" onClick={printReport} disabled={preparingPrint} aria-busy={preparingPrint} data-planner-report-download="top" className="inline-flex min-h-14 items-center justify-between gap-8 border border-black px-5 text-left text-[9px] font-semibold uppercase tracking-[0.16em] text-black transition-colors hover:bg-black hover:text-white">{preparingPrint ? "Preparing PDF…" : "Download Opportunity Report"} <FileDown aria-hidden="true" className="size-4" /></button>
           <button type="button" onClick={onBeginReview} className="inline-flex min-h-14 items-center justify-between gap-8 bg-black px-5 text-left text-[9px] font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-black/78">{state.audience === "first-nations" ? "Send to House Delivery Review" : "Begin Project Review"} <ArrowRight aria-hidden="true" className="size-4" /></button>
         </div>
+        <CompletedPlannerLookBooks state={state} lines={summary.lines} />
       </div>
 
       <article
@@ -3008,7 +3055,7 @@ function SubmittedProjectJourney({
               {completedDesigns.map(({ model, variation }) => (
                 <div key={variation.id} className="grid gap-2 border-b border-black/16 py-4 text-sm sm:grid-cols-[1fr_auto]">
                   <p>{variation.projectDesignName ?? `${getPlannerHomeName(model.name)} — ${variation.label}`}<br /><span className="text-xs text-black/44">{variation.assignedQuantity} {variation.assignedQuantity === 1 ? "home" : "homes"} / One design-development package</span></p>
-                  <p className="text-black/52">Fee: To be configured<br /><span className="text-xs">Status: Not authorized</span>{variation.lookBookConfigurationId ? <><br /><Link href={`/lookbook/${variation.lookBookConfigurationId}`} target="_blank" rel="noreferrer" className="text-[9px] font-semibold uppercase tracking-[0.14em] underline underline-offset-4">View Look Book</Link>{" / "}<Link href={`/lookbook/${variation.lookBookConfigurationId}/pdf?disposition=attachment`} target="_blank" rel="noreferrer" className="text-[9px] font-semibold uppercase tracking-[0.14em] underline underline-offset-4">PDF</Link></> : null}</p>
+                  <p className="text-black/52">Fee: To be configured<br /><span className="text-xs">Status: Not authorized</span></p>
                 </div>
               ))}
             </div>
@@ -3303,18 +3350,19 @@ function ProjectReviewStep({
 
       <div className="mt-14 border-y border-black/18 py-9 sm:py-12">
         {submitted ? (
-          <div role="status">
-            <div className="max-w-3xl">
+          <>
+            <div role="status" className="max-w-3xl">
             <p className="inline-flex items-center gap-3 text-[9px] font-semibold uppercase tracking-[0.18em] text-black/48"><Check aria-hidden="true" className="size-4" /> Project review received</p>
             <h3 className="mt-5 text-3xl font-medium tracking-[-0.045em] sm:text-5xl">Project received.</h3>
               <p className="mt-5 text-sm leading-6 text-black/55">
                 {isFirstNations
                   ? `House Delivery received project ${state.projectId} with Opportunity Report ${state.opportunityReportReference} and ${completedDesigns.length} completed ${completedDesigns.length === 1 ? "Look Book" : "Look Books"}. House Delivery will review the portfolio, including any planning selections, before preparing an LOU.`
-                  : "House Delivery received your review request and portfolio summary. Your working portfolio, Opportunity Report and Look Books are saved in this browser. Use View / Edit My Project to reopen a Look Book and save it as a PDF."}
+                  : "House Delivery received your review request and portfolio summary. Your working portfolio, Opportunity Report and any completed Look Books are saved in this browser."}
               </p>
             </div>
+            <CompletedPlannerLookBooks state={state} lines={summary.lines} />
             {isFirstNations ? <SubmittedProjectJourney state={state} completedDesigns={completedDesigns} /> : null}
-          </div>
+          </>
         ) : (
           <form onSubmit={submitProjectReview} className="grid gap-x-6 gap-y-8 sm:grid-cols-2">
             <div className="sm:col-span-2">
