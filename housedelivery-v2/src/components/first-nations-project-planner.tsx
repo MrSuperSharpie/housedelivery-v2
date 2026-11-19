@@ -2074,10 +2074,10 @@ function OpportunityReportBrand({ cover = false }: { cover?: boolean }) {
   return cover ? (
     <Image
       data-opportunity-report-brand="cover"
-      src="/images/brand/house-delivery-logo-gold.png"
+      src="/images/brand/house-delivery-logo-tan.png"
       alt="House Delivery Inc."
-      width={1774}
-      height={887}
+      width={1370}
+      height={537}
       unoptimized
       className={cn(position, "top-1.5 h-8 w-auto object-contain print:top-2 print:h-[38px]")}
     />
