@@ -1471,6 +1471,7 @@ function DesignStep({
                       model,
                       variation,
                     );
+                    const tierInputId = `planner-inclusion-tier-${variation.id}`;
                     const buildHref = !requiresTier || session.inclusionTier
                       ? buildPlannerDesignHref(model.buildMyHref!, session)
                       : undefined;
@@ -1526,9 +1527,12 @@ function DesignStep({
                           </p>
                         ) : null}
                         {requiresTier ? (
-                          <label className="mt-5 block max-w-xs">
-                            <FieldLabel>Inclusion tier</FieldLabel>
+                          <div className="mt-5 max-w-xs">
+                            <label htmlFor={tierInputId}>
+                              <FieldLabel>Inclusion tier</FieldLabel>
+                            </label>
                             <select
+                              id={tierInputId}
                               value={variation.inclusionTier ?? ""}
                               onChange={(event) => {
                                 const inclusionTier = event.currentTarget.value;
@@ -1546,7 +1550,7 @@ function DesignStep({
                               <option value="premium">Premium</option>
                               <option value="signature">Signature</option>
                             </select>
-                          </label>
+                          </div>
                         ) : null}
                         <label className="mt-5 block">
                           <FieldLabel>Design Group notes</FieldLabel>
