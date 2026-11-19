@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { imageConfigDefault } from "next/dist/shared/lib/image-config";
 import config from "../../../next.config";
-import { getPrintImageUrl, LOOK_BOOK_PRINT_IMAGE_WIDTH } from "@/lib/pdf/print-images";
+import { getPrintImageUrl, LOOK_BOOK_PRINT_IMAGE_WIDTH, waitForPrintImages } from "@/lib/pdf/print-images";
 
 test("the PDF renderer requests an allowed bounded Next image derivative", () => {
   const sizes = [...(config.images?.deviceSizes ?? imageConfigDefault.deviceSizes), ...(config.images?.imageSizes ?? imageConfigDefault.imageSizes)];
@@ -44,4 +44,42 @@ test("print request routing leaves non-image assets, vectors and unbounded consu
     const source = new URL(path, "https://preview.vercel.app");
     assert.strictEqual(getPrintImageUrl(source, width), source);
   }
+});
+
+test("report printing waits for every scoped image to decode", async (t) => {
+  const selector = "#planner-opportunity-report img";
+  const slowDecode = Promise.withResolvers<void>();
+  const loaded = { loading: "lazy", decode: async () => {}, complete: true, naturalWidth: 980 };
+  const delayed = { loading: "lazy", decode: () => slowDecode.promise, complete: false, naturalWidth: 0 };
+  const original = Object.getOwnPropertyDescriptor(globalThis, "document");
+  Object.defineProperty(globalThis, "document", {
+    configurable: true,
+    value: {
+      fonts: { ready: Promise.resolve() },
+      querySelectorAll: (input: string) => {
+        assert.equal(input, selector);
+        return [loaded, delayed];
+      },
+    },
+  });
+  t.after(() => {
+    if (original) Object.defineProperty(globalThis, "document", original);
+    else Reflect.deleteProperty(globalThis, "document");
+  });
+
+  let readyToPrint = false;
+  const result = waitForPrintImages(selector).then(() => { readyToPrint = true; });
+  await Promise.resolve();
+  assert.equal(loaded.loading, "eager");
+  assert.equal(delayed.loading, "eager");
+  assert.equal(readyToPrint, false);
+
+  delayed.complete = true;
+  delayed.naturalWidth = 996;
+  slowDecode.resolve();
+  await result;
+  assert.equal(readyToPrint, true);
+
+  delayed.naturalWidth = 0;
+  await assert.rejects(waitForPrintImages(selector), /images_incomplete/);
 });

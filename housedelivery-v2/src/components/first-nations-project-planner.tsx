@@ -22,6 +22,7 @@ import {
 } from "@/data/first-nations-cultural-design";
 import { trackAnalyticsEvent } from "@/lib/analytics";
 import { cn } from "@/lib/cn";
+import { waitForPrintImages } from "@/lib/pdf/print-images";
 import {
   addPlannerDesignVariation,
   calculatePreliminaryEstimate,
@@ -2084,6 +2085,9 @@ function OpportunityReport({
   catalog: readonly PlannerCatalogItem[];
   corridors: readonly FundingCorridor[];
 }) {
+  const printInProgress = useRef(false);
+  const [printStatus, setPrintStatus] = useState<"idle" | "preparing" | "error">("idle");
+  const preparingPrint = printStatus === "preparing";
   const summary = getPortfolioSummary(state.portfolio, catalog);
   const estimate = calculatePreliminaryEstimate(state.portfolio, catalog);
   const funding = getOpportunityReportFundingCorridors(
@@ -2132,11 +2136,29 @@ function OpportunityReport({
       )
     : [savedDesigns];
 
-  function printReport() {
-    const previousTitle = document.title;
-    document.title = `${state.community || "Housing Project"} — Preliminary Opportunity Report`;
-    window.print();
-    document.title = previousTitle;
+  async function printReport() {
+    const report = document.getElementById("planner-opportunity-report");
+    if (!report || printInProgress.current) return;
+
+    printInProgress.current = true;
+    setPrintStatus("preparing");
+    try {
+      await waitForPrintImages("#planner-opportunity-report img");
+      if (report.isConnected) {
+        const previousTitle = document.title;
+        document.title = `${state.community || "Housing Project"} — Preliminary Opportunity Report`;
+        try {
+          window.print();
+        } finally {
+          document.title = previousTitle;
+        }
+      }
+      setPrintStatus("idle");
+    } catch {
+      setPrintStatus("error");
+    } finally {
+      printInProgress.current = false;
+    }
   }
 
   function viewReport() {
@@ -2151,7 +2173,7 @@ function OpportunityReport({
         <StepHeader eyebrow={state.audience === "first-nations" ? "07 / Opportunity report" : "08 / Preliminary opportunity report"} title="Your Opportunity Report is ready." intro="Review or download your project summary, then send it to House Delivery when you are ready." />
         <div data-planner-report-controls="top" className="mt-10 grid gap-3 lg:grid-cols-3">
           <button type="button" onClick={viewReport} className="inline-flex min-h-14 items-center justify-between gap-8 border border-black/28 px-5 text-left text-[9px] font-semibold uppercase tracking-[0.16em] text-black/68 transition-colors hover:border-black hover:text-black">View Opportunity Report <ArrowRight aria-hidden="true" className="size-4" /></button>
-          <button type="button" onClick={printReport} data-planner-report-download="top" className="inline-flex min-h-14 items-center justify-between gap-8 border border-black px-5 text-left text-[9px] font-semibold uppercase tracking-[0.16em] text-black transition-colors hover:bg-black hover:text-white">Download Opportunity Report <FileDown aria-hidden="true" className="size-4" /></button>
+          <button type="button" onClick={printReport} disabled={preparingPrint} aria-busy={preparingPrint} data-planner-report-download="top" className="inline-flex min-h-14 items-center justify-between gap-8 border border-black px-5 text-left text-[9px] font-semibold uppercase tracking-[0.16em] text-black transition-colors hover:bg-black hover:text-white">{preparingPrint ? "Preparing PDF…" : "Download Opportunity Report"} <FileDown aria-hidden="true" className="size-4" /></button>
           <button type="button" onClick={onBeginReview} className="inline-flex min-h-14 items-center justify-between gap-8 bg-black px-5 text-left text-[9px] font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-black/78">{state.audience === "first-nations" ? "Send to House Delivery Review" : "Begin Project Review"} <ArrowRight aria-hidden="true" className="size-4" /></button>
         </div>
       </div>
@@ -2770,10 +2792,12 @@ function OpportunityReport({
           <button
             type="button"
             onClick={printReport}
+            disabled={preparingPrint}
+            aria-busy={preparingPrint}
             data-planner-report-download="bottom"
             className="inline-flex min-h-14 items-center justify-between gap-8 border border-black px-6 text-left text-[10px] font-semibold uppercase tracking-[0.17em] text-black transition-colors hover:bg-black hover:text-white"
           >
-            Download Opportunity Report <FileDown aria-hidden="true" className="size-4" />
+            {preparingPrint ? "Preparing PDF…" : "Download Opportunity Report"} <FileDown aria-hidden="true" className="size-4" />
           </button>
           <button
             type="button"
@@ -2801,13 +2825,21 @@ function OpportunityReport({
         </div>
       </div>
 
+      {printStatus === "error" ? (
+        <p role="alert" className="planner-screen-only fixed bottom-16 right-3 z-40 max-w-[calc(100vw-1.5rem)] border border-black/18 bg-white px-4 py-3 text-xs leading-5 sm:bottom-20 sm:right-6">
+          A report image couldn’t load. Refresh the page and try again.
+        </p>
+      ) : null}
+
       <button
         type="button"
         onClick={printReport}
+        disabled={preparingPrint}
+        aria-busy={preparingPrint}
         data-planner-report-download="persistent"
         className="planner-screen-only fixed bottom-3 right-3 z-40 inline-flex min-h-11 max-w-[calc(100vw-1.5rem)] items-center gap-3 border border-black/18 bg-white px-4 text-[9px] font-semibold uppercase tracking-[0.15em] text-black shadow-[0_12px_36px_rgba(0,0,0,0.16)] transition-colors hover:border-black sm:bottom-6 sm:right-6"
       >
-        <FileDown aria-hidden="true" className="size-3.5" /> Download Report
+        <FileDown aria-hidden="true" className="size-3.5" /> {preparingPrint ? "Preparing PDF…" : "Download Report"}
       </button>
     </div>
   );

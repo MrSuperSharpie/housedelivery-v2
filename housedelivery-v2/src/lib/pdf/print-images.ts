@@ -26,10 +26,12 @@ export function getPrintImageUrl(url: URL, maxWidth?: number) {
 }
 
 // Runs inside the print browser, so keep this function self-contained.
-export async function waitForPrintImages() {
+export async function waitForPrintImages(selector?: string | void) {
   await document.fonts.ready;
   const images = Array.from(
-    document.querySelectorAll<HTMLImageElement>("[data-look-book-print-page] img"),
+    document.querySelectorAll<HTMLImageElement>(
+      selector ?? "[data-look-book-print-page] img",
+    ),
   );
   images.forEach((image) => { image.loading = "eager"; });
   let timer: ReturnType<typeof setTimeout> | undefined;
