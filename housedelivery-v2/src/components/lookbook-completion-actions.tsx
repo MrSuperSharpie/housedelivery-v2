@@ -32,6 +32,12 @@ import { getFirstTouchAttribution } from "@/lib/lookbook/attribution";
 import { billOfMaterialsCopy, walkthroughQualification } from "@/data/project-next-steps";
 import { lookBookContactRequestText, lookBookPrivacyText } from "@/lib/lookbook/consent";
 import type { LookBookAttribution } from "@/lib/lookbook/types";
+import { waitForPrintImages } from "@/lib/pdf/print-images";
+
+type LookBookPrintControls = {
+  download: () => void;
+  preparing: boolean;
+};
 
 type LookBookCompletionActionsProps = {
   definition: HomeConfiguratorDefinition;
@@ -43,6 +49,7 @@ type LookBookCompletionActionsProps = {
   initialCustomer?: LookBookCustomer;
   children: (
     personalizedHomeTitle: string,
+    print: LookBookPrintControls,
     customer?: LookBookCustomer,
     requestProjectReview?: () => void,
   ) => ReactNode;
@@ -120,6 +127,8 @@ export function LookBookCompletionActions({
     getFirstTouchAttribution(),
   );
   const submittedRef = useRef(false);
+  const printInProgress = useRef(false);
+  const [printStatus, setPrintStatus] = useState<"idle" | "preparing" | "error">("idle");
   const eventBase = {
     home_slug: definition.homeId,
     home_name: definition.homeName,
@@ -134,10 +143,13 @@ export function LookBookCompletionActions({
     const reviewFrame = parameters.get("projectReview") === "1"
       ? requestAnimationFrame(() => setActiveForm("property"))
       : undefined;
-    const printTimer = parameters.get("download") === "1"
-      ? window.setTimeout(() => window.print(), 400)
+    const printFrame = parameters.get("download") === "1"
+      ? requestAnimationFrame(() => void downloadLookBook())
       : undefined;
-    return () => { if (reviewFrame !== undefined) cancelAnimationFrame(reviewFrame); window.clearTimeout(printTimer); };
+    return () => {
+      if (reviewFrame !== undefined) cancelAnimationFrame(reviewFrame);
+      if (printFrame !== undefined) cancelAnimationFrame(printFrame);
+    };
     // The saved-view event should only fire once per mounted page.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [savedView]);
@@ -152,9 +164,28 @@ export function LookBookCompletionActions({
     return () => cancelAnimationFrame(frame);
   }, [activeForm]);
 
-  function downloadLookBook() {
-    trackLookBookEvent("lookbook_downloaded", eventBase);
-    window.print();
+  async function downloadLookBook() {
+    if (printInProgress.current) return;
+    const book = document.getElementById("home-look-book");
+    if (!book) return;
+
+    printInProgress.current = true;
+    setPrintStatus("preparing");
+    try {
+      await waitForPrintImages("#home-look-book [data-look-book-print-page] img", printStatus === "error");
+      if (Array.from(document.fonts).some((font) => font.status === "error")) {
+        throw new Error("lookbook_fonts_incomplete");
+      }
+      if (book.isConnected) {
+        if (enabled) trackLookBookEvent("lookbook_downloaded", eventBase);
+        window.print();
+      }
+      setPrintStatus("idle");
+    } catch {
+      setPrintStatus("error");
+    } finally {
+      printInProgress.current = false;
+    }
   }
 
   function openEmailForm() {
@@ -357,7 +388,31 @@ export function LookBookCompletionActions({
     savedCustomer,
   );
 
-  if (!enabled) return <>{children(personalizedHomeTitle, savedCustomer)}</>;
+  const print = { download: downloadLookBook, preparing: printStatus === "preparing" };
+  const printFeedback = printStatus !== "idle" ? (
+    <div className="look-book-screen-control fixed inset-x-5 bottom-5 z-50 ml-auto max-w-md border border-white/24 bg-[#111216] px-5 py-4 text-white shadow-xl">
+      {print.preparing ? (
+        <p role="status" className="text-sm">Preparing your PDF…</p>
+      ) : (
+        <>
+          <p role="alert" className="text-sm leading-6">
+            Some Look Book images or fonts couldn’t load. Try again to prepare the complete PDF.
+          </p>
+          <button
+            type="button"
+            onClick={print.download}
+            className="mt-2 min-h-11 border-b border-white/45 text-xs font-semibold uppercase tracking-wider hover:border-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+          >
+            Retry PDF download
+          </button>
+        </>
+      )}
+    </div>
+  ) : null;
+
+  if (!enabled) {
+    return <>{children(personalizedHomeTitle, print, savedCustomer)}{printFeedback}</>;
+  }
 
   return (
     <>
@@ -419,8 +474,9 @@ export function LookBookCompletionActions({
               ) : null}
               <button
                 type="button"
-                onClick={downloadLookBook}
-                className="flex min-h-14 items-center justify-between gap-5 border border-white/44 px-6 text-left text-[10px] font-semibold uppercase tracking-[0.17em] text-white hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+                onClick={print.download}
+                disabled={print.preparing}
+                className="flex min-h-14 items-center justify-between gap-5 border border-white/44 px-6 text-left text-[10px] font-semibold uppercase tracking-[0.17em] text-white hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white disabled:cursor-wait disabled:opacity-60"
               >
                 <span>Download PDF</span>
                 <Download className="size-4" aria-hidden="true" />
@@ -591,7 +647,7 @@ export function LookBookCompletionActions({
         </div>
       </section>
 
-      {children(personalizedHomeTitle, savedCustomer, openPropertyFormFromClosing)}
+      {children(personalizedHomeTitle, print, savedCustomer, openPropertyFormFromClosing)}
 
       <section
         className="look-book-screen-control bg-[#111216] px-5 pb-16 text-white sm:px-8 sm:pb-20 lg:px-12 lg:pb-24"
@@ -629,8 +685,9 @@ export function LookBookCompletionActions({
             ) : null}
             <button
               type="button"
-              onClick={downloadLookBook}
-              className={`${savedView ? "bg-white text-black hover:bg-white/84" : "border border-white/44 text-white hover:bg-white hover:text-black"} flex min-h-14 items-center justify-between gap-4 px-5 text-left text-[9px] font-semibold uppercase tracking-[0.15em] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white`}
+              onClick={print.download}
+              disabled={print.preparing}
+              className={`${savedView ? "bg-white text-black hover:bg-white/84" : "border border-white/44 text-white hover:bg-white hover:text-black"} flex min-h-14 items-center justify-between gap-4 px-5 text-left text-[9px] font-semibold uppercase tracking-[0.15em] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white disabled:cursor-wait disabled:opacity-60`}
             >
               <span>Download My Look Book</span>
               <Download className="size-4 shrink-0" aria-hidden="true" />
@@ -647,6 +704,7 @@ export function LookBookCompletionActions({
           </div>
         </div>
       </section>
+      {printFeedback}
     </>
   );
 }

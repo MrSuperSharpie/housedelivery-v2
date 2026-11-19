@@ -384,9 +384,11 @@ function HouseDeliveryValueSection({
 function SaveLookBookButton({
   placement,
   onSave,
+  preparing,
 }: {
   placement: "top" | "completion";
   onSave: () => void;
+  preparing: boolean;
 }) {
   const isCompletionControl = placement === "completion";
 
@@ -395,6 +397,7 @@ function SaveLookBookButton({
       type="button"
       data-save-look-book={placement}
       onClick={onSave}
+      disabled={preparing}
       className={
         isCompletionControl
           ? "inline-flex min-h-14 items-center justify-center gap-3 border border-white/44 px-6 text-[9px] font-semibold uppercase tracking-[0.17em] text-white hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
@@ -1279,10 +1282,6 @@ export function HomeLookBook({
     printMode,
     personalizedBrief,
   };
-  const saveLookBook = () => {
-    window.print();
-  };
-
   return (
     <section
       id="home-look-book"
@@ -1303,7 +1302,7 @@ export function HomeLookBook({
         savedView={savedView}
         enabled={!plannerContext && !personalizedBrief}
       >
-        {(customerHomeTitle, customer, requestProjectReview) => {
+        {(customerHomeTitle, print, customer, requestProjectReview) => {
           const personalTitle = projectDesignName ?? customerHomeTitle;
           const customerName = customer
             ? getLookBookCustomerName(customer)
@@ -1326,7 +1325,7 @@ export function HomeLookBook({
                 </p>
               </div>
               <div className="flex flex-col gap-3 sm:items-end">
-                <SaveLookBookButton placement="top" onSave={saveLookBook} />
+                <SaveLookBookButton placement="top" onSave={print.download} preparing={print.preparing} />
               <button
                 type="button"
                 onClick={() => plannerContext.onSaveAndReturn()}
@@ -1471,7 +1470,7 @@ export function HomeLookBook({
                   </button>
                 )}
                 <div className="grid gap-3">
-                  <SaveLookBookButton placement="completion" onSave={saveLookBook} />
+                  <SaveLookBookButton placement="completion" onSave={print.download} preparing={print.preparing} />
                   <button
                     type="button"
                     onClick={() => plannerContext.onSaveAndReturn()}

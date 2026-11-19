@@ -26,18 +26,27 @@ export function getPrintImageUrl(url: URL, maxWidth?: number) {
 }
 
 // Runs inside the print browser, so keep this function self-contained.
-export async function waitForPrintImages(selector?: string | void) {
-  await document.fonts.ready;
+export async function waitForPrintImages(
+  selector?: string | void,
+  retryFailedImages = false,
+) {
   const images = Array.from(
     document.querySelectorAll<HTMLImageElement>(
       selector ?? "[data-look-book-print-page] img",
     ),
   );
-  images.forEach((image) => { image.loading = "eager"; });
+  for (const image of images) {
+    if (retryFailedImages && image.complete && image.naturalWidth === 0) {
+      // Start a fresh request for a failed image without discarding the Look Book.
+      const source = image.getAttribute("src");
+      if (source) image.setAttribute("src", source);
+    }
+    image.loading = "eager";
+  }
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     await Promise.race([
-      Promise.all(images.map((image) => image.decode())),
+      Promise.all([document.fonts.ready, ...images.map((image) => image.decode())]),
       new Promise<never>((_, reject) => {
         timer = setTimeout(() => reject(new Error("lookbook_images_timeout")), 45_000);
       }),

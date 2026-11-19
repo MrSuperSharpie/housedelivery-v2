@@ -49,13 +49,14 @@ test("print request routing leaves non-image assets, vectors and unbounded consu
 test("report printing waits for every scoped image to decode", async (t) => {
   const selector = "#planner-opportunity-report img";
   const slowDecode = Promise.withResolvers<void>();
+  const fontsReady = Promise.withResolvers<void>();
   const loaded = { loading: "lazy", decode: async () => {}, complete: true, naturalWidth: 980 };
   const delayed = { loading: "lazy", decode: () => slowDecode.promise, complete: false, naturalWidth: 0 };
   const original = Object.getOwnPropertyDescriptor(globalThis, "document");
   Object.defineProperty(globalThis, "document", {
     configurable: true,
     value: {
-      fonts: { ready: Promise.resolve() },
+      fonts: { ready: fontsReady.promise },
       querySelectorAll: (input: string) => {
         assert.equal(input, selector);
         return [loaded, delayed];
@@ -77,9 +78,52 @@ test("report printing waits for every scoped image to decode", async (t) => {
   delayed.complete = true;
   delayed.naturalWidth = 996;
   slowDecode.resolve();
+  await new Promise(setImmediate);
+  assert.equal(readyToPrint, false, "images alone cannot make the PDF ready");
+
+  fontsReady.resolve();
   await result;
   assert.equal(readyToPrint, true);
 
   delayed.naturalWidth = 0;
   await assert.rejects(waitForPrintImages(selector), /images_incomplete/);
+});
+
+test("a failed design board blocks printing and can be re-requested on retry", async (t) => {
+  const source = "/images/homes/boreal/board.png";
+  let requests = 0;
+  const image = {
+    complete: true,
+    loading: "lazy",
+    naturalWidth: 0,
+    getAttribute: () => source,
+    setAttribute: (attribute: string, value: string) => {
+      assert.equal(attribute, "src");
+      assert.equal(value, source);
+      requests += 1;
+      image.naturalWidth = 1200;
+    },
+    async decode() {
+      if (image.naturalWidth === 0) throw new Error("board failed to load");
+    },
+  };
+  const original = Object.getOwnPropertyDescriptor(globalThis, "document");
+  Object.defineProperty(globalThis, "document", {
+    configurable: true,
+    value: {
+      fonts: { ready: Promise.resolve() },
+      querySelectorAll: () => [image],
+    },
+  });
+  t.after(() => {
+    if (original) Object.defineProperty(globalThis, "document", original);
+    else Reflect.deleteProperty(globalThis, "document");
+  });
+
+  await assert.rejects(waitForPrintImages(), /board failed to load/);
+  assert.equal(requests, 0);
+  await waitForPrintImages(undefined, true);
+  assert.equal(requests, 1);
+  await waitForPrintImages(undefined, true);
+  assert.equal(requests, 1, "images that decoded successfully should not be re-requested");
 });
