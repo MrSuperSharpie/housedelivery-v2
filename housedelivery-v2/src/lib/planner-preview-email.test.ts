@@ -19,6 +19,9 @@ test("Planner test mail captures once with the isolated database and stays disab
     }
   });
   Object.assign(process.env, env);
+  delete process.env.PLANNER_PREVIEW_STORAGE_ORIGIN;
+  assert.throws(() => getPlannerPreviewEmailCapture(), /isolated Preview database/);
+  process.env.PLANNER_PREVIEW_STORAGE_ORIGIN = isolatedOrigin;
   assert.throws(() => getPlannerPreviewEmailCapture(), /isolated Preview database/);
 
   process.env.LOOKBOOK_SUPABASE_URL = `${isolatedOrigin}/`;

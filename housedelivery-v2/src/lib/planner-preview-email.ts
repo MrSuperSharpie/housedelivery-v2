@@ -2,12 +2,13 @@ import type { sendInquiryEmail } from "@/lib/inquiry-email";
 import { PlannerReviewAccessConfigurationError } from "@/lib/planner-review-access";
 
 export function getPlannerPreviewEmailCapture() {
-  const isolatedOrigin = process.env.PLANNER_PREVIEW_STORAGE_ORIGIN?.trim();
-  if (process.env.VERCEL_ENV !== "preview" || !isolatedOrigin) return undefined;
+  if (process.env.VERCEL_ENV !== "preview") return undefined;
 
+  const isolatedOrigin = process.env.PLANNER_PREVIEW_STORAGE_ORIGIN?.trim();
   const storageUrl = process.env.LOOKBOOK_SUPABASE_URL?.trim();
   const storageKey = process.env.LOOKBOOK_SUPABASE_SERVICE_ROLE_KEY?.trim();
   if (
+    !isolatedOrigin ||
     !/^https:\/\/[a-z0-9]+\.supabase\.co$/.test(isolatedOrigin) ||
     storageUrl?.replace(/\/$/, "") !== isolatedOrigin ||
     !storageKey

@@ -107,6 +107,15 @@ function jsonResponse(body: object, status = 200) {
   });
 }
 
+function inquiryDeliveryFailure(status: 502 | 503, project?: StoredPlannerProject) {
+  return jsonResponse(
+    project
+      ? { error: "The project was saved, but its review notification could not be confirmed.", code: "planner_notification_pending" }
+      : { error: status === 503 ? "Inquiry delivery is temporarily unavailable." : "Inquiry delivery failed." },
+    status,
+  );
+}
+
 function logInquiryFailure(
   event: string,
   {
@@ -376,24 +385,32 @@ export async function POST(request: Request) {
       }
     } catch (error) {
       const isValidation = error instanceof PlannerHandoffValidationError;
+      const configurationUnavailable = error instanceof PlannerReviewAccessConfigurationError;
+      const reason = isValidation
+        ? "invalid_planner_handoff"
+        : configurationUnavailable
+          ? "planner_review_access_not_configured"
+          : error instanceof LookBookStorageUnavailableError
+            ? "lookbook_storage_not_configured"
+            : "lookbook_storage_failed";
       logInquiryFailure("planner_handoff_failed", {
         requestId,
         status: isValidation ? 400 : 503,
         durationMs: Date.now() - startedAt,
-        reason: isValidation
-          ? "invalid_planner_handoff"
-          : error instanceof PlannerReviewAccessConfigurationError
-            ? "planner_review_access_not_configured"
-          : error instanceof LookBookStorageUnavailableError
-            ? "lookbook_storage_not_configured"
-            : "lookbook_storage_failed",
+        reason,
         errorType: error instanceof Error ? error.name : "UnknownError",
       });
+      const previewUnavailable = configurationUnavailable && process.env.VERCEL_ENV === "preview";
       return jsonResponse(
         {
+          code: previewUnavailable ? "planner_preview_unavailable" : reason,
           error: isValidation
             ? error.message
-            : "Project design-package storage is temporarily unavailable.",
+            : previewUnavailable
+              ? "Project submission is unavailable on this Preview."
+              : configurationUnavailable
+                ? "Project review access is temporarily unavailable."
+                : "Project design-package storage is temporarily unavailable.",
         },
         isValidation ? 400 : 503,
       );
@@ -418,10 +435,7 @@ export async function POST(request: Request) {
       durationMs: Date.now() - startedAt,
       reason: "missing_resend_api_key",
     });
-    return jsonResponse(
-      { error: "Inquiry delivery is temporarily unavailable." },
-      503,
-    );
+    return inquiryDeliveryFailure(503, storedPlannerProject);
   }
 
   const isPlannerProjectReview = Boolean(plannerContext || plannerHandoff);
@@ -571,7 +585,7 @@ export async function POST(request: Request) {
           providerStatus: response.status,
           providerError: providerErrorName(providerResponse),
         });
-        return jsonResponse({ error: "Inquiry delivery failed." }, 502);
+        return inquiryDeliveryFailure(502, storedPlannerProject);
       }
 
       if (!providerMessageId(providerResponse)) {
@@ -582,7 +596,7 @@ export async function POST(request: Request) {
           reason: "missing_provider_message_id",
           providerStatus: response.status,
         });
-        return jsonResponse({ error: "Inquiry delivery failed." }, 502);
+        return inquiryDeliveryFailure(502, storedPlannerProject);
       }
 
       if (storedPlannerProject) {
@@ -613,7 +627,7 @@ export async function POST(request: Request) {
         durationMs: Date.now() - startedAt,
         errorType: error instanceof Error ? error.name : "UnknownError",
       });
-      return jsonResponse({ error: "Inquiry delivery failed." }, 502);
+      return inquiryDeliveryFailure(502, storedPlannerProject);
     }
   }
 

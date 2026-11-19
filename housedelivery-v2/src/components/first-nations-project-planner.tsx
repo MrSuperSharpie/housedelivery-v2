@@ -2068,6 +2068,26 @@ function ScaleReadinessStep({ state, catalog }: { state: PlannerState; catalog: 
   );
 }
 
+function OpportunityReportBrand({ cover = false }: { cover?: boolean }) {
+  const position = "absolute right-6 top-3 sm:right-10 lg:right-14 print:right-[14mm]";
+
+  return cover ? (
+    <Image
+      data-opportunity-report-brand="cover"
+      src="/images/brand/house-delivery-logo-gold.png"
+      alt="House Delivery Inc."
+      width={1774}
+      height={887}
+      unoptimized
+      className={cn(position, "top-1.5 h-8 w-auto object-contain print:top-2 print:h-[38px]")}
+    />
+  ) : (
+    <p data-opportunity-report-brand="page" className={cn(position, "text-[8px] font-semibold uppercase tracking-[0.19em] text-black/55")}>
+      House Delivery
+    </p>
+  );
+}
+
 function OpportunityReport({
   state,
   onBeginReview,
@@ -2187,8 +2207,9 @@ function OpportunityReport({
       >
         <section
           data-opportunity-report-page
-          className="opportunity-report-page bg-[#e7e3d8] px-6 py-10 sm:px-10 sm:py-12 lg:px-14"
+          className="opportunity-report-page relative bg-[#e7e3d8] px-6 py-10 sm:px-10 sm:py-12 lg:px-14"
         >
+          <OpportunityReportBrand cover />
           <div className="flex items-start justify-between gap-6 border-t border-black/22 pt-4">
             <div>
               <p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-black/50">
@@ -2270,8 +2291,9 @@ function OpportunityReport({
           <section
             key={`portfolio-page-${pageIndex}`}
             data-opportunity-report-page
-            className="opportunity-report-page bg-white px-6 py-10 sm:px-10 sm:py-12 lg:px-14"
+            className="opportunity-report-page relative bg-white px-6 py-10 sm:px-10 sm:py-12 lg:px-14"
           >
+            <OpportunityReportBrand />
             <div className="grid gap-8 border-t border-black/20 pt-4 lg:grid-cols-[0.36fr_1fr]">
               <div>
                 <p className="font-mono text-[9px] text-black/34">
@@ -2356,8 +2378,9 @@ function OpportunityReport({
 
         <section
           data-opportunity-report-page
-          className="opportunity-report-page bg-white px-6 py-10 sm:px-10 sm:py-12 lg:px-14"
+          className="opportunity-report-page relative bg-white px-6 py-10 sm:px-10 sm:py-12 lg:px-14"
         >
+          <OpportunityReportBrand />
           <div className="grid gap-8 border-t border-black/20 pt-4 lg:grid-cols-[0.36fr_1fr]">
             <div>
               <p className="font-mono text-[9px] text-black/34">01-03</p>
@@ -2465,8 +2488,9 @@ function OpportunityReport({
             <section
               key={`design-page-${pageIndex}`}
               data-opportunity-report-page
-              className="opportunity-report-page bg-[#e7e3d8] px-6 py-10 sm:px-10 sm:py-12 lg:px-14"
+              className="opportunity-report-page relative bg-[#e7e3d8] px-6 py-10 sm:px-10 sm:py-12 lg:px-14"
             >
+              <OpportunityReportBrand />
               <div className="grid gap-8 border-t border-black/20 pt-4 lg:grid-cols-[0.36fr_1fr]">
                 <div>
                   <p className="font-mono text-[9px] text-black/34">
@@ -2596,8 +2620,9 @@ function OpportunityReport({
 
         <section
           data-opportunity-report-page
-          className="opportunity-report-page bg-white px-6 py-10 sm:px-10 sm:py-12 lg:px-14"
+          className="opportunity-report-page relative bg-white px-6 py-10 sm:px-10 sm:py-12 lg:px-14"
         >
+          <OpportunityReportBrand />
           <div className="grid gap-8 border-t border-black/20 pt-4 lg:grid-cols-[0.36fr_1fr]">
             <div>
               <p className="font-mono text-[9px] text-black/34">07-08</p>
@@ -2690,8 +2715,9 @@ function OpportunityReport({
 
         <section
           data-opportunity-report-page
-          className="opportunity-report-page bg-[#e7e3d8] px-6 py-10 sm:px-10 sm:py-12 lg:px-14"
+          className="opportunity-report-page relative bg-[#e7e3d8] px-6 py-10 sm:px-10 sm:py-12 lg:px-14"
         >
+          <OpportunityReportBrand />
           <div className="grid gap-8 border-t border-black/20 pt-4 lg:grid-cols-[0.36fr_1fr]">
             <div>
               <p className="font-mono text-[9px] text-black/34">09</p>
@@ -3061,8 +3087,24 @@ function ProjectReviewStep({
         }),
       });
       const result: unknown = await response.json().catch(() => null);
+      if (!response.ok) {
+        const failure = result && typeof result === "object" ? result : undefined;
+        const code = failure && "code" in failure ? failure.code : undefined;
+        if (code === "planner_preview_unavailable") {
+          setSubmissionError("Project submission is unavailable on this Preview. Your draft is saved in this browser. You can still download your Opportunity Report.");
+          return;
+        }
+        if (code === "planner_notification_pending") {
+          setSubmissionError("Your project was saved, but we couldn’t confirm the review notification. Retry from this draft to continue.");
+          return;
+        }
+        if (code === "invalid_planner_handoff" && failure && "error" in failure && typeof failure.error === "string") {
+          setSubmissionError(`${failure.error} Your Planner draft is saved in this browser.`);
+          return;
+        }
+        throw new Error("Project review delivery failed.");
+      }
       if (
-        !response.ok ||
         !isAcceptedProjectReviewResponse(result) ||
         (isFirstNations &&
           result.designGroups?.length !== completedDesigns.length)
